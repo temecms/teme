@@ -375,3 +375,4 @@ Stop, write why under Records, commit and push, then stop, when:
 
 - Done to Task 3 at `65cfc11`, the quick check green; `ToolsFramesTest`, `ToolsScreensTest`, `UpdatesScreenTest` and `UpdaterScreenTest` green in the browser.
 - Done to Task 4 at `608eaa0`, the quick check green; `ToolsFramesTest` and `RedirectsScreenTest` green in the browser.
+- Done to Task 5 at `e5b5499`, the quick check green; `ToolsFramesTest` and `AiActivityScreenTest` green in the browser, and the feature `AiActivityScreenTest`.
