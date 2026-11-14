@@ -1,7 +1,7 @@
 # The area labels a pull request gets from the files it changes
 # (.github/workflows/labeler.yml). Priority labels are never set here.
 
-editor:
+area/editor:
   - changed-files:
       - any-glob-to-any-file:
           - resources/js/components/editor/**
@@ -9,13 +9,13 @@ editor:
           - resources/js/pages/content/compare.tsx
           - app/Domain/Cards/**
 
-lists:
+area/lists:
   - changed-files:
       - any-glob-to-any-file:
           - resources/js/components/list/**
           - resources/js/pages/content/index.tsx
 
-media:
+area/media:
   - changed-files:
       - any-glob-to-any-file:
           - app/Domain/Media/**
@@ -23,7 +23,7 @@ media:
           - resources/js/components/media-drawer.tsx
           - resources/js/pages/media/**
 
-themes:
+area/themes:
   - changed-files:
       - any-glob-to-any-file:
           - app/Domain/Themes/**
@@ -31,7 +31,7 @@ themes:
           - resources/js/pages/themes/**
           - resources/views/teme/**
 
-plugins:
+area/plugins:
   - changed-files:
       - any-glob-to-any-file:
           - app/Domain/Plugins/**
@@ -40,7 +40,7 @@ plugins:
           - resources/js/components/plugins/**
           - resources/js/pages/plugins/**
 
-api:
+area/api:
   - changed-files:
       - any-glob-to-any-file:
           - app/Domain/Api/**
@@ -48,7 +48,7 @@ api:
           - routes/api.php
           - routes/api/**
 
-site:
+area/site:
   - changed-files:
       - any-glob-to-any-file:
           - app/Http/Site/**
@@ -61,7 +61,7 @@ site:
           - app/Domain/RobotsTxt/**
           - routes/public.php
 
-admin:
+area/admin:
   - changed-files:
       - any-glob-to-any-file:
           - resources/css/**
@@ -71,21 +71,21 @@ admin:
           - resources/js/components/nav-main.tsx
           - app/Domain/Navigation/**
 
-import:
+area/import:
   - changed-files:
       - any-glob-to-any-file:
           - app/Domain/Import/**
           - resources/js/components/import/**
           - resources/js/pages/tools/import/**
 
-backups:
+area/backups:
   - changed-files:
       - any-glob-to-any-file:
           - app/Domain/Backups/**
           - resources/js/components/backups/**
           - resources/js/pages/tools/backups/**
 
-deploy:
+area/deploy:
   - changed-files:
       - any-glob-to-any-file:
           - Dockerfile
@@ -95,13 +95,13 @@ deploy:
           - app/Domain/Deployment/**
           - .github/workflows/image.yml
 
-documentation:
+type/documentation:
   - changed-files:
       - any-glob-to-all-files:
           - docs/**
           - '*.md'
 
-tests:
+area/tests:
   - changed-files:
       - any-glob-to-all-files:
           - tests/**
