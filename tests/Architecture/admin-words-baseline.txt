@@ -1,4 +1,3 @@
-components/account-menu.tsx	Account: {}
 components/ai-settings/month-figures.tsx	1 request used a model with no price, so its cost is left out.
 components/ai-settings/month-figures.tsx	AI is unavailable to everyone until the new month starts.
 components/ai-settings/month-figures.tsx	Budget
@@ -972,15 +971,6 @@ components/list/select-all-matching.tsx	Move all {} to the trash?
 components/list/select-all-matching.tsx	Restore all {}?
 components/list/select-all-matching.tsx	Select all {}
 components/list/select-all-matching.tsx	{} {} You can restore them from the trash.
-components/manage-two-factor.tsx	Continue setup
-components/manage-two-factor.tsx	Disable two-factor sign-in
-components/manage-two-factor.tsx	Disable two-factor sign-in
-components/manage-two-factor.tsx	Disable two-factor sign-in?
-components/manage-two-factor.tsx	Enable two-factor sign-in
-components/manage-two-factor.tsx	Once it’s on, signing in also asks for a code from an authenticator app on your phone.
-components/manage-two-factor.tsx	Signing in will need only your password until you set it up again, with a new authenticator entry and new recovery codes.
-components/manage-two-factor.tsx	Two-factor sign-in
-components/manage-two-factor.tsx	When you sign in, you also type the code from the authenticator app on your phone.
 components/media-drawer.tsx	Click the preview to set the focal point, which square crops keep in view.
 components/media-drawer.tsx	Delete permanently
 components/media-drawer.tsx	Delete permanently
@@ -1126,8 +1116,6 @@ components/palette/palette-commands.ts	Start a new {} in the editor
 components/palette/palette-commands.ts	Suggest alt text for this image
 components/palette/palette-commands.ts	Suggest metadata for this post
 components/palette/palette-commands.ts	Upload files
-components/password-input.tsx	Hide password
-components/password-input.tsx	Show password
 components/personalise-menu-dialog.tsx	Changes apply to your menu only. Pin up to
 components/personalise-menu-dialog.tsx	Move {} down
 components/personalise-menu-dialog.tsx	Move {} up
@@ -1143,8 +1131,6 @@ components/seo/who-publishes.tsx	Owned by
 components/seo/who-publishes.tsx	The business
 components/seo/who-publishes.tsx	This person no longer has an account, so search engines are told nobody in particular publishes the site. Choose someone else, or Nobody in particular.
 components/status-banner.tsx	Site notice
-components/term-picker.tsx	Find a {}
-components/term-picker.tsx	Remove {}
 components/term-tree-picker.tsx	+ Add
 components/term-tree-picker.tsx	Add
 components/term-tree-picker.tsx	Cancel
@@ -1295,25 +1281,6 @@ components/tools/update-progress.tsx	{} to Teme {} requested at the server at {}
 components/tools/update-progress.tsx	{} to Teme {} requested by {} at {}. The updater starts it within a minute.
 components/tools/update-progress.tsx	’s additions, which
 components/tools/update-progress.tsx	’s additions, which
-components/two-factor-recovery-codes.tsx	Each code signs you in once if you lose your phone. Keep them in a password manager.
-components/two-factor-recovery-codes.tsx	Hide
-components/two-factor-recovery-codes.tsx	Loading recovery codes
-components/two-factor-recovery-codes.tsx	New codes replace these. The old ones stop working.
-components/two-factor-recovery-codes.tsx	Recovery codes
-components/two-factor-recovery-codes.tsx	Recovery codes
-components/two-factor-recovery-codes.tsx	Regenerate codes
-components/two-factor-recovery-codes.tsx	View
-components/two-factor-recovery-codes.tsx	recovery codes
-components/two-factor-setup-modal.tsx	Authentication code
-components/two-factor-setup-modal.tsx	Back
-components/two-factor-setup-modal.tsx	Confirm
-components/two-factor-setup-modal.tsx	Enable two-factor sign-in
-components/two-factor-setup-modal.tsx	Enter the 6-digit code from your authenticator app
-components/two-factor-setup-modal.tsx	Scan the QR code, or type the setup key, in your authenticator app.
-components/two-factor-setup-modal.tsx	Scan the QR code, or type the setup key, in your authenticator app.
-components/two-factor-setup-modal.tsx	Two-factor sign-in is on
-components/two-factor-setup-modal.tsx	Verify authentication code
-components/two-factor-setup-modal.tsx	or type this setup key
 components/types/builder-parts.tsx	Can’t be used
 components/types/builder-parts.tsx	Code
 components/types/builder-parts.tsx	Made here
@@ -1365,14 +1332,6 @@ components/user-menu-content.tsx	Preferences
 components/user-menu-content.tsx	Profile
 components/user-menu-content.tsx	Security
 components/user-menu-content.tsx	Sign out
-layouts/account/layout.tsx	Account
-layouts/account/layout.tsx	Account
-layouts/account/layout.tsx	Notifications
-layouts/account/layout.tsx	Preferences
-layouts/account/layout.tsx	Profile
-layouts/account/layout.tsx	Security
-layouts/account/layout.tsx	Signed in as {}. Each panel saves on its own.
-layouts/auth/auth-simple-layout.tsx	Powered by Teme
 layouts/settings/layout.tsx	Clear
 layouts/settings/layout.tsx	Find a setting
 layouts/settings/layout.tsx	Find a setting, e.g. time zone
@@ -1385,95 +1344,6 @@ layouts/settings/layout.tsx	{} for “{}”
 lib/discussion.ts	Closed
 lib/discussion.ts	Hidden
 lib/discussion.ts	Open
-pages/account/preferences.tsx	Appearance
-pages/account/preferences.tsx	Dark
-pages/account/preferences.tsx	Light
-pages/account/preferences.tsx	Match the system
-pages/account/preferences.tsx	Preferences
-pages/account/preferences.tsx	Preferences
-pages/account/preferences.tsx	Save preferences
-pages/account/preferences.tsx	Saved as you choose.
-pages/account/profile.tsx	Bio
-pages/account/profile.tsx	Email address
-pages/account/profile.tsx	Email address
-pages/account/profile.tsx	Full name
-pages/account/profile.tsx	Name
-pages/account/profile.tsx	Profile
-pages/account/profile.tsx	Profile
-pages/account/profile.tsx	Profile
-pages/account/profile.tsx	Resend confirmation email
-pages/account/profile.tsx	Save
-pages/account/profile.tsx	Sent. Check your email for the new link.
-pages/account/profile.tsx	Shown on your author page and under your posts.
-pages/account/profile.tsx	Update your name and email address
-pages/account/profile.tsx	Your email address isn’t confirmed yet.
-pages/account/security.tsx	Confirm password
-pages/account/security.tsx	Confirm password
-pages/account/security.tsx	Current password
-pages/account/security.tsx	Current password
-pages/account/security.tsx	New password
-pages/account/security.tsx	New password
-pages/account/security.tsx	Save
-pages/account/security.tsx	Security
-pages/account/security.tsx	Security
-pages/account/security.tsx	Update password
-pages/account/security.tsx	Use a long, random password.
-pages/auth/accept-invitation.tsx	Choose a password to finish setting up your account.
-pages/auth/accept-invitation.tsx	Choose your password
-pages/auth/accept-invitation.tsx	Confirm password
-pages/auth/accept-invitation.tsx	Confirm password
-pages/auth/accept-invitation.tsx	Email
-pages/auth/accept-invitation.tsx	Password
-pages/auth/accept-invitation.tsx	Password
-pages/auth/accept-invitation.tsx	Set password
-pages/auth/accept-invitation.tsx	Welcome
-pages/auth/confirm-password.tsx	Confirm password
-pages/auth/confirm-password.tsx	Confirm password
-pages/auth/confirm-password.tsx	Confirm password
-pages/auth/confirm-password.tsx	Confirm your password to continue.
-pages/auth/confirm-password.tsx	Password
-pages/auth/confirm-password.tsx	Password
-pages/auth/forgot-password.tsx	Back to sign in
-pages/auth/forgot-password.tsx	Email address
-pages/auth/forgot-password.tsx	Email password reset link
-pages/auth/forgot-password.tsx	Enter your email to receive a password reset link
-pages/auth/forgot-password.tsx	Forgot password
-pages/auth/forgot-password.tsx	Forgot password
-pages/auth/forgot-password.tsx	email@example.com
-pages/auth/login.tsx	Email address
-pages/auth/login.tsx	Forgot your password?
-pages/auth/login.tsx	Password
-pages/auth/login.tsx	Password
-pages/auth/login.tsx	Remember me
-pages/auth/login.tsx	Sign in
-pages/auth/login.tsx	Sign in
-pages/auth/login.tsx	Sign in
-pages/auth/login.tsx	Use your email address and password.
-pages/auth/login.tsx	email@example.com
-pages/auth/reset-password.tsx	Choose a new password.
-pages/auth/reset-password.tsx	Confirm password
-pages/auth/reset-password.tsx	Confirm password
-pages/auth/reset-password.tsx	Email
-pages/auth/reset-password.tsx	Password
-pages/auth/reset-password.tsx	Password
-pages/auth/reset-password.tsx	Reset password
-pages/auth/reset-password.tsx	Reset password
-pages/auth/reset-password.tsx	Reset password
-pages/auth/two-factor-challenge.tsx	Authentication code
-pages/auth/two-factor-challenge.tsx	Authentication code
-pages/auth/two-factor-challenge.tsx	Continue
-pages/auth/two-factor-challenge.tsx	Enter recovery code
-pages/auth/two-factor-challenge.tsx	Recovery code
-pages/auth/two-factor-challenge.tsx	Recovery code
-pages/auth/two-factor-challenge.tsx	Two-factor sign-in
-pages/auth/two-factor-challenge.tsx	Type one of your recovery codes.
-pages/auth/two-factor-challenge.tsx	Type the 6-digit code your authenticator app shows.
-pages/auth/verify-email.tsx	Click the link we emailed you to confirm your address.
-pages/auth/verify-email.tsx	Email verification
-pages/auth/verify-email.tsx	Email verification
-pages/auth/verify-email.tsx	Resend verification email
-pages/auth/verify-email.tsx	Sent. Check your email for the new link.
-pages/auth/verify-email.tsx	Sign out
 pages/comments/index.tsx	Actions for the comment by {}
 pages/comments/index.tsx	Approve
 pages/comments/index.tsx	Approve
@@ -2465,52 +2335,3 @@ pages/types/show.tsx	php artisan teme:types:import
 pages/types/show.tsx	{} fields of your own:
 pages/types/show.tsx	{} have permissions of their own.
 pages/types/show.tsx	{} use the content permissions every type shares.
-pages/users/index.tsx	Actions for {}
-pages/users/index.tsx	Actions for {}
-pages/users/index.tsx	Active
-pages/users/index.tsx	Cancel
-pages/users/index.tsx	Cancel
-pages/users/index.tsx	Cancel
-pages/users/index.tsx	Change role
-pages/users/index.tsx	Change role…
-pages/users/index.tsx	Change role…
-pages/users/index.tsx	Change role…
-pages/users/index.tsx	Change the role of {}
-pages/users/index.tsx	Confirm password
-pages/users/index.tsx	Delete {}
-pages/users/index.tsx	Delete {}
-pages/users/index.tsx	Delete…
-pages/users/index.tsx	Email address
-pages/users/index.tsx	Expired
-pages/users/index.tsx	Invitation email failed
-pages/users/index.tsx	Invite someone
-pages/users/index.tsx	Invite someone
-pages/users/index.tsx	Invite someone
-pages/users/index.tsx	Manage yourself in Account
-pages/users/index.tsx	Name
-pages/users/index.tsx	Never
-pages/users/index.tsx	No one — they wrote nothing
-pages/users/index.tsx	No pending invitations
-pages/users/index.tsx	No {} yet
-pages/users/index.tsx	Nobody is suspended
-pages/users/index.tsx	Password
-pages/users/index.tsx	People
-pages/users/index.tsx	People
-pages/users/index.tsx	Reactivate
-pages/users/index.tsx	Revoke invitation
-pages/users/index.tsx	Revoke invitation
-pages/users/index.tsx	Revoke the invitation to {}?
-pages/users/index.tsx	Role
-pages/users/index.tsx	Role
-pages/users/index.tsx	Send again
-pages/users/index.tsx	Send invitation
-pages/users/index.tsx	Suspend
-pages/users/index.tsx	Suspended
-pages/users/index.tsx	Suspended
-pages/users/index.tsx	They get an email with a link that works for {}, where they choose their own password. You can send it again or revoke it under Invited.
-pages/users/index.tsx	Two-factor
-pages/users/index.tsx	Type your password to carry on. What you typed stays here.
-pages/users/index.tsx	Views
-pages/users/index.tsx	Works until {}
-pages/users/index.tsx	You
-pages/users/index.tsx	by {}

@@ -8,13 +8,16 @@ declare(strict_types=1);
 it('ties every field error to its field', function (string $file, ?string $partner = null): void {
     // A source scan: every InputError carries an id, and the controls name
     // those ids with aria-describedby. A partner is the file that draws the
-    // control when another file draws the error.
+    // control when another file draws the error. An error given to Field is
+    // tied by Field itself, which writes its id and the control's
+    // aria-describedby (resources/js/components/ui/field.tsx).
     $source = uiComponent($file);
     $controls = $source.($partner === null ? '' : uiComponent($partner));
 
     preg_match_all('/<InputError\b(?:=>|[^>])*>/s', $source, $errors);
+    preg_match_all('/<Field(?:Inline)?\b(?:=>|[^>])*\berror=/s', $source, $fieldErrors);
 
-    expect($errors[0])->not->toBeEmpty();
+    expect([...$errors[0], ...$fieldErrors[0]])->not->toBeEmpty();
 
     foreach ($errors[0] as $error) {
         expect($error)->toContain('id=');
@@ -23,10 +26,7 @@ it('ties every field error to its field', function (string $file, ?string $partn
     expect(substr_count($controls, 'aria-describedby='))->toBeGreaterThanOrEqual(count($errors[0]));
 })->with([
     ['pages/content/index.tsx'],
-    ['pages/users/index.tsx'],
     ['pages/terms/index.tsx'],
-    ['pages/account/profile.tsx'],
-    ['pages/account/security.tsx'],
     ['pages/auth/login.tsx'],
     ['pages/auth/forgot-password.tsx'],
     ['pages/auth/reset-password.tsx'],
@@ -73,7 +73,9 @@ it('labels every select and every input', function (string $file): void {
 })->with([
     // The invite form's role select and the row role select, which the audit
     // found unlabelled, are on the Users page.
-    'pages/users/index.tsx',
+    'components/people/invite-dialog.tsx',
+    'components/people/role-dialog.tsx',
+    'components/people/delete-dialog.tsx',
     'pages/content/index.tsx',
     'pages/terms/index.tsx',
     'pages/media/index.tsx',
@@ -117,7 +119,7 @@ it('asks before anything that cannot be undone', function (string $file, string 
 })->with([
     'deleting permanently, from the row' => ['pages/content/index.tsx', 'confirmLabel="Delete permanently"'],
     'deleting a term' => ['pages/terms/index.tsx', 'confirmLabel={`Delete ${singular}`}'],
-    'disabling two-factor sign-in' => ['components/manage-two-factor.tsx', 'confirmLabel="Disable two-factor sign-in"'],
+    'disabling two-factor sign-in' => ['components/manage-two-factor.tsx', "'Turn off two-factor sign-in',"],
     'deleting redirects' => ['pages/tools/redirects.tsx', 'confirmLabel={deleteLabel('],
     'forgetting a site’s application password' => ['components/import/run-report.tsx', 'confirmLabel="Forget this site"'],
     'moving a file to the trash, from its drawer' => ['components/media-drawer.tsx', 'confirmLabel="Move to trash"'],

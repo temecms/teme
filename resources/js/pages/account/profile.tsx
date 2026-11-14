@@ -1,19 +1,21 @@
-import { Form, Head, usePage } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
+import { Form, Head, Link, setLayoutProps, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Admin/Account/ProfileController';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
+import { PicturePanel } from '@/components/account/picture-panel';
+import { FormPanel } from '@/components/patterns/form-page';
+import { SaveBar } from '@/components/patterns/save-bar';
+import { SettingsPage } from '@/components/patterns/settings-page';
 import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { __ } from '@/lib/i18n';
 import { edit } from '@/routes/profile';
-import type { Auth } from '@/types';
 import { send } from '@/routes/verification';
 
-type PageProps = {
-    auth: Auth;
-};
-
+/**
+ * Your account › Profile: your picture, then your name, email address and
+ * biography, saved together.
+ */
 export default function Profile({
     mustVerifyEmail,
     status,
@@ -24,143 +26,128 @@ export default function Profile({
     /** The bio shown on the person's author page and under their articles. */
     bio: string;
 }) {
-    const { auth } = usePage<PageProps>().props;
+    const { auth } = usePage().props;
+
+    setLayoutProps({
+        breadcrumbs: [{ title: __('Profile'), href: edit() }],
+    });
 
     return (
         <>
-            <Head title="Profile" />
+            <Head title={__('Profile')} />
 
-            <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title="Profile"
-                    description="Update your name and email address"
-                />
+            <SettingsPage
+                title={__('Profile')}
+                description={__('Your name, email address and biography.')}
+            >
+                <PicturePanel />
 
                 <Form
                     {...ProfileController.update.form()}
-                    options={{
-                        preserveScroll: true,
-                    }}
-                    className="space-y-6"
+                    options={{ preserveScroll: true }}
+                    setDefaultsOnSuccess
                 >
-                    {({ processing, errors }) => (
+                    {({ processing, errors, isDirty, reset }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
-
-                                <Input
-                                    id="name"
-                                    aria-describedby="name-error"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.name}
-                                    name="name"
-                                    required
-                                    autoComplete="name"
-                                    placeholder="Full name"
-                                />
-
-                                <InputError
-                                    id="name-error"
-                                    className="mt-2"
-                                    message={errors.name}
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-
-                                <Input
-                                    id="email"
-                                    aria-describedby="email-error"
-                                    type="email"
-                                    className="mt-1 block w-full"
-                                    defaultValue={auth.user.email}
-                                    name="email"
-                                    required
-                                    autoComplete="username"
-                                    placeholder="Email address"
-                                />
-
-                                <InputError
-                                    id="email-error"
-                                    className="mt-2"
-                                    message={errors.email}
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="bio">Bio</Label>
-
-                                <textarea
-                                    id="bio"
-                                    aria-describedby="bio-hint bio-error"
-                                    name="bio"
-                                    defaultValue={bio}
-                                    maxLength={1000}
-                                    rows={4}
-                                    className="border-edge bg-page focus-visible:ring-ring mt-1 block w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
-                                />
-
-                                <p id="bio-hint" className="text-ink-2 text-sm">
-                                    Shown on your author page and under your
-                                    posts.
-                                </p>
-                                <InputError
-                                    id="bio-error"
-                                    className="mt-2"
-                                    message={errors.bio}
-                                />
-                            </div>
-
-                            {mustVerifyEmail && !auth.user.emailVerified && (
-                                <div>
-                                    <div className="-mt-4 flex flex-wrap items-center gap-3">
-                                        <p className="text-ink-2 text-sm">
-                                            Your email address isn’t confirmed
-                                            yet.
-                                        </p>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            asChild
-                                        >
-                                            <Link href={send()} as="button">
-                                                Resend confirmation email
-                                            </Link>
-                                        </Button>
-                                    </div>
-
-                                    {status === 'verification-link-sent' && (
-                                        <div className="text-ok-ink mt-2 text-sm font-medium">
-                                            Sent. Check your email for the new
-                                            link.
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-profile-button"
+                            <FormPanel title={__('Your details')}>
+                                <Field
+                                    htmlFor="name"
+                                    label={__('Name')}
+                                    error={errors.name}
                                 >
-                                    Save
-                                </Button>
-                            </div>
+                                    <Input
+                                        id="name"
+                                        defaultValue={auth.user.name}
+                                        name="name"
+                                        required
+                                        autoComplete="name"
+                                        placeholder={__('Full name')}
+                                    />
+                                </Field>
+
+                                <div className="grid gap-2">
+                                    <Field
+                                        htmlFor="email"
+                                        label={__('Email address')}
+                                        error={errors.email}
+                                    >
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            defaultValue={auth.user.email}
+                                            name="email"
+                                            required
+                                            autoComplete="username"
+                                            placeholder={__('Email address')}
+                                        />
+                                    </Field>
+
+                                    {mustVerifyEmail &&
+                                        !auth.user.emailVerified && (
+                                            <div className="grid gap-2">
+                                                <div className="flex flex-wrap items-center gap-3">
+                                                    <p className="text-small text-ink-2">
+                                                        {__(
+                                                            'Your email address isn’t confirmed yet.',
+                                                        )}
+                                                    </p>
+                                                    <Button
+                                                        variant="neutral"
+                                                        size="sm"
+                                                        asChild
+                                                    >
+                                                        <Link
+                                                            href={send()}
+                                                            as="button"
+                                                        >
+                                                            {__(
+                                                                'Resend confirmation email',
+                                                            )}
+                                                        </Link>
+                                                    </Button>
+                                                </div>
+
+                                                {status ===
+                                                    'verification-link-sent' && (
+                                                    <p className="text-small text-ok-ink font-medium">
+                                                        {__(
+                                                            'Sent. Check your email for the new link.',
+                                                        )}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                </div>
+
+                                <Field
+                                    htmlFor="bio"
+                                    label={__('Bio')}
+                                    help={__(
+                                        'Shown on your author page and under your posts.',
+                                    )}
+                                    error={errors.bio}
+                                >
+                                    <Textarea
+                                        id="bio"
+                                        name="bio"
+                                        defaultValue={bio}
+                                        maxLength={1000}
+                                        rows={4}
+                                    />
+                                </Field>
+                            </FormPanel>
+
+                            <SaveBar
+                                dirty={isDirty}
+                                processing={processing}
+                                onDiscard={() => reset()}
+                                what={__('your profile')}
+                                testId="update-profile-button"
+                            />
                         </>
                     )}
                 </Form>
-            </div>
+            </SettingsPage>
         </>
     );
 }
-
-Profile.layout = {
-    breadcrumbs: [
-        {
-            title: 'Profile',
-            href: edit(),
-        },
-    ],
-};

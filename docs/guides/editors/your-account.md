@@ -13,6 +13,7 @@ screens:
 sources:
   - resources/js/pages/account
   - resources/js/layouts/account
+  - resources/js/components/patterns/save-bar.tsx
   - resources/js/components/header
   - resources/js/pages/inbox
   - resources/js/components/inbox
@@ -22,7 +23,7 @@ sources:
 
 # Your account
 
-Your account has four pages: **Profile**, **Preferences**, **Notifications** and **Security**. Open your account menu at the right edge of the header and choose one. The pages sit side by side under **Account**.
+Your account has five pages: **Profile**, **Preferences**, **Notifications**, **Security** and **Two-factor sign-in**. Open your account menu at the right edge of the header and choose one. The pages sit side by side under **Account**.
 
 ## To change your name or email address
 
@@ -47,7 +48,7 @@ Open **Preferences**. What you choose here is yours; nobody else sees it.
 - **Appearance** sets the look: **Match the system**, **Light** or **Dark**. A change applies at once.
 - Further down are the things that change how the editor and the lists work for you, such as whether the editor opens in focus mode and how many rows a list shows.
 
-Choose **Save preferences** when you have changed any.
+Each choice is saved as you make it; a number once you leave its box.
 
 ## To choose what you are told about
 

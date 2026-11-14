@@ -5,12 +5,16 @@ declare(strict_types=1);
 use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Users\Operations\Input\InviteUserInput;
+use App\Domain\Users\Operations\Input\SetPictureInput;
 use App\Domain\Users\Operations\InviteUser;
+use App\Domain\Users\Operations\SetPicture;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -52,13 +56,18 @@ beforeEach(function (): void {
 });
 
 it('shows every view with its count, and the invitations in a table of their own', function (): void {
-    cmSignIn($this->admin)
+    $page = cmSignIn($this->admin)
         ->navigate('/admin/users')
-        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Views\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Administrators1|Editors1|Authors1|Contributors0|Suspended0|Invited1')
+        // Five views show; the rest are under More.
+        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Views\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Administrators1|Editors1|Authors1|Contributors0')
         ->assertScript("document.querySelector('table').innerText.includes('Ivy Invited')", false)
+        ->click('nav[aria-label="Views"] button >> text="More"');
+    shellSettled($page, '[role="menu"]');
+
+    $page->assertScript("[...document.querySelectorAll('[role=\"menu\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'Suspended0|Invited1')
         ->navigate('/admin/users?view=invited')
         ->assertScript("document.querySelector('table caption').textContent", 'Pending invitations')
-        ->assertScript("[...document.querySelectorAll('table thead th')].map((cell) => cell.textContent.trim()).join('|')", 'Name|Role|Invited|Link')
+        ->assertScript("[...document.querySelectorAll('table thead th')].map((cell) => cell.textContent.trim()).join('|')", 'Name|Role|Invited|Link|More actions')
         ->assertScript("document.querySelector('table tbody').innerText.includes('by Ada Admin')", true)
         ->assertScript("document.querySelector('table tbody').innerText.includes('Works until')", true);
 });
@@ -74,11 +83,11 @@ it('invites someone from the header\'s dialog, asking for the password in the di
         ->click('[data-test="invite-dialog"] >> text="Send invitation"');
 
     // The dialog asks in place, so nothing typed is lost and no page is left.
-    cmWaitUntil($page, "document.getElementById('invite-password') !== null")
+    cmWaitUntil($page, "document.querySelector('[data-test=\"invite-dialog\"] [data-test=\"fresh-password-input\"]') !== null")
         ->assertPathIs('/admin/users')
         ->assertScript("document.getElementById('invite-email').value", 'noor@example.com')
-        ->type('#invite-password', 'password')
-        ->click('[data-test="invite-password-confirm"]');
+        ->type('[data-test="invite-dialog"] [data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="invite-dialog"] [data-test="fresh-password-confirm"]');
 
     ($this->seen)($page, 'Invitation sent to noor@example.com.')
         ->assertScript("new URLSearchParams(window.location.search).get('view')", 'invited')
@@ -98,9 +107,9 @@ it('shows the error under the email field when the password is given and the add
         ->type('#invite-email', $this->author->email)
         ->click('[data-test="invite-dialog"] >> text="Send invitation"');
 
-    cmWaitUntil($page, "document.getElementById('invite-password') !== null")
-        ->type('#invite-password', 'password')
-        ->click('[data-test="invite-password-confirm"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"invite-dialog\"] [data-test=\"fresh-password-input\"]') !== null")
+        ->type('[data-test="invite-dialog"] [data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="invite-dialog"] [data-test="fresh-password-confirm"]');
 
     cmWaitUntil($page, "(document.querySelector('#invite-email-error')?.textContent ?? '').length > 0")
         ->assertScript("document.querySelector('[data-test=\"invite-dialog\"]') !== null", true)
@@ -182,7 +191,9 @@ it('revokes an invitation after a confirmation that names it, without asking for
 it('asks in the delete dialog who should own their content, and says their name stays', function (): void {
     $page = ($this->signInConfirmed)()
         ->navigate('/admin/users?view=author')
-        ->click('[aria-label="Actions for Bea Author"] >> text="Delete…"');
+        ->click('[aria-label="More actions for Bea Author"]');
+    shellSettled($page, '[role="menu"]');
+    $page->click('[role="menu"] >> text="Delete…"');
 
     ($this->gone)($page, '[role="menu"]');
 
@@ -222,4 +233,71 @@ it('passes axe on People, with the change-role dialog open, and on Invited, ever
         ->and($dialog['checked'])->toBeGreaterThan(0)
         ->and($invited['small'])->toBe([])
         ->and($invited['checked'])->toBeGreaterThan(0);
+})->with(['light', 'dark']);
+
+it('shows each person’s picture, and lets an administrator remove another’s after asking', function (): void {
+    app(SetPicture::class)->execute(new SetPictureInput((string) $this->author->id, pageImage($this->author, 400, 400)->id, (string) $this->author->id));
+
+    // The test server answers on its own host and port, not APP_URL's: the picture is asked for from wherever the page is.
+    config(['filesystems.disks.media.url' => '/storage/media']);
+    Storage::forgetDisk('media');
+
+    // The media disk lies under the public disk, served from public/storage, the link `storage:link` makes.
+    if (! file_exists(public_path('storage'))) {
+        File::link(storage_path('app/public'), public_path('storage'));
+    }
+
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/users?view=author');
+    cmWaitUntil($page, 'document.querySelector(\'tbody [data-slot="person-picture"] img\') !== null');
+
+    $page->click('[aria-label="More actions for Bea Author"]');
+    shellSettled($page, '[role="menu"]');
+    $page->click('[role="menu"] >> text="Remove picture…"');
+    ($this->seen)($page, 'Remove the picture of Bea Author?');
+    shellSettled($page, '[role="alertdialog"], [role="dialog"]');
+    $page->click('[role="dialog"] >> text="Remove picture"');
+    ($this->seen)($page, 'Removed the picture of Bea Author.');
+
+    expect($this->author->refresh()->picture_media_id)->toBeNull();
+});
+
+it('asks for the password inside the change-role dialog, keeping the role chosen', function (): void {
+    $page = cmSignIn($this->admin)
+        ->navigate('/admin/users?view=author')
+        ->click('[aria-label="Actions for Bea Author"] >> text="Change role…"');
+
+    ($this->gone)($page, '[role="menu"]');
+
+    shellSettled($page, '[data-test="role-dialog"]')
+        ->click('#change-role')
+        ->click('[role="option"] >> text="Editor"');
+
+    ($this->gone)($page, '[role="listbox"]')
+        ->click('[data-test="role-dialog"] >> text="Change role"');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"role-dialog\"] [data-test=\"fresh-password-input\"]') !== null")
+        ->assertScript("document.getElementById('change-role').textContent.trim()", 'Editor')
+        ->type('[data-test="role-dialog"] [data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="role-dialog"] [data-test="fresh-password-confirm"]');
+
+    ($this->seen)($page, 'Role changed. Bea Author is now an editor and was signed out everywhere.');
+
+    expect($this->author->refresh()->hasRole('editor'))->toBeTrue();
+});
+
+it('draws people as cards at 375 pixels, passing axe with every target 24 pixels or more, in both schemes', function (string $scheme): void {
+    lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
+
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 812), '/admin/users');
+    cmWaitUntil($page, 'document.querySelector(\'ul[aria-label="People"]\') !== null');
+
+    $page->assertScript('document.querySelector("table") === null')
+        ->assertScript('document.querySelectorAll(\'ul[aria-label="People"] > li\').length', 3)
+        ->assertScript('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
+        ->assertNoAccessibilityIssues(3);
+
+    $targets = cmSmallTargets($page);
+
+    expect($targets['small'])->toBe([])
+        ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);

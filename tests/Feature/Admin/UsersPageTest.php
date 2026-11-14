@@ -5,10 +5,14 @@ declare(strict_types=1);
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Users\Notifications\InvitationLink;
+use App\Domain\Users\Operations\Input\SetPictureInput;
+use App\Domain\Users\Operations\SetPicture;
+use App\Domain\Users\Queries\PersonPictures;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -114,4 +118,26 @@ it('re-sends a pending invitation', function (): void {
         ->assertSessionHasNoErrors();
 
     Notification::assertSentTo($invited, InvitationLink::class);
+});
+
+it('shows each person’s picture, and none for an invitation', function (): void {
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    $writer = User::factory()->create(['name' => 'Bea Author'])->assignRole('author');
+    app(SetPicture::class)->execute(new SetPictureInput((string) $writer->id, pageImage($writer, 400, 400)->id, (string) $writer->id));
+    User::factory()->invited()->create(['name' => 'Ivy Invited'])->assignRole('author');
+
+    $this->actingAs($this->admin)
+        ->get('/admin/users')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('users.0.name', 'Ada Admin')
+            ->where('users.0.picture', null)
+            ->where('users.1.name', 'Bea Author')
+            ->where('users.1.picture', app(PersonPictures::class)->of((int) $writer->id)));
+
+    $this->actingAs($this->admin)
+        ->get('/admin/users?view=invited')
+        ->assertInertia(fn (Assert $page) => $page->where('users.0.name', 'Ivy Invited')->where('users.0.picture', null));
+
+    expect(app(PersonPictures::class)->of((int) $writer->id))->not->toBeNull();
 });

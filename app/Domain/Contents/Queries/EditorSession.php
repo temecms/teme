@@ -43,7 +43,7 @@ final readonly class EditorSession
      * @param  list<array{id: int, name: string}>  $otherEditors
      * @param  array<string, mixed>  $fields
      * @param  list<array{id: string, name: string, taxonomy: string}>  $terms
-     * @param  list<array{key: string, singular: string, plural: string, segment: string, hierarchical: bool, terms: list<array{id: string, name: string, parentId: string|null}>|null}>  $taxonomies
+     * @param  list<array{key: string, singular: string, plural: string, segment: string, hierarchical: bool, canCreate: bool, terms: list<array{id: string, name: string, parentId: string|null}>|null}>  $taxonomies
      * @param  array{edit: bool, publish: bool, delete: bool, manageTerms: bool, translate: bool}  $can
      * @param  array{id: int, name: string}|null  $author
      * @param  array<string, array{variants: array<string, array{path: string, url: string, width: int, height: int, bytes: int}>, width: int, height: int, alt: string|null, title: string, focalX: int, focalY: int, credit: string|null}>  $media
@@ -149,6 +149,8 @@ final readonly class EditorSession
                 'plural' => $taxonomy->plural,
                 'segment' => $taxonomy->segment,
                 'hierarchical' => $taxonomy->hierarchical,
+                // As CreateTerm and its route decide, so the picker never offers what would be refused.
+                'canCreate' => $gate->allows('terms.manage') && $gate->allows($taxonomy->ability),
                 'terms' => $taxonomy->hierarchical ? app(TermPicker::class)->tree($taxonomy->key) : null,
             ], app(TaxonomyRegistry::class)->forType($content->type)),
             can: [

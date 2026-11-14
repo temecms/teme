@@ -15,10 +15,12 @@ use Illuminate\Support\Facades\DB;
  * dozens, not thousands, so everyone is read at once; paging arrives if a
  * publication ever needs it.
  *
- * @phpstan-type PersonRow array{id: int, name: string, email: string, role: string|null, status: 'active'|'invited'|'suspended', twoFactor: bool, lastSignInAt: string|null, invitationFailed: bool, invitedAt: string|null, invitedBy: string|null, linkWorksUntil: string|null}
+ * @phpstan-type PersonRow array{id: int, name: string, email: string, role: string|null, status: 'active'|'invited'|'suspended', twoFactor: bool, lastSignInAt: string|null, invitationFailed: bool, invitedAt: string|null, invitedBy: string|null, linkWorksUntil: string|null, picture: string|null}
  */
 final class UserList
 {
+    public function __construct(private readonly PersonPictures $pictures) {}
+
     /**
      * Every view, in the order its tab is drawn: everyone with an account,
      * each core role as Roles::LABELS lists them, the suspended, then the
@@ -109,8 +111,9 @@ final class UserList
         $invitationFailed = $this->latest(SecurityEventType::InvitationMailFailed, $ids);
         $invitedBy = $this->invitedBy($invited->pluck('id')->all());
         $worksUntil = $this->linksWorkUntil($invited->pluck('email')->all());
+        $pictures = $this->pictures->for(array_map(intval(...), $ids));
 
-        return $users->map(function (User $user) use ($lastSignIn, $invitationFailed, $invitedBy, $worksUntil): array {
+        return $users->map(function (User $user) use ($lastSignIn, $invitationFailed, $invitedBy, $worksUntil, $pictures): array {
             $failedAt = $invitationFailed[$user->id] ?? null;
             $isInvited = $user->invited_at !== null;
 
@@ -130,6 +133,8 @@ final class UserList
                 'invitedAt' => $user->invited_at?->toIso8601String(),
                 'invitedBy' => $isInvited ? ($invitedBy[$user->id] ?? null) : null,
                 'linkWorksUntil' => $isInvited ? ($worksUntil[$user->email] ?? null) : null,
+                // An invitation shows the dashed ring, never a picture.
+                'picture' => $isInvited ? null : ($pictures[(int) $user->id] ?? null),
             ];
         })->values()->all();
     }
