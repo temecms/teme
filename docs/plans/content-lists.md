@@ -381,3 +381,19 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: setup; commits; each test seen red (task, file, case, the failure's first line); the design-system and admin-words counts before and after; every existing test changed, with its meaning kept; differences from the plan as B-?? (draft) with the options weighed; changelog lines; any STOP. -->
+
+### Setup
+
+- `cat /tmp/teme-cloud-setup.log`: "2026-11-14T20:55:01Z ran in /home/user/teme as root", "2026-11-14T21:06:10Z finished". `pwd`: /home/user/teme. PHP 8.4.27; `pg_isready -h 127.0.0.1 -p 5433` accepting connections; `valkey-cli -p 6380 ping` PONG; node v24.22.1.
+- Task 0: the branch was made from `origin/main` at `4b8cc3b`. The exports match the plan. The design-system baseline had 1,228 lines (the plan said 1,441), 119 of them in this part's files (as the plan says). The admin-words count was 2,350 (the plan said 2,373), 211 lines in this part's files (as the plan says). The other counts moved because other parts merged first; this part's own lines are as the plan has them.
+- The full `composer check` on the base: Architecture 105 passed (1,225 assertions); Unit and Feature 10,490 passed, 2 skipped (53,814 assertions), 1,694s.
+
+### Task 1
+
+- Seen red at the base, `ListPagesTest`: 11 failed, first lines "Undefined array key "pages"" and, on the deep page, "actual size 25 matches expected size 5".
+- Existing cases changed, meaning kept: `ContentListTest` "pages 50 at a time, older and newer, with no total" became "pages 50 at a time by number, with the total where it is known" (I-3421 replaces the no-total rule); "makes the same number of queries on every page" passes unchanged. `ListScreenTest` "offers a way back on every pager" now goes to page 2 and back by number and no longer asserts that no query uses an offset (I-3421 uses an offset for pages 1 to 50; the cost stays bounded by the cap, as `ListPagesTest` "goes past the cap by keyset, with the same number of queries on every page" proves). `ScreenOptionsTest` "remembers rows per page" reads `paging.last` (2 pages of 25, 1 of 30) where it read `older`. `TermScreenRowsTest` (three cases), `TermScreensTest` "lists categories by name", `CommentListTest` (two cases) and `CommentScreenTest` "opens the Pending view" read the cursors inside `paging` where they read them at the top level.
+- B-01 (draft): the plan names the prop `pages` with a `page` number. `NoTypeLiteralsTest` reads `'pages' =>` and `'page' =>` in PHP as the content types' names. Options: rename to `paging` with `number`; add these files to that test's allow-list (not this part's file, and it widens a check); build the arrays so the scan misses them (dodges the check). Chosen: `paging` and `number`, the same shape under other names. Commit `71c8603`.
+- B-02 (draft): `ContentList::page()` keeps its top-level `newer` and `older` beside `paging`, since the bulk runs (`StartBulkRun`, `AdvanceBulkRun`) and the benchmark read them and are not this part's files; the controller drops them from the props. Options: keep them; change those callers (not owned). Commit `71c8603`.
+- B-03 (draft): `ListPages::describe()` takes the page number as nullable (null past the cap) and the newer cursor as well as the older, so every list builds the whole `paging` in one call. Commit `71c8603`.
+- B-04 (draft): a nesting taxonomy's pages of branches are numbered exactly with no cap, since the whole tree is already read; its total counts terms, not branches. Options: cap them like the others (pointless when the tree is in memory); count branches (not what a person sees as rows). Commit `71c8603`.
+- Done to Task 1 at `71c8603`, the quick check green.
