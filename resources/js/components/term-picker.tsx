@@ -1,6 +1,9 @@
 import { useHttp } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import { Input } from '@/components/ui/input';
+import { useEffect, useId, useRef, useState } from 'react';
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
+import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import { search as searchTerms } from '@/routes/terms';
 import type { TermChip } from '@/types';
 
@@ -16,6 +19,9 @@ type Props = {
     onChange: (value: TermChip[]) => void;
 };
 
+/**
+ * A flat taxonomy's terms, found by typing and chosen on the shared Combobox.
+ */
 export function TermPicker({
     taxonomy,
     singular,
@@ -25,92 +31,88 @@ export function TermPicker({
     onChange,
 }: Props) {
     const { submit } = useHttp();
+    const id = useId();
     const [query, setQuery] = useState('');
+    const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<
         { id: string; name: string; path: string }[]
     >([]);
+    const latest = useRef(0);
 
     useEffect(() => {
+        const asked = ++latest.current;
+
         if (query.trim() === '') {
             setResults([]);
+            setLoading(false);
 
             return;
         }
 
+        setLoading(true);
+
+        // The previous request is superseded: only the latest one's answer is kept.
         const timer = setTimeout(async () => {
-            const found = (await submit(
-                searchTerms({ query: { taxonomy, q: query } }),
-            )) as {
-                id: string;
-                name: string;
-                path: string;
-            }[];
-            setResults(
-                found.filter(
-                    (term) => !value.some((chosen) => chosen.id === term.id),
-                ),
-            );
+            try {
+                const found = (await submit(
+                    searchTerms({ query: { taxonomy, q: query } }),
+                )) as { id: string; name: string; path: string }[];
+
+                if (asked === latest.current) {
+                    setResults(found);
+                }
+            } finally {
+                if (asked === latest.current) {
+                    setLoading(false);
+                }
+            }
         }, 200);
 
         return () => clearTimeout(timer);
-    }, [query, taxonomy, value, submit]);
+    }, [query, taxonomy, submit]);
+
+    const options: ComboboxOption[] = results.map((term) => ({
+        value: term.id,
+        label: term.name,
+        description: term.path !== term.name ? term.path : undefined,
+    }));
 
     return (
         <div className="grid gap-2">
-            <span className={labelHidden ? 'sr-only' : 'text-sm font-medium'}>
+            <Label htmlFor={id} className={cn(labelHidden && 'sr-only')}>
                 {label}
-            </span>
-            <div className="flex flex-wrap gap-1">
-                {value.map((term) => (
-                    <span
-                        key={term.id}
-                        className="bg-surface-2 flex items-center gap-1 rounded px-2 py-0.5 text-xs"
-                    >
-                        {term.name}
-                        <button
-                            type="button"
-                            aria-label={`Remove ${term.name}`}
-                            onClick={() =>
-                                onChange(
-                                    value.filter(
-                                        (chosen) => chosen.id !== term.id,
-                                    ),
-                                )
-                            }
-                        >
-                            ×
-                        </button>
-                        <input type="hidden" name="terms[]" value={term.id} />
-                    </span>
-                ))}
-            </div>
-            <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={`Find a ${singular.toLowerCase()}`}
-                aria-label={label}
+            </Label>
+            <Combobox
+                id={id}
+                multiple
+                name="terms[]"
+                options={options}
+                value={value.map((term) => ({
+                    value: term.id,
+                    label: term.name,
+                }))}
+                onValueChange={(next) =>
+                    onChange(
+                        next.map((option) => ({
+                            id: option.value,
+                            name: option.label,
+                        })),
+                    )
+                }
+                search={{ value: query, onChange: setQuery, loading }}
+                triggerLabel={__('Find a :name', {
+                    name: singular.toLowerCase(),
+                })}
+                placeholder={__('Find a :name', {
+                    name: singular.toLowerCase(),
+                })}
+                searchPlaceholder={__('Search :plural', {
+                    plural: label.toLowerCase(),
+                })}
+                removeLabel={(option) =>
+                    __('Remove :name', { name: option.label })
+                }
             />
-            {results.length > 0 && (
-                <ul className="rounded border text-sm">
-                    {results.map((term) => (
-                        <li key={term.id}>
-                            <button
-                                type="button"
-                                className="hover:bg-surface-2 w-full px-2 py-1 text-left"
-                                onClick={() => {
-                                    onChange([
-                                        ...value,
-                                        { id: term.id, name: term.name },
-                                    ]);
-                                    setQuery('');
-                                }}
-                            >
-                                {term.path}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
         </div>
     );
 }

@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Models\Content;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 
 uses(RefreshDatabase::class);
@@ -276,3 +278,52 @@ it('passes axe with each one open, every target 24 pixels or more, at 1280 and 3
         cmWaitUntil($page, cbClosedOn($id));
     }
 })->with(['light', 'dark'])->with([1280, 375]);
+
+/**
+ * The tag ids the item's working revision holds.
+ *
+ * @return list<string>
+ */
+function cbSavedTerms(Content $item): array
+{
+    $revision = Content::query()->whereKey($item->id)->value('working_revision_id');
+
+    return json_decode((string) DB::table('content_revisions')->where('id', $revision)->value('terms'), true);
+}
+
+/**
+ * The editor of this item, settled, with focus moved by Tab from the Tags section's header to its button.
+ */
+function cbEditorAtTags(User $person, Content $item): mixed
+{
+    $page = cmNavigate(cmSignIn($person)->resize(1280, 900), "/admin/content/{$item->id}/edit");
+    cmEditorSettled($page);
+
+    $page->page()->locator('button:has(h2:text-is("Tags"))')->focus();
+    cbPress($page, 'Tab');
+
+    return cmWaitUntil($page, "document.activeElement?.dataset.slot === 'combobox-trigger'");
+}
+
+it('finds and chooses a tag in the editor with the keyboard alone, and keeps it on save', function (): void {
+    $harbour = taxonomyTerm('tag', 'Harbour');
+    $item = lifecycleDraft($this->admin, 'Ferry notes');
+
+    $page = cbEditorAtTags($this->admin, $item);
+
+    cbType($page, 'harb');
+    shellSettled($page, '[data-slot="popover-content"]');
+    cmWaitUntil($page, "document.activeElement?.getAttribute('role') === 'combobox' && document.activeElement.value === 'harb'");
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Harbour'");
+
+    cbPress($page, 'Enter');
+    cmWaitUntil($page, "document.querySelector('[role=\"option\"]')?.getAttribute('aria-checked') === 'true'");
+    cbPress($page, 'Escape');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"popover-content\"]') === null");
+    cmWaitUntil($page, "Array.from(document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]')).map((tag) => tag.textContent.trim()).join(',') === 'Harbour' && document.querySelector('[data-slot=\"status-pill-remove\"][aria-label=\"Remove Harbour\"]') !== null");
+
+    $page->keys('.teme-prose', 'Control+s');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"save-state\"]')?.dataset.state === 'saved'");
+
+    expect(cbSavedTerms($item))->toContain($harbour->id);
+});
