@@ -621,3 +621,11 @@ No contract the plan names changed. No `ui/`, `patterns/` (existing), token, sca
 ### How to try it
 
 Sign out; sign in at 1280 and at 320 pixels wide; press the eye beside the password, or Tab to it. Get the password wrong five times, try a sixth, and watch the wait count down (from 15 minutes under the default settings). Visit `/admin/no-such-screen` signed in, and People as an editor. On a site with no accounts, visit `/` for the holding page.
+
+### Follow-up W4-2 (the review's fixes)
+
+- `f95de8b` fix(auth): the countdown ends once the limiter has let go. `SignInPaused` counts to one second past the refusal's number and shows `Math.min(left, seconds)`, so the words never say more than the refusal did; the server is unchanged. The browser case's 1.1-second sleep is gone: without the fix it was red in two of three runs ("Actual path [/admin/login] does not equal expected path [/admin]."), and green in seven of seven runs with it. This replaces B-?? 11 and its open point.
+- `b7c6d41` feat(site): Teme's name beside its mark on the error and holding pages, as `<span class="sa-product">Teme</span>`; the `sa-name` check stays. Red first: "Failed asserting that two strings are identical" (no `.sa-product`). Revises B-?? 6.
+- `4c0f575` test(site): two `StandalonePagesTest` cases, a 403 carrying its own reason shows it in `.sa-quiet`, and one carrying Laravel's "This action is unauthorized." shows the general words. Both passed on the code; each was seen red with its half of the 403 page's logic planted out (the reason never used; Laravel's words not filtered).
+- `4ad0c74` fix(site): the inlined Teme icon's class names (`tile`, `edge`, `deep`, `light`, `pale`) become `sa-icon-…` in its `<style>` and its elements. Red first: the Teme-mark case's new assertions ("Expected … to contain .sa-icon-tile").
+- Checks: the quick check green (Pint, PHPStan, types, lint, Architecture 101 passed); `tests/Feature/Auth` 45 passed; `StandalonePagesTest` 16 passed (162 assertions); after `npm run build`, `SignInPagesTest` 17 passed (280 assertions). The container's services had stopped between sessions; `scripts/cloud-setup.sh` brought them back.
