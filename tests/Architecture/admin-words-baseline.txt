@@ -629,18 +629,6 @@ components/editor/share-panel.tsx	The new preview link
 components/editor/share-panel.tsx	Works until {}
 components/editor/share-panel.tsx	a removed account
 components/editor/share-panel.tsx	the link made
-components/editor/slash-menu.tsx	Bulleted list
-components/editor/slash-menu.tsx	Code block
-components/editor/slash-menu.tsx	Heading 2
-components/editor/slash-menu.tsx	Heading 3
-components/editor/slash-menu.tsx	Heading 4
-components/editor/slash-menu.tsx	Horizontal rule
-components/editor/slash-menu.tsx	Insert
-components/editor/slash-menu.tsx	Numbered list
-components/editor/slash-menu.tsx	Paragraph
-components/editor/slash-menu.tsx	Quote
-components/editor/slash-menu.tsx	Table
-components/editor/slash-menu.tsx	Task list
 components/editor/stale-dialog.tsx	, so your changes were not saved over it. Your work is still here, on this page.
 components/editor/stale-dialog.tsx	Copied
 components/editor/stale-dialog.tsx	Copy my text

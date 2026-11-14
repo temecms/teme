@@ -429,8 +429,6 @@ R2	js/components/editor/share-panel.tsx	text-[13px]
 R2	js/components/editor/share-panel.tsx	text-xs
 R2	js/components/editor/share-panel.tsx	text-xs
 R2	js/components/editor/share-panel.tsx	text-xs
-R2	js/components/editor/slash-menu.tsx	text-[13px]
-R2	js/components/editor/slash-menu.tsx	text-xs
 R2	js/components/editor/stale-dialog.tsx	text-[13px]
 R2	js/components/editor/status-chip.tsx	text-[11px]
 R2	js/components/fields/brand-colour-setting.tsx	text-[13px]
@@ -853,7 +851,6 @@ R3	js/components/editor/rewrite/rewrite-menu.tsx	mx-0.5
 R3	js/components/editor/save-state.tsx	gap-1.5
 R3	js/components/editor/schedule-control.tsx	gap-1.5
 R3	js/components/editor/share-panel.tsx	gap-1.5
-R3	js/components/editor/slash-menu.tsx	py-1.5
 R3	js/components/editor/status-chip.tsx	py-0.5
 R3	js/components/fields/home-page-setting.tsx	py-1.5
 R3	js/components/fields/settings-field.tsx	mt-0.5
@@ -953,7 +950,6 @@ R5	js/components/editor/rail/publish-panel.tsx	<button type="button">
 R5	js/components/editor/rail/publish-panel.tsx	<button type="button">
 R5	js/components/editor/rail/search-panel.tsx	<button type="button">
 R5	js/components/editor/rewrite/rewrite-menu.tsx	<button type="button">
-R5	js/components/editor/slash-menu.tsx	<button type="button">
 R5	js/components/fields/brand-colour-setting.tsx	<input type="color">
 R5	js/components/fields/field-control.tsx	<select>
 R5	js/components/fields/field-control.tsx	<textarea>
@@ -1009,7 +1005,6 @@ R6	js/components/editor/cards/imported-content-card.tsx	tracking-wide
 R6	js/components/editor/editor-rail.tsx	z-10
 R6	js/components/editor/pasted-image-view.tsx	tracking-wide
 R6	js/components/editor/rewrite/rewrite-menu.tsx	z-50
-R6	js/components/editor/slash-menu.tsx	z-50
 R6	js/components/editor/status-chip.tsx	leading-4
 R6	js/components/fields/brand-colour-setting.tsx	rounded
 R6	js/components/fields/brand-colour-setting.tsx	rounded
@@ -1131,7 +1126,6 @@ R8	js/components/comments/quick-edit.tsx	overflow-y-auto
 R8	js/components/editor/cards/button-card.tsx	overflow-y-auto
 R8	js/components/editor/cards/imported-content-card.tsx	overflow-auto
 R8	js/components/editor/link-popover.tsx	overflow-y-auto
-R8	js/components/editor/slash-menu.tsx	overflow-y-auto
 R8	js/components/header/header-panel.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto

@@ -138,7 +138,7 @@ function HandleButtons({
     cards: CardManifestEntry[];
     source: 'pointer' | 'selection';
     gripRef?: RefObject<HTMLButtonElement | null>;
-    onAdd: (block: TopBlock) => void;
+    onAdd: (block: TopBlock, button: HTMLElement) => void;
     onMenu: (open: boolean) => void;
 }) {
     const [open, setOpen] = useState(false);
@@ -146,6 +146,7 @@ function HandleButtons({
     const [menuFor, setMenuFor] = useState<TopBlock | null>(null);
     const acted = useRef(false);
     const grip = useRef<HTMLButtonElement | null>(null);
+    const add = useRef<HTMLButtonElement | null>(null);
     const name = block === null ? '' : blockName(block.node, cards);
     const target = menuFor ?? block;
     const last = editor.state.doc.childCount - 1;
@@ -177,10 +178,24 @@ function HandleButtons({
                 type="button"
                 variant="ghost"
                 size="icon-xs"
+                ref={add}
                 className={HANDLE_BUTTON}
                 aria-label={__('Add a block below')}
                 title={__('Add a block below')}
-                onClick={() => block !== null && onAdd(block)}
+                // One stop in the tab order, the grip's: ← and → move between the two.
+                tabIndex={-1}
+                onClick={(event) =>
+                    block !== null && onAdd(block, event.currentTarget)
+                }
+                onKeyDown={(event) => {
+                    if (event.key === 'Tab' && event.shiftKey) {
+                        event.preventDefault();
+                        editor.commands.focus();
+                    } else if (event.key === 'ArrowRight') {
+                        event.preventDefault();
+                        grip.current?.focus();
+                    }
+                }}
             >
                 <Plus />
             </Button>
@@ -215,6 +230,9 @@ function HandleButtons({
                             if (event.key === 'Tab' && event.shiftKey) {
                                 event.preventDefault();
                                 editor.commands.focus();
+                            } else if (event.key === 'ArrowLeft') {
+                                event.preventDefault();
+                                add.current?.focus();
                             } else if (
                                 ['Enter', ' ', 'ArrowDown'].includes(event.key)
                             ) {
@@ -328,7 +346,7 @@ export function BlockHandles({
 }: {
     editor: Editor;
     cards: CardManifestEntry[];
-    onAdd: (block: TopBlock) => void;
+    onAdd: (block: TopBlock, button: HTMLElement) => void;
 }) {
     const [hovered, setHovered] = useState<TopBlock | null>(null);
     const [current, setCurrent] = useState<TopBlock | null>(null);

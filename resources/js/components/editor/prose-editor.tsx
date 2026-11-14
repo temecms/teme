@@ -1,8 +1,13 @@
 import type { Editor } from '@tiptap/core';
 import { EditorContent } from '@tiptap/react';
 import type { JSONContent } from '@tiptap/react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 import type { CardManifestEntry, EditorDocument } from '@/types';
+import { blockName } from './block-actions';
 import type { TopBlock } from './block-actions';
 import { BlockHandles } from './block-handle';
 import { BubbleMenu } from './bubble-menu';
@@ -10,9 +15,97 @@ import { useCardEnvironment } from './cards/card-environment';
 import { PastedImagesBar } from './pasted-image-view';
 import { WordCount } from './rail/document-panel';
 import type { EditorContext } from './region-entry';
-import { SlashMenu } from './slash-menu';
+import { BlockPicker } from './slash-menu';
+import type { PickerRequest } from './slash-menu';
 import { Toolbar } from './toolbar';
 import { useTemeEditor } from './use-teme-editor';
+import { isTouch } from './use-touch';
+
+/**
+ * The "+" between two blocks: a round accent "+" over a faint accent line,
+ * shown where the pointer rests between two blocks, never on touch. The
+ * keyboard reaches the same picker from the handle's "+".
+ */
+function BetweenBlocks({
+    editor,
+    onAdd,
+}: {
+    editor: Editor;
+    onAdd: (at: number, button: HTMLElement) => void;
+}) {
+    const box = useRef<HTMLDivElement>(null);
+    const [gap, setGap] = useState<{ at: number; y: number } | null>(null);
+
+    useEffect(() => {
+        const wrapper = box.current?.parentElement;
+
+        if (wrapper === null || wrapper === undefined) {
+            return;
+        }
+
+        const move = (event: MouseEvent) => {
+            if (isTouch() || box.current?.contains(event.target as Node)) {
+                return;
+            }
+
+            const blocks = Array.from(editor.view.dom.children);
+            const origin = wrapper.getBoundingClientRect().top;
+            let at = 0;
+
+            for (let index = 0; index < blocks.length - 1; index++) {
+                at += editor.state.doc.maybeChild(index)?.nodeSize ?? 0;
+
+                const bottom = blocks[index].getBoundingClientRect().bottom;
+                const top = blocks[index + 1].getBoundingClientRect().top;
+                const middle = (bottom + top) / 2;
+
+                if (
+                    Math.abs(event.clientY - middle) <=
+                    Math.max(6, (top - bottom) / 2)
+                ) {
+                    setGap({ at, y: middle - origin });
+
+                    return;
+                }
+            }
+
+            setGap(null);
+        };
+        const leave = () => setGap(null);
+
+        wrapper.addEventListener('mousemove', move);
+        wrapper.addEventListener('mouseleave', leave);
+
+        return () => {
+            wrapper.removeEventListener('mousemove', move);
+            wrapper.removeEventListener('mouseleave', leave);
+        };
+    }, [editor]);
+
+    return (
+        <div
+            ref={box}
+            className="pointer-events-none absolute inset-x-8 top-(--gap-y) h-0"
+            style={{ '--gap-y': `${gap?.y ?? 0}px` } as CSSProperties}
+        >
+            {gap !== null && (
+                <>
+                    <span className="bg-accent/35 absolute inset-x-0 -top-px h-0.5" />
+                    <Button
+                        type="button"
+                        size="icon-xs"
+                        aria-label={__('Add a block here')}
+                        title={__('Add a block here')}
+                        onClick={(event) => onAdd(gap.at, event.currentTarget)}
+                        className="pointer-events-auto absolute top-0 left-1/2 size-6 -translate-1/2 rounded-full"
+                    >
+                        <Plus />
+                    </Button>
+                </>
+            )}
+        </div>
+    );
+}
 
 /**
  * The article's body: the toolbar, the writing surface, the selection and
@@ -89,23 +182,40 @@ export function ProseEditor({
         [editor, contentType, status, permissions],
     );
 
-    // "+" adds an empty line below the block, the caret in it.
-    const addBelow = useCallback(
-        (block: TopBlock) => {
-            if (editor === null) {
-                return;
-            }
+    // What opened the block picker, when it is open from "+" or Insert.
+    const [picker, setPicker] = useState<PickerRequest | null>(null);
+    const closePicker = useCallback(() => setPicker(null), []);
+    const shown = menuCards ?? cards;
 
-            const after = block.pos + block.node.nodeSize;
-
-            editor
-                .chain()
-                .insertContentAt(after, { type: 'paragraph' })
-                .setTextSelection(after + 1)
-                .focus()
-                .run();
-        },
-        [editor],
+    const addAfter = useCallback(
+        (block: TopBlock, button: HTMLElement) =>
+            setPicker({
+                from: 'after',
+                at: block.pos + block.node.nodeSize,
+                name: blockName(block.node, cards),
+                anchor: button.getBoundingClientRect(),
+                opener: button,
+            }),
+        [cards],
+    );
+    const addHere = useCallback(
+        (at: number, button: HTMLElement) =>
+            setPicker({
+                from: 'here',
+                at,
+                anchor: button.getBoundingClientRect(),
+                opener: button,
+            }),
+        [],
+    );
+    const insertAtCursor = useCallback(
+        (button: HTMLElement) =>
+            setPicker({
+                from: 'cursor',
+                anchor: button.getBoundingClientRect(),
+                opener: button,
+            }),
+        [],
     );
 
     if (editor === null || context === null) {
@@ -116,20 +226,22 @@ export function ProseEditor({
         <div className="grid grid-cols-1">
             <Toolbar
                 editor={editor}
-                cards={menuCards ?? cards}
-                context={context}
                 siteUrl={siteUrl}
+                onInsert={insertAtCursor}
             />
             <PastedImagesBar editor={editor} />
             <div className="relative">
                 <EditorContent editor={editor} />
-                <BlockHandles editor={editor} cards={cards} onAdd={addBelow} />
+                <BlockHandles editor={editor} cards={cards} onAdd={addAfter} />
+                <BetweenBlocks editor={editor} onAdd={addHere} />
             </div>
             <BubbleMenu editor={editor} siteUrl={siteUrl} />
-            <SlashMenu
+            <BlockPicker
                 editor={editor}
-                cards={menuCards ?? cards}
+                cards={shown}
                 context={context}
+                request={picker}
+                onClose={closePicker}
             />
             <WordCount editor={editor} />
         </div>

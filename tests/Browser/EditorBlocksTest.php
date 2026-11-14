@@ -75,6 +75,9 @@ beforeEach(function (): void {
         })()
         JS;
 
+    // Puts the caret at the end of a top-level block's words.
+    $this->ebkCaretAtEnd = fn (int $block): string => str_replace('range.setStart(text, 1);', 'range.setStart(text, text.length);', ($this->ebkCaret)($block));
+
     // The words of the top-level block the caret is in, while the writing surface has focus.
     $this->ebkCaretIn = "(() => { const node = window.getSelection().anchorNode; const element = node?.nodeType === 1 ? node : node?.parentElement; return document.activeElement === document.querySelector('.teme-prose') && element !== null ? element.closest('.teme-prose > *')?.textContent ?? null : null; })()";
 
@@ -109,6 +112,11 @@ beforeEach(function (): void {
         // Open, with its first item focused.
         return cmWaitUntil($page, "document.querySelector('[role=\"menu\"]') !== null && (document.activeElement?.getAttribute('role') ?? '').startsWith('menuitem')");
     };
+
+    // The open block picker's head, its option names, and the toolbar's Insert.
+    $this->ebkPickerHead = "(() => { const list = document.querySelector('[data-test=\"block-picker\"] [role=\"listbox\"]'); return list === null ? null : document.getElementById(list.getAttribute('aria-labelledby')).textContent; })()";
+    $this->ebkPickerNames = "Array.from(document.querySelectorAll('[data-test=\"block-picker\"] [role=\"option\"] .font-medium'), (name) => name.textContent)";
+    $this->ebkInsert = '[role="toolbar"] button[aria-label="Insert"]';
 
     // Warm the screen before the browser's first visit (I-638).
     $this->actingAs($this->editor)->get($this->edit)->assertOk();
@@ -255,6 +263,115 @@ it('shows the current block\'s handle on touch, at 44 pixels, with no + between 
         ->and($sizes['add'])->toBeGreaterThanOrEqual(44)
         ->and($sizes['name'])->toBe('Block menu: Paragraph');
     $page->assertScript("document.querySelector('[aria-label=\"Add a block here\"]')", null);
+});
+
+it('inserts an image card from + with the keyboard: type two words, ↓, Enter', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $before = ($this->ebkSavedAt)($page);
+    $page->script(($this->ebkCaret)(0));
+    $page->keys('.teme-prose', 'Tab');
+    cmWaitUntil($page, "document.activeElement?.getAttribute('aria-label') === 'Block menu: Paragraph'");
+
+    // The "+" sits beside the grip, one arrow away.
+    $page->page()->locator(':focus')->press('ArrowLeft');
+    cmWaitUntil($page, "document.activeElement?.getAttribute('aria-label') === 'Add a block below'");
+    $page->page()->locator(':focus')->press('Enter');
+    cmWaitUntil($page, "document.activeElement?.getAttribute('role') === 'combobox'");
+
+    expect($page->script($this->ebkPickerHead))->toBe('Insert after: Paragraph');
+
+    $page->page()->locator(':focus')->type('photo picture');
+    cmWaitUntil($page, "{$this->ebkPickerNames}.join() === 'Image'");
+    $page->page()->locator(':focus')->press('ArrowDown');
+    $page->page()->locator(':focus')->press('Enter');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"]') === null");
+    // The new card is the second block and selected; an image card with no image opens
+    // its own library at once, so focus is in that dialog, which belongs to the card.
+    cmWaitUntil($page, "(() => { const block = document.querySelector('.teme-prose').children[1]; const dialog = document.querySelector('[role=\"dialog\"]'); return block.classList.contains('ProseMirror-selectednode') && block.textContent.includes('Choose an image from the library.') && dialog !== null && dialog.textContent.includes('Insert image') && dialog.contains(document.activeElement); })()");
+
+    $saved = ($this->ebkSavedSince)($page, $before);
+
+    expect(array_column($saved, 'type'))->toBe(['paragraph', 'image', 'paragraph', 'paragraph', 'image'])
+        ->and($saved[1]['attrs']['id'])->not->toBeIn(array_values($this->ids));
+});
+
+it('turns an empty line into a heading by typing /hea and Enter', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $page->script(($this->ebkCaretAtEnd)(2));
+    $page->keys('.teme-prose', 'Enter');
+    $page->page()->locator(':focus')->type('/hea');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"]') !== null");
+
+    expect($page->script($this->ebkPickerHead))->toBe('Filtering by “/hea”: keep typing to narrow');
+
+    $page->keys('.teme-prose', 'Enter');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"]') === null && document.querySelector('.teme-prose').children[3]?.tagName === 'H2'");
+
+    $page->assertScript("document.querySelector('.teme-prose').children[3].textContent", '')
+        ->assertScript("document.querySelector('.teme-prose').textContent.includes('/hea')", false);
+});
+
+it('offers in Insert everything the slash offers, in the same picker', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $page->script(($this->ebkCaretAtEnd)(2));
+    $page->keys('.teme-prose', 'Enter');
+    $page->page()->locator(':focus')->type('/');
+    cmWaitUntil($page, "{$this->ebkPickerNames}.length > 0");
+    $fromSlash = cmScriptArray($page, $this->ebkPickerNames);
+
+    $page->keys('.teme-prose', 'Escape');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"]') === null");
+
+    $page->click($this->ebkInsert);
+    cmWaitUntil($page, "{$this->ebkPickerNames}.length > 0");
+
+    expect($page->script($this->ebkPickerHead))->toBe('Insert at the cursor')
+        ->and(cmScriptArray($page, $this->ebkPickerNames))->toBe($fromSlash)
+        ->and($fromSlash)->toContain('Paragraph', 'Heading', 'Horizontal rule', 'Image');
+});
+
+it('says No block matches. and closes with Esc, focus back where it opened', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $page->script(($this->ebkCaret)(1));
+    $page->page()->locator($this->ebkInsert)->focus();
+    $page->page()->locator(':focus')->press('Enter');
+    cmWaitUntil($page, "document.activeElement?.getAttribute('role') === 'combobox'");
+
+    $page->page()->locator(':focus')->type('zebra quartz');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"]').textContent.includes('No block matches. Esc closes this.')");
+    expect(cmScriptArray($page, $this->ebkPickerNames))->toBe([]);
+
+    $page->page()->locator(':focus')->press('Escape');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"]') === null");
+    $page->assertScript("document.activeElement === document.querySelector('{$this->ebkInsert}')");
+});
+
+it('exposes the picker as a listbox with one highlighted option', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $page->script(($this->ebkCaret)(1));
+    $page->click($this->ebkInsert);
+    cmWaitUntil($page, "{$this->ebkPickerNames}.length > 0");
+
+    $read = "(() => { const picker = document.querySelector('[data-test=\"block-picker\"]'); const search = picker.querySelector('[role=\"combobox\"]'); const list = picker.querySelector('[role=\"listbox\"]'); const selected = Array.from(list.querySelectorAll('[role=\"option\"][aria-selected=\"true\"]'), (option) => option.id); return { controls: search.getAttribute('aria-controls') === list.id, active: search.getAttribute('aria-activedescendant'), selected, groups: Array.from(list.querySelectorAll('[role=\"group\"]'), (group) => document.getElementById(group.getAttribute('aria-labelledby'))?.textContent ?? '') }; })()";
+    $first = cmScriptArray($page, $read);
+
+    expect($first['controls'])->toBeTrue()
+        ->and($first['selected'])->toHaveCount(1)
+        ->and($first['selected'][0])->toBe($first['active'])
+        ->and($first['groups'])->toContain('Text', 'Cards');
+
+    $page->page()->locator(':focus')->press('ArrowDown');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"block-picker\"] [role=\"combobox\"]').getAttribute('aria-activedescendant') !== ".json_encode($first['active'], JSON_THROW_ON_ERROR));
+    $second = cmScriptArray($page, $read);
+
+    expect($second['selected'])->toHaveCount(1)
+        ->and($second['selected'][0])->toBe($second['active']);
 });
 
 it('passes axe with the block menu open, light and dark', function (string $scheme): void {

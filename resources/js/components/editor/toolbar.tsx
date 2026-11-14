@@ -21,6 +21,7 @@ import {
     List,
     ListChecks,
     ListOrdered,
+    Minus,
     MoreHorizontal,
     Plus,
     Quote,
@@ -34,9 +35,8 @@ import {
     Undo2,
 } from 'lucide-react';
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { ComponentProps, KeyboardEvent, ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -51,11 +51,7 @@ import {
 import { SelectField } from '@/components/ui/select-field';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
-import type { CardManifestEntry } from '@/types';
-import { cardEntries } from './insert-entries';
 import { LinkPopover } from './link-popover';
-import type { EditorContext } from './region-entry';
-import { matches } from './region-entry';
 
 /** A 32px toolbar button: ghost, at full strength, its pressed state the design system's. */
 function ToolButton({
@@ -108,6 +104,7 @@ function blockTypes(): { value: string; label: string }[] {
 // italic, link and + Insert are not here: they never fold. Everything else
 // must, or a phone-width row clips More itself (B-138).
 const FOLD_ORDER = [
+    'horizontalRule',
     'table',
     'blockquote',
     'taskList',
@@ -121,9 +118,6 @@ const FOLD_ORDER = [
 ] as const;
 type Foldable = (typeof FOLD_ORDER)[number];
 
-// Typing in a menu's filter must not move the menu's own selection.
-const keepTyping = (event: KeyboardEvent) => event.stopPropagation();
-
 /**
  * The editor's toolbar: one sticky row that never wraps and never scrolls
  * sideways (I-231, I-235, I-238). When it does not fit, a ResizeObserver
@@ -132,15 +126,14 @@ const keepTyping = (event: KeyboardEvent) => event.stopPropagation();
  */
 export function Toolbar({
     editor,
-    cards,
-    context,
     siteUrl,
+    onInsert,
 }: {
     editor: Editor;
-    cards: CardManifestEntry[];
-    context: EditorContext;
     /** The site's address, for links to the site itself. */
     siteUrl: string;
+    /** Opens the block picker under Insert. */
+    onInsert: (button: HTMLElement) => void;
 }) {
     const state = useEditorState({
         editor,
@@ -183,7 +176,6 @@ export function Toolbar({
     const inner = useRef<HTMLDivElement>(null);
     const widths = useRef<Partial<Record<Foldable, number>>>({});
     const [folded, setFolded] = useState(0);
-    const [filter, setFilter] = useState('');
 
     // Fold one control at a time while the row overflows; unfold one when the
     // next would fit again.
@@ -373,6 +365,18 @@ export function Toolbar({
                 </ToolButton>
             ),
         },
+        horizontalRule: {
+            label: __('Horizontal rule'),
+            run: () => chain().setHorizontalRule().run(),
+            button: (
+                <ToolButton
+                    label={__('Horizontal rule')}
+                    onClick={() => chain().setHorizontalRule().run()}
+                >
+                    <Minus />
+                </ToolButton>
+            ),
+        },
         table: {
             label: state.table ? __('Delete table') : __('Table'),
             run: insertTable,
@@ -456,82 +460,18 @@ export function Toolbar({
         </>
     );
 
-    const entries = cardEntries(cards).filter((entry) =>
-        matches(entry, filter),
-    );
-    const showRule = 'horizontal rule divider line'.includes(
-        filter.trim().toLowerCase(),
-    );
-
     const insert = (
-        <DropdownMenu onOpenChange={() => setFilter('')}>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 gap-1 px-2"
-                >
-                    <Plus />
-                    <span className="@max-lg:sr-only">{__('Insert')}</span>
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-                align="start"
-                className="w-80 max-w-(--radix-dropdown-menu-content-available-width)"
-            >
-                <div className="p-1">
-                    <Input
-                        aria-label={__('Filter what to insert')}
-                        placeholder={__('Filter')}
-                        value={filter}
-                        onChange={(event) => setFilter(event.target.value)}
-                        onKeyDown={keepTyping}
-                    />
-                </div>
-                {entries.map((entry) => (
-                    <DropdownMenuItem
-                        key={entry.id}
-                        onSelect={() => entry.run(context)}
-                        className="flex-col items-start gap-0"
-                    >
-                        <span className="font-medium">{entry.label}</span>
-                        {entry.description && (
-                            <span className="text-ink-3 text-small">
-                                {entry.description}
-                            </span>
-                        )}
-                    </DropdownMenuItem>
-                ))}
-                {showRule && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            onSelect={() =>
-                                chain()
-                                    .insertContent({ type: 'horizontalRule' })
-                                    .run()
-                            }
-                            className="flex-col items-start gap-0"
-                        >
-                            <span className="font-medium">
-                                {__('Horizontal rule')}
-                            </span>
-                            <span className="text-ink-3 text-small">
-                                {__(
-                                    'A line across the column, between two parts of the text.',
-                                )}
-                            </span>
-                        </DropdownMenuItem>
-                    </>
-                )}
-                {entries.length === 0 && !showRule && (
-                    <p className="text-ink-3 text-small px-2 py-1">
-                        {__('Nothing matches.')}
-                    </p>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="shrink-0 gap-1 px-2"
+            aria-label={__('Insert')}
+            onClick={(event) => onInsert(event.currentTarget)}
+        >
+            <Plus />
+            <span className="@max-lg:sr-only">{__('Insert')}</span>
+        </Button>
     );
 
     return (
@@ -584,6 +524,7 @@ export function Toolbar({
                     }
                 />
                 {fold('table')}
+                {fold('horizontalRule')}
                 <Divider />
                 {insert}
                 {!isFolded('text') && (
