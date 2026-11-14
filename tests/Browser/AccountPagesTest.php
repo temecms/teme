@@ -115,6 +115,24 @@ it('chooses a picture from Media on Profile, shows it at once, and removes it ag
     expect($writer->refresh()->picture_media_id)->toBeNull();
 });
 
+it('keeps the picture as it is until the email address is verified, saying why', function (): void {
+    $waiting = User::factory()->unverified()->create(['name' => 'Wes Waiting', 'picture_media_id' => pageImage($this->admin, 400, 400)->id])->assignRole('author');
+
+    // Signing in lands on the email check, not Home, until the address is verified.
+    $page = visit('/admin/login')
+        ->type('email', $waiting->email)
+        ->type('password', 'password')
+        ->click('[data-test="login-button"]');
+    $page->navigate('/admin/account/profile');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="picture-choose"]\') !== null');
+
+    $page->assertScript('document.querySelector(\'[data-test="picture-choose"]\').disabled', true)
+        ->assertScript('document.querySelector(\'[data-test="picture-remove"]\').disabled', true)
+        ->assertSee('Verify your email address to change your picture.');
+
+    expect($waiting->refresh()->picture_media_id)->not->toBeNull();
+});
+
 it('shows the save bar once a detail changes on Profile, and saves it', function (): void {
     $page = cmNavigate(cmSignIn($this->admin), '/admin/account/profile');
     cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Account"]\') !== null');

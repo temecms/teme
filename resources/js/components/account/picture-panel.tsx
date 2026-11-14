@@ -17,12 +17,12 @@ export function PicturePanel() {
     const { auth, errors } = usePage().props;
     const [choosing, setChoosing] = useState(false);
     const [busy, setBusy] = useState(false);
-    const canChoose =
-        auth.user.capabilities.includes('content.create') &&
-        auth.user.emailVerified;
-    const help = !auth.user.emailVerified
-        ? __('Confirm your email address to choose a picture.')
-        : auth.user.capabilities.includes('content.create')
+    const mayChoose = auth.user.capabilities.includes('content.create');
+    // The picture's routes need a verified address: until then both buttons wait, saying why.
+    const verified = auth.user.emailVerified;
+    const help = !verified
+        ? __('Verify your email address to change your picture.')
+        : mayChoose
           ? __('With none, your initials show.')
           : __(
                 'Your role can’t choose from Media. Ask an administrator to add your picture.',
@@ -45,13 +45,13 @@ export function PicturePanel() {
                 />
                 <div className="grid gap-2">
                     <div className="flex flex-wrap gap-2">
-                        {canChoose && (
+                        {mayChoose && (
                             <Button
                                 type="button"
                                 variant="neutral"
                                 size="sm"
                                 data-test="picture-choose"
-                                disabled={busy}
+                                disabled={busy || !verified}
                                 onClick={() => setChoosing(true)}
                             >
                                 {__('Choose from Media')}
@@ -62,7 +62,9 @@ export function PicturePanel() {
                             variant="ghost"
                             size="sm"
                             data-test="picture-remove"
-                            disabled={busy || auth.user.picture === null}
+                            disabled={
+                                busy || !verified || auth.user.picture === null
+                            }
                             onClick={() =>
                                 router.delete(
                                     PictureController.destroy.url(),
@@ -77,7 +79,7 @@ export function PicturePanel() {
                     <InputError message={errors.media} />
                 </div>
             </div>
-            {canChoose && (
+            {mayChoose && verified && (
                 <MediaModal
                     open={choosing}
                     onOpenChange={setChoosing}
