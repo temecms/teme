@@ -1,0 +1,130 @@
+import { useEditor } from '@tiptap/react';
+import type { Editor, JSONContent } from '@tiptap/react';
+import { useEffect, useRef, useState } from 'react';
+import { ulid } from '@/lib/ulid';
+import type { CardManifestEntry, EditorDocument, EmbedProvider } from '@/types';
+import { withBlockIds } from './block-ids';
+import { cleanPastedHtml, embedFromPastedText } from './paste';
+import { PastedImageWithView } from './pasted-image-view';
+import { hasPastedImage, withoutPastedImages } from './pasted-images';
+import { temeExtensions } from './schema';
+
+/**
+ * The stored document, with an empty paragraph when it has no blocks. The
+ * server stores a new article as `content: []`, and ProseMirror's starting
+ * selection in a document with no blocks selects everything, so the first
+ * keystroke would replace the article and the selection menu would show.
+ */
+function withBlock(document: EditorDocument): JSONContent {
+    return (document.content?.length ?? 0) > 0
+        ? (document as JSONContent)
+        : { ...document, content: [{ type: 'paragraph' }] };
+}
+
+/**
+ * The editor for one article's body: Teme's extensions, the stored document,
+ * and a callback with the JSON whenever it changes. It never re-renders on
+ * every transaction (study L §7); the toolbar reads its state through
+ * selectors instead. A paste from Word or Google Docs is cleaned, and a video
+ * or audio address pasted on an empty line becomes an embed card (I-426). An
+ * image pasted from another site waits in place to be imported into the media
+ * library, and what is saved leaves it out until it is (I-453). Every block
+ * is given its ID before the editor opens, so opening is no change (I-3362).
+ */
+export function useTemeEditor({
+    document,
+    cards,
+    embedProviders,
+    spellcheck,
+    smartQuotes,
+    siteUrl,
+    onChange,
+}: {
+    document: EditorDocument;
+    cards: CardManifestEntry[];
+    embedProviders: EmbedProvider[];
+    /** The person's editor.spellcheck. */
+    spellcheck: boolean;
+    /** The person's editor.smart_quotes. */
+    smartQuotes: boolean;
+    /** The site's address, so a link to the site is stored by ID or path (rule 9). */
+    siteUrl: string;
+    onChange: (document: JSONContent) => void;
+}): Editor | null {
+    // The latest callback and providers, without rebuilding the editor when
+    // they change: useEditor reads its options once.
+    const changed = useRef(onChange);
+    const providers = useRef(embedProviders);
+    const site = useRef(siteUrl);
+
+    useEffect(() => {
+        changed.current = onChange;
+        providers.current = embedProviders;
+        site.current = siteUrl;
+    });
+
+    // The stored document as the editor opens it, made once (I-3362).
+    const [opened] = useState(() =>
+        withBlockIds(
+            withBlock(document),
+            cards.map((card) => card.name),
+        ),
+    );
+
+    return useEditor({
+        extensions: [
+            ...temeExtensions(cards, { smartQuotes }),
+            PastedImageWithView,
+        ],
+        content: opened,
+        immediatelyRender: false,
+        shouldRerenderOnTransaction: false,
+        editorProps: {
+            attributes: {
+                class: 'teme-prose min-h-60 px-5 py-4 outline-none',
+                'aria-labelledby': 'editor-body-label',
+                'aria-multiline': 'true',
+                role: 'textbox',
+                spellcheck: spellcheck ? 'true' : 'false',
+            },
+            transformPastedHTML: (html) => cleanPastedHtml(html, site.current),
+            handlePaste: (view, event) => {
+                const { selection, schema } = view.state;
+                const { $from } = selection;
+                const inEmptyParagraph =
+                    selection.empty &&
+                    $from.parent.type.name === 'paragraph' &&
+                    $from.parent.content.size === 0;
+                const attrs = inEmptyParagraph
+                    ? embedFromPastedText(
+                          event.clipboardData?.getData('text/plain') ?? '',
+                          providers.current,
+                      )
+                    : null;
+
+                if (attrs === null || schema.nodes.embed === undefined) {
+                    // Not ours: ProseMirror pastes, and Tiptap's link
+                    // extension makes a pasted address a link.
+                    return false;
+                }
+
+                view.dispatch(
+                    view.state.tr.replaceWith(
+                        $from.before(),
+                        $from.after(),
+                        schema.nodes.embed.create({ ...attrs, id: ulid() }),
+                    ),
+                );
+
+                return true;
+            },
+        },
+        // A pasted image waiting to be imported is never saved (I-453).
+        onUpdate: ({ editor }) =>
+            changed.current(
+                hasPastedImage(editor.state.doc)
+                    ? withoutPastedImages(editor.getJSON())
+                    : editor.getJSON(),
+            ),
+    });
+}

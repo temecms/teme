@@ -1,0 +1,9 @@
+includes:
+    - ../../vendor/larastan/larastan/extension.neon
+    - rules.neon
+
+parameters:
+    level: 0
+    paths:
+        - Fixtures
+    tmpDir: ../../build/phpstan-fixtures

@@ -1,0 +1,60 @@
+# Teme's build context (I-375). Everything is left out first, then only
+# what the image is built from is let back in, so a file nobody named never
+# reaches a build: a private file least of all. Release images are built in
+# CI from a checkout of tracked files; a build on a person's machine uses
+# git archive HEAD as its context, never the working folder.
+*
+
+# What the image is built from.
+!app/
+!bootstrap/app.php
+!bootstrap/providers.php
+!config/
+!database/
+!docker/
+!packages/
+!public/
+!resources/
+!routes/
+!themes/
+!artisan
+!composer.json
+!composer.lock
+!package.json
+!package-lock.json
+!.npmrc
+!tsconfig.json
+!vite.config.ts
+!vite.theme.config.ts
+
+# Built, linked or kept on a person's machine; the image makes its own.
+**/node_modules
+**/vendor
+**/.DS_Store
+bootstrap/ssr
+database/*.sqlite*
+docker/secrets
+public/build
+public/hot
+public/storage
+public/themes
+resources/js/actions
+resources/js/routes
+resources/js/wayfinder
+themes/*/public/hot
+
+# Local notes, named here although the first line already leaves them
+# out, so no line above can ever let one back in. .gitignore keeps them out
+# of git for the same reasons.
+CMSes.txt
+GPT chat.txt
+Plugins on WPsites.txt
+Reference
+.laravel-tmp
+.claude
+**/.git
+**/auth.json
+.env
+.env.*
+**/.env
+**/.env.*

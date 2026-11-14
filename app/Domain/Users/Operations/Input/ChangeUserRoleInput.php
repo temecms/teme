@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Users\Operations\Input;
+
+use Teme\Contracts\Operations\OperationInput;
+
+/**
+ * What `ChangeUserRole` needs: whose role changes, to which role, and who is
+ * asking.
+ */
+final readonly class ChangeUserRoleInput implements OperationInput
+{
+    public function __construct(
+        public string $userId,
+        public string $role,
+        public ?string $actorId,
+    ) {}
+
+    public function actorId(): ?string
+    {
+        return $this->actorId;
+    }
+}

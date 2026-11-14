@@ -1,0 +1,158 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Admin;
+
+use App\Domain\Design\Operations\ActivateTheme;
+use App\Domain\Design\Operations\CreateDesignPreview;
+use App\Domain\Design\Operations\DiscardDesignDraft;
+use App\Domain\Design\Operations\Input\ActivateThemeInput;
+use App\Domain\Design\Operations\Input\CreateDesignPreviewInput;
+use App\Domain\Design\Operations\Input\DiscardDesignDraftInput;
+use App\Domain\Design\Operations\Input\PublishDesignInput;
+use App\Domain\Design\Operations\Input\SaveDesignDraftInput;
+use App\Domain\Design\Operations\Input\StopPreviewingThemeInput;
+use App\Domain\Design\Operations\PublishDesign;
+use App\Domain\Design\Operations\SaveDesignDraft;
+use App\Domain\Design\Operations\StopPreviewingTheme;
+use App\Domain\Design\Queries\DesignScreen;
+use App\Domain\Regions\Queries\RegionScreens;
+use App\Domain\Regions\RegionWords;
+use App\Domain\Themes\Theme;
+use App\Domain\Themes\ThemeRegistry;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Inertia\Inertia;
+use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Teme\Contracts\Settings\Setting;
+
+/**
+ * Site › Themes: the installed themes, a theme's preview and activation, the
+ * regions each places, and the chosen theme's settings and menu places, every
+ * change drafted and published through the design's Operations. It changes
+ * nothing itself.
+ */
+final class ThemesController extends Controller
+{
+    public function index(Request $request, DesignScreen $screen, RegionScreens $regions, ThemeRegistry $themes): Response
+    {
+        $data = $screen->data();
+        $previewed = $data['preview'] === null ? null : $themes->find($data['preview']['code']);
+
+        return Inertia::render('themes/index', [
+            ...$data,
+            'regions' => $regions->index(),
+            'previewRegions' => $previewed === null ? null : $regions->forTheme($previewed),
+            'canEditRegions' => $request->user()?->can('regions.manage') === true,
+        ]);
+    }
+
+    /**
+     * Previews a theme: SaveDesignDraft drafts the switch, refusing a theme
+     * the brand colour fails, and the screen then shows the theme's settings
+     * and places, and opens the site with it.
+     */
+    public function startPreview(Request $request, string $code, SaveDesignDraft $save): RedirectResponse
+    {
+        $save->execute(new SaveDesignDraftInput(['design' => ['theme' => $code]], (string) $request->user()?->getAuthIdentifier()));
+
+        return to_route('themes.index');
+    }
+
+    public function stopPreview(Request $request, string $code, StopPreviewingTheme $stop): RedirectResponse
+    {
+        $name = $stop->execute(new StopPreviewingThemeInput($code, (string) $request->user()?->getAuthIdentifier()));
+
+        if (is_string($name)) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('Stopped previewing :name.', ['name' => $name])]);
+        }
+
+        return to_route('themes.index');
+    }
+
+    /**
+     * Saves the keys changed since the last save. A refusal answers 422,
+     * each message keyed `groups.{group}.{key}`.
+     */
+    public function saveDraft(Request $request, SaveDesignDraft $save, DesignScreen $screen): JsonResponse
+    {
+        $save->execute(new SaveDesignDraftInput(
+            groups: (array) $request->input('groups', []),
+            actorId: (string) $request->user()?->getAuthIdentifier(),
+        ));
+
+        return response()->json(['draft' => $screen->data()['draft']]);
+    }
+
+    /**
+     * Activates a theme through ActivateTheme, then says it is live and how
+     * many of its regions wait to be filled.
+     */
+    public function activate(Request $request, string $code, ActivateTheme $activate, RegionScreens $regions): RedirectResponse
+    {
+        /** @var Theme $theme */
+        $theme = $activate->execute(new ActivateThemeInput($code, (string) $request->user()?->getAuthIdentifier()));
+        $empty = array_filter($regions->forTheme($theme)['regions'], fn (array $region): bool => $region['state'] === 'empty');
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => RegionWords::live($theme->manifest?->name() ?? $theme->code, count($empty))]);
+
+        return to_route('themes.index');
+    }
+
+    /**
+     * Publishes the design's draft. A draft that switches the theme goes
+     * live only through ActivateTheme, which checks the theme can be used and
+     * the brand colour against it.
+     */
+    public function publish(Request $request, DesignScreen $screen, PublishDesign $publish, ActivateTheme $activate, RegionScreens $regions): RedirectResponse
+    {
+        $drafted = $screen->draftedTheme();
+
+        if ($drafted !== null) {
+            return $this->activate($request, $drafted, $activate, $regions);
+        }
+
+        $publish->execute(new PublishDesignInput((string) $request->user()?->getAuthIdentifier()));
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Design published.')]);
+
+        return back(fallback: route('themes.index'));
+    }
+
+    public function discard(Request $request, DiscardDesignDraft $discard): RedirectResponse
+    {
+        $discard->execute(new DiscardDesignDraftInput((string) $request->user()?->getAuthIdentifier()));
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Unpublished design changes discarded.')]);
+
+        return back(fallback: route('themes.index'));
+    }
+
+    /**
+     * A signed link that opens the page a section is about with the drafts shown.
+     */
+    public function previewLink(Request $request, DesignScreen $screen, CreateDesignPreview $create): JsonResponse
+    {
+        $section = $request->validate(['section' => ['required', 'string', Rule::in(Setting::FIELDSETS)]])['section'];
+
+        return response()->json(['url' => $create->execute(new CreateDesignPreviewInput(
+            path: $screen->previewPath($section),
+            actorId: (string) $request->user()?->getAuthIdentifier(),
+        ))]);
+    }
+
+    /**
+     * The screenshot a theme declares; the request names only the theme.
+     */
+    public function screenshot(string $code, DesignScreen $screen): BinaryFileResponse
+    {
+        $screenshot = $screen->screenshot($code) ?? abort(404);
+
+        return response()->file($screenshot['path'], ['Content-Type' => $screenshot['type']]);
+    }
+}

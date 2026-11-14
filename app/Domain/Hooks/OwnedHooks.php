@@ -1,0 +1,94 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Hooks;
+
+use Closure;
+use Teme\Contracts\Hooks\Hook;
+use Teme\Contracts\Hooks\HookRefused;
+use Teme\Contracts\Hooks\Hooks;
+use Teme\Contracts\Hooks\Order;
+use Teme\Contracts\Hooks\Subscription;
+
+/**
+ * One owner's way to listen (I-3353): bound to its name, what it was
+ * granted, the hooks it declared and its quarantined subscriptions, open
+ * until close(). It adds to the dispatcher as on() is called.
+ */
+final class OwnedHooks implements Hooks
+{
+    /** @var array<string, class-string<Hook>> */
+    private array $mine = [];
+
+    private bool $closed = false;
+
+    /**
+     * @param  list<string>  $capabilities
+     * @param  list<string>|null  $declared
+     * @param  list<string>  $quarantined
+     */
+    public function __construct(
+        private readonly HookDispatcher $dispatcher,
+        private readonly string $owner,
+        private readonly array $capabilities,
+        private readonly ?array $declared,
+        private readonly array $quarantined,
+    ) {}
+
+    public function on(string $hook, callable $listener, ?Order $order = null): Subscription
+    {
+        $name = HookDispatcher::shortName($hook);
+
+        if ($this->closed) {
+            throw new HookRefused("It listens for {$name} after it finished starting: subscribe in register().");
+        }
+
+        if (! is_subclass_of($hook, Hook::class)) {
+            throw new HookRefused("It listens for {$name}, which isn’t a Teme hook.");
+        }
+
+        if ($this->declared !== null && ! in_array($name, $this->declared, true)) {
+            throw new HookRefused("It listens for {$name}, which its teme-plugin.json doesn’t list under hooks.");
+        }
+
+        $capability = $this->dispatcher->contract($hook)->capability;
+
+        // Core is granted every capability; a plugin only what it asked for.
+        if ($capability !== null && $this->owner !== HookDispatcher::CORE && ! in_array($capability, $this->capabilities, true)) {
+            throw new HookRefused("It listens for {$name} without asking for {$capability} in its teme-plugin.json.");
+        }
+
+        $subscription = new Subscription("{$this->owner}#{$name}#".$this->dispatcher->nextPlace($this->owner, $name));
+
+        $this->dispatcher->warnDeprecated($this->owner, $hook);
+
+        if (! in_array($subscription->id, $this->quarantined, true)) {
+            $this->mine[$subscription->id] = $hook;
+            $this->dispatcher->add($hook, $subscription->id, $this->owner, Closure::fromCallable($listener), $order ?? Order::normal());
+        }
+
+        return $subscription;
+    }
+
+    public function off(Subscription $subscription): void
+    {
+        $hook = $this->mine[$subscription->id] ?? null;
+
+        if ($this->closed || $hook === null) {
+            return;
+        }
+
+        unset($this->mine[$subscription->id]);
+        $this->dispatcher->remove($hook, $subscription->id);
+    }
+
+    /**
+     * Ends the owner's subscribing: a later on() is refused and off() ignored,
+     * so a long-running worker never gathers listeners.
+     */
+    public function close(): void
+    {
+        $this->closed = true;
+    }
+}

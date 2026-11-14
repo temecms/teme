@@ -1,0 +1,22 @@
+{
+    "manifest": 1,
+    "name": "tests/contributor",
+    "code": "contributor",
+    "label": "Contributor",
+    "description": "A plugin the join's tests enable: it adds settings, a Tools link and a status check, and tells a workspace outside the site of four content hooks.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Contributor\\Contributor",
+    "capabilities": ["content.read", "http"],
+    "hosts": ["api.example.com"],
+    "hooks": ["ContentPublished", "ContentUnpublished", "ContentTrashed", "ContentRestored"],
+    "contributes": {
+        "settings": [
+            { "key": "token", "type": "secret", "label": "Token", "description": "Lets the plugin tell its workspace." },
+            { "key": "project", "type": "text", "label": "Project", "description": "The workspace project to tell." }
+        ],
+        "admin": [
+            { "surface": "tools", "id": "settings", "label": "Contributor settings", "to": "settings" }
+        ]
+    }
+}

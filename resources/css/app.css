@@ -1,0 +1,530 @@
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    /* IBM Plex, bundled (I-196), with the system stack behind every family so
+       text is readable before a file arrives. */
+    --font-sans:
+        'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui,
+        -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-serif: 'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+    --font-mono:
+        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+        monospace;
+
+    --radius-sm: 0.125rem; /* 2px — chips, badges, inline code */
+    --radius-md: var(--radius); /* 4px — buttons, inputs, menu items */
+    --radius-lg: 0.375rem; /* 6px — popovers, dialogs, drawers */
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-success: var(--success);
+    --color-success-muted: var(--success-muted);
+    --color-warning: var(--warning);
+    --color-warning-muted: var(--warning-muted);
+    --color-destructive-muted: var(--destructive-muted);
+    --color-faint: var(--faint);
+    --color-link: var(--link);
+    --color-selected: var(--selected);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-muted: var(--sidebar-muted);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+    /* The neutral ramp is achromatic (study M §2). A chroma other than zero
+       here is a bug, and DesignTokensTest fails on it. */
+    --background: #f6f6f7;
+    --foreground: #1a1a1a;
+    --card: #ffffff;
+    --card-foreground: #1a1a1a;
+    --popover: #ffffff;
+    --popover-foreground: #1a1a1a;
+    --secondary: #f1f1f2;
+    --secondary-foreground: #1a1a1a;
+    --muted: #f1f1f2;
+    --muted-foreground: #5c5c5c;
+    --faint: #8a8a8a;
+    --border: #e4e4e5;
+    --input: #cfcfd1;
+
+    /* The accent does two jobs: the primary action and the focus ring (I-188). */
+    --primary: #0a6273;
+    --primary-foreground: #ffffff;
+    --ring: #0a6273;
+
+    /* Hover and selection are neutral. Ghost's source notes that a darker
+       grey for selection would compete with row hover, so selection is blue. */
+    --accent: #ebebec;
+    --accent-foreground: #1a1a1a;
+    --selected: #eef3fd;
+    --link: #1d4ed8;
+
+    --success: #18794e;
+    --success-muted: #e7f3ec;
+    --warning: #8a5300;
+    --warning-muted: #faf0dd;
+    --destructive: #b42318;
+    --destructive-foreground: #ffffff;
+    --destructive-muted: #fbeae8;
+
+    --chart-1: oklch(0.646 0.222 41.116);
+    --chart-2: oklch(0.6 0.118 184.704);
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+
+    --radius: 0.25rem;
+
+    /* The one shadow, for things that float (admin-design §Depth). */
+    --shadow: 0 8px 24px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.06);
+
+    /* Dark chrome is the default look (I-198): a dark sidebar, light content. */
+    --sidebar: #1d1d1f;
+    --sidebar-foreground: #ededee;
+    --sidebar-muted: #a5a5a7;
+    --sidebar-primary: #48adc2; /* the active item's bar and the focus ring stay visible on dark */
+    --sidebar-primary-foreground: #05222a;
+    --sidebar-accent: #333335; /* the active item's background */
+    --sidebar-accent-foreground: #ededee;
+    --sidebar-border: #2c2c2e;
+    --sidebar-ring: #48adc2;
+
+    /* Structure: read only by the shell and 1.5a's shared components
+       (PageHeader, Panel, DataTable, the page padding). A look may re-set them. */
+    --ui-size: 13px;
+    --h1-size: 22px;
+    --section-size: 15px;
+    --page-pad: 24px;
+    --cell-y: 12px;
+    --list-y: 14px;
+    --divider-soft: var(--border);
+}
+
+.dark {
+    /* Re-defined, not flipped (study M §2: Ghost re-defines; Laradashboard
+       pairs steps in markup and its dark surfaces disagree with each other). */
+    --background: #141414;
+    --foreground: #ededee;
+    --card: #1c1c1d;
+    --card-foreground: #ededee;
+    --popover: #1c1c1d;
+    --popover-foreground: #ededee;
+    --secondary: #242425;
+    --secondary-foreground: #ededee;
+    --muted: #242425;
+    --muted-foreground: #a5a5a7;
+    --faint: #7a7a7c;
+    --border: #2c2c2e;
+    --input: #3d3d3f;
+
+    --primary: #48adc2;
+    --primary-foreground: #05222a;
+    --ring: #48adc2;
+
+    --accent: #2c2c2e;
+    --accent-foreground: #ededee;
+    --selected: #1e2533;
+    --link: #8ab0ff;
+
+    --success: #5fc393;
+    --success-muted: #14302a;
+    --warning: #e0ae60;
+    --warning-muted: #322614;
+    --destructive: #f08076;
+    --destructive-foreground: #141414;
+    --destructive-muted: #3a1b19;
+
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+
+    --sidebar: #0b0b0c;
+    --sidebar-foreground: #ededee;
+    --sidebar-muted: #a5a5a7;
+    --sidebar-primary: #48adc2;
+    --sidebar-primary-foreground: #05222a;
+    --sidebar-accent: #29292b;
+    --sidebar-accent-foreground: #ededee;
+    --sidebar-border: #222224;
+    --sidebar-ring: #48adc2;
+}
+
+/* A look is only token values (I-198); no component may mention one. Each
+   look's dark block comes after its light one and matches its specificity, so
+   dark mode wins. Values from docs/prototypes/2026-09-22-admin-v9.source.html. */
+
+/* Standard: a white sidebar with a hairline. */
+:root[data-look='standard'] {
+    --sidebar: #ffffff;
+    --sidebar-foreground: #1a1a1a;
+    --sidebar-muted: #6b6b6e;
+    --sidebar-primary: #0a6273;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #ebebec;
+    --sidebar-accent-foreground: #1a1a1a;
+    --sidebar-border: #e4e4e5;
+    --sidebar-ring: #0a6273;
+}
+
+.dark[data-look='standard'] {
+    --sidebar: #1c1c1d;
+    --sidebar-foreground: #ededee;
+    --sidebar-muted: #a5a5a7;
+    --sidebar-primary: #48adc2;
+    --sidebar-primary-foreground: #05222a;
+    --sidebar-accent: #2c2c2e;
+    --sidebar-accent-foreground: #ededee;
+    --sidebar-border: #2c2c2e;
+    --sidebar-ring: #48adc2;
+}
+
+/* Quiet: one white surface everywhere, more room, 14px interface, fewer dividers. */
+:root[data-look='quiet'] {
+    --background: #ffffff;
+    --muted: #f4f4f5;
+    --accent: #efeff0;
+    --ui-size: 14px;
+    --h1-size: 24px;
+    --section-size: 16px;
+    --page-pad: 32px;
+    --cell-y: 14px;
+    --list-y: 16px;
+    --divider-soft: transparent;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #1a1a1a;
+    --sidebar-muted: #6b6b6e;
+    --sidebar-primary: #0a6273;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #f4f4f5;
+    --sidebar-accent-foreground: #1a1a1a;
+    --sidebar-border: #e4e4e5;
+    --sidebar-ring: #0a6273;
+}
+
+.dark[data-look='quiet'] {
+    --background: #1a1a1b;
+    --card: #1a1a1b;
+    --popover: #202022;
+    --muted: #232325;
+    --accent: #2a2a2c;
+    --sidebar: #1a1a1b;
+    --sidebar-foreground: #ededee;
+    --sidebar-muted: #a5a5a7;
+    --sidebar-primary: #48adc2;
+    --sidebar-primary-foreground: #05222a;
+    --sidebar-accent: #232325;
+    --sidebar-accent-foreground: #ededee;
+    --sidebar-border: #2c2c2e;
+    --sidebar-ring: #48adc2;
+}
+
+/* High contrast, under any look: black-on-white, with Dark chrome's sidebar in black. */
+:root[data-contrast='high'] {
+    --background: #ffffff;
+    --card: #ffffff;
+    --popover: #ffffff;
+    --muted: #ededed;
+    --accent: #e0e0e0;
+    --foreground: #000000;
+    --muted-foreground: #2e2e2e;
+    --border: #767676;
+    --input: #1a1a1a;
+    --primary: #00495a;
+    --primary-foreground: #ffffff;
+    --ring: #000000;
+    --link: #0030b0;
+    --divider-soft: #767676;
+    --sidebar: #000000;
+    --sidebar-foreground: #ffffff;
+    --sidebar-muted: #d6d6d6;
+    --sidebar-primary: #7fd6e8;
+    --sidebar-primary-foreground: #00181d;
+    --sidebar-accent: #333333;
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #8f8f8f;
+    --sidebar-ring: #ffffff;
+}
+
+:root[data-contrast='high']:is([data-look='standard'], [data-look='quiet']) {
+    --sidebar: #ffffff;
+    --sidebar-foreground: #000000;
+    --sidebar-muted: #2e2e2e;
+    --sidebar-primary: #00495a;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #d6d6d6;
+    --sidebar-accent-foreground: #000000;
+    --sidebar-border: #767676;
+    --sidebar-ring: #000000;
+}
+
+:root.dark[data-contrast='high'] {
+    --background: #000000;
+    --card: #0a0a0a;
+    --popover: #0a0a0a;
+    --muted: #1c1c1c;
+    --accent: #2a2a2a;
+    --foreground: #ffffff;
+    --muted-foreground: #d6d6d6;
+    --border: #8f8f8f;
+    --input: #e0e0e0;
+    --primary: #7fd6e8;
+    --primary-foreground: #00181d;
+    --ring: #ffffff;
+    --link: #a8c4ff;
+    --divider-soft: #8f8f8f;
+    --sidebar: #000000;
+    --sidebar-foreground: #ffffff;
+    --sidebar-muted: #d6d6d6;
+    --sidebar-primary: #7fd6e8;
+    --sidebar-primary-foreground: #00181d;
+    --sidebar-accent: #333333;
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #8f8f8f;
+    --sidebar-ring: #ffffff;
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    /* The scrollbar's room is kept, so a dialog that locks scrolling never shifts the page (I-3130). */
+    html {
+        scrollbar-gutter: stable;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-size: var(--ui-size);
+    }
+}
+
+/* Focus mode (slice 1.5c, I-191): the editor hides the admin's chrome while
+   someone writes, and brings it back when they leave. */
+html.editor-focus [data-slot='sidebar'],
+html.editor-focus [data-slot='sidebar-gap'],
+html.editor-focus [data-slot='app-header'] {
+    display: none;
+}
+
+/* The editor is a workspace the window's height: its header stays in view,
+   and its writing column and side panel each scroll on their own. The column
+   beside the sidebar holds the top bar and any Status banner, so main takes
+   what they leave (docs/architecture/admin-design.md). */
+html.editor-workspace [data-slot='app-column'] {
+    height: 100dvh;
+    min-height: 0;
+}
+
+html.editor-workspace #main-content {
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* The writing surface (slice 1.5c; admin-design.md, "The writing surface"):
+   16px serif at 1.6. Everything else on the screen is the interface face. */
+.teme-prose {
+    --editor-measure: 692px;
+    font-family: var(--font-serif);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--foreground);
+}
+
+.teme-prose > * + * {
+    margin-top: 0.85em;
+}
+
+/* The writing area fills the room between the menu and the side panel; text
+   keeps a reading measure centred in it, and tables, images and embeds take
+   the full width (I-3121). */
+.teme-prose
+    > :not(
+        table,
+        .tableWrapper,
+        .node-image,
+        .node-gallery,
+        .node-video,
+        .node-embed,
+        .node-pastedImage
+    ) {
+    max-width: var(--editor-measure);
+    margin-inline: auto;
+}
+
+.teme-prose h2,
+.teme-prose h3,
+.teme-prose h4 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    line-height: 1.25;
+    margin-top: 1.4em;
+}
+
+.teme-prose h2 {
+    font-size: 1.5em;
+}
+
+.teme-prose h3 {
+    font-size: 1.25em;
+}
+
+.teme-prose h4 {
+    font-size: 1.1em;
+}
+
+.teme-prose ul {
+    list-style: disc;
+    padding-left: 1.5em;
+}
+
+.teme-prose ol {
+    list-style: decimal;
+    padding-left: 1.5em;
+}
+
+.teme-prose ul[data-type='taskList'] {
+    list-style: none;
+    padding-left: 0.25em;
+}
+
+.teme-prose ul[data-type='taskList'] li {
+    display: flex;
+    gap: 0.5em;
+}
+
+.teme-prose ul[data-type='taskList'] li > label {
+    flex: none;
+    margin-top: 0.15em;
+}
+
+.teme-prose ul[data-type='taskList'] li > div {
+    flex: 1;
+}
+
+.teme-prose blockquote {
+    border-left: 3px solid var(--border);
+    padding-left: 1em;
+    color: var(--muted-foreground);
+}
+
+.teme-prose code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: var(--muted);
+    border-radius: var(--radius-sm);
+    padding: 0.1em 0.3em;
+}
+
+.teme-prose pre {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: var(--muted);
+    border-radius: var(--radius);
+    padding: 0.75em 1em;
+    overflow-x: auto;
+}
+
+.teme-prose pre code {
+    background: none;
+    padding: 0;
+}
+
+.teme-prose mark {
+    background: var(--warning-muted);
+    color: inherit;
+}
+
+.teme-prose a {
+    color: var(--link);
+    text-decoration: underline;
+}
+
+.teme-prose hr {
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 1.5em 0;
+}
+
+.teme-prose table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.95em;
+}
+
+.teme-prose th,
+.teme-prose td {
+    border: 1px solid var(--border);
+    padding: 0.35em 0.6em;
+    vertical-align: top;
+}
+
+.teme-prose th {
+    background: var(--muted);
+    font-weight: 600;
+    text-align: left;
+}
+
+.teme-prose p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    color: var(--faint);
+    float: left;
+    height: 0;
+    pointer-events: none;
+}
+
+.teme-prose .ProseMirror-selectednode {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}

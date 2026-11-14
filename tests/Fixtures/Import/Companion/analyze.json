@@ -1,0 +1,52 @@
+{
+    "api": 1,
+    "report": {
+        "report_version": 1,
+        "plugin_version": "0.2.0",
+        "include_examples": false,
+        "started_at": "2026-10-01T09:20:00+00:00",
+        "generated_at": "2026-10-01T09:30:00+00:00",
+        "sections": {
+            "environment": {"home": "https://old.example", "siteurl": "https://old.example"},
+            "content_types": {
+                "post_types": {
+                    "post": {"label": "Posts", "builtin": true, "public": true, "counts": {"publish": "120", "future": 1, "draft": "2", "pending": 0, "private": 0, "trash": "3", "auto-draft": "4", "inherit": 0}},
+                    "page": {"label": "Pages", "builtin": true, "public": true, "counts": {"publish": "8", "future": 0, "draft": "1", "pending": 0, "private": 0, "trash": 0, "auto-draft": 0, "inherit": 0}},
+                    "attachment": {"label": "Media", "builtin": true, "public": true, "counts": {"publish": 0, "private": 0, "inherit": "340"}},
+                    "revision": {"label": "Revisions", "builtin": true, "public": false, "counts": {"inherit": "640"}},
+                    "idb_movie": {"label": "Movies", "builtin": false, "public": true, "counts": {"publish": "40", "future": 0, "draft": "2", "pending": 0, "private": 0, "trash": 0}},
+                    "ap_outbox": {"label": "Outbox", "builtin": false, "public": false, "counts": {"publish": "300", "future": 0, "draft": 0, "pending": 0, "private": 0, "trash": 0}},
+                    "dashboard-note": {"label": "Dashboard Note", "builtin": false, "public": false, "counts": {"publish": 0, "draft": 0}}
+                },
+                "taxonomies": {
+                    "category": {"label": "Categories", "builtin": true, "public": true, "terms": 12},
+                    "post_tag": {"label": "Tags", "builtin": true, "public": true, "terms": 85},
+                    "nav_menu": {"label": "Navigation Menus", "builtin": true, "public": false, "terms": 2},
+                    "idb_genre": {"label": "Genres", "builtin": false, "public": true, "terms": 9},
+                    "ap_tag": {"label": "Tags", "builtin": false, "public": false, "terms": 0}
+                }
+            },
+            "users": {
+                "total": 7,
+                "by_role": {"administrator": 1, "editor": 1, "author": 2, "contributor": 1, "subscriber": 2, "none": 0},
+                "custom_roles": {
+                    "wpseo_manager": ["read", "edit_posts", "upload_files", "publish_posts", "edit_others_posts", "publish_pages", "manage_categories"],
+                    "wpseo_editor": ["read", "edit_posts", "upload_files", "publish_posts"]
+                }
+            },
+            "comments": {"total": 252, "by_status_and_type": {"1|comment": 210, "0|comment": 4, "spam|comment": 12, "trash|comment": 3, "1|pingback": 2, "1|like": 15, "active|notification": 6}},
+            "media": {"total": 340},
+            "menus": {
+                "menus": [{"term_id": 3, "items": 6}, {"term_id": 4, "items": 4}],
+                "registered_locations": ["primary", "footer_navigation", "social"],
+                "assigned_locations": {"primary": 3, "footer_navigation": 4, "social": 0},
+                "navigation_posts": 0
+            },
+            "post_states": {"page_templates": {"default": 6, "template-full-width.php": 2, "template-landing.php": 1}, "revisions": 640},
+            "widgets": {"sidebars": {"wp_inactive_widgets": 3, "sidebar-1": 4, "footer-1": 2}},
+            "seo": {"plugins": {"yoast": "28.5", "yoast_premium": null, "rank_math": null, "aioseo": null, "seopress": null, "the_seo_framework": null}},
+            "content": {"html": {"images": {"total": 400, "own_uploads": 348, "external_hosts": {"photos.friend.example": 12, "cdn.partner.example": 40}}}}
+        },
+        "errors": {}
+    }
+}

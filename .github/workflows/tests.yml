@@ -1,0 +1,185 @@
+name: tests
+
+# Every test on every push, split across machines that run at once (I-3192
+# amended 2026-11-02): the checks, the suite in five shares, and the browser
+# checks in four. `composer check` stays the same gate on a developer's machine.
+on:
+  push:
+    branches:
+      - main
+      # The integration branches, at each merge (I-3192).
+      # A builder's own branch, such as slice/1.12i-back-up-now, matches neither.
+      - 'slice/[0-9].[0-9]'
+      - 'slice/[0-9].[0-9][0-9]'
+      # A starting branch that joins finished slices before they reach main (I-3373).
+      - 'base/**'
+    # A push that changes only documents, or only the agents' rules in .ai/, runs
+    # nothing; the next push with code
+    # runs the check that every document the code cites exists.
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.ai/**'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.ai/**'
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/prepare
+
+      - name: Pint, PHPStan, TypeScript and the front end's checks
+        run: |
+          vendor/bin/pint --test
+          vendor/bin/phpstan analyse --no-progress
+          npm run types:check
+          npm run check
+
+      # In a process of their own: they parse the codebase, and a worker that
+      # has run other tests first can run out of memory (phpunit.xml).
+      - name: The architecture tests
+        run: php artisan test --testsuite=Architecture
+
+  suite:
+    name: suite (${{ matrix.shard }} of 5)
+    runs-on: ubuntu-latest
+
+    strategy:
+      # Each share runs to its end, so one push shows every failure.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: teme_test
+          POSTGRES_USER: teme
+          POSTGRES_PASSWORD: teme
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U teme -d teme_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      valkey:
+        image: valkey/valkey:9.1-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/prepare
+        with:
+          tools: 'true'
+
+      - name: Run the suite's share
+        env:
+          # The Redis page store's tests fail here rather than skip (1.7d).
+          TEME_REQUIRE_VALKEY: '1'
+          TEME_POSTGRES_BINDIR: /usr/lib/postgresql/18/bin
+        run: |
+          npm run build:themes
+          # Pest itself, not `artisan test`: its share-listing step refuses the
+          # runner option artisan passes; Pest adds Laravel's parallel runner itself.
+          vendor/bin/pest --parallel --testsuite=Unit,Feature --shard=${{ matrix.shard }}/5
+
+  # Every push (I-253, I-401): the axe check of every
+  # template in a real browser, and two editors side by side.
+  # In four shares that run at once: one machine took 32 minutes for the 490
+  # tests, twice as long as the slowest share of the suite. Each share has its
+  # own database and its own browser, so the tests stay one at a time on a
+  # machine, as they are on a developer's.
+  browser:
+    name: browser (${{ matrix.shard }} of 4)
+    runs-on: ubuntu-latest
+
+    strategy:
+      # Each share runs to its end, so one push shows every failure.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: teme_test
+          POSTGRES_USER: teme
+          POSTGRES_PASSWORD: teme
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U teme -d teme_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      valkey:
+        image: valkey/valkey:9.1-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/prepare
+        with:
+          tools: 'true'
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run the browser checks' share
+        env:
+          # As the suite's shares: on an ubuntu-24.04 runner, the PATH's
+          # pg_dump and pg_restore can be the image's PostgreSQL 16, which
+          # backups refuse, so Back up now's test fails there.
+          TEME_POSTGRES_BINDIR: /usr/lib/postgresql/18/bin
+        run: |
+          # What `composer check:browser` does before its tests, then Pest
+          # itself for the share (as the suite's shares: artisan's runner
+          # option is refused by Pest's share-listing step).
+          npm run build
+          npm run build:themes
+          php artisan teme:themes:link
+          vendor/bin/pest --testsuite=Browser --shard=${{ matrix.shard }}/4

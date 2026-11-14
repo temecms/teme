@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "name": "tests/hello",
+    "code": "hello",
+    "label": "Hello",
+    "description": "A plugin the tests enable, which says hello when a post is published.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Hello\\Hello",
+    "capabilities": ["content.read"],
+    "hooks": ["ContentPublished"]
+}

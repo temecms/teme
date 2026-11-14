@@ -1,0 +1,37 @@
+{
+    "format": "teme-types",
+    "version": 1,
+    "types": [
+        {
+            "key": "film",
+            "singular": "Film",
+            "plural": "Films",
+            "segment": "films",
+            "icon": "film",
+            "public": true,
+            "archive": true,
+            "searchable": true,
+            "taxonomies": ["category"],
+            "supports": ["seo", "excerpt", "featured_image"],
+            "comments": "closed",
+            "pattern": "/films/{slug}/"
+        },
+        {
+            "key": "recipe",
+            "singular": "Recipe",
+            "plural": "Recipes",
+            "segment": "recipes",
+            "icon": "cooking-pot",
+            "public": true,
+            "archive": false,
+            "searchable": true,
+            "taxonomies": ["tag"],
+            "supports": ["seo", "excerpt"],
+            "comments": "open",
+            "pattern": null
+        }
+    ],
+    "fields": [],
+    "taxonomies": [],
+    "grants": []
+}

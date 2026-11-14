@@ -1,0 +1,327 @@
+name: image
+
+# Builds Teme's image, scans it, runs the Compose recipe against it, and
+# publishes it to GitHub's registry (I-3103). Run by hand, and on a version
+# tag; never on a branch.
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Push the image to ghcr.io once every check passes
+        type: boolean
+        default: false
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "image-${{ github.ref }}"
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # A version tag on a commit whose image is already built, scanned and run
+  # gives that image's layers its version: every layer is what was proved,
+  # with one ENV and one label added, checked before the push. The release's
+  # digest differs from the scanned sha- digest, which the scan and the SBOM
+  # name (I-3264).
+  existing:
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      packages: write
+    outputs:
+      promoted: ${{ steps.promote.outputs.promoted }}
+    steps:
+      - name: Give the image already built for this commit the tag’s version, if there is one
+        id: promote
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          owner="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          IMAGE="ghcr.io/${owner}/teme"
+          SHA_TAG="sha-$(printf '%s' "$GITHUB_SHA" | cut -c1-12)"
+          VERSION="${GITHUB_REF_NAME#v}"
+          skopeo --version
+          printf '%s' "$REGISTRY_TOKEN" | skopeo login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          # Only "manifest unknown" means no image; any other error stops the job.
+          if out="$(skopeo inspect --raw "docker://${IMAGE}:${SHA_TAG}" 2>&1 > /dev/null)"; then
+            # The proved layers, with this tag's version added, built here and
+            # checked before anything is pushed: nothing is rebuilt (I-3264).
+            printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+            docker pull "${IMAGE}:${SHA_TAG}"
+            printf 'FROM %s\nENV TEME_VERSION=%s\nLABEL org.opencontainers.image.version=%s\n' "${IMAGE}:${SHA_TAG}" "$VERSION" "$VERSION" \
+              | docker build --platform linux/amd64 --tag "${IMAGE}:${VERSION}" -
+            built="$(docker image inspect --format '{{json .RootFS.Layers}}' "${IMAGE}:${SHA_TAG}")"
+            tagged="$(docker image inspect --format '{{json .RootFS.Layers}}' "${IMAGE}:${VERSION}")"
+            test "$built" = "$tagged"
+            env="$(docker image inspect --format '{{json .Config.Env}}' "${IMAGE}:${VERSION}" | jq -r '.[] | select(startswith("TEME_VERSION="))')"
+            test "$env" = "TEME_VERSION=${VERSION}"
+            # Only now, both checks held.
+            docker push "${IMAGE}:${VERSION}"
+            docker logout ghcr.io
+            echo "promoted=true" >> "$GITHUB_OUTPUT"
+          elif printf '%s' "$out" | grep -qi 'manifest unknown'; then
+            echo "promoted=false" >> "$GITHUB_OUTPUT"
+          else
+            printf '%s\n' "$out" >&2
+            skopeo logout ghcr.io
+            exit 1
+          fi
+          skopeo logout ghcr.io
+
+  image:
+    needs: existing
+    if: "!cancelled() && needs.existing.result != 'failure' && needs.existing.outputs.promoted != 'true'"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TEME_IMAGE: teme:ci
+      APP_URL: https://teme.test
+      TRIVY_VERSION: "0.75.0"
+      TRIVY_SHA256: c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Name the image
+        id: name
+        run: |
+          owner="$(printf '%s' "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')"
+          echo "image=ghcr.io/${owner}/teme" >> "$GITHUB_OUTPUT"
+          echo "sha=sha-$(printf '%s' "$GITHUB_SHA" | cut -c1-12)" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The checkout holds tracked files only, and .dockerignore lets in
+      # only what the image is built from.
+      - name: Build the image
+        env:
+          VERSION: ${{ steps.name.outputs.version || steps.name.outputs.sha }}
+          TEME_VERSION: ${{ steps.name.outputs.version }}
+        run: |
+          docker build --pull --platform linux/amd64 \
+            --build-arg "TEME_VERSION=${TEME_VERSION}" \
+            --build-arg "TEME_REVISION=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.version=${VERSION}" \
+            --tag "$TEME_IMAGE" .
+
+      - name: Install Trivy, checked against its published SHA-256
+        run: |
+          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 20 -o /tmp/trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          echo "${TRIVY_SHA256}  /tmp/trivy.tar.gz" | sha256sum -c -
+          mkdir -p /tmp/trivy
+          tar -xzf /tmp/trivy.tar.gz -C /tmp/trivy trivy
+          sudo install -m 0755 /tmp/trivy/trivy /usr/local/bin/trivy
+          trivy --version
+
+      - name: Scan the image and write its SBOM
+        run: |
+          mkdir -p image-report
+          # The report shows everything, the ignored too; the gate below
+          # leaves out only what .trivyignore names.
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignorefile /dev/null --format table --output image-report/vulnerabilities.txt "$TEME_IMAGE"
+          trivy image --skip-db-update --format cyclonedx --output image-report/sbom.cdx.json "$TEME_IMAGE"
+          {
+            echo "## Trivy: HIGH and CRITICAL"
+            echo "~~~"
+            cat image-report/vulnerabilities.txt
+            echo "~~~"
+          } >> "$GITHUB_STEP_SUMMARY"
+          trivy image --skip-db-update --scanners vuln --severity CRITICAL --ignore-unfixed --ignorefile .trivyignore --exit-code 1 "$TEME_IMAGE"
+
+      - name: Keep the scan and the SBOM
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: image-report
+          path: image-report/
+          if-no-files-found: ignore
+
+      - name: Start the recipe
+        working-directory: docker
+        run: |
+          umask 022
+          mkdir -p secrets
+          printf 'base64:%s\n' "$(openssl rand -base64 32)" > secrets/app_key
+          openssl rand -hex 24 > secrets/db_password
+          openssl rand -hex 24 > secrets/postgres_password
+          : > secrets/github_token
+          docker compose config --quiet
+          docker compose up --detach
+          status=""
+          for attempt in $(seq 1 60); do
+            web_id="$(docker compose ps --quiet web)"
+            if [ -n "$web_id" ]; then
+              status="$(docker inspect --format '{{.State.Health.Status}}' "$web_id")"
+            fi
+            if [ "$status" = healthy ]; then
+              break
+            fi
+            sleep 5
+          done
+          test "$status" = healthy
+          test "$(docker inspect --format '{{.State.ExitCode}}' "$(docker compose ps --all --quiet deploy)")" = 0
+
+      - name: Deploy twice at once, as two releases starting together would
+        working-directory: docker
+        run: |
+          docker compose run --rm --no-deps deploy &
+          first=$!
+          docker compose run --rm --no-deps deploy &
+          second=$!
+          wait "$first"
+          wait "$second"
+
+      - name: Check the running site
+        working-directory: docker
+        run: |
+          web() { docker compose exec -T web "$@"; }
+          status() { web curl -s -o /dev/null -w '%{http_code}' -H 'Host: teme.test' "$@"; }
+          headers() { web curl -s -o /dev/null -D - -H 'Host: teme.test' "$@" | tr -d '\r' | tr '[:upper:]' '[:lower:]'; }
+          # From another container, as a proxy on the Docker network reaches web.
+          neighbour() { docker compose exec -T worker curl -s -o /dev/null -D - -H 'Host: teme.test' "$@" | tr -d '\r' | tr '[:upper:]' '[:lower:]'; }
+          count() { grep -c -- "$1" || true; }
+
+          # Health and the doctor.
+          test "$(status http://127.0.0.1:8080/up)" = 200
+          web php artisan teme:doctor
+
+          # A new site holds its public pages until its first account exists
+          # (issue 246): the holding page, a 503 that says when to come back
+          # and is never stored, while the setup page and sign-in answer.
+          test "$(status http://127.0.0.1:8080/)" = 503
+          test "$(headers http://127.0.0.1:8080/ | count '^retry-after: ')" = 1
+          test "$(headers http://127.0.0.1:8080/ | count '^cache-control: .*no-store')" = 1
+          test "$(status http://127.0.0.1:8080/admin/setup)" = 200
+          test "$(status http://127.0.0.1:8080/admin/login)" = 200
+
+          # The first account, made as an operator makes it, opens the site:
+          # the next request for a page is the page.
+          web php artisan teme:user:create --no-interaction --name='Image Check' --email='image-check@example.test' > /dev/null
+          test "$(status http://127.0.0.1:8080/)" = 200
+          test "$(status http://127.0.0.1:8080/admin/setup)" != 200
+          test "$(status http://127.0.0.1:8080/admin/login)" = 200
+
+          # The page cache's files, served by nginx as Teme intends.
+          web php artisan teme:cache:check-static --url=http://127.0.0.1:8080
+
+          # gzip once; the admin's own X-Frame-Options, undoubled.
+          test "$(headers -H 'Accept-Encoding: gzip' http://127.0.0.1:8080/admin/login | count '^content-encoding: gzip$')" = 1
+          test "$(headers http://127.0.0.1:8080/admin/login | count '^x-frame-options:')" = 1
+          test "$(headers http://127.0.0.1:8080/admin/login | count '^x-frame-options: deny$')" = 1
+
+          # A hashed build file, cached for a year.
+          asset="$(web sh -c 'ls public/build/assets | grep "\.js$" | head -n 1')"
+          test "$(headers "http://127.0.0.1:8080/build/assets/${asset}" | count '^cache-control: public, max-age=31536000, immutable$')" = 1
+
+          # HSTS on nginx's own answer over https; never over http. From a
+          # neighbour on the Docker network, which Teme trusts as a proxy,
+          # PHP's https answer carries exactly one: PHP's, never doubled.
+          test "$(headers -H 'X-Forwarded-Proto: https' http://127.0.0.1:8080/favicon.ico | count '^strict-transport-security: max-age=31536000$')" = 1
+          test "$(headers http://127.0.0.1:8080/favicon.ico | count '^strict-transport-security:')" = 0
+          test "$(neighbour -H 'X-Forwarded-Proto: https' http://web:8080/admin/login | count '^strict-transport-security:')" = 1
+
+          # nginx never takes the reader's address from a header: a neighbour
+          # in the image's own trusted ranges, sending CF-Connecting-IP, is
+          # logged at its own Docker address.
+          neighbour -A teme-image-real-ip-check -H 'CF-Connecting-IP: 203.0.113.9' -H 'X-Real-IP: 203.0.113.9' http://web:8080/admin/login > /dev/null
+          sleep 2
+          docker compose logs --no-color web | grep 'teme-image-real-ip-check' > real-ip.log
+          grep -qE '\| 172\.[0-9]+\.[0-9]+\.[0-9]+ - ' real-ip.log
+          if grep -q '203\.0\.113\.9 - ' real-ip.log; then
+            echo "nginx took the reader's address from a header." >&2
+            exit 1
+          fi
+
+          # Tools > Backups' slow requests reach PHP through their own location.
+          code="$(status -X POST http://127.0.0.1:8080/admin/tools/backups/set-up)"
+          case "$code" in
+            2??|3??|4??) ;;
+            *) echo "The backups address answered ${code}." >&2; exit 1 ;;
+          esac
+
+      - name: Show the recipe's logs
+        if: failure()
+        working-directory: docker
+        run: docker compose logs --no-color
+
+      - name: Stop the recipe
+        if: always()
+        working-directory: docker
+        run: docker compose down --volumes
+
+      - name: Publish to GitHub's registry
+        if: "github.ref_type == 'tag' || inputs.publish"
+        env:
+          IMAGE: ${{ steps.name.outputs.image }}
+          SHA_TAG: ${{ steps.name.outputs.sha }}
+          VERSION: ${{ steps.name.outputs.version }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$REGISTRY_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker tag "$TEME_IMAGE" "${IMAGE}:${SHA_TAG}"
+          docker push "${IMAGE}:${SHA_TAG}"
+          if [ -n "$VERSION" ]; then
+            docker tag "$TEME_IMAGE" "${IMAGE}:${VERSION}"
+            docker push "${IMAGE}:${VERSION}"
+          fi
+          docker logout ghcr.io
+
+  # Every version tag becomes a GitHub Release, its notes the changelog's
+  # section and the line Teme's update check reads (I-?? draft). A tag
+  # whose changelog has no section stops here, after its image.
+  release:
+    needs: [existing, image]
+    if: "github.ref_type == 'tag' && !cancelled() && needs.existing.result == 'success' && (needs.existing.outputs.promoted == 'true' || needs.image.result == 'success')"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Write the release notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          previous="$(git tag --merged "$GITHUB_SHA" --sort=-creatordate 'v*' | grep -vxF "$GITHUB_REF_NAME" | head -n 1 || true)"
+          added=()
+          if [ -n "$previous" ]; then
+            mapfile -t added < <(git diff --name-only --diff-filter=A "$previous" "$GITHUB_SHA" -- database/migrations)
+          fi
+          php --version
+          php scripts/release-notes.php CHANGELOG.md "$VERSION" "${added[@]}" > release-notes.md
+          cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          pre=false
+          case "$VERSION" in *-*) pre=true ;; esac
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --title "Teme ${VERSION}" --notes-file release-notes.md --prerelease="$pre"
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "Teme ${VERSION}" --notes-file release-notes.md --prerelease="$pre"
+          fi

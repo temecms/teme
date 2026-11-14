@@ -1,0 +1,10 @@
+{
+    "manifest": 1,
+    "name": "tests/autoloads",
+    "code": "autoloads",
+    "label": "Autoloads",
+    "description": "A plugin that asks Composer and Laravel to load it on every request.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Autoloads\\Autoloads"
+}

@@ -1,0 +1,52 @@
+{
+    "items": [
+        {
+            "id": 12,
+            "parent": 7,
+            "author": 3,
+            "date_gmt": "2024-05-06 07:08:09",
+            "modified_gmt": "2024-05-06 07:08:09",
+            "status": "inherit",
+            "title": "Harbour at dawn",
+            "caption": "The harbour, May 2024.",
+            "description": "",
+            "alt": "Boats moored in a grey harbour",
+            "mime": "image/jpeg",
+            "file": "2024/05/Harbour-scaled.jpg",
+            "url": "https://old.example/wp-content/uploads/2024/05/Harbour-scaled.jpg",
+            "original_url": "https://old.example/wp-content/uploads/2024/05/Harbour.jpg",
+            "attachment_page": "https://old.example/2024/05/06/harbour/harbour/",
+            "metadata": {
+                "width": 2560,
+                "height": 1707,
+                "file": "2024/05/Harbour-scaled.jpg",
+                "filesize": 412345,
+                "original_image": "Harbour.jpg",
+                "sizes": {
+                    "thumbnail": {"file": "Harbour-150x150.jpg", "width": 150, "height": 150, "mime": "image/jpeg"},
+                    "large": {"file": "Harbour-1024x683.jpg", "width": 1024, "height": 683, "mime": "image/jpeg"}
+                }
+            },
+            "backup_sizes": null
+        },
+        {
+            "id": 13,
+            "parent": 0,
+            "author": 3,
+            "date_gmt": "2024-05-07 08:00:00",
+            "modified_gmt": "2024-05-07 08:00:00",
+            "status": "inherit",
+            "title": "Summer menu",
+            "caption": "",
+            "description": "",
+            "alt": "",
+            "mime": "application/pdf",
+            "file": "2024/05/menu.pdf",
+            "url": "https://old.example/wp-content/uploads/2024/05/menu.pdf",
+            "original_url": null,
+            "attachment_page": "https://old.example/menu/",
+            "metadata": null,
+            "backup_sizes": null
+        }
+    ]
+}

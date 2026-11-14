@@ -1,0 +1,219 @@
+{
+    "manifest": 1,
+    "code": "default",
+    "name": "Teme Default",
+    "version": "0.1.0",
+    "description": "A reading-first theme for a publication: a lead story, a clean feed, and articles set for long reading.",
+    "author": "Teme",
+    "license": "MIT",
+    "screenshot": "screenshot.png",
+    "requires": { "teme": ">=0.1.0-dev <1.0" },
+    "title_separator": "–",
+    "per_page": 12,
+    "layout": { "content": 680, "wide": 1152, "full": null },
+    "images": {
+        "content": "(min-width: 48rem) 720px, 100vw",
+        "wide": "(min-width: 72rem) 1152px, 100vw",
+        "feature": "100vw",
+        "lead": "(min-width: 72rem) 640px, 100vw",
+        "card": "(min-width: 64rem) 352px, (min-width: 40rem) 45vw, 100vw",
+        "thumb": "(min-width: 40rem) 224px, 100vw"
+    },
+    "fonts": [
+        {
+            "family": "Newsreader",
+            "file": "fonts/newsreader-latin-opsz-normal.woff2",
+            "weight": "400 700",
+            "style": "normal",
+            "preload": true
+        },
+        {
+            "family": "Newsreader",
+            "file": "fonts/newsreader-latin-ext-opsz-normal.woff2",
+            "weight": "400 700",
+            "style": "normal",
+            "preload": false
+        },
+        {
+            "family": "Newsreader",
+            "file": "fonts/newsreader-latin-opsz-italic.woff2",
+            "weight": "400 700",
+            "style": "italic",
+            "preload": false
+        },
+        {
+            "family": "Newsreader",
+            "file": "fonts/newsreader-latin-ext-opsz-italic.woff2",
+            "weight": "400 700",
+            "style": "italic",
+            "preload": false
+        },
+        {
+            "family": "Instrument Sans",
+            "file": "fonts/instrument-sans-latin-wght-normal.woff2",
+            "weight": "400 700",
+            "style": "normal",
+            "preload": false
+        },
+        {
+            "family": "Instrument Sans",
+            "file": "fonts/instrument-sans-latin-ext-wght-normal.woff2",
+            "weight": "400 700",
+            "style": "normal",
+            "preload": false
+        }
+    ],
+    "tokens": {
+        "base": "#fcfbf8",
+        "contrast": "#1b1a18",
+        "muted": "color-mix(in oklab, var(--teme-contrast) 70%, var(--teme-base))",
+        "rule": "color-mix(in oklab, var(--teme-contrast) 14%, var(--teme-base))",
+        "accent": "#b3261e",
+        "on-accent": "#ffffff",
+        "font-body": "Newsreader, Georgia, Times New Roman, serif",
+        "font-heading": "Instrument Sans, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+        "font-mono": "ui-monospace, SFMono-Regular, Menlo, monospace"
+    },
+    "tokens_dark": {
+        "base": "#141413",
+        "contrast": "#eceae5",
+        "accent": "#dd5143",
+        "on-accent": "#111111"
+    },
+    "templates": {
+        "page": { "default": "Default", "full-width": "Full width" }
+    },
+    "navigations": { "primary": "Header", "footer": "Footer" },
+    "regions": {
+        "after-content": {
+            "label": "After the article",
+            "cards": ["callout", "button"],
+            "max": 5
+        }
+    },
+    "settings": [
+        {
+            "key": "header_layout",
+            "type": "select",
+            "label": "Header layout",
+            "fieldset": "site",
+            "options": {
+                "left": "Logo left",
+                "centred": "Centred",
+                "stacked": "Stacked"
+            },
+            "default": "left"
+        },
+        {
+            "key": "header_color",
+            "type": "select",
+            "label": "Header and footer colour",
+            "fieldset": "site",
+            "options": { "page": "Page colour", "accent": "Accent" },
+            "default": "page"
+        },
+        {
+            "key": "color_scheme",
+            "type": "select",
+            "label": "Colour scheme",
+            "fieldset": "site",
+            "options": {
+                "auto": "Follow the reader's system",
+                "light": "Light",
+                "dark": "Dark"
+            },
+            "default": "auto"
+        },
+        {
+            "key": "latest_header",
+            "type": "select",
+            "label": "Latest posts header",
+            "fieldset": "latest",
+            "options": { "lead": "Lead story", "none": "None" },
+            "default": "lead"
+        },
+        {
+            "key": "show_featured",
+            "type": "boolean",
+            "label": "Show pinned posts under the lead story",
+            "fieldset": "latest",
+            "default": true,
+            "visible_when": { "latest_header": "lead" }
+        },
+        {
+            "key": "feed_layout",
+            "type": "select",
+            "label": "Feed layout",
+            "fieldset": "latest",
+            "options": { "list": "List", "grid": "Grid" },
+            "default": "list"
+        },
+        {
+            "key": "feed_images",
+            "type": "boolean",
+            "label": "Images in the list",
+            "fieldset": "latest",
+            "default": true,
+            "visible_when": { "feed_layout": "list" }
+        },
+        {
+            "key": "featured_image_style",
+            "type": "select",
+            "label": "Featured image",
+            "fieldset": "content",
+            "options": {
+                "wide": "Wide",
+                "full": "Full width",
+                "content": "Text width",
+                "hidden": "Hidden"
+            },
+            "default": "wide"
+        },
+        {
+            "key": "show_author_box",
+            "type": "boolean",
+            "label": "Show the author box",
+            "fieldset": "content",
+            "default": true
+        },
+        {
+            "key": "show_related",
+            "type": "boolean",
+            "label": "Show related posts",
+            "fieldset": "content",
+            "default": true
+        },
+        {
+            "key": "show_reading_time",
+            "type": "boolean",
+            "label": "Show reading time",
+            "fieldset": "content",
+            "default": true
+        },
+        {
+            "key": "archive_header",
+            "type": "select",
+            "label": "Archive header",
+            "fieldset": "archive",
+            "options": {
+                "full": "With description and image",
+                "title": "Title only"
+            },
+            "default": "full"
+        },
+        {
+            "key": "show_card_meta",
+            "type": "boolean",
+            "label": "Show author and date on cards",
+            "fieldset": "archive",
+            "default": true
+        }
+    ],
+    "assets": {
+        "manifest": "public/build/manifest.json",
+        "entries": ["assets/css/theme.css"]
+    },
+    "composers": [],
+    "speculation": true,
+    "cards": { "replaces": [] }
+}

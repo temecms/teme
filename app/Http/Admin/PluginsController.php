@@ -1,0 +1,92 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Admin;
+
+use App\Domain\Plugins\Operations\DisablePlugin;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Queries\PluginList;
+use App\Domain\Plugins\Queries\PluginRow;
+use App\Domain\Plugins\Queries\PluginsScreen;
+use App\Http\Admin\Requests\EnablePluginRequest;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+
+/**
+ * Site › Plugins: every plugin, what it asks for and where it stands, and
+ * the enable and disable buttons, which call EnablePlugin and DisablePlugin.
+ * It changes nothing itself and starts no plugin: the page reads files only.
+ */
+final class PluginsController extends Controller
+{
+    public function index(PluginsScreen $screen): Response
+    {
+        return Inertia::render('plugins/index', ['plugins' => $screen->rows()]);
+    }
+
+    /**
+     * Enables a plugin with what the dialog showed. A refusal, such as a
+     * plugin that now asks for something different, is a toast.
+     */
+    public function enable(EnablePluginRequest $request, string $code, PluginList $list, EnablePlugin $enable): RedirectResponse
+    {
+        $row = $this->row($list, $code);
+
+        try {
+            $enable->execute(new EnablePluginInput(
+                name: $row->name,
+                version: $request->string('version')->toString(),
+                capabilities: array_values($request->array('capabilities')),
+                hosts: array_values($request->array('hosts')),
+                hooks: array_values($request->array('hooks')),
+                actorId: (string) $request->user()?->getAuthIdentifier(),
+            ));
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return to_route('plugins.index');
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __(':name enabled. Its contributions appear where they belong.', ['name' => $row->label])]);
+
+        return to_route('plugins.index');
+    }
+
+    public function disable(Request $request, string $code, PluginList $list, DisablePlugin $disable): RedirectResponse
+    {
+        $row = $this->row($list, $code);
+
+        try {
+            $disable->execute(new DisablePluginInput($row->name, (string) $request->user()?->getAuthIdentifier()));
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return to_route('plugins.index');
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __(':name disabled. Everything it added to the admin is gone until you enable it; its data is kept.', ['name' => $row->label])]);
+
+        return to_route('plugins.index');
+    }
+
+    /**
+     * The plugin the code names, or a 404.
+     */
+    private function row(PluginList $list, string $code): PluginRow
+    {
+        foreach ($list->all() as $row) {
+            if ($row->code === $code) {
+                return $row;
+            }
+        }
+
+        abort(404);
+    }
+}

@@ -1,0 +1,107 @@
+# The area labels a pull request gets from the files it changes
+# (.github/workflows/labeler.yml). Priority labels are never set here.
+
+editor:
+  - changed-files:
+      - any-glob-to-any-file:
+          - resources/js/components/editor/**
+          - resources/js/pages/content/edit.tsx
+          - resources/js/pages/content/compare.tsx
+          - app/Domain/Cards/**
+
+lists:
+  - changed-files:
+      - any-glob-to-any-file:
+          - resources/js/components/list/**
+          - resources/js/pages/content/index.tsx
+
+media:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app/Domain/Media/**
+          - resources/js/components/media/**
+          - resources/js/components/media-drawer.tsx
+          - resources/js/pages/media/**
+
+themes:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app/Domain/Themes/**
+          - resources/js/components/themes/**
+          - resources/js/pages/themes/**
+          - resources/views/teme/**
+
+plugins:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app/Domain/Plugins/**
+          - app/Domain/Hooks/**
+          - packages/teme-contracts/**
+          - resources/js/components/plugins/**
+          - resources/js/pages/plugins/**
+
+api:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app/Domain/Api/**
+          - app/Http/Api/**
+          - routes/api.php
+          - routes/api/**
+
+site:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app/Http/Site/**
+          - app/Domain/Site/**
+          - app/Domain/Cache/**
+          - app/Domain/Feeds/**
+          - app/Domain/Sitemaps/**
+          - app/Domain/Seo/**
+          - app/Domain/StructuredData/**
+          - app/Domain/RobotsTxt/**
+          - routes/public.php
+
+admin:
+  - changed-files:
+      - any-glob-to-any-file:
+          - resources/css/**
+          - resources/js/components/ui/**
+          - resources/js/layouts/**
+          - resources/js/components/app-*.tsx
+          - resources/js/components/nav-main.tsx
+          - app/Domain/Navigation/**
+
+import:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app/Domain/Import/**
+          - resources/js/components/import/**
+          - resources/js/pages/tools/import/**
+
+backups:
+  - changed-files:
+      - any-glob-to-any-file:
+          - app/Domain/Backups/**
+          - resources/js/components/backups/**
+          - resources/js/pages/tools/backups/**
+
+deploy:
+  - changed-files:
+      - any-glob-to-any-file:
+          - Dockerfile
+          - docker/**
+          - docker-compose.yml
+          - app/Domain/Updates/**
+          - app/Domain/Deployment/**
+          - .github/workflows/image.yml
+
+documentation:
+  - changed-files:
+      - any-glob-to-all-files:
+          - docs/**
+          - '*.md'
+
+tests:
+  - changed-files:
+      - any-glob-to-all-files:
+          - tests/**

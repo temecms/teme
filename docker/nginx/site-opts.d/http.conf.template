@@ -1,0 +1,80 @@
+# serversideup/php 4.5.1's own site-opts.d/http.conf.template, with its
+# "location /" replaced for Teme's static-file page cache (slice 1.7d″,
+# I-086): copy it over the image's /etc/nginx/site-opts.d/http.conf.template,
+# which the image turns into http.conf when the container starts. Every
+# other line is the image's. With SSL_MODE mixed or full the image reads
+# https.conf.template instead, which this leaves alone: behind Traefik,
+# SSL_MODE stays off. Needs conf.d/teme-static.conf beside it, and nginx
+# 1.29.3 or later for add_header_inherit (the image's Debian trixie build
+# carries 1.30.4).
+# Held in step with the code by tests/Feature/Cache/StaticSettingsTest.php.
+
+listen ${NGINX_HTTP_PORT} default_server;
+listen [::]:${NGINX_HTTP_PORT} default_server;
+
+root $NGINX_WEBROOT;
+
+# Set allowed "index" files
+index index.html index.htm index.php;
+
+server_name _;
+
+charset utf-8;
+
+absolute_redirect off;
+
+# Healthcheck: Set /healthcheck to be the static health check URL
+location /healthcheck {
+    access_log off;
+
+    # set max 5 seconds for healthcheck
+    fastcgi_read_timeout 5s;
+
+    include        fastcgi_params;
+    fastcgi_param  SCRIPT_NAME     /healthcheck;
+    fastcgi_param  SCRIPT_FILENAME /healthcheck;
+    fastcgi_pass   127.0.0.1:9000;
+}
+
+# Teme's page cache: a stored page as a plain file, when the request may
+# have one ($teme_static_file, conf.d/teme-static.conf), from the page
+# cache's static folder (PAGE_CACHE_STATIC_PATH), never public/; otherwise
+# the image's own rule, in @teme_app.
+location / {
+    root /var/www/html/storage/page-cache/static;
+    try_files $teme_static_file @teme_app;
+
+    # The image's security headers too (server-opts.d/security.conf sets
+    # them at server level): any add_header here drops them without this.
+    add_header_inherit merge;
+    add_header X-Teme-Cache "STATIC" always;
+    # Browsers ask again; a shared cache keeps it a minute at most, as PHP
+    # tells one (PageCache::SHARED_LIFETIME), and the file goes two minutes
+    # before its page (StaticPages::EARLY).
+    add_header Cache-Control "public, max-age=0, s-maxage=60" always;
+}
+
+# Have NGINX try searching for PHP files as well: the image's own "location /".
+location @teme_app {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+# Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
+# Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
+location ~* ^/storage/.*\.php$ {
+    deny all;
+}
+
+# Pass "*.php" files to PHP-FPM
+location ~ \.php$ {
+    fastcgi_pass   127.0.0.1:9000;
+    fastcgi_index  index.php;
+    fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+    include        fastcgi_params;
+    fastcgi_buffers $NGINX_FASTCGI_BUFFERS;
+    fastcgi_buffer_size $NGINX_FASTCGI_BUFFER_SIZE;
+    fastcgi_read_timeout $PHP_MAX_EXECUTION_TIME;
+}
+
+# additional config
+include /etc/nginx/server-opts.d/*.conf;

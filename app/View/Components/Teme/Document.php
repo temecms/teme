@@ -1,0 +1,271 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\View\Components\Teme;
+
+use App\Domain\Cache\SignedInMarker;
+use App\Domain\Cards\CardUsage;
+use App\Domain\Design\Contrast;
+use App\Domain\Design\SiteDesign;
+use App\Domain\Languages\PageLanguage;
+use App\Domain\Site\Document\DocumentHead;
+use App\Domain\Site\Document\DocumentMeta;
+use App\Domain\Site\Document\DocumentPage;
+use App\Domain\Site\Document\Fragment;
+use App\Domain\Site\Document\JsonLd;
+use App\Domain\Site\Document\Placement;
+use App\Domain\Site\Document\Placements;
+use App\Domain\Site\DocumentTitle;
+use App\Domain\Site\Policy\PagePolicy;
+use App\Domain\Site\SiteLanguage;
+use App\Domain\Site\ViewModels\ArticleView;
+use App\Domain\Themes\ActiveTheme;
+use App\Domain\Themes\ComposerRegistry;
+use App\Domain\Themes\ThemeAssets;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Vite;
+use Illuminate\View\Component;
+
+/**
+ * `<x-teme::document>`: core's document shell around every public page
+ * (I-247), so a template writes only its own markup. It writes the `lang`,
+ * the colour scheme, the title, the head's typed entries (DocumentMeta, the
+ * robots value among them), the one preloaded font, the theme's tokens and
+ * its dark ones, with the site's accent, lightened for the dark scheme
+ * (I-457), the theme's assets, the styles of the cards the page drew, the
+ * page's JSON-LD graph, the three placements, with their fragments, the skip
+ * link and its style, the speculation rules, and core's small script, which in a browser that
+ * signed in asks who is reading and adds the "Edit" link (I-163).
+ * It reads the page from ComposerRegistry, where PublicPage started it,
+ * never the template's variables.
+ */
+final class Document extends Component
+{
+    /**
+     * The site's own pages are prerendered as a reader heads for them; never
+     * the admin, core's endpoints, or an address with a query string, as
+     * WordPress leaves out, since a search page prerendered on the way would
+     * use up the reader's search limit (I-160, 1.6h).
+     */
+    private const array SPECULATION = ['prerender' => [[
+        'where' => ['and' => [
+            ['href_matches' => '/*'],
+            ['not' => ['href_matches' => '/admin/*']],
+            ['not' => ['href_matches' => '/_teme/*']],
+            ['not' => ['href_matches' => '/*\?(.+)']],
+        ]],
+        'eagerness' => 'moderate',
+    ]]];
+
+    public string $lang;
+
+    /** Light, dark, or auto for the reader's own: the theme's `color_scheme`. */
+    public string $scheme;
+
+    public string $title;
+
+    /** @var array{href: string, type: string|null}|null */
+    public ?array $preload;
+
+    public string $tokens;
+
+    public string $assets;
+
+    public ?string $speculation;
+
+    /** Where core's script asks who is reading (/_teme/session, I-163). */
+    public string $session;
+
+    /** The cookie core's script looks for before it asks (I-465). */
+    public string $marker;
+
+    /** @var list<string> the cards whose styles the theme replaces */
+    private array $replacedCards;
+
+    /** The page being drawn, as the head's and the placements' contributors see it. */
+    private DocumentPage $page;
+
+    /** The head's entries, gathered once (head()). */
+    private ?DocumentHead $head = null;
+
+    public function __construct(
+        ComposerRegistry $composers,
+        ActiveTheme $active,
+        SiteLanguage $language,
+        DocumentTitle $titles,
+        ThemeAssets $assets,
+        SiteDesign $design,
+        private readonly CardUsage $usage,
+        private readonly DocumentMeta $meta,
+        private readonly Placements $placements,
+    ) {
+        $model = $composers->model();
+        $this->page = new DocumentPage($composers->intent(), $model);
+        $manifest = $active->get()?->manifest;
+        $code = $active->get()?->code;
+
+        // The outside hosts the theme declared, by kind, for the page's policy (I-3375).
+        foreach ($manifest?->csp() ?? [] as $kind => $origins) {
+            if (isset(PagePolicy::KINDS[$kind])) {
+                app(PagePolicy::class)->allowOrigins(PagePolicy::KINDS[$kind], $origins);
+            }
+        }
+
+        // An article's own language; any other page's is the one its address chose (I-3360), the default's when nothing chose one.
+        $this->lang = $model instanceof ArticleView ? $language->forContent($model->id) : app(PageLanguage::class)->tag();
+        $this->title = $titles->for($model, $composers->intent()->isFront ?? false);
+        $this->preload = $this->preloadOf($code, $manifest?->preloadedFont()['file'] ?? null);
+        $this->scheme = $design->scheme();
+        $accent = $design->accent();
+        $this->tokens = $this->styleOf($manifest?->tokens() ?? [], $manifest?->tokensDark() ?? [], $accent === '' ? null : Contrast::accentSchemes($accent, $manifest));
+        $this->assets = $assets->tags();
+        $this->replacedCards = $manifest?->replacedCards() ?? [];
+        $this->speculation = ($manifest?->speculation() ?? true) && ! SignedInMarker::present(request())
+            ? (string) json_encode(self::SPECULATION, JSON_UNESCAPED_SLASHES)
+            : null;
+        $this->session = route('teme.session');
+        $this->marker = SignedInMarker::COOKIE;
+    }
+
+    public function render(): View
+    {
+        return view('teme::components.document');
+    }
+
+    /**
+     * The page's head entries, gathered the first time the view asks, after
+     * the template's markup is drawn, so a contributor may read what it drew,
+     * as cardStyles() does for a region's cards. Each entry escapes itself.
+     */
+    public function head(): DocumentHead
+    {
+        return $this->head ??= $this->meta->for($this->page);
+    }
+
+    /**
+     * The text of the page's one JSON-LD script (I-698), or null when nothing
+     * gave a node.
+     */
+    public function jsonLd(): ?string
+    {
+        $graph = $this->head()->graph;
+
+        return $graph === [] ? null : JsonLd::encode($graph);
+    }
+
+    /**
+     * One placement's fragments, `head`, `body-start` or `body-end`, written as given.
+     *
+     * @return list<Fragment>
+     */
+    public function fragments(string $placement): array
+    {
+        return $this->placements->for(Placement::from($placement), $this->page);
+    }
+
+    /**
+     * @return array{href: string, type: string|null}|null
+     */
+    private function preloadOf(?string $code, ?string $file): ?array
+    {
+        if ($code === null || $file === null) {
+            return null;
+        }
+
+        $type = match (strtolower(pathinfo($file, PATHINFO_EXTENSION))) {
+            'woff2' => 'font/woff2',
+            'woff' => 'font/woff',
+            'ttf' => 'font/ttf',
+            'otf' => 'font/otf',
+            default => null,
+        };
+
+        // Served from the theme's public folder, which teme:themes:link publishes.
+        return ['href' => asset("themes/{$code}/{$file}"), 'type' => $type];
+    }
+
+    /**
+     * The theme's tokens as custom properties on :root, then its dark ones
+     * for the dark scheme, chosen or the reader's own (I-257), or '' for
+     * none. With the site's accent set, each scheme takes its pair, the dark
+     * one lightened (I-457), in place of the theme's accent and on-accent.
+     *
+     * @param  array<string, string>  $tokens
+     * @param  array<string, string>  $tokensDark
+     * @param  array{light: array{accent: string, onAccent: string, ratio: float}, dark: array{accent: string, onAccent: string, ratio: float}|null}|null  $schemes
+     */
+    private function styleOf(array $tokens, array $tokensDark, ?array $schemes): string
+    {
+        $light = $this->declarations($schemes === null ? $tokens : $this->withAccent($tokens, $schemes['light']));
+        $dark = $tokensDark === [] ? '' : $this->declarations($schemes === null || $schemes['dark'] === null ? $tokensDark : $this->withAccent($tokensDark, $schemes['dark']));
+        $style = $light === '' ? '' : ':root{'.$light.'}';
+
+        if ($dark !== '') {
+            $style .= ':root[data-scheme="dark"]{'.$dark.'}@media (prefers-color-scheme: dark){:root[data-scheme="auto"]{'.$dark.'}}';
+        }
+
+        return $style;
+    }
+
+    /**
+     * The tokens with this accent and the text colour it takes in place of
+     * the theme's own two, where they stand, or at the end.
+     *
+     * @param  array<string, string>  $tokens
+     * @param  array{accent: string, onAccent: string, ratio: float}  $pair
+     *
+     * @return array<string, string>
+     */
+    private function withAccent(array $tokens, array $pair): array
+    {
+        $tokens['accent'] = $pair['accent'];
+        $tokens['on-accent'] = $pair['onAccent'];
+
+        return $tokens;
+    }
+
+    /**
+     * Tokens as custom-property declarations, `--teme-{name}:{value}` joined
+     * by `;`, or '' for none.
+     *
+     * @param  array<string, string>  $tokens
+     */
+    private function declarations(array $tokens): string
+    {
+        $declarations = [];
+
+        foreach ($tokens as $name => $value) {
+            // The validator refused these already; a theme cache from before it can't end the rule or the tag.
+            if (preg_match('/[;{}<>]/', $value) !== 1) {
+                $declarations[] = "--teme-{$name}:{$value}";
+            }
+        }
+
+        return implode(';', $declarations);
+    }
+
+    /**
+     * Core's stylesheet for each card the page drew, unless the theme styles
+     * that card itself; a card core has no stylesheet for brings its own.
+     * A method, not a property: Blade builds the component before it renders
+     * the slot, and a card first drawn there, as a region's is, is known only
+     * when the view draws the head, after the slot.
+     *
+     * @return list<array{name: string, href: string}>
+     */
+    public function cardStyles(): array
+    {
+        $styles = [];
+
+        foreach (array_diff($this->usage->names(), $this->replacedCards) as $name) {
+            $entry = "resources/css/cards/{$name}.css";
+
+            if (is_file(base_path($entry))) {
+                $styles[] = ['name' => $name, 'href' => Vite::asset($entry)];
+            }
+        }
+
+        return $styles;
+    }
+}

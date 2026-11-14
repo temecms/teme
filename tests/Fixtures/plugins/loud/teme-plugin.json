@@ -1,0 +1,10 @@
+{
+    "manifest": 1,
+    "name": "tests/loud",
+    "code": "loud",
+    "label": "Loud",
+    "description": "A plugin whose file does something the moment it is loaded.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Loud\\Loud"
+}

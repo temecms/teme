@@ -1,0 +1,3 @@
+{"type":"doc","content":[
+  {"type":"snippet","attrs":{"id":"01K5Z9P2QH7N3X4C8V6B0M1T2S","language":"plain","code":"if (a < b) { return \"yes\"; }","caption":"A comparison"}}
+]}

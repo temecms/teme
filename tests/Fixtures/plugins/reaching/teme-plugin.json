@@ -1,0 +1,10 @@
+{
+    "manifest": 1,
+    "name": "tests/reaching",
+    "code": "reaching",
+    "label": "Reaching",
+    "description": "A plugin whose code names Teme’s own classes, which plugins may not use.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Reaching\\Reaching"
+}

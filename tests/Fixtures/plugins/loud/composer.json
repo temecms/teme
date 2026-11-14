@@ -1,0 +1,6 @@
+{
+    "name": "tests/loud",
+    "type": "teme-plugin",
+    "require": { "teme/contracts": "*" },
+    "autoload": { "psr-4": { "Tests\\Fixtures\\Plugins\\Loud\\": "src/" } }
+}

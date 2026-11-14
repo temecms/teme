@@ -1,0 +1,56 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/themes/*/public/hot
+/tests/Browser/Screenshots
+/public/storage
+/public/themes
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# --- Teme -------------------------------------------------------------
+# Local notes, never committed.
+/CMSes.txt
+/GPT chat.txt
+/Plugins on WPsites.txt
+
+# Reference CMS source trees, studied locally; not ours to redistribute.
+/Reference/
+
+# Build artefacts
+/build
+/.laravel-tmp
+# The Compose recipe's secrets, kept beside docker/compose.yml (I-375).
+/docker/secrets/
+
+# --- Starter kit (slice 1.2a). Its agent-file ignores are deliberately NOT copied:
+# Teme commits AGENTS.md, CLAUDE.md, boost.json and .ai/.
+/bootstrap/ssr
+/public/fonts-manifest.dev.json
+/resources/js/actions
+/resources/js/routes
+/resources/js/wayfinder
+npm-debug.log
+yarn-error.log
+
+# Snapshots and screenshots a Playwright browser session writes as it goes:
+# page content, never source.
+/.playwright-mcp/

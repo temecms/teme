@@ -1,0 +1,8 @@
+{
+    "manifest": 1,
+    "code": "csp-inline",
+    "name": "Fixture CSP inline",
+    "version": "0.1.0",
+    "description": "A theme whose views hold an inline script, an on* attribute and core's own script component, which teme:theme:check refuses, beside a script with src and a JSON-LD script, which it allows.",
+    "requires": { "teme": "^0.1" }
+}

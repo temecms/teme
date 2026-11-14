@@ -1,0 +1,15 @@
+{
+    "items": [
+        {"id": 1, "term_id": 101, "taxonomy": "category", "name": "Uncategorized", "slug": "uncategorized", "description": "", "parent": 0, "count": 0, "link": "https://old.example/category/uncategorized/", "seo": null},
+        {"id": 2, "term_id": 102, "taxonomy": "category", "name": "Animals", "slug": "animals", "description": "<p>All about <strong>animals</strong> &amp; more.</p>", "parent": 0, "count": 12, "link": "https://old.example/category/animals/", "seo": null},
+        {"id": 3, "term_id": 103, "taxonomy": "category", "name": "Owls", "slug": "owls", "description": "", "parent": 102, "count": 4, "link": "https://old.example/category/animals/owls/", "seo": {"title": "All our owls", "description": null, "canonical": null, "noindex": null}},
+        {"id": 4, "term_id": 104, "taxonomy": "post_tag", "name": "Night &amp; Day", "slug": "night-day", "description": "", "parent": 0, "count": 3, "link": "https://old.example/tag/night-day/", "seo": null},
+        {"id": 5, "term_id": 105, "taxonomy": "post_tag", "name": "Café", "slug": "caf%c3%a9", "description": "", "parent": 0, "count": 1, "link": "https://old.example/tag/caf%c3%a9/", "seo": null},
+        {"id": 6, "term_id": 106, "taxonomy": "post_format", "name": "post-format-aside", "slug": "post-format-aside", "description": "", "parent": 0, "count": 2, "link": "https://old.example/type/aside/", "seo": null},
+        {"id": 7, "term_id": 107, "taxonomy": "category", "name": "Birds", "slug": "birds", "description": "", "parent": 109, "count": 5, "link": "https://old.example/category/nature/birds/", "seo": null},
+        {"id": 8, "term_id": 108, "taxonomy": "genre", "name": "Jazz", "slug": "jazz", "description": "", "parent": 0, "count": 7, "link": "https://old.example/genre/jazz/", "seo": null},
+        {"id": 9, "term_id": 109, "taxonomy": "category", "name": "Nature", "slug": "nature", "description": "", "parent": 0, "count": 0, "link": "https://old.example/category/nature/", "seo": null},
+        {"id": 10, "error": "RuntimeException: could not be loaded"},
+        {"id": 11, "term_id": 111, "taxonomy": "post_tag", "name": "Fish &amp;amp; Chips", "slug": "fish-chips", "description": "", "parent": 0, "count": 1, "link": "https://old.example/tag/fish-chips/", "seo": null}
+    ]
+}

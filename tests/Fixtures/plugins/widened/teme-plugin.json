@@ -1,0 +1,13 @@
+{
+    "manifest": 1,
+    "name": "tests/widened",
+    "code": "widened",
+    "label": "Widened",
+    "description": "A plugin whose updates the tests make ask for more, or for nothing more.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Widened\\Widened",
+    "capabilities": ["content.read", "http"],
+    "hosts": ["api.example.com"],
+    "hooks": ["ContentPublished"]
+}

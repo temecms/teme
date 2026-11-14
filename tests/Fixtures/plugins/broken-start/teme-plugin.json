@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "name": "tests/broken-start",
+    "code": "broken-start",
+    "label": "Broken start",
+    "description": "A plugin that subscribes to a hook, then throws before it finishes starting.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\BrokenStart\\BrokenStart",
+    "capabilities": ["content.read"],
+    "hooks": ["ContentPublished"]
+}

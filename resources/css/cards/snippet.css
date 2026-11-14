@@ -1,0 +1,21 @@
+/* The code card (SnippetCard): linked only on pages that draw one (I-248). */
+.card-snippet {
+    margin-block: var(--teme-space-5, 2rem);
+    margin-inline: 0;
+}
+
+.card-snippet pre {
+    overflow-x: auto;
+    margin: 0;
+    padding: var(--teme-space-3, 1rem);
+    border: 1px solid var(--teme-rule, #d4d4d4);
+    font-family: var(--teme-font-mono, ui-monospace, monospace);
+    font-size: var(--teme-step--1, 0.875rem);
+    tab-size: 4;
+}
+
+.card-snippet figcaption {
+    margin-block-start: var(--teme-space-2, 0.5rem);
+    color: var(--teme-muted, #595959);
+    font-size: var(--teme-step--1, 0.875rem);
+}

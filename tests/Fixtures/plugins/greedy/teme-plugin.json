@@ -1,0 +1,10 @@
+{
+    "manifest": 1,
+    "name": "tests/greedy",
+    "code": "greedy",
+    "label": "Greedy",
+    "description": "A plugin whose class asks for Laravel's container.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Greedy\\Greedy"
+}

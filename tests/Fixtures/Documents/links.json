@@ -1,0 +1,13 @@
+{"type":"doc","content":[
+  {"type":"paragraph","content":[
+    {"type":"text","text":"Jump to "},
+    {"type":"text","text":"getting there","marks":[{"type":"link","attrs":{"href":"#getting-there","target":null,"rel":null,"class":null,"title":null}}]},
+    {"type":"text","text":" or "},
+    {"type":"text","text":"the café","marks":[{"type":"link","attrs":{"href":"#getting%20there%20caf%C3%A9","target":"_blank","rel":null,"class":null,"title":null}}]},
+    {"type":"text","text":", see "},
+    {"type":"text","text":"the news","marks":[{"type":"link","attrs":{"href":"/category/news/","target":"_blank","rel":null,"class":null,"title":null}}]},
+    {"type":"text","text":", then read "},
+    {"type":"text","text":"the programme","marks":[{"type":"link","attrs":{"href":"https://example.com/programme?day=1&time=6","target":"_blank","rel":null,"class":null,"title":"What's on"}}]},
+    {"type":"text","text":"."}
+  ]}
+]}

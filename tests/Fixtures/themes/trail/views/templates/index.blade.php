@@ -1,0 +1,1 @@
+<x-teme::document><main id="main">@isset($page->breadcrumbs)<nav aria-label="Breadcrumb"><ol>@foreach ($page->breadcrumbs as $crumb)<li>@if ($loop->last){{ $crumb->name }}@else<a href="{{ $crumb->url }}">{{ $crumb->name }}</a>@endif</li>@endforeach</ol></nav>@endisset</main></x-teme::document>

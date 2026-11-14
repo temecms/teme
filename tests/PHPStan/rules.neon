@@ -1,0 +1,9 @@
+services:
+    -
+        class: Tests\PHPStan\Rules\NoModelWritesInHttpLayer
+        arguments:
+            # The I-100 allow-list. Every entry is a maintainer's decision.
+            # Never add one to make a failing build pass.
+            allowedClasses: []
+        tags:
+            - phpstan.rules.rule

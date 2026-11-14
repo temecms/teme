@@ -1,0 +1,78 @@
+name: Bug report
+description: Something in Teme doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. One bug per report, please: each one is looked at and given a priority on its own.
+        Don't paste passwords, keys or a site's private content here. A security problem goes to private reporting instead (see the link on the previous page).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you saw, including any message on screen, word for word.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to make it happen again
+      description: Numbered steps from a fresh page, as short as possible.
+      placeholder: |
+        1. Open Posts › New post
+        2. Paste an article that contains a table
+        3. Click Save
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where
+      description: The admin screen or public address, for example /admin/content/…/edit.
+  - type: dropdown
+    id: impact
+    attributes:
+      label: How bad is it?
+      options:
+        - Work is lost or can't be saved
+        - Something is wrong but work is safe
+        - It looks wrong or is awkward
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Teme version
+      description: Shown in Tools › Updates.
+      placeholder: 0.7.0-alpha.1
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How Teme runs
+      options:
+        - The Docker image (Dokploy, Coolify, Compose)
+        - A plain server
+        - A development checkout
+        - Something else (say below)
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome on Windows, Safari on iPhone…
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: From `storage/logs/laravel.log` or the browser's console, if there is any. Remove anything private first.
+      render: text

@@ -1,0 +1,10 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - tests/PHPStan/rules.neon
+
+parameters:
+    level: 6
+    paths:
+        - app
+        - packages
+    tmpDir: build/phpstan

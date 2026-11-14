@@ -1,0 +1,24 @@
+/* The button card (ButtonCard): linked only on pages that draw one (I-248). */
+.card-button {
+    display: inline-block;
+    margin-block: var(--teme-space-4, 1.5rem);
+    padding: var(--teme-space-2, 0.5rem) var(--teme-space-4, 1.5rem);
+    border: 2px solid var(--teme-accent, #1a5fb4);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.card-button--primary {
+    background: var(--teme-accent, #1a5fb4);
+    color: var(--teme-on-accent, #ffffff);
+}
+
+.card-button--secondary {
+    background: transparent;
+    color: var(--teme-accent, #1a5fb4);
+}
+
+.card-button:focus-visible {
+    outline: 3px solid var(--teme-contrast, #111111);
+    outline-offset: 2px;
+}

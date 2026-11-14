@@ -1,0 +1,282 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:teme:plugin-manifest:1",
+    "title": "Teme plugin manifest, version 1",
+    "description": "teme-plugin.json. A preview until Teme 1.0 (I-3187).",
+    "$comment": "@since 0.5.0",
+    "type": "object",
+    "required": [
+        "manifest",
+        "name",
+        "code",
+        "label",
+        "description",
+        "version",
+        "requires",
+        "plugin"
+    ],
+    "additionalProperties": true,
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "The schema this file is written against, for editors."
+        },
+        "manifest": {
+            "type": "integer",
+            "const": 1,
+            "description": "The manifest format's version."
+        },
+        "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$",
+            "description": "The Composer package name, vendor/package."
+        },
+        "code": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+            "description": "The plugin's short code: 2 to 40 lower-case letters, digits and hyphens."
+        },
+        "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The name people see."
+        },
+        "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "One sentence on what the plugin does."
+        },
+        "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+(-(alpha|beta|rc)\\.\\d+)?$",
+            "description": "The plugin's own version."
+        },
+        "requires": {
+            "type": "object",
+            "required": ["teme"],
+            "additionalProperties": false,
+            "description": "What the plugin needs to run.",
+            "properties": {
+                "teme": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The Teme versions it works with, as a Composer constraint."
+                }
+            }
+        },
+        "plugin": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The class that implements the Plugin contract."
+        },
+        "capabilities": {
+            "type": "array",
+            "description": "What the plugin asks to be allowed to do.",
+            "items": {
+                "enum": ["content.read", "media.read", "http"]
+            }
+        },
+        "hosts": {
+            "type": "array",
+            "description": "The hosts the plugin asks to reach, when it asks for http.",
+            "items": {
+                "type": "string",
+                "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+            }
+        },
+        "hooks": {
+            "type": "array",
+            "description": "The hooks the plugin listens to, by name.",
+            "items": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Za-z]+$"
+            }
+        },
+        "contributes": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "What the plugin adds to the admin.",
+            "properties": {
+                "settings": {
+                    "type": "array",
+                    "description": "Settings the plugin declares.",
+                    "items": {
+                        "type": "object",
+                        "required": ["key", "type", "label", "description"],
+                        "properties": {
+                            "key": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{1,40}$",
+                                "description": "The setting's key."
+                            },
+                            "type": {
+                                "enum": [
+                                    "text",
+                                    "textarea",
+                                    "number",
+                                    "boolean",
+                                    "select",
+                                    "multiselect",
+                                    "url",
+                                    "urls",
+                                    "email",
+                                    "secret",
+                                    "color"
+                                ]
+                            },
+                            "label": {
+                                "type": "string",
+                                "description": "The name people see."
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "What the setting does."
+                            },
+                            "default": {
+                                "description": "The value before anyone changes it; any JSON value."
+                            },
+                            "options": {
+                                "type": "object",
+                                "description": "For a select: value to label."
+                            },
+                            "min": {
+                                "type": "integer",
+                                "description": "The least a number may be."
+                            },
+                            "max": {
+                                "type": "integer",
+                                "description": "The most a number may be."
+                            },
+                            "maxLength": {
+                                "type": "integer",
+                                "description": "The longest a text may be."
+                            },
+                            "required": {
+                                "type": "boolean",
+                                "description": "Whether the setting must be filled in."
+                            },
+                            "example": {
+                                "type": "string",
+                                "description": "An example value shown as a hint."
+                            },
+                            "unit": {
+                                "type": "string",
+                                "description": "The unit shown beside a number."
+                            }
+                        }
+                    }
+                },
+                "admin": {
+                    "type": "array",
+                    "description": "Entries the plugin adds to the admin.",
+                    "items": {
+                        "type": "object",
+                        "required": ["surface", "id", "label", "to"],
+                        "properties": {
+                            "surface": {
+                                "enum": ["tools"]
+                            },
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The entry's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "The name people see."
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "What the entry opens."
+                            },
+                            "icon": {
+                                "enum": [
+                                    "plug",
+                                    "link",
+                                    "external-link",
+                                    "settings",
+                                    "send",
+                                    "bell",
+                                    "refresh-cw",
+                                    "chart-line"
+                                ]
+                            },
+                            "to": {
+                                "type": "string",
+                                "pattern": "^(settings|https://.+)$",
+                                "description": "Where it leads: the plugin's settings, or an https address."
+                            }
+                        }
+                    }
+                },
+                "csp": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "style": {
+                            "type": "array",
+                            "maxItems": 20,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                            }
+                        },
+                        "font": {
+                            "type": "array",
+                            "maxItems": 20,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                            }
+                        },
+                        "img": {
+                            "type": "array",
+                            "maxItems": 20,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                            }
+                        },
+                        "connect": {
+                            "type": "array",
+                            "maxItems": 20,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                            }
+                        },
+                        "frame": {
+                            "type": "array",
+                            "maxItems": 20,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                            }
+                        },
+                        "script": {
+                            "type": "array",
+                            "maxItems": 20,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "author": {
+            "type": "string",
+            "description": "Who wrote the plugin."
+        },
+        "homepage": {
+            "type": "string",
+            "description": "Where to read about it."
+        },
+        "license": {
+            "type": "string",
+            "description": "The license it is released under."
+        }
+    }
+}

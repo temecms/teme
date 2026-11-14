@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Teme Features by Phase</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a single reading column; where we are, then one band per phase, then the unplaced pool by area. Tokens follow the admin's v9 palette. */
+:root {
+  --bg: #F6F6F7; --card: #FFFFFF; --muted: #F1F1F2; --fg: #1A1A1A; --mfg: #5C5C5C; --border: #E4E4E5; --input: #CFCFD1;
+  --accent: #0A6273; --accent-fg: #FFFFFF; --tint: #E6F1F3; --ok: #18794E; --ok-tint: #E7F3EC; --warn: #8A5300; --warn-tint: #FAF0DD; --no: #B42318; --no-tint: #FBEAE8;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141414; --card: #1C1C1D; --muted: #242425; --fg: #EDEDEE; --mfg: #A5A5A7; --border: #2C2C2E; --input: #3D3D3F;
+    --accent: #48ADC2; --accent-fg: #05222A; --tint: #15282D; --ok: #5FC393; --ok-tint: #14302A; --warn: #E0AE60; --warn-tint: #322614; --no: #F08076; --no-tint: #3A1B19;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141414; --card: #1C1C1D; --muted: #242425; --fg: #EDEDEE; --mfg: #A5A5A7; --border: #2C2C2E; --input: #3D3D3F;
+  --accent: #48ADC2; --accent-fg: #05222A; --tint: #15282D; --ok: #5FC393; --ok-tint: #14302A; --warn: #E0AE60; --warn-tint: #322614; --no: #F08076; --no-tint: #3A1B19;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 400 15px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p, ul { margin: 0; }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+.pg { max-width: 960px; margin: 0 auto; display: grid; gap: 40px; }
+.kicker { font-size: 12px; font-weight: 500; color: var(--mfg); letter-spacing: .02em; }
+h1 { font-size: 30px; font-weight: 600; line-height: 1.2; text-wrap: balance; margin-top: 6px; }
+.lead { font-size: 17px; color: var(--fg); margin-top: 12px; max-width: 68ch; text-wrap: pretty; }
+.how { margin-top: 16px; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; display: grid; gap: 6px; font-size: 14px; }
+.how ul { padding-left: 18px; display: grid; gap: 4px; }
+.find { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; border-bottom: 1px solid var(--border); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.find input { flex: 1; min-width: 0; height: 38px; padding: 0 12px; border: 1px solid var(--input); border-radius: 4px; background: var(--card); color: var(--fg); font: inherit; }
+.find .count { font: 500 12px var(--mono); color: var(--mfg); white-space: nowrap; }
+.jump { display: flex; flex-wrap: wrap; gap: 6px; }
+.jump a { font-size: 13px; color: var(--mfg); text-decoration: none; padding: 3px 9px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); }
+.jump a:hover { color: var(--fg); border-color: var(--input); }
+
+.phase { display: grid; gap: 14px; scroll-margin-top: 70px; }
+.ph-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.ph-head h2 { font-size: 22px; font-weight: 600; }
+.ver { font: 600 12px var(--mono); padding: 2px 8px; border-radius: 4px; background: var(--tint); color: var(--accent); }
+.ver.now { background: var(--warn-tint); color: var(--warn); }
+.ver.big { background: var(--accent); color: var(--accent-fg); }
+.meta { display: grid; gap: 4px; font-size: 14px; color: var(--mfg); max-width: 72ch; }
+.meta b { color: var(--fg); font-weight: 600; }
+.list { background: var(--card); border: 1px solid var(--border); border-radius: 6px; }
+.row { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 4px 14px; padding: 12px 16px; border-top: 1px solid var(--border); }
+.row:first-child { border-top: 0; }
+.row .id { font: 500 12px/1.9 var(--mono); color: var(--mfg); }
+.row .what { min-width: 0; }
+.row .name { font-weight: 600; }
+.row .desc { color: var(--mfg); font-size: 14px; text-wrap: pretty; }
+.row .ref { font: 500 11px var(--mono); color: var(--mfg); white-space: nowrap; }
+.tag { display: inline-block; font: 600 10px/16px var(--mono); padding: 0 5px; border-radius: 3px; vertical-align: 2px; margin-left: 6px; }
+.tag.extra { background: var(--ok-tint); color: var(--ok); }
+.tag.maybe { background: var(--warn-tint); color: var(--warn); }
+.sub { font-size: 13px; font-weight: 600; color: var(--mfg); margin-top: 6px; }
+.area { display: grid; gap: 10px; }
+.area h3 { font-size: 16px; font-weight: 600; }
+.never .row .name { color: var(--no); }
+.foot { font-size: 13px; color: var(--mfg); max-width: 72ch; }
+.hidden { display: none !important; }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr); } .row .id { line-height: 1.4; } }
+</style>
+</head>
+<body>
+<div class="wrap"><div class="pg">
+
+<header>
+  <p class="kicker">Teme roadmap · for discussion · 29 October 2026</p>
+  <h1>What comes after phase 1, phase by phase</h1>
+  <p class="lead">Every feature placed in a phase, in plain words, and below them every feature that has been raised but sits in no phase yet. Tell me in chat which to move up, down, in or out, by its name or number.</p>
+  <div class="how">
+    <strong>How to read it</strong>
+    <ul>
+      <li>Each phase ends with a version. <strong>1.0.0, at the end of phase 6, is the first release a stranger can install.</strong> Until then Teme runs only on your own servers.</li>
+      <li>A phase also makes a promise to outsiders (the API, the theme interface, the plugin hooks). Moving a feature earlier is easy; moving a <em>promise</em> earlier means changing it later breaks other people's code.</li>
+      <li>Slice lists past phase 1 are estimates. Each phase is planned properly when we reach it, against the code that exists then.</li>
+      <li><span class="tag extra">ALSO</span> marks a feature already decided for that phase outside its slice list. <span class="tag maybe">MAYBE</span> marks one that moves if it proves cheap.</li>
+    </ul>
+  </div>
+</header>
+
+<div class="find">
+  <label for="q" class="kicker" style="margin:0">Find</label>
+  <input id="q" type="search" placeholder="Search features, for example: menus, AI, comments" autocomplete="off">
+  <span class="count" id="count"></span>
+</div>
+<nav class="jump" aria-label="Jump to">
+  <a href="#p1">Phase 1 now</a><a href="#p2">Phase 2</a><a href="#p3">Phase 3</a><a href="#p4">Phase 4</a><a href="#p5">Phase 5</a><a href="#p6">Phase 6</a><a href="#pool">Not in a phase</a><a href="#never">Never</a>
+</nav>
+
+<section class="phase" id="p1">
+  <div class="ph-head"><h2>Phase 1 · Core publishing loop</h2><span class="ver now">0.1.0 · in progress</span></div>
+  <div class="meta"><span><b>Done when:</b> a WordPress publication can be moved to Teme and served, proven by a full test migration on a real server.</span></div>
+  <div class="list">
+    <div class="row"><span class="id">1.11</span><div class="what"><div class="name">Import, closing as rc.11</div><div class="desc">Built and fixed after the first real import. Left: the paperwork, then the tag.</div></div></div>
+    <div class="row"><span class="id">1.12</span><div class="what"><div class="name">Backup and restore, rc.12</div><div class="desc">Built through part h. Left: Back up now and queued backups (1.12i, planned), then the proof run (1.12z).</div></div></div>
+    <div class="row"><span class="id">1.13</span><div class="what"><div class="name">Deployment and the full test migration, rc.13 then 0.1.0</div><div class="desc">Parts a, b and d built. Left: the deploy command, the operators' and editors' guides, then the migration on the new servers.</div></div></div>
+    <div class="row"><span class="id">track</span><div class="what"><div class="name">The review track</div><div class="desc">What your review found: the editor's layout, the list header and row links, settings panels, a Full import button, the wording pass, and bugs left for later. Built after rc.11 without holding anything up.</div></div></div>
+  </div>
+</section>
+
+<section class="phase" id="p2">
+  <div class="ph-head"><h2>Phase 2 · Content model</h2><span class="ver">0.2.0</span></div>
+  <div class="meta"><span><b>Done when:</b> your own content types, fields and categories work end to end, proven by importing a site that uses them.</span><span><b>Promise:</b> none to outsiders.</span></div>
+  <div class="list">
+    <div class="row"><span class="id">2.1</span><div class="what"><div class="name">Custom content types</div><div class="desc">Make types beyond Posts and Pages, such as Recipes, Events or Products, each with its own fields, built in the admin.</div></div></div>
+    <div class="row"><span class="id">2.2</span><div class="what"><div class="name">More field kinds</div><div class="desc">Groups, repeaters, multi-select, rich text, links and JSON. Then ready-made structured data for Recipe, Event, Product and Review, and hand-written JSON-LD for administrators.</div><div class="ref">I-710, I-711</div></div></div>
+    <div class="row"><span class="id">2.3</span><div class="what"><div class="name">Custom taxonomies</div><div class="desc">Ways to group content beyond categories and tags, such as Cuisine, Brand or Region.</div></div></div>
+    <div class="row"><span class="id">2.4</span><div class="what"><div class="name">Importing custom types and ACF fields</div><div class="desc">The importer brings WordPress custom post types and Advanced Custom Fields across, proven on a site that uses them.</div></div></div>
+    <div class="row"><span class="id">I-3127</span><div class="what"><div class="name">Snippets<span class="tag extra">ALSO</span></div><div class="desc">Administrators keep named pieces of code (ad units, affiliate widgets) in Settings, and editors place them in articles or regions by name, never writing code.</div></div></div>
+    <div class="row"><span class="id">I-3126</span><div class="what"><div class="name">Images that link<span class="tag maybe">MAYBE</span></div><div class="desc">An image can link to a page or an outside address (affiliate banners, sponsors), with sponsored and nofollow choices. In phase 1 if it proves cheap, otherwise here.</div></div></div>
+  </div>
+</section>
+
+<section class="phase" id="p3">
+  <div class="ph-head"><h2>Phase 3 · Public surfaces</h2><span class="ver">0.3.0</span></div>
+  <div class="meta"><span><b>Done when:</b> something other than Teme's own admin uses its API and its AI connection.</span><span><b>Promise:</b> the shape of the web API, from <code>/api/v1</code>.</span></div>
+  <div class="list">
+    <div class="row"><span class="id">3.1</span><div class="what"><div class="name">Delivery API</div><div class="desc">A read-only, cached API for apps and other front ends. Beside it, an opt-in <code>llms.txt</code> and plain-text versions of pages for AI readers.</div><div class="ref">I-713</div></div></div>
+    <div class="row"><span class="id">3.2</span><div class="what"><div class="name">Management API</div><div class="desc">Write content from other tools and scripts, with tokens limited to what each needs.</div></div></div>
+    <div class="row"><span class="id">3.3</span><div class="what"><div class="name">MCP server</div><div class="desc">Outside AI agents (Claude and others) work on the site through the same safe operations the admin uses.</div><div class="ref">I-326</div></div></div>
+    <div class="row"><span class="id">3.4</span><div class="what"><div class="name">Wider AI operations</div><div class="desc">More AI tasks beyond phase 1's three, including decision models, embeddings and reranking.</div><div class="ref">I-1319, I-887</div></div></div>
+  </div>
+</section>
+
+<section class="phase" id="p4">
+  <div class="ph-head"><h2>Phase 4 · Theme contract</h2><span class="ver">0.4.0</span></div>
+  <div class="meta"><span><b>Done when:</b> a second theme is built against the published interface.</span><span><b>Promise:</b> the theme interface; theme authors can rely on it.</span></div>
+  <div class="list">
+    <div class="row"><span class="id">4.1</span><div class="what"><div class="name">The theme contract</div><div class="desc">Themes become a documented package type, with a checker that validates them.</div></div></div>
+    <div class="row"><span class="id">4.2</span><div class="what"><div class="name">Appearance section</div><div class="desc">Switch themes, change a theme's own settings, and see which template draws each page.</div><div class="ref">I-010</div></div></div>
+    <div class="row"><span class="id">4.3</span><div class="what"><div class="name">A second theme</div><div class="desc">Proves the interface works for more than the default theme.</div></div></div>
+    <div class="row"><span class="id">4.4</span><div class="what"><div class="name">Theme handbook</div><div class="desc">A guide, a generated reference, and an AI skill for converting a WordPress theme to Teme.</div></div></div>
+    <div class="row"><span class="id">I-402</span><div class="what"><div class="name">Theme accessibility check<span class="tag extra">ALSO</span></div><div class="desc">Any theme is rendered against a sample site and checked for accessibility before it's used.</div></div></div>
+  </div>
+</section>
+
+<section class="phase" id="p5">
+  <div class="ph-head"><h2>Phase 5 · Plugin API</h2><span class="ver">0.5.0</span></div>
+  <div class="meta"><span><b>Done when:</b> someone other than us extends Teme.</span><span><b>Promise:</b> the plugin hooks stay stable. This is the one-way door: once outsiders build on it, it can't easily change.</span></div>
+  <div class="list">
+    <div class="row"><span class="id">5.1</span><div class="what"><div class="name">Hooks</div><div class="desc">Actions and filters, as in WordPress, where a failing plugin is switched off rather than taking the site down.</div></div></div>
+    <div class="row"><span class="id">5.2</span><div class="what"><div class="name">Plugin lifecycle</div><div class="desc">Install, enable, disable and remove, with a safe mode and a history of what changed.</div></div></div>
+    <div class="row"><span class="id">5.3</span><div class="what"><div class="name">What plugins can add</div><div class="desc">Fields, editor cards, admin screens, AI tools and backup destinations, each labelled with the plugin that added it.</div></div></div>
+    <div class="row"><span class="id">5.3a</span><div class="what"><div class="name">Plugin permissions and consent</div><div class="desc">Each plugin declares what it needs, the administrator agrees, and an update that asks for more is flagged.</div></div></div>
+    <div class="row"><span class="id">5.3b</span><div class="what"><div class="name">Plugin screens</div><div class="desc">The tools for plugins to draw admin screens that match Teme's.</div></div></div>
+    <div class="row"><span class="id">5.3c</span><div class="what"><div class="name">Install plugins from the admin</div><div class="desc">Ask from the admin; a separate installer does it, with rollback if it fails.</div></div></div>
+    <div class="row"><span class="id">5.4</span><div class="what"><div class="name">Plugin handbook</div><div class="desc">A guide, a generated hook reference, and an AI skill for converting a WordPress plugin.</div></div></div>
+    <div class="row"><span class="id">I-064</span><div class="what"><div class="name">Ads inside articles<span class="tag extra">ALSO</span></div><div class="desc">Plugins can place ads after a given paragraph, before the last heading and similar spots, without breaking the page cache.</div></div></div>
+    <div class="row"><span class="id">I-3127</span><div class="what"><div class="name">Plugins place snippets and their own cards<span class="tag extra">ALSO</span></div><div class="desc">A plugin can place snippets automatically, or add its own ad or widget card to the editor.</div></div></div>
+    <div class="row"><span class="id">I-432</span><div class="what"><div class="name">Developer kit<span class="tag extra">ALSO</span></div><div class="desc">Commands that create a working, tested plugin or theme to start from, plus testing helpers.</div></div></div>
+    <div class="row"><span class="id">I-434</span><div class="what"><div class="name">Forms<span class="tag maybe">MAYBE</span></div><div class="desc">Contact and other forms in core, with spam protection and stored submissions. Whether core or a plugin does it is decided in phase 5's study.</div></div></div>
+    <div class="row"><span class="id">I-3167</span><div class="what"><div class="name">Plugins' settings in titled panels<span class="tag extra">ALSO</span></div><div class="desc">Plugins' settings pages get the same panels as core's.</div></div></div>
+  </div>
+</section>
+
+<section class="phase" id="p6">
+  <div class="ph-head"><h2>Phase 6 · Distribution</h2><span class="ver big">1.0.0 · first public release</span></div>
+  <div class="meta"><span><b>Done when:</b> a stranger installs Teme.</span><span><b>Promise:</b> sites can always be upgraded safely.</span></div>
+  <div class="list">
+    <div class="row"><span class="id">6.1</span><div class="what"><div class="name">Installer in the browser</div><div class="desc">Install Teme from a web page, and restore a backup from the installer or the admin.</div></div></div>
+    <div class="row"><span class="id">6.2</span><div class="what"><div class="name">Updates and the plugin repository</div><div class="desc">Signed releases, one-click updates with a snapshot and rollback, and a plugin and theme repository, premium ones included with their licence status shown. Update checks send nothing about your site.</div><div class="ref">I-433, I-3132, I-407</div></div></div>
+    <div class="row"><span class="id">6.3</span><div class="what"><div class="name">Documentation site</div><div class="desc">A public website for the docs, rebuilt from the code with each release.</div><div class="ref">I-404</div></div></div>
+    <div class="row"><span class="id">6.4</span><div class="what"><div class="name">Security go-live</div><div class="desc">A way to report security problems, an advisory channel, dependency scanning, passkeys, a list of your signed-in sessions, new-device notices, an admin IP allow-list and a security log viewer.</div></div></div>
+    <div class="row"><span class="id">6.5</span><div class="what"><div class="name">Export to WordPress</div><div class="desc">The way out: export a Teme site to WordPress's format, so moving in is never a trap.</div></div></div>
+    <div class="row"><span class="id">I-405</span><div class="what"><div class="name">A project domain<span class="tag extra">ALSO</span></div><div class="desc">For the docs, the signed plugin index, update checks and the security address. Reserving it earlier is your call.</div></div></div>
+    <div class="row"><span class="id">I-431</span><div class="what"><div class="name">Trademark "Teme"<span class="tag extra">ALSO</span></div><div class="desc">Register the name for software through Krafty Sprouts Media LLC. It can start any time you choose.</div></div></div>
+  </div>
+</section>
+
+<section class="phase" id="pool">
+  <div class="ph-head"><h2>Raised, but in no phase yet</h2></div>
+  <div class="meta"><span>Each was parked with a reason. Any of them can be placed in a phase. Grouped by area.</span></div>
+
+  <div class="area"><h3>Writing and the editor</h3><div class="list">
+    <div class="row"><span class="id">I-038</span><div class="what"><div class="name">Reusable patterns</div><div class="desc">Save a group of blocks and reuse it across articles.</div></div></div>
+    <div class="row"><span class="id">I-039</span><div class="what"><div class="name">Collaborative editing</div><div class="desc">Several people editing one article at the same time.</div></div></div>
+    <div class="row"><span class="id">I-066</span><div class="what"><div class="name">Editorial workflow</div><div class="desc">An editorial calendar, custom statuses, editorial comments and notifications.</div></div></div>
+    <div class="row"><span class="id">I-184</span><div class="what"><div class="name">Email when a review is asked for</div><div class="desc">Editors are emailed when an article waits for review.</div></div></div>
+    <div class="row"><span class="id">I-182</span><div class="what"><div class="name">Scheduled unpublishing</div><div class="desc">An article that comes down at a set time.</div></div></div>
+    <div class="row"><span class="id">I-721</span><div class="what"><div class="name">Co-authors</div><div class="desc">Several authors credited on one article.</div></div></div>
+    <div class="row"><span class="id">I-239</span><div class="what"><div class="name">Parent pages</div><div class="desc">Pages nested under other pages, with addresses to match.</div></div></div>
+    <div class="row"><span class="id">I-037</span><div class="what"><div class="name">Outline pane</div><div class="desc">A side list of the article's headings to jump between.</div></div></div>
+    <div class="row"><span class="id">I-429</span><div class="what"><div class="name">Quick links by typing [[</div><div class="desc">Type two brackets to find an article and link it.</div></div></div>
+    <div class="row"><span class="id">I-695</span><div class="what"><div class="name">FAQ card</div><div class="desc">Questions and answers readers see, with FAQ markup for search engines.</div></div></div>
+    <div class="row"><span class="id">I-1723</span><div class="what"><div class="name">Reorder a gallery</div><div class="desc">Drag a gallery's images into a new order.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>Media</h3><div class="list">
+    <div class="row"><span class="id">I-171</span><div class="what"><div class="name">Crop and rotate</div><div class="desc">Edit an image without losing the original.</div></div></div>
+    <div class="row"><span class="id">I-179</span><div class="what"><div class="name">Bulk actions on media</div><div class="desc">Select many files and act on them at once.</div></div></div>
+    <div class="row"><span class="id">I-3165</span><div class="what"><div class="name">Row links on Media</div><div class="desc">Edit, View, Copy address and Delete under each file, as WordPress has.</div></div></div>
+    <div class="row"><span class="id">I-172</span><div class="what"><div class="name">Media tags or folders</div><div class="desc">Group files in the library.</div></div></div>
+    <div class="row"><span class="id">I-170</span><div class="what"><div class="name">SVG uploads</div><div class="desc">Accept SVG files, cleaned for safety.</div></div></div>
+    <div class="row"><span class="id">I-173</span><div class="what"><div class="name">AVIF images</div><div class="desc">Smaller image files beside WebP, for browsers that take them.</div></div></div>
+    <div class="row"><span class="id">I-176</span><div class="what"><div class="name">Video and PDF handling</div><div class="desc">Video posters and conversion, audio length, PDF thumbnails.</div></div></div>
+    <div class="row"><span class="id">I-177</span><div class="what"><div class="name">Private media until published</div><div class="desc">Files stay hidden until the article using them goes live.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>Search engines and sharing</h3><div class="list">
+    <div class="row"><span class="id">I-068</span><div class="what"><div class="name">Publish pings (IndexNow, WebSub)</div><div class="desc">Tell search engines and feed readers the moment something is published.</div><div class="ref">I-304</div></div></div>
+    <div class="row"><span class="id">I-069</span><div class="what"><div class="name">Related posts and link suggestions</div><div class="desc">Suggest related articles to readers and internal links to writers.</div></div></div>
+    <div class="row"><span class="id">I-307</span><div class="what"><div class="name">Link report</div><div class="desc">Articles nothing links to, and how often each is linked.</div></div></div>
+    <div class="row"><span class="id">I-901</span><div class="what"><div class="name">SEO titles for categories and authors</div><div class="desc">Their own search titles and descriptions, as Yoast allows.</div></div></div>
+    <div class="row"><span class="id">I-306</span><div class="what"><div class="name">News and video sitemaps</div><div class="desc">Plus language alternates for translated pages.</div></div></div>
+    <div class="row"><span class="id">I-308</span><div class="what"><div class="name">Atom and JSON feeds</div><div class="desc">Feed formats beside RSS; comment feeds too.</div><div class="ref">I-305</div></div></div>
+    <div class="row"><span class="id">I-067</span><div class="what"><div class="name">Social distribution</div><div class="desc">Auto-posting, share buttons, Pin It, Apple News.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>Comments and readers</h3><div class="list">
+    <div class="row"><span class="id">I-043</span><div class="what"><div class="name">Reply notifications</div><div class="desc">Commenters can follow a thread and get replies by email.</div></div></div>
+    <div class="row"><span class="id">I-044</span><div class="what"><div class="name">Outside spam services</div><div class="desc">Akismet-style spam checking for comments.</div></div></div>
+    <div class="row"><span class="id">I-284</span><div class="what"><div class="name">Turnstile or hCaptcha</div><div class="desc">A challenge on the comment form.</div></div></div>
+    <div class="row"><span class="id">I-280</span><div class="what"><div class="name">Edit your own comment</div><div class="desc">A short window for commenters to fix what they wrote.</div></div></div>
+    <div class="row"><span class="id">I-281</span><div class="what"><div class="name">Likes and "Best" order</div><div class="desc">Readers like comments; threads can sort by the best.</div></div></div>
+    <div class="row"><span class="id">I-282</span><div class="what"><div class="name">Report a comment</div><div class="desc">Readers flag a comment, with a reason.</div></div></div>
+    <div class="row"><span class="id">I-283</span><div class="what"><div class="name">Commenter pictures (Gravatar)</div><div class="desc">Fetched and kept by your own server, so readers aren't tracked.</div></div></div>
+    <div class="row"><span class="id">I-121</span><div class="what"><div class="name">Reader accounts</div><div class="desc">Members who sign in on the public site.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>The site and its look</h3><div class="list">
+    <div class="row"><span class="id">I-399</span><div class="what"><div class="name">Site logo, icon and default cover</div><div class="desc">Chosen from the media library in Settings.</div><div class="ref">I-1390, issue #19</div></div></div>
+    <div class="row"><span class="id">I-751</span><div class="what"><div class="name">Private page-view counts</div><div class="desc">Views per article with no cookies or personal data, shown in lists and as "Most read this week".</div></div></div>
+    <div class="row"><span class="id">I-2637</span><div class="what"><div class="name">Dropdown menus in the default theme</div><div class="desc">Sub-items open under a menu heading.</div></div></div>
+    <div class="row"><span class="id">I-398</span><div class="what"><div class="name">Drag and drop in the menu editor</div><div class="desc">Reorder menu items by dragging.</div></div></div>
+    <div class="row"><span class="id">I-309</span><div class="what"><div class="name">Code that waits for cookie consent</div><div class="desc">Scripts that load only after a visitor agrees.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>The admin and people</h3><div class="list">
+    <div class="row"><span class="id">I-131</span><div class="what"><div class="name">Custom roles</div><div class="desc">Make roles and choose what each may do.</div></div></div>
+    <div class="row"><span class="id">I-042</span><div class="what"><div class="name">Multilingual content</div><div class="desc">The same article in several languages.</div></div></div>
+    <div class="row"><span class="id">I-162</span><div class="what"><div class="name">Translate the admin</div><div class="desc">The admin itself in other languages.</div></div></div>
+    <div class="row"><span class="id">I-157</span><div class="what"><div class="name">Site Health screen</div><div class="desc">One screen saying the worker, scheduler, storage and backups are fine.</div></div></div>
+    <div class="row"><span class="id">I-218</span><div class="what"><div class="name">Sign in as another user</div><div class="desc">For an administrator to see what someone else sees.</div></div></div>
+    <div class="row"><span class="id">I-222</span><div class="what"><div class="name">Merge categories or tags</div><div class="desc">Fold one into another.</div></div></div>
+    <div class="row"><span class="id">I-841</span><div class="what"><div class="name">Numbered pages in lists</div><div class="desc">Page numbers up to a limit, as well as Older and Newer.</div></div></div>
+    <div class="row"><span class="id">I-192</span><div class="what"><div class="name">Choose the admin's accent colour</div><div class="desc">From presets or your own.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>Privacy and security</h3><div class="list">
+    <div class="row"><span class="id">I-158</span><div class="what"><div class="name">Export and erase a person's data</div><div class="desc">For GDPR requests, commenters included.</div><div class="ref">I-285</div></div></div>
+    <div class="row"><span class="id">I-073</span><div class="what"><div class="name">Login protection and country blocking</div><div class="desc">Ideas from Securetor: anti-spam, login protection, access by country.</div></div></div>
+    <div class="row"><span class="id">I-213</span><div class="what"><div class="name">Sandboxed plugins</div><div class="desc">A safe tier for plugins from untrusted authors.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>AI</h3><div class="list">
+    <div class="row"><span class="id">I-322</span><div class="what"><div class="name">Alt text for the whole library</div><div class="desc">Suggestions for every image, queued for someone to approve.</div></div></div>
+    <div class="row"><span class="id">I-323</span><div class="what"><div class="name">Suggested categories and tags</div><div class="desc">From the terms the site already has.</div></div></div>
+    <div class="row"><span class="id">I-324</span><div class="what"><div class="name">Translate a post into a new draft</div><div class="desc">AI translation, reviewed before publishing.</div></div></div>
+    <div class="row"><span class="id">I-327</span><div class="what"><div class="name">AI content analysis</div><div class="desc">Suggestions inside Search and social.</div></div></div>
+    <div class="row"><span class="id">I-325</span><div class="what"><div class="name">Edit the AI's prompts</div><div class="desc">Per site.</div></div></div>
+    <div class="row"><span class="id">I-1386</span><div class="what"><div class="name">Spend warning at 80%</div><div class="desc">A notice before the AI budget runs out, and spend by person and task.</div><div class="ref">I-1385</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>Backups, hosting and scale</h3><div class="list">
+    <div class="row"><span class="id">I-369</span><div class="what"><div class="name">Restore one post or one image</div><div class="desc">From a backup, without restoring the whole site.</div></div></div>
+    <div class="row"><span class="id">I-368</span><div class="what"><div class="name">Point-in-time recovery</div><div class="desc">Restore the database to any minute, not only to the last backup.</div></div></div>
+    <div class="row"><span class="id">I-371</span><div class="what"><div class="name">Backup alerts by webhook or push</div><div class="desc">Beyond email.</div></div></div>
+    <div class="row"><span class="id">I-387</span><div class="what"><div class="name">Running on several servers</div><div class="desc">Octane, PgBouncer, Horizon, and media on S3 for many web servers.</div><div class="ref">I-388, I-389, I-390</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>Import</h3><div class="list">
+    <div class="row"><span class="id">I-346</span><div class="what"><div class="name">Import past revisions</div><div class="desc">Bring each article's last few revisions across.</div></div></div>
+    <div class="row"><span class="id">I-348</span><div class="what"><div class="name">Widgets into regions</div><div class="desc">WordPress widgets placed in the theme's regions.</div></div></div>
+    <div class="row"><span class="id">I-2999</span><div class="what"><div class="name">Pause after many failed downloads</div><div class="desc">Instead of carrying on for hours.</div></div></div>
+    <div class="row"><span class="id">I-3081</span><div class="what"><div class="name">Catch-up retries failures</div><div class="desc">Needs a new release of the companion plugin.</div></div></div>
+    <div class="row"><span class="id">I-350</span><div class="what"><div class="name">Move ActivityPub followers</div><div class="desc">Fediverse followers move with the site.</div></div></div>
+  </div></div>
+
+  <div class="area"><h3>The business</h3><div class="list">
+    <div class="row"><span class="id">I-040</span><div class="what"><div class="name">Marketplace</div><div class="desc">A store for plugins and themes.</div></div></div>
+    <div class="row"><span class="id">I-041</span><div class="what"><div class="name">Managed hosting</div><div class="desc">Teme hosted for customers.</div></div></div>
+  </div></div>
+</section>
+
+<section class="phase never" id="never">
+  <div class="ph-head"><h2>Deliberately not building</h2></div>
+  <div class="meta"><span>Each would be a product decision, not a feature to schedule. Raise one if you think it's needed.</span></div>
+  <div class="list">
+    <div class="row"><span class="id">—</span><div class="what"><div class="name">Multisite</div><div class="desc">Many sites in one installation.</div></div></div>
+    <div class="row"><span class="id">—</span><div class="what"><div class="name">Shared hosting</div><div class="desc">Teme needs a server with Docker or a VPS.</div></div></div>
+    <div class="row"><span class="id">—</span><div class="what"><div class="name">A freeform page builder</div><div class="desc">Drag-anything layouts, as Elementor does.</div></div></div>
+    <div class="row"><span class="id">—</span><div class="what"><div class="name">Ecommerce in core</div><div class="desc">Shops belong in plugins.</div></div></div>
+    <div class="row"><span class="id">—</span><div class="what"><div class="name">WordPress plugin or theme compatibility</div><div class="desc">Teme imports WordPress sites; it doesn't run WordPress code.</div></div></div>
+  </div>
+</section>
+
+<p class="foot">Sources: <code>docs/roadmap.md</code> for the phases and slices. This page lists the parked ideas people would notice; about 140 more are technical follow-ups (feed details, AI pricing edge cases and the like).</p>
+</div></div>
+
+<script>
+(() => {
+  const q = document.getElementById('q');
+  const count = document.getElementById('count');
+  const rows = Array.from(document.querySelectorAll('.row'));
+  const groups = Array.from(document.querySelectorAll('.area, .phase'));
+  const show = () => {
+    const term = q.value.trim().toLowerCase();
+    let n = 0;
+    rows.forEach((r) => { const hit = !term || r.textContent.toLowerCase().includes(term); r.classList.toggle('hidden', !hit); if (hit) n += 1; });
+    document.querySelectorAll('.area').forEach((a) => a.classList.toggle('hidden', !!term && !a.querySelector('.row:not(.hidden)')));
+    count.textContent = term ? n + ' found' : rows.length + ' features';
+  };
+  q.addEventListener('input', show);
+  show();
+})();
+</script>
+</body>
+</html>

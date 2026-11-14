@@ -1,0 +1,10 @@
+{
+    "manifest": 1,
+    "code": "csp-origins",
+    "name": "Fixture CSP origins",
+    "version": "0.1.0",
+    "description": "A theme that declares the outside hosts its pages load from, and writes an item's title raw, standing for a theme's mistake.",
+    "requires": { "teme": "^0.1" },
+    "assets": { "manifest": "public/build/manifest.json", "entries": ["assets/css/theme.css"] },
+    "csp": { "font": ["fonts.example.com"], "img": ["*.images.example.net"] }
+}

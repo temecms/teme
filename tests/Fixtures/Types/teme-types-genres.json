@@ -1,0 +1,37 @@
+{
+    "format": "teme-types",
+    "version": 1,
+    "types": [
+        {
+            "key": "film",
+            "singular": "Film",
+            "plural": "Films",
+            "segment": "films",
+            "icon": "film",
+            "single": false,
+            "public": true,
+            "archive": true,
+            "searchable": true,
+            "taxonomies": ["genre"],
+            "supports": ["seo", "excerpt", "featured_image"],
+            "comments": "closed",
+            "pattern": "/films/{slug}/",
+            "permissions": "shared"
+        }
+    ],
+    "fields": [],
+    "taxonomies": [
+        {
+            "key": "genre",
+            "singular": "Genre",
+            "plural": "Genres",
+            "segment": "genres",
+            "icon": "folder",
+            "hierarchical": true,
+            "public": true,
+            "base": "genre",
+            "code_types": ["post"]
+        }
+    ],
+    "grants": []
+}

@@ -1,0 +1,9 @@
+{
+    "items": [
+        {"id": 1, "login": "ada", "email": "ada@old.example", "nicename": "ada", "display_name": "Ada Lovelace", "first_name": "Ada", "last_name": "Lovelace", "description": "Writes about engines.", "url": "", "registered": "2019-03-04 09:12:00", "roles": ["administrator"], "password_hash": "$wp$2y$10$fixturefixturefixturefixturefixturefixturefixtureabc", "published_posts": 12},
+        {"id": 2, "login": "grace", "email": "grace@old.example", "nicename": "grace", "display_name": "Grace Hopper", "first_name": "Grace", "last_name": "Hopper", "description": "", "url": "", "registered": "2020-06-11 14:30:00", "roles": ["editor"], "password_hash": "$P$Bfixturefixturefixturefixture01", "published_posts": 30},
+        {"id": 5, "login": "seo", "email": "seo@old.example", "nicename": "seo", "display_name": "SEO Desk", "first_name": "", "last_name": "", "description": "", "url": "", "registered": "2021-01-02 08:00:00", "roles": ["wpseo_manager"], "password_hash": "$P$Bfixturefixturefixturefixture02", "published_posts": 0},
+        {"id": 9, "login": "reader", "email": "reader@old.example", "nicename": "reader", "display_name": "A Reader", "first_name": "", "last_name": "", "description": "", "url": "", "registered": "2022-09-30 18:45:00", "roles": ["subscriber"], "password_hash": "$P$Bfixturefixturefixturefixture03", "published_posts": 0},
+        {"id": 12, "error": "RuntimeException: could not be loaded"}
+    ]
+}

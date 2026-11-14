@@ -1,0 +1,25 @@
+{"type":"doc","content":[
+  {"type":"imported","attrs":{"id":"01K6A0D1000000000000000MC1","sourceKind":"shortcode","sourceName":"table","kept":false,"markup":[
+    {"element":"table","children":[
+      {"element":"caption","children":[{"text":"High water, this week"}]},
+      {"element":"thead","children":[{"element":"tr","children":[
+        {"element":"th","attrs":{"scope":"col"},"children":[{"text":"Day"}]},
+        {"element":"th","attrs":{"scope":"col"},"children":[{"text":"Time"}]}
+      ]}]},
+      {"element":"tbody","children":[
+        {"element":"tr","children":[
+          {"element":"td","children":[{"text":"Monday"}]},
+          {"element":"td","children":[{"text":"6:12"},{"element":"sup","children":[{"text":"am"}]}]}
+        ]},
+        {"element":"tr","children":[
+          {"element":"td","attrs":{"colspan":2},"children":[{"element":"em","children":[{"text":"No sailings"}]},{"text":" on Tuesday & Wednesday"}]}
+        ]}
+      ]}
+    ]},
+    {"element":"dl","children":[
+      {"element":"dt","children":[{"text":"Ebb"}]},
+      {"element":"dd","children":[{"text":"The tide going out. See "},{"element":"a","attrs":{"href":"https://example.org/tides"},"children":[{"text":"the tide tables"}]},{"text":"."}]}
+    ]},
+    {"element":"p","children":[{"text":"H"},{"element":"sub","children":[{"text":"2"}]},{"text":"O, "},{"element":"strong","children":[{"text":"always"}]},{"text":" "},{"element":"code","children":[{"text":"cold"}]},{"text":"."},{"element":"br"},{"text":"Mind the steps."}]}
+  ]}}
+]}

@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "reserving",
+    "name": "Fixture Reserving",
+    "version": "0.1.0",
+    "description": "A theme whose composer returns names core keeps for itself.",
+    "requires": { "teme": "^0.1" },
+    "composers": ["Tests\\Fixtures\\Themes\\Good\\ClaimsCoreNames"]
+}

@@ -1,0 +1,100 @@
+# Checks that a new issue or pull request is filled in, says what is
+# missing in one comment it keeps up to date, and labels it. Reads only
+# the issue or pull request text: it never checks out or runs a pull
+# request's code, which is what makes pull_request_target safe here.
+name: Triage
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+  pull_request_target:
+    types: [opened, edited, reopened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: triage-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    if: >-
+      (github.event.issue && !github.event.issue.pull_request && github.event.issue.user.type != 'Bot')
+      || (github.event.pull_request && github.event.pull_request.user.type != 'Bot')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const MARK = '<!-- teme-triage -->';
+            const LABEL = 'needs-info';
+            const isPull = Boolean(context.payload.pull_request);
+            const item = isPull ? context.payload.pull_request : context.payload.issue;
+            const number = item.number;
+            const body = (item.body || '').replace(/<!--[\s\S]*?-->/g, '');
+
+            const section = (heading) => {
+              const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const found = body.match(new RegExp(`^#{2,3}\\s+${escaped}\\s*$([\\s\\S]*?)(?=^#{2,3}\\s|$(?![\\s\\S]))`, 'm'));
+              if (!found) return null;
+              const text = found[1].trim();
+              return text === '' || text === '_No response_' ? '' : text;
+            };
+
+            const missing = [];
+            if (isPull) {
+              for (const heading of ['What this changes', 'Why', 'How it was tested']) {
+                if (!section(heading)) missing.push(`**${heading}**`);
+              }
+            } else {
+              const bug = section('What happened') !== null;
+              const feature = section('What it is for') !== null;
+              if (!bug && !feature) {
+                missing.push('the **Bug report** or **Feature request** form (open a new issue and choose one)');
+              } else if (bug) {
+                for (const heading of ['What happened', 'Steps to make it happen again', 'Teme version']) {
+                  if (!section(heading)) missing.push(`**${heading}**`);
+                }
+              } else {
+                for (const heading of ['What it is for', "What you'd like"]) {
+                  if (!section(heading)) missing.push(`**${heading}**`);
+                }
+              }
+            }
+
+            const { owner, repo } = context.repo;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: number, per_page: 100 });
+            const ours = comments.find((c) => c.user.type === 'Bot' && (c.body || '').includes(MARK));
+            const labels = (item.labels || []).map((l) => l.name);
+
+            if (missing.length === 0) {
+              if (ours) await github.rest.issues.deleteComment({ owner, repo, comment_id: ours.id });
+              if (labels.includes(LABEL)) {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: LABEL }).catch(() => {});
+              }
+              return;
+            }
+
+            const what = isPull ? 'pull request' : 'issue';
+            const text = [
+              MARK,
+              `Thanks for this ${what}. Before it can be looked at, it needs:`,
+              '',
+              ...missing.map((m) => `- ${m}`),
+              '',
+              isPull
+                ? 'Edit the description to fill these in (the template is in `.github/PULL_REQUEST_TEMPLATE.md`). This comment goes away once they are there.'
+                : 'Edit the issue to fill these in. This comment goes away once they are there.',
+            ].join('\n');
+
+            if (ours) {
+              if (ours.body !== text) await github.rest.issues.updateComment({ owner, repo, comment_id: ours.id, body: text });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body: text });
+            }
+            if (!labels.includes(LABEL)) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [LABEL] });
+            }

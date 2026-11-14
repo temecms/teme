@@ -1,0 +1,248 @@
+<?php
+
+declare(strict_types=1);
+
+// uiComponent() and uiTsxFiles() live in tests/Pest.php.
+
+it('draws a flush sidebar, not an inset one', function (): void {
+    expect(uiComponent('components/app-sidebar.tsx'))
+        ->not->toContain('variant="inset"')
+        ->toContain('<Sidebar collapsible="icon">');
+});
+
+it('holds View site, Personalise menu and Collapse menu in the sidebar foot', function (string $words, string $hook): void {
+    expect(uiComponent('components/app-sidebar.tsx'))
+        ->toContain($words)
+        ->toContain($hook);
+})->with([
+    'the site link' => ['View site', 'data-test="view-site"'],
+    'the personalise button' => ['Personalise menu', 'data-test="personalise-menu"'],
+    'the collapse button' => ['Collapse menu', 'data-test="collapse-menu"'],
+]);
+
+it('keeps the menu coming from the server, as the navigation test needs', function (): void {
+    expect(uiComponent('components/app-sidebar.tsx'))
+        ->toContain('usePage().props')
+        ->not->toContain('contentIndex(')
+        ->not->toContain('termsIndex(');
+});
+
+it('moves the account menu out of the sidebar', function (): void {
+    expect(uiComponent('components/app-sidebar.tsx'))
+        ->not->toContain('NavUser')
+        ->not->toContain('AccountMenu');
+});
+
+it('keeps the sidebar head level with the header, in the sans face, and the collapsed link named', function (): void {
+    $brand = uiComponent('components/brand.tsx');
+
+    expect($brand)->toContain('h-[52px]')
+        ->toContain('data-test="sidebar-brand"')
+        ->toContain('group-data-[collapsible=icon]:sr-only')
+        ->not->toContain('group-data-[collapsible=icon]:hidden')
+        ->not->toContain('font-serif')
+        ->toContain('Later (I-1390)')
+        ->and(uiComponent('hooks/use-brand.ts'))->toContain(' · ');
+});
+
+it('names the drawer under 768 pixels as the main menu', function (): void {
+    expect(uiComponent('components/ui/sidebar.tsx'))
+        ->toContain('<SheetTitle>Main menu</SheetTitle>')
+        ->toContain('The menu for every admin screen.')
+        ->not->toContain('Displays the mobile sidebar.');
+});
+
+it('puts Search or jump to… in the header, with the jobs button and the bell, and no breadcrumbs', function (): void {
+    $header = uiComponent('components/app-sidebar-header.tsx');
+
+    expect($header)->toContain('Search or jump to…')
+        ->toContain('teme:palette')
+        ->toContain('data-test="palette-button"')
+        ->toContain('<JobsButton')
+        ->toContain('<InboxBell')
+        ->toContain('Later (I-1391)')
+        ->toContain('<header')
+        ->not->toContain('Breadcrumbs')
+        ->and(strpos($header, 'Search or jump to…'))->toBeLessThan(strpos($header, '<AccountMenu />'));
+});
+
+it('moves the account menu to the header', function (): void {
+    expect(uiComponent('components/app-sidebar-header.tsx'))->toContain('<AccountMenu />');
+
+    $menu = uiComponent('components/account-menu.tsx');
+
+    expect($menu)->toContain('data-test="account-menu-button"')
+        ->toContain('Account: ')
+        ->toContain('Later (I-1393)')
+        ->and(uiComponent('components/user-menu-content.tsx'))
+        ->toContain('Sign out')
+        ->toContain('data-test="logout-button"')
+        ->toContain('Profile')
+        ->toContain('Security')
+        ->toContain('Preferences');
+});
+
+it('lays the page out as a header, then the banner, then the main content', function (): void {
+    $layout = uiComponent('layouts/app/app-sidebar-layout.tsx');
+    $header = strpos($layout, '<AppSidebarHeader');
+    $banner = strpos($layout, '<StatusBanner');
+    $content = strpos($layout, '<AppContent');
+
+    expect($header)->toBeInt()
+        ->and($banner)->toBeGreaterThan($header)
+        ->and($content)->toBeGreaterThan($banner)
+        ->and(uiComponent('components/app-content.tsx'))
+        ->toContain('<main')
+        ->toContain('id="main-content"')
+        ->not->toContain('SidebarInset');
+});
+
+it('has one shell, so no variant of it remains', function (): void {
+    expect(uiComponent('types/ui.ts'))->not->toContain('AppVariant')
+        ->and(uiComponent('components/app-shell.tsx'))->not->toContain('variant');
+});
+
+it('draws the banner as a labelled region with its text in the foreground colour', function (): void {
+    $banner = uiComponent('components/status-banner.tsx');
+
+    expect($banner)->toContain('role="region"')
+        ->toContain('aria-label="Site notice"')
+        ->toContain('data-test="site-notice"')
+        ->toContain('Later (I-1392)')
+        ->not->toContain('role="status"')
+        ->not->toContain('Dismiss');
+});
+
+it('draws the parents of a page above it, and nothing for a page with none', function (): void {
+    $trail = uiComponent('components/page-trail.tsx');
+
+    expect($trail)->toContain('slice(0, -1)')
+        ->toContain('aria-label="Breadcrumb"')
+        ->toContain('data-test="page-trail"')
+        ->and(uiComponent('layouts/app/app-sidebar-layout.tsx'))->toContain('<PageTrail');
+});
+
+it('draws every toast through the one component, with a Dismiss and the timings the build decided', function (): void {
+    $toast = uiComponent('components/flash-toast.tsx');
+
+    expect($toast)->toContain('toast.custom')
+        ->toContain('export function showToast(')
+        ->toContain('export function showFlashToast(')
+        ->toContain('data-test="flash-toast"')
+        ->toContain('data-test="flash-toast-dismiss"')
+        ->toContain('aria-label="Dismiss"')
+        ->toContain('6_000')
+        ->toContain('10_000')
+        ->toContain('Warning: ')
+        ->toContain('Error: ')
+        ->and(uiComponent('hooks/use-flash-toast.ts'))
+        ->toContain('showFlashToast')
+        ->not->toContain('toast[');
+});
+
+it('sets the container where toasts stack', function (): void {
+    expect(uiComponent('components/ui/sonner.tsx'))
+        ->toContain('position="bottom-right"')
+        ->toContain('offset={16}')
+        ->toContain('visibleToasts={3}')
+        ->toContain("'--width': '400px'");
+});
+
+it('says sign in on the sign-in screens, in plain words', function (): void {
+    $flat = fn (string $path): string => (string) preg_replace('/\s+/', ' ', uiComponent($path));
+
+    expect($flat('pages/auth/login.tsx'))
+        ->toContain("title: 'Sign in'")
+        ->toContain("description: 'Use your email address and password.'")
+        ->toContain('<Head title="Sign in" />')
+        ->toContain('data-test="login-button"')
+        ->not->toContain('Log in')
+        ->and($flat('pages/auth/forgot-password.tsx'))->toContain('>Back to sign in</TextLink>')
+        ->and($flat('pages/auth/verify-email.tsx'))
+        ->toContain('Sign out')
+        ->toContain('Sent. Check your email for the new link.')
+        ->and($flat('pages/auth/confirm-password.tsx'))
+        ->toContain("title: 'Confirm password'")
+        ->toContain('Confirm your password to continue.');
+});
+
+it('frames the sign-in screens with the site\'s mark, one main and one h1', function (): void {
+    $layout = uiComponent('layouts/auth/auth-simple-layout.tsx');
+
+    expect($layout)->toContain('<SignInBrand name={brandName}')
+        ->toContain('<main')
+        ->toContain('<h1')
+        ->not->toContain('AppLogoIcon');
+});
+
+it('has no test that presses the sign-in button by its words', function (): void {
+    $files = [...(glob(base_path('tests/Browser/*.php')) ?: []), base_path('tests/Pest.php')];
+
+    expect($files)->not->toBeEmpty();
+
+    foreach ($files as $file) {
+        expect((string) file_get_contents($file))
+            ->not->toContain("press('Log in')")
+            ->not->toContain("press('Sign in')");
+    }
+});
+
+it('has removed the starter kit\'s leftovers', function (string $path): void {
+    expect(file_exists(resource_path($path)))->toBeFalse();
+})->with([
+    'the second shell' => 'js/components/app-header.tsx',
+    'the second shell\'s layout' => 'js/layouts/app/app-header-layout.tsx',
+    'the placeholder pattern' => 'js/components/ui/placeholder-pattern.tsx',
+    'the starter mark' => 'js/components/app-logo-icon.tsx',
+    'the old logo block' => 'js/components/app-logo.tsx',
+    'the tab control for light and dark' => 'js/components/appearance-tabs.tsx',
+    'the old breadcrumbs' => 'js/components/breadcrumbs.tsx',
+    'the sidebar\'s account block' => 'js/components/nav-user.tsx',
+    'the sidebar\'s link list' => 'js/components/nav-footer.tsx',
+    'the framework\'s welcome page' => 'views/welcome.blade.php',
+]);
+
+it('imports none of the removed components and keeps the starter\'s words out of every screen', function (): void {
+    $removed = ['components/app-header', 'layouts/app/app-header-layout', 'components/ui/placeholder-pattern', 'components/app-logo-icon', 'components/app-logo', 'components/appearance-tabs', 'components/breadcrumbs', 'components/nav-user', 'components/nav-footer'];
+
+    foreach (uiTsxFiles() as $file) {
+        $source = uiComponent($file);
+
+        foreach ($removed as $module) {
+            expect($source)->not->toMatch('#from \'@/'.preg_quote($module, '#').'\'#');
+        }
+
+        expect($source)->not->toMatch('/\bLog (in|out)\b/')
+            ->not->toContain('registration');
+    }
+});
+
+it('frames Account with one h1, its line and a sub-navigation, and the pages no longer carry their own h1', function (string $page): void {
+    expect(uiComponent("pages/account/{$page}.tsx"))->not->toContain('<h1');
+})->with([
+    'profile' => 'profile',
+    'security' => 'security',
+    'preferences' => 'preferences',
+]);
+
+it('names the account frame\'s heading, line and links', function (): void {
+    expect(uiComponent('layouts/account/layout.tsx'))
+        ->toContain('PageHeader')
+        ->toContain('title="Account"')
+        ->toContain('Each panel saves on its own.')
+        ->toContain('aria-label="Account"')
+        ->toContain("title: 'Profile'")
+        ->toContain("title: 'Preferences'")
+        ->toContain("title: 'Notifications'")
+        ->toContain("title: 'Security'")
+        ->not->toContain('Your profile, sign-in and interface preferences');
+});
+
+it('offers Appearance as a labelled select in Preferences', function (): void {
+    expect(uiComponent('pages/account/preferences.tsx'))
+        ->toContain('SelectField')
+        ->toContain('htmlFor="appearance-mode"')
+        ->toContain('Match the system')
+        ->toContain('Saved as you choose.')
+        ->not->toContain('AppearanceTabs');
+});

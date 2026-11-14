@@ -1,0 +1,1464 @@
+import { Head, http, usePage } from '@inertiajs/react';
+import type { Editor as TiptapEditor } from '@tiptap/core';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import { toast } from 'sonner';
+import ContentEditorController from '@/actions/App/Http/Admin/Contents/ContentEditorController';
+import { CardEnvironmentContext } from '@/components/editor/cards/card-environment';
+import type { CardEnvironment } from '@/components/editor/cards/card-environment';
+import ReviewController from '@/actions/App/Http/Admin/Contents/ReviewController';
+import ScheduleController from '@/actions/App/Http/Admin/Contents/ScheduleController';
+import { post, reasonOf, send } from '@/components/editor/editor-http';
+import type { Answer, Route } from '@/components/editor/editor-http';
+import { EditorHeader } from '@/components/editor/editor-header';
+import {
+    EditorRail,
+    RailProvider,
+    useRail,
+} from '@/components/editor/editor-rail';
+import type { PublishingActions } from '@/components/editor/editor-rail';
+import { EditorShell } from '@/components/editor/editor-shell';
+import { FeaturedImage } from '@/components/editor/featured-image';
+import { DetailsSection } from '@/components/editor/fields/details-section';
+import { FieldControlContext } from '@/components/editor/fields/field-control';
+import { TextareaControl } from '@/components/editor/fields/textarea-control';
+import {
+    applyLinkChanges,
+    linkChangesNotice,
+} from '@/components/editor/link-changes';
+import { LeaveDialog } from '@/components/editor/leave-dialog';
+import { PresenceLine } from '@/components/editor/presence-line';
+import { ProseEditor } from '@/components/editor/prose-editor';
+import { PublishConfirmation } from '@/components/editor/publish-confirmation';
+import type { Confirming } from '@/components/editor/publish-confirmation';
+import {
+    cardsMissingAlt,
+    documentChecks,
+} from '@/components/editor/rail/checks';
+import type { CheckId } from '@/components/editor/rail/checks';
+import { AssistantProvider } from '@/components/editor/assistant/assistant-context';
+import { DocumentOverview } from '@/components/editor/rail/document-panel';
+import { AssistantPanel } from '@/components/editor/rail/assistant-panel';
+import { HistoryPanel } from '@/components/editor/rail/history-panel';
+import { MetadataProposal } from '@/components/editor/rail/metadata-proposal';
+import { PrimaryCategory } from '@/components/editor/rail/primary-category';
+import { addressOf } from '@/components/editor/rail/publish-panel';
+import { SearchPanel } from '@/components/editor/rail/search-panel';
+import type { ChosenTerm } from '@/components/editor/rail/taxonomy-panel';
+import { templateChoice } from '@/components/editor/rail/template-choice';
+import { useMetadataBinding } from '@/components/editor/rail/use-metadata';
+import { SaveState } from '@/components/editor/save-state';
+import { SharePane } from '@/components/editor/share-panel';
+import { StaleDialog } from '@/components/editor/stale-dialog';
+import { StatusChip } from '@/components/editor/status-chip';
+import { useAutosave } from '@/components/editor/use-autosave';
+import { usePresence } from '@/components/editor/use-presence';
+import { useCardMedia } from '@/components/editor/use-card-media';
+import { useLinkedContent } from '@/components/editor/use-linked-content';
+import { useSearchPreview } from '@/components/editor/use-search-preview';
+import { useStructuredData } from '@/components/editor/use-structured-data';
+import InputError from '@/components/input-error';
+import { PageHeader } from '@/components/list/page-header';
+import type { PaletteCommand } from '@/components/palette/palette-context';
+import { usePaletteCommands } from '@/components/palette/use-palette';
+import { useSidebar } from '@/components/ui/sidebar';
+import { Label } from '@/components/ui/label';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+    index as contentIndex,
+    preview as contentPreview,
+} from '@/routes/content';
+import { index as regionsIndex } from '@/routes/regions';
+import type { Discussion } from '@/lib/discussion';
+import type {
+    Visibility,
+    VisibilityRefusal,
+} from '@/components/editor/rail/publish-panel';
+import { withoutGoneCanonical } from '@/lib/search-preview';
+import { shownTitle } from '@/lib/titles';
+import type {
+    ContentEditPage,
+    EditorDocument,
+    EditorField,
+    EditorPerson,
+    EditorReview,
+    EditorSchedule,
+} from '@/types';
+
+/** The field of this type with the given handle, when the type has it. */
+function fieldBy(
+    fields: EditorField[],
+    handle: string,
+): EditorField | undefined {
+    return fields.find((field) => field.handle === handle);
+}
+
+/** A text field's value, or nothing. */
+function textOf(value: unknown): string {
+    return typeof value === 'string' ? value : '';
+}
+
+/** The one toast a failed autosave shows; a new failure replaces it. */
+const SAVE_NOTICE = 'editor-save-failure';
+
+/** Preview's own sentences, on the action bar's notice line. */
+const PREVIEW_WORDS = {
+    notSaved:
+        'Your work couldn’t be saved, so the preview didn’t open. The save state says why.',
+    blocked:
+        'The preview couldn’t open a new tab. Let this site open tabs, then try again.',
+};
+
+function Editor(page: ContentEditPage) {
+    const { session, fields } = page;
+    const templateField = fieldBy(fields, 'template');
+    const { props: shared, version: inertiaVersion } = usePage();
+    const { contentTypes, preferences } = shared;
+    const spellcheck = preferences['editor.spellcheck'] !== false;
+    const type = contentTypes.find((item) => item.key === session.type);
+    const isMobile = useIsMobile();
+    const { pane, openPane, closePane } = useRail();
+    // A theme's region (1.6e) opens in its own mode: no title, address,
+    // fields or sharing, and menus offering only its allowed cards. Named
+    // "theme region" here, apart from the editor's own regions (region-entry.ts).
+    const themeRegion = page.kind === 'region' ? page.themeRegion : null;
+    const allowed = page.allowedCards;
+    const menuCards =
+        allowed === null
+            ? undefined
+            : page.manifest.cards.filter((card) => allowed.includes(card.name));
+
+    const [title, setTitle] = useState(session.title);
+    // A canonical naming an item gone from the site is let go as the editor
+    // opens: the server refuses to save one, which would stop every save (I-292).
+    const [values, setValues] = useState<Record<string, unknown>>(() =>
+        withoutGoneCanonical(session.fields, page.seo.canonicalItem),
+    );
+    const [body, setDocument] = useState<EditorDocument>(session.document);
+    const [chosenTerms, setChosenTerms] = useState<ChosenTerm[]>(session.terms);
+    const termIds = useMemo(
+        () => chosenTerms.map((term) => term.id),
+        [chosenTerms],
+    );
+    const [editor, setEditor] = useState<TiptapEditor | null>(null);
+    const [status, setStatus] = useState(session.status);
+    const [publishedAt, setPublishedAt] = useState(session.publishedAt);
+    const [author, setAuthor] = useState(session.author);
+    const [addressPattern, setAddressPattern] = useState(
+        session.addressPattern,
+    );
+    const [url, setUrl] = useState(session.url);
+    const [slug, setSlug] = useState(session.slug);
+    const [discussion, setDiscussion] = useState(page.discussion);
+    const [visibility, setVisibility] = useState(session.visibility);
+    const [readerPassword, setReaderPassword] = useState(
+        session.readerPassword,
+    );
+    const [passwordUnreadable, setPasswordUnreadable] = useState(
+        session.passwordUnreadable,
+    );
+    const [busy, setBusy] = useState(false);
+    const [schedule, setSchedule] = useState<EditorSchedule | null>(
+        session.schedule,
+    );
+    const [review, setReview] = useState<EditorReview | null>(session.review);
+    const [notice, setNotice] = useState<string | null>(null);
+    // Each field's own error from a refused publish or schedule, by its key.
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    const { media, loading, addMedia } = useCardMedia(session.media);
+    const [railOpen, setRailOpen] = useState(true);
+    // Search and social starts closed on every visit (I-3124).
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [focus, setFocus] = useState(
+        preferences['editor.focus_mode_default'] === true,
+    );
+
+    // The cards, the featured image and the rail's inspector share one map.
+    const environment = useMemo<CardEnvironment>(
+        () => ({
+            media,
+            loading,
+            manifest: page.manifest,
+            addMedia,
+            // Every upload made here records this item (I-553).
+            uploadedFor: {
+                id: session.id,
+                noun:
+                    themeRegion !== null
+                        ? 'region'
+                        : (type?.singular ?? 'item').toLowerCase(),
+            },
+        }),
+        [
+            media,
+            loading,
+            page.manifest,
+            addMedia,
+            session.id,
+            themeRegion,
+            type,
+        ],
+    );
+
+    // The editor folds the admin menu to its icons as it opens, unless the
+    // person unfolded it here: a change made here is remembered in the
+    // editor's own cookie, and every other screen opens as the person left it.
+    const { setOpen: setSidebarOpen, rememberIn } = useSidebar();
+
+    useEffect(() => {
+        // The person's own choice, read as the server reads it, never the
+        // menu's state now: from one editor to another the editor remounts,
+        // and the menu is then still folded by the editor before it.
+        const was = !/(?:^|;\s*)sidebar_state=false(?:;|$)/.test(
+            document.cookie,
+        );
+        rememberIn('editor_sidebar_state');
+        setSidebarOpen(
+            /(?:^|;\s*)editor_sidebar_state=true(?:;|$)/.test(document.cookie),
+            { persist: false },
+        );
+
+        return () => {
+            rememberIn(null);
+            setSidebarOpen(was, { persist: false });
+        };
+        // Only on arriving and leaving; the person may unfold it meanwhile.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // A small screen opens on the writing column; the rail is a sheet.
+    useEffect(() => {
+        if (isMobile) {
+            setRailOpen(false);
+        }
+    }, [isMobile]);
+
+    // Focus mode hides the admin's chrome, and brings it back on the way out.
+    useEffect(() => {
+        document.documentElement.classList.toggle('editor-focus', focus);
+
+        return () => document.documentElement.classList.remove('editor-focus');
+    }, [focus]);
+
+    const saving = useAutosave({
+        contentId: session.id,
+        title,
+        document: body,
+        fields: values,
+        terms: termIds,
+        basedOn: session.workingRevisionId,
+        idleMs: page.editor.autosaveIdleMs,
+        maxMs: page.editor.autosaveMaxMs,
+        checkpointAfterMinutes: page.editor.checkpointAfterMinutes,
+        initialSavedAt: session.savedAt,
+        initialOthers: session.otherEditors,
+        hasAutosave: session.fromAutosave,
+        // A first title may have given the draft its address (I-425).
+        onSlug: setSlug,
+        // The server stored some links differently (I-452): the editor
+        // shows what is saved, and says which links it removed.
+        onLinksChanged: (changes) => {
+            const tr =
+                editor === null || editor.isDestroyed
+                    ? null
+                    : applyLinkChanges(editor.state, changes);
+
+            if (editor !== null && tr !== null) {
+                editor.view.dispatch(tr);
+            }
+
+            const note = linkChangesNotice(changes);
+
+            if (note !== null) {
+                toast.info(note, { duration: 10_000 });
+            }
+        },
+    });
+    const { setOtherEditors, checkpoint, workingRevisionId } = saving;
+
+    // A failed autosave stays on screen as one notice until a save succeeds.
+    // One the person closed comes back only for a different failure.
+    const failure = saving.failure;
+    const noticeShown = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (failure === null) {
+            if (noticeShown.current !== null) {
+                toast.dismiss(SAVE_NOTICE);
+                noticeShown.current = null;
+            }
+
+            return;
+        }
+
+        if (failure.title === null) {
+            return;
+        }
+
+        const key = `${failure.title}\n${failure.description ?? ''}`;
+
+        if (noticeShown.current === key) {
+            return;
+        }
+
+        noticeShown.current = key;
+        toast.error(failure.title, {
+            id: SAVE_NOTICE,
+            description: failure.description,
+            duration: Infinity,
+            closeButton: true,
+        });
+    }, [failure]);
+
+    // The notice is this editor's: it goes when the editor is left.
+    useEffect(() => () => void toast.dismiss(SAVE_NOTICE), []);
+    // Whether a live item has changes readers don't see yet: the server's
+    // word as the editor opens and after each decision, and anything typed,
+    // saved or used from the assistant since (I-1316).
+    const [unpublished, setUnpublished] = useState(session.unpublishedChanges);
+    // The save time the server's word last held for; a decision moves it,
+    // so a later re-run of the effect doesn't undo the answer.
+    const openedSavedAt = useRef(saving.savedAt);
+    const latestSavedAt = useRef(saving.savedAt);
+    latestSavedAt.current = saving.savedAt;
+
+    useEffect(() => {
+        if (saving.pending || saving.savedAt !== openedSavedAt.current) {
+            setUnpublished(true);
+        }
+    }, [saving.pending, saving.savedAt]);
+    const assistantSaving = useMemo(
+        () => ({
+            checkpoint,
+            adopt: saving.adopt,
+            markStale: saving.markStale,
+        }),
+        [checkpoint, saving.adopt, saving.markStale],
+    );
+
+    // What the metadata proposals need of the editor (I-1313).
+    const metadata = useMetadataBinding({
+        ai: page.ai,
+        fields,
+        values,
+        setValues,
+        saving: assistantSaving,
+    });
+
+    // The assistant pane, from its icon, Ctrl/⌘ J, or an ask (I-238).
+    const ai = page.ai;
+    const openAssistant = useCallback(() => {
+        if (ai === null) {
+            return;
+        }
+
+        setRailOpen(true);
+        openPane({
+            id: 'assistant',
+            owner: 'core',
+            title: 'Assistant',
+            render: () => <AssistantPanel ai={ai} />,
+        });
+    }, [ai, openPane]);
+
+    // The structured-data check follows the working revision. The hook keeps
+    // it in a ref, so a save settling is when it can have changed: an explicit
+    // save, the periodic checkpoint, a publish (I-703).
+    const [revision, setRevision] = useState(session.workingRevisionId);
+
+    useEffect(() => {
+        setRevision(workingRevisionId());
+    }, [saving.savedAt, saving.state, workingRevisionId]);
+
+    const structured = useStructuredData(session.id, revision);
+
+    // Someone reading without typing still learns who else is here; an ended
+    // session shows as signed out and never replaces the editor.
+    usePresence({
+        everyMs: page.editor.presenceWindow * 500,
+        version: inertiaVersion,
+        failure: saving.failure,
+        onOthers: setOtherEditors,
+        onSignedOut: saving.signedOut,
+        onSignedIn: saving.signedIn,
+    });
+
+    // Ctrl+S or Cmd+S is an explicit save, as everywhere else; Ctrl/⌘ J
+    // opens and closes the assistant.
+    useEffect(() => {
+        const keys = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                void checkpoint();
+            }
+
+            if (
+                (event.ctrlKey || event.metaKey) &&
+                event.key.toLowerCase() === 'j' &&
+                ai !== null
+            ) {
+                event.preventDefault();
+
+                if (pane?.id === 'assistant') {
+                    closePane('assistant');
+                } else {
+                    openAssistant();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', keys);
+
+        return () => window.removeEventListener('keydown', keys);
+    }, [checkpoint, ai, pane, closePane, openAssistant]);
+
+    // A new draft is a new choice, so a template the theme lacks would be
+    // refused and the person's text lost with it; it is left out (I-443).
+    const newDraftFields = (): Record<string, unknown> => {
+        if (
+            templateField === undefined ||
+            templateChoice(session.templates, textOf(values[templateField.key]))
+                .missing === null
+        ) {
+            return values;
+        }
+
+        const kept = { ...values };
+        delete kept[templateField.key];
+
+        return kept;
+    };
+
+    const saveAsDraft = async (): Promise<string | null> => {
+        try {
+            const response = await http.getClient().request({
+                method: 'post',
+                url: ContentEditorController.saveAsDraft(session.id).url,
+                data: {
+                    title,
+                    document: body,
+                    fields: newDraftFields(),
+                    terms: termIds,
+                },
+                headers: { Accept: 'application/json' },
+            });
+            const created = JSON.parse(response.data) as { editUrl: string };
+            // The person chose to take their work to a new draft.
+            saving.release();
+            window.location.assign(created.editUrl);
+
+            return null;
+        } catch {
+            return 'The new draft could not be saved. Copy your text instead, so it is not lost.';
+        }
+    };
+
+    // What is published, submitted or scheduled is what the person sees:
+    // checkpoint() gathers a pending autosave into a revision first, and
+    // resolves to null when that save was refused or stale, which the save
+    // state and the stale dialog already show.
+    const checkpointThen = async (
+        run: (revisionId: string) => Promise<void>,
+    ) => {
+        const revisionId = await checkpoint();
+
+        if (revisionId !== null) {
+            await run(revisionId);
+        }
+    };
+
+    // One publishing decision: sent as JSON, so the editor stays open and
+    // keeps what is being typed, and the answer's state becomes the page's.
+    const decide = async (
+        route: Route,
+        data: object,
+        refused: string,
+    ): Promise<Answer | null> => {
+        setBusy(true);
+        setNotice(null);
+
+        try {
+            const answer = await send(route, data);
+
+            if (answer.status >= 400) {
+                setNotice(`${refused}: ${reasonOf(answer.body)}`);
+                showFieldErrors(answer.body);
+
+                return null;
+            }
+
+            setFieldErrors({});
+
+            setStatus((answer.body.status as string) ?? status);
+            setPublishedAt(
+                (answer.body.publishedAt as string | null | undefined) ??
+                    publishedAt,
+            );
+
+            if (typeof answer.body.unpublishedChanges === 'boolean') {
+                openedSavedAt.current = latestSavedAt.current;
+                setUnpublished(answer.body.unpublishedChanges);
+            }
+
+            if ('schedule' in answer.body) {
+                setSchedule(answer.body.schedule as EditorSchedule | null);
+            }
+
+            if ('review' in answer.body) {
+                setReview(answer.body.review as EditorReview | null);
+            }
+
+            if (typeof answer.body.message === 'string') {
+                setNotice(answer.body.message);
+            }
+
+            return answer;
+        } catch {
+            setNotice(`${refused}: the connection failed. Try again.`);
+
+            return null;
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    // Publishing saves first, then publishes the revision that save returned;
+    // PublishRevision itself never saves.
+    const publishRevision = async (revisionId: string) => {
+        const answer = await decide(
+            ContentEditorController.publish(session.id),
+            { revision_id: revisionId },
+            'Not published',
+        );
+
+        if (answer === null) {
+            return;
+        }
+
+        // A publish by hand ends any schedule; the answer says so.
+        setSchedule(null);
+        const missing = (answer.body.missingAlt as string[]) ?? [];
+        setNotice(
+            missing.length === 0
+                ? 'Published.'
+                : `Published. ${missing.length === 1 ? 'This image has' : 'These images have'} no alt text: ${missing.join(', ')}.`,
+        );
+    };
+
+    const scheduleRevision = async (
+        revisionId: string,
+        runAt: string,
+        action: 'publish' | 'update',
+    ) => {
+        await decide(
+            ScheduleController.store(session.id),
+            { revision_id: revisionId, action, run_at: runAt },
+            'Not scheduled',
+        );
+    };
+
+    const submitRevision = async (revisionId: string) => {
+        await decide(
+            ReviewController.store(session.id),
+            { revision_id: revisionId },
+            'Not submitted',
+        );
+    };
+
+    // The pending review a decision is about.
+    const reviewId = () => review?.id ?? '';
+
+    // A first publication is confirmed (I-880): saved first, that revision's
+    // structured data checked, then shown; its button acts on that revision.
+    const [confirming, setConfirming] = useState<Confirming | null>(null);
+    const live = status === 'published';
+
+    const confirmFirst = (
+        action: Confirming['action'],
+        runAt: string | null = null,
+    ) =>
+        void checkpointThen(async (revisionId) => {
+            setBusy(true);
+            await structured.ask(revisionId);
+            setBusy(false);
+            setConfirming({ action, revisionId, runAt });
+        });
+
+    const actions: PublishingActions = {
+        publish: () =>
+            live
+                ? void checkpointThen(publishRevision)
+                : confirmFirst('publish'),
+        schedule: (runAt, action) =>
+            live
+                ? void checkpointThen((revisionId) =>
+                      scheduleRevision(revisionId, runAt, action),
+                  )
+                : confirmFirst('schedule', runAt),
+        cancelSchedule: () =>
+            void decide(
+                ScheduleController.destroy(session.id),
+                {},
+                'Not cancelled',
+            ),
+        submit: () =>
+            live ? void checkpointThen(submitRevision) : confirmFirst('submit'),
+        // A decision is on the revision that was submitted, never on what
+        // is on this screen, so it saves nothing first, and never confirms.
+        approve: (runAt) =>
+            void decide(
+                ReviewController.approve(session.id),
+                runAt === undefined
+                    ? { review_id: reviewId() }
+                    : { review_id: reviewId(), run_at: runAt },
+                'Not approved',
+            ),
+        sendBack: (note) =>
+            void decide(
+                ReviewController.sendBack(session.id),
+                { review_id: reviewId(), note },
+                'Not returned',
+            ),
+    };
+
+    // Cancel publishes nothing; the revision saved before it opened stays, as any save does.
+    const confirm = () => {
+        if (confirming === null) {
+            return;
+        }
+
+        const { action, revisionId, runAt } = confirming;
+        setConfirming(null);
+
+        void (action === 'publish'
+            ? publishRevision(revisionId)
+            : action === 'schedule'
+              ? scheduleRevision(revisionId, runAt ?? '', 'publish')
+              : submitRevision(revisionId));
+    };
+
+    const changeSlug = async (next: string): Promise<string | null> => {
+        try {
+            const answer = await post(
+                ContentEditorController.address(session.id).url,
+                {
+                    slug: next,
+                    expected_revision_id: workingRevisionId(),
+                },
+            );
+
+            if (answer.status === 409) {
+                return `Someone else changed this ${(type?.singular ?? 'item').toLowerCase()}. Reload it before changing the address.`;
+            }
+
+            if (answer.status >= 400) {
+                return reasonOf(answer.body);
+            }
+
+            setSlug((answer.body.slug as string) ?? next);
+
+            return null;
+        } catch {
+            return 'The connection failed. Try again.';
+        }
+    };
+
+    // Saved at once, outside the revision, as the address is; a refusal puts
+    // the row back as it was and says why under it.
+    const changeDiscussion = async (
+        next: Discussion,
+    ): Promise<string | null> => {
+        const before = discussion;
+
+        if (before === null) {
+            return null;
+        }
+
+        setDiscussion({ ...before, value: next });
+
+        try {
+            const answer = await post(
+                ContentEditorController.discussion(session.id).url,
+                { discussion: next },
+            );
+
+            if (answer.status >= 400) {
+                setDiscussion(before);
+
+                return reasonOf(answer.body);
+            }
+
+            return null;
+        } catch {
+            setDiscussion(before);
+
+            return 'The connection failed. Try again.';
+        }
+    };
+
+    // Saved at once, outside the revision, as Discussion is; the answer's
+    // address goes with it, since a private item has none. A refusal names
+    // the part of the row it belongs to.
+    const changeVisibility = async (
+        next: Visibility,
+        password: string | null,
+    ): Promise<VisibilityRefusal | null> => {
+        try {
+            const answer = await post(
+                ContentEditorController.visibility(session.id).url,
+                password === null
+                    ? { visibility: next }
+                    : { visibility: next, password },
+            );
+
+            if (answer.status >= 400) {
+                const errors = answer.body.errors as
+                    | Record<string, string[]>
+                    | undefined;
+
+                return {
+                    field:
+                        errors?.password !== undefined
+                            ? 'password'
+                            : 'visibility',
+                    message: reasonOf(answer.body),
+                };
+            }
+
+            setVisibility(answer.body.visibility as Visibility);
+            setReaderPassword(
+                (answer.body.readerPassword as string | null) ?? null,
+            );
+            setPasswordUnreadable(answer.body.passwordUnreadable === true);
+            setUrl((answer.body.url as string | null | undefined) ?? null);
+
+            return null;
+        } catch {
+            return {
+                field: 'visibility',
+                message: 'The connection failed. Try again.',
+            };
+        }
+    };
+
+    // Saved at once, outside the revision, as the address is; a refusal is
+    // said under the row (UpdateContentDetails).
+    const changeAuthor = async (next: number): Promise<string | null> => {
+        try {
+            const answer = await post(
+                ContentEditorController.author(session.id).url,
+                {
+                    author_id: next,
+                    expected_revision_id: workingRevisionId(),
+                },
+            );
+
+            if (answer.status === 409) {
+                return `Someone else changed this ${(type?.singular ?? 'item').toLowerCase()}. Reload it before changing the author.`;
+            }
+
+            if (answer.status >= 400) {
+                return reasonOf(answer.body);
+            }
+
+            setAuthor((answer.body.author as EditorPerson | null) ?? null);
+            // A pattern may build the address from the author.
+            setAddressPattern(
+                (answer.body.addressPattern as string | undefined) ??
+                    addressPattern,
+            );
+            setUrl((answer.body.url as string | null | undefined) ?? null);
+
+            return null;
+        } catch {
+            return 'The connection failed. Try again.';
+        }
+    };
+
+    const excerpt = fieldBy(fields, 'excerpt');
+    const featured = fieldBy(fields, 'featured_image');
+    const noun = (type?.singular ?? 'Item').toLowerCase();
+    const plural = (type?.plural ?? 'Items').toLowerCase();
+    const setValue = (key: string, value: unknown) => {
+        setValues((current) => ({ ...current, [key]: value }));
+        setFieldErrors((current) => {
+            if (!(key in current)) {
+                return current;
+            }
+
+            const { [key]: _cleared, ...rest } = current;
+
+            return rest;
+        });
+    };
+
+    // A 422's messages for fields go under each field, and the page scrolls
+    // to the first; the save state already says it too.
+    function showFieldErrors(body: Record<string, unknown>) {
+        const errors = (body.errors ?? {}) as Record<string, string[]>;
+        const found: Record<string, string> = {};
+
+        for (const [name, messages] of Object.entries(errors)) {
+            if (name.startsWith('fields.') && messages[0] !== undefined) {
+                found[name.slice('fields.'.length)] = messages[0];
+            }
+        }
+
+        setFieldErrors(found);
+        const first = fields.find((field) => field.key in found);
+
+        if (first !== undefined) {
+            window.requestAnimationFrame(() =>
+                document
+                    .getElementById(`editor-field-${first.handle}`)
+                    ?.scrollIntoView({ block: 'center' }),
+            );
+        }
+    }
+
+    const primaryField = fieldBy(fields, 'primary_category');
+    const sections = session.taxonomies.find(
+        (taxonomy) => taxonomy.hierarchical,
+    );
+
+    const linked = useLinkedContent(session.linked, body);
+
+    const checks = useMemo(
+        () =>
+            documentChecks({
+                title,
+                fields: values,
+                document: body,
+                media,
+                linked,
+            }),
+        [title, values, body, media, linked],
+    );
+
+    const search = useSearchPreview({
+        contentId: session.id,
+        title,
+        values,
+        document: body,
+        media,
+        seo: page.seo,
+        taxonomies: session.taxonomies,
+        terms: chosenTerms,
+        hasExcerptField: excerpt !== undefined,
+        hasFeaturedImageField: featured !== undefined,
+        documentChecks: checks,
+        published: status === 'published',
+        noun,
+        plural,
+        withheld: structured.withheld,
+    });
+
+    // A new draft opens with the cursor in its empty title (I-425).
+    useEffect(() => {
+        if (themeRegion === null && session.title.trim() === '') {
+            document.getElementById('editor-title')?.focus();
+        }
+        // Only on arriving.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Set by "Go to Search and social" on a phone, where the sheet must close first.
+    const searchAfterSheet = useRef(false);
+
+    /** Brings Search and social's heading to the top of the writing column and focuses it (I-3124). */
+    const showSearch = useCallback(() => {
+        const heading = document.getElementById('editor-search-label');
+
+        heading?.scrollIntoView({ block: 'start' });
+        heading?.focus({ preventScroll: true });
+    }, []);
+
+    /** From the side panel's Checks: Search and social under the text, open. */
+    const goToSearch = () => {
+        if (isMobile) {
+            searchAfterSheet.current = true;
+            setSearchOpen(true);
+            setRailOpen(false);
+
+            return;
+        }
+
+        flushSync(() => setSearchOpen(true));
+        showSearch();
+    };
+
+    /** From the section's check line: the side panel's Checks, the panel open and any pane closed. */
+    const goToChecks = () => {
+        if (isMobile) {
+            setRailOpen(true);
+
+            return;
+        }
+
+        flushSync(() => {
+            closePane();
+            setRailOpen(true);
+        });
+        document.getElementById('rail-checks-trigger')?.focus();
+    };
+
+    // Each check puts the cursor on its problem: the field, the first link
+    // to an unreachable article, or the first card with an image that has no
+    // alt text, which opens its inspector.
+    const goToCheck = (check: CheckId) => {
+        if (check === 'title') {
+            document.getElementById('editor-title')?.focus();
+        } else if (check === 'excerpt') {
+            document.getElementById('editor-excerpt')?.focus();
+        } else if (check === 'featured') {
+            document.getElementById('editor-featured-choose')?.focus();
+        } else if (check === 'description' || check === 'title-width') {
+            // The field is in Search and social, which may be closed (I-3124).
+            flushSync(() => setSearchOpen(true));
+            document
+                .getElementById(
+                    check === 'description'
+                        ? 'editor-seo-description'
+                        : 'editor-seo-title',
+                )
+                ?.focus();
+        } else if (check === 'internal-links') {
+            editor?.commands.focus();
+        } else if (check === 'links' && editor !== null) {
+            const [first] = checks.badLinks;
+            const href = `teme:content/${first?.id ?? ''}`;
+            let found: { pos: number; text: boolean; size: number } | null =
+                null;
+
+            editor.state.doc.descendants((node, pos) => {
+                if (found !== null || first === undefined) {
+                    return false;
+                }
+
+                if (
+                    node.isText &&
+                    node.marks.some(
+                        (mark) =>
+                            mark.type.name === 'link' &&
+                            mark.attrs.href === href,
+                    )
+                ) {
+                    found = { pos, text: true, size: node.nodeSize };
+                } else if (
+                    node.type.name === 'button' &&
+                    node.attrs.contentId === first.id
+                ) {
+                    found = { pos, text: false, size: node.nodeSize };
+                }
+
+                return found === null;
+            });
+
+            if (found !== null) {
+                const at = found as {
+                    pos: number;
+                    text: boolean;
+                    size: number;
+                };
+                const chain = editor.chain().focus();
+
+                (at.text
+                    ? chain.setTextSelection({
+                          from: at.pos,
+                          to: at.pos + at.size,
+                      })
+                    : chain.setNodeSelection(at.pos)
+                )
+                    .scrollIntoView()
+                    .run();
+            }
+        } else if (check === 'alt' && editor !== null) {
+            const [first] = cardsMissingAlt(body, media);
+            let found: number | null = null;
+
+            editor.state.doc.descendants((node, pos) => {
+                if (found === null && node.attrs.id === first) {
+                    found = pos;
+                }
+
+                return found === null;
+            });
+
+            if (found !== null) {
+                editor
+                    .chain()
+                    .focus()
+                    .setNodeSelection(found)
+                    .scrollIntoView()
+                    .run();
+            }
+        }
+    };
+
+    // The History pane, from the header's icon or the revisions count. Asked
+    // for by name, so the rail opens with it, even where it is a sheet.
+    const openHistory = () => {
+        setRailOpen(true);
+        openPane({
+            id: 'history',
+            owner: 'core',
+            title: 'History',
+            render: () => <HistoryPanel contentId={session.id} />,
+        });
+    };
+
+    // Share, from its icon: the rail opens with it, even where it is a sheet.
+    const openShare = () => {
+        setRailOpen(true);
+        openPane({
+            id: 'share',
+            owner: 'core',
+            title: 'Share',
+            render: () => (
+                <SharePane contentId={session.id} saveFirst={checkpoint} />
+            ),
+        });
+    };
+
+    // Preview shows the latest saved version (content.preview), so what is
+    // typed is saved first. The tab opens inside the click, where no pop-up
+    // blocker stops it, and is pointed at the preview once the save is in;
+    // a save that fails closes it, and the save state says why.
+    const openPreview = () => {
+        const tab = window.open('', `teme-preview-${session.id}`);
+
+        if (tab === null) {
+            setNotice(PREVIEW_WORDS.blocked);
+
+            return;
+        }
+
+        const failed = () => {
+            tab.close();
+            setNotice(PREVIEW_WORDS.notSaved);
+        };
+
+        checkpoint()
+            .then((revisionId) => {
+                if (revisionId === null) {
+                    failed();
+
+                    return;
+                }
+
+                // The preview needs nothing of the editor.
+                tab.opener = null;
+                tab.location.href = contentPreview(session.id).url;
+            })
+            .catch(failed);
+    };
+
+    // The palette's editor commands, registered while the editor is open.
+    // They reach the latest openHistory through a ref, so the list is made
+    // once and the palette is not told of a change on every keystroke.
+    const openHistoryRef = useRef(openHistory);
+
+    useEffect(() => {
+        openHistoryRef.current = openHistory;
+    });
+
+    const paletteCommands = useMemo<PaletteCommand[]>(
+        () => [
+            {
+                id: 'editor.history',
+                owner: 'core',
+                label: 'Open history',
+                description: 'Every saved version',
+                group: 'Do',
+                order: 200,
+                keywords: ['revisions', 'versions', 'compare', 'restore'],
+                when: (context) => context.contentId !== null,
+                run: () => openHistoryRef.current(),
+            },
+            {
+                id: 'editor.focus',
+                owner: 'core',
+                label: 'Toggle focus mode',
+                description: 'Hide or show everything but the writing',
+                group: 'Do',
+                order: 210,
+                keywords: ['focus', 'distraction', 'chrome'],
+                when: (context) => context.contentId !== null,
+                run: () => setFocus((on) => !on),
+            },
+        ],
+        [],
+    );
+
+    usePaletteCommands(paletteCommands);
+
+    const address = addressOf(page.siteUrl, addressPattern, slug);
+
+    return (
+        <AssistantProvider
+            contentId={session.id}
+            editor={editor}
+            saving={assistantSaving}
+            ai={ai}
+            onOpen={openAssistant}
+        >
+            <CardEnvironmentContext value={environment}>
+                <EditorShell
+                    railTitle={
+                        themeRegion !== null
+                            ? 'Region settings'
+                            : `${type?.singular ?? 'Item'} settings`
+                    }
+                    railNoun={themeRegion !== null ? 'region' : noun}
+                    railOpen={railOpen}
+                    onRailOpenChange={setRailOpen}
+                    onSheetCloseAutoFocus={(event) => {
+                        if (searchAfterSheet.current) {
+                            searchAfterSheet.current = false;
+                            event.preventDefault();
+                            showSearch();
+                        }
+                    }}
+                    focus={focus}
+                    header={
+                        <EditorHeader
+                            backHref={
+                                themeRegion !== null
+                                    ? regionsIndex().url
+                                    : type
+                                      ? contentIndex({ type: type.segment }).url
+                                      : '/admin'
+                            }
+                            backLabel={
+                                themeRegion !== null
+                                    ? 'Regions'
+                                    : (type?.plural ?? 'Back')
+                            }
+                            statusChip={
+                                <StatusChip
+                                    status={status}
+                                    review={review}
+                                    schedule={schedule}
+                                    unpublishedChanges={unpublished}
+                                    visibility={visibility}
+                                />
+                            }
+                            saveState={
+                                <SaveState
+                                    state={saving.state}
+                                    pending={saving.pending}
+                                    savedAt={saving.savedAt}
+                                    failure={saving.failure}
+                                />
+                            }
+                            presence={
+                                <PresenceLine people={saving.otherEditors} />
+                            }
+                            activePane={pane?.id ?? null}
+                            onTogglePane={(id) => {
+                                if (pane?.id === id) {
+                                    closePane(id);
+                                } else if (id === 'history') {
+                                    openHistory();
+                                } else if (id === 'assistant') {
+                                    openAssistant();
+                                } else if (id === 'share') {
+                                    openShare();
+                                } else if (
+                                    id === 'overview' &&
+                                    editor !== null
+                                ) {
+                                    // Asked for by name, so the rail opens with it,
+                                    // even where it is a sheet.
+                                    setRailOpen(true);
+                                    openPane({
+                                        id,
+                                        owner: 'core',
+                                        title: 'Document overview',
+                                        render: () => (
+                                            <DocumentOverview editor={editor} />
+                                        ),
+                                    });
+                                }
+                            }}
+                            railOpen={railOpen}
+                            onToggleRail={() => setRailOpen((open) => !open)}
+                            focus={focus}
+                            onToggleFocus={() => setFocus((on) => !on)}
+                            assistant={ai !== null}
+                            // A preview shows a page, which a theme region never is.
+                            canShare={session.can.edit && themeRegion === null}
+                        />
+                    }
+                    rail={
+                        <EditorRail
+                            session={session}
+                            editor={editor}
+                            cards={page.manifest.cards}
+                            siteUrl={page.siteUrl}
+                            typeSegment={type?.segment ?? null}
+                            status={status}
+                            publishedAt={publishedAt}
+                            slug={slug}
+                            onChangeSlug={changeSlug}
+                            saveDisabled={saving.state === 'stale'}
+                            onSave={() => void checkpoint()}
+                            onPreview={
+                                themeRegion === null ? openPreview : null
+                            }
+                            actions={actions}
+                            busy={busy}
+                            schedule={schedule}
+                            review={review}
+                            siteTimezone={page.siteTimezone}
+                            notice={notice}
+                            checks={search.checks}
+                            onGoToCheck={goToCheck}
+                            onGoToSearch={
+                                themeRegion === null ? goToSearch : undefined
+                            }
+                            chosenTerms={chosenTerms}
+                            onTermsChange={setChosenTerms}
+                            primaryCategory={
+                                primaryField !== undefined &&
+                                sections !== undefined ? (
+                                    <PrimaryCategory
+                                        field={primaryField}
+                                        taxonomy={sections}
+                                        chosen={chosenTerms}
+                                        value={values[primaryField.key]}
+                                        onChange={setValue}
+                                        seo={page.seo}
+                                        noun={noun}
+                                        title={title.trim() || 'Untitled'}
+                                        published={status === 'published'}
+                                    />
+                                ) : undefined
+                            }
+                            onOpenHistory={openHistory}
+                            template={
+                                templateField
+                                    ? textOf(values[templateField.key])
+                                    : null
+                            }
+                            onChangeTemplate={(next) => {
+                                if (templateField) {
+                                    setValue(templateField.key, next);
+                                }
+                            }}
+                            discussion={discussion}
+                            onChangeDiscussion={changeDiscussion}
+                            visibility={visibility}
+                            readerPassword={readerPassword}
+                            passwordUnreadable={passwordUnreadable}
+                            onChangeVisibility={changeVisibility}
+                            themeRegion={themeRegion !== null}
+                            unpublishedChanges={unpublished}
+                            author={author}
+                            authors={page.authors}
+                            onChangeAuthor={changeAuthor}
+                            noun={noun}
+                            addressPattern={addressPattern}
+                            url={url}
+                        />
+                    }
+                >
+                    <div className="grid w-full grid-cols-[minmax(0,1fr)] gap-6 px-6 py-8">
+                        {/* The page's one h1: an item's, for screen readers; a theme region's, drawn with what it takes (I-395). */}
+                        {themeRegion === null ? (
+                            <h1 className="sr-only">
+                                Edit: {shownTitle(title)}
+                            </h1>
+                        ) : (
+                            <PageHeader
+                                title={`Region: ${themeRegion.label}, used by ${themeRegion.themeName}`}
+                                description={themeRegion.takes}
+                            />
+                        )}
+                        {themeRegion === null && (
+                            <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+                                <Label htmlFor="editor-title">Title</Label>
+                                <textarea
+                                    id="editor-title"
+                                    spellCheck={spellcheck}
+                                    aria-describedby="editor-title-error"
+                                    rows={1}
+                                    value={title}
+                                    onChange={(event) =>
+                                        setTitle(event.target.value)
+                                    }
+                                    className="border-input bg-card focus-visible:ring-ring focus-visible:ring-offset-background field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 font-serif text-[28px] leading-tight font-semibold outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+                                />
+                                <InputError id="editor-title-error" />
+                            </div>
+                        )}
+
+                        <FieldControlContext.Provider
+                            value={{
+                                media,
+                                loading,
+                                addMedia,
+                                noun,
+                                siteTimezone: page.siteTimezone,
+                                entries: session.entries,
+                            }}
+                        >
+                            {excerpt && (
+                                <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
+                                    <Label htmlFor="editor-excerpt">
+                                        {excerpt.label}
+                                    </Label>
+                                    <TextareaControl
+                                        field={excerpt}
+                                        value={values[excerpt.key]}
+                                        onChange={(next) =>
+                                            setValue(excerpt.key, next)
+                                        }
+                                        id="editor-excerpt"
+                                        describedBy="editor-excerpt-hint"
+                                        spellCheck={spellcheck}
+                                    />
+                                    <p
+                                        id="editor-excerpt-hint"
+                                        className="text-muted-foreground text-xs"
+                                    >
+                                        {excerpt.description}
+                                    </p>
+                                    <MetadataProposal
+                                        handle="excerpt"
+                                        label={excerpt.label}
+                                        metadata={metadata}
+                                    />
+                                </div>
+                            )}
+
+                            {featured && (
+                                <FeaturedImage
+                                    field={featured}
+                                    value={values[featured.key]}
+                                    onChange={(next) =>
+                                        setValue(featured.key, next)
+                                    }
+                                />
+                            )}
+
+                            <section
+                                aria-labelledby="editor-body-label"
+                                className="grid grid-cols-[minmax(0,1fr)] gap-2"
+                            >
+                                <span
+                                    id="editor-body-label"
+                                    className="text-sm font-medium"
+                                >
+                                    Body
+                                </span>
+                                <div
+                                    data-slot="editor-body"
+                                    className="border-input bg-card focus-within:ring-ring focus-within:ring-offset-background rounded-md border focus-within:ring-2 focus-within:ring-offset-1"
+                                >
+                                    <ProseEditor
+                                        document={session.document}
+                                        cards={page.manifest.cards}
+                                        menuCards={menuCards}
+                                        contentType={session.type}
+                                        status={status}
+                                        permissions={session.can}
+                                        spellcheck={spellcheck}
+                                        smartQuotes={
+                                            preferences[
+                                                'editor.smart_quotes'
+                                            ] !== false
+                                        }
+                                        siteUrl={page.siteUrl}
+                                        onChange={(next) =>
+                                            setDocument(next as EditorDocument)
+                                        }
+                                        onEditor={setEditor}
+                                    />
+                                </div>
+                            </section>
+
+                            <DetailsSection
+                                fields={fields}
+                                values={values}
+                                onChange={setValue}
+                                errors={fieldErrors}
+                                noun={noun}
+                                plural={type?.plural ?? 'Items'}
+                            />
+
+                            {themeRegion === null && (
+                                <SearchPanel
+                                    fields={fields}
+                                    values={values}
+                                    onChange={setValue}
+                                    seo={page.seo}
+                                    search={search}
+                                    address={address}
+                                    contentId={session.id}
+                                    noun={noun}
+                                    plural={plural}
+                                    media={media}
+                                    loading={loading}
+                                    addMedia={addMedia}
+                                    metadata={metadata}
+                                    open={searchOpen}
+                                    onOpenChange={setSearchOpen}
+                                    onGoToChecks={focus ? null : goToChecks}
+                                />
+                            )}
+                        </FieldControlContext.Provider>
+                    </div>
+                    <PublishConfirmation
+                        confirming={confirming}
+                        title={title.trim() || 'Untitled'}
+                        noun={noun}
+                        siteTimezone={page.siteTimezone}
+                        checks={search.publishingChecks}
+                        busy={busy}
+                        onConfirm={confirm}
+                        onCancel={() => setConfirming(null)}
+                    />
+                    <StaleDialog
+                        stale={saving.stale}
+                        title={title}
+                        noun={themeRegion !== null ? 'region' : noun}
+                        document={body}
+                        // A second region row can't be made, so no new draft is offered.
+                        onSaveAsDraft={
+                            themeRegion === null ? saveAsDraft : undefined
+                        }
+                        onLeave={saving.release}
+                    />
+                    <LeaveDialog
+                        open={saving.asking}
+                        onStay={saving.stay}
+                        onLeave={saving.leave}
+                    />
+                </EditorShell>
+            </CardEnvironmentContext>
+        </AssistantProvider>
+    );
+}
+
+/**
+ * The editor screen (slice 1.5c): a labelled writing column and a rail. It
+ * opens on the person's own unsaved work when there is some, the working
+ * revision otherwise.
+ */
+export default function ContentEdit(page: ContentEditPage) {
+    return (
+        <>
+            <Head
+                title={
+                    page.themeRegion !== null
+                        ? `Region: ${page.themeRegion.label}`
+                        : `Edit: ${shownTitle(page.session.title)}`
+                }
+            />
+            <RailProvider>
+                <Editor {...page} />
+            </RailProvider>
+        </>
+    );
+}

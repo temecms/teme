@@ -1,0 +1,10 @@
+{
+    "name": "tests/autoloads",
+    "type": "teme-plugin",
+    "require": { "teme/contracts": "*" },
+    "autoload": {
+        "psr-4": { "Tests\\Fixtures\\Plugins\\Autoloads\\": "src/" },
+        "files": ["src/helpers.php"]
+    },
+    "extra": { "laravel": { "providers": ["Tests\\Fixtures\\Plugins\\Autoloads\\AutoloadsServiceProvider"] } }
+}

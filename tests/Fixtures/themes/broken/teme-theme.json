@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "broken",
+    "name": "Fixture Broken",
+    "version": "0.1.0",
+    "description": "A theme with manifest errors, which is never used.",
+    "requires": { "teme": "^9.0" },
+    "templates": { "page": { "landing": "Landing" } }
+}

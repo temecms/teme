@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+use Tests\TestCase;
+
+uses(TestCase::class);
+
+// uiComponent() lives in tests/Pest.php.
+
+it('sets the control heights the design system asks for', function (): void {
+    $button = uiComponent('components/ui/button.tsx');
+
+    expect($button)->toContain('h-[34px]')   // default
+        ->and($button)->toContain('h-7')      // sm, 28px
+        ->and($button)->toContain('h-10');    // lg, 40px
+});
+
+it('draws the focus ring at full strength', function (string $path): void {
+    expect(uiComponent($path))->not->toContain('ring-ring/50')
+        ->and(uiComponent($path))->not->toContain('ring-[3px]');
+})->with(['components/ui/button.tsx', 'components/ui/input.tsx', 'components/ui/select.tsx']);
+
+it('gives no page its own select styling', function (string $page): void {
+    expect(uiComponent($page))->not->toContain('selectClass')
+        ->and(uiComponent($page))->not->toContain('<select')
+        ->and(uiComponent($page))->toContain("from '@/components/ui/select-field'");
+})->with(['pages/content/index.tsx', 'pages/users/index.tsx', 'components/list/screen-options.tsx', 'components/list/bulk-edit-dialog.tsx', 'pages/themes/index.tsx']);
+
+it('keeps the empty choice\'s sentinel inside the select field', function (): void {
+    $field = uiComponent('components/ui/select-field.tsx');
+
+    expect($field)->toContain("'__none__'")
+        ->and($field)->toContain('emptyLabel')
+        ->and($field)->toContain('type="hidden"');
+
+    foreach (uiTsxFiles() as $file) {
+        if ($file !== 'components/ui/select-field.tsx') {
+            expect(uiComponent($file))->not->toContain('__none__');
+        }
+    }
+});
+
+it('offers the two empty choices through the select field', function (string $page, string $label): void {
+    expect(uiComponent($page))->toContain("emptyLabel=\"{$label}\"");
+})->with([
+    'reassigning a deleted person\'s content' => ['pages/users/index.tsx', 'No one — they wrote nothing'],
+]);
+
+it('rounds a badge at 2px and fills no status with a solid colour', function (): void {
+    $badge = uiComponent('components/ui/badge.tsx');
+
+    expect($badge)->toContain('rounded-sm')
+        ->and($badge)->not->toContain('rounded-md')
+        ->and($badge)->toContain('bg-success-muted text-success')
+        ->and($badge)->toContain('bg-destructive-muted text-destructive');
+});
+
+it('does not shadow or round a panel', function (): void {
+    $panel = uiComponent('components/ui/panel.tsx');
+
+    expect($panel)->not->toContain('shadow')
+        ->and($panel)->not->toContain('rounded')
+        ->and($panel)->toContain('border-t');
+});
+
+it('leaves the shadow to things that float', function (string $path): void {
+    expect(uiComponent($path))->toContain('shadow');
+})->with(['components/ui/dialog.tsx', 'components/ui/sheet.tsx', 'components/ui/dropdown-menu.tsx', 'components/ui/popover.tsx']);
+
+it('takes the shadow off the card, which no longer floats', function (): void {
+    expect(uiComponent('components/ui/card.tsx'))->not->toContain('shadow-sm')
+        ->and(uiComponent('components/ui/card.tsx'))->not->toContain('rounded-xl')
+        ->and(uiComponent('components/ui/card.tsx'))->toContain('rounded-lg');
+});
+
+it('marks the current tab with the foreground and a 2px accent underline', function (): void {
+    $tabs = uiComponent('components/list/tab-strip.tsx');
+
+    expect($tabs)->toContain('border-b-2')
+        ->and($tabs)->toContain('border-primary text-foreground')
+        ->and($tabs)->toContain('h-9')
+        ->and($tabs)->not->toContain('text-primary');
+});
+
+it('draws 44px rows separated by hairlines in one bordered region', function (): void {
+    $table = uiComponent('components/list/data-table.tsx');
+
+    // 12px cells above and below a 20px line make the 44px row.
+    expect($table)->toContain('h-11')
+        ->and($table)->toContain('py-3')
+        ->and($table)->toContain('leading-5')
+        ->and($table)->toContain('border-b')
+        ->and(substr_count($table, '<Card'))->toBe(1);
+});
+
+it('gives the bulk bar a muted background and a hairline, not the accent', function (): void {
+    $bar = uiComponent('components/list/bulk-bar.tsx');
+
+    expect($bar)->toContain('bg-muted')
+        ->and($bar)->toContain('border-input')
+        ->and($bar)->not->toContain('primary');
+});

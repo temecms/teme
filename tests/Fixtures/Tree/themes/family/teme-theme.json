@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "family",
+    "name": "Fixture Family",
+    "version": "0.1.0",
+    "description": "A theme that draws a page's trail, its parent and the pages under it.",
+    "requires": { "teme": "^0.1" },
+    "breadcrumbs": true
+}

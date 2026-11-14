@@ -1,0 +1,68 @@
+name: Prepare Teme
+description: PHP, Node, the dependencies and the application, and with `tools` restic and PostgreSQL 18's own tools, the same in every job.
+
+inputs:
+  tools:
+    description: Install restic and PostgreSQL 18's tools, which the test and browser jobs need.
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2
+      with:
+        php-version: '8.4'
+        extensions: pdo_pgsql, pgsql, sockets, redis
+        tools: composer:v2
+        coverage: none
+
+    - name: Setup Node
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        composer install --no-interaction --prefer-dist
+        npm ci
+
+    - name: Prepare the application
+      shell: bash
+      run: |
+        cp .env.example .env
+        php artisan key:generate
+        php artisan wayfinder:generate --with-form
+
+    # restic, pinned by its published SHA-256, and PostgreSQL 18's own
+    # tools: the runner's client is older than the server's 18 (I-2400).
+    - name: Install restic and PostgreSQL 18's tools
+      if: inputs.tools == 'true'
+      shell: bash
+      run: |
+        # Downloads try again on a dropped connection or a server error, which
+        # stopped CI runs three times on 2026-11-05; the key is checked by its
+        # fingerprint, as the Dockerfile does, before it is trusted.
+        get() { curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors --connect-timeout 20 "$@"; }
+        # The key is kept in the repository (postgresql.org answered 504 for hours on
+        # 2026-11-08); its fingerprint is still checked before it is trusted.
+        cp "${GITHUB_WORKSPACE}/.github/keys/pgdg-ACCC4CF8.asc" /tmp/pgdg.asc
+        gpg --batch --show-keys --with-colons /tmp/pgdg.asc | grep -q '^fpr:::::::::B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8:$'
+        sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/pgdg.gpg /tmp/pgdg.asc
+        echo "deb [signed-by=/usr/share/keyrings/pgdg.gpg] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+        sudo apt-get -o Acquire::Retries=5 update -qq
+        # The runner's image ships libpq-dev, which nothing here compiles against.
+        # Left in place, installing the client upgrades it too, and on 2026-11-12
+        # (PostgreSQL 18.7) its new version and the image's postgresql-common both
+        # owned /usr/bin/pg_config, so dpkg stopped every job. Removed first, the
+        # client and libpq5 install cleanly.
+        sudo apt-get remove -y -qq libpq-dev || true
+        sudo apt-get -o Acquire::Retries=5 install -y -qq postgresql-client-18
+        get -o /tmp/restic.bz2 https://github.com/restic/restic/releases/download/v0.19.1/restic_0.19.1_linux_amd64.bz2
+        echo "f415415624dcc452f2a02b8c33641791a8c6d6d3b65bbb3543fcf9a25151585c  /tmp/restic.bz2" | sha256sum -c -
+        bunzip2 /tmp/restic.bz2
+        sudo install -m 0755 /tmp/restic /usr/local/bin/restic
+        restic version
+        /usr/lib/postgresql/18/bin/pg_dump --version

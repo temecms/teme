@@ -1,0 +1,17 @@
+{
+    "manifest": 1,
+    "code": "quiet",
+    "name": "Fixture Quiet",
+    "version": "0.1.0",
+    "description": "The good fixture, opted out of speculation rules.",
+    "requires": { "teme": "^0.1" },
+    "templates": { "page": { "full-width": "Full width" } },
+    "assets": { "manifest": "public/build/manifest.json", "entries": ["assets/css/theme.css"] },
+    "composers": ["Tests\\Fixtures\\Themes\\Good\\Greets"],
+    "images": { "content": "(min-width: 720px) 680px, 100vw" },
+    "fonts": [{ "family": "Newsreader", "file": "fonts/newsreader.woff2", "weight": "400 700", "style": "normal", "preload": true }],
+    "tokens": { "accent": "#b3261e" },
+    "cards": { "replaces": ["callout"] },
+    "speculation": false,
+    "per_page": 10
+}

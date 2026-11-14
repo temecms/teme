@@ -1,0 +1,30 @@
+# Teme's static-file page cache (slice 1.7d″, I-086), for a site Caddy
+# serves through php_fastcgi: import this file inside the site's block.
+# Caddy runs handle blocks before php_fastcgi, so a stored page is answered
+# as a plain file from the page cache's static folder, and anything else
+# reaches PHP as before: only a GET or HEAD, with no query, from a browser
+# that carries no teme_auth marker, at an address the router doesn't keep
+# for itself. The folder is the page cache's (PAGE_CACHE_STATIC_PATH);
+# change both lines if Teme lives elsewhere than /var/www/html.
+# Held in step with the code by tests/Feature/Cache/StaticSettingsTest.php.
+@teme_static {
+	method GET HEAD
+	query ""
+	not header_regexp Cookie (^|;\s*)teme_auth=
+	not path_regexp ^/(admin|preview|up|storage|build|_teme)(/|$)
+	file {
+		root /var/www/html/storage/page-cache/static
+		try_files {path}index.html
+	}
+}
+
+handle @teme_static {
+	root * /var/www/html/storage/page-cache/static
+	rewrite * {file_match.relative}
+	header X-Teme-Cache STATIC
+	header Cache-Control "public, max-age=0, s-maxage=60"
+	# Never a redirect: /about is its own address, and aboutindex.html its file.
+	file_server {
+		disable_canonical_uris
+	}
+}

@@ -1,0 +1,2578 @@
+components/account-menu.tsx	Account: {}
+components/ai-settings/month-figures.tsx	1 request used a model with no price, so its cost is left out.
+components/ai-settings/month-figures.tsx	AI is unavailable to everyone until the new month starts.
+components/ai-settings/month-figures.tsx	Budget
+components/ai-settings/month-figures.tsx	Months follow UTC, as the AI companies bill.
+components/ai-settings/month-figures.tsx	None set
+components/ai-settings/month-figures.tsx	Requests
+components/ai-settings/month-figures.tsx	See every request in Tools › AI activity
+components/ai-settings/month-figures.tsx	Spent
+components/ai-settings/month-figures.tsx	The budget is reached.
+components/ai-settings/month-figures.tsx	This month:
+components/ai-settings/month-figures.tsx	{} a month, {}
+components/ai-settings/month-figures.tsx	{} requests used a model with no price, so their cost is left out.
+components/ai-settings/service-panel.tsx	API key
+components/ai-settings/service-panel.tsx	API key
+components/ai-settings/service-panel.tsx	Another
+components/ai-settings/service-panel.tsx	Cancel
+components/ai-settings/service-panel.tsx	Cancel new {} key
+components/ai-settings/service-panel.tsx	Check key
+components/ai-settings/service-panel.tsx	Check key for {}
+components/ai-settings/service-panel.tsx	Checking key for {}
+components/ai-settings/service-panel.tsx	Checking…
+components/ai-settings/service-panel.tsx	Keep key
+components/ai-settings/service-panel.tsx	Keep key for {}
+components/ai-settings/service-panel.tsx	New
+components/ai-settings/service-panel.tsx	Remove key
+components/ai-settings/service-panel.tsx	Remove key for {}
+components/ai-settings/service-panel.tsx	Replace key
+components/ai-settings/service-panel.tsx	Replace key for {}
+components/ai-settings/service-panel.tsx	Set key
+components/ai-settings/service-panel.tsx	Set key for {}
+components/ai-settings/service-panel.tsx	Teme keeps keys encrypted and never shows them again, here or anywhere else.
+components/ai-settings/service-panel.tsx	Text you ask AI about is sent to
+components/ai-settings/service-panel.tsx	The key will be removed when you save.
+components/ai-settings/service-panel.tsx	Your host set this key on the server, so it can’t be changed or removed here.
+components/ai-settings/service-panel.tsx	model
+components/ai-settings/service-panel.tsx	when a task uses one of its models.
+components/ai-settings/service-panel.tsx	’s models stop working until it has a key again.
+components/ai-settings/task-row.tsx	Chosen model (no longer offered)
+components/ai-settings/task-row.tsx	Fallback
+components/ai-settings/task-row.tsx	Model
+components/ai-settings/task-row.tsx	No fallback
+components/ai-settings/task-row.tsx	None (off)
+components/ai-settings/task-row.tsx	{} (no key yet)
+components/ai/proposal.tsx	(empty)
+components/ai/proposal.tsx	Current:
+components/ai/proposal.tsx	Discard
+components/ai/proposal.tsx	Dismiss
+components/ai/proposal.tsx	No change suggested. It already reads well.
+components/ai/proposal.tsx	Proposed:
+components/ai/proposal.tsx	Use
+components/ai/proposal.tsx	Using…
+components/alert-error.tsx	Something went wrong.
+components/app-shell.tsx	Skip to content
+components/app-sidebar-header.tsx	Ctrl K
+components/app-sidebar-header.tsx	Open menu
+components/app-sidebar-header.tsx	Search or jump to…
+components/app-sidebar-header.tsx	⌘K
+components/app-sidebar.tsx	, opens in a new tab
+components/app-sidebar.tsx	Collapse menu
+components/app-sidebar.tsx	Personalise menu
+components/app-sidebar.tsx	View site
+components/backups/back-up-now.tsx	Back up now
+components/backups/back-up-now.tsx	Cancel
+components/backups/back-up-now.tsx	is waiting to start. It starts within a minute, once nothing else is running.
+components/backups/checks-list.tsx	Every backup is checked where it lands. A seventh of every place is read back each night, and once a week a backup is restored into a spare database to prove it works.
+components/backups/checks-list.tsx	Failed
+components/backups/checks-list.tsx	Latest checks
+components/backups/checks-list.tsx	No checks yet.
+components/backups/checks-list.tsx	Passed
+components/backups/checks-list.tsx	at {}
+components/backups/key-actions.tsx	Add another key
+components/backups/key-actions.tsx	Add my key
+components/backups/key-actions.tsx	Add my key to new places
+components/backups/key-actions.tsx	Add your key to new places
+components/backups/key-actions.tsx	Cancel
+components/backups/key-actions.tsx	Check my recovery key
+components/backups/key-actions.tsx	Check my recovery key
+components/backups/key-actions.tsx	Check the key
+components/backups/key-actions.tsx	Checking…
+components/backups/key-actions.tsx	Close
+components/backups/key-actions.tsx	Confirm password
+components/backups/key-actions.tsx	Doesn’t open the backups at
+components/backups/key-actions.tsx	Opens the backups at
+components/backups/key-actions.tsx	Password
+components/backups/key-actions.tsx	Recovery key
+components/backups/key-actions.tsx	Recovery key
+components/backups/key-actions.tsx	Replace
+components/backups/key-actions.tsx	Replace {}
+components/backups/key-actions.tsx	Replace {}?
+components/backups/key-actions.tsx	Teme makes a new key for {} and shows it once. The old one keeps working until you’ve typed part of the new one back, then it stops opening the backups.
+components/backups/key-actions.tsx	Teme tries it on every place and forgets it straight away.
+components/backups/key-actions.tsx	This is {}.
+components/backups/key-actions.tsx	This key isn’t one of this site’s recovery keys.
+components/backups/key-actions.tsx	Type your password to carry on. What you typed stays here.
+components/backups/key-actions.tsx	added after some keys were made. Type your recovery key, and Teme adds it there too, then forgets it.
+components/backups/key-actions.tsx	was
+components/backups/key-actions.tsx	were
+components/backups/key-sheet.tsx	Group
+components/backups/key-sheet.tsx	I’ve kept it safe: continue
+components/backups/key-sheet.tsx	Keep this sheet somewhere other than the server: a safe, a drawer at home, or a sealed envelope with someone you trust.
+components/backups/key-sheet.tsx	Made
+components/backups/key-sheet.tsx	Print this key
+components/backups/key-sheet.tsx	Recovery key for
+components/backups/key-sheet.tsx	Recovery key, eight groups
+components/backups/key-sheet.tsx	Teme shows it once and keeps no copy.
+components/backups/key-sheet.tsx	for the backups at
+components/backups/keys-list.tsx	1 recovery key opens these backups.
+components/backups/keys-list.tsx	Recovery keys
+components/backups/keys-list.tsx	Teme keeps no copy of a recovery key. If this server and every recovery key are lost, nobody can open the backups, Teme included.
+components/backups/keys-list.tsx	yet.
+components/backups/keys-list.tsx	{} recovery keys open these backups.
+components/backups/keys-list.tsx	· Doesn’t open
+components/backups/place-fields.tsx	Access key ID
+components/backups/place-fields.tsx	Bucket
+components/backups/place-fields.tsx	Copied the public key.
+components/backups/place-fields.tsx	Copy
+components/backups/place-fields.tsx	Folder
+components/backups/place-fields.tsx	Folder in the bucket
+components/backups/place-fields.tsx	Folder on the server
+components/backups/place-fields.tsx	Name this place
+components/backups/place-fields.tsx	Port
+components/backups/place-fields.tsx	Public key
+components/backups/place-fields.tsx	Region
+components/backups/place-fields.tsx	Secret access key
+components/backups/place-fields.tsx	Server
+components/backups/place-fields.tsx	Storage address
+components/backups/place-fields.tsx	The public key could not be copied. Select it and copy it by hand.
+components/backups/place-fields.tsx	User
+components/backups/place-fields.tsx	Where should backups be kept?
+components/backups/places-list.tsx	Add a place
+components/backups/places-list.tsx	Add a place off this server, such as S3-compatible storage or an SFTP server, to keep a copy if this server is lost.
+components/backups/places-list.tsx	Change
+components/backups/places-list.tsx	Hasn’t answered yet
+components/backups/places-list.tsx	Last answered {}
+components/backups/places-list.tsx	Measure what it holds
+components/backups/places-list.tsx	Measuring…
+components/backups/places-list.tsx	Newest backup {}
+components/backups/places-list.tsx	No backup here yet
+components/backups/places-list.tsx	Remove
+components/backups/places-list.tsx	Remove {}
+components/backups/places-list.tsx	Remove {}?
+components/backups/places-list.tsx	Teme will stop keeping backups at {}. The backups already there stay there, and only a recovery key opens them.
+components/backups/places-list.tsx	Test
+components/backups/places-list.tsx	Testing…
+components/backups/places-list.tsx	Where backups are kept
+components/backups/schedule-form.tsx	. Choose an hour when few people visit.
+components/backups/schedule-form.tsx	Back up each night at
+components/backups/schedule-form.tsx	Cancel
+components/backups/schedule-form.tsx	Daily backups kept
+components/backups/schedule-form.tsx	In the site’s time zone,
+components/backups/schedule-form.tsx	Keep a backup from each of the last
+components/backups/schedule-form.tsx	Monthly backups kept
+components/backups/schedule-form.tsx	Older backups are removed once a week, never while a backup runs. Keeping fewer removes the extra ones at the next weekly removal.
+components/backups/schedule-form.tsx	Save
+components/backups/schedule-form.tsx	Weekly backups kept
+components/backups/schedule-form.tsx	days, then one from each of
+components/backups/schedule-form.tsx	months before those.
+components/backups/schedule-form.tsx	weeks before them, and one from each of
+components/backups/setup-steps.tsx	Setup steps
+components/backups/typed-back.tsx	Back to the key
+components/backups/typed-back.tsx	Confirm password
+components/backups/typed-back.tsx	Confirm the key
+components/backups/typed-back.tsx	Confirming…
+components/backups/typed-back.tsx	Four letters and digits, as printed. Upper or lower case.
+components/backups/typed-back.tsx	Group
+components/backups/typed-back.tsx	Password
+components/backups/typed-back.tsx	Type groups
+components/backups/typed-back.tsx	Type your password to carry on. The key stays on this page.
+components/backups/typed-back.tsx	and
+components/backups/typed-back.tsx	of your recovery key
+components/backups/verdict.tsx	All well
+components/backups/verdict.tsx	Backups are locked with a recovery key that Teme shows you once. With it and a copy of the backups, this site can be brought back on any server. Without it, nobody can open them, Teme included.
+components/backups/verdict.tsx	Backups are paused because this site was restored, until you say whether this server is now the site.
+components/backups/verdict.tsx	Backups aren’t set up yet: the recovery key shown for
+components/backups/verdict.tsx	Backups resume here, at {}. Make sure the old server no longer backs up into them: two sites must never back up into one place.
+components/backups/verdict.tsx	Change
+components/backups/verdict.tsx	Is this a copy of the site?
+components/backups/verdict.tsx	Is this server now the site?
+components/backups/verdict.tsx	It takes a minute. Have a pen and paper or a printer ready.
+components/backups/verdict.tsx	Needs a look
+components/backups/verdict.tsx	Needs attention
+components/backups/verdict.tsx	Needs attention.
+components/backups/verdict.tsx	Needs attention.
+components/backups/verdict.tsx	Nothing is backed up until it is.
+components/backups/verdict.tsx	Nothing on this site is backed up yet.
+components/backups/verdict.tsx	Remove
+components/backups/verdict.tsx	Remove these backup places
+components/backups/verdict.tsx	Remove {}
+components/backups/verdict.tsx	Remove {} and start again?
+components/backups/verdict.tsx	Set up backups
+components/backups/verdict.tsx	Set up backups
+components/backups/verdict.tsx	Show a new recovery key
+components/backups/verdict.tsx	Teme backs up the database and every media file each night, to a folder on this server, S3-compatible storage or an SFTP server, and checks every backup by reading it back.
+components/backups/verdict.tsx	Teme forgets {} and the key it showed. Anything Teme made there stays: choose an empty folder or bucket next time.
+components/backups/verdict.tsx	Teme removes {} from this site’s backup places. Their backups stay where they are, and you can set backups up for this copy afterwards.
+components/backups/verdict.tsx	The restored site’s places are the old site’s too, and two sites must never back up into one place.
+components/backups/verdict.tsx	The state of the backups
+components/backups/verdict.tsx	This is a copy: remove these backup places
+components/backups/verdict.tsx	This server is now the site
+components/backups/verdict.tsx	This server is now the site
+components/backups/verdict.tsx	Where setup stands
+components/backups/verdict.tsx	Where setup stands
+components/backups/verdict.tsx	and start again
+components/backups/verdict.tsx	wasn’t typed back.
+components/backups/verdict.tsx	when backups run and what’s kept
+components/comments/comment-details.tsx	A removed comment
+components/comments/comment-details.tsx	Approve
+components/comments/comment-details.tsx	Browser
+components/comments/comment-details.tsx	Comment
+components/comments/comment-details.tsx	Comment by {}
+components/comments/comment-details.tsx	Delete permanently
+components/comments/comment-details.tsx	Email
+components/comments/comment-details.tsx	Erased
+components/comments/comment-details.tsx	IP address
+components/comments/comment-details.tsx	Imported
+components/comments/comment-details.tsx	In reply to
+components/comments/comment-details.tsx	Mark as not spam
+components/comments/comment-details.tsx	Mark as spam
+components/comments/comment-details.tsx	Moderation
+components/comments/comment-details.tsx	Move to trash
+components/comments/comment-details.tsx	Name
+components/comments/comment-details.tsx	None
+components/comments/comment-details.tsx	None: written in the admin
+components/comments/comment-details.tsx	On
+components/comments/comment-details.tsx	Quick edit
+components/comments/comment-details.tsx	Restore
+components/comments/comment-details.tsx	Signed in
+components/comments/comment-details.tsx	Status
+components/comments/comment-details.tsx	Submitted
+components/comments/comment-details.tsx	Unapprove
+components/comments/comment-details.tsx	Website
+components/comments/commenter.tsx	Find every comment from this IP address
+components/comments/commenter.tsx	Pingback
+components/comments/commenter.tsx	Signed in
+components/comments/commenter.tsx	Trackback
+components/comments/comments-cell.tsx	Waiting for approval
+components/comments/comments-cell.tsx	waiting for approval
+components/comments/delete-comments.tsx	Cancel
+components/comments/delete-comments.tsx	Delete permanently
+components/comments/empty-comments.tsx	Cancel
+components/comments/inline-reply.tsx	Cancel
+components/comments/inline-reply.tsx	Reply
+components/comments/inline-reply.tsx	Reply and approve
+components/comments/inline-reply.tsx	Reply to {}
+components/comments/inline-reply.tsx	Replying also approves this comment.
+components/comments/quick-edit.tsx	Cancel
+components/comments/quick-edit.tsx	Comment
+components/comments/quick-edit.tsx	Email
+components/comments/quick-edit.tsx	Name
+components/comments/quick-edit.tsx	Plain text, as readers write it: a blank line starts a paragraph, and web addresses become links. Up to 5,000 characters.
+components/comments/quick-edit.tsx	Quick edit: comment by {}
+components/comments/quick-edit.tsx	Save changes
+components/comments/quick-edit.tsx	This comment has formatting, such as bold or a quote. If you change its text, it’s saved as plain text.
+components/comments/quick-edit.tsx	Website
+components/comments/quick-edit.tsx	https://example.com
+components/confirm-action.tsx	Cancel
+components/dashboard/dashboard-panel.tsx	See all
+components/dashboard/getting-started.tsx	Getting started
+components/dashboard/getting-started.tsx	Hide this
+components/dashboard/getting-started.tsx	done
+components/dashboard/getting-started.tsx	of
+components/dashboard/quick-draft.tsx	Quick draft
+components/dashboard/quick-draft.tsx	Save draft
+components/dashboard/quick-draft.tsx	Title
+components/dashboard/quick-draft.tsx	What's it about?
+components/dashboard/site-figures.tsx	The site in figures
+components/editor/assistant/assistant-context.tsx	Undo
+components/editor/bubble-menu.tsx	Bold
+components/editor/bubble-menu.tsx	Highlight
+components/editor/bubble-menu.tsx	Inline code
+components/editor/bubble-menu.tsx	Italic
+components/editor/bubble-menu.tsx	Link
+components/editor/bubble-menu.tsx	Selection
+components/editor/bubble-menu.tsx	Strikethrough
+components/editor/bubble-menu.tsx	Underline
+components/editor/cards/audio-card.tsx	Audio
+components/editor/cards/audio-card.tsx	Caption
+components/editor/cards/audio-card.tsx	Choose an audio file from the library.
+components/editor/cards/audio-card.tsx	No transcript
+components/editor/cards/audio-card.tsx	This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.
+components/editor/cards/audio-card.tsx	This file isn’t audio, so the site shows nothing here. Replace it or remove the card.
+components/editor/cards/audio-card.tsx	Transcript
+components/editor/cards/audio-card.tsx	Transcript
+components/editor/cards/button-card.tsx	Button
+components/editor/cards/button-card.tsx	Button
+components/editor/cards/button-card.tsx	Label
+components/editor/cards/button-card.tsx	Leads nowhere yet
+components/editor/cards/button-card.tsx	Leads to an item on this site
+components/editor/cards/button-card.tsx	Link to something on this site
+components/editor/cards/button-card.tsx	Needs a destination
+components/editor/cards/button-card.tsx	Needs a label
+components/editor/cards/button-card.tsx	Or an address
+components/editor/cards/button-card.tsx	Search by title
+components/editor/cards/button-card.tsx	Style
+components/editor/cards/button-card.tsx	https://
+components/editor/cards/callout-card.tsx	Callout
+components/editor/cards/callout-card.tsx	Callout text
+components/editor/cards/callout-card.tsx	Needs text
+components/editor/cards/callout-card.tsx	Tone
+components/editor/cards/callout-card.tsx	What the reader should not miss
+components/editor/cards/card-frame.tsx	Close settings
+components/editor/cards/card-frame.tsx	Drag to move
+components/editor/cards/card-frame.tsx	Edit
+components/editor/cards/card-frame.tsx	Edit
+components/editor/cards/card-frame.tsx	Remove {}
+components/editor/cards/card-frame.tsx	Replace
+components/editor/cards/card-frame.tsx	Replace
+components/editor/cards/card-frame.tsx	{} card
+components/editor/cards/card-views.tsx	card
+components/editor/cards/code-card.tsx	Caption
+components/editor/cards/code-card.tsx	Code
+components/editor/cards/code-card.tsx	Code
+components/editor/cards/code-card.tsx	Language
+components/editor/cards/code-card.tsx	Needs code
+components/editor/cards/embed-card.tsx	Address
+components/editor/cards/embed-card.tsx	Caption
+components/editor/cards/embed-card.tsx	Embed
+components/editor/cards/embed-card.tsx	Kind
+components/editor/cards/embed-card.tsx	Needs an address
+components/editor/cards/embed-card.tsx	Paste the address of what to embed.
+components/editor/cards/embed-card.tsx	Title
+components/editor/cards/embed-card.tsx	framed on the site
+components/editor/cards/embed-card.tsx	https://
+components/editor/cards/embed-card.tsx	shown as a link
+components/editor/cards/gallery-card.tsx	Caption
+components/editor/cards/gallery-card.tsx	Choose two or more images from the library.
+components/editor/cards/gallery-card.tsx	Gallery
+components/editor/cards/gallery-card.tsx	Layout
+components/editor/cards/gallery-card.tsx	Needs two images
+components/editor/cards/gallery-card.tsx	These images are no longer in the library, so the site shows nothing here.
+components/editor/cards/gallery-card.tsx	of the images are no longer in the library and are left out.
+components/editor/cards/image-card.tsx	Alt missing
+components/editor/cards/image-card.tsx	Alt missing
+components/editor/cards/image-card.tsx	Alt text
+components/editor/cards/image-card.tsx	Caption
+components/editor/cards/image-card.tsx	Choose an image from the library.
+components/editor/cards/image-card.tsx	Credit
+components/editor/cards/image-card.tsx	Decorative: it adds nothing a reader would miss
+components/editor/cards/image-card.tsx	Image
+components/editor/cards/image-card.tsx	This image is no longer in the library, so the site shows nothing here. Replace it or remove the card.
+components/editor/cards/image-card.tsx	Width
+components/editor/cards/imported-content-card.tsx	A picture that is no longer in the library.
+components/editor/cards/imported-content-card.tsx	Convert to paragraphs
+components/editor/cards/imported-content-card.tsx	Convert to paragraphs gives you text to edit and loses the layout. Keep as it is leaves it as readers see it. Delete takes it out of the text. Each can be undone.
+components/editor/cards/imported-content-card.tsx	Delete
+components/editor/cards/imported-content-card.tsx	Delete imported content
+components/editor/cards/imported-content-card.tsx	Drag to move
+components/editor/cards/imported-content-card.tsx	Imported content
+components/editor/cards/imported-content-card.tsx	Imported content card
+components/editor/cards/imported-content-card.tsx	It holds what readers saw on the old site, cleaned, and can’t be edited here. Convert it to paragraphs to edit its words, keep it as it is, or delete it.
+components/editor/cards/imported-content-card.tsx	Keep as it is
+components/editor/cards/imported-content-card.tsx	Kept
+components/editor/cards/imported-content-card.tsx	Kept as readers see it. The import’s report no longer lists it.
+components/editor/cards/imported-content-card.tsx	Needs a decision
+components/editor/cards/imported-content-card.tsx	Preview of the imported content
+components/editor/cards/imported-content-card.tsx	What to do with this imported content
+components/editor/cards/video-card.tsx	A video holds up to 8 tracks.
+components/editor/cards/video-card.tsx	Add a track
+components/editor/cards/video-card.tsx	Caption
+components/editor/cards/video-card.tsx	Caption tracks
+components/editor/cards/video-card.tsx	Choose a video from the library.
+components/editor/cards/video-card.tsx	Choose poster
+components/editor/cards/video-card.tsx	For a short clip without sound, used like a moving picture.
+components/editor/cards/video-card.tsx	Kind
+components/editor/cards/video-card.tsx	Label
+components/editor/cards/video-card.tsx	Language
+components/editor/cards/video-card.tsx	Loop: play on its own, silently, again and again, with no controls
+components/editor/cards/video-card.tsx	Loops silently, with no controls.
+components/editor/cards/video-card.tsx	No captions
+components/editor/cards/video-card.tsx	On by default
+components/editor/cards/video-card.tsx	Poster
+components/editor/cards/video-card.tsx	Remove poster
+components/editor/cards/video-card.tsx	Remove track
+components/editor/cards/video-card.tsx	Remove track {}
+components/editor/cards/video-card.tsx	Replace poster
+components/editor/cards/video-card.tsx	The picture shown before it plays. Search engines list a video only when it has one.
+components/editor/cards/video-card.tsx	This file isn’t a video, so the site shows nothing here. Replace it or remove the card.
+components/editor/cards/video-card.tsx	This video is no longer in the library, so the site shows nothing here. Replace it or remove the card.
+components/editor/cards/video-card.tsx	Video
+components/editor/cards/video-card.tsx	WebVTT files (.vtt) from the library, so people who can’t hear the video can read it.
+components/editor/diff-view.tsx	After
+components/editor/diff-view.tsx	Before
+components/editor/diff-view.tsx	Both versions are empty.
+components/editor/editor-header.tsx	All panels
+components/editor/editor-header.tsx	Assistant
+components/editor/editor-header.tsx	Document overview
+components/editor/editor-header.tsx	Focus
+components/editor/editor-header.tsx	Hide settings
+components/editor/editor-header.tsx	Hide settings
+components/editor/editor-header.tsx	History
+components/editor/editor-header.tsx	Leave focus
+components/editor/editor-header.tsx	Panels
+components/editor/editor-header.tsx	Pin
+components/editor/editor-header.tsx	Share
+components/editor/editor-header.tsx	Show settings
+components/editor/editor-header.tsx	Show settings
+components/editor/editor-header.tsx	Unpin
+components/editor/editor-rail.tsx	, opens in a new tab
+components/editor/editor-rail.tsx	Approve
+components/editor/editor-rail.tsx	Approve and schedule
+components/editor/editor-rail.tsx	Approve and schedule…
+components/editor/editor-rail.tsx	Close {}
+components/editor/editor-rail.tsx	Compare with the published version
+components/editor/editor-rail.tsx	Date and time
+components/editor/editor-rail.tsx	Move to trash
+components/editor/editor-rail.tsx	Not now
+components/editor/editor-rail.tsx	Not now
+components/editor/editor-rail.tsx	Preview
+components/editor/editor-rail.tsx	Publish
+components/editor/editor-rail.tsx	Return
+components/editor/editor-rail.tsx	Return to the writer
+components/editor/editor-rail.tsx	Returned for changes
+components/editor/editor-rail.tsx	Save draft
+components/editor/editor-rail.tsx	Schedule
+components/editor/editor-rail.tsx	Schedule update
+components/editor/editor-rail.tsx	Submit for review
+components/editor/editor-rail.tsx	Submit update for review
+components/editor/editor-rail.tsx	Submitted
+components/editor/editor-rail.tsx	Update
+components/editor/editor-rail.tsx	Waiting for review. Submitted
+components/editor/editor-rail.tsx	What needs to change? The writer sees this.
+components/editor/editor-rail.tsx	a removed account
+components/editor/editor-rail.tsx	by
+components/editor/editor-shell.tsx	Resize the panel
+components/editor/editor-shell.tsx	The {}’s settings
+components/editor/fields/datetime-control.tsx	Date
+components/editor/fields/datetime-control.tsx	Time
+components/editor/fields/datetime-control.tsx	Times are in the site’s zone:
+components/editor/fields/details-section.tsx	Details
+components/editor/fields/details-section.tsx	Required
+components/editor/fields/details-section.tsx	What every
+components/editor/fields/details-section.tsx	records. Fields are set up in Site › Types ›
+components/editor/fields/entry-control.tsx	An item that no longer exists
+components/editor/fields/entry-control.tsx	Change
+components/editor/fields/entry-control.tsx	Find an item by its title…
+components/editor/fields/entry-control.tsx	No items match.
+components/editor/fields/entry-control.tsx	Remove
+components/editor/fields/media-control.tsx	Alt text for this
+components/editor/fields/media-control.tsx	Choose an image
+components/editor/fields/media-control.tsx	Decorative: it adds nothing a reader would miss
+components/editor/fields/media-control.tsx	Leave empty to use the library’s: “{}”.
+components/editor/fields/media-control.tsx	Missing
+components/editor/fields/media-control.tsx	Remove
+components/editor/fields/media-control.tsx	Replace…
+components/editor/fields/media-control.tsx	The library has no alt text for this image, so write one here.
+components/editor/fields/media-control.tsx	This image is no longer in the library.
+components/editor/link-popover.tsx	A post, page or other item, a category or tag, an author or a file. The link keeps working when its address changes.
+components/editor/link-popover.tsx	An address on another site, mailto: or tel:, a page on this site (/…) or a place on this page (#…).
+components/editor/link-popover.tsx	Apply
+components/editor/link-popover.tsx	Link to something on this site
+components/editor/link-popover.tsx	Or an address
+components/editor/link-popover.tsx	Remove link
+components/editor/link-popover.tsx	Search by title or name
+components/editor/link-popover.tsx	https://
+components/editor/meta-changes.tsx	Fields and categories
+components/editor/pasted-image-view.tsx	1 pasted image isn’t in the media library yet, so it isn’t saved until it is. Import it only if you have the right to use it.
+components/editor/pasted-image-view.tsx	Alt text: {}
+components/editor/pasted-image-view.tsx	An image from {}
+components/editor/pasted-image-view.tsx	Caption: {}
+components/editor/pasted-image-view.tsx	Import
+components/editor/pasted-image-view.tsx	Import
+components/editor/pasted-image-view.tsx	Import all
+components/editor/pasted-image-view.tsx	Importing…
+components/editor/pasted-image-view.tsx	Importing…
+components/editor/pasted-image-view.tsx	No alt text
+components/editor/pasted-image-view.tsx	Pasted image, not imported
+components/editor/pasted-image-view.tsx	Pasted images
+components/editor/pasted-image-view.tsx	Remove
+components/editor/pasted-image-view.tsx	Remove
+components/editor/pasted-image-view.tsx	Remove all
+components/editor/pasted-image-view.tsx	Try again
+components/editor/pasted-image-view.tsx	{} from {}
+components/editor/pasted-image-view.tsx	{} pasted images aren’t in the media library yet, so they aren’t saved until they are. Import them only if you have the right to use them.
+components/editor/presence-line.tsx	also editing.
+components/editor/presence-line.tsx	are
+components/editor/presence-line.tsx	is
+components/editor/publish-confirmation.tsx	, as it was just saved. Warnings don’t stop you.
+components/editor/publish-confirmation.tsx	Cancel
+components/editor/publish-confirmation.tsx	It publishes
+components/editor/publish-confirmation.tsx	The checks on this
+components/editor/rail/advanced-fold.tsx	Advanced
+components/editor/rail/advanced-fold.tsx	Default for its type ({})
+components/editor/rail/advanced-fold.tsx	Default for its type ({})
+components/editor/rail/advanced-fold.tsx	No limit
+components/editor/rail/advanced-fold.tsx	Not used while “Don’t show a snippet” is ticked.
+components/editor/rail/assistant-panel.tsx	Ask for a suggestion and it appears here. Nothing changes until you choose Use, and using a suggestion is one change you can undo.
+components/editor/rail/assistant-panel.tsx	Cancel
+components/editor/rail/assistant-panel.tsx	Change this in Settings › AI
+components/editor/rail/assistant-panel.tsx	Ctrl + J or ⌘ J opens and closes this pane.
+components/editor/rail/assistant-panel.tsx	Dismiss
+components/editor/rail/assistant-panel.tsx	Sent to
+components/editor/rail/assistant-panel.tsx	To rewrite text, select it within one paragraph and choose Rewrite in the menu that appears.
+components/editor/rail/assistant-panel.tsx	What you ask about is sent to
+components/editor/rail/assistant-panel.tsx	Working…
+components/editor/rail/canonical-choice.tsx	An address on another site
+components/editor/rail/canonical-choice.tsx	Another item on this site
+components/editor/rail/canonical-choice.tsx	Canonical address
+components/editor/rail/canonical-choice.tsx	Chosen:
+components/editor/rail/canonical-choice.tsx	Find the item that is the original
+components/editor/rail/canonical-choice.tsx	Nothing matches “
+components/editor/rail/canonical-choice.tsx	Search by title
+components/editor/rail/canonical-choice.tsx	The address of the original
+components/editor/rail/canonical-choice.tsx	The item chosen before is in the trash or was deleted, so this
+components/editor/rail/canonical-choice.tsx	The link follows it if its address changes.
+components/editor/rail/canonical-choice.tsx	This
+components/editor/rail/canonical-choice.tsx	Where the original of this
+components/editor/rail/canonical-choice.tsx	While it’s hidden from search engines, it has no canonical link.
+components/editor/rail/canonical-choice.tsx	https://example.com/original-story
+components/editor/rail/canonical-choice.tsx	lives, if it was first published elsewhere. Search engines are then asked to list the original instead.
+components/editor/rail/canonical-choice.tsx	until it is.
+components/editor/rail/canonical-choice.tsx	{}, not published
+components/editor/rail/canonical-choice.tsx	’s own address
+components/editor/rail/canonical-choice.tsx	’s own address is back in use. Choose another if you need one.
+components/editor/rail/canonical-choice.tsx	” isn’t published, so search engines are sent to this
+components/editor/rail/card-inspector.tsx	This card is edited in place.
+components/editor/rail/checks-panel.tsx	Checks
+components/editor/rail/checks-panel.tsx	Go to Search and social
+components/editor/rail/checks-panel.tsx	Search and social is under the
+components/editor/rail/checks-panel.tsx	passed
+components/editor/rail/checks-panel.tsx	warning
+components/editor/rail/document-panel.tsx	No headings yet.
+components/editor/rail/document-panel.tsx	Outline
+components/editor/rail/document-panel.tsx	Untitled heading
+components/editor/rail/document-panel.tsx	min read
+components/editor/rail/document-panel.tsx	skips a level
+components/editor/rail/document-panel.tsx	word
+components/editor/rail/document-panel.tsx	words
+components/editor/rail/fields-proposed.tsx	Discard
+components/editor/rail/fields-proposed.tsx	Show them
+components/editor/rail/fields-proposed.tsx	The proposals are under their fields.
+components/editor/rail/fields-proposed.tsx	There’s no field here for these proposals.
+components/editor/rail/history-panel.tsx	Compare with the version before
+components/editor/rail/history-panel.tsx	Current
+components/editor/rail/history-panel.tsx	Live
+components/editor/rail/history-panel.tsx	Load older
+components/editor/rail/history-panel.tsx	Loading…
+components/editor/rail/history-panel.tsx	{}, in AI activity
+components/editor/rail/metadata-proposal.tsx	Proposed {}
+components/editor/rail/metadata-proposal.tsx	Proposed:
+components/editor/rail/metadata-proposal.tsx	Use
+components/editor/rail/metadata-proposal.tsx	Use the proposed {}
+components/editor/rail/metadata-proposal.tsx	Using…
+components/editor/rail/primary-category.tsx	First ticked: {}
+components/editor/rail/publish-panel.tsx	1 revision
+components/editor/rail/publish-panel.tsx	Address
+components/editor/rail/publish-panel.tsx	Address
+components/editor/rail/publish-panel.tsx	Author
+components/editor/rail/publish-panel.tsx	Author
+components/editor/rail/publish-panel.tsx	Change address
+components/editor/rail/publish-panel.tsx	Change password
+components/editor/rail/publish-panel.tsx	Default
+components/editor/rail/publish-panel.tsx	Discussion
+components/editor/rail/publish-panel.tsx	Discussion
+components/editor/rail/publish-panel.tsx	Give it to the people who should read this {}. Changing it asks everyone for the new one.
+components/editor/rail/publish-panel.tsx	History
+components/editor/rail/publish-panel.tsx	Its password can’t be read on this server, so nobody can open the {}. Set a new one.
+components/editor/rail/publish-panel.tsx	Nobody
+components/editor/rail/publish-panel.tsx	Nobody
+components/editor/rail/publish-panel.tsx	Not yet
+components/editor/rail/publish-panel.tsx	Password
+components/editor/rail/publish-panel.tsx	Password protected
+components/editor/rail/publish-panel.tsx	Private
+components/editor/rail/publish-panel.tsx	Protect with this password
+components/editor/rail/publish-panel.tsx	Public
+components/editor/rail/publish-panel.tsx	Publish
+components/editor/rail/publish-panel.tsx	Published
+components/editor/rail/publish-panel.tsx	Status
+components/editor/rail/publish-panel.tsx	Template
+components/editor/rail/publish-panel.tsx	Template
+components/editor/rail/publish-panel.tsx	View on site
+components/editor/rail/publish-panel.tsx	Visibility
+components/editor/rail/publish-panel.tsx	Visibility
+components/editor/rail/publish-panel.tsx	Whoever publishes it sets this.
+components/editor/rail/publish-panel.tsx	Whoever publishes it sets this.
+components/editor/rail/publish-panel.tsx	{} revisions
+components/editor/rail/publish-when.tsx	After review
+components/editor/rail/publish-when.tsx	At a set time…
+components/editor/rail/publish-when.tsx	Cancel
+components/editor/rail/publish-when.tsx	Date and time
+components/editor/rail/publish-when.tsx	Held: {}. It publishes nothing until someone who may publish reschedules it.
+components/editor/rail/publish-when.tsx	Immediately
+components/editor/rail/publish-when.tsx	Not now
+components/editor/rail/publish-when.tsx	Reschedule…
+components/editor/rail/publish-when.tsx	Scheduled for {}
+components/editor/rail/publish-when.tsx	The publication scheduled for {} failed: {}
+components/editor/rail/publish-when.tsx	When you approve it
+components/editor/rail/publish-when.tsx	the scheduled publication
+components/editor/rail/publish-when.tsx	the scheduled update
+components/editor/rail/search-panel.tsx	Asks search engines not to list this
+components/editor/rail/search-panel.tsx	Done
+components/editor/rail/search-panel.tsx	Edit
+components/editor/rail/search-panel.tsx	Every check is in the side panel.
+components/editor/rail/search-panel.tsx	Every check is in the side panel.
+components/editor/rail/search-panel.tsx	How this
+components/editor/rail/search-panel.tsx	Leave empty and search engines choose their own.
+components/editor/rail/search-panel.tsx	Leave empty to use the excerpt, or else the site’s tagline.
+components/editor/rail/search-panel.tsx	Leave empty to use the excerpt.
+components/editor/rail/search-panel.tsx	Leave empty to use the home page’s title template.
+components/editor/rail/search-panel.tsx	Leave empty to use the meta description, or else the excerpt.
+components/editor/rail/search-panel.tsx	Leave empty to use the title template for {}.
+components/editor/rail/search-panel.tsx	Passed
+components/editor/rail/search-panel.tsx	Search
+components/editor/rail/search-panel.tsx	Search and social
+components/editor/rail/search-panel.tsx	Social
+components/editor/rail/search-panel.tsx	The summary search engines may show under the title.
+components/editor/rail/search-panel.tsx	The title on the card when it’s shared. Leave empty to use the SEO title, or else the title.
+components/editor/rail/search-panel.tsx	The title search engines show, exactly as you type it.
+components/editor/rail/search-panel.tsx	Warning
+components/editor/rail/search-panel.tsx	appears in search results and when it’s shared.
+components/editor/rail/search-panel.tsx	search and social
+components/editor/rail/search-panel.tsx	with search and social
+components/editor/rail/search-previews.tsx	, with {}.
+components/editor/rail/search-previews.tsx	Made from
+components/editor/rail/search-previews.tsx	No description. Search engines will pick text from the page.
+components/editor/rail/search-previews.tsx	No image
+components/editor/rail/search-previews.tsx	Previews
+components/editor/rail/search-previews.tsx	Search result
+components/editor/rail/search-previews.tsx	Social card
+components/editor/rail/search-previews.tsx	the {}’s title
+components/editor/rail/social-image.tsx	Choose an image
+components/editor/rail/social-image.tsx	No image.
+components/editor/rail/social-image.tsx	Remove
+components/editor/rail/social-image.tsx	Replace
+components/editor/rail/social-image.tsx	This image is no longer in the library.
+components/editor/rail/suggest-metadata.tsx	Discard
+components/editor/rail/suggest-metadata.tsx	Search and social
+components/editor/rail/suggest-metadata.tsx	Use all
+components/editor/rail/template-choice.ts	{} (not in this theme)
+components/editor/rail/use-metadata.ts	Undo
+components/editor/restore-button.tsx	Restore
+components/editor/restore-button.tsx	Restore this version?
+components/editor/restore-button.tsx	This adds a new revision with the text from {}. Nothing is published and nothing is deleted.
+components/editor/rewrite/rewrite-menu.tsx	Rewrite
+components/editor/rewrite/rewrite-presets.ts	Fix spelling and grammar
+components/editor/rewrite/rewrite-presets.ts	Improve
+components/editor/rewrite/rewrite-presets.ts	Longer
+components/editor/rewrite/rewrite-presets.ts	More casual
+components/editor/rewrite/rewrite-presets.ts	More formal
+components/editor/rewrite/rewrite-presets.ts	Shorter
+components/editor/rewrite/rewrite-presets.ts	Simpler
+components/editor/schedule-control.tsx	Next Monday
+components/editor/schedule-control.tsx	Quick choices
+components/editor/schedule-control.tsx	This evening
+components/editor/schedule-control.tsx	Times are in the site’s zone:
+components/editor/schedule-control.tsx	Tomorrow morning
+components/editor/schema.ts	Write something…
+components/editor/share-panel.tsx	Copied
+components/editor/share-panel.tsx	Copy
+components/editor/share-panel.tsx	Copy it now: it will not be shown again.
+components/editor/share-panel.tsx	Expired {}
+components/editor/share-panel.tsx	Made by
+components/editor/share-panel.tsx	Make a preview link
+components/editor/share-panel.tsx	Making…
+components/editor/share-panel.tsx	Preview links
+components/editor/share-panel.tsx	Revoke
+components/editor/share-panel.tsx	Revoked {}
+components/editor/share-panel.tsx	The new preview link
+components/editor/share-panel.tsx	Works until {}
+components/editor/share-panel.tsx	a removed account
+components/editor/share-panel.tsx	the link made
+components/editor/slash-menu.tsx	Bulleted list
+components/editor/slash-menu.tsx	Code block
+components/editor/slash-menu.tsx	Heading 2
+components/editor/slash-menu.tsx	Heading 3
+components/editor/slash-menu.tsx	Heading 4
+components/editor/slash-menu.tsx	Horizontal rule
+components/editor/slash-menu.tsx	Insert
+components/editor/slash-menu.tsx	Numbered list
+components/editor/slash-menu.tsx	Paragraph
+components/editor/slash-menu.tsx	Quote
+components/editor/slash-menu.tsx	Table
+components/editor/slash-menu.tsx	Task list
+components/editor/stale-dialog.tsx	, so your changes were not saved over it. Your work is still here, on this page.
+components/editor/stale-dialog.tsx	Copied
+components/editor/stale-dialog.tsx	Copy my text
+components/editor/stale-dialog.tsx	Copy my text
+components/editor/stale-dialog.tsx	Open the current version
+components/editor/stale-dialog.tsx	Open the current version
+components/editor/stale-dialog.tsx	Save mine as a new draft
+components/editor/stale-dialog.tsx	Save mine as a new draft
+components/editor/stale-dialog.tsx	Someone
+components/editor/stale-dialog.tsx	Someone else changed this {}
+components/editor/stale-dialog.tsx	keeps everything you have here in a draft of its own.
+components/editor/stale-dialog.tsx	on {}
+components/editor/stale-dialog.tsx	puts your words on the clipboard.
+components/editor/stale-dialog.tsx	saved a new version
+components/editor/stale-dialog.tsx	shows theirs, and your unsaved changes here are lost.
+components/editor/status-chip.tsx	Status:
+components/editor/toolbar.tsx	A line across the column, between two parts of the text.
+components/editor/toolbar.tsx	Aa
+components/editor/toolbar.tsx	Alignment
+components/editor/toolbar.tsx	Block type
+components/editor/toolbar.tsx	Bold
+components/editor/toolbar.tsx	Bulleted list
+components/editor/toolbar.tsx	Bulleted list
+components/editor/toolbar.tsx	Centre
+components/editor/toolbar.tsx	Clear formatting
+components/editor/toolbar.tsx	Code block
+components/editor/toolbar.tsx	Default alignment
+components/editor/toolbar.tsx	Delete table
+components/editor/toolbar.tsx	Delete table
+components/editor/toolbar.tsx	Filter
+components/editor/toolbar.tsx	Filter what to insert
+components/editor/toolbar.tsx	Formatting
+components/editor/toolbar.tsx	Heading 2
+components/editor/toolbar.tsx	Heading 3
+components/editor/toolbar.tsx	Heading 4
+components/editor/toolbar.tsx	Highlight
+components/editor/toolbar.tsx	Horizontal rule
+components/editor/toolbar.tsx	Inline code
+components/editor/toolbar.tsx	Insert
+components/editor/toolbar.tsx	Insert a table
+components/editor/toolbar.tsx	Italic
+components/editor/toolbar.tsx	Justified
+components/editor/toolbar.tsx	Left
+components/editor/toolbar.tsx	Link
+components/editor/toolbar.tsx	More
+components/editor/toolbar.tsx	More
+components/editor/toolbar.tsx	More
+components/editor/toolbar.tsx	Nothing matches.
+components/editor/toolbar.tsx	Numbered list
+components/editor/toolbar.tsx	Numbered list
+components/editor/toolbar.tsx	Paragraph
+components/editor/toolbar.tsx	Quote
+components/editor/toolbar.tsx	Quote
+components/editor/toolbar.tsx	Quote
+components/editor/toolbar.tsx	Redo
+components/editor/toolbar.tsx	Redo
+components/editor/toolbar.tsx	Right
+components/editor/toolbar.tsx	Strikethrough
+components/editor/toolbar.tsx	Strikethrough
+components/editor/toolbar.tsx	Subscript
+components/editor/toolbar.tsx	Superscript
+components/editor/toolbar.tsx	Table
+components/editor/toolbar.tsx	Task list
+components/editor/toolbar.tsx	Task list
+components/editor/toolbar.tsx	Text
+components/editor/toolbar.tsx	Text: alignment, highlight and more
+components/editor/toolbar.tsx	Text: alignment, highlight and more
+components/editor/toolbar.tsx	Underline
+components/editor/toolbar.tsx	Underline
+components/editor/toolbar.tsx	Undo
+components/editor/toolbar.tsx	Undo
+components/editor/use-search-preview.ts	Untitled
+components/fields/brand-colour-setting.tsx	Brand colour
+components/fields/brand-colour-setting.tsx	Brand colour
+components/fields/brand-colour-setting.tsx	Only someone who may change the site’s design can change the brand colour.
+components/fields/brand-colour-setting.tsx	Pick the brand colour
+components/fields/brand-colour-setting.tsx	Sample button
+components/fields/brand-colour-setting.tsx	Save brand colour
+components/fields/brand-colour-setting.tsx	The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme.
+components/fields/brand-colour-setting.tsx	The theme sets no colour of its own.
+components/fields/brand-colour-setting.tsx	The theme’s own colour is used in each of its colour schemes.
+components/fields/brand-colour-setting.tsx	Theme’s own
+components/fields/brand-colour-setting.tsx	Use the theme’s own colour
+components/fields/brand-colour-setting.tsx	Write the colour as # and six digits, such as the value the picker gives.
+components/fields/brand-colour-setting.tsx	dark uses {}, {}:1 {}
+components/fields/brand-colour-setting.tsx	{}:1 on light {}
+components/fields/field-control.tsx	Choose a person
+components/fields/field-control.tsx	Not set
+components/fields/field-control.tsx	Provided by the server's environment.
+components/fields/field-control.tsx	Set — leave empty to keep
+components/fields/field-control.tsx	https://
+components/fields/home-page-setting.tsx	A page
+components/fields/home-page-setting.tsx	Chosen:
+components/fields/home-page-setting.tsx	Home page
+components/fields/home-page-setting.tsx	Home page
+components/fields/home-page-setting.tsx	Home page shows
+components/fields/home-page-setting.tsx	Only someone who may change the site’s addresses can change the home page.
+components/fields/home-page-setting.tsx	Save home page
+components/fields/home-page-setting.tsx	Search published pages
+components/fields/home-page-setting.tsx	What visitors see at the site’s own address.
+components/fields/home-page-setting.tsx	Your latest
+components/fields/home-page-setting.tsx	{} page
+components/fields/hours-setting.tsx	Add a second opening
+components/fields/hours-setting.tsx	Closed
+components/fields/hours-setting.tsx	Closes
+components/fields/hours-setting.tsx	Closes
+components/fields/hours-setting.tsx	Day
+components/fields/hours-setting.tsx	Opens
+components/fields/hours-setting.tsx	Opens
+components/fields/hours-setting.tsx	Remove
+components/fields/hours-setting.tsx	{}: add a second opening
+components/fields/hours-setting.tsx	’s second opening
+components/fields/media-setting.tsx	Choose an image
+components/fields/media-setting.tsx	Remove
+components/fields/media-setting.tsx	Replace
+components/fields/media-setting.tsx	This image is no longer in the library.
+components/fields/pairs-setting.tsx	Remove
+components/flash-toast.tsx	Dismiss
+components/flash-toast.tsx	Error:
+components/flash-toast.tsx	Undo
+components/flash-toast.tsx	Warning:
+components/header/inbox-bell.tsx	Inbox
+components/header/inbox-bell.tsx	Inbox
+components/header/inbox-bell.tsx	Inbox, {} unread
+components/header/inbox-bell.tsx	Mark all as read
+components/header/inbox-bell.tsx	Open your inbox
+components/header/inbox-bell.tsx	Your inbox couldn’t be loaded. Try again in a moment.
+components/header/jobs-button.tsx	Cancel
+components/header/jobs-button.tsx	Cancel {}
+components/header/jobs-button.tsx	Long tasks you start show their progress here.
+components/header/jobs-button.tsx	No jobs yet
+components/header/jobs-button.tsx	Retry
+components/header/jobs-button.tsx	Retry {}
+components/header/jobs-button.tsx	See everyone’s jobs in Tools › Jobs
+components/header/jobs-button.tsx	Started
+components/header/jobs-button.tsx	Your jobs
+components/header/jobs-button.tsx	Your jobs
+components/header/jobs-button.tsx	Your jobs couldn’t be loaded. Try again in a moment.
+components/import/choices-form.tsx	1 image
+components/import/choices-form.tsx	1 page
+components/import/choices-form.tsx	Custom roles
+components/import/choices-form.tsx	Don’t place it
+components/import/choices-form.tsx	Images from other sites
+components/import/choices-form.tsx	Items whose author is gone
+components/import/choices-form.tsx	Menu locations
+components/import/choices-form.tsx	Page templates
+components/import/choices-form.tsx	Pause between requests
+components/import/choices-form.tsx	Posts and pages whose WordPress author was deleted belong to this person.
+components/import/choices-form.tsx	Posts show images kept on these sites. Tick a site to bring its images into the media library. The rest become links, with each image’s description as the words.
+components/import/choices-form.tsx	Start the import
+components/import/choices-form.tsx	Teme asks for your password first. The import runs in the background: you can leave this page, and the result reaches your inbox.
+components/import/choices-form.tsx	The old site stays live while Teme reads it. A pause keeps it quick for its readers.
+components/import/choices-form.tsx	The template each WordPress page template becomes.
+components/import/choices-form.tsx	The theme’s default
+components/import/choices-form.tsx	This theme has no places for menus. Menus come across, and you can place them later.
+components/import/choices-form.tsx	Where each menu goes in this site’s theme.
+components/import/choices-form.tsx	WordPress roles Teme doesn’t have. People with them get the role you choose, or stay behind.
+components/import/choices-form.tsx	{} images
+components/import/choices-form.tsx	{} pages
+components/import/connect-form.tsx	An administrator’s.
+components/import/connect-form.tsx	Application password
+components/import/connect-form.tsx	Connect
+components/import/connect-form.tsx	Connect a WordPress site
+components/import/connect-form.tsx	Connect again
+components/import/connect-form.tsx	Connecting can take up to two minutes if the site is slow to answer.
+components/import/connect-form.tsx	Connecting…
+components/import/connect-form.tsx	Download Teme Companion
+components/import/connect-form.tsx	First, on the WordPress site:
+components/import/connect-form.tsx	Install and activate the Teme Companion plugin, version
+components/import/connect-form.tsx	Open Tools › Teme site report and run it. Teme reads the report to show what comes across.
+components/import/connect-form.tsx	Open Users › Profile and add an application password named Teme. Copy it: WordPress shows it once.
+components/import/connect-form.tsx	Site address
+components/import/connect-form.tsx	Teme keeps it encrypted until you choose Forget this site, and never shows it again.
+components/import/connect-form.tsx	The address readers use, such as https://example.com.
+components/import/connect-form.tsx	To import from this site again, make a new application password in WordPress and enter it here.
+components/import/connect-form.tsx	WordPress user name
+components/import/connect-form.tsx	https://example.com
+components/import/connect-form.tsx	or later.
+components/import/import-steps.tsx	(current step)
+components/import/import-steps.tsx	(done)
+components/import/import-steps.tsx	Analyze
+components/import/import-steps.tsx	Choose
+components/import/import-steps.tsx	Connect
+components/import/import-steps.tsx	Import
+components/import/import-steps.tsx	Import steps
+components/import/import-steps.tsx	Report
+components/import/run-progress.tsx	(done)
+components/import/run-progress.tsx	(now)
+components/import/run-progress.tsx	Carry on
+components/import/run-progress.tsx	Carrying on picks up where it stopped. Teme asks for your password first.
+components/import/run-progress.tsx	Importing
+components/import/run-progress.tsx	Steps of this import
+components/import/run-progress.tsx	Stop the import
+components/import/run-progress.tsx	Stopped
+components/import/run-progress.tsx	You can leave this page. The import carries on in the background, and the result reaches your inbox.
+components/import/run-progress.tsx	created ·
+components/import/run-progress.tsx	failed ·
+components/import/run-progress.tsx	skipped ·
+components/import/run-progress.tsx	updated ·
+components/import/run-progress.tsx	with warnings
+components/import/run-report.tsx	: new and edited posts and pages, new comments and new redirects. Anything deleted on WordPress since is listed, never deleted here.
+components/import/run-report.tsx	Brings across what changed on WordPress since
+components/import/run-report.tsx	Catch up
+components/import/run-report.tsx	Catch up
+components/import/run-report.tsx	Download the full report
+components/import/run-report.tsx	Download what needs attention
+components/import/run-report.tsx	Finished
+components/import/run-report.tsx	Forget this site
+components/import/run-report.tsx	Forget this site
+components/import/run-report.tsx	Forget this site’s application password?
+components/import/run-report.tsx	No warnings or errors.
+components/import/run-report.tsx	Not ready to switch yet: {} attention. Fix them on WordPress or here, then catch up.
+components/import/run-report.tsx	Nothing came across in this import.
+components/import/run-report.tsx	Ready to switch: nothing failed and every old address answers on Teme.
+components/import/run-report.tsx	Report
+components/import/run-report.tsx	Report of the import started
+components/import/run-report.tsx	Report so far
+components/import/run-report.tsx	Show the latest import
+components/import/run-report.tsx	Teme deletes its copy of the application password. What was imported stays, and so does this site’s report. To import from it again, connect it again.
+components/import/run-report.tsx	The full report has a line for every item and what happened to it. The other has only what failed or has a warning.
+components/import/run-report.tsx	The full report lists the rest.
+components/import/run-report.tsx	Warnings and errors
+components/import/run-report.tsx	What came across
+components/import/run-report.tsx	When you’ve switched to Teme, forget this site, then revoke its application password in WordPress.
+components/import/run-report.tsx	created,
+components/import/run-report.tsx	failed,
+components/import/run-report.tsx	skipped,
+components/import/run-report.tsx	then
+components/import/run-report.tsx	updated,
+components/import/run-report.tsx	with warnings.
+components/import/site-analysis.tsx	. To count again, run Tools › Teme site report there, then choose Analyze again.
+components/import/site-analysis.tsx	Analyze again
+components/import/site-analysis.tsx	Counted from the site report made in WordPress
+components/import/site-analysis.tsx	Each post’s and page’s own SEO fields come from
+components/import/site-analysis.tsx	Every old address keeps working: at the same address, or through a permanent redirect to its new one.
+components/import/site-analysis.tsx	Most of this site’s addresses belong to custom types:
+components/import/site-analysis.tsx	Not imported
+components/import/site-analysis.tsx	Nothing: everything on this site comes across.
+components/import/site-analysis.tsx	Reading the site report…
+components/import/site-analysis.tsx	What comes across
+components/import/site-analysis.tsx	What comes across
+components/import/site-analysis.tsx	What comes across
+components/import/site-analysis.tsx	WordPress hasn’t made a site report yet. On the WordPress site, open Tools › Teme site report and run it, then choose Analyze again.
+components/import/site-analysis.tsx	of
+components/import/site-analysis.tsx	on {}
+components/import/site-analysis.tsx	published items. Teme can’t import custom types yet, so those addresses would answer “not found” after the switch. Move this site once Teme can import them.
+components/import/site-runs.tsx	Imports of this site
+components/import/site-runs.tsx	Report
+components/import/site-runs.tsx	Show its report
+components/import/site-runs.tsx	Show the report of the import started {}
+components/inbox/inbox-list.tsx	(unread)
+components/inbox/inbox-list.tsx	Inbox items
+components/inbox/inbox-list.tsx	Nothing new
+components/inbox/inbox-list.tsx	Results of imports and other background work arrive here.
+components/jobs/job-progress.tsx	Progress of {}
+components/list/bulk-bar.tsx	Bulk actions
+components/list/bulk-bar.tsx	Clear selection
+components/list/bulk-edit-dialog.tsx	A dash means some of them have it. Click to add it to all, again to remove it from all, and again to leave each as it was.
+components/list/bulk-edit-dialog.tsx	Added to every item. The ones they have stay.
+components/list/bulk-edit-dialog.tsx	Apply to
+components/list/bulk-edit-dialog.tsx	Author
+components/list/bulk-edit-dialog.tsx	Cancel
+components/list/bulk-edit-dialog.tsx	Discussion
+components/list/bulk-edit-dialog.tsx	Draft
+components/list/bulk-edit-dialog.tsx	Each change applies to every item listed. Anything left alone stays as it is on each item.
+components/list/bulk-edit-dialog.tsx	Edit
+components/list/bulk-edit-dialog.tsx	Items to edit
+components/list/bulk-edit-dialog.tsx	Leave “{}” out of this edit
+components/list/bulk-edit-dialog.tsx	Published
+components/list/bulk-edit-dialog.tsx	Status
+components/list/bulk-edit-dialog.tsx	Updating {} of {}…
+components/list/bulk-edit-dialog.tsx	— No change —
+components/list/bulk-edit-dialog.tsx	— No change —
+components/list/bulk-edit-dialog.tsx	— No change —
+components/list/confirm-items.tsx	Cancel
+components/list/date-filter.tsx	All dates
+components/list/date-filter.tsx	Apply dates
+components/list/date-filter.tsx	Back
+components/list/date-filter.tsx	By date published.
+components/list/date-filter.tsx	By date published. Leave To empty for “since”.
+components/list/date-filter.tsx	By last update. Leave To empty for “since”.
+components/list/date-filter.tsx	By last update. On the Published tab, by date published.
+components/list/date-filter.tsx	Choose dates
+components/list/date-filter.tsx	Choose dates…
+components/list/date-filter.tsx	Date
+components/list/date-filter.tsx	Date:
+components/list/date-filter.tsx	From
+components/list/date-filter.tsx	To
+components/list/empty-state.tsx	Clear filters
+components/list/pager.tsx	Pages
+components/list/row-actions.tsx	, opens in a new tab
+components/list/row-actions.tsx	More
+components/list/row-links.tsx	, opens in a new tab
+components/list/screen-options.tsx	Apply
+components/list/screen-options.tsx	Columns
+components/list/screen-options.tsx	Couldn't save. Try again in a moment.
+components/list/screen-options.tsx	Rows per page
+components/list/screen-options.tsx	Saved to your preferences
+components/list/screen-options.tsx	Screen options
+components/list/screen-options.tsx	Screen options
+components/list/screen-options.tsx	Screen options
+components/list/screen-options.tsx	What this list shows for you. Other people keep their own choices.
+components/list/select-all-matching.tsx	All their revisions go with them. This can’t be undone. It runs in the background, one {} at a time, and any you may not change are skipped.
+components/list/select-all-matching.tsx	Cancel
+components/list/select-all-matching.tsx	Delete all {} permanently?
+components/list/select-all-matching.tsx	Move all {} to the trash?
+components/list/select-all-matching.tsx	Restore all {}?
+components/list/select-all-matching.tsx	Select all {}
+components/list/select-all-matching.tsx	{} {} You can restore them from the trash.
+components/manage-two-factor.tsx	Continue setup
+components/manage-two-factor.tsx	Disable two-factor sign-in
+components/manage-two-factor.tsx	Disable two-factor sign-in
+components/manage-two-factor.tsx	Disable two-factor sign-in?
+components/manage-two-factor.tsx	Enable two-factor sign-in
+components/manage-two-factor.tsx	Once it’s on, signing in also asks for a code from an authenticator app on your phone.
+components/manage-two-factor.tsx	Signing in will need only your password until you set it up again, with a new authenticator entry and new recovery codes.
+components/manage-two-factor.tsx	Two-factor sign-in
+components/manage-two-factor.tsx	When you sign in, you also type the code from the authenticator app on your phone.
+components/media-drawer.tsx	Click the preview to set the focal point, which square crops keep in view.
+components/media-drawer.tsx	Delete permanently
+components/media-drawer.tsx	Delete permanently
+components/media-drawer.tsx	Delete “{}” permanently?
+components/media-drawer.tsx	Deleted “{}” permanently.
+components/media-drawer.tsx	Download original
+components/media-drawer.tsx	In the trash since
+components/media-drawer.tsx	Items that use it show nothing in its place until you restore it.
+components/media-drawer.tsx	Move to trash
+components/media-drawer.tsx	Move to trash
+components/media-drawer.tsx	Move “{}” to the trash?
+components/media-drawer.tsx	Moved “{}” to the trash.
+components/media-drawer.tsx	Not uploaded for any item.
+components/media-drawer.tsx	Not used anywhere.
+components/media-drawer.tsx	Open the file
+components/media-drawer.tsx	Preparing the preview…
+components/media-drawer.tsx	Replace…
+components/media-drawer.tsx	Restore
+components/media-drawer.tsx	Save
+components/media-drawer.tsx	Saved.
+components/media-drawer.tsx	Saved. Its sizes are being made again around the new focal point.
+components/media-drawer.tsx	Set the focal point
+components/media-drawer.tsx	Show every file uploaded for “{}”
+components/media-drawer.tsx	Teme couldn’t make this image’s sizes.
+components/media-drawer.tsx	Try again
+components/media-drawer.tsx	Undo
+components/media-drawer.tsx	Untitled
+components/media-drawer.tsx	Uploaded for
+components/media-drawer.tsx	Used in
+components/media-drawer.tsx	live
+components/media/alt-text-suggestion.tsx	Cancel
+components/media/alt-text-suggestion.tsx	Dismiss
+components/media/alt-text-suggestion.tsx	Sent to
+components/media/alt-text-suggestion.tsx	Suggested alt text
+components/media/alt-text-suggestion.tsx	The image is sent to
+components/media/alt-text-suggestion.tsx	Working…
+components/media/attachment-details.tsx	Edit details
+components/media/attachment-details.tsx	Loading…
+components/media/attachment-details.tsx	place
+components/media/attachment-fields.tsx	Alt text
+components/media/attachment-fields.tsx	Caption
+components/media/attachment-fields.tsx	Credit
+components/media/attachment-fields.tsx	Dimensions
+components/media/attachment-fields.tsx	File
+components/media/attachment-fields.tsx	Licence
+components/media/attachment-fields.tsx	Size
+components/media/attachment-fields.tsx	Title
+components/media/attachment-fields.tsx	Type
+components/media/attachment-fields.tsx	Uploaded
+components/media/attachment-fields.tsx	by {}
+components/media/media-filters.tsx	All dates
+components/media/media-filters.tsx	All media
+components/media/media-filters.tsx	Audio
+components/media/media-filters.tsx	Date
+components/media/media-filters.tsx	Documents
+components/media/media-filters.tsx	Images
+components/media/media-filters.tsx	Remove this filter: Uploaded for “{}”
+components/media/media-filters.tsx	Search file names, titles, alt text
+components/media/media-filters.tsx	Search media
+components/media/media-filters.tsx	Type
+components/media/media-filters.tsx	Uploaded for this {}
+components/media/media-filters.tsx	Uploaded for “{}”
+components/media/media-filters.tsx	Video
+components/media/media-grid.tsx	Failed
+components/media/media-grid.tsx	Media
+components/media/media-grid.tsx	Preparing…
+components/media/media-grid.tsx	Selected
+components/media/media-modal.tsx	Cancel
+components/media/media-modal.tsx	Clear
+components/media/media-modal.tsx	Clear filters
+components/media/media-modal.tsx	Drop files to upload
+components/media/media-modal.tsx	File details
+components/media/media-modal.tsx	Library
+components/media/media-modal.tsx	Nothing has been uploaded for this {} yet.
+components/media/media-modal.tsx	Nothing here yet. Upload files, or drop them here.
+components/media/media-modal.tsx	Nothing in the library matches these filters.
+components/media/media-modal.tsx	Select a file to see its details.
+components/media/media-modal.tsx	Show more
+components/media/media-modal.tsx	Upload files
+components/media/page-drop.tsx	Drop files to upload
+components/media/upload-list.tsx	Already in the library as “
+components/media/upload-list.tsx	Retry
+components/media/upload-list.tsx	Upload anyway
+components/media/upload-list.tsx	Uploading {}
+components/media/upload-list.tsx	Use the existing one
+components/media/use-media-uploads.ts	The upload failed.
+components/nav-main.tsx	Main
+components/nav-main.tsx	Pinned
+components/nav-main.tsx	need action
+components/nav-main.tsx	needs action
+components/navigation/add-item-panel.tsx	A link to the front page of the site. The label starts as “Home”.
+components/navigation/add-item-panel.tsx	Add
+components/navigation/add-item-panel.tsx	Add an item
+components/navigation/add-item-panel.tsx	Add heading
+components/navigation/add-item-panel.tsx	Add the home page
+components/navigation/add-item-panel.tsx	Address
+components/navigation/add-item-panel.tsx	Content
+components/navigation/add-item-panel.tsx	Find by name
+components/navigation/add-item-panel.tsx	Find by name
+components/navigation/add-item-panel.tsx	Find by title
+components/navigation/add-item-panel.tsx	Find by title
+components/navigation/add-item-panel.tsx	Heading
+components/navigation/add-item-panel.tsx	Home page
+components/navigation/add-item-panel.tsx	Items are added at the end of the menu. Move them into place, then save.
+components/navigation/add-item-panel.tsx	Label
+components/navigation/add-item-panel.tsx	Label
+components/navigation/add-item-panel.tsx	Nothing found.
+components/navigation/add-item-panel.tsx	Nothing found.
+components/navigation/add-item-panel.tsx	Terms
+components/navigation/add-item-panel.tsx	Web address
+components/navigation/add-item-panel.tsx	What to add
+components/navigation/add-item-panel.tsx	https://example.org/
+components/navigation/tree-editor.tsx	Label
+components/navigation/tree-editor.tsx	Label for {}
+components/navigation/tree-editor.tsx	Move down
+components/navigation/tree-editor.tsx	Move out a level
+components/navigation/tree-editor.tsx	Move under the item above
+components/navigation/tree-editor.tsx	Move up
+components/navigation/tree-editor.tsx	Open in new tab
+components/navigation/tree-editor.tsx	Remove
+components/navigation/tree-editor.tsx	Remove {}
+components/page-trail.tsx	Breadcrumb
+components/palette/command-palette.tsx	AI
+components/palette/command-palette.tsx	Command palette
+components/palette/command-palette.tsx	Content
+components/palette/command-palette.tsx	Do
+components/palette/command-palette.tsx	Go to
+components/palette/command-palette.tsx	Media
+components/palette/command-palette.tsx	Nothing matches.
+components/palette/command-palette.tsx	People
+components/palette/command-palette.tsx	Recent
+components/palette/command-palette.tsx	Results
+components/palette/command-palette.tsx	Search content, media, terms, people and settings, go to a screen, or run a command. Use the arrow keys and Enter.
+components/palette/command-palette.tsx	Search in text →
+components/palette/command-palette.tsx	Search, go to, or do
+components/palette/command-palette.tsx	Search, go to, or do…
+components/palette/command-palette.tsx	Searching…
+components/palette/command-palette.tsx	Settings
+components/palette/command-palette.tsx	Terms
+components/palette/palette-commands.ts	Add images and documents to the library
+components/palette/palette-commands.ts	An SEO title, meta description, excerpt and social text, each under its field
+components/palette/palette-commands.ts	Ask AI to describe the image whose details are open
+components/palette/palette-commands.ts	Hidden from your menu
+components/palette/palette-commands.ts	New {}
+components/palette/palette-commands.ts	Opens in a new tab
+components/palette/palette-commands.ts	Start a new {} in the editor
+components/palette/palette-commands.ts	Suggest alt text for this image
+components/palette/palette-commands.ts	Suggest metadata for this post
+components/palette/palette-commands.ts	Upload files
+components/password-input.tsx	Hide password
+components/password-input.tsx	Show password
+components/personalise-menu-dialog.tsx	Changes apply to your menu only. Pin up to
+components/personalise-menu-dialog.tsx	Move {} down
+components/personalise-menu-dialog.tsx	Move {} up
+components/personalise-menu-dialog.tsx	Personalise menu
+components/personalise-menu-dialog.tsx	Pin
+components/personalise-menu-dialog.tsx	Pinned
+components/personalise-menu-dialog.tsx	Reset to default
+components/personalise-menu-dialog.tsx	Save
+components/personalise-menu-dialog.tsx	Show {}
+components/personalise-menu-dialog.tsx	entries to the top. Hidden entries stay in search (Ctrl K).
+components/seo/who-publishes.tsx	Leave these empty unless another organization owns this one.
+components/seo/who-publishes.tsx	One place. A business with several needs a plugin that describes each one.
+components/seo/who-publishes.tsx	Owned by
+components/seo/who-publishes.tsx	The business
+components/seo/who-publishes.tsx	This person no longer has an account, so search engines are told nobody in particular publishes the site. Choose someone else, or Nobody in particular.
+components/status-banner.tsx	Site notice
+components/term-picker.tsx	Find a {}
+components/term-picker.tsx	Remove {}
+components/term-tree-picker.tsx	+ Add
+components/term-tree-picker.tsx	Add
+components/term-tree-picker.tsx	Cancel
+components/term-tree-picker.tsx	Name
+components/term-tree-picker.tsx	None
+components/term-tree-picker.tsx	None yet.
+components/term-tree-picker.tsx	Nothing matches.
+components/term-tree-picker.tsx	Parent
+components/term-tree-picker.tsx	Search
+components/term-tree-picker.tsx	Search {}
+components/themes/theme-list.tsx	Active
+components/themes/theme-list.tsx	Available
+components/themes/theme-list.tsx	Broken
+components/themes/theme-list.tsx	Change the brand colour in Settings › General
+components/themes/theme-list.tsx	Incompatible
+components/themes/theme-list.tsx	Installed themes
+components/themes/theme-list.tsx	No themes are installed.
+components/themes/theme-list.tsx	Preview
+components/themes/theme-list.tsx	Previewing
+components/themes/theme-list.tsx	Theme settings
+components/themes/theme-list.tsx	This is the site’s theme, but it can’t be used, so visitors see plain pages until it’s fixed or you activate another theme.
+components/themes/theme-preview-panel.tsx	. Choose them under Menus below.
+components/themes/theme-preview-panel.tsx	Activate
+components/themes/theme-preview-panel.tsx	Anyone who may change the design sees this preview until it is activated or stopped.
+components/themes/theme-preview-panel.tsx	Change the brand colour in Settings › General
+components/themes/theme-preview-panel.tsx	Open the site in preview
+components/themes/theme-preview-panel.tsx	Previewing
+components/themes/theme-preview-panel.tsx	Stop previewing
+components/themes/theme-preview-panel.tsx	Stopping drops the changes made to
+components/themes/theme-preview-panel.tsx	These places in
+components/themes/theme-preview-panel.tsx	Visitors still see plain pages.
+components/themes/theme-preview-panel.tsx	Visitors still see {}.
+components/themes/theme-preview-panel.tsx	show no menu yet:
+components/themes/theme-preview-panel.tsx	’s settings and menus.
+components/themes/theme-regions.tsx	1 region
+components/themes/theme-regions.tsx	Edit in Regions
+components/themes/theme-regions.tsx	From other themes
+components/themes/theme-regions.tsx	From {}
+components/themes/theme-regions.tsx	No theme is in use, so no region is drawn.
+components/themes/theme-regions.tsx	Nothing from other themes.
+components/themes/theme-regions.tsx	Regions
+components/themes/theme-regions.tsx	Regions in {}
+components/themes/theme-regions.tsx	Text only
+components/themes/theme-regions.tsx	The places
+components/themes/theme-regions.tsx	Theme no longer installed
+components/themes/theme-regions.tsx	declares no regions.
+components/themes/theme-regions.tsx	puts the site’s own content, such as a box after each article.
+components/themes/theme-regions.tsx	{} regions
+components/tools/ai-activity-details.tsx	A deleted image
+components/tools/ai-activity-details.tsx	A deleted item
+components/tools/ai-activity-details.tsx	A removed person
+components/tools/ai-activity-details.tsx	Alt text after
+components/tools/ai-activity-details.tsx	Alt text before
+components/tools/ai-activity-details.tsx	Cost
+components/tools/ai-activity-details.tsx	Model
+components/tools/ai-activity-details.tsx	No price is set for this model, so this request isn’t counted in the month’s spend.
+components/tools/ai-activity-details.tsx	None
+components/tools/ai-activity-details.tsx	None
+components/tools/ai-activity-details.tsx	On
+components/tools/ai-activity-details.tsx	Person
+components/tools/ai-activity-details.tsx	Prompt
+components/tools/ai-activity-details.tsx	Read from the cache
+components/tools/ai-activity-details.tsx	Result
+components/tools/ai-activity-details.tsx	Task
+components/tools/ai-activity-details.tsx	The image had none. To put that back, clear its alt text in Media.
+components/tools/ai-activity-details.tsx	Time taken
+components/tools/ai-activity-details.tsx	To put it back, copy it into the image’s alt text in Media.
+components/tools/ai-activity-details.tsx	Tokens received
+components/tools/ai-activity-details.tsx	Tokens sent
+components/tools/ai-activity-details.tsx	When
+components/tools/ai-activity-details.tsx	Written to the cache
+components/tools/ai-activity-details.tsx	{} request
+components/tools/ai-activity-details.tsx	{}, in the trash
+components/tools/ai-activity-details.tsx	{}, version {}
+components/tools/import-redirects.tsx	CSV file
+components/tools/import-redirects.tsx	Cancel
+components/tools/import-redirects.tsx	Done
+components/tools/import-redirects.tsx	Each line is checked as one added here would be. Lines that fail are left out, and you’re told why.
+components/tools/import-redirects.tsx	Import redirects
+components/tools/import-redirects.tsx	Import redirects from a CSV file
+components/tools/import-redirects.tsx	One redirect a line: from, to, status, and a note if you like. To is a path on this site or a full address, and stays empty for 410 and 451. A fifth column, on, says yes or no, as an export writes it; without it, a redirect is on.
+components/tools/import-redirects.tsx	These lines weren’t imported. Fix them in the file, then import those lines again.
+components/tools/redirect-form.tsx	, not published
+components/tools/redirect-form.tsx	/news/new-address
+components/tools/redirect-form.tsx	/old-address
+components/tools/redirect-form.tsx	301 and 308 are for moves that last, 302 and 307 for moves that don’t. 410 and 451 send readers nowhere: 410 says the page is gone for good, and 451 that it’s withheld for legal reasons.
+components/tools/redirect-form.tsx	A path on this site, starting /, or a full address on another site, starting https://.
+components/tools/redirect-form.tsx	Add a redirect
+components/tools/redirect-form.tsx	Add redirect
+components/tools/redirect-form.tsx	An address on this site that no page answers. [name] stands for one part of an address and [...rest] for everything after it, as in /2019/05/[name], and To can use them again.
+components/tools/redirect-form.tsx	An address on this site, and where readers who ask for it should go.
+components/tools/redirect-form.tsx	Cancel
+components/tools/redirect-form.tsx	Choose a file
+components/tools/redirect-form.tsx	Chosen:
+components/tools/redirect-form.tsx	Chosen:
+components/tools/redirect-form.tsx	Edit the redirect from {}
+components/tools/redirect-form.tsx	Find the post or page
+components/tools/redirect-form.tsx	From
+components/tools/redirect-form.tsx	Linked to the file itself, so the redirect keeps working if the site moves its files.
+components/tools/redirect-form.tsx	Linked to the post or page itself, so the redirect follows it if its address changes.
+components/tools/redirect-form.tsx	Note
+components/tools/redirect-form.tsx	Nothing matches “
+components/tools/redirect-form.tsx	Save redirect
+components/tools/redirect-form.tsx	Search by title
+components/tools/redirect-form.tsx	Status
+components/tools/redirect-form.tsx	The address
+components/tools/redirect-form.tsx	To
+components/tools/redirect-form.tsx	Why it’s here, for whoever looks next.
+components/tools/redirects-head.tsx	404 log
+components/tools/redirects-head.tsx	Redirects
+components/tools/redirects-head.tsx	Redirects
+components/tools/redirects-head.tsx	Redirects and the 404 log
+components/tools/update-progress.tsx	, then choose that backup.
+components/tools/update-progress.tsx	. If the database needs it, restore it at the server:
+components/tools/update-progress.tsx	A backup was taken just before:
+components/tools/update-progress.tsx	Cancel the update
+components/tools/update-progress.tsx	Hide the steps
+components/tools/update-progress.tsx	No updater has looked for requests since {}. Without one, update by hand: see How to update.
+components/tools/update-progress.tsx	No updater has looked for requests yet. Without one, update by hand: see How to update.
+components/tools/update-progress.tsx	Roll back to {}
+components/tools/update-progress.tsx	Rolled back to Teme {} at {}.
+components/tools/update-progress.tsx	Rolling back
+components/tools/update-progress.tsx	Rolling back switches every part to
+components/tools/update-progress.tsx	See what happened
+components/tools/update-progress.tsx	So every part runs
+components/tools/update-progress.tsx	Started
+components/tools/update-progress.tsx	The
+components/tools/update-progress.tsx	The
+components/tools/update-progress.tsx	The database keeps
+components/tools/update-progress.tsx	The site runs
+components/tools/update-progress.tsx	Update to {}
+components/tools/update-progress.tsx	Updated to Teme {} at {}. It took {}{}
+components/tools/update-progress.tsx	Updating
+components/tools/update-progress.tsx	again.
+components/tools/update-progress.tsx	again. The database keeps
+components/tools/update-progress.tsx	of 7 steps
+components/tools/update-progress.tsx	php artisan teme:backup:restore
+components/tools/update-progress.tsx	runs beside.
+components/tools/update-progress.tsx	runs beside. Nothing else needs doing.
+components/tools/update-progress.tsx	so far. The site is down for a short while as the service deploys, then each part is checked on the new release.
+components/tools/update-progress.tsx	stopped:
+components/tools/update-progress.tsx	to Teme
+components/tools/update-progress.tsx	to Teme
+components/tools/update-progress.tsx	to Teme
+components/tools/update-progress.tsx	was switched back at
+components/tools/update-progress.tsx	{} of 7 steps
+components/tools/update-progress.tsx	{} to Teme {} requested at the server at {}. The updater starts it within a minute.
+components/tools/update-progress.tsx	{} to Teme {} requested by {} at {}. The updater starts it within a minute.
+components/tools/update-progress.tsx	’s additions, which
+components/tools/update-progress.tsx	’s additions, which
+components/two-factor-recovery-codes.tsx	Each code signs you in once if you lose your phone. Keep them in a password manager.
+components/two-factor-recovery-codes.tsx	Hide
+components/two-factor-recovery-codes.tsx	Loading recovery codes
+components/two-factor-recovery-codes.tsx	New codes replace these. The old ones stop working.
+components/two-factor-recovery-codes.tsx	Recovery codes
+components/two-factor-recovery-codes.tsx	Recovery codes
+components/two-factor-recovery-codes.tsx	Regenerate codes
+components/two-factor-recovery-codes.tsx	View
+components/two-factor-recovery-codes.tsx	recovery codes
+components/two-factor-setup-modal.tsx	Authentication code
+components/two-factor-setup-modal.tsx	Back
+components/two-factor-setup-modal.tsx	Confirm
+components/two-factor-setup-modal.tsx	Enable two-factor sign-in
+components/two-factor-setup-modal.tsx	Enter the 6-digit code from your authenticator app
+components/two-factor-setup-modal.tsx	Scan the QR code, or type the setup key, in your authenticator app.
+components/two-factor-setup-modal.tsx	Scan the QR code, or type the setup key, in your authenticator app.
+components/two-factor-setup-modal.tsx	Two-factor sign-in is on
+components/two-factor-setup-modal.tsx	Verify authentication code
+components/two-factor-setup-modal.tsx	or type this setup key
+components/types/builder-parts.tsx	Can’t be used
+components/types/builder-parts.tsx	Code
+components/types/builder-parts.tsx	Made here
+components/types/field-sheet.tsx	. Made from the label.
+components/types/field-sheet.tsx	Add a choice
+components/types/field-sheet.tsx	Add a field to {}
+components/types/field-sheet.tsx	Add field
+components/types/field-sheet.tsx	Ask for
+components/types/field-sheet.tsx	Cancel
+components/types/field-sheet.tsx	Can’t change once a
+components/types/field-sheet.tsx	Can’t change: stored values would be read as another kind. To change it, add a new field and remove this one.
+components/types/field-sheet.tsx	Changing it keeps every value; templates that use the old handle need the new one.
+components/types/field-sheet.tsx	Choices
+components/types/field-sheet.tsx	Coming in later updates
+components/types/field-sheet.tsx	Edit {}
+components/types/field-sheet.tsx	Field type
+components/types/field-sheet.tsx	Field type
+components/types/field-sheet.tsx	Filterable
+components/types/field-sheet.tsx	Handle
+components/types/field-sheet.tsx	Help text
+components/types/field-sheet.tsx	Include in site search
+components/types/field-sheet.tsx	Label
+components/types/field-sheet.tsx	On {}. A saved change works at once.
+components/types/field-sheet.tsx	Relabel freely. Taking off a choice items use keeps their value, shown as itself.
+components/types/field-sheet.tsx	Required
+components/types/field-sheet.tsx	Save field
+components/types/field-sheet.tsx	Show on the site
+components/types/field-sheet.tsx	Shown as
+components/types/field-sheet.tsx	Shown under the field in the editor.
+components/types/field-sheet.tsx	Stored as
+components/types/field-sheet.tsx	Take off
+components/types/field-sheet.tsx	The default theme lists shown fields with their labels and skips empty ones. A theme can place any field itself.
+components/types/field-sheet.tsx	What editors see.
+components/types/field-sheet.tsx	What kind of value it holds. It can’t change once the field is made.
+components/types/field-sheet.tsx	What templates use:
+components/types/field-sheet.tsx	field('{}')
+components/types/field-sheet.tsx	holds a value.
+components/types/field-sheet.tsx	{}’ editor shows it in Details as soon as it’s saved.
+components/types/icon-picker.tsx	Choose an icon
+components/types/icon-picker.tsx	Every Lucide icon, by name. It shows beside the type’s name in the menu.
+components/types/icon-picker.tsx	Search icons
+components/ui/breadcrumb.tsx	More
+components/ui/breadcrumb.tsx	breadcrumb
+components/ui/dialog.tsx	Close
+components/ui/sheet.tsx	Close
+components/ui/sidebar.tsx	Main menu
+components/ui/sidebar.tsx	Main menu
+components/ui/sidebar.tsx	The menu for every admin screen.
+components/ui/sidebar.tsx	Toggle sidebar
+components/ui/sidebar.tsx	Toggle sidebar
+components/ui/sidebar.tsx	Toggle sidebar
+components/ui/spinner.tsx	Loading
+components/user-menu-content.tsx	Preferences
+components/user-menu-content.tsx	Profile
+components/user-menu-content.tsx	Security
+components/user-menu-content.tsx	Sign out
+layouts/account/layout.tsx	Account
+layouts/account/layout.tsx	Account
+layouts/account/layout.tsx	Notifications
+layouts/account/layout.tsx	Preferences
+layouts/account/layout.tsx	Profile
+layouts/account/layout.tsx	Security
+layouts/account/layout.tsx	Signed in as {}. Each panel saves on its own.
+layouts/auth/auth-simple-layout.tsx	Powered by Teme
+layouts/settings/layout.tsx	Clear
+layouts/settings/layout.tsx	Find a setting
+layouts/settings/layout.tsx	Find a setting, e.g. time zone
+layouts/settings/layout.tsx	No setting matches
+layouts/settings/layout.tsx	Searching…
+layouts/settings/layout.tsx	Settings
+layouts/settings/layout.tsx	Settings search
+layouts/settings/layout.tsx	Try another word. The search reads every setting’s name and description.
+layouts/settings/layout.tsx	{} for “{}”
+lib/discussion.ts	Closed
+lib/discussion.ts	Hidden
+lib/discussion.ts	Open
+pages/account/preferences.tsx	Appearance
+pages/account/preferences.tsx	Dark
+pages/account/preferences.tsx	Light
+pages/account/preferences.tsx	Match the system
+pages/account/preferences.tsx	Preferences
+pages/account/preferences.tsx	Preferences
+pages/account/preferences.tsx	Save preferences
+pages/account/preferences.tsx	Saved as you choose.
+pages/account/preferences.tsx	Your choice couldn’t be saved, so the admin is back as it was. Try again in a moment.
+pages/account/preferences.tsx	{} Saved as you choose.
+pages/account/preferences.tsx	{} Saved as you choose.
+pages/account/profile.tsx	Bio
+pages/account/profile.tsx	Email address
+pages/account/profile.tsx	Email address
+pages/account/profile.tsx	Full name
+pages/account/profile.tsx	Name
+pages/account/profile.tsx	Profile
+pages/account/profile.tsx	Profile
+pages/account/profile.tsx	Profile
+pages/account/profile.tsx	Resend confirmation email
+pages/account/profile.tsx	Save
+pages/account/profile.tsx	Sent. Check your email for the new link.
+pages/account/profile.tsx	Shown on your author page and under your posts.
+pages/account/profile.tsx	Update your name and email address
+pages/account/profile.tsx	Your email address isn’t confirmed yet.
+pages/account/security.tsx	Confirm password
+pages/account/security.tsx	Confirm password
+pages/account/security.tsx	Current password
+pages/account/security.tsx	Current password
+pages/account/security.tsx	New password
+pages/account/security.tsx	New password
+pages/account/security.tsx	Save
+pages/account/security.tsx	Security
+pages/account/security.tsx	Security
+pages/account/security.tsx	Update password
+pages/account/security.tsx	Use a long, random password.
+pages/auth/accept-invitation.tsx	Choose a password to finish setting up your account.
+pages/auth/accept-invitation.tsx	Choose your password
+pages/auth/accept-invitation.tsx	Confirm password
+pages/auth/accept-invitation.tsx	Confirm password
+pages/auth/accept-invitation.tsx	Email
+pages/auth/accept-invitation.tsx	Password
+pages/auth/accept-invitation.tsx	Password
+pages/auth/accept-invitation.tsx	Set password
+pages/auth/accept-invitation.tsx	Welcome
+pages/auth/confirm-password.tsx	Confirm password
+pages/auth/confirm-password.tsx	Confirm password
+pages/auth/confirm-password.tsx	Confirm password
+pages/auth/confirm-password.tsx	Confirm your password to continue.
+pages/auth/confirm-password.tsx	Password
+pages/auth/confirm-password.tsx	Password
+pages/auth/forgot-password.tsx	Back to sign in
+pages/auth/forgot-password.tsx	Email address
+pages/auth/forgot-password.tsx	Email password reset link
+pages/auth/forgot-password.tsx	Enter your email to receive a password reset link
+pages/auth/forgot-password.tsx	Forgot password
+pages/auth/forgot-password.tsx	Forgot password
+pages/auth/forgot-password.tsx	email@example.com
+pages/auth/login.tsx	Email address
+pages/auth/login.tsx	Forgot your password?
+pages/auth/login.tsx	Password
+pages/auth/login.tsx	Password
+pages/auth/login.tsx	Remember me
+pages/auth/login.tsx	Sign in
+pages/auth/login.tsx	Sign in
+pages/auth/login.tsx	Sign in
+pages/auth/login.tsx	Use your email address and password.
+pages/auth/login.tsx	email@example.com
+pages/auth/reset-password.tsx	Choose a new password.
+pages/auth/reset-password.tsx	Confirm password
+pages/auth/reset-password.tsx	Confirm password
+pages/auth/reset-password.tsx	Email
+pages/auth/reset-password.tsx	Password
+pages/auth/reset-password.tsx	Password
+pages/auth/reset-password.tsx	Reset password
+pages/auth/reset-password.tsx	Reset password
+pages/auth/reset-password.tsx	Reset password
+pages/auth/two-factor-challenge.tsx	Authentication code
+pages/auth/two-factor-challenge.tsx	Authentication code
+pages/auth/two-factor-challenge.tsx	Continue
+pages/auth/two-factor-challenge.tsx	Enter recovery code
+pages/auth/two-factor-challenge.tsx	Recovery code
+pages/auth/two-factor-challenge.tsx	Recovery code
+pages/auth/two-factor-challenge.tsx	Two-factor sign-in
+pages/auth/two-factor-challenge.tsx	Type one of your recovery codes.
+pages/auth/two-factor-challenge.tsx	Type the 6-digit code your authenticator app shows.
+pages/auth/verify-email.tsx	Click the link we emailed you to confirm your address.
+pages/auth/verify-email.tsx	Email verification
+pages/auth/verify-email.tsx	Email verification
+pages/auth/verify-email.tsx	Resend verification email
+pages/auth/verify-email.tsx	Sent. Check your email for the new link.
+pages/auth/verify-email.tsx	Sign out
+pages/comments/index.tsx	Actions for the comment by {}
+pages/comments/index.tsx	Approve
+pages/comments/index.tsx	Approve
+pages/comments/index.tsx	Approve
+pages/comments/index.tsx	Clear filters
+pages/comments/index.tsx	Comments
+pages/comments/index.tsx	Comments
+pages/comments/index.tsx	Delete permanently
+pages/comments/index.tsx	Details
+pages/comments/index.tsx	Empty spam
+pages/comments/index.tsx	Empty trash
+pages/comments/index.tsx	In reply to a removed comment
+pages/comments/index.tsx	In reply to {}
+pages/comments/index.tsx	Keyboard:
+pages/comments/index.tsx	Mark as not spam
+pages/comments/index.tsx	Mark as not spam
+pages/comments/index.tsx	Mark as spam
+pages/comments/index.tsx	Mark as spam
+pages/comments/index.tsx	Mark as spam
+pages/comments/index.tsx	Move to trash
+pages/comments/index.tsx	No approved comments
+pages/comments/index.tsx	No comments match these filters
+pages/comments/index.tsx	No comments match “{}”
+pages/comments/index.tsx	No comments yet
+pages/comments/index.tsx	No spam
+pages/comments/index.tsx	Nothing is waiting
+pages/comments/index.tsx	On “{}”
+pages/comments/index.tsx	Pending
+pages/comments/index.tsx	Quick edit
+pages/comments/index.tsx	Reply
+pages/comments/index.tsx	Restore
+pages/comments/index.tsx	Restore
+pages/comments/index.tsx	Search
+pages/comments/index.tsx	Search comments
+pages/comments/index.tsx	Select all {} comments shown
+pages/comments/index.tsx	Select the 1 comment shown
+pages/comments/index.tsx	Select the comment by {}
+pages/comments/index.tsx	Show comments on every item
+pages/comments/index.tsx	Text, name or email
+pages/comments/index.tsx	Text, name, email or IP address
+pages/comments/index.tsx	The trash is empty
+pages/comments/index.tsx	Unapprove
+pages/comments/index.tsx	Unapprove
+pages/comments/index.tsx	Unapprove
+pages/comments/index.tsx	Views
+pages/comments/off.tsx	Comments are switched off
+pages/comments/off.tsx	Comments are switched off
+pages/comments/off.tsx	Go to Home
+pages/comments/off.tsx	Switch comments on
+pages/comments/off.tsx	This site takes no comments, so there’s nothing to moderate. Comments already stored are kept.
+pages/comments/refused.tsx	Comments
+pages/comments/refused.tsx	Comments
+pages/content/compare.tsx	After
+pages/content/compare.tsx	Back to the editor
+pages/content/compare.tsx	Before
+pages/content/compare.tsx	Compare
+pages/content/compare.tsx	Compare versions of “{}”
+pages/content/compare.tsx	Compare: {}
+pages/content/compare.tsx	Restore the {} version
+pages/content/compare.tsx	What changed between two revisions. Nothing here changes the article.
+pages/content/edit.tsx	Assistant
+pages/content/edit.tsx	Body
+pages/content/edit.tsx	Document overview
+pages/content/edit.tsx	Edit:
+pages/content/edit.tsx	Edit: {}
+pages/content/edit.tsx	Every saved version
+pages/content/edit.tsx	Hide or show everything but the writing
+pages/content/edit.tsx	History
+pages/content/edit.tsx	Open history
+pages/content/edit.tsx	Region: {}
+pages/content/edit.tsx	Region: {}, used by {}
+pages/content/edit.tsx	Share
+pages/content/edit.tsx	The connection failed. Try again.
+pages/content/edit.tsx	Title
+pages/content/edit.tsx	Toggle focus mode
+pages/content/edit.tsx	Untitled
+pages/content/edit.tsx	Untitled
+pages/content/index.tsx	. Select them and try again.
+pages/content/index.tsx	; {} not changed
+pages/content/index.tsx	Actions for {}
+pages/content/index.tsx	Add new
+pages/content/index.tsx	Add new
+pages/content/index.tsx	Add new {}
+pages/content/index.tsx	Address
+pages/content/index.tsx	All authors
+pages/content/index.tsx	All their revisions go with them. This can’t be undone.
+pages/content/index.tsx	All {}
+pages/content/index.tsx	Alt text for this
+pages/content/index.tsx	Approve
+pages/content/index.tsx	Author
+pages/content/index.tsx	Author
+pages/content/index.tsx	Cancel
+pages/content/index.tsx	Change…
+pages/content/index.tsx	Changing a published address takes effect at once, and the old one stops working.
+pages/content/index.tsx	Choose…
+pages/content/index.tsx	Clear filters
+pages/content/index.tsx	Delete permanently
+pages/content/index.tsx	Delete permanently
+pages/content/index.tsx	Delete permanently
+pages/content/index.tsx	Delete permanently
+pages/content/index.tsx	Delete {} {} permanently?
+pages/content/index.tsx	Delete “{}” permanently?
+pages/content/index.tsx	Delete “{}” permanently?
+pages/content/index.tsx	Discussion
+pages/content/index.tsx	Edit
+pages/content/index.tsx	Edit…
+pages/content/index.tsx	Everything of this kind on the site. A filtered list shows no total.
+pages/content/index.tsx	Failed
+pages/content/index.tsx	Featured image
+pages/content/index.tsx	Featured image
+pages/content/index.tsx	Featured image
+pages/content/index.tsx	Held
+pages/content/index.tsx	In text
+pages/content/index.tsx	In titles
+pages/content/index.tsx	Last modified
+pages/content/index.tsx	Leave empty to use the image's own
+pages/content/index.tsx	Move to trash
+pages/content/index.tsx	No featured image
+pages/content/index.tsx	No {} here yet
+pages/content/index.tsx	No {} match these filters
+pages/content/index.tsx	None
+pages/content/index.tsx	Preview
+pages/content/index.tsx	Published
+pages/content/index.tsx	Published
+pages/content/index.tsx	Published text only
+pages/content/index.tsx	Quick edit
+pages/content/index.tsx	Quick edit
+pages/content/index.tsx	Remove
+pages/content/index.tsx	Remove the filter: {}
+pages/content/index.tsx	Remove the filter: {}
+pages/content/index.tsx	Restore
+pages/content/index.tsx	Save
+pages/content/index.tsx	Search in
+pages/content/index.tsx	Search text
+pages/content/index.tsx	Search text
+pages/content/index.tsx	Search titles
+pages/content/index.tsx	Search titles
+pages/content/index.tsx	Select all on this page
+pages/content/index.tsx	Select {}
+pages/content/index.tsx	Skipped:
+pages/content/index.tsx	Something went wrong, so these weren’t changed:
+pages/content/index.tsx	Status
+pages/content/index.tsx	Submitted
+pages/content/index.tsx	The trash is empty
+pages/content/index.tsx	Title
+pages/content/index.tsx	View
+pages/content/index.tsx	Whoever publishes it sets this.
+pages/content/index.tsx	a removed account
+pages/content/index.tsx	by
+pages/content/index.tsx	changed;
+pages/content/index.tsx	changed;
+pages/content/index.tsx	skipped
+pages/content/index.tsx	skipped:
+pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
+pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
+pages/dashboard.tsx	Home
+pages/dashboard.tsx	Home
+pages/dashboard.tsx	Home
+pages/dashboard.tsx	New
+pages/dashboard.tsx	Nothing needs you right now.
+pages/dashboard.tsx	Your work first, then the site's figures
+pages/inbox/index.tsx	Inbox
+pages/inbox/index.tsx	Inbox
+pages/inbox/index.tsx	Inbox
+pages/inbox/index.tsx	Mark all as read
+pages/inbox/index.tsx	Results of background work you started, such as imports. Each is kept for 90 days.
+pages/inbox/index.tsx	unread
+pages/media/index.tsx	Clear filters
+pages/media/index.tsx	Every file the site uses.
+pages/media/index.tsx	Files you move to the trash wait here. Restore one and every item that used it shows it again.
+pages/media/index.tsx	Grid
+pages/media/index.tsx	Layout
+pages/media/index.tsx	List
+pages/media/index.tsx	Media
+pages/media/index.tsx	Media
+pages/media/index.tsx	Missing
+pages/media/index.tsx	Newest first
+pages/media/index.tsx	No files yet
+pages/media/index.tsx	Nothing matches these filters
+pages/media/index.tsx	Oldest first
+pages/media/index.tsx	Order
+pages/media/index.tsx	The trash is empty
+pages/media/index.tsx	Upload files
+pages/media/index.tsx	Upload files
+pages/media/index.tsx	Upload images, video, audio and documents, or drop them anywhere on this page.
+pages/media/index.tsx	Views
+pages/navigation/edit.tsx	Add an item
+pages/navigation/edit.tsx	Add item
+pages/navigation/edit.tsx	Add the home page, pages, posts, categories, tags or any address.
+pages/navigation/edit.tsx	Arrange the items, then save. An item that points at a page, post, category or tag takes its title unless you give it a label.
+pages/navigation/edit.tsx	Cancel
+pages/navigation/edit.tsx	Delete menu
+pages/navigation/edit.tsx	Delete the menu “{}”?
+pages/navigation/edit.tsx	Delete…
+pages/navigation/edit.tsx	It isn’t shown anywhere. This cannot be undone.
+pages/navigation/edit.tsx	Items
+pages/navigation/edit.tsx	Menu
+pages/navigation/edit.tsx	Move an item with its buttons, or with Alt and the arrow keys: up and down to reorder, right to put it under the item above, left to bring it out. Menus go three levels deep.
+pages/navigation/edit.tsx	Name
+pages/navigation/edit.tsx	Navigation
+pages/navigation/edit.tsx	None
+pages/navigation/edit.tsx	Only the name changes. Themes that show this menu keep showing it.
+pages/navigation/edit.tsx	Rename
+pages/navigation/edit.tsx	Rename menu
+pages/navigation/edit.tsx	Rename the menu
+pages/navigation/edit.tsx	Save menu
+pages/navigation/edit.tsx	Show in
+pages/navigation/edit.tsx	This menu has no items yet
+pages/navigation/edit.tsx	Unsaved changes
+pages/navigation/edit.tsx	Where {} shows a menu. Each place shows one menu.
+pages/navigation/edit.tsx	{} (this menu)
+pages/navigation/edit.tsx	{} will show no menu until you choose another. This cannot be undone.
+pages/navigation/index.tsx	A menu is a list of links to pages, posts, categories, the home page or any address.
+pages/navigation/index.tsx	Actions for {}
+pages/navigation/index.tsx	Create a menu
+pages/navigation/index.tsx	Create menu
+pages/navigation/index.tsx	Delete menu
+pages/navigation/index.tsx	Delete the menu “{}”?
+pages/navigation/index.tsx	Delete…
+pages/navigation/index.tsx	Edit
+pages/navigation/index.tsx	It isn’t shown anywhere. This cannot be undone.
+pages/navigation/index.tsx	Main menu
+pages/navigation/index.tsx	Navigation
+pages/navigation/index.tsx	Navigation
+pages/navigation/index.tsx	New menu
+pages/navigation/index.tsx	No menus yet
+pages/navigation/index.tsx	The menus visitors use to find their way around the site. Build a menu, then choose where the theme shows it.
+pages/navigation/index.tsx	{} will show no menu until you choose another. This cannot be undone.
+pages/regions/index.tsx	Actions
+pages/regions/index.tsx	Create
+pages/regions/index.tsx	Edit
+pages/regions/index.tsx	From other themes
+pages/regions/index.tsx	Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.
+pages/regions/index.tsx	No theme is in use
+pages/regions/index.tsx	Regions
+pages/regions/index.tsx	Regions
+pages/regions/index.tsx	Text only
+pages/regions/index.tsx	Theme no longer installed
+pages/regions/index.tsx	There’s nothing to fill here while {} is the active theme.
+pages/regions/index.tsx	Your own content in the spots the active theme sets aside, such as a box after each article.
+pages/regions/index.tsx	Your own content in the spots the active theme, {}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.
+pages/regions/index.tsx	{} has no regions
+pages/settings/addresses.tsx	Addresses
+pages/settings/addresses.tsx	Addresses settings
+pages/settings/addresses.tsx	At {}. Its feed is at {}.
+pages/settings/addresses.tsx	Author base
+pages/settings/addresses.tsx	Bases
+pages/settings/addresses.tsx	Choose the home page
+pages/settings/addresses.tsx	Custom
+pages/settings/addresses.tsx	Custom {} address
+pages/settings/addresses.tsx	Day and name
+pages/settings/addresses.tsx	Every address is up to date.
+pages/settings/addresses.tsx	Month and name
+pages/settings/addresses.tsx	Numeric
+pages/settings/addresses.tsx	Old addresses keep working: visitors and search engines are sent to the new one.
+pages/settings/addresses.tsx	Other addresses
+pages/settings/addresses.tsx	Post name
+pages/settings/addresses.tsx	Save address settings
+pages/settings/addresses.tsx	The home page and the posts page are chosen in Reading.
+pages/settings/addresses.tsx	The public addresses of every public type, taxonomy and author.
+pages/settings/addresses.tsx	These would share an address:
+pages/settings/addresses.tsx	Updating addresses:
+pages/settings/addresses.tsx	Your newest
+pages/settings/addresses.tsx	address
+pages/settings/addresses.tsx	base
+pages/settings/addresses.tsx	of
+pages/settings/addresses.tsx	will share the root with other addresses.
+pages/settings/addresses.tsx	would be at
+pages/settings/addresses.tsx	{} address
+pages/settings/addresses.tsx	{} archive page
+pages/settings/addresses.tsx	{} shows {} instead, because it had the address first. Give the archive page another address, or move {}.
+pages/settings/ai.tsx	AI
+pages/settings/ai.tsx	AI is switched off on this server.
+pages/settings/ai.tsx	AI services
+pages/settings/ai.tsx	AI settings
+pages/settings/ai.tsx	Choose the model each task uses. A task with no model is off, and nobody sees it. The fallback is asked once when the first model can’t be reached or is busy.
+pages/settings/ai.tsx	Each service needs a key from your account with that company. A task’s text goes only to the service whose model the task uses.
+pages/settings/ai.tsx	How often one person may ask, and how much the site may spend in a month.
+pages/settings/ai.tsx	No AI task is installed yet.
+pages/settings/ai.tsx	No AI task is on yet.
+pages/settings/ai.tsx	Nobody is offered AI and nothing is sent to an AI service. These settings can’t be changed until your host switches it on again; they’re kept as they were.
+pages/settings/ai.tsx	Save AI settings
+pages/settings/ai.tsx	Saving may ask for your password. If it does, you’ll come back here to save again, and any key you typed must be typed again.
+pages/settings/ai.tsx	Set a key for one of the services below and save, then choose a model for each task under Models.
+pages/settings/discussion.tsx	Comments are an optional part of Teme, switched on or off for the whole site.
+pages/settings/discussion.tsx	Comments are off, so the settings for them are hidden. They’re kept, unchanged, for when comments are switched back on.
+pages/settings/discussion.tsx	Comments on this site
+pages/settings/discussion.tsx	Discussion
+pages/settings/discussion.tsx	Discussion settings
+pages/settings/discussion.tsx	Only administrators can switch comments on or off.
+pages/settings/discussion.tsx	Save discussion settings
+pages/settings/discussion.tsx	Save the comments switch
+pages/settings/discussion.tsx	Saves this switch only.
+pages/settings/group.tsx	Save {} settings
+pages/settings/group.tsx	The default is {}.
+pages/settings/group.tsx	{} settings
+pages/settings/group.tsx	{}’s own number is {}.
+pages/settings/search-and-social.tsx	As last saved.
+pages/settings/search-and-social.tsx	Each category, tag and author has one too: its own address, then /feed/.
+pages/settings/search-and-social.tsx	Every page asks search engines not to list it, whatever these rows say.
+pages/settings/search-and-social.tsx	Feed
+pages/settings/search-and-social.tsx	Goes between the parts of every title. Empty uses the one
+pages/settings/search-and-social.tsx	It asks search engines to stay away, whatever these settings say. The live site follows them.
+pages/settings/search-and-social.tsx	It doesn’t change while search engines are discouraged: a search engine kept out couldn’t read each page’s request not to be listed.
+pages/settings/search-and-social.tsx	No verification tags.
+pages/settings/search-and-social.tsx	Open the 404 log
+pages/settings/search-and-social.tsx	Page 2 shows as:
+pages/settings/search-and-social.tsx	Save search and social settings
+pages/settings/search-and-social.tsx	Scripts belong in
+pages/settings/search-and-social.tsx	Search and social
+pages/settings/search-and-social.tsx	Search and social settings
+pages/settings/search-and-social.tsx	Search engines are asked to stay away from the whole site.
+pages/settings/search-and-social.tsx	Separator
+pages/settings/search-and-social.tsx	Shows as:
+pages/settings/search-and-social.tsx	Site code
+pages/settings/search-and-social.tsx	Site code
+pages/settings/search-and-social.tsx	Sitemap
+pages/settings/search-and-social.tsx	Switched off while search engines are discouraged
+pages/settings/search-and-social.tsx	Teme writes all three from the settings below, so none of them is a file to edit.
+pages/settings/search-and-social.tsx	Teme’s list:
+pages/settings/search-and-social.tsx	This copy isn’t the live site.
+pages/settings/search-and-social.tsx	Titles are made from templates. Tokens:
+pages/settings/search-and-social.tsx	Titles, and hiding from search engines, by kind of page
+pages/settings/search-and-social.tsx	User-agent: * Disallow: /print/
+pages/settings/search-and-social.tsx	What robots.txt says now
+pages/settings/search-and-social.tsx	What search engines and feed readers fetch
+pages/settings/search-and-social.tsx	gives “Page 2 of 7” from the second page on, and empty tokens and doubled separators are dropped. An item’s own SEO title takes the place of its template, word for word.
+pages/settings/search-and-social.tsx	is the page’s own heading: an item’s title, an archive’s name, or what was searched for.
+pages/settings/search-and-social.tsx	robots.txt
+pages/settings/search-and-social.tsx	suggests, “
+pages/settings/search-and-social.tsx	{page}
+pages/settings/search-and-social.tsx	{title}
+pages/settings/site-code.tsx	Add code
+pages/settings/site-code.tsx	Add code
+pages/settings/site-code.tsx	Add code to every page
+pages/settings/site-code.tsx	Added to every public page, in the place you chose.
+pages/settings/site-code.tsx	After
+pages/settings/site-code.tsx	Before
+pages/settings/site-code.tsx	Before and after
+pages/settings/site-code.tsx	Cancel
+pages/settings/site-code.tsx	Changes
+pages/settings/site-code.tsx	Code
+pages/settings/site-code.tsx	Code added to every public page, such as analytics. To show something from another site in one item, add an Embed card to that item instead.
+pages/settings/site-code.tsx	Code here runs in every reader’s browser.
+pages/settings/site-code.tsx	Delete
+pages/settings/site-code.tsx	Delete code
+pages/settings/site-code.tsx	Delete “{}”?
+pages/settings/site-code.tsx	Edit
+pages/settings/site-code.tsx	Edit “{}”
+pages/settings/site-code.tsx	It runs in yours too when you view the site, and in everyone’s who’s signed in. Add only code you trust. Saving may ask for your password, and every change is logged, with what it was before.
+pages/settings/site-code.tsx	It’s taken out of every public page. The list of changes keeps a copy of its code.
+pages/settings/site-code.tsx	Last changed by
+pages/settings/site-code.tsx	Name
+pages/settings/site-code.tsx	Name it, choose where it goes, and paste the code.
+pages/settings/site-code.tsx	Newest first. The security log keeps each one for a year.
+pages/settings/site-code.tsx	No changes yet.
+pages/settings/site-code.tsx	None of the code below is added to any page, and none of it can be changed here. It’s kept as it was, for when the host allows site code again.
+pages/settings/site-code.tsx	Nothing
+pages/settings/site-code.tsx	Nothing
+pages/settings/site-code.tsx	Nothing here.
+pages/settings/site-code.tsx	Off keeps it here without adding it to any page.
+pages/settings/site-code.tsx	Save code
+pages/settings/site-code.tsx	Site code
+pages/settings/site-code.tsx	Site code settings
+pages/settings/site-code.tsx	So everyone can tell what it is, such as “Visitor analytics”.
+pages/settings/site-code.tsx	Switch off
+pages/settings/site-code.tsx	Switch on
+pages/settings/site-code.tsx	Switched on
+pages/settings/site-code.tsx	Teme already describes each page to search engines. A script of type application/ld+json here adds a second description, which search engines read separately and may find at odds with Teme’s.
+pages/settings/site-code.tsx	The host has switched site code off.
+pages/settings/site-code.tsx	This code holds structured data.
+pages/settings/site-code.tsx	Where it goes
+pages/taxonomies/index.tsx	Actions for {}
+pages/taxonomies/index.tsx	Add new taxonomy
+pages/taxonomies/index.tsx	Can’t be used
+pages/taxonomies/index.tsx	Can’t be used:
+pages/taxonomies/index.tsx	Code
+pages/taxonomies/index.tsx	Delete
+pages/taxonomies/index.tsx	Delete {}
+pages/taxonomies/index.tsx	Delete {}?
+pages/taxonomies/index.tsx	Download teme-types.json
+pages/taxonomies/index.tsx	Edit
+pages/taxonomies/index.tsx	Edit to fix
+pages/taxonomies/index.tsx	It has no terms, so only the taxonomy goes.
+pages/taxonomies/index.tsx	Made here
+pages/taxonomies/index.tsx	Open {}
+pages/taxonomies/index.tsx	Taxonomies
+pages/taxonomies/index.tsx	Taxonomies
+pages/taxonomies/index.tsx	Taxonomies
+pages/taxonomies/index.tsx	Taxonomies are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
+pages/taxonomies/index.tsx	The ways this site groups its content, such as categories and tags. Taxonomies declared by code are shown, but can’t be changed here.
+pages/taxonomies/index.tsx	View
+pages/taxonomies/index.tsx	You can still look at each taxonomy, and download teme-types.json.
+pages/taxonomies/index.tsx	php artisan teme:types:import
+pages/taxonomies/show.tsx	, which keeps every old address working as a redirect.
+pages/taxonomies/show.tsx	/admin/
+pages/taxonomies/show.tsx	Add taxonomy
+pages/taxonomies/show.tsx	Address base
+pages/taxonomies/show.tsx	Admin address
+pages/taxonomies/show.tsx	Arranged
+pages/taxonomies/show.tsx	Beside the name on Site › Taxonomies.
+pages/taxonomies/show.tsx	Can’t be used:
+pages/taxonomies/show.tsx	Change icon
+pages/taxonomies/show.tsx	Change in Settings › Addresses
+pages/taxonomies/show.tsx	Change in Settings › Addresses
+pages/taxonomies/show.tsx	Delete
+pages/taxonomies/show.tsx	Delete
+pages/taxonomies/show.tsx	Delete this taxonomy
+pages/taxonomies/show.tsx	Delete {}
+pages/taxonomies/show.tsx	Delete {}?
+pages/taxonomies/show.tsx	Flat, as tags
+pages/taxonomies/show.tsx	For example
+pages/taxonomies/show.tsx	How terms are arranged
+pages/taxonomies/show.tsx	Icon
+pages/taxonomies/show.tsx	In the admin
+pages/taxonomies/show.tsx	In the editor, flat terms are typed, as tags are; nested ones are ticked in a list, as categories are.
+pages/taxonomies/show.tsx	It has no terms, so only the taxonomy goes.
+pages/taxonomies/show.tsx	Key
+pages/taxonomies/show.tsx	Key
+pages/taxonomies/show.tsx	Key
+pages/taxonomies/show.tsx	Names
+pages/taxonomies/show.tsx	Names
+pages/taxonomies/show.tsx	Nested, as categories
+pages/taxonomies/show.tsx	No
+pages/taxonomies/show.tsx	None
+pages/taxonomies/show.tsx	On the site
+pages/taxonomies/show.tsx	On the site
+pages/taxonomies/show.tsx	Open
+pages/taxonomies/show.tsx	Open
+pages/taxonomies/show.tsx	Open
+pages/taxonomies/show.tsx	Plural name
+pages/taxonomies/show.tsx	Plural name
+pages/taxonomies/show.tsx	Public address
+pages/taxonomies/show.tsx	Public address
+pages/taxonomies/show.tsx	Public pages
+pages/taxonomies/show.tsx	Save taxonomy
+pages/taxonomies/show.tsx	Settings › Addresses
+pages/taxonomies/show.tsx	Singular name
+pages/taxonomies/show.tsx	Singular name
+pages/taxonomies/show.tsx	Stored on every term, so it never changes.
+pages/taxonomies/show.tsx	Taxonomies
+pages/taxonomies/show.tsx	Taxonomies are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
+pages/taxonomies/show.tsx	Taxonomy
+pages/taxonomies/show.tsx	Terms
+pages/taxonomies/show.tsx	Terms
+pages/taxonomies/show.tsx	Terms
+pages/taxonomies/show.tsx	Terms have public pages
+pages/taxonomies/show.tsx	Their address base can still change:
+pages/taxonomies/show.tsx	Their editors offer a
+pages/taxonomies/show.tsx	Used by
+pages/taxonomies/show.tsx	Used by
+pages/taxonomies/show.tsx	What the taxonomy is called across the admin.
+pages/taxonomies/show.tsx	What the taxonomy is called across the admin.
+pages/taxonomies/show.tsx	Where its term screen is.
+pages/taxonomies/show.tsx	Where the term screen is in the admin. Changing it moves no public page; only bookmarks to the old admin address stop working.
+pages/taxonomies/show.tsx	Whether each term has a page of its own.
+pages/taxonomies/show.tsx	Whether each term has a page of its own.
+pages/taxonomies/show.tsx	Whether they sit under one another, and which types use them.
+pages/taxonomies/show.tsx	Whether they sit under one another, and which types use them.
+pages/taxonomies/show.tsx	Yes
+pages/taxonomies/show.tsx	You can still look at each taxonomy, and download teme-types.json.
+pages/taxonomies/show.tsx	are declared by code, so they can’t be changed or deleted here.
+pages/taxonomies/show.tsx	genre
+pages/taxonomies/show.tsx	php artisan teme:types:import
+pages/taxonomies/show.tsx	picker, and a
+pages/taxonomies/show.tsx	’s page lists their items. The same choice as each type’s Taxonomies, on Site › Types.
+pages/terms/index.tsx	, under {}
+pages/terms/index.tsx	Actions for {}
+pages/terms/index.tsx	Add
+pages/terms/index.tsx	Address
+pages/terms/index.tsx	Cancel
+pages/terms/index.tsx	Delete
+pages/terms/index.tsx	Delete {}
+pages/terms/index.tsx	Delete “{}”?
+pages/terms/index.tsx	Description
+pages/terms/index.tsx	Edit
+pages/terms/index.tsx	Edit
+pages/terms/index.tsx	Find a {} by name
+pages/terms/index.tsx	Kind
+pages/terms/index.tsx	Name
+pages/terms/index.tsx	New
+pages/terms/index.tsx	No {} start with “{}”
+pages/terms/index.tsx	No {} yet
+pages/terms/index.tsx	None
+pages/terms/index.tsx	Parent
+pages/terms/index.tsx	Save
+pages/terms/index.tsx	Search
+pages/terms/index.tsx	Search
+pages/terms/index.tsx	Set up
+pages/terms/index.tsx	Some themes show it on the {}’s page, and search engines may show it in results.
+pages/terms/index.tsx	The last part of its address. Leave it empty to make one from the name.
+pages/terms/index.tsx	Use the form to add the first one.
+pages/terms/index.tsx	{} in {}
+pages/themes/index.tsx	A menu you choose here shows once you publish, and replaces whatever Content › Navigation sets for that place. Places you don’t change here keep Navigation’s menu.
+pages/themes/index.tsx	Archive
+pages/themes/index.tsx	Content
+pages/themes/index.tsx	Discard
+pages/themes/index.tsx	Edit menus
+pages/themes/index.tsx	How the public site looks. A theme draws the site; it adds no features of its own.
+pages/themes/index.tsx	Latest posts
+pages/themes/index.tsx	Menus
+pages/themes/index.tsx	None
+pages/themes/index.tsx	Open Settings › General
+pages/themes/index.tsx	Preview
+pages/themes/index.tsx	Publish
+pages/themes/index.tsx	Saved as a draft.
+pages/themes/index.tsx	Saving the draft…
+pages/themes/index.tsx	Site
+pages/themes/index.tsx	The last change was not saved. Check the fields marked below.
+pages/themes/index.tsx	The site’s name, tagline and brand colour stay when you change theme.
+pages/themes/index.tsx	Themes
+pages/themes/index.tsx	Themes
+pages/themes/index.tsx	Unpublished design changes
+pages/themes/index.tsx	Unpublished design changes
+pages/themes/index.tsx	Visitors see these once you activate
+pages/themes/index.tsx	has no settings or menu places of its own.
+pages/themes/index.tsx	settings
+pages/themes/index.tsx	· by {}
+pages/tools/ai-activity.tsx	1 request used a model with no price, so its cost is left out.
+pages/tools/ai-activity.tsx	A removed person
+pages/tools/ai-activity.tsx	AI activity
+pages/tools/ai-activity.tsx	AI activity
+pages/tools/ai-activity.tsx	AI activity
+pages/tools/ai-activity.tsx	AI is switched off on this server.
+pages/tools/ai-activity.tsx	AI is unavailable to everyone until the new month starts.
+pages/tools/ai-activity.tsx	Actions
+pages/tools/ai-activity.tsx	All tasks
+pages/tools/ai-activity.tsx	Any month
+pages/tools/ai-activity.tsx	Budget
+pages/tools/ai-activity.tsx	Change the budget
+pages/tools/ai-activity.tsx	Clear filters
+pages/tools/ai-activity.tsx	Cost is Teme’s own sum from each model’s price, in US dollars, so it can differ a little from an AI company’s invoice. Requests are removed after 12 months; the monthly totals stay.
+pages/tools/ai-activity.tsx	Details
+pages/tools/ai-activity.tsx	Details of the {} request on {}
+pages/tools/ai-activity.tsx	Every AI request, newest first. Teme keeps the figures, never the text sent or the answer; when AI’s alt text is used, it also keeps the image’s alt text from before and after. Requests are removed after 12 months.
+pages/tools/ai-activity.tsx	Everyone
+pages/tools/ai-activity.tsx	Filter
+pages/tools/ai-activity.tsx	Filter AI requests
+pages/tools/ai-activity.tsx	Month
+pages/tools/ai-activity.tsx	Months follow UTC, as the AI companies bill.
+pages/tools/ai-activity.tsx	No AI requests yet
+pages/tools/ai-activity.tsx	No requests match these filters
+pages/tools/ai-activity.tsx	Nobody can ask for a suggestion until the host switches it on again. The requests below stay.
+pages/tools/ai-activity.tsx	None
+pages/tools/ai-activity.tsx	None set
+pages/tools/ai-activity.tsx	Person
+pages/tools/ai-activity.tsx	Requests
+pages/tools/ai-activity.tsx	Requests are removed after 12 months.
+pages/tools/ai-activity.tsx	Set a budget
+pages/tools/ai-activity.tsx	Spent
+pages/tools/ai-activity.tsx	Task
+pages/tools/ai-activity.tsx	That request is gone.
+pages/tools/ai-activity.tsx	The budget is reached.
+pages/tools/ai-activity.tsx	This month: {}
+pages/tools/ai-activity.tsx	Tools
+pages/tools/ai-activity.tsx	When someone asks AI for a suggestion, the request appears here with what it cost.
+pages/tools/ai-activity.tsx	{} a month, {}
+pages/tools/ai-activity.tsx	{} requests used a model with no price, so their cost is left out.
+pages/tools/backups/index.tsx	A recovery key waiting to be finished
+pages/tools/backups/index.tsx	Backups
+pages/tools/backups/index.tsx	Backups
+pages/tools/backups/index.tsx	Backups
+pages/tools/backups/index.tsx	Cancelled {}
+pages/tools/backups/index.tsx	Encrypted copies of the database and the media, kept where you choose, and checked by reading them back.
+pages/tools/backups/index.tsx	If you wrote
+pages/tools/backups/index.tsx	Or add the key again from Recovery keys.
+pages/tools/backups/index.tsx	Restoring
+pages/tools/backups/index.tsx	Restoring is done at the server:
+pages/tools/backups/index.tsx	Show a new key instead
+pages/tools/backups/index.tsx	Tools
+pages/tools/backups/index.tsx	and
+pages/tools/backups/index.tsx	checks everything first, backs the site up as it is, then restores. Restoring from this screen comes in a later version.
+pages/tools/backups/index.tsx	down, type groups
+pages/tools/backups/index.tsx	php artisan teme:backup:restore
+pages/tools/backups/index.tsx	to finish. If you never saw it, show a new key instead.
+pages/tools/backups/index.tsx	{} failed: {}
+pages/tools/backups/index.tsx	{} finished
+pages/tools/backups/new-key.tsx	Add a recovery key
+pages/tools/backups/new-key.tsx	Add a recovery key
+pages/tools/backups/new-key.tsx	Add a recovery key
+pages/tools/backups/new-key.tsx	Another key that opens every place, for someone else to keep: a partner, a colleague, a sealed envelope.
+pages/tools/backups/new-key.tsx	Backups
+pages/tools/backups/new-key.tsx	Make the key
+pages/tools/backups/new-key.tsx	Making the key…
+pages/tools/backups/new-key.tsx	Name it after who keeps it, such as Sam’s key.
+pages/tools/backups/new-key.tsx	Name the key
+pages/tools/backups/new-key.tsx	Tools
+pages/tools/backups/place.tsx	Add the place
+pages/tools/backups/place.tsx	Adding…
+pages/tools/backups/place.tsx	Another place to keep backups, kept in step with the others.
+pages/tools/backups/place.tsx	Backups
+pages/tools/backups/place.tsx	Cancel
+pages/tools/backups/place.tsx	Continue
+pages/tools/backups/place.tsx	Continue
+pages/tools/backups/place.tsx	Its name, or where it is. Teme checks that the backups at the new address are the same ones.
+pages/tools/backups/place.tsx	Making the place can take a few minutes on a distant server. Keep this page open.
+pages/tools/backups/place.tsx	Reading the server’s fingerprint…
+pages/tools/backups/place.tsx	Save changes
+pages/tools/backups/place.tsx	Saving…
+pages/tools/backups/place.tsx	Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.
+pages/tools/backups/place.tsx	Tools
+pages/tools/backups/place.tsx	Your recovery key
+pages/tools/backups/recovery-key.tsx	Backups
+pages/tools/backups/recovery-key.tsx	Tools
+pages/tools/backups/recovery-key.tsx	Your recovery key
+pages/tools/backups/recovery-key.tsx	Your recovery key
+pages/tools/backups/set-up.tsx	Backups
+pages/tools/backups/set-up.tsx	Choose where backups are kept. Teme then shows you a recovery key, once.
+pages/tools/backups/set-up.tsx	Continue
+pages/tools/backups/set-up.tsx	Have a pen and paper or a printer ready.
+pages/tools/backups/set-up.tsx	Making the place can take a few minutes on a distant server. Keep this page open.
+pages/tools/backups/set-up.tsx	Name it after who keeps it, such as Ada’s key. You can add more keys later.
+pages/tools/backups/set-up.tsx	Name the recovery key
+pages/tools/backups/set-up.tsx	Reading the server’s fingerprint…
+pages/tools/backups/set-up.tsx	Set up backups
+pages/tools/backups/set-up.tsx	Set up backups
+pages/tools/backups/set-up.tsx	Set up backups
+pages/tools/backups/set-up.tsx	Set up backups
+pages/tools/backups/set-up.tsx	Setting up…
+pages/tools/backups/set-up.tsx	Tools
+pages/tools/backups/sftp.tsx	Add the place
+pages/tools/backups/sftp.tsx	Add this key to the server
+pages/tools/backups/sftp.tsx	Add this place’s public key to {}’s authorized_keys on {}, as you did on the old server.
+pages/tools/backups/sftp.tsx	Add this public key to {}’s authorized_keys on {}. It lets Teme sign in to that server only.
+pages/tools/backups/sftp.tsx	Adding…
+pages/tools/backups/sftp.tsx	Backups
+pages/tools/backups/sftp.tsx	Check the new server
+pages/tools/backups/sftp.tsx	Check the server
+pages/tools/backups/sftp.tsx	Check the server
+pages/tools/backups/sftp.tsx	Check the server
+pages/tools/backups/sftp.tsx	Check the server’s fingerprint
+pages/tools/backups/sftp.tsx	Copied the public key.
+pages/tools/backups/sftp.tsx	Copy
+pages/tools/backups/sftp.tsx	Public key
+pages/tools/backups/sftp.tsx	Save changes
+pages/tools/backups/sftp.tsx	Saving…
+pages/tools/backups/sftp.tsx	Set up backups
+pages/tools/backups/sftp.tsx	Setting up…
+pages/tools/backups/sftp.tsx	Start again
+pages/tools/backups/sftp.tsx	Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.
+pages/tools/backups/sftp.tsx	Teme made this key for the server. Add it there, then check the fingerprint.
+pages/tools/backups/sftp.tsx	The key is added, and the fingerprint is the server’s
+pages/tools/backups/sftp.tsx	The public key could not be copied. Select it and copy it by hand.
+pages/tools/backups/sftp.tsx	Tools
+pages/tools/backups/sftp.tsx	Your recovery key
+pages/tools/backups/sftp.tsx	answered with the fingerprint below. Ask whoever runs it to check it’s theirs before you go on.
+pages/tools/import/index.tsx	Import
+pages/tools/import/index.tsx	Import
+pages/tools/import/index.tsx	Import
+pages/tools/import/index.tsx	Move a WordPress site into Teme: its posts, pages, media, people, comments and menus. Every old address keeps working.
+pages/tools/import/index.tsx	Password forgotten
+pages/tools/import/index.tsx	Sites
+pages/tools/import/index.tsx	Tools
+pages/tools/import/show.tsx	Import
+pages/tools/import/show.tsx	Teme uses these for this import and for each catch-up after it.
+pages/tools/import/show.tsx	Tools
+pages/tools/import/show.tsx	Your choices
+pages/tools/index.tsx	(opens in a new tab)
+pages/tools/index.tsx	Tools
+pages/tools/index.tsx	Tools
+pages/tools/index.tsx	Tools
+pages/tools/index.tsx	Utilities for looking after the site.
+pages/tools/jobs.tsx	Actions
+pages/tools/jobs.tsx	Cancel
+pages/tools/jobs.tsx	Cancel {}
+pages/tools/jobs.tsx	Imports and other long tasks show their progress here.
+pages/tools/jobs.tsx	Imports, bulk changes and other long tasks. When one you started finishes, you’ll get a message in your inbox, so you can leave this page.
+pages/tools/jobs.tsx	Jobs
+pages/tools/jobs.tsx	Jobs
+pages/tools/jobs.tsx	Jobs
+pages/tools/jobs.tsx	No jobs yet
+pages/tools/jobs.tsx	Open inbox
+pages/tools/jobs.tsx	Retry
+pages/tools/jobs.tsx	Retry all failed (
+pages/tools/jobs.tsx	Retry {}
+pages/tools/jobs.tsx	Tools
+pages/tools/not-found.tsx	Actions
+pages/tools/not-found.tsx	Add a redirect
+pages/tools/not-found.tsx	Add a redirect from {}
+pages/tools/not-found.tsx	Addresses readers ask for that don’t exist appear here.
+pages/tools/not-found.tsx	Change log settings
+pages/tools/not-found.tsx	Keeps up to
+pages/tools/not-found.tsx	Mark as gone
+pages/tools/not-found.tsx	Mark {} as gone
+pages/tools/not-found.tsx	Not known
+pages/tools/not-found.tsx	Nothing logged
+pages/tools/not-found.tsx	One row per address. Only the site a reader came from is kept: no IP address and no browser.
+pages/tools/not-found.tsx	Redirected
+pages/tools/not-found.tsx	Redirects
+pages/tools/not-found.tsx	Redirects
+pages/tools/not-found.tsx	Tools
+pages/tools/not-found.tsx	addresses. When it’s full, the address seen least recently makes room. Bots probing for WordPress and server files, such as /wp-login.php, are ignored. Counts are written every minute, so the newest take a moment to appear.
+pages/tools/page-cache.tsx	, cleared with it
+pages/tools/page-cache.tsx	. A search’s page:
+pages/tools/page-cache.tsx	. A “not found” page:
+pages/tools/page-cache.tsx	A page:
+pages/tools/page-cache.tsx	Clear the page cache
+pages/tools/page-cache.tsx	How long pages live
+pages/tools/page-cache.tsx	In front of it
+pages/tools/page-cache.tsx	Kept in
+pages/tools/page-cache.tsx	Last cleared here
+pages/tools/page-cache.tsx	Never
+pages/tools/page-cache.tsx	Now
+pages/tools/page-cache.tsx	Off
+pages/tools/page-cache.tsx	On
+pages/tools/page-cache.tsx	Page cache
+pages/tools/page-cache.tsx	Page cache
+pages/tools/page-cache.tsx	Page cache
+pages/tools/page-cache.tsx	Saved copies of public pages. Readers who aren’t signed in get these, so each page is drawn once rather than on every visit.
+pages/tools/page-cache.tsx	Status
+pages/tools/page-cache.tsx	The page cache is off.
+pages/tools/page-cache.tsx	This server doesn’t save pages, so each is drawn on every visit, and there’s nothing to clear. The host switches it on with PAGE_CACHE_ENABLED.
+pages/tools/page-cache.tsx	Tools
+pages/tools/page-cache.tsx	When something is published, changed or taken down, Teme clears the pages that show it straight away. Clear everything only if a page still looks out of date, for example after a theme’s files change.
+pages/tools/page-cache.tsx	While you’re signed in you always see pages drawn afresh, never the saved copies. To see what readers get, open the page in a private window.
+pages/tools/page-cache.tsx	You rarely need to clear it.
+pages/tools/page-cache.tsx	{}, by {}
+pages/tools/redirects.tsx	, its old address keeps sending readers to it by itself. Add a redirect for an address Teme never had, such as one from the old site.
+pages/tools/redirects.tsx	A deleted file
+pages/tools/redirects.tsx	A deleted item
+pages/tools/redirects.tsx	A redirect answers only where no page does, so it can never hide a live page. One that goes to a post or page follows it when its address changes. Hits are counted every minute, so the newest take a moment to appear.
+pages/tools/redirects.tsx	A redirect sends readers on from an address this site no longer has.
+pages/tools/redirects.tsx	Actions for the redirect from {}
+pages/tools/redirects.tsx	Add a redirect
+pages/tools/redirects.tsx	Add a redirect
+pages/tools/redirects.tsx	Address or note
+pages/tools/redirects.tsx	Another site
+pages/tools/redirects.tsx	Changed addresses need no redirect.
+pages/tools/redirects.tsx	Delete
+pages/tools/redirects.tsx	Delete
+pages/tools/redirects.tsx	Edit
+pages/tools/redirects.tsx	Export
+pages/tools/redirects.tsx	Export as CSV
+pages/tools/redirects.tsx	Export for nginx
+pages/tools/redirects.tsx	Export redirects
+pages/tools/redirects.tsx	Import from CSV
+pages/tools/redirects.tsx	Never
+pages/tools/redirects.tsx	No redirects match “{}”
+pages/tools/redirects.tsx	No redirects yet
+pages/tools/redirects.tsx	Nowhere: it answers
+pages/tools/redirects.tsx	Pattern
+pages/tools/redirects.tsx	Redirects
+pages/tools/redirects.tsx	Redirects
+pages/tools/redirects.tsx	Search
+pages/tools/redirects.tsx	Search redirects
+pages/tools/redirects.tsx	Select all {} redirects shown
+pages/tools/redirects.tsx	Select the 1 redirect shown
+pages/tools/redirects.tsx	Select the redirect from {}
+pages/tools/redirects.tsx	Settings › Addresses
+pages/tools/redirects.tsx	Settings › Addresses
+pages/tools/redirects.tsx	Switch off
+pages/tools/redirects.tsx	Switch off
+pages/tools/redirects.tsx	Switch on
+pages/tools/redirects.tsx	Switch on
+pages/tools/redirects.tsx	The file
+pages/tools/redirects.tsx	Tools
+pages/tools/redirects.tsx	When a post or page gets a new address, in the editor or in
+pages/tools/updates.tsx	, published
+pages/tools/updates.tsx	, published
+pages/tools/updates.tsx	, the last time Teme could read it.
+pages/tools/updates.tsx	.env
+pages/tools/updates.tsx	All well.
+pages/tools/updates.tsx	Also after yours
+pages/tools/updates.tsx	Available
+pages/tools/updates.tsx	Backup failed
+pages/tools/updates.tsx	Busy
+pages/tools/updates.tsx	Channel
+pages/tools/updates.tsx	Checking for releases
+pages/tools/updates.tsx	Deployed
+pages/tools/updates.tsx	Deployed Teme {} on {}.
+pages/tools/updates.tsx	Deploys
+pages/tools/updates.tsx	Failed
+pages/tools/updates.tsx	Follows the version this site runs. To choose, set
+pages/tools/updates.tsx	Gets: every release, pre-releases too
+pages/tools/updates.tsx	Gets: releases only
+pages/tools/updates.tsx	How to update
+pages/tools/updates.tsx	Last checked
+pages/tools/updates.tsx	Last deploy
+pages/tools/updates.tsx	Last read the list
+pages/tools/updates.tsx	Migration failed
+pages/tools/updates.tsx	Needs maintenance mode
+pages/tools/updates.tsx	No deploy recorded yet. Each
+pages/tools/updates.tsx	No deploy recorded yet. Each
+pages/tools/updates.tsx	No release has been found yet.
+pages/tools/updates.tsx	Not checked yet. It runs within the hour, or now with
+pages/tools/updates.tsx	On Dokploy:
+pages/tools/updates.tsx	Once an hour Teme asks GitHub for its list of releases. It sends nothing about this site.
+pages/tools/updates.tsx	Pre-release
+pages/tools/updates.tsx	Problem:
+pages/tools/updates.tsx	Published
+pages/tools/updates.tsx	Read it on GitHub
+pages/tools/updates.tsx	Refused
+pages/tools/updates.tsx	Security fixes
+pages/tools/updates.tsx	See the backup
+pages/tools/updates.tsx	Set by
+pages/tools/updates.tsx	Show all {} lines
+pages/tools/updates.tsx	Show less
+pages/tools/updates.tsx	TEME_IMAGE
+pages/tools/updates.tsx	TEME_IMAGE
+pages/tools/updates.tsx	TEME_UPDATER_IMAGE
+pages/tools/updates.tsx	TEME_UPDATES_CHANNEL
+pages/tools/updates.tsx	TEME_UPDATES_CHANNEL
+pages/tools/updates.tsx	TEME_UPDATES_CHECK
+pages/tools/updates.tsx	Teme
+pages/tools/updates.tsx	Teme
+pages/tools/updates.tsx	Teme
+pages/tools/updates.tsx	Teme {} is available
+pages/tools/updates.tsx	The last ten, newest first.
+pages/tools/updates.tsx	The newest release is Teme
+pages/tools/updates.tsx	This build isn’t a release, so Teme doesn’t compare it with the releases.
+pages/tools/updates.tsx	This build isn’t a release, so Teme doesn’t compare it with the releases.
+pages/tools/updates.tsx	This list is from
+pages/tools/updates.tsx	This release changes the database in a way the one before can’t run beside. The site must be in maintenance mode while it deploys: see the release’s notes.
+pages/tools/updates.tsx	This site
+pages/tools/updates.tsx	This site runs the newest release it gets.
+pages/tools/updates.tsx	To update by hand instead:
+pages/tools/updates.tsx	Tools
+pages/tools/updates.tsx	Unfinished
+pages/tools/updates.tsx	Update checks are off on this server (
+pages/tools/updates.tsx	Update checks are off, so this list isn’t kept up to date.
+pages/tools/updates.tsx	Updates
+pages/tools/updates.tsx	Updates
+pages/tools/updates.tsx	Updates
+pages/tools/updates.tsx	Version
+pages/tools/updates.tsx	Which Teme this site runs, and the releases after it.
+pages/tools/updates.tsx	With Docker Compose:
+pages/tools/updates.tsx	and
+pages/tools/updates.tsx	and
+pages/tools/updates.tsx	brings them too.
+pages/tools/updates.tsx	carries security fixes. Updating to
+pages/tools/updates.tsx	change
+pages/tools/updates.tsx	docker compose pull
+pages/tools/updates.tsx	docker compose up --detach
+pages/tools/updates.tsx	in
+pages/tools/updates.tsx	is recorded from this release on.
+pages/tools/updates.tsx	is recorded from this release on.
+pages/tools/updates.tsx	php artisan teme:deploy
+pages/tools/updates.tsx	php artisan teme:deploy
+pages/tools/updates.tsx	php artisan teme:updates:check
+pages/tools/updates.tsx	set
+pages/tools/updates.tsx	to the new tag and Deploy.
+pages/tools/updates.tsx	to the new tag, then run
+pages/tools/updates.tsx	{} releases after yours · Teme {} is the newest
+pages/tools/updates.tsx	· Build
+pages/tools/updates.tsx	· Published
+pages/tools/updates.tsx	· took
+pages/types/fields.tsx	Actions for {}
+pages/types/fields.tsx	Add field
+pages/types/fields.tsx	Cancel
+pages/types/fields.tsx	Code
+pages/types/fields.tsx	Comes with
+pages/types/fields.tsx	Drag to reorder
+pages/types/fields.tsx	Edit
+pages/types/fields.tsx	Field
+pages/types/fields.tsx	Field
+pages/types/fields.tsx	Field
+pages/types/fields.tsx	Field type
+pages/types/fields.tsx	Field type
+pages/types/fields.tsx	Fields
+pages/types/fields.tsx	Filterable
+pages/types/fields.tsx	From Teme
+pages/types/fields.tsx	In the editor
+pages/types/fields.tsx	It leaves
+pages/types/fields.tsx	It leaves {}’ editor and the site at once. No {} holds a value.
+pages/types/fields.tsx	Locked
+pages/types/fields.tsx	Move down
+pages/types/fields.tsx	Move up
+pages/types/fields.tsx	No
+pages/types/fields.tsx	No
+pages/types/fields.tsx	No fields of your own yet. Add one, and the editor shows it in Details at once.
+pages/types/fields.tsx	Order
+pages/types/fields.tsx	Remove
+pages/types/fields.tsx	Remove
+pages/types/fields.tsx	Remove field
+pages/types/fields.tsx	Remove field…
+pages/types/fields.tsx	Removed
+pages/types/fields.tsx	Removed fields
+pages/types/fields.tsx	Required
+pages/types/fields.tsx	Restore
+pages/types/fields.tsx	Restore
+pages/types/fields.tsx	Site search
+pages/types/fields.tsx	The types are locked on this site, so fields can’t be added or changed here.
+pages/types/fields.tsx	They come with the features ticked under
+pages/types/fields.tsx	Types
+pages/types/fields.tsx	Values kept
+pages/types/fields.tsx	What the editor asks for on each {}, in this order. A saved change works at once.
+pages/types/fields.tsx	Why it’s here
+pages/types/fields.tsx	Yes
+pages/types/fields.tsx	Yes
+pages/types/fields.tsx	brings it back with them. Nothing is deleted.
+pages/types/fields.tsx	hold stay stored, so
+pages/types/fields.tsx	on
+pages/types/fields.tsx	{} fields
+pages/types/fields.tsx	{} fields
+pages/types/fields.tsx	{}, by {}
+pages/types/fields.tsx	· removed
+pages/types/fields.tsx	’ editor and the site at once, and templates that show it show nothing. The values
+pages/types/fields.tsx	’ page, and keep their own places in the editor. They can’t be changed here. A plugin’s fields will show the same way, named after the plugin.
+pages/types/index.tsx	/admin/{}
+pages/types/index.tsx	Actions for {}
+pages/types/index.tsx	Add new type
+pages/types/index.tsx	Can’t be used
+pages/types/index.tsx	Can’t be used:
+pages/types/index.tsx	Code
+pages/types/index.tsx	Delete
+pages/types/index.tsx	Delete {}
+pages/types/index.tsx	Delete {}?
+pages/types/index.tsx	Download teme-types.json
+pages/types/index.tsx	Edit
+pages/types/index.tsx	Edit to fix
+pages/types/index.tsx	It has no items, so only the type goes.
+pages/types/index.tsx	Made here
+pages/types/index.tsx	The kinds of content this site keeps. Types declared by code are shown, but can’t be changed here.
+pages/types/index.tsx	Types
+pages/types/index.tsx	Types
+pages/types/index.tsx	Types
+pages/types/index.tsx	Types are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
+pages/types/index.tsx	View
+pages/types/index.tsx	You can still look at each type, and download teme-types.json.
+pages/types/index.tsx	in the trash
+pages/types/index.tsx	in the trash
+pages/types/index.tsx	php artisan teme:types:import
+pages/types/show.tsx	, which keeps every old address working as a redirect.
+pages/types/show.tsx	/admin/
+pages/types/show.tsx	/admin/{}
+pages/types/show.tsx	/{segment}/{slug}/
+pages/types/show.tsx	/{}/{slug}/
+pages/types/show.tsx	1 field of your own:
+pages/types/show.tsx	Add fields once the type is saved.
+pages/types/show.tsx	Add type
+pages/types/show.tsx	Admin address
+pages/types/show.tsx	Admin address
+pages/types/show.tsx	Archive page
+pages/types/show.tsx	Beside the name in the menu.
+pages/types/show.tsx	Can’t be used:
+pages/types/show.tsx	Change icon
+pages/types/show.tsx	Change in Settings › Addresses
+pages/types/show.tsx	Change in Settings › Addresses
+pages/types/show.tsx	Comments
+pages/types/show.tsx	Comments
+pages/types/show.tsx	Delete
+pages/types/show.tsx	Delete
+pages/types/show.tsx	Delete this type
+pages/types/show.tsx	Delete {}
+pages/types/show.tsx	Delete {}?
+pages/types/show.tsx	Each item can still be opened or closed on its own.
+pages/types/show.tsx	Features
+pages/types/show.tsx	Features
+pages/types/show.tsx	Fields
+pages/types/show.tsx	Fields
+pages/types/show.tsx	For example
+pages/types/show.tsx	From Teme:
+pages/types/show.tsx	Has an archive page
+pages/types/show.tsx	Icon
+pages/types/show.tsx	Icon
+pages/types/show.tsx	In the admin
+pages/types/show.tsx	In the admin
+pages/types/show.tsx	In the editor
+pages/types/show.tsx	In the editor
+pages/types/show.tsx	It has no items, so only the type goes.
+pages/types/show.tsx	Items
+pages/types/show.tsx	Items have public addresses
+pages/types/show.tsx	Key
+pages/types/show.tsx	Key
+pages/types/show.tsx	Key
+pages/types/show.tsx	Manage fields
+pages/types/show.tsx	Names
+pages/types/show.tsx	Names
+pages/types/show.tsx	No
+pages/types/show.tsx	No
+pages/types/show.tsx	No fields of your own yet.
+pages/types/show.tsx	No items use it, so it can be deleted.
+pages/types/show.tsx	None
+pages/types/show.tsx	None
+pages/types/show.tsx	None
+pages/types/show.tsx	None: not public
+pages/types/show.tsx	On the site
+pages/types/show.tsx	On the site
+pages/types/show.tsx	One item only
+pages/types/show.tsx	One item only
+pages/types/show.tsx	Open
+pages/types/show.tsx	Open
+pages/types/show.tsx	Open
+pages/types/show.tsx	Open the trash
+pages/types/show.tsx	Permission
+pages/types/show.tsx	Permissions
+pages/types/show.tsx	Permissions
+pages/types/show.tsx	Plural name
+pages/types/show.tsx	Plural name
+pages/types/show.tsx	Public address
+pages/types/show.tsx	Public address
+pages/types/show.tsx	Public address
+pages/types/show.tsx	Public addresses
+pages/types/show.tsx	Roles can’t be changed yet: this shows what each role may do. To change what someone can do, give them another role on People.
+pages/types/show.tsx	Save type
+pages/types/show.tsx	Settings › Addresses
+pages/types/show.tsx	Shown in site search
+pages/types/show.tsx	Singular name
+pages/types/show.tsx	Singular name
+pages/types/show.tsx	Site search
+pages/types/show.tsx	Stored on every item, so it never changes.
+pages/types/show.tsx	Taxonomies
+pages/types/show.tsx	Taxonomies
+pages/types/show.tsx	Their pickers sit in the editor’s side panel. One can’t be taken away while items still have its terms.
+pages/types/show.tsx	Their public address can still change:
+pages/types/show.tsx	Type
+pages/types/show.tsx	Types
+pages/types/show.tsx	Types are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with
+pages/types/show.tsx	What the editor asks for on each item.
+pages/types/show.tsx	What the editor asks for on each item.
+pages/types/show.tsx	What the editor offers beside the writing.
+pages/types/show.tsx	What the editor offers beside the writing.
+pages/types/show.tsx	What the type is called across the admin.
+pages/types/show.tsx	What the type is called across the admin.
+pages/types/show.tsx	When you save, each role starts with what it may do now, so nobody gains or loses anything.
+pages/types/show.tsx	When you save, the type’s own permissions are removed, and each role does with its items what it does with every type’s.
+pages/types/show.tsx	Where its list is, and how the menu opens it.
+pages/types/show.tsx	Where its list is, and how the menu opens it.
+pages/types/show.tsx	Where the list is in the admin. Changing it moves no public page; only bookmarks to the old admin address stop working.
+pages/types/show.tsx	Whether its items have pages of their own, and what those pages offer.
+pages/types/show.tsx	Whether its items have pages of their own, and what those pages offer.
+pages/types/show.tsx	Which permissions it uses
+pages/types/show.tsx	Who may write, publish and delete its items.
+pages/types/show.tsx	Who may write, publish and delete its items.
+pages/types/show.tsx	Yes
+pages/types/show.tsx	Yes: each item has its own page
+pages/types/show.tsx	You can still look at each type, and download teme-types.json.
+pages/types/show.tsx	are declared by code, so they can’t be changed or deleted here.
+pages/types/show.tsx	php artisan teme:types:import
+pages/types/show.tsx	{} fields of your own:
+pages/types/show.tsx	{} have permissions of their own.
+pages/types/show.tsx	{} use the content permissions every type shares.
+pages/users/index.tsx	Actions for {}
+pages/users/index.tsx	Actions for {}
+pages/users/index.tsx	Active
+pages/users/index.tsx	Cancel
+pages/users/index.tsx	Cancel
+pages/users/index.tsx	Cancel
+pages/users/index.tsx	Change role
+pages/users/index.tsx	Change role…
+pages/users/index.tsx	Change role…
+pages/users/index.tsx	Change role…
+pages/users/index.tsx	Change the role of {}
+pages/users/index.tsx	Confirm password
+pages/users/index.tsx	Delete {}
+pages/users/index.tsx	Delete {}
+pages/users/index.tsx	Delete…
+pages/users/index.tsx	Email address
+pages/users/index.tsx	Expired
+pages/users/index.tsx	Invitation email failed
+pages/users/index.tsx	Invite someone
+pages/users/index.tsx	Invite someone
+pages/users/index.tsx	Invite someone
+pages/users/index.tsx	Manage yourself in Account
+pages/users/index.tsx	Name
+pages/users/index.tsx	Never
+pages/users/index.tsx	No one — they wrote nothing
+pages/users/index.tsx	No pending invitations
+pages/users/index.tsx	No {} yet
+pages/users/index.tsx	Nobody is suspended
+pages/users/index.tsx	Password
+pages/users/index.tsx	People
+pages/users/index.tsx	People
+pages/users/index.tsx	Reactivate
+pages/users/index.tsx	Revoke invitation
+pages/users/index.tsx	Revoke invitation
+pages/users/index.tsx	Revoke the invitation to {}?
+pages/users/index.tsx	Role
+pages/users/index.tsx	Role
+pages/users/index.tsx	Send again
+pages/users/index.tsx	Send invitation
+pages/users/index.tsx	Suspend
+pages/users/index.tsx	Suspended
+pages/users/index.tsx	Suspended
+pages/users/index.tsx	They get an email with a link that works for {}, where they choose their own password. You can send it again or revoke it under Invited.
+pages/users/index.tsx	Two-factor
+pages/users/index.tsx	Type your password to carry on. What you typed stays here.
+pages/users/index.tsx	Views
+pages/users/index.tsx	Works until {}
+pages/users/index.tsx	You
+pages/users/index.tsx	by {}

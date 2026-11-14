@@ -1,0 +1,8 @@
+{
+    "manifest": 1,
+    "code": "csp-split",
+    "name": "Fixture CSP split",
+    "version": "0.1.0",
+    "description": "A theme whose views spread an inline script and an on* attribute over two lines and hide an inline script behind data-src, which teme:theme:check refuses, beside a script whose src is on the next line, which it allows.",
+    "requires": { "teme": "^0.1" }
+}

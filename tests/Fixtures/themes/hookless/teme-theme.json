@@ -1,0 +1,8 @@
+{
+    "manifest": 1,
+    "code": "hookless",
+    "name": "Fixture Hookless",
+    "version": "0.1.0",
+    "description": "A theme whose thread has the comment hooks and Reply, but no actions line.",
+    "requires": { "teme": "^0.1" }
+}

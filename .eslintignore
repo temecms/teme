@@ -1,0 +1,3 @@
+# Recognised by oxlint (via `vp lint`/`vp check`). Mirrors pint.json's
+# exclude: docs/ holds prose and vendored assets, not application source.
+docs

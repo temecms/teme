@@ -1,0 +1,22 @@
+{
+    "api": 1,
+    "menus": [
+        {"id": 3, "name": "Main", "slug": "main", "items": [
+            {"id": 101, "parent": 0, "order": 1, "type": "custom", "object": "custom", "object_id": 101, "url": "https://old.example/", "label": "Home", "label_is_custom": true, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 102, "parent": 0, "order": 2, "type": "post_type", "object": "page", "object_id": 20, "url": "https://old.example/about/", "label": "About", "label_is_custom": false, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 103, "parent": 102, "order": 3, "type": "post_type", "object": "page", "object_id": 21, "url": "https://old.example/about/team/", "label": "Team", "label_is_custom": false, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 104, "parent": 0, "order": 4, "type": "taxonomy", "object": "category", "object_id": 7, "url": "https://old.example/category/news/", "label": "News", "label_is_custom": false, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 105, "parent": 104, "order": 5, "type": "taxonomy", "object": "post_tag", "object_id": 8, "url": "https://old.example/tag/ferries/", "label": "Ferries", "label_is_custom": false, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 106, "parent": 0, "order": 6, "type": "custom", "object": "custom", "object_id": 106, "url": "https://harbour-trust.example/", "label": "Harbour Trust", "label_is_custom": true, "target": "_blank", "attr_title": "", "classes": [], "xfn": "", "invalid": false}
+        ]},
+        {"id": 4, "name": "Footer", "slug": "footer", "items": [
+            {"id": 201, "parent": 0, "order": 1, "type": "post_type", "object": "page", "object_id": 22, "url": "https://old.example/contact/", "label": "Contact us", "label_is_custom": true, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 202, "parent": 0, "order": 2, "type": "post_type", "object": "page", "object_id": 23, "url": "https://old.example/privacy-policy/", "label": "Privacy Policy", "label_is_custom": false, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 203, "parent": 0, "order": 3, "type": "custom", "object": "custom", "object_id": 203, "url": "mailto:hello@old.example", "label": "Email us", "label_is_custom": true, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false},
+            {"id": 204, "parent": 0, "order": 4, "type": "custom", "object": "custom", "object_id": 204, "url": "https://old.example/feed/", "label": "RSS", "label_is_custom": true, "target": "", "attr_title": "", "classes": [], "xfn": "", "invalid": false}
+        ]}
+    ],
+    "registered_locations": {"primary": "Primary Menu", "footer_navigation": "Footer Menu", "social": "Social Links Menu"},
+    "assigned_locations": {"primary": 3, "footer_navigation": 4, "social": 0},
+    "navigation": []
+}

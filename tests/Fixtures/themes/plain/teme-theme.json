@@ -1,0 +1,8 @@
+{
+    "manifest": 1,
+    "code": "plain",
+    "name": "Fixture Plain",
+    "version": "0.1.0",
+    "description": "A usable theme that declares no page templates.",
+    "requires": { "teme": "^0.1" }
+}

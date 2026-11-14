@@ -1,0 +1,204 @@
+# Teme's Compose recipe (I-384): one image, several roles, and the
+# PostgreSQL they share. Put this file and the postgres folder on the
+# server (the image carries both: docs/guides/operators/install.md copies
+# them out with docker cp), and beside them:
+#   .env     TEME_IMAGE, the image with its exact tag (never latest), and
+#            APP_URL; then any of Teme's settings (the guide names them;
+#            never copy .env.example, which is for development). Compose
+#            reads it, and hands it to every Teme role.
+#   secrets  app_key, db_password, postgres_password and github_token, one
+#            value each (github_token may be empty), readable by the
+#            containers (chmod 0644).
+# No port is published: the platform's proxy reaches web on port 8080.
+# Valkey, for the page cache only: --profile valkey and
+# PAGE_CACHE_DRIVER=redis in .env.
+name: teme
+
+x-database: &database
+    DB_DATABASE: teme
+    DB_USERNAME: teme
+    DB_PASSWORD_FILE: /run/secrets/db_password
+    TEME_VERIFY_DATABASE: teme_verify
+
+x-teme-environment: &teme-environment
+    <<: *database
+    APP_URL: "${APP_URL:?Set APP_URL in .env to the site's address, such as https://example.com}"
+    APP_KEY_FILE: /run/secrets/app_key
+    DB_HOST: postgres
+    DB_PORT: '5432'
+    PAGE_CACHE_DRIVER: '${PAGE_CACHE_DRIVER:-static}'
+    REDIS_HOST: valkey
+    # libpq gives up on an unreachable database after 3 s, so a health check
+    # never holds a PHP worker for minutes.
+    PGCONNECT_TIMEOUT: '3'
+
+x-teme: &teme
+    image: "${TEME_IMAGE:?Set TEME_IMAGE in .env to Teme's image and its exact tag, such as ghcr.io/example/teme:0.1.0}"
+    env_file:
+        - path: .env
+          required: false
+    environment: *teme-environment
+    secrets:
+        - app_key
+        - db_password
+    volumes:
+        - media:/var/www/html/storage/app
+        - page-cache:/var/www/html/storage/page-cache
+    restart: unless-stopped
+
+services:
+    # Migrates under a lock, backs up first when it must, then exits; every
+    # other role waits for it.
+    deploy:
+        <<: *teme
+        command: ['php', 'artisan', 'teme:deploy']
+        init: true
+        restart: 'no'
+        healthcheck:
+            disable: true
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    web:
+        <<: *teme
+        environment:
+            <<: *teme-environment
+            PHP_FPM_PM_MAX_CHILDREN: '${PHP_FPM_PM_MAX_CHILDREN:-10}'
+        depends_on:
+            deploy:
+                condition: service_completed_successfully
+
+    worker:
+        <<: *teme
+        command:
+            ['php', 'artisan', 'queue:work', '--tries=3', '--max-time=3600']
+        init: true
+        stop_signal: SIGTERM
+        stop_grace_period: 6m
+        healthcheck:
+            test: ['CMD', 'healthcheck-queue']
+            start_period: 10s
+        depends_on:
+            deploy:
+                condition: service_completed_successfully
+
+    # The long jobs' own worker, on the long queue's own connection
+    # (database-long, issue #146).
+    worker-long:
+        <<: *teme
+        command:
+            [
+                'php',
+                'artisan',
+                'queue:work',
+                'database-long',
+                '--queue=long',
+                '--tries=3',
+                '--max-time=3600',
+            ]
+        init: true
+        stop_signal: SIGTERM
+        stop_grace_period: 6m
+        healthcheck:
+            test: ['CMD', 'healthcheck-queue']
+            start_period: 10s
+        depends_on:
+            deploy:
+                condition: service_completed_successfully
+
+    # Every timed job, backups among them: its grace period lets a backup
+    # in progress finish.
+    scheduler:
+        <<: *teme
+        command: ['php', 'artisan', 'schedule:work']
+        init: true
+        stop_signal: SIGTERM
+        stop_grace_period: 30m
+        healthcheck:
+            test: ['CMD', 'healthcheck-schedule']
+            start_period: 10s
+        environment:
+            <<: *teme-environment
+            TEME_GITHUB_TOKEN_FILE: /run/secrets/github_token
+        secrets:
+            - app_key
+            - db_password
+            - github_token
+        depends_on:
+            deploy:
+                condition: service_completed_successfully
+
+    postgres:
+        image: postgres:18.6-trixie@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
+        environment:
+            <<: *database
+            POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+        secrets:
+            - postgres_password
+            - db_password
+        configs:
+            - source: teme-database
+              target: /docker-entrypoint-initdb.d/10-teme-role.sh
+              mode: 0555
+        volumes:
+            - pgdata:/var/lib/postgresql
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'pg_isready',
+                    '--host',
+                    '127.0.0.1',
+                    '--username',
+                    'postgres',
+                    '--dbname',
+                    'postgres',
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+            start_period: 30s
+        stop_grace_period: 1m
+        restart: unless-stopped
+
+    valkey:
+        image: valkey/valkey:9.1.2-trixie@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd
+        profiles: ['valkey']
+        command:
+            [
+                'valkey-server',
+                '--save',
+                '',
+                '--appendonly',
+                'no',
+                '--maxmemory',
+                '256mb',
+                '--maxmemory-policy',
+                'volatile-lru',
+            ]
+        healthcheck:
+            test: ['CMD', 'valkey-cli', 'ping']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+        restart: unless-stopped
+
+configs:
+    teme-database:
+        file: ./postgres/initdb.d/10-teme-role.sh
+
+secrets:
+    app_key:
+        file: ./secrets/app_key
+    db_password:
+        file: ./secrets/db_password
+    postgres_password:
+        file: ./secrets/postgres_password
+    github_token:
+        file: ./secrets/github_token
+
+volumes:
+    pgdata:
+    media:
+    page-cache:

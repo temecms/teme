@@ -1,0 +1,750 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { SelectField } from '@/components/ui/select-field';
+import { choiceOf, closingNote, DISCUSSION_CHOICES } from '@/lib/discussion';
+import type { Discussion } from '@/lib/discussion';
+import type {
+    EditorAuthorChoice,
+    EditorPerson,
+    EditorReview,
+    EditorSchedule,
+} from '@/types';
+import { StatusChip } from '../status-chip';
+import { PublishWhen } from './publish-when';
+import type { WhenChoice } from './publish-when';
+import { templateChoice } from './template-choice';
+import type { ThemeTemplate } from './template-choice';
+
+/** The panel's own sentences, as strings, so a formatter never splits them. */
+const PUBLISH_WORDS = {
+    public: 'Anyone can read it once it’s published.',
+    publicLive: 'Anyone can read it.',
+    authorLive: (noun: string) =>
+        `Changing it changes the published ${noun} at once.`,
+};
+
+export type Visibility = 'public' | 'private' | 'protected';
+
+/** Who may read the item, and what each choice means (I-1700). */
+const VISIBILITY_CHOICES: {
+    value: Visibility;
+    label: string;
+    meaning: string;
+}[] = [
+    { value: 'public', label: 'Public', meaning: PUBLISH_WORDS.public },
+    {
+        value: 'private',
+        label: 'Private',
+        meaning:
+            'Only people who can edit it can read it, here in the admin. On the site its address answers “not found”.',
+    },
+    {
+        value: 'protected',
+        label: 'Password protected',
+        meaning:
+            'Readers need the password to read it. Lists on the site show its title, without its excerpt or image.',
+    },
+];
+
+/** What Discussion adds when the item can't take comments for its visibility. */
+const VISIBILITY_NOTES = {
+    private: 'Private items never take comments.',
+    protected: 'Items protected by a password take no new comments.',
+};
+
+/** A refusal of the Visibility row: which part of it, and why. */
+export type VisibilityRefusal = {
+    field: 'visibility' | 'password';
+    message: string;
+};
+
+/**
+ * The people an item may be credited to, its current author kept even when
+ * they may no longer write, as WordPress's author box keeps them.
+ */
+function authorChoices(
+    authors: EditorAuthorChoice[],
+    author: EditorPerson | null,
+): EditorAuthorChoice[] {
+    return author === null ||
+        authors.some((choice) => choice.value === author.id)
+        ? authors
+        : [{ value: author.id, label: author.name }, ...authors];
+}
+
+/** The article's address on the site, worked out now and never stored (rule 9). */
+export function addressOf(siteUrl: string, pattern: string, slug: string) {
+    return siteUrl.replace(/\/$/, '') + pattern.replace('{slug}', slug);
+}
+
+/**
+ * The article's summary, as Gutenberg's Summary panel holds it: status,
+ * visibility, discussion, date, address, template, author and revisions. It
+ * never collapses (I-230).
+ */
+export function PublishPanel({
+    status,
+    review,
+    unpublishedChanges,
+    publishedAt,
+    slug,
+    addressPattern,
+    siteUrl,
+    url,
+    templates,
+    template,
+    onChangeTemplate,
+    author,
+    authors,
+    onChangeAuthor,
+    noun,
+    revisionCount,
+    canEdit,
+    onChangeSlug,
+    onOpenHistory,
+    schedule,
+    siteTimezone,
+    canPublish,
+    when,
+    onWhenChange,
+    onCancelSchedule,
+    busy: deciding,
+    discussion,
+    canSetDiscussion,
+    onChangeDiscussion,
+    visibility,
+    readerPassword,
+    passwordUnreadable,
+    canSetVisibility,
+    onChangeVisibility,
+    themeRegion = false,
+}: {
+    status: string;
+    /** The pending or returned review, which the Status row's words may mention. */
+    review: EditorReview | null;
+    /** Whether a live item has changes readers don't see yet (I-1316). */
+    unpublishedChanges: boolean;
+    publishedAt: string | null;
+    slug: string;
+    addressPattern: string;
+    siteUrl: string;
+    /** The live address, for View on site; null while it has none. */
+    url: string | null;
+    /** The active theme's templates for the item's type (I-443). */
+    templates: ThemeTemplate[];
+    /** The chosen template, '' for the default; null when the type has no template field. */
+    template: string | null;
+    onChangeTemplate: (value: string) => void;
+    author: EditorPerson | null;
+    /** The people the Author select offers; null for someone who may not change who wrote it. */
+    authors: EditorAuthorChoice[] | null;
+    /** Saves the author at once; answers the refusal's reason, or null. */
+    onChangeAuthor: (id: number) => Promise<string | null>;
+    /** The type's singular in lower case, for "the published post". */
+    noun: string;
+    revisionCount: number;
+    canEdit: boolean;
+    onChangeSlug: (slug: string) => Promise<string | null>;
+    onOpenHistory: () => void;
+    schedule: EditorSchedule | null;
+    siteTimezone: string;
+    /** Whether this person may publish the item. */
+    canPublish: boolean;
+    /** The Publish row's choice: now, or a set time. */
+    when: WhenChoice;
+    onWhenChange: (next: WhenChoice) => void;
+    /** Cancels the waiting schedule. */
+    onCancelSchedule: () => void;
+    /** Whether a publishing decision is being sent. */
+    busy: boolean;
+    /** The Discussion row (I-687); null while comments are off or for a type that takes none. */
+    discussion: { value: Discussion; closeAfterDays: number } | null;
+    /** Whether this person may publish the item, and so set its Discussion (I-571). */
+    canSetDiscussion: boolean;
+    /** Saves the Discussion at once; answers the refusal's reason, or null. */
+    onChangeDiscussion: (value: Discussion) => Promise<string | null>;
+    /** Who may read the item once it is published (I-1700). */
+    visibility: Visibility;
+    /** The password readers give, for whoever may set it; null otherwise. */
+    readerPassword: string | null;
+    /** Whether a protected item's password can't be read on this server. */
+    passwordUnreadable: boolean;
+    /** Whether this person may publish the item, and so set who reads it. */
+    canSetVisibility: boolean;
+    /** Saves the visibility at once; answers the refusal, or null. */
+    onChangeVisibility: (
+        next: Visibility,
+        password: string | null,
+    ) => Promise<VisibilityRefusal | null>;
+    /** A theme region: no page of its own, so no visibility, address, template or author. */
+    themeRegion?: boolean;
+}) {
+    const [open, setOpen] = useState(false);
+    const [draft, setDraft] = useState(slug);
+    const [problem, setProblem] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);
+    const [discussionSaving, setDiscussionSaving] = useState(false);
+    const [authorSaving, setAuthorSaving] = useState(false);
+    const [authorProblem, setAuthorProblem] = useState<string | null>(null);
+    const [discussionProblem, setDiscussionProblem] = useState<string | null>(
+        null,
+    );
+    // Password protected, chosen but not yet saved: nothing protects the item
+    // until its button is pressed, so a half-typed password never does.
+    const [pending, setPending] = useState(false);
+    const [typed, setTyped] = useState(readerPassword ?? '');
+    const [visibilitySaving, setVisibilitySaving] = useState(false);
+    const [visibilityProblem, setVisibilityProblem] = useState<string | null>(
+        null,
+    );
+    const [passwordProblem, setPasswordProblem] = useState<string | null>(null);
+    const shown: Visibility = pending ? 'protected' : visibility;
+    const visibilityChoice =
+        VISIBILITY_CHOICES.find((option) => option.value === shown) ??
+        VISIBILITY_CHOICES[0];
+    const visibilityMeaning =
+        shown === 'public' && status === 'published'
+            ? PUBLISH_WORDS.publicLive
+            : visibilityChoice.meaning;
+    const visibilityNote =
+        visibility === 'public' ? null : VISIBILITY_NOTES[visibility];
+    const saveVisibility = (next: Visibility, password: string | null) => {
+        setVisibilitySaving(true);
+        setVisibilityProblem(null);
+        setPasswordProblem(null);
+        void onChangeVisibility(next, password).then((refusal) => {
+            setVisibilitySaving(false);
+
+            if (refusal === null) {
+                setPending(false);
+                setTyped(password ?? '');
+
+                return;
+            }
+
+            if (refusal.field === 'password') {
+                setPasswordProblem(refusal.message);
+
+                return;
+            }
+
+            setPending(false);
+            setVisibilityProblem(refusal.message);
+        });
+    };
+    const protectedAlready = visibility === 'protected';
+    const passwordDiffers = typed !== (readerPassword ?? '');
+    const discussionNote =
+        discussion === null
+            ? null
+            : closingNote(
+                  discussion.value,
+                  status === 'published',
+                  publishedAt,
+                  discussion.closeAfterDays,
+                  siteTimezone,
+              );
+    const choice = templateChoice(templates, template ?? '');
+    const missingNote =
+        choice.missing === null
+            ? null
+            : `The template “${choice.missing}” isn't in the current theme, so the default layout is used. It stays chosen, and comes back if the theme does.`;
+
+    return (
+        <Panel>
+            <PanelHeader>
+                <h2>Publish</h2>
+            </PanelHeader>
+            <PanelBody>
+                <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-[13px]">
+                    <dt className="text-muted-foreground">Status</dt>
+                    <dd className="min-w-0">
+                        <StatusChip
+                            named={false}
+                            status={status}
+                            review={review}
+                            schedule={schedule}
+                            unpublishedChanges={unpublishedChanges}
+                            visibility={visibility}
+                        />
+                    </dd>
+                    {!themeRegion && (
+                        <>
+                            <dt className="text-muted-foreground">
+                                Visibility
+                            </dt>
+                            <dd className="min-w-0">
+                                {canSetVisibility ? (
+                                    <>
+                                        <SelectField
+                                            id="editor-visibility"
+                                            aria-label="Visibility"
+                                            aria-describedby={
+                                                visibilityProblem !== null
+                                                    ? 'editor-visibility-meaning editor-visibility-error'
+                                                    : 'editor-visibility-meaning'
+                                            }
+                                            options={VISIBILITY_CHOICES.map(
+                                                (option) => ({
+                                                    value: option.value,
+                                                    label: option.label,
+                                                }),
+                                            )}
+                                            value={shown}
+                                            disabled={visibilitySaving}
+                                            onValueChange={(next) => {
+                                                setVisibilityProblem(null);
+                                                setPasswordProblem(null);
+
+                                                if (next === 'protected') {
+                                                    if (!protectedAlready) {
+                                                        setPending(true);
+                                                        setTyped('');
+                                                    }
+
+                                                    return;
+                                                }
+
+                                                setPending(false);
+
+                                                if (next !== visibility) {
+                                                    saveVisibility(
+                                                        next as Visibility,
+                                                        null,
+                                                    );
+                                                }
+                                            }}
+                                            className="h-[34px] w-full"
+                                        />
+                                        <p
+                                            id="editor-visibility-meaning"
+                                            className="text-muted-foreground mt-1 text-xs"
+                                        >
+                                            {visibilityMeaning}
+                                            {protectedAlready &&
+                                                passwordUnreadable &&
+                                                ` Its password can’t be read on this server, so nobody can open the ${noun}. Set a new one.`}
+                                        </p>
+                                        {visibilityProblem !== null && (
+                                            <p
+                                                id="editor-visibility-error"
+                                                role="alert"
+                                                className="text-destructive mt-1 text-xs"
+                                            >
+                                                {visibilityProblem}
+                                            </p>
+                                        )}
+                                        {shown === 'protected' && (
+                                            <div className="mt-2 grid gap-1.5">
+                                                <Label htmlFor="editor-password">
+                                                    Password
+                                                </Label>
+                                                <Input
+                                                    id="editor-password"
+                                                    type="text"
+                                                    autoComplete="off"
+                                                    spellCheck={false}
+                                                    maxLength={255}
+                                                    value={typed}
+                                                    disabled={visibilitySaving}
+                                                    aria-invalid={
+                                                        passwordProblem !== null
+                                                            ? true
+                                                            : undefined
+                                                    }
+                                                    aria-describedby={
+                                                        passwordProblem !== null
+                                                            ? 'editor-password-hint editor-password-error'
+                                                            : 'editor-password-hint'
+                                                    }
+                                                    onChange={(event) =>
+                                                        setTyped(
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <p
+                                                    id="editor-password-hint"
+                                                    className="text-muted-foreground text-xs"
+                                                >
+                                                    {`Give it to the people who should read this ${noun}. Changing it asks everyone for the new one.`}
+                                                </p>
+                                                {passwordProblem !== null && (
+                                                    <p
+                                                        id="editor-password-error"
+                                                        role="alert"
+                                                        className="text-destructive text-xs"
+                                                    >
+                                                        {passwordProblem}
+                                                    </p>
+                                                )}
+                                                {(!protectedAlready ||
+                                                    passwordDiffers) && (
+                                                    <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        variant="outline"
+                                                        data-test="visibility-protect"
+                                                        disabled={
+                                                            visibilitySaving
+                                                        }
+                                                        onClick={() =>
+                                                            saveVisibility(
+                                                                'protected',
+                                                                typed,
+                                                            )
+                                                        }
+                                                    >
+                                                        {protectedAlready
+                                                            ? 'Change password'
+                                                            : 'Protect with this password'}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        {visibilityChoice.label}
+                                        <p className="text-muted-foreground mt-1 text-xs">
+                                            {visibilityMeaning} Whoever
+                                            publishes it sets this.
+                                        </p>
+                                    </>
+                                )}
+                            </dd>
+                        </>
+                    )}
+                    {!themeRegion && discussion !== null && (
+                        <>
+                            <dt className="text-muted-foreground">
+                                Discussion
+                            </dt>
+                            <dd className="min-w-0">
+                                {canSetDiscussion ? (
+                                    <>
+                                        <SelectField
+                                            id="editor-discussion"
+                                            aria-label="Discussion"
+                                            aria-describedby={
+                                                discussionProblem !== null
+                                                    ? 'editor-discussion-meaning editor-discussion-error'
+                                                    : 'editor-discussion-meaning'
+                                            }
+                                            options={DISCUSSION_CHOICES.map(
+                                                (option) => ({
+                                                    value: option.value,
+                                                    label: option.label,
+                                                }),
+                                            )}
+                                            value={discussion.value}
+                                            disabled={discussionSaving}
+                                            onValueChange={(next) => {
+                                                setDiscussionSaving(true);
+                                                setDiscussionProblem(null);
+                                                void onChangeDiscussion(
+                                                    next as Discussion,
+                                                ).then((error) => {
+                                                    setDiscussionSaving(false);
+                                                    setDiscussionProblem(error);
+                                                });
+                                            }}
+                                            className="h-[34px] w-full"
+                                        />
+                                        <p
+                                            id="editor-discussion-meaning"
+                                            className="text-muted-foreground mt-1 text-xs"
+                                        >
+                                            {choiceOf(discussion.value).meaning}
+                                            {discussionNote !== null &&
+                                                ` ${discussionNote}`}
+                                            {visibilityNote !== null &&
+                                                ` ${visibilityNote}`}
+                                        </p>
+                                        {discussionProblem !== null && (
+                                            <p
+                                                id="editor-discussion-error"
+                                                role="alert"
+                                                className="text-destructive mt-1 text-xs"
+                                            >
+                                                {discussionProblem}
+                                            </p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        {choiceOf(discussion.value).label}
+                                        <p className="text-muted-foreground mt-1 text-xs">
+                                            {choiceOf(discussion.value).meaning}
+                                            {discussionNote !== null &&
+                                                ` ${discussionNote}`}
+                                            {visibilityNote !== null &&
+                                                ` ${visibilityNote}`}{' '}
+                                            Whoever publishes it sets this.
+                                        </p>
+                                    </>
+                                )}
+                            </dd>
+                        </>
+                    )}
+                    {status === 'published' && (
+                        <>
+                            <dt className="text-muted-foreground">Published</dt>
+                            <dd>
+                                {publishedAt
+                                    ? new Date(publishedAt).toLocaleString([], {
+                                          dateStyle: 'medium',
+                                          timeStyle: 'short',
+                                      })
+                                    : 'Not yet'}
+                            </dd>
+                        </>
+                    )}
+                    <PublishWhen
+                        live={status === 'published'}
+                        canPublish={canPublish}
+                        review={review}
+                        schedule={schedule}
+                        siteTimezone={siteTimezone}
+                        when={when}
+                        onWhenChange={onWhenChange}
+                        onCancelSchedule={onCancelSchedule}
+                        busy={deciding}
+                    />
+                    {!themeRegion && (
+                        <>
+                            <dt className="text-muted-foreground">Address</dt>
+                            <dd className="min-w-0">
+                                <DropdownMenu
+                                    open={open}
+                                    onOpenChange={(next) => {
+                                        setOpen(next);
+                                        setDraft(slug);
+                                        setProblem(null);
+                                    }}
+                                >
+                                    <DropdownMenuTrigger
+                                        asChild
+                                        disabled={!canEdit}
+                                    >
+                                        <button
+                                            type="button"
+                                            className="text-link block max-w-full truncate text-left underline-offset-2 hover:underline"
+                                        >
+                                            /{slug}
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                        align="start"
+                                        className="w-80 max-w-(--radix-dropdown-menu-content-available-width) p-3"
+                                    >
+                                        <form
+                                            className="grid gap-2"
+                                            onSubmit={(event) => {
+                                                event.preventDefault();
+                                                setBusy(true);
+                                                void onChangeSlug(
+                                                    draft.trim(),
+                                                ).then((error) => {
+                                                    setBusy(false);
+                                                    setProblem(error);
+
+                                                    if (error === null) {
+                                                        setOpen(false);
+                                                    }
+                                                });
+                                            }}
+                                        >
+                                            <Label htmlFor="editor-slug">
+                                                Address
+                                            </Label>
+                                            <Input
+                                                id="editor-slug"
+                                                aria-describedby="editor-slug-url"
+                                                value={draft}
+                                                onChange={(event) =>
+                                                    setDraft(event.target.value)
+                                                }
+                                                onKeyDown={(event) =>
+                                                    event.stopPropagation()
+                                                }
+                                            />
+                                            <p
+                                                id="editor-slug-url"
+                                                className="text-muted-foreground text-xs break-all"
+                                            >
+                                                {addressOf(
+                                                    siteUrl,
+                                                    addressPattern,
+                                                    draft || slug,
+                                                )}
+                                            </p>
+                                            {problem && (
+                                                <p
+                                                    role="alert"
+                                                    className="text-destructive text-xs"
+                                                >
+                                                    {problem}
+                                                </p>
+                                            )}
+                                            <Button
+                                                type="submit"
+                                                size="sm"
+                                                disabled={
+                                                    busy || draft.trim() === ''
+                                                }
+                                                className="justify-self-start"
+                                            >
+                                                Change address
+                                            </Button>
+                                        </form>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                {url !== null && (
+                                    <a
+                                        href={url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-link text-xs underline-offset-2 hover:underline"
+                                    >
+                                        View on site
+                                    </a>
+                                )}
+                            </dd>
+                        </>
+                    )}
+                    {!themeRegion &&
+                        template !== null &&
+                        (templates.length > 0 || missingNote !== null) && (
+                            <>
+                                <dt className="text-muted-foreground">
+                                    Template
+                                </dt>
+                                <dd className="min-w-0">
+                                    {templates.length > 0 && (
+                                        <SelectField
+                                            aria-label="Template"
+                                            aria-describedby={
+                                                missingNote !== null
+                                                    ? 'editor-template-missing'
+                                                    : undefined
+                                            }
+                                            emptyLabel="Default"
+                                            options={choice.options}
+                                            value={template}
+                                            onValueChange={onChangeTemplate}
+                                            className="h-[34px] w-full"
+                                        />
+                                    )}
+                                    {missingNote !== null && (
+                                        <p
+                                            id="editor-template-missing"
+                                            className="text-muted-foreground mt-1 text-xs"
+                                        >
+                                            {missingNote}
+                                        </p>
+                                    )}
+                                </dd>
+                            </>
+                        )}
+                    {!themeRegion && (
+                        <>
+                            <dt className="text-muted-foreground">Author</dt>
+                            <dd className="min-w-0">
+                                {authors !== null ? (
+                                    <>
+                                        <SelectField
+                                            id="editor-author"
+                                            aria-label="Author"
+                                            aria-describedby={
+                                                [
+                                                    status === 'published'
+                                                        ? 'editor-author-live'
+                                                        : null,
+                                                    authorProblem !== null
+                                                        ? 'editor-author-error'
+                                                        : null,
+                                                ]
+                                                    .filter(Boolean)
+                                                    .join(' ') || undefined
+                                            }
+                                            options={authorChoices(
+                                                authors,
+                                                author,
+                                            )}
+                                            emptyLabel={
+                                                author === null
+                                                    ? 'Nobody'
+                                                    : undefined
+                                            }
+                                            value={
+                                                author === null
+                                                    ? ''
+                                                    : String(author.id)
+                                            }
+                                            disabled={authorSaving}
+                                            onValueChange={(next) => {
+                                                if (next === '') {
+                                                    return;
+                                                }
+
+                                                setAuthorSaving(true);
+                                                setAuthorProblem(null);
+                                                void onChangeAuthor(
+                                                    Number(next),
+                                                ).then((error) => {
+                                                    setAuthorSaving(false);
+                                                    setAuthorProblem(error);
+                                                });
+                                            }}
+                                            className="h-[34px] w-full"
+                                        />
+                                        {status === 'published' && (
+                                            <p
+                                                id="editor-author-live"
+                                                className="text-muted-foreground mt-1 text-xs"
+                                            >
+                                                {PUBLISH_WORDS.authorLive(noun)}
+                                            </p>
+                                        )}
+                                        {authorProblem !== null && (
+                                            <p
+                                                id="editor-author-error"
+                                                role="alert"
+                                                className="text-destructive mt-1 text-xs"
+                                            >
+                                                {authorProblem}
+                                            </p>
+                                        )}
+                                    </>
+                                ) : (
+                                    (author?.name ?? 'Nobody')
+                                )}
+                            </dd>
+                        </>
+                    )}
+                    <dt className="text-muted-foreground">History</dt>
+                    <dd>
+                        <button
+                            type="button"
+                            onClick={onOpenHistory}
+                            className="text-link focus-visible:ring-ring rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2"
+                        >
+                            {revisionCount === 1
+                                ? '1 revision'
+                                : `${revisionCount} revisions`}
+                        </button>
+                    </dd>
+                </dl>
+            </PanelBody>
+        </Panel>
+    );
+}

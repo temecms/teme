@@ -1,0 +1,22 @@
+{
+    "api": 1,
+    "home": "https://old.example",
+    "siteurl": "https://old.example",
+    "locale": "en_GB",
+    "options": {
+        "blogname": "Old Example", "blogdescription": "Notes from the harbour", "timezone_string": "Europe/London",
+        "gmt_offset": "0", "date_format": "j F Y", "time_format": "H:i", "start_of_week": "1",
+        "posts_per_page": "10", "posts_per_rss": "10", "rss_use_excerpt": "0", "show_on_front": "posts",
+        "page_on_front": "0", "page_for_posts": "0", "permalink_structure": "/%postname%/", "category_base": "",
+        "tag_base": "", "default_category": "1", "default_post_format": "0", "site_icon": "0", "blog_public": "1",
+        "default_comment_status": "open", "default_ping_status": "open", "comment_registration": "0",
+        "require_name_email": "1", "close_comments_for_old_posts": "0", "close_comments_days_old": "14",
+        "thread_comments": "1", "thread_comments_depth": "5", "page_comments": "0", "comments_per_page": "50",
+        "comment_order": "asc", "comment_moderation": "0", "comment_previously_approved": "1",
+        "comment_max_links": "2", "show_avatars": "1", "comments_notify": "1", "moderation_notify": "1"
+    },
+    "sticky_posts": [],
+    "menu_locations": {"primary": 2},
+    "seo_plugin": "yoast",
+    "multilingual": null
+}

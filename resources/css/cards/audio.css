@@ -1,0 +1,33 @@
+/* The audio card (AudioCard): linked only on pages that draw one (I-248). */
+.card-audio {
+    margin-block: var(--teme-space-5, 2rem);
+}
+
+.card-audio figure {
+    margin: 0;
+}
+
+.card-audio audio {
+    display: block;
+    inline-size: 100%;
+}
+
+.card-audio figcaption {
+    margin-block-start: var(--teme-space-2, 0.5rem);
+    color: var(--teme-muted, #595959);
+    font-size: var(--teme-step--1, 0.875rem);
+}
+
+.card-audio__transcript {
+    margin-block-start: var(--teme-space-3, 1rem);
+}
+
+.card-audio__transcript summary {
+    min-block-size: 1.5rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.card-audio__transcript p {
+    margin-block: var(--teme-space-2, 0.5rem) 0;
+}

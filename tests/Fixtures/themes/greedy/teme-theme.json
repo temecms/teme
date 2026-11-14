@@ -1,0 +1,9 @@
+{
+    "manifest": 1,
+    "code": "greedy",
+    "name": "Fixture Greedy",
+    "version": "0.1.0",
+    "description": "A theme whose composer asks for more than the contracts offer.",
+    "requires": { "teme": "^0.1" },
+    "composers": ["Tests\\Fixtures\\Themes\\Greedy\\WantsTheDatabase"]
+}

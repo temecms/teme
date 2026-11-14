@@ -1,0 +1,21 @@
+{
+    "items": [
+        {"id": 12, "type": "post", "status": "publish", "slug": "harbour-news", "title": "Harbour news", "date": "2019-05-03 22:30:00", "date_gmt": "2019-05-03 22:30:00", "modified_gmt": "2019-05-04 08:00:00", "author": 3, "parent": 0, "menu_order": 0, "comment_status": "open", "ping_status": "open", "password": "", "sticky": true, "format": null, "template": null, "featured_media": 41, "terms": {"category": [5, 6], "post_tag": [9]}, "excerpt": "The ferries ran late.", "content": "", "has_blocks": true,
+         "blocks": [
+            {"blockName": "core/paragraph", "attrs": {}, "innerBlocks": [], "innerHTML": "<p>See <a href=\"https://old.example/ferries/\">the ferries</a> and <a href=\"https://old.example/later-story/\">a later story</a>.</p>", "innerContent": ["<p>See <a href=\"https://old.example/ferries/\">the ferries</a> and <a href=\"https://old.example/later-story/\">a later story</a>.</p>"]},
+            {"blockName": "core/block", "attrs": {"ref": 88}, "innerBlocks": [], "innerHTML": "", "innerContent": []}
+         ],
+         "permalink": "https://old.example/harbour-news/", "old_slugs": ["harbor-news"], "old_dates": [],
+         "seo": {"title": "Harbour news &amp; tides", "description": "What came in at dawn.", "canonical": null, "noindex": null, "nofollow": false, "social_title": null, "social_description": null, "social_image_id": null, "social_image_url": null, "primary_terms": {"category": 4}, "had_variables": []},
+         "comment_count": 3},
+        {"id": 13, "type": "page", "status": "publish", "slug": "about", "title": "About", "date": "2019-01-02 10:00:00", "date_gmt": "2019-01-02 10:00:00", "modified_gmt": "2019-01-02 10:00:00", "author": 3, "parent": 0, "menu_order": 1, "comment_status": "closed", "ping_status": "closed", "password": "", "sticky": false, "format": null, "template": "template-full-width.php", "featured_media": null, "terms": {}, "excerpt": "", "content": "", "has_blocks": true,
+         "blocks": [{"blockName": "core/paragraph", "attrs": {}, "innerBlocks": [], "innerHTML": "<p>We write about the harbour.</p>", "innerContent": ["<p>We write about the harbour.</p>"]}],
+         "permalink": "https://old.example/about/", "old_slugs": [], "old_dates": [], "seo": null, "comment_count": 0},
+        {"id": 14, "type": "page", "status": "publish", "slug": "team", "title": "Our team", "date": "2019-01-03 10:00:00", "date_gmt": "2019-01-03 10:00:00", "modified_gmt": "2019-01-03 10:00:00", "author": 3, "parent": 13, "menu_order": 2, "comment_status": "closed", "ping_status": "closed", "password": "", "sticky": false, "format": null, "template": null, "featured_media": null, "terms": {}, "excerpt": "", "content": "", "has_blocks": true,
+         "blocks": [{"blockName": "core/paragraph", "attrs": {}, "innerBlocks": [], "innerHTML": "<p>Ada and Grace.</p>", "innerContent": ["<p>Ada and Grace.</p>"]}],
+         "permalink": "https://old.example/about/team/", "old_slugs": [], "old_dates": [], "seo": null, "comment_count": 0},
+        {"id": 88, "type": "wp_block", "status": "publish", "slug": "newsletter", "title": "Newsletter sign-up", "date": "2019-01-01 10:00:00", "date_gmt": "2019-01-01 10:00:00", "modified_gmt": "2019-01-01 10:00:00", "author": 3, "parent": 0, "menu_order": 0, "comment_status": "closed", "ping_status": "closed", "password": "", "sticky": false, "format": null, "template": null, "featured_media": null, "terms": {}, "excerpt": "", "content": "", "has_blocks": true,
+         "blocks": [{"blockName": "core/paragraph", "attrs": {}, "innerBlocks": [], "innerHTML": "<p>Get the harbour news every week.</p>", "innerContent": ["<p>Get the harbour news every week.</p>"]}],
+         "permalink": "https://old.example/?p=88", "old_slugs": [], "old_dates": [], "seo": null, "comment_count": 0}
+    ]
+}

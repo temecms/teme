@@ -1,0 +1,399 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:teme:theme-manifest:1",
+    "title": "Teme theme manifest, version 1",
+    "description": "teme-theme.json. A preview until Teme 1.0 (I-3187): a key may change in a minor release before then, named in the changelog.",
+    "$comment": "@since 0.4.0",
+    "type": "object",
+    "required": [
+        "manifest",
+        "code",
+        "name",
+        "version",
+        "description",
+        "requires"
+    ],
+    "not": {
+        "anyOf": [{ "required": ["parent"] }, { "required": ["extends"] }]
+    },
+    "additionalProperties": true,
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "Optional. The path to this file, for an editor's help; Teme reads nothing from it."
+        },
+        "manifest": {
+            "type": "integer",
+            "const": 1,
+            "description": "The manifest's version. Always 1."
+        },
+        "code": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+            "description": "The theme's code: 2 to 40 lower-case letters, digits and hyphens, starting with a letter or digit. Unique among themes; for a theme in a plain folder, the folder's name."
+        },
+        "name": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "$comment": "Teme refuses a value of white space only (it trims first); the pattern says so for ASCII white space, which is all PHP's trim() removes, and a schema can't say more.",
+            "description": "The theme's name, as people see it."
+        },
+        "version": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "$comment": "Teme refuses a value of white space only (it trims first); the pattern says so for ASCII white space, which is all PHP's trim() removes, and a schema can't say more.",
+            "description": "The theme's own version."
+        },
+        "description": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "$comment": "Teme refuses a value of white space only (it trims first); the pattern says so for ASCII white space, which is all PHP's trim() removes, and a schema can't say more.",
+            "description": "What the theme is for, in a sentence."
+        },
+        "requires": {
+            "type": "object",
+            "required": ["teme"],
+            "description": "What the theme needs.",
+            "properties": {
+                "teme": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "\\S",
+                    "$comment": "Teme refuses a value of white space only (it trims first); the pattern says so for ASCII white space, which is all PHP's trim() removes, and a schema can't say more.",
+                    "description": "A Composer version constraint on Teme's own version, such as ^0.4. Before 1.0, ^0.4 means 0.4.x only."
+                }
+            }
+        },
+        "author": {
+            "type": "string",
+            "description": "Shown to people only; Teme reads nothing from it."
+        },
+        "license": {
+            "type": "string",
+            "description": "Shown to people only; Teme reads nothing from it."
+        },
+        "templates": {
+            "type": "object",
+            "description": "Content type, then template slug, then label. Every slug but default needs views/templates/single-{type}-{slug}.blade.php: only the theme's files can say whether it exists.",
+            "propertyNames": { "pattern": "^[a-z0-9-]+$" },
+            "additionalProperties": {
+                "type": "object",
+                "propertyNames": { "pattern": "^[a-z0-9-]+$" },
+                "additionalProperties": { "type": "string", "minLength": 1 }
+            }
+        },
+        "navigations": {
+            "type": "object",
+            "description": "The places the theme draws a menu: slot, then label.",
+            "propertyNames": { "pattern": "^[a-z0-9-]+$" },
+            "additionalProperties": { "type": "string", "minLength": 1 }
+        },
+        "regions": {
+            "type": "object",
+            "description": "The places the theme puts the site's own content: slug, then label, cards and max. Every card named must be a registered card: only Teme's registry can say which are.",
+            "propertyNames": { "pattern": "^[a-z0-9-]+$" },
+            "additionalProperties": {
+                "type": "object",
+                "required": ["label"],
+                "properties": {
+                    "label": { "type": "string", "minLength": 1 },
+                    "cards": { "type": "array", "items": { "type": "string" } },
+                    "max": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "description": "How many cards the region holds; 50 when absent."
+                    }
+                }
+            }
+        },
+        "settings": {
+            "type": "array",
+            "description": "The theme's own settings. A select needs options, and its default is one of them; a boolean's default is true or false; a visible_when names only settings declared before it.",
+            "items": {
+                "type": "object",
+                "required": ["key", "type", "label", "fieldset", "default"],
+                "properties": {
+                    "key": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]{1,40}$",
+                        "description": "2 to 41 lower-case letters, digits and underscores, starting with a letter; never starting with nav_."
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": ["select", "boolean", "text", "color"]
+                    },
+                    "label": { "type": "string", "minLength": 1 },
+                    "description": { "type": "string", "minLength": 1 },
+                    "fieldset": {
+                        "type": "string",
+                        "enum": ["site", "latest", "content", "archive"]
+                    },
+                    "options": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "description": "Stored value, then label. Only a select takes options."
+                    },
+                    "default": {
+                        "description": "A select's default is one of its options; a boolean's is true or false; a text's is text; a colour's is an empty string or #rrggbb."
+                    },
+                    "visible_when": {
+                        "type": "object",
+                        "description": "Earlier setting keys, each with a value or a list of values."
+                    }
+                }
+            }
+        },
+        "assets": {
+            "type": "object",
+            "required": ["manifest"],
+            "description": "The theme's Vite build.",
+            "properties": {
+                "manifest": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "A relative path inside the theme."
+                },
+                "entries": {
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "description": "The entries the theme's Vite build names."
+                }
+            }
+        },
+        "title_separator": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 3,
+            "description": "Between the parts of a page's title; – when absent."
+        },
+        "layout": {
+            "type": "object",
+            "required": ["content", "wide"],
+            "description": "The content, wide and full widths in pixels.",
+            "properties": {
+                "content": { "type": "integer", "minimum": 1 },
+                "wide": { "type": "integer", "minimum": 1 },
+                "full": {
+                    "type": ["integer", "null"],
+                    "minimum": 1,
+                    "description": "Null for the whole viewport."
+                }
+            }
+        },
+        "images": {
+            "type": "object",
+            "required": ["content"],
+            "description": "Image context, then its sizes value: lengths in px, vw or rem, every entry but the last after a media condition in parentheses.",
+            "additionalProperties": { "type": "string" }
+        },
+        "fonts": {
+            "type": "array",
+            "description": "The theme's fonts. At most one is preloaded, and each file is relative to the theme's public folder and exists there.",
+            "items": {
+                "type": "object",
+                "required": ["family", "file"],
+                "properties": {
+                    "family": { "type": "string", "minLength": 1 },
+                    "file": { "type": "string", "minLength": 1 },
+                    "weight": {
+                        "type": ["string", "integer"],
+                        "description": "Any number or text, such as 400 or \"400 700\"."
+                    },
+                    "style": {
+                        "type": "string",
+                        "enum": ["normal", "italic", "oblique"]
+                    },
+                    "preload": {
+                        "description": "Only true preloads the font; any other value, or none, does not."
+                    }
+                }
+            }
+        },
+        "tokens": {
+            "type": "object",
+            "description": "Design token, then its CSS value; a value has no ; { } < or >. base and accent are hex colours.",
+            "propertyNames": {
+                "enum": [
+                    "base",
+                    "contrast",
+                    "accent",
+                    "on-accent",
+                    "muted",
+                    "rule",
+                    "font-body",
+                    "font-heading",
+                    "font-mono",
+                    "step--1",
+                    "step-0",
+                    "step-1",
+                    "step-2",
+                    "step-3",
+                    "step-4",
+                    "step-5",
+                    "space-1",
+                    "space-2",
+                    "space-3",
+                    "space-4",
+                    "space-5",
+                    "space-6",
+                    "space-7",
+                    "space-8"
+                ]
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 },
+            "properties": {
+                "base": {
+                    "type": "string",
+                    "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                },
+                "accent": {
+                    "type": "string",
+                    "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                }
+            }
+        },
+        "tokens_dark": {
+            "type": "object",
+            "description": "The same tokens and rules, for the theme's dark scheme.",
+            "propertyNames": {
+                "enum": [
+                    "base",
+                    "contrast",
+                    "accent",
+                    "on-accent",
+                    "muted",
+                    "rule",
+                    "font-body",
+                    "font-heading",
+                    "font-mono",
+                    "step--1",
+                    "step-0",
+                    "step-1",
+                    "step-2",
+                    "step-3",
+                    "step-4",
+                    "step-5",
+                    "space-1",
+                    "space-2",
+                    "space-3",
+                    "space-4",
+                    "space-5",
+                    "space-6",
+                    "space-7",
+                    "space-8"
+                ]
+            },
+            "additionalProperties": { "type": "string", "minLength": 1 },
+            "properties": {
+                "base": {
+                    "type": "string",
+                    "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                },
+                "accent": {
+                    "type": "string",
+                    "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                }
+            }
+        },
+        "speculation": {
+            "type": "boolean",
+            "description": "A theme may only opt out: false leaves the prerendering rules out."
+        },
+        "breadcrumbs": {
+            "type": "boolean",
+            "description": "Whether the theme draws a breadcrumb trail; false when absent."
+        },
+        "screenshot": {
+            "type": "string",
+            "pattern": "^(?!/)(?!(?:.*/)?\\.\\.(?:/|$))[^\\\\\\s:]+\\.(?:[pP][nN][gG]|[jJ][pP][gG]|[wW][eE][bB][pP])$",
+            "description": "A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error."
+        },
+        "cards": {
+            "type": "object",
+            "description": "Cards the theme styles itself.",
+            "properties": {
+                "replaces": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Registered card names whose core stylesheets the theme replaces with its own."
+                }
+            }
+        },
+        "composers": {
+            "type": "array",
+            "description": "Class names of the theme's view composers, each asking only for Teme\\Contracts interfaces.",
+            "items": {
+                "type": "string",
+                "pattern": "^\\\\?[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$"
+            }
+        },
+        "per_page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Items per page of a listing; 10 when absent."
+        },
+        "csp": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "style": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                        "type": "string",
+                        "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                    }
+                },
+                "font": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                        "type": "string",
+                        "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                    }
+                },
+                "img": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                        "type": "string",
+                        "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                    }
+                },
+                "connect": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                        "type": "string",
+                        "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                    }
+                },
+                "frame": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                        "type": "string",
+                        "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                    }
+                },
+                "script": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "items": {
+                        "type": "string",
+                        "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+                    }
+                }
+            },
+            "description": "Outside hosts the theme's pages load from, by kind. Each is a host name or *.host; https is implied. A theme's own files are always allowed."
+        }
+    }
+}

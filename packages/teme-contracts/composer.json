@@ -1,0 +1,14 @@
+{
+    "name": "teme/contracts",
+    "description": "Public extension contracts. Semver'd independently of the application.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Teme\\Contracts\\": "src/"
+        }
+    }
+}

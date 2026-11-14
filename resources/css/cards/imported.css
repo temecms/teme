@@ -1,0 +1,42 @@
+/* The Imported content card (ImportedContentCard): linked only on pages that draw one (I-248). */
+
+/* The theme's prose spaces its own children; these are the card's, at the default theme's rhythm. */
+.card-imported > * + * {
+    margin-block-start: 1.1em;
+}
+
+.card-imported dt {
+    font-weight: 600;
+}
+
+.card-imported dd {
+    margin-inline-start: 1.25em;
+}
+
+.card-imported table {
+    inline-size: 100%;
+    border-collapse: collapse;
+}
+
+.card-imported caption {
+    padding-block-end: var(--teme-space-2, 0.5rem);
+    color: var(--teme-muted, #595959);
+    font-size: var(--teme-step--1, 0.875rem);
+    text-align: start;
+}
+
+.card-imported :where(th, td) {
+    padding: var(--teme-space-2, 0.5rem);
+    border: 1px solid var(--teme-rule, #d4d4d4);
+    text-align: start;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.card-imported th {
+    font-weight: 600;
+}
+
+.card-imported :where(sup, sub) {
+    line-height: 0;
+}
