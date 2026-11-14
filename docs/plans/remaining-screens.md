@@ -456,3 +456,85 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while working: commits; each case seen red (task, file, case, first line); the plants; the design-system and admin-words counts before and after; differences from the plan as B-?? (draft); any STOP. -->
+
+Setup: `scripts/cloud-setup.sh` ran in `/home/user/teme` from 2026-11-14T14:50:18Z to 15:01:41Z and finished with "Setup complete"; `pwd` is `/home/user/teme`.
+
+### Task 0
+
+- The integration branch is `origin/main` (the hand-off's instruction in place of `origin/feat/interface-foundation`); its head was `e77848d` (Merge #268), and `git log --grep="the design system and the admin's new frame" origin/main` prints `bd0e715`.
+- Every Step 2 line matched by its text. `ui/scroll-area.tsx`'s prop is `axis` (`'y' | 'x' | 'both'`).
+- This part's design-system baseline lines: 217 (R1 14, R2 117, R3 27, R5 17, R6 8, R7 28, R8 4, R9 2). `dsCounts()`: R1 131, R2 823, R3 183, R5 102, R6 55, R7 135, R8 39, R9 25, R10 15, R14 19, R15 9. Admin-words lines for these paths: 481; `toHaveCount(2552)`.
+- The content-lists part had not merged (the last merges are #268 and #267; nothing under `components/list` changed).
+- Versions: laravel/framework v13.39.0, inertiajs/inertia-laravel v3.5.2, pestphp/pest v5.3.4, pestphp/pest-plugin-browser v5.1.2; @inertiajs/react 3.9.1, react 19.3.1, tailwindcss 4.3.3, vite 8.3.5, rolldown 1.2.15, vite-plus 0.3.0.
+
+### Commits
+
+- `16803b7` feat(admin): Themes on the page patterns, each theme's settings on its own page
+- `604f8bf` feat(admin): Types on the page patterns, the form in sections with one save bar
+- `5465c58` feat(admin): a type's fields on the page patterns
+- `1d97877` feat(admin): Taxonomies on the page patterns, the form in sections with one save bar
+- `850d369` feat(admin): Navigation on the page patterns, moves in the item's menu on a phone
+- `d6e5703` feat(admin): Regions on the page patterns, card lists as chips
+- `1fed269` feat(admin): the Inbox on the list pattern, item targets at 44 on touch
+
+### Cases seen red
+
+The feature cases ran against the branch before the route; the browser cases ran against a build of `origin/main`'s `resources/js` with the new cases in place.
+
+| Task | File | Case | First failure |
+|---|---|---|---|
+| 1 | Feature/Themes/ThemesScreenTest | the three new cases | "Expected response status code [201, 301, 302, 303, 307, 308] but received 404." (and 404 where a 200 was expected) |
+| 1 | Browser/ThemesScreenTest | "asks before discarding the unpublished design changes…" | Timeout 5000ms at the click on `[aria-label="Unpublished design changes"] [data-test="design-discard"]` |
+| 1 | Browser/ThemesScreenTest | "keeps Themes inside the page at 375 pixels…" | **Not seen red**: today's list is already one column and nothing scrolls sideways (B-15) |
+| 2 | Browser/TypeBuilderTest | "moves between Films' sections…" | Timeout waiting for `nav[aria-label="Sections of this type"]` |
+| 2 | Browser/TypeBuilderTest | "shows the save bar when only the icon changes…" | Timeout 5000ms at the click on `[data-test="save-bar-discard"]` |
+| 4 | Browser/TaxonomyBuilderTest | "moves between Genres' sections…" | Timeout waiting for `nav[aria-label="Sections of this taxonomy"]` |
+| 5 | Browser/NavigationScreensTest | "keeps each item on one line at 375 pixels…" | "Failed asserting that 5 is identical to 0." (no `[data-control="more"]` in any row) |
+| 5 | Browser/NavigationScreensTest | "moves an item down from its menu on a phone…" | Timeout waiting for "More actions for Home" |
+| 5 | Browser/NavigationScreensTest | "says in the menu why a move can't be made" | Timeout waiting for "More actions for Club" |
+| 6 | Browser/RegionsScreenTest | "keeps Regions inside the page at 375 pixels…" | Timeout waiting for `[data-test="region-cards"] [data-slot="term-chip"]` |
+| 7 | Browser/InboxScreenTest | "gives each item's title a 44-pixel target…" | "Failed asserting that 24 is equal to 44 or is greater than 44." |
+| 3 | Browser/FieldsPageTest | "turns a date field date only…" (before its read changed) | "Failed asserting that two arrays are identical." (`.checked` is undefined on Radix's item) |
+
+### Plants
+
+- Task 2: `dirty` reading `isDirty` alone: "shows the save bar when only the icon changes…" fails with "Failed asserting that true is false." (the bar stays hidden). Restored; green.
+- Task 5: the move buttons at every width (no `max-sm:hidden`): "keeps each item on one line…" fails with "Failed asserting that 5 is identical to 0." on the visible Move up count. Restored; green.
+
+### Counts
+
+- Design-system baseline, this part's lines: 217 → 4 (the four R5 `<table>` lines: `types/fields.tsx` three, `types/show.tsx` one). `dsCounts()`: R1 131 → 117, R2 823 → 706, R3 183 → 156, R5 102 → 89, R6 55 → 47, R7 135 → 107, R8 39 → 35, R9 25 → 23; R10, R14 and R15 unchanged.
+- Admin words: 2552 → 2529 (this part's lines 481 → 458).
+- Task 8's greps: only the four `<table>` lines; no page imports `components/fields/` or `components/list/page-header`; nothing changed under `components/ui` or `resources/css`; under `components/patterns` only the new `section-tabs.tsx`.
+
+### Decisions (drafts)
+
+- **B-1 (draft)** `FormPage` has no badge slot. Found: the plan's "title and source pill as today" on a form page. Options: a `badge` prop on `FormPage` (a change to `patterns/`, refused by the plan), the pill in the header's actions, the pill at the start of the description line. Chose the description line: no shared file changes and the pill still sits under the title. `604f8bf`, `1d97877`.
+- **B-2 (draft)** The preview panel on the list says nothing about unchosen menu places. Found: "Choose them under Menus below" is true only on the settings page, where the Menus panel is. Options: the same line on both pages, the line on the settings page only. Chose the settings page only (`unbound={[]}` on the list). `16803b7`.
+- **B-3 (draft)** A previewed theme's card has its own Activate button ("Activate :name"). Found: the cards hold Preview, and the plan names activating from the settings page and the preview panel. Options: no Activate on the card, "Activate" alone, "Activate :name". Chose "Activate :name" through `__()`, calling the same activation as the panel. `16803b7`.
+- **B-4 (draft)** `SectionTabs` wraps its row. Found: the existing 375-pixel cases of TypeBuilderTest and TaxonomyBuilderTest need every link in `main` inside the page, and a row scrolling sideways leaves tabs past the edge. Options: wrap the row, hide the row on phones, change the cases (refused). Chose `flex-wrap` on the list. `604f8bf`.
+- **B-5 (draft)** The Films and Genres section cases run at 1440 × 700, and "the view" is the nearest box that scrolls the section, else the window. Found: the window scrolls the admin, and at the default 1117 pixels tall the page cannot scroll Permissions (or On the site) to its top, being near the foot. Options: a shorter view, a section nearer the top, a weaker check. Chose the shorter view, keeping the plan's tab and its 80-pixel check. `604f8bf`, `1d97877`.
+- **B-6 (draft)** A code-declared taxonomy's read-only page has no "In the admin" tab. Found: that view draws no In the admin panel today. Options: an empty panel for the tab, leave the tab out. Chose to leave it out. `1d97877`.
+- **B-7 (draft)** The icon picker's height and columns are custom properties set in `style`. Found: its `max-h-[50vh]` and its column template are arbitrary values (R1). Options: a token (refused), custom properties (R15 allows them). Chose custom properties. `5465c58`.
+- **B-8 (draft)** The tree editor's focus fallback selector is written `input[data-control='label']`. Found: the scanner reads the string `[data-control="label"]` as an arbitrary class (R1). Options: keep it (a new R1 line, refused), reword the selector. Chose the selector with the element and single quotes; same element. `850d369`.
+- **B-9 (draft)** "moves an item down from its menu on a phone" moves Home, not Harbour. Found: Harbour is the last item under Visit, so its Move down is refused ("It is already last."). Options: Home, Partners, or moving Harbour up. Chose Home, the first item, whose Move down reorders the top level as its button would. `850d369`.
+- **B-10 (draft)** On a phone a row's label field is 44 tall and shares a line with its "…" in a group of their own. Found: the plan's one-line case compares the two tops, and a 32-tall field beside a 44-tall button differs by 6. Options: align the tops (`items-start`), the field at 44 below 640. Chose 44, which also gives the field a touch-sized target. `850d369`.
+- **B-11 (draft)** Focus comes back to the row's "…" from the menu's close, not from the move itself. Found: the menu holds focus until it closes, so focusing the button during the move was undone. Options: a timer, the menu's `onCloseAutoFocus`. Chose `onCloseAutoFocus`, which focuses the moved row's "…" (found again by its key, since a row moved under another is drawn anew). `850d369`.
+- **B-12 (draft)** The add-item panel's tabs are ghost `Button`s with a raised look when selected, not the underline. Found: an underline needs `rounded-none` (R6), and `ui/tabs.tsx` would replace the ids the tests click. Options: `ui/tabs`, the underline with a baseline line (refused), `Button`s with `aria-selected` drawn as `ui/tabs` draws its active tab. Chose the last. `850d369`.
+- **B-13 (draft)** The menu editor's crumbs are set when the page draws (Navigation › the menu's name) with `setLayoutProps`; the static layout stays, as MenuWordsTest reads it. `850d369`.
+- **B-14 (draft)** Themes' region overview keeps its words line ("Callout, Button · At most 5 blocks") instead of chips. Found: ThemesScreenTest reads that line, and it is not in the table of cases that change. Options: chips (that case would change: a STOP), chips with the words hidden for the test, the words line with the tokens' sizes. Chose the words line. Regions itself has the chips. `d6e5703`.
+- **B-15 (draft)** "keeps Themes inside the page at 375 pixels…" was not seen red: today's list already passes it. Kept as written; it now guards the cards. `16803b7`.
+- **B-16 (draft)** The draft bar on a phone sits 8 pixels inside the edges with its corners, not square across the width. Found: `rounded-none` is R6. `16803b7`.
+- **B-17 (draft)** WordingPassListsTest's first case needed no change: `pages/themes/index.tsx` still holds `{page.preview !== null && (` after "Open Settings › General". `16803b7`.
+- **B-18 (draft)** The quick check after each task ran on a working tree that already held later tasks' code; each commit removed only its own baseline lines, and the Architecture suite is green from `850d369` on.
+- **B-19 (draft)** Two editor guides name moved words. Found: the full check's `tests/Feature/Guides/Editors/EditorPagesTest` failed twice ("**Unsaved changes**" in `organising.md`; "**Publish**" and "**Discard**" in `settings.md`), the words having moved into `patterns/save-bar.tsx` and `components/themes/design-draft-bar.tsx`. Options: point the guides' `sources` at those files (the test keeps its meaning), reword the guides, keep the words in the old files. Chose the sources, the rule of the standing instruction for a test that reads a file this part changes. `b996bf5`.
+
+### Gate
+
+- Full `composer check` (on `1fed269`): Pint, PHPStan, types, lint and format, the themes' build passed; Architecture 101 passed (1207 assertions); Unit and Feature 10437 passed, 2 skipped, 2 failed (the two guide cases of B-19), in 1674 s. After `b996bf5`, `tests/Feature/Guides/` passes (289) and nothing else changed, so the full check was not run a second time.
+- Browser files after `npm run build`, one at a time: ThemesScreenTest 10, TypeBuilderTest 14 (the preload case included), FieldsPageTest 11, TaxonomyBuilderTest 10, CategoriesAndTagsTest 7, NavigationScreensTest 12, RegionsScreenTest 7, InboxScreenTest 4, HeaderActivityTest 3, ShellResponsiveTest 10, FullPassTest 40, DesignCatalogueTest 18: all passed. (One earlier ShellResponsiveTest run failed axe on the palette button's contrast in the dark scheme, a file outside this part; it passed on the rerun.)
+- No STOP.
+
+### How to try it
+
+On a local site: Site › Themes, a card's "Theme settings", change a setting, then Publish; Discard asks first. Site › Types › a type: the row of tabs moves through the sections without leaving the page, and the save bar shows after any change, the icon's included. Content › Navigation › a menu at phone width: each item's "…" holds its moves and Remove.
