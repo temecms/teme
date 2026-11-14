@@ -314,8 +314,10 @@ it('finds and chooses a tag in the editor with the keyboard alone, and keeps it 
     cbType($page, 'harb');
     shellSettled($page, '[data-slot="popover-content"]');
     cmWaitUntil($page, "document.activeElement?.getAttribute('role') === 'combobox' && document.activeElement.value === 'harb'");
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Harbour'");
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Harbour,Create “harb”'");
 
+    // Two options, Harbour and Create: the arrow highlights Harbour, Enter ticks it.
+    cbPress($page, 'ArrowDown');
     cbPress($page, 'Enter');
     cmWaitUntil($page, "document.querySelector('[role=\"option\"]')?.getAttribute('aria-checked') === 'true'");
     cbPress($page, 'Escape');
