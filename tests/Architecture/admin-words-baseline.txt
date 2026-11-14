@@ -1037,10 +1037,6 @@ components/media/media-filters.tsx	Type
 components/media/media-filters.tsx	Uploaded for this {}
 components/media/media-filters.tsx	Uploaded for “{}”
 components/media/media-filters.tsx	Video
-components/media/media-grid.tsx	Failed
-components/media/media-grid.tsx	Media
-components/media/media-grid.tsx	Preparing…
-components/media/media-grid.tsx	Selected
 components/media/media-modal.tsx	Cancel
 components/media/media-modal.tsx	Clear
 components/media/media-modal.tsx	Clear filters

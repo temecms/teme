@@ -598,8 +598,6 @@ R2	js/components/media/attachment-fields.tsx	text-xs
 R2	js/components/media/attachment-fields.tsx	text-xs
 R2	js/components/media/media-filters.tsx	text-[13px]
 R2	js/components/media/media-filters.tsx	text-[13px]
-R2	js/components/media/media-grid.tsx	text-xs
-R2	js/components/media/media-grid.tsx	text-xs
 R2	js/components/media/media-modal.tsx	text-sm
 R2	js/components/media/media-modal.tsx	text-sm
 R2	js/components/media/media-modal.tsx	text-sm
@@ -911,7 +909,6 @@ R3	js/components/list/date-filter.tsx	my-1.5
 R3	js/components/list/row-links.tsx	mt-0.5
 R3	js/components/list/tab-strip.tsx	gap-1.5
 R3	js/components/list/tab-strip.tsx	px-0.5
-R3	js/components/media/media-grid.tsx	p-0.5
 R3	js/components/plugins/consent-dialog.tsx	gap-1.5
 R3	js/components/plugins/consent-dialog.tsx	px-1.5
 R3	js/components/seo/who-publishes.tsx	mt-0.5
@@ -1013,7 +1010,6 @@ R5	js/components/media-drawer.tsx	<button type="button">
 R5	js/components/media/attachment-fields.tsx	<textarea>
 R5	js/components/media/attachment-fields.tsx	<textarea>
 R5	js/components/media/media-filters.tsx	<button type="button">
-R5	js/components/media/media-grid.tsx	<button type="button">
 R5	js/components/palette/command-palette.tsx	<input>
 R5	js/components/seo/who-publishes.tsx	<select>
 R5	js/components/tools/redirect-form.tsx	<button type="button">
@@ -1067,10 +1063,6 @@ R6	js/components/list/data-table.tsx	leading-5
 R6	js/components/media-drawer.tsx	rounded
 R6	js/components/media/attachment-details.tsx	rounded
 R6	js/components/media/attachment-details.tsx	rounded
-R6	js/components/media/media-grid.tsx	rounded
-R6	js/components/media/media-grid.tsx	rounded
-R6	js/components/media/media-grid.tsx	rounded
-R6	js/components/media/media-grid.tsx	rounded
 R6	js/components/media/media-modal.tsx	z-10
 R6	js/components/media/page-drop.tsx	z-40
 R6	js/components/plugins/consent-dialog.tsx	leading-4

@@ -380,9 +380,9 @@ export function MediaModal({
                         <MediaGrid
                             rows={rows}
                             selectedIds={selectedIds}
-                            focusedId={focusedId}
+                            picker
                             multiselectable={multiple}
-                            onChoose={choose}
+                            onAction={(id) => choose(id)}
                         />
                         {older !== null && (
                             <Button

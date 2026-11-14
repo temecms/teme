@@ -10,7 +10,7 @@ import { Pager } from '@/components/list/pager';
 import { TabStrip } from '@/components/list/tab-strip';
 import { MediaFilters } from '@/components/media/media-filters';
 import type { MediaFilterValues } from '@/components/media/media-filters';
-import { MediaGrid, Thumb } from '@/components/media/media-grid';
+import { MediaGrid, Thumb, TILE_SIZES } from '@/components/media/media-grid';
 import { MEDIA_KINDS } from '@/components/media/attachment-fields';
 import { PageDrop } from '@/components/media/page-drop';
 import { UploadList } from '@/components/media/upload-list';
@@ -22,7 +22,9 @@ import type { UploadedBatch } from '@/components/media/use-media-uploads';
 import { MediaDrawer } from '@/components/media-drawer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Segmented, SegmentedItem } from '@/components/ui/segmented';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import { index as mediaIndex } from '@/routes/media';
 import type { MediaIndexPage, MediaRow } from '@/types';
@@ -38,6 +40,29 @@ const FILTER_KEYS = [
     'uploaded_for',
 ] as const;
 
+type TileSizeKey = keyof typeof TILE_SIZES;
+
+/** Where this browser remembers the tile size: a per-viewer convenience. */
+const TILE_KEY = 'teme.media.tile';
+
+function storedTileSize(): TileSizeKey {
+    try {
+        const stored = window.localStorage.getItem(TILE_KEY);
+
+        return stored === 's' || stored === 'l' ? stored : 'm';
+    } catch {
+        return 'm';
+    }
+}
+
+function storeTileSize(size: TileSizeKey): void {
+    try {
+        window.localStorage.setItem(TILE_KEY, size);
+    } catch {
+        // Storage refused: the size holds until the page is left.
+    }
+}
+
 /** A dash that says what it means to a screen reader. */
 function Nothing({ meaning }: { meaning: string }) {
     return (
@@ -52,6 +77,9 @@ function Nothing({ meaning }: { meaning: string }) {
 
 export default function MediaIndex(page: MediaIndexPage) {
     const [selected, setSelected] = useState<string | null>(null);
+    const [tileSize, setTileSize] = useState<TileSizeKey>(() =>
+        typeof window === 'undefined' ? 'm' : storedTileSize(),
+    );
     const input = useRef<HTMLInputElement>(null);
     const filters = page.filters;
     const tab = filters.tab === 'trash' ? 'trash' : 'all';
@@ -339,6 +367,36 @@ export default function MediaIndex(page: MediaIndexPage) {
                             ]}
                         />
                     )}
+                    {view === 'grid' && (
+                        <Segmented
+                            aria-label={__('Tile size')}
+                            value={tileSize}
+                            onValueChange={(next) => {
+                                const size = next as TileSizeKey;
+                                setTileSize(size);
+                                storeTileSize(size);
+                            }}
+                        >
+                            <SegmentedItem
+                                value="s"
+                                aria-label={__('Small tiles')}
+                            >
+                                {__('S')}
+                            </SegmentedItem>
+                            <SegmentedItem
+                                value="m"
+                                aria-label={__('Medium tiles')}
+                            >
+                                {__('M')}
+                            </SegmentedItem>
+                            <SegmentedItem
+                                value="l"
+                                aria-label={__('Large tiles')}
+                            >
+                                {__('L')}
+                            </SegmentedItem>
+                        </Segmented>
+                    )}
                     <div
                         role="group"
                         aria-label="Layout"
@@ -403,7 +461,15 @@ export default function MediaIndex(page: MediaIndexPage) {
                         />
                     )
                 ) : view === 'grid' ? (
-                    <MediaGrid rows={page.rows} onChoose={setSelected} />
+                    <MediaGrid
+                        rows={page.rows}
+                        size={TILE_SIZES[tileSize]}
+                        openId={selected}
+                        onAction={(id, action) =>
+                            (action === 'click' || action === 'enter') &&
+                            setSelected(id)
+                        }
+                    />
                 ) : (
                     <DataTable
                         caption="Media"
