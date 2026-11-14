@@ -1761,9 +1761,6 @@ pages/settings/discussion.tsx	Comments on this site
 pages/settings/discussion.tsx	Discussion
 pages/settings/discussion.tsx	Discussion settings
 pages/settings/discussion.tsx	Only administrators can switch comments on or off.
-pages/settings/discussion.tsx	Save discussion settings
-pages/settings/discussion.tsx	Save the comments switch
-pages/settings/discussion.tsx	Saves this switch only.
 pages/settings/group.tsx	The default is {}.
 pages/settings/group.tsx	{} settings
 pages/settings/group.tsx	{}’s own number is {}.

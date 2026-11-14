@@ -101,7 +101,6 @@ R1	js/pages/content/index.tsx	w-[72px]
 R1	js/pages/navigation/edit.tsx	sm:grid-cols-[140px_1fr]
 R1	js/pages/navigation/edit.tsx	sm:max-w-[480px]
 R1	js/pages/settings/ai.tsx	max-w-[960px]
-R1	js/pages/settings/discussion.tsx	max-w-[960px]
 R1	js/pages/settings/search-and-social.tsx	md:grid-cols-[170px_minmax(0,1fr)]
 R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
 R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
@@ -781,10 +780,6 @@ R2	js/pages/settings/ai.tsx	text-sm
 R2	js/pages/settings/ai.tsx	text-sm
 R2	js/pages/settings/ai.tsx	text-sm
 R2	js/pages/settings/ai.tsx	text-sm
-R2	js/pages/settings/discussion.tsx	text-sm
-R2	js/pages/settings/discussion.tsx	text-sm
-R2	js/pages/settings/discussion.tsx	text-sm
-R2	js/pages/settings/discussion.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
@@ -1074,7 +1069,6 @@ R3	js/pages/regions/index.tsx	px-1.5
 R3	js/pages/regions/index.tsx	py-0.5
 R3	js/pages/settings/ai.tsx	mt-0.5
 R3	js/pages/settings/ai.tsx	mt-0.5
-R3	js/pages/settings/discussion.tsx	mt-0.5
 R3	js/pages/settings/site-code.tsx	mt-0.5
 R3	js/pages/taxonomies/index.tsx	mt-0.5
 R3	js/pages/terms/index.tsx	gap-1.5
@@ -1303,8 +1297,6 @@ R7	js/pages/regions/index.tsx	frame:p-6
 R7	js/pages/regions/index.tsx	root:div
 R7	js/pages/settings/ai.tsx	frame:max-w-[960px]
 R7	js/pages/settings/ai.tsx	root:div
-R7	js/pages/settings/discussion.tsx	frame:max-w-[960px]
-R7	js/pages/settings/discussion.tsx	root:div
 R7	js/pages/settings/site-code.tsx	frame:max-w-[960px]
 R7	js/pages/settings/site-code.tsx	frame:sm:max-w-[560px]
 R7	js/pages/settings/site-code.tsx	root:div

@@ -96,3 +96,18 @@ it('pins the bar to the foot on a phone, with nothing scrolling sideways', funct
     $page->assertScript('(() => { const bar = document.querySelector(\'[data-test="save-bar"]\').getBoundingClientRect(); return Math.abs(bar.bottom - window.innerHeight) <= 1 && bar.left <= 1; })()')
         ->assertScript('document.documentElement.scrollWidth <= document.documentElement.clientWidth');
 });
+
+it('switches comments at once, and holds the switch while the sections below have unsaved changes', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/settings/discussion');
+    cmWaitUntil($page, 'document.querySelector("#field-thread_depth") !== null');
+
+    $page->assertScript('document.querySelector("#field-comments").getAttribute("role") === "switch"')
+        ->type('#field-thread_depth', '4');
+    cmWaitUntil($page, 'document.querySelector("#field-comments").disabled === true');
+
+    $page->click('[data-test="save-bar-discard"]');
+    cmWaitUntil($page, 'document.querySelector("#field-comments").disabled === false');
+
+    $page->click('#field-comments');
+    cmWaitUntil($page, 'document.body.textContent.includes("Comments switched off.")');
+});
