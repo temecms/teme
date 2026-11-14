@@ -1752,7 +1752,6 @@ pages/settings/ai.tsx	How often one person may ask, and how much the site may sp
 pages/settings/ai.tsx	No AI task is installed yet.
 pages/settings/ai.tsx	No AI task is on yet.
 pages/settings/ai.tsx	Nobody is offered AI and nothing is sent to an AI service. These settings can’t be changed until your host switches it on again; they’re kept as they were.
-pages/settings/ai.tsx	Save AI settings
 pages/settings/ai.tsx	Saving may ask for your password. If it does, you’ll come back here to save again, and any key you typed must be typed again.
 pages/settings/ai.tsx	Set a key for one of the services below and save, then choose a model for each task under Models.
 pages/settings/discussion.tsx	Comments are an optional part of Teme, switched on or off for the whole site.

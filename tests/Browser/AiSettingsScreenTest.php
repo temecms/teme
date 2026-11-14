@@ -68,15 +68,8 @@ it('passes axe on Settings › AI, every target 24 pixels or more, in the light 
 it('sets a key and a model once the password is confirmed, checks the key, and the task says it’s on (I-1308)', function (): void {
     Http::fake(['https://api.anthropic.com/v1/models' => Http::response(['data' => []])]);
 
-    cmSignIn($this->admin)
+    $page = cmSignIn($this->admin)
         ->navigate('/admin/settings/ai')
-        ->click('[data-test="ai-key-set-anthropic"]')
-        ->type('#ai-key-anthropic', 'sk-ant-browser')
-        ->click('[data-test="ai-settings-save"]')
-        ->assertSee('Confirm password')
-        ->type('#password', 'password')
-        ->click('[data-test="confirm-password-button"]')
-        ->assertPathIs('/admin/settings/ai')
         ->click('[data-test="ai-key-set-anthropic"]')
         ->type('#ai-key-anthropic', 'sk-ant-browser')
         ->click('#ai-model-fixture')
@@ -84,7 +77,11 @@ it('sets a key and a model once the password is confirmed, checks the key, and t
         // The list fades out as the choice lands; the next click would meet it.
         ->assertNotPresent('[role="listbox"]')
         ->assertSee('$1.00 a million tokens sent, $2.00 a million written.')
-        ->click('[data-test="ai-settings-save"]')
+        ->click('[data-test="ai-settings-save"]');
+    shellSettled($page, '[data-slot="dialog-content"]');
+
+    $page->type('[data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="fresh-password-confirm"]')
         ->assertSee('AI settings saved. Check key tells you whether the new key works.')
         ->assertSeeIn('[data-test="ai-key-state-anthropic"]', 'Set')
         ->assertSeeIn('[data-test="ai-task-status-fixture"]', 'On')
@@ -100,21 +97,18 @@ it('sets a key and a model once the password is confirmed, checks the key, and t
 it('removes a key only when saved, and Keep key takes the removal back (I-315)', function (): void {
     aiKey('anthropic_key', 'sk-ant-stored');
 
-    cmSignIn($this->admin)
+    $page = cmSignIn($this->admin)
         ->navigate('/admin/settings/ai')
         ->click('[data-test="ai-key-remove-anthropic"]')
         ->assertSee('The key will be removed when you save. Anthropic’s models stop working until it has a key again.')
         ->click('[data-test="ai-key-keep-anthropic"]')
         ->assertDontSee('The key will be removed when you save.')
         ->click('[data-test="ai-key-remove-anthropic"]')
-        ->click('[data-test="ai-settings-save"]')
-        ->assertSee('Confirm password')
-        ->type('#password', 'password')
-        ->click('[data-test="confirm-password-button"]')
-        ->assertPathIs('/admin/settings/ai')
-        ->assertSeeIn('[data-test="ai-key-state-anthropic"]', 'Set')
-        ->click('[data-test="ai-key-remove-anthropic"]')
-        ->click('[data-test="ai-settings-save"]')
+        ->click('[data-test="ai-settings-save"]');
+    shellSettled($page, '[data-slot="dialog-content"]');
+
+    $page->type('[data-test="fresh-password-input"]', 'password')
+        ->click('[data-test="fresh-password-confirm"]')
         ->assertSee('AI settings saved.')
         ->assertSeeIn('[data-test="ai-key-state-anthropic"]', 'Not set')
         ->assertPresent('[data-test="ai-key-set-anthropic"]');

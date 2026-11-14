@@ -1,5 +1,4 @@
 R1	js/components/ai-settings/month-figures.tsx	grid-cols-[max-content_1fr]
-R1	js/components/ai-settings/service-panel.tsx	min-w-[260px]
 R1	js/components/comments/comment-details.tsx	grid-cols-[7rem_1fr]
 R1	js/components/comments/comment-details.tsx	sm:max-w-[480px]
 R1	js/components/comments/quick-edit.tsx	sm:max-w-[480px]
@@ -100,11 +99,9 @@ R1	js/pages/content/index.tsx	sm:max-w-[480px]
 R1	js/pages/content/index.tsx	w-[72px]
 R1	js/pages/navigation/edit.tsx	sm:grid-cols-[140px_1fr]
 R1	js/pages/navigation/edit.tsx	sm:max-w-[480px]
-R1	js/pages/settings/ai.tsx	max-w-[960px]
 R1	js/pages/settings/search-and-social.tsx	md:grid-cols-[170px_minmax(0,1fr)]
 R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
 R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
-R1	js/pages/settings/site-code.tsx	max-w-[960px]
 R1	js/pages/settings/site-code.tsx	sm:max-w-[560px]
 R1	js/pages/taxonomies/show.tsx	max-w-[768px]
 R1	js/pages/terms/index.tsx	lg:grid-cols-[300px_minmax(0,1fr)]
@@ -166,25 +163,7 @@ R2	css/app.css	.teme-prose h3 { font-size: 1.25em }
 R2	css/app.css	.teme-prose h4 { font-size: 1.1em }
 R2	css/app.css	.teme-prose pre { font-size: 0.875em }
 R2	css/app.css	.teme-prose table { font-size: 0.95em }
-R2	js/components/ai-settings/month-figures.tsx	text-[12px]
-R2	js/components/ai-settings/month-figures.tsx	text-[12px]
-R2	js/components/ai-settings/month-figures.tsx	text-[13px]
-R2	js/components/ai-settings/month-figures.tsx	text-[13px]
-R2	js/components/ai-settings/month-figures.tsx	text-[13px]
 R2	js/components/ai-settings/month-figures.tsx	text-base
-R2	js/components/ai-settings/service-panel.tsx	text-[15px]
-R2	js/components/ai-settings/service-panel.tsx	text-sm
-R2	js/components/ai-settings/service-panel.tsx	text-sm
-R2	js/components/ai-settings/service-panel.tsx	text-sm
-R2	js/components/ai-settings/service-panel.tsx	text-sm
-R2	js/components/ai-settings/service-panel.tsx	text-sm
-R2	js/components/ai-settings/service-panel.tsx	text-sm
-R2	js/components/ai-settings/service-panel.tsx	text-sm
-R2	js/components/ai-settings/task-row.tsx	text-[15px]
-R2	js/components/ai-settings/task-row.tsx	text-sm
-R2	js/components/ai-settings/task-row.tsx	text-sm
-R2	js/components/ai-settings/task-row.tsx	text-sm
-R2	js/components/ai-settings/task-row.tsx	text-sm
 R2	js/components/alert-error.tsx	text-sm
 R2	js/components/backups/back-up-now.tsx	text-sm
 R2	js/components/backups/back-up-now.tsx	text-sm
@@ -776,12 +755,6 @@ R2	js/pages/regions/index.tsx	text-[11px]
 R2	js/pages/regions/index.tsx	text-[13px]
 R2	js/pages/regions/index.tsx	text-[15px]
 R2	js/pages/regions/index.tsx	text-xs
-R2	js/pages/settings/ai.tsx	text-sm
-R2	js/pages/settings/ai.tsx	text-sm
-R2	js/pages/settings/ai.tsx	text-sm
-R2	js/pages/settings/ai.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-sm
-R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
@@ -1067,9 +1040,6 @@ R3	js/pages/plugins/index.tsx	gap-1.5
 R3	js/pages/plugins/index.tsx	px-0.5
 R3	js/pages/regions/index.tsx	px-1.5
 R3	js/pages/regions/index.tsx	py-0.5
-R3	js/pages/settings/ai.tsx	mt-0.5
-R3	js/pages/settings/ai.tsx	mt-0.5
-R3	js/pages/settings/site-code.tsx	mt-0.5
 R3	js/pages/taxonomies/index.tsx	mt-0.5
 R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
@@ -1295,11 +1265,7 @@ R7	js/pages/plugins/index.tsx	root:DetailsDialog
 R7	js/pages/plugins/index.tsx	root:div
 R7	js/pages/regions/index.tsx	frame:p-6
 R7	js/pages/regions/index.tsx	root:div
-R7	js/pages/settings/ai.tsx	frame:max-w-[960px]
-R7	js/pages/settings/ai.tsx	root:div
-R7	js/pages/settings/site-code.tsx	frame:max-w-[960px]
 R7	js/pages/settings/site-code.tsx	frame:sm:max-w-[560px]
-R7	js/pages/settings/site-code.tsx	root:div
 R7	js/pages/settings/site-code.tsx	root:Sheet
 R7	js/pages/taxonomies/index.tsx	frame:p-6
 R7	js/pages/taxonomies/index.tsx	root:div
@@ -1419,10 +1385,6 @@ R9	js/components/navigation/tree-editor.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/themes/theme-preview-panel.tsx	role="note"
 R9	js/pages/content/index.tsx	classes: bg-warn-soft px-3 py-2
 R9	js/pages/dashboard.tsx	role="note"
-R9	js/pages/settings/ai.tsx	role="note"
-R9	js/pages/settings/ai.tsx	role="note"
-R9	js/pages/settings/site-code.tsx	role="note"
-R9	js/pages/settings/site-code.tsx	role="note"
 R9	js/pages/tools/ai-activity.tsx	role="note"
 R9	js/pages/tools/page-cache.tsx	role="note"
 R9	js/pages/tools/redirects.tsx	role="note"

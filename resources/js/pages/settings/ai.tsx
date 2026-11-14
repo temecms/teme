@@ -1,19 +1,21 @@
-import { Form, Head } from '@inertiajs/react';
-import { Info } from 'lucide-react';
+import { Head, setLayoutProps } from '@inertiajs/react';
 import AiSettingsController from '@/actions/App/Http/Admin/Settings/AiSettingsController';
 import { MonthFigures } from '@/components/ai-settings/month-figures';
 import { ServicePanel } from '@/components/ai-settings/service-panel';
 import { TaskRow } from '@/components/ai-settings/task-row';
 import { SettingsField } from '@/components/fields/settings-field';
+import { SettingsForm } from '@/components/fields/settings-form';
 import { SettingsPanel } from '@/components/fields/settings-panel';
-import { SettingsSaveBar } from '@/components/fields/settings-save-bar';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { SettingsPage } from '@/components/patterns/settings-page';
+import { Notice } from '@/components/ui/notice';
+import { __ } from '@/lib/i18n';
 import type { AiSettingsPage } from '@/types/ai-settings';
 
 /**
  * Settings › AI (I-1308): each AI service with its key, a model and fallback
- * for each task, the limits with this month's spend, and one Save. While the
+ * for each task, the limits with this month's spend, and the one save bar,
+ * asking for the password in place. While the
  * server has AI switched off, a notice and nothing else.
  */
 export default function AiSettings(props: AiSettingsPage) {
@@ -21,27 +23,22 @@ export default function AiSettings(props: AiSettingsPage) {
         ? props.sections.findIndex((section) => section.kind === 'service')
         : -1;
 
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('AI'), href: AiSettingsController.show.url() },
+        ],
+    });
+
     return (
         <>
             <Head title="AI settings" />
 
-            <div className="grid max-w-[960px] gap-6">
-                <Heading
-                    level={1}
-                    title="AI"
-                    description={props.enabled ? props.description : undefined}
-                />
-
+            <SettingsPage
+                title="AI"
+                description={props.enabled ? props.description : undefined}
+            >
                 {!props.enabled ? (
-                    <div
-                        role="note"
-                        data-test="ai-off"
-                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
-                    >
-                        <Info
-                            aria-hidden="true"
-                            className="mt-0.5 size-4 shrink-0"
-                        />
+                    <Notice tone="warn" data-test="ai-off">
                         <p>
                             <strong className="font-medium">
                                 AI is switched off on this server.
@@ -51,35 +48,30 @@ export default function AiSettings(props: AiSettingsPage) {
                             host switches it on again; they’re kept as they
                             were.
                         </p>
-                    </div>
+                    </Notice>
                 ) : (
-                    <Form
-                        {...AiSettingsController.update.form()}
-                        options={{
-                            preserveScroll: true,
-                            preserveState: 'errors',
-                        }}
-                        className="grid gap-6"
+                    <SettingsForm
+                        action={AiSettingsController.update.form()}
+                        saveLabel={__('Save AI settings')}
+                        saveTestId="ai-settings-save"
+                        what={__(':page settings', { page: __('AI') })}
+                        askInPlace
+                        options={{ preserveState: 'errors' }}
                     >
-                        {({ processing, errors }) => (
+                        {({ errors }) => (
                             <>
                                 <input
                                     type="hidden"
                                     name="expected_version"
                                     value={props.version}
                                 />
-                                <InputError message={errors.expected_version} />
+                                <InputError
+                                    id="expected-version-error"
+                                    message={errors.expected_version}
+                                />
 
                                 {!props.anyTaskOn && (
-                                    <div
-                                        role="note"
-                                        data-test="ai-none-on"
-                                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
-                                    >
-                                        <Info
-                                            aria-hidden="true"
-                                            className="mt-0.5 size-4 shrink-0"
-                                        />
+                                    <Notice tone="info" data-test="ai-none-on">
                                         <p>
                                             <strong className="font-medium">
                                                 No AI task is on yet.
@@ -88,7 +80,7 @@ export default function AiSettings(props: AiSettingsPage) {
                                             below and save, then choose a model
                                             for each task under Models.
                                         </p>
-                                    </div>
+                                    </Notice>
                                 )}
 
                                 {props.sections.map((section, index) => {
@@ -137,7 +129,7 @@ export default function AiSettings(props: AiSettingsPage) {
                                                 description="Choose the model each task uses. A task with no model is off, and nobody sees it. The fallback is asked once when the first model can’t be reached or is busy."
                                             >
                                                 {section.tasks.length === 0 ? (
-                                                    <p className="text-ink-2 text-sm">
+                                                    <p className="text-small text-ink-2">
                                                         No AI task is installed
                                                         yet.
                                                     </p>
@@ -207,13 +199,8 @@ export default function AiSettings(props: AiSettingsPage) {
                                     );
                                 })}
 
-                                <SettingsSaveBar
-                                    label="Save AI settings"
-                                    processing={processing}
-                                    testId="ai-settings-save"
-                                />
                                 <div className="space-y-2">
-                                    <p className="text-ink-2 text-sm">
+                                    <p className="text-small text-ink-2">
                                         Saving may ask for your password. If it
                                         does, you’ll come back here to save
                                         again, and any key you typed must be
@@ -222,9 +209,9 @@ export default function AiSettings(props: AiSettingsPage) {
                                 </div>
                             </>
                         )}
-                    </Form>
+                    </SettingsForm>
                 )}
-            </div>
+            </SettingsPage>
         </>
     );
 }
