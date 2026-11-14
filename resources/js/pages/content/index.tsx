@@ -220,6 +220,8 @@ function QuickEdit({
                             taxonomy={taxonomy.key}
                             singular={taxonomy.singular}
                             label={taxonomy.plural}
+                            canCreate={taxonomy.canCreate}
+                            segment={taxonomy.segment}
                             value={terms[taxonomy.key] ?? []}
                             onChange={(value) =>
                                 setTerms((current) => ({

@@ -299,6 +299,8 @@ export function BulkEditDialog({
                                     taxonomy={taxonomy.key}
                                     singular={taxonomy.singular}
                                     label={taxonomy.plural}
+                                    canCreate={taxonomy.canCreate}
+                                    segment={taxonomy.segment}
                                     value={added[taxonomy.key] ?? []}
                                     onChange={(value) =>
                                         setAdded((current) => ({

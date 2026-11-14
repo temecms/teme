@@ -327,3 +327,40 @@ it('finds and chooses a tag in the editor with the keyboard alone, and keeps it 
 
     expect(cbSavedTerms($item))->toContain($harbour->id);
 });
+
+it('creates a tag by typing its name, for someone who may create tags, and keeps it on save', function (): void {
+    $item = lifecycleDraft($this->admin, 'Ferry notes');
+
+    $page = cbEditorAtTags($this->admin, $item);
+
+    cbType($page, 'Lighthouse keepers');
+    shellSettled($page, '[data-slot="popover-content"]');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Create “Lighthouse keepers”'");
+
+    // The only option: Enter chooses it.
+    cbPress($page, 'Enter');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"popover-content\"]') === null");
+    cmWaitUntil($page, "Array.from(document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]')).map((tag) => tag.textContent.trim()).join(',') === 'Lighthouse keepers'");
+
+    $page->keys('.teme-prose', 'Control+s');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"save-state\"]')?.dataset.state === 'saved'");
+
+    $created = DB::table('terms')->where('taxonomy', 'tag')->where('name', 'Lighthouse keepers')->value('id');
+
+    expect($created)->not->toBeNull()
+        ->and(cbSavedTerms($item))->toContain($created);
+});
+
+it('offers no Create to someone who may not create tags', function (): void {
+    $author = User::factory()->create(['name' => 'Bea Author'])->assignRole('author');
+    $item = lifecycleDraft($author, 'Ferry notes');
+
+    $page = cbEditorAtTags($author, $item);
+
+    cbType($page, 'Lighthouse keepers');
+    shellSettled($page, '[data-slot="popover-content"]');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && document.querySelector('[data-slot=\"combobox-empty\"]')?.textContent === 'Nothing matches.'");
+
+    $page->assertScript("document.querySelectorAll('[role=\"option\"]').length === 0");
+    expect(DB::table('terms')->where('name', 'Lighthouse keepers')->exists())->toBeFalse();
+});

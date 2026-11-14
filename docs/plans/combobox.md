@@ -311,7 +311,7 @@ it('draws a list to search only through the combobox', function (): void {
 
 - Touch the command palette (`components/palette/**`) or its tests.
 - Adopt the Combobox anywhere else: the list filters, the term parent, Quick and Bulk edit's author, the link search, the button card, the Tools launcher, the home page chooser, the menu editor, the redirect form, the importer and people's reassignment belong to the parts that rebuild those screens.
-- Let a tag be created from the picker.
+- Let a tag be created from the picker other than as Follow-up W1-2 builds it: on the existing `CreateTerm` operation and `terms.store` route, offered only where the page's `canCreate` says the server allows it.
 - Use `useSelect` or the `Downshift` render-prop component; import `downshift` outside `ui/combobox.tsx`.
 - Change any existing `ui/` component, a token, the scanner, `tests/Pest.php`, or the category tree (`term-tree-picker.tsx`).
 - Add a dependency other than `downshift`; change an existing lock entry.
@@ -343,7 +343,7 @@ Stop, write why under Records, commit and push, then stop, when:
 
 | # | Point | Recommendation |
 |---|---|---|
-| 1 | Creating a tag from the picker, as the demo draws | A later part, with its own permission check and operation |
+| 1 | Creating a tag from the picker, as the demo draws | Built here (Follow-up W1-2, the proposal's Settled 1): on the existing `CreateTerm` and `terms.store`, with no new operation, permission or route |
 | 2 | A multiple Combobox's button: chosen names or a count ("3 tags") | Names on one truncated line, as built; the tag picker shows removable tags beside it |
 | 3 | Popovers as sheets from the foot of a phone screen (the approved responsive design) | The phone-overlays part changes the shared Popover once; the Combobox inherits it |
 | 4 | The palette on the Combobox's list parts, and its groups (DS 4.34 vs the built ones) | A later part exports the list parts from `ui/combobox.tsx` and moves the palette; decide the groups then |
