@@ -397,3 +397,9 @@ Stop, write why under Records, commit and push, then stop, when:
 - B-03 (draft): `ListPages::describe()` takes the page number as nullable (null past the cap) and the newer cursor as well as the older, so every list builds the whole `paging` in one call. Commit `71c8603`.
 - B-04 (draft): a nesting taxonomy's pages of branches are numbered exactly with no cap, since the whole tree is already read; its total counts terms, not branches. Options: cap them like the others (pointless when the tree is in memory); count branches (not what a person sees as rows). Commit `71c8603`.
 - Done to Task 1 at `71c8603`, the quick check green.
+
+### Task 2
+
+- Seen red at the base, `RowUndoTest`: 2 failed, first line "Failed asserting that false is true." (no `undo` in the toast after publishing and after trashing); its three refused cases passed at the base, as they should.
+- Existing case changed, meaning kept: `TrashOfferTest` "offers nothing to someone who can't manage redirects, or after trashing what was never published" compared the whole toast; it now checks the type and words and that there is no `link` (no redirect offer), since the toast now also carries Undo.
+- Done to Task 2 at `e8b8ec2`, the quick check green.
