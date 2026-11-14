@@ -1,3 +1,5 @@
+import type { ListPages } from './list-pages';
+
 export type CommentView = 'all' | 'pending' | 'approved' | 'spam' | 'trash';
 
 /** One comment in the Comments screen's list (1.8c): what the screen draws, decided on the server (D14). */
@@ -74,8 +76,8 @@ export type CommentsIndexPage = {
     /** All, Pending, Approved, Spam, Trash, each with its count. */
     views: { key: CommentView; label: string; count: number }[];
     rows: CommentRow[];
-    newer: string | null;
-    older: string | null;
+    /** Where this page sits among the list's pages (I-3421). */
+    paging: ListPages;
     filters: { search?: string; item?: string };
     /** The item the list is narrowed to. */
     item: { id: string; title: string } | null;

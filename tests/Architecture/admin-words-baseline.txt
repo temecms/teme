@@ -1336,58 +1336,6 @@ layouts/settings/layout.tsx	{} for “{}”
 lib/discussion.ts	Closed
 lib/discussion.ts	Hidden
 lib/discussion.ts	Open
-pages/comments/index.tsx	Actions for the comment by {}
-pages/comments/index.tsx	Approve
-pages/comments/index.tsx	Approve
-pages/comments/index.tsx	Approve
-pages/comments/index.tsx	Clear filters
-pages/comments/index.tsx	Comments
-pages/comments/index.tsx	Comments
-pages/comments/index.tsx	Delete permanently
-pages/comments/index.tsx	Details
-pages/comments/index.tsx	Empty spam
-pages/comments/index.tsx	Empty trash
-pages/comments/index.tsx	In reply to a removed comment
-pages/comments/index.tsx	In reply to {}
-pages/comments/index.tsx	Keyboard:
-pages/comments/index.tsx	Mark as not spam
-pages/comments/index.tsx	Mark as not spam
-pages/comments/index.tsx	Mark as spam
-pages/comments/index.tsx	Mark as spam
-pages/comments/index.tsx	Mark as spam
-pages/comments/index.tsx	Move to trash
-pages/comments/index.tsx	No approved comments
-pages/comments/index.tsx	No comments match these filters
-pages/comments/index.tsx	No comments match “{}”
-pages/comments/index.tsx	No comments yet
-pages/comments/index.tsx	No spam
-pages/comments/index.tsx	Nothing is waiting
-pages/comments/index.tsx	On “{}”
-pages/comments/index.tsx	Pending
-pages/comments/index.tsx	Quick edit
-pages/comments/index.tsx	Reply
-pages/comments/index.tsx	Restore
-pages/comments/index.tsx	Restore
-pages/comments/index.tsx	Search
-pages/comments/index.tsx	Search comments
-pages/comments/index.tsx	Select all {} comments shown
-pages/comments/index.tsx	Select the 1 comment shown
-pages/comments/index.tsx	Select the comment by {}
-pages/comments/index.tsx	Show comments on every item
-pages/comments/index.tsx	Text, name or email
-pages/comments/index.tsx	Text, name, email or IP address
-pages/comments/index.tsx	The trash is empty
-pages/comments/index.tsx	Unapprove
-pages/comments/index.tsx	Unapprove
-pages/comments/index.tsx	Unapprove
-pages/comments/index.tsx	Views
-pages/comments/off.tsx	Comments are switched off
-pages/comments/off.tsx	Comments are switched off
-pages/comments/off.tsx	Go to Home
-pages/comments/off.tsx	Switch comments on
-pages/comments/off.tsx	This site takes no comments, so there’s nothing to moderate. Comments already stored are kept.
-pages/comments/refused.tsx	Comments
-pages/comments/refused.tsx	Comments
 pages/content/compare.tsx	After
 pages/content/compare.tsx	Back to the editor
 pages/content/compare.tsx	Before

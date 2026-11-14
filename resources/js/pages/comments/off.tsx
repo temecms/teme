@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
-import { PageHeader } from '@/components/list/page-header';
+import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 import { dashboard } from '@/routes';
 import { discussion } from '@/routes/settings';
 
@@ -10,25 +11,30 @@ type Props = {
 };
 
 /**
- * What the Comments screen answers while comments are switched off (1.8c's
- * D15, v9's commentsOff): the route answers as if it weren't there, with
- * this page. It links to the switch for whoever may change it (1.8d's D15).
+ * What the Comments screen answers while comments are switched off: the
+ * route answers as if it weren't there, with this page. It links to the
+ * switch for whoever may change it.
  */
 export default function CommentsOff({ canSwitch }: Props) {
+    const title = __('Comments are switched off');
+
     return (
-        <div className="space-y-4 p-6">
-            <Head title="Comments are switched off" />
-            <PageHeader
-                title="Comments are switched off"
-                description="This site takes no comments, so there’s nothing to moderate. Comments already stored are kept."
-                action={
-                    <Button asChild>
-                        <Link href={canSwitch ? discussion() : dashboard()}>
-                            {canSwitch ? 'Switch comments on' : 'Go to Home'}
-                        </Link>
-                    </Button>
-                }
-            />
-        </div>
+        <ListPage
+            title={title}
+            description={__(
+                'This site takes no comments, so there’s nothing to moderate. Comments already stored are kept.',
+            )}
+            actions={
+                <Button asChild variant="primary">
+                    <Link href={canSwitch ? discussion() : dashboard()}>
+                        {canSwitch
+                            ? __('Switch comments on')
+                            : __('Go to Home')}
+                    </Link>
+                </Button>
+            }
+        >
+            <Head title={title} />
+        </ListPage>
     );
 }

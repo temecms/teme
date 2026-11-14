@@ -647,9 +647,6 @@ R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
-R2	js/pages/comments/index.tsx	text-[11px]
-R2	js/pages/comments/index.tsx	text-[12px]
-R2	js/pages/comments/index.tsx	text-[12px]
 R2	js/pages/content/compare.tsx	text-[13px]
 R2	js/pages/content/compare.tsx	text-[13px]
 R2	js/pages/content/edit.tsx	text-[28px]
@@ -979,7 +976,6 @@ R5	js/components/seo/who-publishes.tsx	<select>
 R5	js/components/tools/redirect-form.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<input type="radio">
 R5	js/components/tools/redirect-form.tsx	<select>
-R5	js/pages/comments/index.tsx	<button type="button">
 R5	js/pages/content/edit.tsx	<textarea>
 R5	js/pages/media/index.tsx	<button type="button">
 R5	js/pages/plugins/index.tsx	<button type="button">
@@ -1036,15 +1032,6 @@ R6	js/components/tools/update-progress.tsx	rounded
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
 R6	js/pages/tools/updates.tsx	rounded
-R7	js/pages/comments/index.tsx	frame:p-6
-R7	js/pages/comments/index.tsx	root:CommentDetailsDrawer
-R7	js/pages/comments/index.tsx	root:DeleteComments
-R7	js/pages/comments/index.tsx	root:div
-R7	js/pages/comments/index.tsx	root:QuickEdit
-R7	js/pages/comments/off.tsx	frame:p-6
-R7	js/pages/comments/off.tsx	root:div
-R7	js/pages/comments/refused.tsx	frame:p-6
-R7	js/pages/comments/refused.tsx	root:div
 R7	js/pages/content/compare.tsx	frame:px-4
 R7	js/pages/content/compare.tsx	frame:py-6
 R7	js/pages/content/compare.tsx	frame:sm:px-6

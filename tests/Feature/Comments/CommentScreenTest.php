@@ -124,7 +124,7 @@ it('refuses a drawer for a comment on someone else\'s item, and 404 for one that
 it('says "Move to trash" in the row menu, as every screen does, and never a bare "Trash" (issue 89)', function (): void {
     $source = uiComponent('pages/comments/index.tsx');
 
-    expect($source)->not->toContain("label: 'Trash'")
-        ->and(substr_count($source, 'TRASH'))->toBeGreaterThanOrEqual(3)
-        ->and($source)->toContain("label: 'Move to trash'");
+    expect($source)->not->toContain("__('Trash')")
+        ->and($source)->toContain("label: __('Move to trash')")
+        ->and($source)->toContain('entry(row, trash)');
 });

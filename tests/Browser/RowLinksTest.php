@@ -192,7 +192,7 @@ it('gives the other lists that share the row layer the same links, up to four on
             ->assertScript("[...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim()).join('|')", $more);
     }
 })->with([
-    'a waiting comment' => ['/admin/comments', 'Actions for the comment by Ada Guest', 'approved|reply|quick-edit|trash|more', '[aria-label="Actions for the comment by Ada Guest"] [data-action="more"]', 'Details|Mark as spam'],
+    'a waiting comment' => ['/admin/comments', 'Actions for the comment by Ada Guest', 'approved|reply|quick-edit|details', '[aria-label="More actions for the comment by Ada Guest"]', 'Mark as spam|Move to trash'],
     'a category' => ['/admin/categories', 'Actions for Transport', 'edit|view', '[aria-label="More actions for Transport"]', 'Delete'],
 ]);
 
