@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Preferences\PreferenceDefinition;
+use App\Domain\Preferences\PreferenceRegistry;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Users\Operations\Input\SetPictureInput;
 use App\Domain\Users\Operations\SetPicture;
@@ -160,6 +162,43 @@ it('keeps a typed number until the field is left', function (): void {
     cmWaitUntil($page, 'document.body.innerText.includes("Preferences saved.")');
 
     expect(PreferencesFor::user($this->admin->refresh())['editor.rail_width'])->toBe(400);
+});
+
+it('keeps typed words in a box until the field is left, sending nothing at each key', function (): void {
+    // No preference is a text box yet and the registry takes no such type, so
+    // the fixture is put straight among its declarations, as a box a plugin's
+    // text preference would draw.
+    $registry = app(PreferenceRegistry::class);
+    $definitions = new ReflectionProperty($registry, 'definitions');
+    $definitions->setValue($registry, [...$definitions->getValue($registry), 'fixture.note' => new PreferenceDefinition('fixture.note', 'textarea', '', 'Note')]);
+
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/account/preferences');
+    cmWaitUntil($page, 'document.getElementById("field-fixture.note") !== null');
+
+    // Counts each request to save preferences as it starts, not as it ends.
+    $page->script(<<<'JS'
+        () => {
+            window.preferencesSent = 0;
+            const open = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+                if (String(url).includes('/admin/account/preferences') && method.toUpperCase() !== 'GET') {
+                    window.preferencesSent += 1;
+                }
+
+                return open.call(this, method, url, ...rest);
+            };
+        }
+        JS);
+    $sent = 'window.preferencesSent';
+
+    $page->click('[id="field-fixture.note"]')
+        ->keys('[id="field-fixture.note"]', ['N', 'o', 't', 'e', 's']);
+
+    // Nothing is sent while the field keeps the focus.
+    $page->assertScript('document.getElementById("field-fixture.note").tagName', 'TEXTAREA')
+        ->assertScript($sent, 0)
+        ->keys('[id="field-fixture.note"]', 'Tab');
+    cmWaitUntil($page, $sent.' === 1');
 });
 
 it('opens Two-factor sign-in from the account list after the password, with Turn on two-factor sign-in', function (): void {

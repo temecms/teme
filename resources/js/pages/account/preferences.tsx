@@ -29,11 +29,16 @@ const PANELS: { prefix: string; title: () => string }[] = [
     { prefix: 'dashboard.', title: () => __('Home') },
 ];
 
-/** A number or text the person types, saved once it is left rather than at each key. */
-function typed(target: EventTarget): target is HTMLInputElement {
+/** A field the person types into, saved once it is left rather than at each key; a box, list or switch is saved as it is chosen. */
+function typed(
+    target: EventTarget,
+): target is HTMLInputElement | HTMLTextAreaElement {
     return (
-        target instanceof HTMLInputElement &&
-        (target.type === 'number' || target.type === 'text')
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLInputElement &&
+            !['checkbox', 'radio', 'hidden', 'file', 'range', 'color'].includes(
+                target.type,
+            ))
     );
 }
 
