@@ -538,3 +538,19 @@ The feature cases ran against the branch before the route; the browser cases ran
 ### How to try it
 
 On a local site: Site › Themes, a card's "Theme settings", change a setting, then Publish; Discard asks first. Site › Types › a type: the row of tabs moves through the sections without leaving the page, and the save bar shows after any change, the icon's included. Content › Navigation › a menu at phone width: each item's "…" holds its moves and Remove.
+
+### Follow-up W5-2
+
+The review's fixes, one commit each, pushed after each.
+
+| # | Commit | Seen red first |
+|---|---|---|
+| 1 | `1fa137a` fix(admin): clear the save bar after a type or a taxonomy is saved (`setDefaultsOnSuccess` on both edit forms; `taxonomies`, `supports` and `types` sorted in the snapshots) | TypeBuilderTest "changes Films while they have items…", with the new wait after "Saved Movies.": Timeout 5000ms waiting for the save bar to be hidden |
+| 2 | `3cb5bb7` test(admin): the in-view check runs after the plural is typed and asks for `!bar.hidden`, a height, and the window's bounds | A test-only change; it passes on the fixed screen |
+| 3 | `456e3c1` fix(admin): `max-sm:static` on `SectionTabs`' nav, with TypeBuilderTest "keeps the row of tabs from covering a section's top at 375 pixels" | "Failed asserting that false is true." (the section's top was above the nav's bottom) |
+| 4 | `af8c77e` fix(admin): the label field `h-(--ctl-h)`; after Remove from the "…" menu, focus goes to the item now in its place, else the one before, else its parent; NavigationScreensTest "puts focus on the next item's menu button after Remove…" | Timeout waiting for focus on "More actions for About" |
+
+- **B-20 (draft)** TypeBuilderTest "…the Save bar in view" restored to its meaning: its in-view check ran before any change, while the bar was hidden and its box all zeros, so it proved nothing. Options: drop the check, move it after a change. Chose to move it after `type('#type-plural', 'Movies')`, adding `!bar.hidden` and a non-zero height. `3cb5bb7`.
+- **B-21 (draft)** The 375-pixel tabs case taps "On the site", not the last tab. Found: the last section (Delete this type) sits at the page's foot, so the page can't scroll it to the top and the case passed without the fix. Options: the last tab with a taller page, a middle tab. Chose "On the site", and the case waits for the scroll to settle before comparing, seen red before the fix. `456e3c1`.
+- **B-22 (draft)** The label field is now 36 tall from 640 up (the token), not 32; the reviewer's choice. `af8c77e`.
+- Checks: Pint, PHPStan, types and lint passed; Architecture 101 passed; `tests/Feature/Navigation/`, `tests/Feature/Types/` and `tests/Feature/Guides/` 758 passed. After `npm run build`: TypeBuilderTest 15, TaxonomyBuilderTest 10 and NavigationScreensTest 13 passed.
