@@ -546,4 +546,5 @@ Stop, write why under Records, commit and push, then stop, when:
 - Done to Task 1 at `77456b5`, the quick check green.
 - Done to Task 2 at `416f069`, the quick check green.
 - Done to Task 3 at `2109c73`, the quick check green.
-- Done to Task 4, the quick check green.
+- Done to Task 4 at `ccc4306`, the quick check green.
+- Done to Task 5, the quick check green.

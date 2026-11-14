@@ -180,3 +180,28 @@ it('draws every sign-in page on the one card, with no sideways scroll at 320 pix
             ->and($targets['checked'])->toBeGreaterThan(0);
     }
 })->with(['forgot password', 'reset password', 'accept an invitation', 'two-factor', 'verify email', 'confirm password']);
+
+it('draws the admin\'s 404 and 403 on the card, passing axe in both schemes with nothing small', function (string $scheme): void {
+    // People is for administrators only, so an editor is refused it.
+    foreach (['/admin/no-such-screen' => '404', route('users.index', [], false) => '403'] as $url => $code) {
+        $page = spVisit('/admin/login', $scheme)
+            ->type('email', $this->editor->email)
+            ->type('password', 'password')
+            ->click('[data-test="login-button"]')
+            ->assertPathIs('/admin');
+
+        cmNavigate($page, $url);
+        cmWaitUntil($page, "document.querySelector('main[data-error=\"{$code}\"]') !== null");
+
+        $targets = cmSmallTargets($page);
+
+        expect(cmAxeViolations($page))->toBe([], "{$code}, {$scheme}")
+            ->and($targets['small'])->toBe([], "{$code}, {$scheme}")
+            ->and($targets['checked'])->toBeGreaterThan(0)
+            ->and($page->script('() => document.querySelector(\'[data-test="powered-by"]\') === null'))->toBeTrue();
+
+        $page->resize(320, 640);
+
+        expect(spNoSidewaysScroll($page))->toBeTrue("{$code}, {$scheme}, 320");
+    }
+})->with(['light', 'dark']);
