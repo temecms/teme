@@ -683,3 +683,8 @@ html.editor-workspace #main-content {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
 }
+
+/* A card draws its own ring when selected (design-system.md, 4.39). */
+.teme-prose .ProseMirror-selectednode:has([data-slot='card-head']) {
+    outline: none;
+}

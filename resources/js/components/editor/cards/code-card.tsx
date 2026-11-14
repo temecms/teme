@@ -1,5 +1,6 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { CardField, CardFrame, TextSetting } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
@@ -20,16 +21,16 @@ export function CodeCard({
 
     return (
         <CardFrame
-            label="Code"
+            label={__('Code')}
             selected={selected}
-            warning={code === '' ? { label: 'Needs code' } : null}
+            warning={code === '' ? { label: __('Needs code') } : null}
             onRemove={deleteNode}
             settings={
                 <CodeSettings attrs={node.attrs} update={updateAttributes} />
             }
         >
             <textarea
-                aria-label="Code"
+                aria-label={__('Code')}
                 rows={4}
                 spellCheck={false}
                 value={code}
@@ -56,7 +57,7 @@ export function CodeSettings({
 
     return (
         <>
-            <CardField label="Language">
+            <CardField label={__('Language')}>
                 {(props) => (
                     <SelectField
                         {...props}
@@ -72,7 +73,7 @@ export function CodeSettings({
                 )}
             </CardField>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={caption}
                 onChange={(next) => updateAttributes({ caption: next })}
             />

@@ -2,6 +2,7 @@ import type { ReactNodeViewProps } from '@tiptap/react';
 import { SelectField } from '@/components/ui/select-field';
 import { variant } from '@/lib/media-urls';
 import type { CardManifest } from '@/types';
+import { __ } from '@/lib/i18n';
 import { CardField, CardFrame, TextSetting } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
@@ -55,9 +56,9 @@ export function EmbedCard({
 
     return (
         <CardFrame
-            label="Embed"
+            label={__('Embed')}
             selected={selected}
-            warning={url === '' ? { label: 'Needs an address' } : null}
+            warning={url === '' ? { label: __('Needs an address') } : null}
             onRemove={deleteNode}
             defaultOpen={url === ''}
             settings={
@@ -107,10 +108,12 @@ export function EmbedSettings({
     return (
         <>
             <TextSetting
-                label="Address"
-                hint="A video, a track or a post. Addresses from providers the site does not frame show as a link."
+                label={__('Address')}
+                hint={__(
+                    'A video, a track or a post. Addresses from providers the site does not frame show as a link.',
+                )}
                 value={url}
-                placeholder="https://"
+                placeholder={__('https://')}
                 onChange={(next) =>
                     updateAttributes({
                         url: next,
@@ -118,7 +121,7 @@ export function EmbedSettings({
                     })
                 }
             />
-            <CardField label="Kind">
+            <CardField label={__('Kind')}>
                 {(props) => (
                     <SelectField
                         {...props}
@@ -130,13 +133,13 @@ export function EmbedSettings({
                 )}
             </CardField>
             <TextSetting
-                label="Title"
-                hint="Read out for the frame, and shown on a link."
+                label={__('Title')}
+                hint={__('Read out for the frame, and shown on a link.')}
                 value={attrs.title}
                 onChange={(title) => updateAttributes({ title })}
             />
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => updateAttributes({ caption })}
             />

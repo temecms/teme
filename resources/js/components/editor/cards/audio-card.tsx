@@ -51,15 +51,15 @@ export function AudioCard({
     return (
         <>
             <CardFrame
-                label="Audio"
+                label={__('Audio')}
                 selected={selected}
                 warning={
                     item !== undefined && transcript === ''
-                        ? { label: 'No transcript' }
+                        ? { label: __('No transcript') }
                         : null
                 }
                 onReplace={() => open(pick(attrs.mediaId !== null))}
-                replaceLabel="Replace audio"
+                replaceLabel={__('Replace audio')}
                 onRemove={deleteNode}
                 settings={
                     <AudioSettings
@@ -120,13 +120,15 @@ export function AudioSettings({ attrs: raw, update }: CardSettingsProps) {
     return (
         <>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => update({ caption })}
             />
             <TextSetting
-                label="Transcript"
-                hint="Everything said, in words, for people who can’t hear it. A blank line starts a new paragraph. Readers open it under the player."
+                label={__('Transcript')}
+                hint={__(
+                    'Everything said, in words, for people who can’t hear it. A blank line starts a new paragraph. Readers open it under the player.',
+                )}
                 value={attrs.transcript}
                 onChange={(transcript) => update({ transcript })}
                 multiline

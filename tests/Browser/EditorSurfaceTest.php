@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Models\ContentAutosave;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -23,8 +24,13 @@ beforeEach(function (): void {
     Storage::fake('media');
     Storage::fake('media-originals');
 
-    // Each request starts afresh, as on a real server (TwoEditorsTest).
-    Event::listen(RequestHandled::class, function (): void {
+    // Each request starts afresh, as on a real server (TwoEditorsTest); autosaves are counted.
+    $this->autosaves = 0;
+    Event::listen(RequestHandled::class, function (RequestHandled $event): void {
+        if ($event->request->isMethod('POST') && str_ends_with($event->request->path(), '/autosave')) {
+            $this->autosaves++;
+        }
+
         app()->forgetScopedInstances();
         auth()->forgetGuards();
         app('session.store')->flush();
@@ -70,6 +76,16 @@ beforeEach(function (): void {
 
     // A label is drawn when it takes room on the screen; sr-only takes one pixel at most.
     $this->esfLabelShown = fn (string $for): string => "(() => { const box = document.querySelector('label[for=\"{$for}\"]').getBoundingClientRect(); return box.width > 1 && box.height > 1; })()";
+
+    // The image card (the second block), its header, and whether the header is on screen.
+    $this->esfCard = "document.querySelectorAll('.teme-prose > *')[1]";
+    $this->esfHeadShown = "(() => { const head = document.querySelectorAll('.teme-prose > *')[1].querySelector('[data-slot=\"card-head\"]'); return head !== null && getComputedStyle(head).visibility !== 'hidden' && head.getBoundingClientRect().height > 0; })()";
+
+    // The image card's attributes in this person's autosave.
+    $this->esfSavedImage = fn (): array => collect(ContentAutosave::query()->where('content_id', $this->draft->id)->value('document')['content'] ?? [])->firstWhere('type', 'image')['attrs'] ?? [];
+
+    // Waits in the browser until a save newer than $before has landed.
+    $this->esfSavedSince = fn (mixed $page, mixed $before): mixed => cmWaitUntil($page, "(() => { const state = document.querySelector('[data-test=\"save-state\"]'); return state.dataset.state === 'saved' && (state.dataset.savedAt ?? null) !== ".json_encode($before, JSON_THROW_ON_ERROR).'; })()');
 
     // Warm the screen before the browser's first visit (I-638).
     $this->actingAs($this->editor)->get($this->edit)->assertOk();
@@ -164,6 +180,96 @@ it('offers Underline, Superscript, Subscript and Clear formatting under the bubb
     $page->click('[data-slot="bubble-menu"] [role="menu"] [role^="menuitem"]:has-text("Underline")');
     cmWaitUntil($page, "document.querySelector('.teme-prose > p:last-child u')?.textContent === 'Fares'");
 });
+
+it('shows a card\'s header on hover, when selected and while focus is inside', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    // At rest: the pointer on the title, the caret in the last paragraph.
+    $page->hover('#editor-title');
+    $page->script("(() => { const body = document.querySelector('.teme-prose'); body.focus(); const text = document.createTreeWalker(body.children[2], NodeFilter.SHOW_TEXT).nextNode(); const range = document.createRange(); range.setStart(text, 2); range.collapse(true); getSelection().removeAllRanges(); getSelection().addRange(range); })()");
+    cmWaitUntil($page, "!{$this->esfHeadShown}");
+
+    $page->hover('.teme-prose > *:nth-child(2) img');
+    cmWaitUntil($page, $this->esfHeadShown);
+    $page->hover('#editor-title');
+    cmWaitUntil($page, "!{$this->esfHeadShown}");
+
+    // Selected: shown with the pointer elsewhere.
+    $page->click('.teme-prose > *:nth-child(2) img');
+    $page->hover('#editor-title');
+    cmWaitUntil($page, "{$this->esfCard}.classList.contains('ProseMirror-selectednode') && {$this->esfHeadShown}");
+
+    // Not selected, but focus inside the card.
+    $page->script("(() => { const body = document.querySelector('.teme-prose'); body.focus(); const text = document.createTreeWalker(body.children[2], NodeFilter.SHOW_TEXT).nextNode(); const range = document.createRange(); range.setStart(text, 2); range.collapse(true); getSelection().removeAllRanges(); getSelection().addRange(range); })()");
+    cmWaitUntil($page, "!{$this->esfHeadShown}");
+    $page->script("{$this->esfCard}.querySelector('input[placeholder=\"Add a caption\"]').focus()");
+    cmWaitUntil($page, $this->esfHeadShown);
+});
+
+it('collapses a card to one line and opens it again, saving nothing', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    $saves = $this->autosaves;
+
+    $page->hover('.teme-prose > *:nth-child(2) img');
+    cmWaitUntil($page, $this->esfHeadShown);
+    $page->click('.teme-prose > *:nth-child(2) [data-slot="card-head"] button[aria-label="Collapse"]');
+
+    // One line: the name and no picture; the header stays.
+    cmWaitUntil($page, "{$this->esfCard}.querySelector('img') === null && {$this->esfCard}.getBoundingClientRect().height <= 64 && {$this->esfCard}.textContent.includes('Image')");
+    $page->hover('#editor-title');
+    cmWaitUntil($page, $this->esfHeadShown);
+
+    // Longer than the autosave's idle wait: nothing was sent.
+    $page->script('new Promise((resolve) => setTimeout(resolve, 3000))');
+    expect($this->autosaves)->toBe($saves);
+
+    $page->click('.teme-prose > *:nth-child(2) [data-slot="card-head"] button[aria-label="Expand"]');
+    cmWaitUntil($page, "{$this->esfCard}.querySelector('img') !== null");
+
+    // The block menu does the same.
+    $page->hover('.teme-prose > *:nth-child(2) img');
+    cmWaitUntil($page, "(() => { const grip = document.querySelector('[data-block-grip=\"pointer\"]'); return grip !== null && getComputedStyle(grip.closest('.teme-block-handle')).visibility !== 'hidden' && grip.getAttribute('aria-label') === 'Block menu: Image'; })()");
+    $page->click('[data-block-grip="pointer"]');
+    $page->click('[role="menu"] [role="menuitem"]:has-text("Collapse to one line")');
+    cmWaitUntil($page, "{$this->esfCard}.querySelector('img') === null");
+
+    $page->script('new Promise((resolve) => setTimeout(resolve, 3000))');
+    expect($this->autosaves)->toBe($saves);
+});
+
+it('types an image\'s caption in place and shows the alt-text row when alt text is missing', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $before = $page->script("document.querySelector('[data-test=\"save-state\"]').dataset.savedAt ?? null");
+    $page->assertScript("{$this->esfCard}.textContent.includes('Alt text missing')");
+
+    $page->click('.teme-prose > *:nth-child(2) input[placeholder="Add a caption"]');
+    $page->page()->locator(':focus')->type('Ferry at dawn');
+    ($this->esfSavedSince)($page, $before);
+    cmWaitUntil($page, "document.querySelector('[data-test=\"save-state\"]').dataset.state === 'saved'");
+    expect(($this->esfSavedImage)()['caption'] ?? null)->toBe('Ferry at dawn');
+
+    $before = $page->script("document.querySelector('[data-test=\"save-state\"]').dataset.savedAt ?? null");
+    $page->click('.teme-prose > *:nth-child(2) [data-slot="card-alt"] input');
+    $page->page()->locator(':focus')->type('The morning ferry');
+    ($this->esfSavedSince)($page, $before);
+
+    expect(($this->esfSavedImage)())->toMatchArray(['caption' => 'Ferry at dawn', 'alt' => 'The morning ferry']);
+    $page->assertScript("{$this->esfCard}.textContent.includes('Alt text missing')", false);
+});
+
+it('passes axe with a card selected, light and dark', function (string $scheme): void {
+    lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
+
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit))
+        ->assertScript("[...document.querySelectorAll('[data-sidebar=\"group-label\"]')].flatMap((element) => element.getAnimations()).filter((animation) => animation.playState === 'running').length", 0);
+
+    $page->click('.teme-prose > *:nth-child(2) img');
+    cmWaitUntil($page, "{$this->esfCard}.classList.contains('ProseMirror-selectednode') && {$this->esfHeadShown}");
+    cmWaitUntil($page, "document.getAnimations().every((animation) => animation.playState !== 'running')");
+
+    expect(cmAxeViolations($page))->toBe([]);
+})->with(['light', 'dark']);
 
 it('passes axe in light and dark with every target 24 pixels or more', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);

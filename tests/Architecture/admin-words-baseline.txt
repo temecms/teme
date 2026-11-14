@@ -260,71 +260,20 @@ components/dashboard/quick-draft.tsx	Title
 components/dashboard/quick-draft.tsx	What's it about?
 components/dashboard/site-figures.tsx	The site in figures
 components/editor/assistant/assistant-context.tsx	Undo
-components/editor/cards/audio-card.tsx	Audio
-components/editor/cards/audio-card.tsx	Caption
 components/editor/cards/audio-card.tsx	Choose an audio file from the library.
-components/editor/cards/audio-card.tsx	No transcript
 components/editor/cards/audio-card.tsx	This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.
 components/editor/cards/audio-card.tsx	This file isn’t audio, so the site shows nothing here. Replace it or remove the card.
 components/editor/cards/audio-card.tsx	Transcript
-components/editor/cards/audio-card.tsx	Transcript
 components/editor/cards/button-card.tsx	Button
-components/editor/cards/button-card.tsx	Button
-components/editor/cards/button-card.tsx	Label
 components/editor/cards/button-card.tsx	Leads nowhere yet
 components/editor/cards/button-card.tsx	Leads to an item on this site
-components/editor/cards/button-card.tsx	Link to something on this site
-components/editor/cards/button-card.tsx	Needs a destination
-components/editor/cards/button-card.tsx	Needs a label
-components/editor/cards/button-card.tsx	Or an address
-components/editor/cards/button-card.tsx	Search by title
-components/editor/cards/button-card.tsx	Style
-components/editor/cards/button-card.tsx	https://
-components/editor/cards/callout-card.tsx	Callout
-components/editor/cards/callout-card.tsx	Callout text
-components/editor/cards/callout-card.tsx	Needs text
-components/editor/cards/callout-card.tsx	Tone
-components/editor/cards/callout-card.tsx	What the reader should not miss
-components/editor/cards/card-frame.tsx	Close settings
-components/editor/cards/card-frame.tsx	Edit
-components/editor/cards/card-frame.tsx	Edit
-components/editor/cards/card-frame.tsx	Remove {}
-components/editor/cards/card-frame.tsx	Replace
-components/editor/cards/card-frame.tsx	Replace
-components/editor/cards/card-frame.tsx	{} card
-components/editor/cards/card-views.tsx	card
-components/editor/cards/code-card.tsx	Caption
-components/editor/cards/code-card.tsx	Code
-components/editor/cards/code-card.tsx	Code
-components/editor/cards/code-card.tsx	Language
-components/editor/cards/code-card.tsx	Needs code
-components/editor/cards/embed-card.tsx	Address
-components/editor/cards/embed-card.tsx	Caption
-components/editor/cards/embed-card.tsx	Embed
-components/editor/cards/embed-card.tsx	Kind
-components/editor/cards/embed-card.tsx	Needs an address
 components/editor/cards/embed-card.tsx	Paste the address of what to embed.
-components/editor/cards/embed-card.tsx	Title
 components/editor/cards/embed-card.tsx	framed on the site
-components/editor/cards/embed-card.tsx	https://
 components/editor/cards/embed-card.tsx	shown as a link
-components/editor/cards/gallery-card.tsx	Caption
 components/editor/cards/gallery-card.tsx	Choose two or more images from the library.
-components/editor/cards/gallery-card.tsx	Gallery
-components/editor/cards/gallery-card.tsx	Layout
 components/editor/cards/gallery-card.tsx	Needs two images
 components/editor/cards/gallery-card.tsx	These images are no longer in the library, so the site shows nothing here.
 components/editor/cards/gallery-card.tsx	of the images are no longer in the library and are left out.
-components/editor/cards/image-card.tsx	Alt missing
-components/editor/cards/image-card.tsx	Alt missing
-components/editor/cards/image-card.tsx	Alt text
-components/editor/cards/image-card.tsx	Caption
-components/editor/cards/image-card.tsx	Choose an image from the library.
-components/editor/cards/image-card.tsx	Credit
-components/editor/cards/image-card.tsx	Decorative: it adds nothing a reader would miss
-components/editor/cards/image-card.tsx	Image
-components/editor/cards/image-card.tsx	This image is no longer in the library, so the site shows nothing here. Replace it or remove the card.
-components/editor/cards/image-card.tsx	Width
 components/editor/cards/imported-content-card.tsx	A picture that is no longer in the library.
 components/editor/cards/imported-content-card.tsx	Convert to paragraphs
 components/editor/cards/imported-content-card.tsx	Convert to paragraphs gives you text to edit and loses the layout. Keep as it is leaves it as readers see it. Delete takes it out of the text. Each can be undone.
@@ -341,17 +290,12 @@ components/editor/cards/imported-content-card.tsx	Preview of the imported conten
 components/editor/cards/imported-content-card.tsx	What to do with this imported content
 components/editor/cards/video-card.tsx	A video holds up to 8 tracks.
 components/editor/cards/video-card.tsx	Add a track
-components/editor/cards/video-card.tsx	Caption
 components/editor/cards/video-card.tsx	Caption tracks
 components/editor/cards/video-card.tsx	Choose a video from the library.
 components/editor/cards/video-card.tsx	Choose poster
 components/editor/cards/video-card.tsx	For a short clip without sound, used like a moving picture.
-components/editor/cards/video-card.tsx	Kind
-components/editor/cards/video-card.tsx	Label
-components/editor/cards/video-card.tsx	Language
 components/editor/cards/video-card.tsx	Loop: play on its own, silently, again and again, with no controls
 components/editor/cards/video-card.tsx	Loops silently, with no controls.
-components/editor/cards/video-card.tsx	No captions
 components/editor/cards/video-card.tsx	On by default
 components/editor/cards/video-card.tsx	Poster
 components/editor/cards/video-card.tsx	Remove poster
@@ -361,7 +305,6 @@ components/editor/cards/video-card.tsx	Replace poster
 components/editor/cards/video-card.tsx	The picture shown before it plays. Search engines list a video only when it has one.
 components/editor/cards/video-card.tsx	This file isn’t a video, so the site shows nothing here. Replace it or remove the card.
 components/editor/cards/video-card.tsx	This video is no longer in the library, so the site shows nothing here. Replace it or remove the card.
-components/editor/cards/video-card.tsx	Video
 components/editor/cards/video-card.tsx	WebVTT files (.vtt) from the library, so people who can’t hear the video can read it.
 components/editor/diff-view.tsx	After
 components/editor/diff-view.tsx	Before
@@ -429,22 +372,12 @@ components/editor/link-popover.tsx	Search by title or name
 components/editor/link-popover.tsx	https://
 components/editor/meta-changes.tsx	Fields and categories
 components/editor/pasted-image-view.tsx	1 pasted image isn’t in the media library yet, so it isn’t saved until it is. Import it only if you have the right to use it.
-components/editor/pasted-image-view.tsx	Alt text: {}
-components/editor/pasted-image-view.tsx	An image from {}
-components/editor/pasted-image-view.tsx	Caption: {}
-components/editor/pasted-image-view.tsx	Import
 components/editor/pasted-image-view.tsx	Import
 components/editor/pasted-image-view.tsx	Import all
 components/editor/pasted-image-view.tsx	Importing…
-components/editor/pasted-image-view.tsx	Importing…
-components/editor/pasted-image-view.tsx	No alt text
-components/editor/pasted-image-view.tsx	Pasted image, not imported
 components/editor/pasted-image-view.tsx	Pasted images
 components/editor/pasted-image-view.tsx	Remove
-components/editor/pasted-image-view.tsx	Remove
 components/editor/pasted-image-view.tsx	Remove all
-components/editor/pasted-image-view.tsx	Try again
-components/editor/pasted-image-view.tsx	{} from {}
 components/editor/pasted-image-view.tsx	{} pasted images aren’t in the media library yet, so they aren’t saved until they are. Import them only if you have the right to use them.
 components/editor/presence-line.tsx	also editing.
 components/editor/presence-line.tsx	are

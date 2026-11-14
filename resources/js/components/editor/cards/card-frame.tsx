@@ -1,36 +1,38 @@
 import { NodeViewWrapper } from '@tiptap/react';
-import { AlertTriangle, Pencil, Replace, Trash2 } from 'lucide-react';
-import { useId, useState } from 'react';
-import type { ComponentProps, ReactNode } from 'react';
+import {
+    AlertTriangle,
+    ChevronsDownUp,
+    ChevronsUpDown,
+    Ellipsis,
+    Pencil,
+    Replace,
+    Trash2,
+} from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
-function FrameButton({
-    label,
-    className,
-    children,
-    ...props
-}: ComponentProps<'button'> & { label: string }) {
-    return (
-        <button
-            type="button"
-            aria-label={label}
-            title={label}
-            className={cn(
-                'hover:bg-surface-3 focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-1 rounded-md px-2 text-[12px] font-medium whitespace-nowrap outline-none focus-visible:ring-2 [&_svg]:size-3.5',
-                className,
-            )}
-            {...props}
-        >
-            {children}
-        </button>
-    );
-}
+/** The event the block menu sends a card's frame to collapse it, or open it again. */
+export const TOGGLE_CARD = 'teme:toggle-card';
 
 /**
- * What every card shares in the editor: an outline when selected, a toolbar
- * on hover or focus (Edit, Replace, Remove, and a warning when something is
- * missing), a settings panel that opens below, and a drag handle.
+ * What every card shares in the editor (docs/architecture/design-system.md,
+ * 4.39): a header with the card's name that shows on hover, when selected,
+ * when collapsed and while focus is inside; its tools when selected;
+ * Collapse; and "…" with Edit and Delete. Collapsing is the editor's view
+ * only and is never saved.
  */
 export function CardFrame({
     label,
@@ -41,6 +43,8 @@ export function CardFrame({
     onRemove,
     settings,
     defaultOpen = false,
+    tools,
+    preview,
     children,
 }: {
     label: string;
@@ -51,82 +55,150 @@ export function CardFrame({
     onRemove: () => void;
     settings: ReactNode;
     defaultOpen?: boolean;
+    /** More tools in the header while the card is selected. */
+    tools?: ReactNode;
+    /** A line of the card's content, shown beside its name when collapsed. */
+    preview?: string;
     children: ReactNode;
 }) {
     const [open, setOpen] = useState(defaultOpen);
+    const [collapsed, setCollapsed] = useState(false);
+    const frame = useRef<HTMLDivElement>(null);
     const panel = useId();
+
+    // The block menu's "Collapse to one line" and "Expand".
+    useEffect(() => {
+        const element = frame.current;
+        const toggle = (): void => setCollapsed((current) => !current);
+
+        element?.addEventListener(TOGGLE_CARD, toggle);
+
+        return () => element?.removeEventListener(TOGGLE_CARD, toggle);
+    }, []);
 
     return (
         <NodeViewWrapper
+            ref={frame}
+            data-collapsed={collapsed}
             className={cn(
-                'group border-line bg-surface relative my-4 rounded-md border',
-                selected && 'ring-ring ring-2',
+                'group relative my-2 rounded-lg',
+                collapsed ? 'bg-surface-2' : 'bg-surface',
+                selected
+                    ? 'outline-accent outline-2'
+                    : 'hover:outline-line hover:outline-1',
             )}
             contentEditable={false}
         >
-            <div className="flex flex-wrap items-center gap-1 px-2 pt-1.5">
-                <span className="text-ink-2 text-[11px] font-medium tracking-wide uppercase">
+            <div
+                data-slot="card-head"
+                className={cn(
+                    'flex h-10 min-w-0 items-center gap-1 px-2',
+                    selected || collapsed || open
+                        ? 'visible'
+                        : 'invisible group-focus-within:visible group-hover:visible',
+                )}
+            >
+                <span className="text-caption text-ink-3 shrink-0 font-semibold uppercase">
                     {label}
                 </span>
-                <div
-                    role="toolbar"
-                    aria-label={`${label} card`}
-                    className={cn(
-                        'ml-auto flex items-center gap-0.5 opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100',
-                        (selected || open || warning) && 'opacity-100',
-                    )}
-                >
-                    {warning && (
-                        <FrameButton
-                            label={warning.label}
+                {collapsed && preview !== undefined && preview !== '' && (
+                    <span className="text-small text-ink-2 min-w-0 truncate">
+                        {preview}
+                    </span>
+                )}
+                {selected && !collapsed && (
+                    <div className="ml-2 flex min-w-0 items-center gap-1">
+                        {onReplace && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="xs"
+                                aria-label={replaceLabel ?? __('Replace')}
+                                onClick={onReplace}
+                            >
+                                <Replace />
+                                {__('Replace')}
+                            </Button>
+                        )}
+                        {tools}
+                    </div>
+                )}
+                <div className="ml-auto flex shrink-0 items-center gap-0.5">
+                    {warning && !collapsed && (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="xs"
                             onClick={warning.onClick ?? (() => setOpen(true))}
                             className="bg-warn-soft text-warn-ink hover:bg-warn-soft"
                         >
                             <AlertTriangle />
                             {warning.label}
-                        </FrameButton>
+                        </Button>
                     )}
-                    <FrameButton
-                        label={open ? 'Close settings' : 'Edit'}
-                        aria-expanded={open}
-                        aria-controls={panel}
-                        onClick={() => setOpen((current) => !current)}
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        className="text-ink-3"
+                        aria-label={collapsed ? __('Expand') : __('Collapse')}
+                        title={collapsed ? __('Expand') : __('Collapse')}
+                        aria-expanded={!collapsed}
+                        onClick={() => setCollapsed((current) => !current)}
                     >
-                        <Pencil />
-                        Edit
-                    </FrameButton>
-                    {onReplace && (
-                        <FrameButton
-                            label={replaceLabel ?? 'Replace'}
-                            onClick={onReplace}
-                        >
-                            <Replace />
-                            Replace
-                        </FrameButton>
-                    )}
-                    <FrameButton
-                        label={`Remove ${label.toLowerCase()}`}
-                        onClick={onRemove}
-                    >
-                        <Trash2 />
-                    </FrameButton>
+                        {collapsed ? <ChevronsUpDown /> : <ChevronsDownUp />}
+                    </Button>
+                    <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-xs"
+                                className="text-ink-3"
+                                aria-label={__('More')}
+                                title={__('More')}
+                            >
+                                <Ellipsis />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onSelect={() => {
+                                    setCollapsed(false);
+                                    setOpen((current) => !current);
+                                }}
+                            >
+                                <Pencil />
+                                {open ? __('Close settings') : __('Edit')}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onSelect={onRemove}
+                            >
+                                <Trash2 />
+                                {__('Delete')}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
-            <div className="px-3 pt-1 pb-3">{children}</div>
-            {open && (
-                <div
-                    id={panel}
-                    className="border-line grid gap-3 border-t px-3 py-3"
-                >
-                    {settings}
-                </div>
+            {!collapsed && (
+                <>
+                    <div className="px-3 pb-3">{children}</div>
+                    {open && (
+                        <div
+                            id={panel}
+                            className="border-line grid gap-3 border-t px-3 py-3"
+                        >
+                            {settings}
+                        </div>
+                    )}
+                </>
             )}
         </NodeViewWrapper>
     );
 }
-
-const FIELD =
-    'border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
 
 /** One labelled setting in a card's panel. */
 export function CardField({
@@ -146,7 +218,7 @@ export function CardField({
             <Label htmlFor={id}>{label}</Label>
             {children({ id, 'aria-describedby': hint ? hintId : undefined })}
             {hint && (
-                <p id={hintId} className="text-ink-2 text-xs">
+                <p id={hintId} className="text-small text-ink-3">
                     {hint}
                 </p>
             )}
@@ -176,24 +248,20 @@ export function TextSetting({
         <CardField label={label} hint={hint}>
             {(props) =>
                 multiline ? (
-                    <textarea
+                    <Textarea
                         {...props}
                         rows={3}
+                        autoGrow
                         value={text}
                         placeholder={placeholder}
                         onChange={(event) => onChange(event.target.value)}
-                        className={cn(
-                            FIELD,
-                            'field-sizing-content resize-none',
-                        )}
                     />
                 ) : (
-                    <input
+                    <Input
                         {...props}
                         value={text}
                         placeholder={placeholder}
                         onChange={(event) => onChange(event.target.value)}
-                        className={cn(FIELD, 'h-[34px] py-0')}
                     />
                 )
             }

@@ -7,12 +7,9 @@ R1	js/components/editor/cards/audio-card.tsx	h-[54px]
 R1	js/components/editor/cards/button-card.tsx	h-[34px]
 R1	js/components/editor/cards/button-card.tsx	h-[34px]
 R1	js/components/editor/cards/callout-card.tsx	h-[34px]
-R1	js/components/editor/cards/card-frame.tsx	h-[30px]
-R1	js/components/editor/cards/card-frame.tsx	h-[34px]
 R1	js/components/editor/cards/code-card.tsx	h-[34px]
 R1	js/components/editor/cards/embed-card.tsx	h-[34px]
 R1	js/components/editor/cards/gallery-card.tsx	h-[34px]
-R1	js/components/editor/cards/image-card.tsx	h-[34px]
 R1	js/components/editor/cards/video-card.tsx	h-[34px]
 R1	js/components/editor/fields/media-control.tsx	h-[34px]
 R1	js/components/editor/fields/media-control.tsx	sm:grid-cols-[190px_minmax(0,1fr)]
@@ -116,7 +113,6 @@ R10	js/components/ui/popover.tsx	outline-none
 R10	js/components/ui/select.tsx	outline-hidden
 R14	js/components/editor/cards/audio-card.tsx	animate-pulse
 R14	js/components/editor/cards/gallery-card.tsx	animate-pulse
-R14	js/components/editor/cards/image-card.tsx	animate-pulse
 R14	js/components/editor/cards/video-card.tsx	animate-pulse
 R14	js/components/editor/fields/media-control.tsx	animate-pulse
 R14	js/components/editor/rail/search-previews.tsx	animate-pulse
@@ -242,11 +238,6 @@ R2	js/components/editor/cards/button-card.tsx	text-[13px]
 R2	js/components/editor/cards/button-card.tsx	text-[14px]
 R2	js/components/editor/cards/button-card.tsx	text-xs
 R2	js/components/editor/cards/callout-card.tsx	text-[15px]
-R2	js/components/editor/cards/card-frame.tsx	text-[11px]
-R2	js/components/editor/cards/card-frame.tsx	text-[12px]
-R2	js/components/editor/cards/card-frame.tsx	text-[13px]
-R2	js/components/editor/cards/card-frame.tsx	text-xs
-R2	js/components/editor/cards/card-views.tsx	text-[13px]
 R2	js/components/editor/cards/code-card.tsx	text-[13px]
 R2	js/components/editor/cards/code-card.tsx	text-[13px]
 R2	js/components/editor/cards/embed-card.tsx	text-[13px]
@@ -256,10 +247,6 @@ R2	js/components/editor/cards/embed-card.tsx	text-xs
 R2	js/components/editor/cards/gallery-card.tsx	text-[13px]
 R2	js/components/editor/cards/gallery-card.tsx	text-[13px]
 R2	js/components/editor/cards/gallery-card.tsx	text-xs
-R2	js/components/editor/cards/image-card.tsx	text-[11px]
-R2	js/components/editor/cards/image-card.tsx	text-[11px]
-R2	js/components/editor/cards/image-card.tsx	text-[13px]
-R2	js/components/editor/cards/image-card.tsx	text-[13px]
 R2	js/components/editor/cards/imported-content-card.tsx	[&_h2]:text-lg
 R2	js/components/editor/cards/imported-content-card.tsx	text-[11px]
 R2	js/components/editor/cards/imported-content-card.tsx	text-[12px]
@@ -318,12 +305,6 @@ R2	js/components/editor/link-popover.tsx	text-xs
 R2	js/components/editor/link-popover.tsx	text-xs
 R2	js/components/editor/link-popover.tsx	text-xs
 R2	js/components/editor/meta-changes.tsx	text-[13px]
-R2	js/components/editor/pasted-image-view.tsx	text-[11px]
-R2	js/components/editor/pasted-image-view.tsx	text-[13px]
-R2	js/components/editor/pasted-image-view.tsx	text-[13px]
-R2	js/components/editor/pasted-image-view.tsx	text-[13px]
-R2	js/components/editor/pasted-image-view.tsx	text-[13px]
-R2	js/components/editor/pasted-image-view.tsx	text-[13px]
 R2	js/components/editor/pasted-image-view.tsx	text-[13px]
 R2	js/components/editor/presence-line.tsx	text-[11px]
 R2	js/components/editor/publish-confirmation.tsx	text-[13px]
@@ -796,14 +777,10 @@ R3	js/components/dashboard/site-figures.tsx	gap-1.5
 R3	js/components/editor/cards/audio-card.tsx	mt-1.5
 R3	js/components/editor/cards/button-card.tsx	py-1.5
 R3	js/components/editor/cards/card-frame.tsx	gap-1.5
-R3	js/components/editor/cards/card-frame.tsx	pt-1.5
 R3	js/components/editor/cards/code-card.tsx	mt-1.5
 R3	js/components/editor/cards/embed-card.tsx	mt-1.5
 R3	js/components/editor/cards/gallery-card.tsx	mt-1.5
 R3	js/components/editor/cards/gallery-card.tsx	mt-1.5
-R3	js/components/editor/cards/image-card.tsx	mt-1.5
-R3	js/components/editor/cards/image-card.tsx	px-1.5
-R3	js/components/editor/cards/image-card.tsx	py-0.5
 R3	js/components/editor/cards/imported-content-card.tsx	[&_td]:p-1.5
 R3	js/components/editor/cards/imported-content-card.tsx	[&_th]:p-1.5
 R3	js/components/editor/cards/imported-content-card.tsx	pt-1.5
@@ -931,9 +908,6 @@ R5	js/components/dashboard/quick-draft.tsx	<textarea>
 R5	js/components/editor/cards/button-card.tsx	<button type="button">
 R5	js/components/editor/cards/button-card.tsx	<input>
 R5	js/components/editor/cards/callout-card.tsx	<textarea>
-R5	js/components/editor/cards/card-frame.tsx	<button type="button">
-R5	js/components/editor/cards/card-frame.tsx	<input>
-R5	js/components/editor/cards/card-frame.tsx	<textarea>
 R5	js/components/editor/cards/code-card.tsx	<textarea>
 R5	js/components/editor/editor-rail.tsx	<textarea>
 R5	js/components/editor/fields/entry-control.tsx	<button type="button">
@@ -999,11 +973,8 @@ R6	js/components/app-shell.tsx	z-50
 R6	js/components/backups/key-sheet.tsx	tracking-wider
 R6	js/components/backups/schedule-form.tsx	leading-9
 R6	js/components/comments/commenter.tsx	leading-4
-R6	js/components/editor/cards/card-frame.tsx	tracking-wide
-R6	js/components/editor/cards/image-card.tsx	rounded
 R6	js/components/editor/cards/imported-content-card.tsx	tracking-wide
 R6	js/components/editor/editor-rail.tsx	z-10
-R6	js/components/editor/pasted-image-view.tsx	tracking-wide
 R6	js/components/editor/rewrite/rewrite-menu.tsx	z-50
 R6	js/components/editor/status-chip.tsx	leading-4
 R6	js/components/fields/brand-colour-setting.tsx	rounded
@@ -1150,7 +1121,6 @@ R8	js/pages/content/index.tsx	overflow-x-auto
 R8	js/pages/content/index.tsx	overflow-y-auto
 R8	js/pages/settings/site-code.tsx	overflow-x-auto
 R8	js/pages/settings/site-code.tsx	overflow-y-auto
-R9	js/components/editor/cards/image-card.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/editor-rail.tsx	classes: bg-warn-soft px-2 py-1.5
 R9	js/components/editor/fields/media-control.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/presence-line.tsx	classes: bg-warn-soft px-1.5 py-0.5

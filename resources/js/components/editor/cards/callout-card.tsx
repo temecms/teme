@@ -1,6 +1,7 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { SelectField } from '@/components/ui/select-field';
 import { cn } from '@/lib/utils';
+import { __ } from '@/lib/i18n';
 import { CardField, CardFrame } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
@@ -26,19 +27,19 @@ export function CalloutCard({
 
     return (
         <CardFrame
-            label="Callout"
+            label={__('Callout')}
             selected={selected}
-            warning={text.trim() === '' ? { label: 'Needs text' } : null}
+            warning={text.trim() === '' ? { label: __('Needs text') } : null}
             onRemove={deleteNode}
             settings={
                 <CalloutSettings attrs={node.attrs} update={updateAttributes} />
             }
         >
             <textarea
-                aria-label="Callout text"
+                aria-label={__('Callout text')}
                 rows={2}
                 value={text}
-                placeholder="What the reader should not miss"
+                placeholder={__('What the reader should not miss')}
                 onChange={(event) =>
                     updateAttributes({ text: event.target.value })
                 }
@@ -60,7 +61,7 @@ export function CalloutSettings({
     const tone = (raw.tone as string | null) ?? 'note';
 
     return (
-        <CardField label="Tone">
+        <CardField label={__('Tone')}>
             {(props) => (
                 <SelectField
                     {...props}

@@ -6,6 +6,8 @@ import type { DragHandleProps } from '@tiptap/extension-drag-handle-react';
 import {
     ArrowDown,
     ArrowUp,
+    ChevronsDownUp,
+    ChevronsUpDown,
     Copy,
     GripVertical,
     Plus,
@@ -44,6 +46,7 @@ import {
     turnInto,
 } from './block-actions';
 import type { TopBlock, TurnInto } from './block-actions';
+import { TOGGLE_CARD } from './cards/card-frame';
 import { isTouch } from './use-touch';
 
 /** Asked of the handles when Tab leaves the text: show the current block's handle and focus its grip. */
@@ -150,6 +153,17 @@ function HandleButtons({
     const name = block === null ? '' : blockName(block.node, cards);
     const target = menuFor ?? block;
     const last = editor.state.doc.childCount - 1;
+    // A card's frame, which the menu collapses and opens again: the node view's first element.
+    const view =
+        open && target !== null && target.node.isAtom
+            ? (editor.view.nodeDOM(target.pos) as HTMLElement | null)
+            : null;
+    const first = view?.firstElementChild;
+    const frame =
+        first instanceof HTMLElement && first.dataset.collapsed !== undefined
+            ? first
+            : null;
+    const collapsed = frame?.dataset.collapsed === 'true';
 
     const change = (next: boolean): void => {
         setOpen(next);
@@ -316,6 +330,22 @@ function HandleButtons({
                         {__('Move down')}
                         <DropdownMenuShortcut>⌥⇧↓</DropdownMenuShortcut>
                     </DropdownMenuItem>
+                    {frame !== null && (
+                        <DropdownMenuItem
+                            onSelect={() =>
+                                frame.dispatchEvent(new Event(TOGGLE_CARD))
+                            }
+                        >
+                            {collapsed ? (
+                                <ChevronsUpDown />
+                            ) : (
+                                <ChevronsDownUp />
+                            )}
+                            {collapsed
+                                ? __('Expand')
+                                : __('Collapse to one line')}
+                        </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         variant="destructive"

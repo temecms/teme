@@ -7,6 +7,7 @@ import { CardField, CardFrame, TextSetting } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 import { shownTitle } from '@/lib/titles';
+import { __ } from '@/lib/i18n';
 
 /**
  * A button: a label, and where it leads. An article is stored by its ID and
@@ -27,13 +28,13 @@ export function ButtonCard({
 
     return (
         <CardFrame
-            label="Button"
+            label={__('Button')}
             selected={selected}
             warning={
                 label.trim() === ''
-                    ? { label: 'Needs a label' }
+                    ? { label: __('Needs a label') }
                     : leadsNowhere
-                      ? { label: 'Needs a destination' }
+                      ? { label: __('Needs a destination') }
                       : null
             }
             onRemove={deleteNode}
@@ -81,20 +82,20 @@ export function ButtonSettings({
     return (
         <>
             <TextSetting
-                label="Label"
+                label={__('Label')}
                 value={label}
                 onChange={(next) => updateAttributes({ label: next })}
             />
             <CardField
-                label="Link to something on this site"
-                hint="The button follows it if its address changes."
+                label={__('Link to something on this site')}
+                hint={__('The button follows it if its address changes.')}
             >
                 {(props) => (
                     <div className="grid gap-1">
                         <input
                             {...props}
                             value={query}
-                            placeholder="Search by title"
+                            placeholder={__('Search by title')}
                             onFocus={() => setSearching(true)}
                             onChange={(event) => setQuery(event.target.value)}
                             className="border-edge bg-surface focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
@@ -125,10 +126,10 @@ export function ButtonSettings({
                 )}
             </CardField>
             <TextSetting
-                label="Or an address"
-                hint="An address on another site."
+                label={__('Or an address')}
+                hint={__('An address on another site.')}
                 value={contentId ? '' : url}
-                placeholder="https://"
+                placeholder={__('https://')}
                 onChange={(next) => {
                     updateAttributes({
                         url: next === '' ? null : next,
@@ -137,7 +138,7 @@ export function ButtonSettings({
                     setChosenTitle(null);
                 }}
             />
-            <CardField label="Style">
+            <CardField label={__('Style')}>
                 {(props) => (
                     <SelectField
                         {...props}

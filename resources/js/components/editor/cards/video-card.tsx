@@ -92,11 +92,11 @@ export function VideoCard({
     return (
         <>
             <CardFrame
-                label="Video"
+                label={__('Video')}
                 selected={selected}
-                warning={noCaptions ? { label: 'No captions' } : null}
+                warning={noCaptions ? { label: __('No captions') } : null}
                 onReplace={() => open(pick(attrs.mediaId !== null))}
-                replaceLabel="Replace video"
+                replaceLabel={__('Replace video')}
                 onRemove={deleteNode}
                 settings={
                     <VideoSettings
@@ -255,7 +255,7 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                 </p>
             </div>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => update({ caption })}
             />
@@ -390,7 +390,7 @@ function TrackRow({
         >
             <p className="truncate text-[13px] font-medium">{name}</p>
             <TextSetting
-                label="Language"
+                label={__('Language')}
                 hint={
                     typedIsTag
                         ? 'A language tag, such as en, fr or pt-BR.'
@@ -406,8 +406,10 @@ function TrackRow({
                 }}
             />
             <CardField
-                label="Kind"
-                hint="Captions write out the words and the sounds; subtitles translate the words; descriptions say what happens on screen; chapters name the parts to jump to."
+                label={__('Kind')}
+                hint={__(
+                    'Captions write out the words and the sounds; subtitles translate the words; descriptions say what happens on screen; chapters name the parts to jump to.',
+                )}
             >
                 {(props) => (
                     <SelectField
@@ -425,8 +427,8 @@ function TrackRow({
                 )}
             </CardField>
             <TextSetting
-                label="Label"
-                hint="What the player’s menu shows, such as English."
+                label={__('Label')}
+                hint={__('What the player’s menu shows, such as English.')}
                 value={track.label}
                 onChange={(label) =>
                     onChange({

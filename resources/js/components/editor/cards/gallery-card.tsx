@@ -55,7 +55,7 @@ export function GalleryCard({
     return (
         <>
             <CardFrame
-                label="Gallery"
+                label={__('Gallery')}
                 selected={selected}
                 warning={
                     tooFew
@@ -66,7 +66,7 @@ export function GalleryCard({
                         : null
                 }
                 onReplace={() => open(pick(ids.length === 0))}
-                replaceLabel="Choose the gallery's images"
+                replaceLabel={__("Choose the gallery's images")}
                 onRemove={deleteNode}
                 settings={
                     <GallerySettings
@@ -142,11 +142,11 @@ export function GallerySettings({
     return (
         <>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => updateAttributes({ caption })}
             />
-            <CardField label="Layout">
+            <CardField label={__('Layout')}>
                 {(props) => (
                     <SelectField
                         {...props}
