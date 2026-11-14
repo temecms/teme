@@ -385,3 +385,19 @@ it('ticks nothing when Enter is pressed while a new search is still loading', fu
     $page->assertScript("document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]').length === 0")
         ->assertScript("document.querySelectorAll('[role=\"option\"][aria-checked=\"true\"]').length === 0");
 });
+
+it('removes nothing when Backspace is pressed on the closed button, and Backspace on a focused tag still removes it', function (): void {
+    $page = cbCatalogue($this->admin);
+    $tags = "Array.from(document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]'))";
+
+    $page->page()->locator('#catalogue-combobox-multi')->focus();
+    cbPress($page, 'Backspace');
+    $page->assertScript("{$tags}.length === 2")
+        ->assertScript(cbHidden('tags[]')." === 'tag-2,tag-5'");
+
+    cbPress($page, 'ArrowLeft');
+    cmWaitUntil($page, "document.activeElement === {$tags}[1]");
+    cbPress($page, 'Backspace');
+    cmWaitUntil($page, "{$tags}.length === 1 && {$tags}[0].textContent.includes('Ferries')");
+    $page->assertScript(cbHidden('tags[]')." === 'tag-2'");
+});

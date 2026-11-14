@@ -287,6 +287,9 @@ function Combobox(props: ComboboxProps) {
   const multipleSelection = useMultipleSelection<ComboboxOption>({
     selectedItems: multiple ? chosenList : [],
     itemToKey,
+    // Backspace on the closed button removes nothing; on a focused tag it still does.
+    stateReducer: (state, { type, changes }) =>
+      type === useMultipleSelection.stateChangeTypes.DropdownKeyDownBackspace ? state : changes,
     onSelectedItemsChange: ({ selectedItems }) => {
       if (props.multiple === true) {
         props.onValueChange(selectedItems ?? [])
