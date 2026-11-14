@@ -401,3 +401,19 @@ it('removes nothing when Backspace is pressed on the closed button, and Backspac
     cmWaitUntil($page, "{$tags}.length === 1 && {$tags}[0].textContent.includes('Ferries')");
     $page->assertScript(cbHidden('tags[]')." === 'tag-2'");
 });
+
+it('describes a single-choice button with its chosen name, beside the field\'s own description', function (): void {
+    $page = cbCatalogue($this->admin);
+
+    $description = fn (string $id): string => "(document.getElementById('{$id}').getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean).map((ref) => document.getElementById(ref)?.textContent ?? '').join(' | ')";
+
+    $page->assertScript($description('catalogue-combobox-single')." === 'Barbara Liskov'");
+
+    cbOpen($page, 'catalogue-combobox-single');
+    cbType($page, 'hopper');
+    cbPress($page, 'Enter');
+    cmWaitUntil($page, cbClosedOn('catalogue-combobox-single'));
+    $page->assertScript($description('catalogue-combobox-single')." === 'Grace Hopper'")
+        // Nothing chosen: only the field's error describes it.
+        ->assertScript($description('catalogue-combobox-error')." === 'Choose who owns this page.'");
+});

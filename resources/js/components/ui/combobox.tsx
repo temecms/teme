@@ -375,6 +375,12 @@ function Combobox(props: ComboboxProps) {
   const buttonText =
     triggerLabel ?? (chosenList.length === 0 ? null : chosenList.map((option) => option.label))
 
+  // A single choice's name comes from its label, so the chosen value is read as its description.
+  const valueId = `${baseId}value`
+  const describesValue = !multiple && triggerLabel === undefined && chosenList.length > 0
+  const describedBy =
+    [props["aria-describedby"], describesValue ? valueId : null].filter(Boolean).join(" ") || undefined
+
   const dropdownProps = multiple
     ? multipleSelection.getDropdownProps({ ref: triggerRef, preventKeyAction: open }, { suppressRefError: true })
     : {}
@@ -408,7 +414,7 @@ function Combobox(props: ComboboxProps) {
             data-slot="combobox-trigger"
             data-size={size}
             data-placeholder={buttonText === null ? "" : undefined}
-            aria-describedby={props["aria-describedby"]}
+            aria-describedby={describedBy}
             aria-invalid={props["aria-invalid"]}
             {...dropdownProps}
             onKeyDown={(event) => {
@@ -424,7 +430,9 @@ function Combobox(props: ComboboxProps) {
             ) : multiple ? (
               <ChosenNames names={buttonText} />
             ) : (
-              <span className="truncate">{buttonText.join(", ")}</span>
+              <span id={valueId} className="truncate">
+                {buttonText.join(", ")}
+              </span>
             )}
             <ChevronsUpDownIcon
               aria-hidden="true"
