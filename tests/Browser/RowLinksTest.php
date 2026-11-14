@@ -193,7 +193,7 @@ it('gives the other lists that share the row layer the same links, up to four on
     }
 })->with([
     'a waiting comment' => ['/admin/comments', 'Actions for the comment by Ada Guest', 'approved|reply|quick-edit|trash|more', '[aria-label="Actions for the comment by Ada Guest"] [data-action="more"]', 'Details|Mark as spam'],
-    'a category' => ['/admin/categories', 'Actions for Transport', 'edit|delete', '', ''],
+    'a category' => ['/admin/categories', 'Actions for Transport', 'edit|view', '[aria-label="More actions for Transport"]', 'Delete'],
 ]);
 
 it('passes axe with every row\'s line shown, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {

@@ -1720,33 +1720,6 @@ pages/taxonomies/show.tsx	genre
 pages/taxonomies/show.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	picker, and a
 pages/taxonomies/show.tsx	’s page lists their items. The same choice as each type’s Taxonomies, on Site › Types.
-pages/terms/index.tsx	, under {}
-pages/terms/index.tsx	Actions for {}
-pages/terms/index.tsx	Add
-pages/terms/index.tsx	Address
-pages/terms/index.tsx	Cancel
-pages/terms/index.tsx	Delete
-pages/terms/index.tsx	Delete {}
-pages/terms/index.tsx	Delete “{}”?
-pages/terms/index.tsx	Description
-pages/terms/index.tsx	Edit
-pages/terms/index.tsx	Edit
-pages/terms/index.tsx	Find a {} by name
-pages/terms/index.tsx	Kind
-pages/terms/index.tsx	Name
-pages/terms/index.tsx	New
-pages/terms/index.tsx	No {} start with “{}”
-pages/terms/index.tsx	No {} yet
-pages/terms/index.tsx	None
-pages/terms/index.tsx	Parent
-pages/terms/index.tsx	Save
-pages/terms/index.tsx	Search
-pages/terms/index.tsx	Search
-pages/terms/index.tsx	Set up
-pages/terms/index.tsx	Some themes show it on the {}’s page, and search engines may show it in results.
-pages/terms/index.tsx	The last part of its address. Leave it empty to make one from the name.
-pages/terms/index.tsx	Use the form to add the first one.
-pages/terms/index.tsx	{} in {}
 pages/themes/index.tsx	How the public site looks. A theme draws the site; it adds no features of its own.
 pages/themes/index.tsx	Open Settings › General
 pages/themes/index.tsx	Saved as a draft.
