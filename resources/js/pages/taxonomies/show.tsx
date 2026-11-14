@@ -1,11 +1,13 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { lazy, Suspense, useState } from 'react';
+import type { ReactNode } from 'react';
 import TaxonomiesController from '@/actions/App/Http/Admin/TaxonomiesController';
 import { ConfirmAction } from '@/components/confirm-action';
-import { SettingsPanel } from '@/components/fields/settings-panel';
-import { SettingsSaveBar } from '@/components/fields/settings-save-bar';
 import InputError from '@/components/input-error';
-import { PageHeader } from '@/components/list/page-header';
+import { FormPage, FormPanel } from '@/components/patterns/form-page';
+import { SaveBar } from '@/components/patterns/save-bar';
+import { SectionTabs } from '@/components/patterns/section-tabs';
+import type { FormSection } from '@/components/patterns/section-tabs';
 import {
     Fact,
     Facts,
@@ -18,6 +20,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Notice } from '@/components/ui/notice';
+import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
+import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
 import { show as addresses } from '@/routes/settings/addresses';
 import { index as taxonomiesIndex } from '@/routes/taxonomies';
@@ -32,58 +37,88 @@ function andList(names: string[]): string {
         : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
+/** The form's sections, as the row of tabs names them; Delete only for a taxonomy made here. */
+function taxonomySections(withDelete: boolean): FormSection[] {
+    return [
+        { id: 'taxonomy-section-names', label: __('Names') },
+        { id: 'taxonomy-section-terms', label: __('Terms') },
+        { id: 'taxonomy-section-admin', label: __('In the admin') },
+        { id: 'taxonomy-section-site', label: __('On the site') },
+        ...(withDelete
+            ? [
+                  {
+                      id: 'taxonomy-section-delete',
+                      label: __('Delete this taxonomy'),
+                  },
+              ]
+            : []),
+    ];
+}
+
+/** A section's wrapper: the tabs' target, focused when its tab is chosen. */
+function Section({ id, children }: { id: string; children: ReactNode }) {
+    return (
+        <div id={id} tabIndex={-1} className="scroll-mt-16">
+            {children}
+        </div>
+    );
+}
+
 /**
  * One taxonomy: made here and edited, declared by code and only looked at,
  * or new. A locked site shows the same pages with nothing to change.
  */
 export default function TaxonomiesShow(page: TaxonomyPage) {
     const title = page.mode === 'new' ? 'New taxonomy' : page.taxonomy.plural;
+    // Discard starts the form again from the saved taxonomy.
+    const [discards, setDiscards] = useState(0);
 
     return (
-        <>
+        <FormPage
+            title={title}
+            description={
+                <>
+                    <SourceBadge
+                        mode={page.mode === 'new' ? 'new' : 'shown'}
+                        source={page.source}
+                    />{' '}
+                    {headerLine(page)}
+                </>
+            }
+            actions={
+                page.termsUrl !== null && (
+                    <Button variant="neutral" asChild>
+                        <Link href={page.termsUrl}>
+                            Open {page.taxonomy.plural}
+                        </Link>
+                    </Button>
+                )
+            }
+        >
             <Head title={title} />
 
-            <div className="max-w-[768px] min-w-0 space-y-6 p-6">
-                <PageHeader
-                    title={title}
-                    badge={
-                        <SourceBadge
-                            mode={page.mode === 'new' ? 'new' : 'shown'}
-                            source={page.source}
-                        />
-                    }
-                    description={headerLine(page)}
-                    action={
-                        page.termsUrl !== null && (
-                            <Button variant="outline" asChild>
-                                <Link href={page.termsUrl}>
-                                    Open {page.taxonomy.plural}
-                                </Link>
-                            </Button>
-                        )
-                    }
-                />
-
+            <div className="grid gap-4">
                 {page.mode === 'view' && page.source === 'code' && (
                     <CodeNote page={page} />
                 )}
                 {page.mode === 'view' && page.source !== 'code' && <LockNote />}
                 {page.source === 'refused' && page.reason !== null && (
-                    <p>Can’t be used: {page.reason}</p>
+                    <Notice tone="danger">
+                        <p>Can’t be used: {page.reason}</p>
+                    </Notice>
                 )}
 
                 {page.mode === 'new' || page.mode === 'edit' ? (
                     <TaxonomyForm
-                        key={`${page.mode}:${page.taxonomy.key}`}
+                        key={`${page.mode}:${page.taxonomy.key}:${discards}`}
                         page={page}
+                        onDiscard={() => setDiscards((count) => count + 1)}
                     />
                 ) : (
                     <ViewPanels page={page} />
                 )}
-
-                {page.mode === 'edit' && <DeletePanel page={page} />}
             </div>
-        </>
+        </FormPage>
     );
 }
 
@@ -94,7 +129,42 @@ TaxonomiesShow.layout = {
     ],
 };
 
-function TaxonomyForm({ page }: { page: TaxonomyPage }) {
+/** What the form holds, beyond what is typed into it. */
+type TaxonomyFormState = {
+    singular: string;
+    plural: string;
+    key: string;
+    segment: string;
+    icon: string;
+    hierarchical: boolean;
+    isPublic: boolean;
+    types: string[];
+};
+
+/** The saved taxonomy as the form starts from it. */
+function savedState(saved: TaxonomyPage['taxonomy']): TaxonomyFormState {
+    return {
+        singular: saved.singular,
+        plural: saved.plural,
+        key: saved.key,
+        segment: saved.segment,
+        icon: saved.icon,
+        hierarchical: saved.hierarchical,
+        isPublic: saved.public,
+        types: saved.types,
+    };
+}
+
+// What the form holds, in one shape for the saved taxonomy and for the state.
+const snapshot = (value: TaxonomyFormState): string => JSON.stringify(value);
+
+function TaxonomyForm({
+    page,
+    onDiscard,
+}: {
+    page: TaxonomyPage;
+    onDiscard: () => void;
+}) {
     const saved = page.taxonomy;
     const [singular, setSingular] = useState(saved.singular);
     const [plural, setPlural] = useState(saved.plural);
@@ -122,288 +192,341 @@ function TaxonomyForm({ page }: { page: TaxonomyPage }) {
     // takes the base typed here, as a new taxonomy does.
     const needsBase = isPublic && (creating || !saved.public);
     const typed = base.trim() === '' ? 'genre' : base.trim();
+    const state: TaxonomyFormState = {
+        singular,
+        plural,
+        key,
+        segment,
+        icon,
+        hierarchical,
+        isPublic,
+        types,
+    };
 
     return (
         <>
-            <Form
-                {...(creating
-                    ? TaxonomiesController.store.form()
-                    : TaxonomiesController.update.form(saved.key))}
-                className="grid gap-6"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <InputError message={errors.key} />
-                        <InputError message={errors.taxonomy} />
-                        <input type="hidden" name="icon" value={icon} />
+            <SectionTabs
+                label={__('Sections of this taxonomy')}
+                sections={taxonomySections(page.mode === 'edit')}
+            />
+            <div className="grid gap-4">
+                <Form
+                    {...(creating
+                        ? TaxonomiesController.store.form()
+                        : TaxonomiesController.update.form(saved.key))}
+                    className="grid gap-4"
+                >
+                    {({ processing, errors, isDirty }) => (
+                        <>
+                            <InputError message={errors.key} />
+                            <InputError message={errors.taxonomy} />
+                            <input type="hidden" name="icon" value={icon} />
 
-                        <SettingsPanel
-                            title="Names"
-                            description="What the taxonomy is called across the admin."
-                        >
-                            <div className="grid gap-5 sm:grid-cols-2">
-                                <Field
-                                    id="taxonomy-singular"
-                                    name="singular"
-                                    label="Singular name"
-                                    value={singular}
-                                    error={errors.singular}
-                                    onChange={setSingular}
-                                    hint={`As in “Add ${lowered}”.`}
-                                />
-                                <Field
-                                    id="taxonomy-plural"
-                                    name="plural"
-                                    label="Plural name"
-                                    value={plural}
-                                    error={errors.plural}
-                                    onChange={setPlural}
-                                    hint="The menu’s entry and the term screen’s title."
-                                />
-                            </div>
-                            {creating ? (
-                                <Field
-                                    id="taxonomy-key"
-                                    name="key"
-                                    label="Key"
-                                    value={key}
-                                    error={errors.key}
-                                    onChange={setKey}
-                                    hint="Stored on every term, so it can’t be changed once the taxonomy is made. Lower-case letters, digits and underscores, starting with a letter."
-                                />
-                            ) : (
-                                <div className="grid gap-2">
-                                    <p className="text-sm font-medium">Key</p>
-                                    <code id="taxonomy-key">{saved.key}</code>
-                                    <Hint>
-                                        Stored on every term, so it never
-                                        changes.
-                                    </Hint>
-                                </div>
-                            )}
-                            <div className="grid gap-2">
-                                <p className="text-sm font-medium">Icon</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="bg-surface-2 flex size-8 items-center justify-center rounded-md border">
-                                        <Icon aria-hidden className="size-4" />
-                                    </span>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        data-test="taxonomy-icon-change"
-                                        onClick={() => {
-                                            setPickerMounted(true);
-                                            setPickerOpen(true);
-                                        }}
-                                    >
-                                        Change icon
-                                    </Button>
-                                </div>
-                                <Hint>
-                                    Beside the name on Site › Taxonomies.
-                                </Hint>
-                            </div>
-                        </SettingsPanel>
+                            <Section id="taxonomy-section-names">
+                                <FormPanel
+                                    title="Names"
+                                    description="What the taxonomy is called across the admin."
+                                >
+                                    <div className="grid gap-5 sm:grid-cols-2">
+                                        <Field
+                                            id="taxonomy-singular"
+                                            name="singular"
+                                            label="Singular name"
+                                            value={singular}
+                                            error={errors.singular}
+                                            onChange={setSingular}
+                                            hint={`As in “Add ${lowered}”.`}
+                                        />
+                                        <Field
+                                            id="taxonomy-plural"
+                                            name="plural"
+                                            label="Plural name"
+                                            value={plural}
+                                            error={errors.plural}
+                                            onChange={setPlural}
+                                            hint="The menu’s entry and the term screen’s title."
+                                        />
+                                    </div>
+                                    {creating ? (
+                                        <Field
+                                            id="taxonomy-key"
+                                            name="key"
+                                            label="Key"
+                                            value={key}
+                                            error={errors.key}
+                                            onChange={setKey}
+                                            hint="Stored on every term, so it can’t be changed once the taxonomy is made. Lower-case letters, digits and underscores, starting with a letter."
+                                        />
+                                    ) : (
+                                        <div className="grid gap-1">
+                                            <p className="text-body font-medium">
+                                                Key
+                                            </p>
+                                            <code id="taxonomy-key">
+                                                {saved.key}
+                                            </code>
+                                            <Hint>
+                                                Stored on every term, so it
+                                                never changes.
+                                            </Hint>
+                                        </div>
+                                    )}
+                                    <div className="grid gap-2">
+                                        <p className="text-body font-medium">
+                                            Icon
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="bg-surface-2 flex size-8 items-center justify-center rounded-md border">
+                                                <Icon
+                                                    aria-hidden
+                                                    className="size-4"
+                                                />
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="neutral"
+                                                data-test="taxonomy-icon-change"
+                                                onClick={() => {
+                                                    setPickerMounted(true);
+                                                    setPickerOpen(true);
+                                                }}
+                                            >
+                                                Change icon
+                                            </Button>
+                                        </div>
+                                        <Hint>
+                                            Beside the name on Site ›
+                                            Taxonomies.
+                                        </Hint>
+                                    </div>
+                                </FormPanel>
+                            </Section>
 
-                        <SettingsPanel
-                            title="Terms"
-                            description="Whether they sit under one another, and which types use them."
-                        >
-                            <div className="grid gap-2">
-                                <p
-                                    id="taxonomy-arrangement-label"
-                                    className="text-sm font-medium"
+                            <Section id="taxonomy-section-terms">
+                                <FormPanel
+                                    title="Terms"
+                                    description="Whether they sit under one another, and which types use them."
                                 >
-                                    How terms are arranged
-                                </p>
-                                <div
-                                    role="radiogroup"
-                                    aria-labelledby="taxonomy-arrangement-label"
-                                    className="grid gap-2"
-                                >
-                                    {(
-                                        [
-                                            [
-                                                false,
-                                                `Flat, as tags: each ${lowered} stands on its own`,
-                                                'taxonomy-flat',
-                                            ],
-                                            [
-                                                true,
-                                                `Nested, as categories: a ${lowered} can sit under another`,
-                                                'taxonomy-nested',
-                                            ],
-                                        ] as const
-                                    ).map(([nested, label, id]) => (
-                                        <div
-                                            key={id}
-                                            className="flex items-center gap-2"
+                                    <div className="grid gap-2">
+                                        <p
+                                            id="taxonomy-arrangement-label"
+                                            className="text-body font-medium"
                                         >
+                                            How terms are arranged
+                                        </p>
+                                        <RadioGroup
+                                            name="hierarchical"
+                                            aria-labelledby="taxonomy-arrangement-label"
+                                            value={hierarchical ? '1' : '0'}
+                                            disabled={arrangementLocked}
+                                            onValueChange={(next) =>
+                                                setHierarchical(next === '1')
+                                            }
+                                        >
+                                            {(
+                                                [
+                                                    [
+                                                        false,
+                                                        `Flat, as tags: each ${lowered} stands on its own`,
+                                                        'taxonomy-flat',
+                                                    ],
+                                                    [
+                                                        true,
+                                                        `Nested, as categories: a ${lowered} can sit under another`,
+                                                        'taxonomy-nested',
+                                                    ],
+                                                ] as const
+                                            ).map(([nested, label, id]) => (
+                                                <RadioGroupChoice
+                                                    key={id}
+                                                    id={id}
+                                                    value={nested ? '1' : '0'}
+                                                    label={label}
+                                                />
+                                            ))}
+                                        </RadioGroup>
+                                        {arrangementLocked && (
+                                            // A disabled radio isn't sent: this carries the saved arrangement.
                                             <input
-                                                id={id}
-                                                type="radio"
+                                                type="hidden"
                                                 name="hierarchical"
-                                                value={nested ? '1' : '0'}
-                                                className="size-4"
-                                                checked={
-                                                    hierarchical === nested
-                                                }
-                                                disabled={arrangementLocked}
-                                                onChange={() =>
-                                                    setHierarchical(nested)
+                                                value="1"
+                                            />
+                                        )}
+                                        {arrangementLocked && (
+                                            <p
+                                                id="taxonomy-arrangement-reason"
+                                                className="text-small"
+                                            >
+                                                {flattenReason(
+                                                    saved.singular,
+                                                    saved.plural,
+                                                    page.under,
+                                                )}
+                                            </p>
+                                        )}
+                                        <Hint>
+                                            In the editor, flat terms are typed,
+                                            as tags are; nested ones are ticked
+                                            in a list, as categories are.
+                                        </Hint>
+                                        <InputError
+                                            message={errors.hierarchical}
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <p className="text-body font-medium">
+                                            Used by
+                                        </p>
+                                        {page.options.types.map((type) => (
+                                            <Flag
+                                                key={type.key}
+                                                id={`taxonomy-type-${type.key}`}
+                                                name="types[]"
+                                                value={type.key}
+                                                label={type.plural}
+                                                checked={types.includes(
+                                                    type.key,
+                                                )}
+                                                disabled={type.locked}
+                                                onCheckedChange={(checked) =>
+                                                    setTypes((current) =>
+                                                        toggle(
+                                                            current,
+                                                            type.key,
+                                                            checked === true,
+                                                        ),
+                                                    )
                                                 }
                                             />
-                                            <Label htmlFor={id}>{label}</Label>
+                                        ))}
+                                        {lockedTypes.length > 0 && (
+                                            <p
+                                                id="taxonomy-types-reason"
+                                                className="text-small"
+                                            >
+                                                {takenOffReason(
+                                                    lockedTypes.map(
+                                                        (type) => type.plural,
+                                                    ),
+                                                    saved.plural,
+                                                )}
+                                            </p>
+                                        )}
+                                        <Hint>
+                                            Their editors offer a {lowered}{' '}
+                                            picker, and a {lowered}’s page lists
+                                            their items. The same choice as each
+                                            type’s Taxonomies, on Site › Types.
+                                        </Hint>
+                                        <InputError message={errors.types} />
+                                    </div>
+                                </FormPanel>
+                            </Section>
+
+                            <Section id="taxonomy-section-admin">
+                                <FormPanel
+                                    title="In the admin"
+                                    description="Where its term screen is."
+                                >
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="taxonomy-segment">
+                                            Admin address
+                                        </Label>
+                                        <div className="flex min-w-0 items-center gap-2">
+                                            <code className="shrink-0">
+                                                /admin/
+                                            </code>
+                                            <Input
+                                                id="taxonomy-segment"
+                                                name="segment"
+                                                value={segment}
+                                                onChange={(event) =>
+                                                    setSegment(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            />
                                         </div>
-                                    ))}
-                                </div>
-                                {arrangementLocked && (
-                                    // A disabled radio isn't sent: this carries the saved arrangement.
-                                    <input
-                                        type="hidden"
-                                        name="hierarchical"
-                                        value="1"
-                                    />
-                                )}
-                                {arrangementLocked && (
-                                    <p
-                                        id="taxonomy-arrangement-reason"
-                                        className="text-sm"
-                                    >
-                                        {flattenReason(
-                                            saved.singular,
-                                            saved.plural,
-                                            page.under,
-                                        )}
-                                    </p>
-                                )}
-                                <Hint>
-                                    In the editor, flat terms are typed, as tags
-                                    are; nested ones are ticked in a list, as
-                                    categories are.
-                                </Hint>
-                                <InputError message={errors.hierarchical} />
-                            </div>
-                            <div className="grid gap-2">
-                                <p className="text-sm font-medium">Used by</p>
-                                {page.options.types.map((type) => (
+                                        <Hint>
+                                            Where the term screen is in the
+                                            admin. Changing it moves no public
+                                            page; only bookmarks to the old
+                                            admin address stop working.
+                                        </Hint>
+                                        <InputError message={errors.segment} />
+                                    </div>
+                                </FormPanel>
+                            </Section>
+
+                            <Section id="taxonomy-section-site">
+                                <FormPanel
+                                    title="On the site"
+                                    description="Whether each term has a page of its own."
+                                >
                                     <Flag
-                                        key={type.key}
-                                        id={`taxonomy-type-${type.key}`}
-                                        name="types[]"
-                                        value={type.key}
-                                        label={type.plural}
-                                        checked={types.includes(type.key)}
-                                        disabled={type.locked}
+                                        id="taxonomy-public"
+                                        name="public"
+                                        label="Terms have public pages"
+                                        checked={isPublic}
+                                        disabled={publicLocked}
+                                        error={errors.public}
                                         onCheckedChange={(checked) =>
-                                            setTypes((current) =>
-                                                toggle(
-                                                    current,
-                                                    type.key,
-                                                    checked === true,
-                                                ),
-                                            )
+                                            setIsPublic(checked === true)
+                                        }
+                                        hint={`Each ${lowered} gets a page listing the published items of every type that uses it, newest first, with its feed.`}
+                                        reason={
+                                            publicLocked
+                                                ? `${saved.plural} have terms (${page.terms}), so whether they have public pages can’t change.`
+                                                : undefined
                                         }
                                     />
-                                ))}
-                                {lockedTypes.length > 0 && (
-                                    <p
-                                        id="taxonomy-types-reason"
-                                        className="text-sm"
-                                    >
-                                        {takenOffReason(
-                                            lockedTypes.map(
-                                                (type) => type.plural,
-                                            ),
-                                            saved.plural,
-                                        )}
-                                    </p>
-                                )}
-                                <Hint>
-                                    Their editors offer a {lowered} picker, and
-                                    a {lowered}’s page lists their items. The
-                                    same choice as each type’s Taxonomies, on
-                                    Site › Types.
-                                </Hint>
-                                <InputError message={errors.types} />
-                            </div>
-                        </SettingsPanel>
+                                    {needsBase && (
+                                        <Field
+                                            id="taxonomy-base"
+                                            name="base"
+                                            label="Address base"
+                                            value={base}
+                                            error={errors.base}
+                                            onChange={setBase}
+                                            placeholder="genre"
+                                            hint={`The first part of each ${lowered}’s address, as in /${typed}/action/. Once the taxonomy is made, this changes in Settings › Addresses.`}
+                                        />
+                                    )}
+                                    {!creating && saved.public && isPublic && (
+                                        <AddressLine page={page} />
+                                    )}
+                                </FormPanel>
+                            </Section>
 
-                        <SettingsPanel
-                            title="In the admin"
-                            description="Where its term screen is."
-                        >
-                            <div className="grid gap-2">
-                                <Label htmlFor="taxonomy-segment">
-                                    Admin address
-                                </Label>
-                                <div className="flex min-w-0 items-center gap-2">
-                                    <code className="shrink-0">/admin/</code>
-                                    <Input
-                                        id="taxonomy-segment"
-                                        name="segment"
-                                        value={segment}
-                                        onChange={(event) =>
-                                            setSegment(event.target.value)
-                                        }
-                                    />
-                                </div>
-                                <Hint>
-                                    Where the term screen is in the admin.
-                                    Changing it moves no public page; only
-                                    bookmarks to the old admin address stop
-                                    working.
-                                </Hint>
-                                <InputError message={errors.segment} />
-                            </div>
-                        </SettingsPanel>
-
-                        <SettingsPanel
-                            title="On the site"
-                            description="Whether each term has a page of its own."
-                        >
-                            <Flag
-                                id="taxonomy-public"
-                                name="public"
-                                label="Terms have public pages"
-                                checked={isPublic}
-                                disabled={publicLocked}
-                                error={errors.public}
-                                onCheckedChange={(checked) =>
-                                    setIsPublic(checked === true)
+                            <SaveBar
+                                dirty={
+                                    isDirty ||
+                                    snapshot(state) !==
+                                        snapshot(savedState(saved))
                                 }
-                                hint={`Each ${lowered} gets a page listing the published items of every type that uses it, newest first, with its feed.`}
-                                reason={
-                                    publicLocked
-                                        ? `${saved.plural} have terms (${page.terms}), so whether they have public pages can’t change.`
-                                        : undefined
+                                processing={processing}
+                                onDiscard={onDiscard}
+                                saveLabel={
+                                    creating ? 'Add taxonomy' : 'Save taxonomy'
                                 }
+                                what={
+                                    saved.plural.trim() === ''
+                                        ? __('this taxonomy')
+                                        : saved.plural
+                                }
+                                testId="taxonomy-save"
                             />
-                            {needsBase && (
-                                <Field
-                                    id="taxonomy-base"
-                                    name="base"
-                                    label="Address base"
-                                    value={base}
-                                    error={errors.base}
-                                    onChange={setBase}
-                                    placeholder="genre"
-                                    hint={`The first part of each ${lowered}’s address, as in /${typed}/action/. Once the taxonomy is made, this changes in Settings › Addresses.`}
-                                />
-                            )}
-                            {!creating && saved.public && isPublic && (
-                                <AddressLine page={page} />
-                            )}
-                        </SettingsPanel>
+                        </>
+                    )}
+                </Form>
 
-                        <SettingsSaveBar
-                            label={creating ? 'Add taxonomy' : 'Save taxonomy'}
-                            processing={processing}
-                            testId="taxonomy-save"
-                        />
-                    </>
+                {page.mode === 'edit' && (
+                    <Section id="taxonomy-section-delete">
+                        <DeletePanel page={page} />
+                    </Section>
                 )}
-            </Form>
+            </div>
 
             {pickerMounted && (
                 <Suspense fallback={null}>
@@ -426,80 +549,93 @@ function ViewPanels({ page }: { page: TaxonomyPage }) {
         .map((type) => type.plural);
 
     return (
-        <div className="grid gap-6">
-            <SettingsPanel
-                as="section"
-                title="Names"
-                description="What the taxonomy is called across the admin."
-            >
-                <Facts>
-                    <Fact label="Singular name">{taxonomy.singular}</Fact>
-                    <Fact label="Plural name">{taxonomy.plural}</Fact>
-                    <Fact label="Key">
-                        <code>{taxonomy.key}</code>
-                    </Fact>
-                </Facts>
-            </SettingsPanel>
-            <SettingsPanel
-                as="section"
-                title="Terms"
-                description="Whether they sit under one another, and which types use them."
-            >
-                <Facts>
-                    <Fact label="Arranged">
-                        {taxonomy.hierarchical
-                            ? 'Nested, as categories'
-                            : 'Flat, as tags'}
-                    </Fact>
-                    <Fact label="Used by">
-                        {used.length === 0 ? 'None' : andList(used)}
-                    </Fact>
-                    <Fact label="Terms">
-                        {page.terms}
-                        {page.termsUrl !== null && (
-                            <>
-                                {' '}
-                                <Link
-                                    href={page.termsUrl}
-                                    className="text-accent-ink underline underline-offset-2"
-                                >
-                                    Open {taxonomy.plural}
-                                </Link>
-                            </>
-                        )}
-                    </Fact>
-                </Facts>
-            </SettingsPanel>
-            <SettingsPanel
-                as="section"
-                title="On the site"
-                description="Whether each term has a page of its own."
-            >
-                <Facts>
-                    <Fact label="Public pages">
-                        {taxonomy.public ? 'Yes' : 'No'}
-                    </Fact>
-                    {page.address !== null && (
-                        <Fact label="Public address">
-                            <code>{page.address}</code>{' '}
-                            <Link
-                                href={addresses.url()}
-                                className="text-accent-ink underline underline-offset-2"
-                            >
-                                Change in Settings › Addresses
-                            </Link>
-                        </Fact>
-                    )}
-                </Facts>
-            </SettingsPanel>
-        </div>
+        <>
+            <SectionTabs
+                label={__('Sections of this taxonomy')}
+                sections={taxonomySections(false).filter(
+                    (section) => section.id !== 'taxonomy-section-admin',
+                )}
+            />
+            <div className="grid gap-4">
+                <Section id="taxonomy-section-names">
+                    <FormPanel
+                        title="Names"
+                        description="What the taxonomy is called across the admin."
+                    >
+                        <Facts>
+                            <Fact label="Singular name">
+                                {taxonomy.singular}
+                            </Fact>
+                            <Fact label="Plural name">{taxonomy.plural}</Fact>
+                            <Fact label="Key">
+                                <code>{taxonomy.key}</code>
+                            </Fact>
+                        </Facts>
+                    </FormPanel>
+                </Section>
+                <Section id="taxonomy-section-terms">
+                    <FormPanel
+                        title="Terms"
+                        description="Whether they sit under one another, and which types use them."
+                    >
+                        <Facts>
+                            <Fact label="Arranged">
+                                {taxonomy.hierarchical
+                                    ? 'Nested, as categories'
+                                    : 'Flat, as tags'}
+                            </Fact>
+                            <Fact label="Used by">
+                                {used.length === 0 ? 'None' : andList(used)}
+                            </Fact>
+                            <Fact label="Terms">
+                                {page.terms}
+                                {page.termsUrl !== null && (
+                                    <>
+                                        {' '}
+                                        <Link
+                                            href={page.termsUrl}
+                                            className="text-accent-ink underline underline-offset-3"
+                                        >
+                                            Open {taxonomy.plural}
+                                        </Link>
+                                    </>
+                                )}
+                            </Fact>
+                        </Facts>
+                    </FormPanel>
+                </Section>
+                <Section id="taxonomy-section-site">
+                    <FormPanel
+                        title="On the site"
+                        description="Whether each term has a page of its own."
+                    >
+                        <Facts>
+                            <Fact label="Public pages">
+                                {taxonomy.public ? 'Yes' : 'No'}
+                            </Fact>
+                            {page.address !== null && (
+                                <Fact label="Public address">
+                                    <code>{page.address}</code>{' '}
+                                    <Link
+                                        href={addresses.url()}
+                                        className="text-accent-ink underline underline-offset-3"
+                                    >
+                                        Change in Settings › Addresses
+                                    </Link>
+                                </Fact>
+                            )}
+                        </Facts>
+                    </FormPanel>
+                </Section>
+            </div>
+        </>
     );
 }
 
 function AddressLine({ page }: { page: TaxonomyPage }) {
     return (
         <div className="grid gap-2">
-            <p className="text-sm font-medium">Public address</p>
+            <p className="text-body font-medium">Public address</p>
             <p className="text-pretty">
                 <code>{page.address}</code>
                 {page.example !== null && page.address !== null ? (
@@ -513,7 +649,7 @@ function AddressLine({ page }: { page: TaxonomyPage }) {
                 )}
                 <Link
                     href={addresses.url()}
-                    className="text-accent-ink underline underline-offset-2"
+                    className="text-accent-ink underline underline-offset-3"
                 >
                     Change in Settings › Addresses
                 </Link>
@@ -528,7 +664,7 @@ function DeletePanel({ page }: { page: TaxonomyPage }) {
     const reason = deleteReason(plural, page.terms);
 
     return (
-        <SettingsPanel as="section" title="Delete this taxonomy">
+        <FormPanel title="Delete this taxonomy">
             {reason !== null && <p id="taxonomy-delete-reason">{reason}</p>}
             {page.termsUrl !== null && page.terms > 0 && (
                 <p className="flex flex-wrap gap-3">
@@ -550,7 +686,8 @@ function DeletePanel({ page }: { page: TaxonomyPage }) {
                         >
                             <Button
                                 type="submit"
-                                variant="destructive"
+                                variant="danger-quiet"
+                                size="sm"
                                 data-test="taxonomy-delete"
                             >
                                 Delete {plural}
@@ -561,7 +698,8 @@ function DeletePanel({ page }: { page: TaxonomyPage }) {
             ) : (
                 <Button
                     type="button"
-                    variant="destructive"
+                    variant="danger-quiet"
+                    size="sm"
                     disabled
                     data-test="taxonomy-delete"
                     aria-describedby="taxonomy-delete-reason"
@@ -569,13 +707,13 @@ function DeletePanel({ page }: { page: TaxonomyPage }) {
                     Delete {plural}
                 </Button>
             )}
-        </SettingsPanel>
+        </FormPanel>
     );
 }
 
 function CodeNote({ page }: { page: TaxonomyPage }) {
     return (
-        <p>
+        <Notice tone="info">
             {page.taxonomy.plural} are declared by code, so they can’t be
             changed or deleted here.
             {page.taxonomy.public && (
@@ -584,20 +722,20 @@ function CodeNote({ page }: { page: TaxonomyPage }) {
                     Their address base can still change:{' '}
                     <Link
                         href={addresses.url()}
-                        className="text-accent-ink underline underline-offset-2"
+                        className="text-accent-ink underline underline-offset-3"
                     >
                         Settings › Addresses
                     </Link>
                     .
                 </>
             )}
-        </p>
+        </Notice>
     );
 }
 
 function LockNote() {
     return (
-        <div className="grid gap-1 text-sm">
+        <Notice tone="info">
             <p>
                 Taxonomies are locked on this site (TEME_TYPES_LOCKED): change
                 them where they’re made, and bring them here with{' '}
@@ -607,7 +745,7 @@ function LockNote() {
                 You can still look at each taxonomy, and download
                 teme-types.json.
             </p>
-        </div>
+        </Notice>
     );
 }
 

@@ -110,7 +110,6 @@ R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
 R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
 R1	js/pages/settings/site-code.tsx	max-w-[960px]
 R1	js/pages/settings/site-code.tsx	sm:max-w-[560px]
-R1	js/pages/taxonomies/show.tsx	max-w-[768px]
 R1	js/pages/terms/index.tsx	lg:grid-cols-[300px_minmax(0,1fr)]
 R1	js/pages/terms/index.tsx	sm:max-w-[480px]
 R1	js/pages/tools/ai-activity.tsx	grid-cols-[max-content_1fr]
@@ -846,17 +845,6 @@ R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/taxonomies/index.tsx	text-sm
-R2	js/pages/taxonomies/index.tsx	text-xs
-R2	js/pages/taxonomies/index.tsx	text-xs
-R2	js/pages/taxonomies/show.tsx	text-sm
-R2	js/pages/taxonomies/show.tsx	text-sm
-R2	js/pages/taxonomies/show.tsx	text-sm
-R2	js/pages/taxonomies/show.tsx	text-sm
-R2	js/pages/taxonomies/show.tsx	text-sm
-R2	js/pages/taxonomies/show.tsx	text-sm
-R2	js/pages/taxonomies/show.tsx	text-sm
-R2	js/pages/taxonomies/show.tsx	text-sm
 R2	js/pages/terms/index.tsx	text-[13px]
 R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/terms/index.tsx	text-xs
@@ -1066,7 +1054,6 @@ R3	js/pages/settings/ai.tsx	mt-0.5
 R3	js/pages/settings/discussion.tsx	mt-0.5
 R3	js/pages/settings/search-and-social.tsx	mt-0.5
 R3	js/pages/settings/site-code.tsx	mt-0.5
-R3	js/pages/taxonomies/index.tsx	mt-0.5
 R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
@@ -1168,7 +1155,6 @@ R5	js/pages/settings/site-code.tsx	<details>
 R5	js/pages/settings/site-code.tsx	<select>
 R5	js/pages/settings/site-code.tsx	<textarea>
 R5	js/pages/settings/site-code.tsx	<textarea>
-R5	js/pages/taxonomies/show.tsx	<input type="radio">
 R5	js/pages/terms/index.tsx	<textarea>
 R5	js/pages/tools/backups/sftp.tsx	<textarea>
 R5	js/pages/tools/updates.tsx	<details>
@@ -1296,11 +1282,6 @@ R7	js/pages/settings/site-code.tsx	frame:max-w-[960px]
 R7	js/pages/settings/site-code.tsx	frame:sm:max-w-[560px]
 R7	js/pages/settings/site-code.tsx	root:div
 R7	js/pages/settings/site-code.tsx	root:Sheet
-R7	js/pages/taxonomies/index.tsx	frame:p-6
-R7	js/pages/taxonomies/index.tsx	root:div
-R7	js/pages/taxonomies/show.tsx	frame:max-w-[768px]
-R7	js/pages/taxonomies/show.tsx	frame:p-6
-R7	js/pages/taxonomies/show.tsx	root:div
 R7	js/pages/terms/index.tsx	frame:p-6
 R7	js/pages/terms/index.tsx	frame:sm:max-w-[480px]
 R7	js/pages/terms/index.tsx	root:div

@@ -1873,7 +1873,6 @@ pages/taxonomies/index.tsx	You can still look at each taxonomy, and download tem
 pages/taxonomies/index.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	, which keeps every old address working as a redirect.
 pages/taxonomies/show.tsx	/admin/
-pages/taxonomies/show.tsx	Add taxonomy
 pages/taxonomies/show.tsx	Address base
 pages/taxonomies/show.tsx	Admin address
 pages/taxonomies/show.tsx	Arranged
@@ -1912,7 +1911,6 @@ pages/taxonomies/show.tsx	Plural name
 pages/taxonomies/show.tsx	Public address
 pages/taxonomies/show.tsx	Public address
 pages/taxonomies/show.tsx	Public pages
-pages/taxonomies/show.tsx	Save taxonomy
 pages/taxonomies/show.tsx	Settings › Addresses
 pages/taxonomies/show.tsx	Singular name
 pages/taxonomies/show.tsx	Singular name
