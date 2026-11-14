@@ -1,5 +1,5 @@
-import { Form, Head, Link, router } from '@inertiajs/react';
-import { Download, Info, Plus, Upload } from 'lucide-react';
+import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import { Download, Plus, Upload } from 'lucide-react';
 import { useState } from 'react';
 import RedirectController from '@/actions/App/Http/Admin/Tools/RedirectController';
 import { ConfirmAction } from '@/components/confirm-action';
@@ -10,14 +10,17 @@ import { EmptyState } from '@/components/list/empty-state';
 import InputError from '@/components/input-error';
 import { Pager } from '@/components/list/pager';
 import { RowLinks } from '@/components/list/row-links';
+import { ListPage } from '@/components/patterns/list-page';
 import {
     ImportRedirects,
     ImportReportDialog,
 } from '@/components/tools/import-redirects';
 import { RedirectForm } from '@/components/tools/redirect-form';
 import type { RedirectEditing } from '@/components/tools/redirect-form';
-import { RedirectsHead } from '@/components/tools/redirects-head';
-import { Badge } from '@/components/ui/badge';
+import {
+    RedirectsHead,
+    redirectsDescription,
+} from '@/components/tools/redirects-head';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -27,38 +30,47 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Notice } from '@/components/ui/notice';
+import { StatusPill } from '@/components/ui/status-pill';
+import { __ } from '@/lib/i18n';
+import { shownTitle } from '@/lib/titles';
 import { formatInZone } from '@/lib/zoned-time';
 import { edit } from '@/routes/content';
 import { show as addresses } from '@/routes/settings/addresses';
 import { index as toolsIndex } from '@/routes/tools';
 import { download, index } from '@/routes/tools/redirects';
 import type { RedirectRow, RedirectsPage } from '@/types';
-import { shownTitle } from '@/lib/titles';
 
 /** The question before deleting: one redirect named by its address, or how many. */
 function deleteTitle(rows: RedirectRow[]): string {
     return rows.length === 1
-        ? `Delete the redirect from ${rows[0].from}?`
-        : `Delete ${rows.length.toLocaleString()} redirects?`;
+        ? __('Delete the redirect from :from?', { from: rows[0].from })
+        : __('Delete :count redirects?', {
+              count: rows.length.toLocaleString(),
+          });
 }
 
 function deleteText(count: number): string {
     return count === 1
-        ? 'Readers who follow an old link to it are no longer sent on, and the address appears in the 404 log if nothing else answers it. This can’t be undone.'
-        : 'Readers who follow an old link to any of them are no longer sent on, and each address appears in the 404 log if nothing else answers it. This can’t be undone.';
+        ? __(
+              'Readers who follow an old link to it are no longer sent on, and the address appears in the 404 log if nothing else answers it. This can’t be undone.',
+          )
+        : __(
+              'Readers who follow an old link to any of them are no longer sent on, and each address appears in the 404 log if nothing else answers it. This can’t be undone.',
+          );
 }
 
 function deleteLabel(count: number): string {
     return count === 1
-        ? 'Delete redirect'
-        : `Delete ${count.toLocaleString()} redirects`;
+        ? __('Delete redirect')
+        : __('Delete :count redirects', { count: count.toLocaleString() });
 }
 
 /** Where a redirect sends readers, in words (I-694). */
 function RedirectTarget({ row }: { row: RedirectRow }) {
     const beneath = (address: string | null) =>
         address !== null && (
-            <span className="text-ink-2 block font-mono text-[12px]">
+            <span className="text-ink-2 text-caption block font-mono">
                 {address}
             </span>
         );
@@ -67,12 +79,12 @@ function RedirectTarget({ row }: { row: RedirectRow }) {
         case null:
             return (
                 <span className="text-ink-2">
-                    Nowhere: it answers {row.status}
+                    {__('Nowhere: it answers :status', { status: row.status })}
                 </span>
             );
         case 'content':
             return row.to.title === null || row.to.contentId === null ? (
-                <span className="text-ink-2">A deleted item</span>
+                <span className="text-ink-2">{__('A deleted item')}</span>
             ) : (
                 <>
                     <Link
@@ -86,10 +98,10 @@ function RedirectTarget({ row }: { row: RedirectRow }) {
             );
         case 'media':
             return row.to.title === null ? (
-                <span className="text-ink-2">A deleted file</span>
+                <span className="text-ink-2">{__('A deleted file')}</span>
             ) : (
                 <>
-                    The file {row.to.title}
+                    {__('The file :name', { name: row.to.title })}
                     {beneath(row.to.address)}
                 </>
             );
@@ -97,8 +109,8 @@ function RedirectTarget({ row }: { row: RedirectRow }) {
             return (
                 <>
                     <span className="font-mono">{row.to.address}</span>
-                    <span className="text-ink-2 block text-[12px]">
-                        Another site
+                    <span className="text-ink-2 text-caption block">
+                        {__('Another site')}
                     </span>
                 </>
             );
@@ -129,6 +141,13 @@ export default function Redirects(page: RedirectsPage) {
     const [editing, setEditing] = useState<RedirectEditing | null>(
         prefill === null ? null : { redirect: null, from: prefill.from },
     );
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Tools'), href: toolsIndex() },
+            { title: __('Redirects'), href: index() },
+        ],
+    });
+
     const adding = () => setEditing({ redirect: null, from: '' });
     const [selected, setSelected] = useState<string[]>([]);
 
@@ -158,8 +177,10 @@ export default function Redirects(page: RedirectsPage) {
                 <Checkbox
                     aria-label={
                         rows.length === 1
-                            ? 'Select the 1 redirect shown'
-                            : `Select all ${rows.length.toLocaleString()} redirects shown`
+                            ? __('Select the 1 redirect shown')
+                            : __('Select all :count redirects shown', {
+                                  count: rows.length.toLocaleString(),
+                              })
                     }
                     disabled={rows.length === 0}
                     checked={
@@ -173,7 +194,9 @@ export default function Redirects(page: RedirectsPage) {
             ),
             cell: (row) => (
                 <Checkbox
-                    aria-label={`Select the redirect from ${row.from}`}
+                    aria-label={__('Select the redirect from :from', {
+                        from: row.from,
+                    })}
                     checked={chosenIds.includes(row.id)}
                     onCheckedChange={(checked) =>
                         setSelected(
@@ -188,28 +211,32 @@ export default function Redirects(page: RedirectsPage) {
         {
             id: 'from',
             owner: 'core',
-            header: 'From',
+            header: __('From'),
             cell: (row) => (
                 <>
                     <span className="font-mono">{row.from}</span>
                     {row.pattern && (
-                        <Badge variant="secondary" className="ml-2">
-                            Pattern
-                        </Badge>
+                        <StatusPill tone="neutral" className="ms-2">
+                            {__('Pattern')}
+                        </StatusPill>
                     )}
                     {row.note !== '' && (
-                        <span className="text-ink-2 block text-[12px]">
+                        <span className="text-ink-2 text-caption block">
                             {row.note}
                         </span>
                     )}
                     <RowLinks
-                        label={`Actions for the redirect from ${row.from}`}
-                        more={`More actions for the redirect from ${row.from}`}
+                        label={__('Actions for the redirect from :from', {
+                            from: row.from,
+                        })}
+                        more={__('More actions for the redirect from :from', {
+                            from: row.from,
+                        })}
                         items={[
                             {
                                 id: 'edit',
                                 owner: 'core',
-                                label: 'Edit',
+                                label: __('Edit'),
                                 onSelect: () =>
                                     setEditing({
                                         redirect: row,
@@ -219,7 +246,9 @@ export default function Redirects(page: RedirectsPage) {
                             {
                                 id: 'switch',
                                 owner: 'core',
-                                label: row.on ? 'Switch off' : 'Switch on',
+                                label: row.on
+                                    ? __('Switch off')
+                                    : __('Switch on'),
                                 form: RedirectController.toggle.form(),
                                 fields: {
                                     'ids[0]': row.id,
@@ -229,7 +258,7 @@ export default function Redirects(page: RedirectsPage) {
                             {
                                 id: 'delete',
                                 owner: 'core',
-                                label: 'Delete',
+                                label: __('Delete'),
                                 destructive: true,
                                 form: RedirectController.destroy.form(),
                                 fields: { 'ids[0]': row.id },
@@ -251,17 +280,17 @@ export default function Redirects(page: RedirectsPage) {
         {
             id: 'to',
             owner: 'core',
-            header: 'To',
+            header: __('To'),
             cell: (row) => <RedirectTarget row={row} />,
         },
         {
             id: 'status',
             owner: 'core',
-            header: 'Status',
+            header: __('Status'),
             cell: (row) => (
                 <>
                     <span className="font-mono">{row.status}</span>
-                    <span className="text-ink-2 block text-[12px]">
+                    <span className="text-ink-2 text-caption block">
                         {row.statusLabel}
                     </span>
                 </>
@@ -270,24 +299,25 @@ export default function Redirects(page: RedirectsPage) {
         {
             id: 'origin',
             owner: 'core',
-            header: 'Origin',
-            cell: (row) => (row.origin === 'import' ? 'Imported' : 'Manual'),
+            header: __('Origin'),
+            cell: (row) =>
+                row.origin === 'import' ? __('Imported') : __('Manual'),
         },
         {
             id: 'hits',
             owner: 'core',
-            header: 'Hits',
+            header: __('Hits'),
             className: 'text-right',
             cell: (row) => row.hits.toLocaleString(),
         },
         {
             id: 'last-hit',
             owner: 'core',
-            header: 'Last hit',
+            header: __('Last hit'),
             className: 'whitespace-nowrap',
             cell: (row) =>
                 row.lastHitAt === null ? (
-                    <span className="text-ink-2">Never</span>
+                    <span className="text-ink-2">{__('Never')}</span>
                 ) : (
                     formatInZone(row.lastHitAt, siteTimezone)
                 ),
@@ -295,107 +325,94 @@ export default function Redirects(page: RedirectsPage) {
         {
             id: 'state',
             owner: 'core',
-            header: 'State',
+            header: __('State'),
             cell: (row) => row.stateLabel,
         },
     ];
 
     return (
         <>
-            <Head title="Redirects" />
+            <Head title={__('Redirects')} />
 
-            <div className="space-y-4 p-6">
-                <RedirectsHead
-                    tab="redirects"
-                    counts={counts}
-                    actions={
-                        <>
-                            <Button
-                                variant="outline"
-                                data-test="redirects-import"
-                                onClick={() => setImporting(true)}
+            <ListPage
+                title={__('Redirects')}
+                description={redirectsDescription('redirects')}
+                actions={
+                    <>
+                        <Button
+                            variant="outline"
+                            data-test="redirects-import"
+                            onClick={() => setImporting(true)}
+                        >
+                            <Upload aria-hidden="true" />
+                            {__('Import from CSV')}
+                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    <Download aria-hidden="true" />
+                                    {__('Export')}
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                align="end"
+                                aria-label={__('Export redirects')}
                             >
-                                <Upload aria-hidden="true" />
-                                Import from CSV
-                            </Button>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline">
-                                        <Download aria-hidden="true" />
-                                        Export
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                    align="end"
-                                    aria-label="Export redirects"
-                                >
-                                    <DropdownMenuItem asChild>
-                                        <a
-                                            href={
-                                                download({ format: 'csv' }).url
-                                            }
-                                            download
-                                        >
-                                            Export as CSV
-                                        </a>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <a
-                                            href={
-                                                download({ format: 'nginx' })
-                                                    .url
-                                            }
-                                            download
-                                        >
-                                            Export for nginx
-                                        </a>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                            <Button data-test="redirect-add" onClick={adding}>
-                                <Plus aria-hidden="true" />
-                                Add a redirect
-                            </Button>
-                        </>
-                    }
-                />
+                                <DropdownMenuItem asChild>
+                                    <a
+                                        href={download({ format: 'csv' }).url}
+                                        download
+                                    >
+                                        {__('Export as CSV')}
+                                    </a>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <a
+                                        href={download({ format: 'nginx' }).url}
+                                        download
+                                    >
+                                        {__('Export for nginx')}
+                                    </a>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button data-test="redirect-add" onClick={adding}>
+                            <Plus aria-hidden="true" />
+                            {__('Add a redirect')}
+                        </Button>
+                    </>
+                }
+            >
+                <RedirectsHead tab="redirects" counts={counts} />
 
-                <div
-                    role="note"
+                <Notice
+                    tone="info"
                     data-test="redirects-notice"
-                    className="border-line flex gap-3 rounded-md border p-4 text-sm"
+                    title={__('Changed addresses need no redirect.')}
                 >
-                    <Info
-                        aria-hidden="true"
-                        className="mt-0.5 size-4 shrink-0"
-                    />
-                    <div className="space-y-2">
+                    <div className="grid gap-2">
                         <p>
-                            <strong className="font-medium">
-                                Changed addresses need no redirect.
-                            </strong>{' '}
-                            When a post or page gets a new address, in the
-                            editor or in{' '}
+                            {__(
+                                'When a post or page gets a new address, in the editor or in',
+                            )}{' '}
                             {canManageAddresses ? (
                                 <Link href={addresses()} className="underline">
-                                    Settings › Addresses
+                                    {__('Settings › Addresses')}
                                 </Link>
                             ) : (
-                                'Settings › Addresses'
+                                __('Settings › Addresses')
                             )}
-                            , its old address keeps sending readers to it by
-                            itself. Add a redirect for an address Teme never
-                            had, such as one from the old site.
+                            {__(
+                                ', its old address keeps sending readers to it by itself. Add a redirect for an address Teme never had, such as one from the old site.',
+                            )}
                         </p>
                         <p>
-                            A redirect answers only where no page does, so it
-                            can never hide a live page. One that goes to a post
-                            or page follows it when its address changes. Hits
-                            are counted every minute, so the newest take a
-                            moment to appear.
+                            {__(
+                                'A redirect answers only where no page does, so it can never hide a live page. One that goes to a post or page follows it when its address changes. Hits are counted every minute, so the newest take a moment to appear.',
+                            )}
                         </p>
                     </div>
-                </div>
+                </Notice>
 
                 <form
                     role="search"
@@ -418,12 +435,12 @@ export default function Redirects(page: RedirectsPage) {
                         key={search}
                         name="search"
                         defaultValue={search}
-                        placeholder="Address or note"
-                        aria-label="Search redirects"
+                        placeholder={__('Address or note')}
+                        aria-label={__('Search redirects')}
                         className="w-72"
                     />
                     <Button variant="outline" type="submit">
-                        Search
+                        {__('Search')}
                     </Button>
                 </form>
 
@@ -446,7 +463,7 @@ export default function Redirects(page: RedirectsPage) {
                                         variant="outline"
                                         disabled={processing}
                                     >
-                                        Switch on
+                                        {__('Switch on')}
                                     </Button>
                                 </>
                             )}
@@ -465,7 +482,7 @@ export default function Redirects(page: RedirectsPage) {
                                         variant="outline"
                                         disabled={processing}
                                     >
-                                        Switch off
+                                        {__('Switch off')}
                                     </Button>
                                 </>
                             )}
@@ -490,10 +507,13 @@ export default function Redirects(page: RedirectsPage) {
                                             variant="destructive"
                                             disabled={processing}
                                         >
-                                            Delete
+                                            {__('Delete')}
                                         </Button>
                                     </ConfirmAction>
-                                    <InputError message={errors.redirects} />
+                                    <InputError
+                                        id="redirects-bulk-error"
+                                        message={errors.redirects}
+                                    />
                                 </>
                             )}
                         </Form>
@@ -504,23 +524,27 @@ export default function Redirects(page: RedirectsPage) {
                     columns={columns}
                     rows={rows}
                     rowKey={(row) => row.id}
-                    caption="Redirects"
+                    caption={__('Redirects')}
                     empty={
                         search ? (
                             <EmptyState
                                 kind="nothing-matches"
-                                title={`No redirects match “${search}”`}
+                                title={__('No redirects match “:search”', {
+                                    search,
+                                })}
                                 clearHref={index().url}
                             />
                         ) : (
                             <EmptyState
                                 kind="nothing-yet"
-                                title="No redirects yet"
-                                description="A redirect sends readers on from an address this site no longer has."
+                                title={__('No redirects yet')}
+                                description={__(
+                                    'A redirect sends readers on from an address this site no longer has.',
+                                )}
                                 action={
                                     <Button onClick={adding}>
                                         <Plus aria-hidden="true" />
-                                        Add a redirect
+                                        {__('Add a redirect')}
                                     </Button>
                                 }
                             />
@@ -540,21 +564,17 @@ export default function Redirects(page: RedirectsPage) {
                             : null
                     }
                 />
-            </div>
 
-            <RedirectForm editing={editing} onClose={() => setEditing(null)} />
-            <ImportRedirects open={importing} onOpenChange={setImporting} />
-            <ImportReportDialog
-                report={report}
-                onClose={() => setReport(null)}
-            />
+                <RedirectForm
+                    editing={editing}
+                    onClose={() => setEditing(null)}
+                />
+                <ImportRedirects open={importing} onOpenChange={setImporting} />
+                <ImportReportDialog
+                    report={report}
+                    onClose={() => setReport(null)}
+                />
+            </ListPage>
         </>
     );
 }
-
-Redirects.layout = {
-    breadcrumbs: [
-        { title: 'Tools', href: toolsIndex() },
-        { title: 'Redirects', href: index() },
-    ],
-};

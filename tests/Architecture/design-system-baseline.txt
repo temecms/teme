@@ -72,7 +72,6 @@ R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/tools/ai-activity-details.tsx	grid-cols-[8rem_1fr]
 R1	js/components/tools/ai-activity-details.tsx	sm:max-w-[480px]
-R1	js/components/tools/redirect-form.tsx	sm:max-w-[560px]
 R1	js/components/ui/sidebar.tsx	after:w-[2px]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]
@@ -511,17 +510,6 @@ R2	js/components/tools/ai-activity-details.tsx	text-[12px]
 R2	js/components/tools/ai-activity-details.tsx	text-[12px]
 R2	js/components/tools/ai-activity-details.tsx	text-[12px]
 R2	js/components/tools/ai-activity-details.tsx	text-[13px]
-R2	js/components/tools/import-redirects.tsx	text-sm
-R2	js/components/tools/import-redirects.tsx	text-xs
-R2	js/components/tools/import-redirects.tsx	text-xs
-R2	js/components/tools/redirect-form.tsx	text-[13px]
-R2	js/components/tools/redirect-form.tsx	text-[13px]
-R2	js/components/tools/redirect-form.tsx	text-[13px]
-R2	js/components/tools/redirect-form.tsx	text-[13px]
-R2	js/components/tools/redirect-form.tsx	text-sm
-R2	js/components/tools/redirect-form.tsx	text-sm
-R2	js/components/tools/redirect-form.tsx	text-sm
-R2	js/components/tools/redirect-form.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
 R2	js/pages/comments/index.tsx	text-[11px]
 R2	js/pages/comments/index.tsx	text-[12px]
@@ -641,13 +629,6 @@ R2	js/pages/tools/ai-activity.tsx	text-sm
 R2	js/pages/tools/ai-activity.tsx	text-sm
 R2	js/pages/tools/jobs.tsx	text-[13px]
 R2	js/pages/tools/jobs.tsx	text-xs
-R2	js/pages/tools/not-found.tsx	text-[13px]
-R2	js/pages/tools/not-found.tsx	text-[13px]
-R2	js/pages/tools/redirects.tsx	text-[12px]
-R2	js/pages/tools/redirects.tsx	text-[12px]
-R2	js/pages/tools/redirects.tsx	text-[12px]
-R2	js/pages/tools/redirects.tsx	text-[12px]
-R2	js/pages/tools/redirects.tsx	text-sm
 R3	js/components/comments/comment-details.tsx	mt-0.5
 R3	js/components/comments/comment-details.tsx	space-y-1.5
 R3	js/components/comments/commenter.tsx	gap-1.5
@@ -739,7 +720,6 @@ R3	js/components/media/media-grid.tsx	p-0.5
 R3	js/components/plugins/consent-dialog.tsx	gap-1.5
 R3	js/components/plugins/consent-dialog.tsx	px-1.5
 R3	js/components/seo/who-publishes.tsx	mt-0.5
-R3	js/components/tools/redirect-form.tsx	py-1.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=default]/menu-button:top-1.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=lg]/menu-button:top-2.5
 R3	js/components/ui/sidebar.tsx	top-1.5
@@ -771,7 +751,6 @@ R3	js/pages/tools/ai-activity.tsx	gap-1.5
 R3	js/pages/tools/ai-activity.tsx	gap-1.5
 R3	js/pages/tools/ai-activity.tsx	mt-0.5
 R3	js/pages/tools/ai-activity.tsx	mt-0.5
-R3	js/pages/tools/redirects.tsx	mt-0.5
 R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
@@ -829,9 +808,6 @@ R5	js/components/media/media-filters.tsx	<button type="button">
 R5	js/components/media/media-grid.tsx	<button type="button">
 R5	js/components/palette/command-palette.tsx	<input>
 R5	js/components/seo/who-publishes.tsx	<select>
-R5	js/components/tools/redirect-form.tsx	<button type="button">
-R5	js/components/tools/redirect-form.tsx	<input type="radio">
-R5	js/components/tools/redirect-form.tsx	<select>
 R5	js/pages/comments/index.tsx	<button type="button">
 R5	js/pages/content/edit.tsx	<textarea>
 R5	js/pages/media/index.tsx	<button type="button">
@@ -883,7 +859,6 @@ R6	js/components/media/media-grid.tsx	rounded
 R6	js/components/media/media-modal.tsx	z-10
 R6	js/components/media/page-drop.tsx	z-40
 R6	js/components/plugins/consent-dialog.tsx	leading-4
-R6	js/components/tools/redirect-form.tsx	rounded
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
 R6	js/pages/content/index.tsx	rounded
@@ -937,15 +912,6 @@ R7	js/pages/terms/index.tsx	root:Sheet
 R7	js/pages/tools/ai-activity.tsx	frame:p-6
 R7	js/pages/tools/ai-activity.tsx	root:AiActivityDetails
 R7	js/pages/tools/ai-activity.tsx	root:div
-R7	js/pages/tools/not-found.tsx	frame:p-6
-R7	js/pages/tools/not-found.tsx	root:div
-R7	js/pages/tools/not-found.tsx	root:RedirectForm
-R7	js/pages/tools/redirects.tsx	frame:p-4
-R7	js/pages/tools/redirects.tsx	frame:p-6
-R7	js/pages/tools/redirects.tsx	root:div
-R7	js/pages/tools/redirects.tsx	root:ImportRedirects
-R7	js/pages/tools/redirects.tsx	root:ImportReportDialog
-R7	js/pages/tools/redirects.tsx	root:RedirectForm
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
 R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
@@ -970,9 +936,6 @@ R8	js/components/media/media-modal.tsx	overflow-y-auto
 R8	js/components/personalise-menu-dialog.tsx	overflow-y-auto
 R8	js/components/term-tree-picker.tsx	overflow-y-auto
 R8	js/components/tools/ai-activity-details.tsx	overflow-y-auto
-R8	js/components/tools/import-redirects.tsx	overflow-x-auto
-R8	js/components/tools/import-redirects.tsx	overflow-y-auto
-R8	js/components/tools/redirect-form.tsx	overflow-y-auto
 R8	js/components/ui/popover.tsx	overflow-y-auto
 R8	js/components/ui/sidebar.tsx	overflow-auto
 R8	js/layouts/settings/layout.tsx	overflow-x-auto
@@ -997,4 +960,3 @@ R9	js/pages/settings/search-and-social.tsx	role="note"
 R9	js/pages/settings/site-code.tsx	role="note"
 R9	js/pages/settings/site-code.tsx	role="note"
 R9	js/pages/tools/ai-activity.tsx	role="note"
-R9	js/pages/tools/redirects.tsx	role="note"

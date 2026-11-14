@@ -41,6 +41,8 @@ dataset('tool frames', [
     'Backups' => ['/admin/tools/backups', 'Backups'],
     'Page cache' => ['/admin/tools/page-cache', 'Page cache'],
     'Updates' => ['/admin/tools/updates', 'Updates'],
+    'Redirects' => ['/admin/tools/redirects', 'Redirects'],
+    '404 log' => ['/admin/tools/redirects/404', 'Redirects'],
 ]);
 
 it('draws :dataset on one page pattern, one heading, nothing sideways and no small target at 375 pixels', function (string $url, string $title): void {

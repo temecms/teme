@@ -98,7 +98,7 @@ it('offers Change log settings as the 404 log’s header button', function (): v
     $source = ($this->flat)('pages/tools/not-found.tsx');
 
     expect(($this->at)($source, 'Change log settings'))
-        ->toBeGreaterThan(($this->at)($source, '<RedirectsHead'))
+        ->toBeGreaterThan(($this->at)($source, '<ListPage'))
         ->toBeLessThan(($this->at)($source, 'One row per address.'))
         ->and($source)->not->toContain('Change the log’s size');
 });
