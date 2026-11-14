@@ -70,6 +70,7 @@ it('changes Films while they have items, each control that can’t change saying
 
     $page->type('#type-plural', 'Movies')->click('[data-test="type-save"]');
     ($this->seen)($page, 'Saved Movies.');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === true');
 
     expect(app(ContentTypeRegistry::class)->get('film')->public)->toBeTrue()
         ->and(app(ContentTypeRegistry::class)->get('film')->plural)->toBe('Movies');

@@ -152,8 +152,14 @@ function savedState(saved: TypePage['type']): TypeFormState {
     };
 }
 
-// What the form holds, in one shape for the saved type and for the state.
-const snapshot = (value: TypeFormState): string => JSON.stringify(value);
+// What the form holds, in one shape for the saved type and for the state; the
+// ticked lists sorted, so unticking and ticking again leaves the form clean.
+const snapshot = (value: TypeFormState): string =>
+    JSON.stringify({
+        ...value,
+        taxonomies: [...value.taxonomies].sort(),
+        supports: [...value.supports].sort(),
+    });
 
 function TypeForm({
     page,
@@ -218,6 +224,7 @@ function TypeForm({
                     {...(creating
                         ? TypesController.store.form()
                         : TypesController.update.form(saved.key))}
+                    setDefaultsOnSuccess
                     className="grid gap-4"
                 >
                     {({ processing, errors, isDirty }) => (

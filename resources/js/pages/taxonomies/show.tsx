@@ -155,8 +155,10 @@ function savedState(saved: TaxonomyPage['taxonomy']): TaxonomyFormState {
     };
 }
 
-// What the form holds, in one shape for the saved taxonomy and for the state.
-const snapshot = (value: TaxonomyFormState): string => JSON.stringify(value);
+// What the form holds, in one shape for the saved taxonomy and for the state;
+// the ticked types sorted, so unticking and ticking again leaves the form clean.
+const snapshot = (value: TaxonomyFormState): string =>
+    JSON.stringify({ ...value, types: [...value.types].sort() });
 
 function TaxonomyForm({
     page,
@@ -214,6 +216,7 @@ function TaxonomyForm({
                     {...(creating
                         ? TaxonomiesController.store.form()
                         : TaxonomiesController.update.form(saved.key))}
+                    setDefaultsOnSuccess
                     className="grid gap-4"
                 >
                     {({ processing, errors, isDirty }) => (
