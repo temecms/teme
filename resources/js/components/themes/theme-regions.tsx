@@ -50,47 +50,47 @@ export function ThemeRegions({
             <div className="grid gap-1">
                 <Heading
                     id={`${idPrefix}-heading`}
-                    className="text-[15px] font-semibold"
+                    className="text-lead font-semibold"
                 >
                     {theme === null ? 'Regions' : `Regions in ${theme.name}`}
                 </Heading>
                 {intro !== undefined && (
-                    <p className="text-ink-2 text-[13px]">{intro}</p>
+                    <p className="text-ink-2 text-small">{intro}</p>
                 )}
             </div>
 
             {theme === null ? (
-                <p className="text-ink-2 text-[13px]">
+                <p className="text-ink-2 text-small">
                     No theme is in use, so no region is drawn.
                 </p>
             ) : (
                 <div className="grid gap-2">
                     <div className="grid gap-1">
-                        <Part className="text-[13px] font-semibold">
+                        <Part className="text-small font-semibold">
                             {count === 1 ? '1 region' : `${count} regions`}
                         </Part>
-                        <p className="text-ink-2 text-[13px]">
+                        <p className="text-ink-2 text-small">
                             The places {theme.name} puts the site’s own content,
                             such as a box after each article.
                         </p>
                     </div>
                     {count === 0 ? (
-                        <p className="text-ink-2 text-[13px]">
+                        <p className="text-ink-2 text-small">
                             {theme.name} declares no regions.
                         </p>
                     ) : (
-                        <ul className="border-line divide-line divide-y rounded border text-[13px]">
+                        <ul className="border-line divide-line text-small divide-y rounded-md border">
                             {regions.regions.map((region) => (
                                 <li
                                     key={region.key}
                                     data-test="theme-region"
                                     className="flex flex-wrap items-center gap-3 px-3 py-2"
                                 >
-                                    <div className="grid min-w-0 flex-1 gap-0.5">
+                                    <div className="grid min-w-0 flex-1 gap-1">
                                         <span className="font-semibold">
                                             {region.label}
                                         </span>
-                                        <span className="text-ink-2 text-xs">
+                                        <span className="text-ink-2 text-caption">
                                             {region.cardLabels.length === 0
                                                 ? 'Text only'
                                                 : region.cardLabels.join(
@@ -110,7 +110,7 @@ export function ThemeRegions({
                                     </span>
                                     {canEdit && (
                                         <Button
-                                            variant="outline"
+                                            variant="neutral"
                                             size="sm"
                                             asChild
                                         >
@@ -139,7 +139,7 @@ export function ThemeRegions({
 
             <div className="grid gap-2" data-test={`${idPrefix}-unplaced`}>
                 <div className="grid gap-1">
-                    <Part className="text-[13px] font-semibold">
+                    <Part className="text-small font-semibold">
                         From other themes
                         {regions.others.length > 0 && (
                             <span className="text-ink-2 tabular-nums">
@@ -148,19 +148,19 @@ export function ThemeRegions({
                             </span>
                         )}
                     </Part>
-                    <p className="text-ink-2 text-[13px]">{unplacedLine}</p>
+                    <p className="text-ink-2 text-small">{unplacedLine}</p>
                 </div>
                 {regions.others.length === 0 ? (
-                    <p className="text-ink-2 text-[13px]">
+                    <p className="text-ink-2 text-small">
                         Nothing from other themes.
                     </p>
                 ) : (
-                    <ul className="border-line divide-line divide-y rounded border text-[13px]">
+                    <ul className="border-line divide-line text-small divide-y rounded-md border">
                         {regions.others.map((row) => (
                             <li
                                 key={row.slug}
                                 data-test="theme-unplaced-row"
-                                className="grid gap-0.5 px-3 py-2"
+                                className="grid gap-1 px-3 py-2"
                             >
                                 <span className="font-semibold">
                                     {row.label}

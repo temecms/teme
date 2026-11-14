@@ -656,18 +656,6 @@ R2	js/components/term-picker.tsx	text-xs
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-xs
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[13px]
-R2	js/components/themes/theme-regions.tsx	text-[15px]
-R2	js/components/themes/theme-regions.tsx	text-xs
 R2	js/components/tools/ai-activity-details.tsx	text-[12px]
 R2	js/components/tools/ai-activity-details.tsx	text-[12px]
 R2	js/components/tools/ai-activity-details.tsx	text-[12px]
@@ -757,10 +745,6 @@ R2	js/pages/plugins/index.tsx	text-[13px]
 R2	js/pages/plugins/index.tsx	text-[13px]
 R2	js/pages/plugins/index.tsx	text-xs
 R2	js/pages/plugins/index.tsx	text-xs
-R2	js/pages/regions/index.tsx	text-[11px]
-R2	js/pages/regions/index.tsx	text-[13px]
-R2	js/pages/regions/index.tsx	text-[15px]
-R2	js/pages/regions/index.tsx	text-xs
 R2	js/pages/settings/addresses.tsx	text-[13px]
 R2	js/pages/settings/addresses.tsx	text-[13px]
 R2	js/pages/settings/addresses.tsx	text-[13px]
@@ -1023,8 +1007,6 @@ R3	js/pages/content/index.tsx	py-0.5
 R3	js/pages/dashboard.tsx	mt-0.5
 R3	js/pages/plugins/index.tsx	gap-1.5
 R3	js/pages/plugins/index.tsx	px-0.5
-R3	js/pages/regions/index.tsx	px-1.5
-R3	js/pages/regions/index.tsx	py-0.5
 R3	js/pages/settings/ai.tsx	mt-0.5
 R3	js/pages/settings/ai.tsx	mt-0.5
 R3	js/pages/settings/discussion.tsx	mt-0.5
@@ -1174,8 +1156,6 @@ R6	js/components/media/page-drop.tsx	z-40
 R6	js/components/plugins/consent-dialog.tsx	leading-4
 R6	js/components/term-picker.tsx	rounded
 R6	js/components/term-picker.tsx	rounded
-R6	js/components/themes/theme-regions.tsx	rounded
-R6	js/components/themes/theme-regions.tsx	rounded
 R6	js/components/tools/redirect-form.tsx	rounded
 R6	js/components/tools/update-progress.tsx	rounded
 R6	js/components/two-factor-recovery-codes.tsx	rounded
@@ -1184,7 +1164,6 @@ R6	js/components/two-factor-setup-modal.tsx	z-20
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
 R6	js/pages/content/index.tsx	rounded
-R6	js/pages/regions/index.tsx	rounded
 R6	js/pages/tools/updates.tsx	rounded
 R7	js/pages/account/notifications.tsx	root:div
 R7	js/pages/account/preferences.tsx	root:div
@@ -1231,8 +1210,6 @@ R7	js/pages/plugins/index.tsx	frame:p-6
 R7	js/pages/plugins/index.tsx	root:ConsentDialog
 R7	js/pages/plugins/index.tsx	root:DetailsDialog
 R7	js/pages/plugins/index.tsx	root:div
-R7	js/pages/regions/index.tsx	frame:p-6
-R7	js/pages/regions/index.tsx	root:div
 R7	js/pages/settings/addresses.tsx	frame:max-w-[960px]
 R7	js/pages/settings/addresses.tsx	root:div
 R7	js/pages/settings/ai.tsx	frame:max-w-[960px]

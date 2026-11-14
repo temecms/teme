@@ -3,8 +3,10 @@ import RegionsController from '@/actions/App/Http/Admin/RegionsController';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
+import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
+import { TermChips } from '@/components/ui/term-chips';
+import { __ } from '@/lib/i18n';
 import { edit as editContent } from '@/routes/content';
 import type {
     OtherRegionRow,
@@ -56,19 +58,18 @@ export default function RegionsIndex({
                     {row.cardLabels.length === 0 ? (
                         <span className="text-ink-2">Text only</span>
                     ) : (
-                        <span className="flex flex-wrap gap-1">
-                            {row.cardLabels.map((label) => (
-                                <span
-                                    key={label}
-                                    data-test="region-card"
-                                    className="bg-surface-2 rounded px-1.5 py-0.5 text-[11px] font-medium"
-                                >
-                                    {label}
-                                </span>
-                            ))}
-                        </span>
+                        <div data-test="region-cards" className="min-w-0">
+                            <TermChips
+                                terms={row.cardLabels.map((label) => ({
+                                    id: label,
+                                    name: label,
+                                }))}
+                                noun={{ one: __('card'), many: __('cards') }}
+                                emptyLabel={__('No cards')}
+                            />
+                        </div>
                     )}
-                    <span className="text-ink-2 text-xs">{row.limit}</span>
+                    <span className="text-ink-2 text-small">{row.limit}</span>
                 </div>
             ),
         },
@@ -99,7 +100,7 @@ export default function RegionsIndex({
             className: 'w-px text-right',
             cell: (row) =>
                 row.contentId !== null ? (
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="neutral" size="sm" asChild>
                         <Link href={editContent(row.contentId).url}>
                             Edit
                             <span className="sr-only"> {row.label}</span>
@@ -121,7 +122,7 @@ export default function RegionsIndex({
                                         value={row.key}
                                     />
                                     <Button
-                                        variant="outline"
+                                        variant="neutral"
                                         size="sm"
                                         disabled={processing}
                                     >
@@ -174,19 +175,17 @@ export default function RegionsIndex({
     ];
 
     return (
-        <>
+        <ListPage
+            title="Regions"
+            description={
+                theme === null
+                    ? 'Your own content in the spots the active theme sets aside, such as a box after each article.'
+                    : `Your own content in the spots the active theme, ${theme.name}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.`
+            }
+        >
             <Head title="Regions" />
 
-            <div className="space-y-6 p-6">
-                <PageHeader
-                    title="Regions"
-                    description={
-                        theme === null
-                            ? 'Your own content in the spots the active theme sets aside, such as a box after each article.'
-                            : `Your own content in the spots the active theme, ${theme.name}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.`
-                    }
-                />
-
+            <div className="grid gap-6">
                 <DataTable
                     columns={columns}
                     rows={regions}
@@ -220,14 +219,14 @@ export default function RegionsIndex({
                         <div className="grid gap-1">
                             <h2
                                 id="unplaced-heading"
-                                className="text-[15px] font-semibold"
+                                className="text-lead font-semibold"
                             >
                                 From other themes{' '}
                                 <span className="text-ink-2 tabular-nums">
                                     {others.length}
                                 </span>
                             </h2>
-                            <p className="text-ink-2 text-[13px]">
+                            <p className="text-ink-2 text-body">
                                 {
                                     'Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.'
                                 }
@@ -242,6 +241,6 @@ export default function RegionsIndex({
                     </section>
                 )}
             </div>
-        </>
+        </ListPage>
     );
 }
