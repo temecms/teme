@@ -84,11 +84,6 @@ R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/tools/ai-activity-details.tsx	grid-cols-[8rem_1fr]
 R1	js/components/tools/ai-activity-details.tsx	sm:max-w-[480px]
 R1	js/components/tools/redirect-form.tsx	sm:max-w-[560px]
-R1	js/components/types/field-sheet.tsx	grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem]
-R1	js/components/types/field-sheet.tsx	grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem]
-R1	js/components/types/field-sheet.tsx	sm:max-w-[480px]
-R1	js/components/types/icon-picker.tsx	grid-cols-[repeat(auto-fill,minmax(44px,1fr))]
-R1	js/components/types/icon-picker.tsx	max-h-[50vh]
 R1	js/components/ui/sidebar.tsx	after:w-[2px]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]
@@ -126,7 +121,6 @@ R1	js/pages/tools/import/show.tsx	max-w-[640px]
 R1	js/pages/tools/page-cache.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
-R1	js/pages/types/fields.tsx	max-w-[1004px]
 R10	js/components/app-content.tsx	outline-none
 R10	js/components/editor/editor-shell.tsx	outline-none
 R10	js/components/editor/rail/search-panel.tsx	outline-none
@@ -717,20 +711,6 @@ R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-xs
 R2	js/components/two-factor-recovery-codes.tsx	text-sm
 R2	js/components/two-factor-recovery-codes.tsx	text-xs
-R2	js/components/types/field-sheet.tsx	text-[13px]
-R2	js/components/types/field-sheet.tsx	text-[13px]
-R2	js/components/types/field-sheet.tsx	text-[13px]
-R2	js/components/types/field-sheet.tsx	text-[13px]
-R2	js/components/types/field-sheet.tsx	text-sm
-R2	js/components/types/field-sheet.tsx	text-sm
-R2	js/components/types/field-sheet.tsx	text-sm
-R2	js/components/types/field-sheet.tsx	text-sm
-R2	js/components/types/field-sheet.tsx	text-sm
-R2	js/components/types/field-sheet.tsx	text-xs
-R2	js/components/types/field-sheet.tsx	text-xs
-R2	js/components/types/field-sheet.tsx	text-xs
-R2	js/components/types/field-sheet.tsx	text-xs
-R2	js/components/types/icon-picker.tsx	text-sm
 R2	js/components/user-info.tsx	text-sm
 R2	js/components/user-info.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
@@ -928,25 +908,6 @@ R2	js/pages/tools/redirects.tsx	text-sm
 R2	js/pages/tools/updates.tsx	text-[13px]
 R2	js/pages/tools/updates.tsx	text-[13px]
 R2	js/pages/tools/updates.tsx	text-base
-R2	js/pages/types/fields.tsx	text-[13px]
-R2	js/pages/types/fields.tsx	text-[13px]
-R2	js/pages/types/fields.tsx	text-[13px]
-R2	js/pages/types/fields.tsx	text-[13px]
-R2	js/pages/types/fields.tsx	text-sm
-R2	js/pages/types/fields.tsx	text-sm
-R2	js/pages/types/fields.tsx	text-sm
-R2	js/pages/types/fields.tsx	text-sm
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/fields.tsx	text-xs
 R2	js/pages/users/index.tsx	text-sm
 R2	js/pages/users/index.tsx	text-xs
 R2	js/pages/users/index.tsx	text-xs
@@ -1078,20 +1039,6 @@ R3	js/components/tools/update-progress.tsx	mt-0.5
 R3	js/components/tools/update-progress.tsx	py-0.5
 R3	js/components/two-factor-setup-modal.tsx	p-0.5
 R3	js/components/two-factor-setup-modal.tsx	p-2.5
-R3	js/components/types/field-sheet.tsx	gap-1.5
-R3	js/components/types/field-sheet.tsx	gap-1.5
-R3	js/components/types/field-sheet.tsx	gap-1.5
-R3	js/components/types/field-sheet.tsx	gap-1.5
-R3	js/components/types/field-sheet.tsx	gap-1.5
-R3	js/components/types/field-sheet.tsx	gap-1.5
-R3	js/components/types/field-sheet.tsx	gap-2.5
-R3	js/components/types/field-sheet.tsx	gap-2.5
-R3	js/components/types/field-sheet.tsx	gap-2.5
-R3	js/components/types/field-sheet.tsx	mt-0.5
-R3	js/components/types/field-sheet.tsx	mt-0.5
-R3	js/components/types/field-sheet.tsx	mt-0.5
-R3	js/components/types/field-sheet.tsx	p-2.5
-R3	js/components/types/field-sheet.tsx	px-2.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=default]/menu-button:top-1.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=lg]/menu-button:top-2.5
 R3	js/components/ui/sidebar.tsx	top-1.5
@@ -1206,9 +1153,6 @@ R5	js/components/tools/redirect-form.tsx	<input type="radio">
 R5	js/components/tools/redirect-form.tsx	<select>
 R5	js/components/two-factor-setup-modal.tsx	<button>
 R5	js/components/two-factor-setup-modal.tsx	<input type="text">
-R5	js/components/types/field-sheet.tsx	<input type="radio">
-R5	js/components/types/field-sheet.tsx	<input type="radio">
-R5	js/components/types/field-sheet.tsx	<textarea>
 R5	js/pages/account/profile.tsx	<textarea>
 R5	js/pages/auth/set-up.tsx	<select>
 R5	js/pages/comments/index.tsx	<button type="button">
@@ -1228,11 +1172,6 @@ R5	js/pages/taxonomies/show.tsx	<input type="radio">
 R5	js/pages/terms/index.tsx	<textarea>
 R5	js/pages/tools/backups/sftp.tsx	<textarea>
 R5	js/pages/tools/updates.tsx	<details>
-R5	js/pages/types/fields.tsx	<button type="button">
-R5	js/pages/types/fields.tsx	<button type="button">
-R5	js/pages/types/fields.tsx	<button type="button">
-R5	js/pages/types/fields.tsx	<button type="button">
-R5	js/pages/types/fields.tsx	<button type="submit">
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
@@ -1408,10 +1347,6 @@ R7	js/pages/tools/redirects.tsx	root:RedirectForm
 R7	js/pages/tools/updates.tsx	frame:max-w-3xl
 R7	js/pages/tools/updates.tsx	frame:p-6
 R7	js/pages/tools/updates.tsx	root:div
-R7	js/pages/types/fields.tsx	frame:max-w-[1004px]
-R7	js/pages/types/fields.tsx	frame:p-6
-R7	js/pages/types/fields.tsx	root:div
-R7	js/pages/types/fields.tsx	root:RemoveDialog
 R7	js/pages/users/index.tsx	frame:p-6
 R7	js/pages/users/index.tsx	root:DeleteDialog
 R7	js/pages/users/index.tsx	root:div
@@ -1446,8 +1381,6 @@ R8	js/components/tools/ai-activity-details.tsx	overflow-y-auto
 R8	js/components/tools/import-redirects.tsx	overflow-x-auto
 R8	js/components/tools/import-redirects.tsx	overflow-y-auto
 R8	js/components/tools/redirect-form.tsx	overflow-y-auto
-R8	js/components/types/field-sheet.tsx	overflow-y-auto
-R8	js/components/types/icon-picker.tsx	overflow-y-auto
 R8	js/components/ui/popover.tsx	overflow-y-auto
 R8	js/components/ui/sidebar.tsx	overflow-auto
 R8	js/layouts/settings/layout.tsx	overflow-x-auto

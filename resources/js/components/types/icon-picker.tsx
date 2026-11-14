@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -9,7 +10,14 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { lucideIcons, squashedName } from '@/lib/lucide-icons';
+
+/** Half the window tall at most, as many 44-wide buttons across as fit. */
+const ICON_GRID = {
+    '--icons-h': '50vh',
+    '--icons-cols': 'repeat(auto-fill, minmax(44px, 1fr))',
+} as CSSProperties;
 
 /**
  * Every Lucide icon, by name, for a type's menu icon. Loaded the first time
@@ -68,28 +76,30 @@ export default function IconPicker({
                     />
                 </div>
 
-                <p aria-live="polite" className="text-ink-2 text-sm">
+                <p aria-live="polite" className="text-small text-ink-2">
                     {countLine(matches.length, search.trim())}
                 </p>
 
-                <div className="grid max-h-[50vh] grid-cols-[repeat(auto-fill,minmax(44px,1fr))] gap-1 overflow-y-auto">
-                    {shown.map(({ name, Icon }) => (
-                        <Button
-                            key={name}
-                            type="button"
-                            variant="outline"
-                            aria-label={name}
-                            aria-pressed={squashedName(name) === chosen}
-                            className="size-11 p-0"
-                            onClick={() => {
-                                onChoose(name);
-                                onOpenChange(false);
-                            }}
-                        >
-                            <Icon className="size-6" />
-                        </Button>
-                    ))}
-                </div>
+                <ScrollArea className="max-h-(--icons-h)" style={ICON_GRID}>
+                    <div className="grid grid-cols-(--icons-cols) gap-1">
+                        {shown.map(({ name, Icon }) => (
+                            <Button
+                                key={name}
+                                type="button"
+                                variant="neutral"
+                                aria-label={name}
+                                aria-pressed={squashedName(name) === chosen}
+                                className="size-11 p-0"
+                                onClick={() => {
+                                    onChoose(name);
+                                    onOpenChange(false);
+                                }}
+                            >
+                                <Icon className="size-6" />
+                            </Button>
+                        ))}
+                    </div>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     );

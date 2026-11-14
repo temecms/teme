@@ -189,7 +189,7 @@ it('turns a date field date only while no movie holds a value, and not after', f
     $page->click('[data-test="field-row-release_date"] button:text-is("Edit")');
     cmWaitUntil($page, $this->settled);
 
-    expect($page->script('() => [document.querySelector("#field-ask-date").disabled, document.querySelector("#field-ask-datetime").disabled, document.querySelector("#field-ask-date").checked]'))->toBe([true, true, true]);
+    expect($page->script('() => [document.querySelector("#field-ask-date").disabled, document.querySelector("#field-ask-datetime").disabled, document.querySelector("#field-ask-date").getAttribute("aria-checked") === "true"]'))->toBe([true, true, true]);
 });
 
 it('passes axe on the Fields page, the add sheet and the edit sheet', function (string $scheme): void {
