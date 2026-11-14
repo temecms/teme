@@ -1,6 +1,6 @@
 name: Feature request
 description: Something Teme should do that it doesn't yet.
-labels: ["enhancement"]
+labels: ["type/enhancement"]
 body:
   - type: markdown
     attributes:
