@@ -84,7 +84,6 @@ R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/tools/ai-activity-details.tsx	grid-cols-[8rem_1fr]
 R1	js/components/tools/ai-activity-details.tsx	sm:max-w-[480px]
 R1	js/components/tools/redirect-form.tsx	sm:max-w-[560px]
-R1	js/components/types/builder-parts.tsx	sm:grid-cols-[180px_1fr]
 R1	js/components/types/field-sheet.tsx	grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem]
 R1	js/components/types/field-sheet.tsx	grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem]
 R1	js/components/types/field-sheet.tsx	sm:max-w-[480px]
@@ -128,7 +127,6 @@ R1	js/pages/tools/page-cache.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/types/fields.tsx	max-w-[1004px]
-R1	js/pages/types/show.tsx	max-w-[768px]
 R10	js/components/app-content.tsx	outline-none
 R10	js/components/editor/editor-shell.tsx	outline-none
 R10	js/components/editor/rail/search-panel.tsx	outline-none
@@ -719,10 +717,6 @@ R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-xs
 R2	js/components/two-factor-recovery-codes.tsx	text-sm
 R2	js/components/two-factor-recovery-codes.tsx	text-xs
-R2	js/components/types/builder-parts.tsx	text-sm
-R2	js/components/types/builder-parts.tsx	text-sm
-R2	js/components/types/builder-parts.tsx	text-sm
-R2	js/components/types/builder-parts.tsx	text-sm
 R2	js/components/types/field-sheet.tsx	text-[13px]
 R2	js/components/types/field-sheet.tsx	text-[13px]
 R2	js/components/types/field-sheet.tsx	text-[13px]
@@ -953,20 +947,6 @@ R2	js/pages/types/fields.tsx	text-xs
 R2	js/pages/types/fields.tsx	text-xs
 R2	js/pages/types/fields.tsx	text-xs
 R2	js/pages/types/fields.tsx	text-xs
-R2	js/pages/types/index.tsx	text-sm
-R2	js/pages/types/index.tsx	text-xs
-R2	js/pages/types/index.tsx	text-xs
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-sm
-R2	js/pages/types/show.tsx	text-xs
 R2	js/pages/users/index.tsx	text-sm
 R2	js/pages/users/index.tsx	text-xs
 R2	js/pages/users/index.tsx	text-xs
@@ -1098,7 +1078,6 @@ R3	js/components/tools/update-progress.tsx	mt-0.5
 R3	js/components/tools/update-progress.tsx	py-0.5
 R3	js/components/two-factor-setup-modal.tsx	p-0.5
 R3	js/components/two-factor-setup-modal.tsx	p-2.5
-R3	js/components/types/builder-parts.tsx	mt-0.5
 R3	js/components/types/field-sheet.tsx	gap-1.5
 R3	js/components/types/field-sheet.tsx	gap-1.5
 R3	js/components/types/field-sheet.tsx	gap-1.5
@@ -1158,7 +1137,6 @@ R3	js/pages/tools/updates.tsx	mt-0.5
 R3	js/pages/tools/updates.tsx	py-0.5
 R3	js/pages/tools/updates.tsx	space-y-0.5
 R3	js/pages/tools/updates.tsx	space-y-0.5
-R3	js/pages/types/index.tsx	mt-0.5
 R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/backups/place-fields.tsx	<input type="radio">
 R5	js/components/backups/place-fields.tsx	<textarea>
@@ -1258,8 +1236,6 @@ R5	js/pages/types/fields.tsx	<button type="submit">
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
-R5	js/pages/types/show.tsx	<input type="radio">
-R5	js/pages/types/show.tsx	<input type="radio">
 R5	js/pages/types/show.tsx	<table>
 R6	js/components/account-menu.tsx	z-50
 R6	js/components/app-shell.tsx	z-50
@@ -1436,11 +1412,6 @@ R7	js/pages/types/fields.tsx	frame:max-w-[1004px]
 R7	js/pages/types/fields.tsx	frame:p-6
 R7	js/pages/types/fields.tsx	root:div
 R7	js/pages/types/fields.tsx	root:RemoveDialog
-R7	js/pages/types/index.tsx	frame:p-6
-R7	js/pages/types/index.tsx	root:div
-R7	js/pages/types/show.tsx	frame:max-w-[768px]
-R7	js/pages/types/show.tsx	frame:p-6
-R7	js/pages/types/show.tsx	root:div
 R7	js/pages/users/index.tsx	frame:p-6
 R7	js/pages/users/index.tsx	root:DeleteDialog
 R7	js/pages/users/index.tsx	root:div
@@ -1484,7 +1455,6 @@ R8	js/pages/content/index.tsx	overflow-x-auto
 R8	js/pages/content/index.tsx	overflow-y-auto
 R8	js/pages/settings/site-code.tsx	overflow-x-auto
 R8	js/pages/settings/site-code.tsx	overflow-y-auto
-R8	js/pages/types/show.tsx	overflow-x-auto
 R9	js/components/editor/cards/image-card.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/editor-rail.tsx	classes: bg-warn-soft px-2 py-1.5
 R9	js/components/editor/fields/media-control.tsx	classes: bg-warn-soft px-1.5 py-0.5

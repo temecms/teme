@@ -90,7 +90,7 @@ it('gives Films their own permissions from the Permissions panel, and shows who 
 
     expect($page->script('() => document.querySelectorAll(\'[data-test="type-permissions-table"] tbody tr\').length'))->toBe(6)
         ->and($page->script('() => document.querySelector(\'[data-test="type-permissions-table"] tbody tr:nth-child(4) code\').textContent'))->toBe('film.publish')
-        ->and($page->script('() => document.querySelector("#type-permissions-own").checked'))->toBeTrue()
+        ->and($page->script('() => document.querySelector("#type-permissions-own").getAttribute("aria-checked") === "true"'))->toBeTrue()
         ->and(app(ContentTypeRegistry::class)->get('film')->ability('publish'))->toBe('film.publish');
 });
 
@@ -195,7 +195,8 @@ it('saves a type that isn’t public, has items and was saved as searchable, its
     $page = cmSignIn($this->admin)->navigate('/admin/types/note');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="type-save"]\') !== null');
 
-    $page->click('[data-test="type-save"]');
+    // The save bar shows once something changes.
+    $page->type('#type-singular', 'Memo')->click('[data-test="type-save"]');
     ($this->seen)($page, 'Saved Notes.');
 
     app(ContentTypeRegistry::class)->refreshStored();
@@ -228,4 +229,60 @@ it('preloads at most 48 files on the media screen, the whole icon set staying on
     $preloaded = $page->script('() => [...document.querySelectorAll(\'link[rel="modulepreload"]\')].map((link) => link.href)');
 
     expect(collect($preloaded)->filter(fn (string $href): bool => str_ends_with($href, $iconSet)))->toBeEmpty();
+});
+
+it('moves between Films\' sections from the row of tabs without leaving the page, and keeps what was typed', function (): void {
+    tbSite($this->admin);
+
+    // A view shorter than the form, so the page can scroll Permissions, near its foot, to the top.
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 700), '/admin/types/film');
+    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this type"]\') !== null');
+
+    $page->append('#type-plural', ' (new)');
+    $page->click('nav[aria-label="Sections of this type"] a[href="#type-section-permissions"]');
+
+    // The view: the nearest box that scrolls the section, else the window.
+    cmWaitUntil($page, <<<'JS'
+        (() => {
+            const section = document.querySelector("#type-section-permissions");
+            let view = section.parentElement;
+
+            while (view !== null && !(['auto', 'scroll'].includes(getComputedStyle(view).overflowY) && view.scrollHeight > view.clientHeight)) {
+                view = view.parentElement;
+            }
+
+            const top = view === null ? 0 : Math.max(0, view.getBoundingClientRect().top);
+
+            return Math.abs(section.getBoundingClientRect().top - top) <= 80;
+        })()
+        JS);
+
+    expect($page->script('() => document.querySelector(\'nav[aria-label="Sections of this type"] a[href="#type-section-permissions"]\').getAttribute("aria-current")'))->toBe('location')
+        ->and($page->script('() => location.pathname'))->toBe('/admin/types/film')
+        ->and($page->script('() => document.querySelector(\'[data-test="leave-guard"]\') === null'))->toBeTrue()
+        ->and($page->script('() => document.querySelector("#type-plural").value.endsWith(" (new)")'))->toBeTrue()
+        ->and($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeFalse();
+});
+
+it('shows the save bar when only the icon changes, and Discard puts the icon back', function (): void {
+    tbSite($this->admin);
+    $savedIcon = app(ContentTypeRegistry::class)->get('film')->icon;
+
+    $page = cmSignIn($this->admin)->navigate('/admin/types/film');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="type-icon-change"]\') !== null');
+
+    $page->click('[data-test="type-icon-change"]');
+    cmWaitUntil($page, $this->dialogSettled.' && document.querySelector(\'[role="dialog"] #icon-search\') !== null');
+
+    $page->type('#icon-search', 'clapper');
+    cmWaitUntil($page, 'document.querySelector(\'[role="dialog"] button[aria-label="clapperboard"] svg path\') !== null');
+    $page->click('[role="dialog"] button[aria-label="clapperboard"]');
+    cmWaitUntil($page, 'document.querySelector(\'[role="dialog"]\') === null && document.querySelector(\'input[name="icon"]\').value === "clapperboard"');
+
+    expect($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeFalse();
+
+    $page->click('[data-test="save-bar-discard"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === true');
+
+    expect($page->script('() => document.querySelector(\'input[name="icon"]\').value'))->toBe($savedIcon);
 });

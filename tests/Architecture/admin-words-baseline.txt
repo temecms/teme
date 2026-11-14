@@ -2381,7 +2381,6 @@ pages/types/show.tsx	/{segment}/{slug}/
 pages/types/show.tsx	/{}/{slug}/
 pages/types/show.tsx	1 field of your own:
 pages/types/show.tsx	Add fields once the type is saved.
-pages/types/show.tsx	Add type
 pages/types/show.tsx	Admin address
 pages/types/show.tsx	Admin address
 pages/types/show.tsx	Archive page
@@ -2446,7 +2445,6 @@ pages/types/show.tsx	Public address
 pages/types/show.tsx	Public address
 pages/types/show.tsx	Public addresses
 pages/types/show.tsx	Roles can’t be changed yet: this shows what each role may do. To change what someone can do, give them another role on People.
-pages/types/show.tsx	Save type
 pages/types/show.tsx	Settings › Addresses
 pages/types/show.tsx	Shown in site search
 pages/types/show.tsx	Singular name
