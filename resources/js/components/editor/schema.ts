@@ -15,6 +15,7 @@ import { Typography } from '@tiptap/extension-typography';
 import { Placeholder } from '@tiptap/extensions';
 import { StarterKit } from '@tiptap/starter-kit';
 import type { CardManifestEntry } from '@/types';
+import { __ } from '@/lib/i18n';
 import { blockIds } from './block-ids';
 import { cardExtension } from './cards/card-extension';
 import { linkTarget, normaliseHref } from './link-address';
@@ -112,7 +113,9 @@ export function temeExtensions(
                   closeSingleQuote: false,
               }),
         TemeLink,
-        Placeholder.configure({ placeholder: 'Write something…' }),
+        Placeholder.configure({
+            placeholder: () => __('Write, or type / for a block'),
+        }),
         ...cards.map(cardExtension),
     ];
 }

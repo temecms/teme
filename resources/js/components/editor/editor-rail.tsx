@@ -53,7 +53,7 @@ export type PublishingActions = {
     sendBack: (note: string) => void;
 };
 
-type RailContext = {
+export type RailContext = {
     pane: RailPane | null;
     openPane: (pane: RailPane) => void;
     closePane: (id?: string) => void;
@@ -62,12 +62,13 @@ type RailContext = {
 const Rail = createContext<RailContext | null>(null);
 
 /**
- * Holds the rail's one pane (I-234). A pane takes the rail's whole height for
- * a while: a card's settings, the assistant, History or Share, and later a
- * plugin's own (I-234). Opening one replaces any other; closing it brings the sections
- * back. There is no special case per kind of pane.
+ * The rail's one pane (I-234), as state the page holds. A pane takes the
+ * rail's whole height for a while: a card's settings, the assistant,
+ * History or Share, and later a plugin's own (I-234). Opening one replaces
+ * any other; closing it brings the sections back. There is no special case
+ * per kind of pane.
  */
-export function RailProvider({ children }: { children: ReactNode }) {
+export function useRailPanes(): RailContext {
     const [pane, setPane] = useState<RailPane | null>(null);
 
     const openPane = useCallback((next: RailPane) => setPane(next), []);
@@ -79,11 +80,20 @@ export function RailProvider({ children }: { children: ReactNode }) {
         [],
     );
 
-    const value = useMemo(
+    return useMemo(
         () => ({ pane, openPane, closePane }),
         [pane, openPane, closePane],
     );
+}
 
+/** Gives the page's rail state, from useRailPanes(), to everything under it. */
+export function RailScope({
+    value,
+    children,
+}: {
+    value: RailContext;
+    children: ReactNode;
+}) {
     return <Rail.Provider value={value}>{children}</Rail.Provider>;
 }
 

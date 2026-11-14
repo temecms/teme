@@ -1,6 +1,7 @@
 import { Head, http, usePage } from '@inertiajs/react';
 import type { Editor as TiptapEditor } from '@tiptap/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { flushSync } from 'react-dom';
 import { toast } from 'sonner';
 import ContentEditorController from '@/actions/App/Http/Admin/Contents/ContentEditorController';
@@ -13,11 +14,10 @@ import type { Answer, Route } from '@/components/editor/editor-http';
 import { EditorHeader } from '@/components/editor/editor-header';
 import {
     EditorRail,
-    RailProvider,
-    useRail,
+    RailScope,
+    useRailPanes,
 } from '@/components/editor/editor-rail';
 import type { PublishingActions } from '@/components/editor/editor-rail';
-import { EditorShell } from '@/components/editor/editor-shell';
 import { FeaturedImage } from '@/components/editor/featured-image';
 import { DetailsSection } from '@/components/editor/fields/details-section';
 import { FieldControlContext } from '@/components/editor/fields/field-control';
@@ -59,10 +59,13 @@ import { useSearchPreview } from '@/components/editor/use-search-preview';
 import { useStructuredData } from '@/components/editor/use-structured-data';
 import InputError from '@/components/input-error';
 import { PageHeader } from '@/components/list/page-header';
+import { EditorPage } from '@/components/patterns/editor-page';
 import type { PaletteCommand } from '@/components/palette/palette-context';
 import { usePaletteCommands } from '@/components/palette/use-palette';
 import { useSidebar } from '@/components/ui/sidebar';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { __ } from '@/lib/i18n';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
     index as contentIndex,
@@ -98,6 +101,9 @@ function textOf(value: unknown): string {
     return typeof value === 'string' ? value : '';
 }
 
+/** The title's and the excerpt's focus bar sits 14 pixels before their start (docs/architecture/design-system.md, 4.39). */
+const FOCUS_BAR = { '--focus-bar': '14px' } as CSSProperties;
+
 /** The one toast a failed autosave shows; a new failure replaces it. */
 const SAVE_NOTICE = 'editor-save-failure';
 
@@ -109,7 +115,12 @@ const PREVIEW_WORDS = {
         'The preview couldn’t open a new tab. Let this site open tabs, then try again.',
 };
 
-function Editor(page: ContentEditPage) {
+/**
+ * The editor screen (slice 1.5c): the writing column and the rail on the
+ * EditorPage pattern. It opens on the person's own unsaved work when there
+ * is some, the working revision otherwise.
+ */
+export default function ContentEdit(page: ContentEditPage) {
     const { session, fields } = page;
     const templateField = fieldBy(fields, 'template');
     const { props: shared, version: inertiaVersion } = usePage();
@@ -117,7 +128,8 @@ function Editor(page: ContentEditPage) {
     const spellcheck = preferences['editor.spellcheck'] !== false;
     const type = contentTypes.find((item) => item.key === session.type);
     const isMobile = useIsMobile();
-    const { pane, openPane, closePane } = useRail();
+    const rail = useRailPanes();
+    const { pane, openPane, closePane } = rail;
     // A theme's region (1.6e) opens in its own mode: no title, address,
     // fields or sharing, and menus offering only its allowed cards. Named
     // "theme region" here, apart from the editor's own regions (region-entry.ts).
@@ -1095,102 +1107,116 @@ function Editor(page: ContentEditPage) {
     const address = addressOf(page.siteUrl, addressPattern, slug);
 
     return (
-        <AssistantProvider
-            contentId={session.id}
-            editor={editor}
-            saving={assistantSaving}
-            ai={ai}
-            onOpen={openAssistant}
-        >
-            <CardEnvironmentContext value={environment}>
-                <EditorShell
-                    railTitle={
+        <>
+            <Head
+                title={
+                    themeRegion !== null
+                        ? __('Region: :label', { label: themeRegion.label })
+                        : __('Edit: :title', {
+                              title: shownTitle(session.title),
+                          })
+                }
+            />
+            <EditorPage
+                around={(frame) => (
+                    <RailScope value={rail}>
+                        <AssistantProvider
+                            contentId={session.id}
+                            editor={editor}
+                            saving={assistantSaving}
+                            ai={ai}
+                            onOpen={openAssistant}
+                        >
+                            <CardEnvironmentContext value={environment}>
+                                {frame}
+                            </CardEnvironmentContext>
+                        </AssistantProvider>
+                    </RailScope>
+                )}
+                focus={focus}
+                header={
+                    <EditorHeader
+                        backHref={
+                            themeRegion !== null
+                                ? regionsIndex().url
+                                : type
+                                  ? contentIndex({ type: type.segment }).url
+                                  : '/admin'
+                        }
+                        backLabel={
+                            themeRegion !== null
+                                ? 'Regions'
+                                : (type?.plural ?? 'Back')
+                        }
+                        statusChip={
+                            <StatusChip
+                                status={status}
+                                review={review}
+                                schedule={schedule}
+                                unpublishedChanges={unpublished}
+                                visibility={visibility}
+                            />
+                        }
+                        saveState={
+                            <SaveState
+                                state={saving.state}
+                                pending={saving.pending}
+                                savedAt={saving.savedAt}
+                                failure={saving.failure}
+                            />
+                        }
+                        presence={<PresenceLine people={saving.otherEditors} />}
+                        activePane={pane?.id ?? null}
+                        onTogglePane={(id) => {
+                            if (pane?.id === id) {
+                                closePane(id);
+                            } else if (id === 'history') {
+                                openHistory();
+                            } else if (id === 'assistant') {
+                                openAssistant();
+                            } else if (id === 'share') {
+                                openShare();
+                            } else if (id === 'overview' && editor !== null) {
+                                // Asked for by name, so the rail opens with it,
+                                // even where it is a sheet.
+                                setRailOpen(true);
+                                openPane({
+                                    id,
+                                    owner: 'core',
+                                    title: 'Document overview',
+                                    render: () => (
+                                        <DocumentOverview editor={editor} />
+                                    ),
+                                });
+                            }
+                        }}
+                        railOpen={railOpen}
+                        onToggleRail={() => setRailOpen((open) => !open)}
+                        focus={focus}
+                        onToggleFocus={() => setFocus((on) => !on)}
+                        assistant={ai !== null}
+                        // A preview shows a page, which a theme region never is.
+                        canShare={session.can.edit && themeRegion === null}
+                    />
+                }
+                rail={{
+                    title:
                         themeRegion !== null
-                            ? 'Region settings'
-                            : `${type?.singular ?? 'Item'} settings`
-                    }
-                    railNoun={themeRegion !== null ? 'region' : noun}
-                    railOpen={railOpen}
-                    onRailOpenChange={setRailOpen}
-                    onSheetCloseAutoFocus={(event) => {
+                            ? __('Region settings')
+                            : __(':type settings', {
+                                  type: type?.singular ?? __('Item'),
+                              }),
+                    noun: themeRegion !== null ? 'region' : noun,
+                    open: railOpen,
+                    onOpenChange: setRailOpen,
+                    onSheetCloseAutoFocus: (event) => {
                         if (searchAfterSheet.current) {
                             searchAfterSheet.current = false;
                             event.preventDefault();
                             showSearch();
                         }
-                    }}
-                    focus={focus}
-                    header={
-                        <EditorHeader
-                            backHref={
-                                themeRegion !== null
-                                    ? regionsIndex().url
-                                    : type
-                                      ? contentIndex({ type: type.segment }).url
-                                      : '/admin'
-                            }
-                            backLabel={
-                                themeRegion !== null
-                                    ? 'Regions'
-                                    : (type?.plural ?? 'Back')
-                            }
-                            statusChip={
-                                <StatusChip
-                                    status={status}
-                                    review={review}
-                                    schedule={schedule}
-                                    unpublishedChanges={unpublished}
-                                    visibility={visibility}
-                                />
-                            }
-                            saveState={
-                                <SaveState
-                                    state={saving.state}
-                                    pending={saving.pending}
-                                    savedAt={saving.savedAt}
-                                    failure={saving.failure}
-                                />
-                            }
-                            presence={
-                                <PresenceLine people={saving.otherEditors} />
-                            }
-                            activePane={pane?.id ?? null}
-                            onTogglePane={(id) => {
-                                if (pane?.id === id) {
-                                    closePane(id);
-                                } else if (id === 'history') {
-                                    openHistory();
-                                } else if (id === 'assistant') {
-                                    openAssistant();
-                                } else if (id === 'share') {
-                                    openShare();
-                                } else if (
-                                    id === 'overview' &&
-                                    editor !== null
-                                ) {
-                                    // Asked for by name, so the rail opens with it,
-                                    // even where it is a sheet.
-                                    setRailOpen(true);
-                                    openPane({
-                                        id,
-                                        owner: 'core',
-                                        title: 'Document overview',
-                                        render: () => (
-                                            <DocumentOverview editor={editor} />
-                                        ),
-                                    });
-                                }
-                            }}
-                            railOpen={railOpen}
-                            onToggleRail={() => setRailOpen((open) => !open)}
-                            focus={focus}
-                            onToggleFocus={() => setFocus((on) => !on)}
-                            assistant={ai !== null}
-                            // A preview shows a page, which a theme region never is.
-                            canShare={session.can.edit && themeRegion === null}
-                        />
-                    }
-                    rail={
+                    },
+                    content: (
                         <EditorRail
                             session={session}
                             editor={editor}
@@ -1261,204 +1287,194 @@ function Editor(page: ContentEditPage) {
                             addressPattern={addressPattern}
                             url={url}
                         />
-                    }
-                >
-                    <div className="grid w-full grid-cols-[minmax(0,1fr)] gap-6 px-6 py-8">
-                        {/* The page's one h1: an item's, for screen readers; a theme region's, drawn with what it takes (I-395). */}
-                        {themeRegion === null ? (
-                            <h1 className="sr-only">
-                                Edit: {shownTitle(title)}
-                            </h1>
-                        ) : (
-                            <PageHeader
-                                title={`Region: ${themeRegion.label}, used by ${themeRegion.themeName}`}
-                                description={themeRegion.takes}
-                            />
-                        )}
-                        {themeRegion === null && (
-                            <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
-                                <Label htmlFor="editor-title">Title</Label>
-                                <textarea
-                                    id="editor-title"
-                                    spellCheck={spellcheck}
-                                    aria-describedby="editor-title-error"
-                                    rows={1}
-                                    value={title}
-                                    onChange={(event) =>
-                                        setTitle(event.target.value)
-                                    }
-                                    className="border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 font-serif text-[28px] leading-tight font-semibold outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
-                                />
-                                <InputError id="editor-title-error" />
-                            </div>
-                        )}
-
-                        <FieldControlContext.Provider
-                            value={{
-                                media,
-                                loading,
-                                addMedia,
-                                noun,
-                                siteTimezone: page.siteTimezone,
-                                entries: session.entries,
-                            }}
+                    ),
+                }}
+            >
+                {/* The page's one h1: an item's, for screen readers; a theme region's, drawn with what it takes (I-395). */}
+                {themeRegion === null ? (
+                    <h1 className="sr-only">
+                        {__('Edit: :title', {
+                            title: shownTitle(title),
+                        })}
+                    </h1>
+                ) : (
+                    <PageHeader
+                        title={__('Region: :label, used by :theme', {
+                            label: themeRegion.label,
+                            theme: themeRegion.themeName,
+                        })}
+                        description={themeRegion.takes}
+                    />
+                )}
+                {themeRegion === null && (
+                    <div className="group relative grid grid-cols-1 gap-1">
+                        <Label
+                            htmlFor="editor-title"
+                            className="text-caption text-ink-3 sr-only font-semibold uppercase group-focus-within:not-sr-only"
                         >
-                            {excerpt && (
-                                <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
-                                    <Label htmlFor="editor-excerpt">
-                                        {excerpt.label}
-                                    </Label>
-                                    <TextareaControl
-                                        field={excerpt}
-                                        value={values[excerpt.key]}
-                                        onChange={(next) =>
-                                            setValue(excerpt.key, next)
-                                        }
-                                        id="editor-excerpt"
-                                        describedBy="editor-excerpt-hint"
-                                        spellCheck={spellcheck}
-                                    />
-                                    <p
-                                        id="editor-excerpt-hint"
-                                        className="text-ink-2 text-xs"
-                                    >
-                                        {excerpt.description}
-                                    </p>
-                                    <MetadataProposal
-                                        handle="excerpt"
-                                        label={excerpt.label}
-                                        metadata={metadata}
-                                    />
-                                </div>
-                            )}
-
-                            {featured && (
-                                <FeaturedImage
-                                    field={featured}
-                                    value={values[featured.key]}
-                                    onChange={(next) =>
-                                        setValue(featured.key, next)
-                                    }
-                                />
-                            )}
-
-                            <section
-                                aria-labelledby="editor-body-label"
-                                className="grid grid-cols-[minmax(0,1fr)] gap-2"
-                            >
-                                <span
-                                    id="editor-body-label"
-                                    className="text-sm font-medium"
-                                >
-                                    Body
-                                </span>
-                                <div
-                                    data-slot="editor-body"
-                                    className="border-edge bg-surface focus-within:ring-ring focus-within:ring-offset-page rounded-md border focus-within:ring-2 focus-within:ring-offset-1"
-                                >
-                                    <ProseEditor
-                                        document={session.document}
-                                        cards={page.manifest.cards}
-                                        menuCards={menuCards}
-                                        contentType={session.type}
-                                        status={status}
-                                        permissions={session.can}
-                                        spellcheck={spellcheck}
-                                        smartQuotes={
-                                            preferences[
-                                                'editor.smart_quotes'
-                                            ] !== false
-                                        }
-                                        siteUrl={page.siteUrl}
-                                        onChange={(next) =>
-                                            setDocument(next as EditorDocument)
-                                        }
-                                        onEditor={setEditor}
-                                    />
-                                </div>
-                            </section>
-
-                            <DetailsSection
-                                fields={fields}
-                                values={values}
-                                onChange={setValue}
-                                errors={fieldErrors}
-                                noun={noun}
-                                plural={type?.plural ?? 'Items'}
-                            />
-
-                            {themeRegion === null && (
-                                <SearchPanel
-                                    fields={fields}
-                                    values={values}
-                                    onChange={setValue}
-                                    seo={page.seo}
-                                    search={search}
-                                    address={address}
-                                    contentId={session.id}
-                                    noun={noun}
-                                    plural={plural}
-                                    media={media}
-                                    loading={loading}
-                                    addMedia={addMedia}
-                                    metadata={metadata}
-                                    open={searchOpen}
-                                    onOpenChange={setSearchOpen}
-                                    onGoToChecks={focus ? null : goToChecks}
-                                />
-                            )}
-                        </FieldControlContext.Provider>
+                            {__('Title')}
+                        </Label>
+                        <span
+                            aria-hidden
+                            className="bg-accent absolute inset-y-0 -start-(--focus-bar) w-0.5 opacity-0 group-focus-within:opacity-100"
+                            style={FOCUS_BAR}
+                        />
+                        <Textarea
+                            id="editor-title"
+                            spellCheck={spellcheck}
+                            aria-describedby="editor-title-error"
+                            rows={1}
+                            placeholder={__('Title')}
+                            value={title}
+                            onChange={(event) => setTitle(event.target.value)}
+                            className="text-display field-sizing-content resize-none border-0 bg-transparent px-0 py-0 font-serif font-semibold text-balance focus-visible:outline-0"
+                        />
+                        <InputError id="editor-title-error" />
                     </div>
-                    <PublishConfirmation
-                        confirming={confirming}
-                        title={title.trim() || 'Untitled'}
-                        noun={noun}
-                        siteTimezone={page.siteTimezone}
-                        checks={search.publishingChecks}
-                        busy={busy}
-                        onConfirm={confirm}
-                        onCancel={() => setConfirming(null)}
-                    />
-                    <StaleDialog
-                        stale={saving.stale}
-                        title={title}
-                        noun={themeRegion !== null ? 'region' : noun}
-                        document={body}
-                        // A second region row can't be made, so no new draft is offered.
-                        onSaveAsDraft={
-                            themeRegion === null ? saveAsDraft : undefined
-                        }
-                        onLeave={saving.release}
-                    />
-                    <LeaveDialog
-                        open={saving.asking}
-                        onStay={saving.stay}
-                        onLeave={saving.leave}
-                    />
-                </EditorShell>
-            </CardEnvironmentContext>
-        </AssistantProvider>
-    );
-}
+                )}
 
-/**
- * The editor screen (slice 1.5c): a labelled writing column and a rail. It
- * opens on the person's own unsaved work when there is some, the working
- * revision otherwise.
- */
-export default function ContentEdit(page: ContentEditPage) {
-    return (
-        <>
-            <Head
-                title={
-                    page.themeRegion !== null
-                        ? `Region: ${page.themeRegion.label}`
-                        : `Edit: ${shownTitle(page.session.title)}`
-                }
-            />
-            <RailProvider>
-                <Editor {...page} />
-            </RailProvider>
+                <FieldControlContext.Provider
+                    value={{
+                        media,
+                        loading,
+                        addMedia,
+                        noun,
+                        siteTimezone: page.siteTimezone,
+                        entries: session.entries,
+                    }}
+                >
+                    {excerpt && (
+                        <div className="group relative grid grid-cols-1 gap-1">
+                            <Label
+                                htmlFor="editor-excerpt"
+                                className="text-caption text-ink-3 sr-only font-semibold uppercase group-focus-within:not-sr-only"
+                            >
+                                {excerpt.label}
+                            </Label>
+                            <span
+                                aria-hidden
+                                className="bg-accent absolute inset-y-0 -start-(--focus-bar) w-0.5 opacity-0 group-focus-within:opacity-100"
+                                style={FOCUS_BAR}
+                            />
+                            <TextareaControl
+                                field={excerpt}
+                                value={values[excerpt.key]}
+                                onChange={(next) => setValue(excerpt.key, next)}
+                                id="editor-excerpt"
+                                describedBy="editor-excerpt-hint"
+                                spellCheck={spellcheck}
+                                placeholder={__(
+                                    'Add an excerpt: one or two sentences that sell the story',
+                                )}
+                                className="text-lead text-ink-2 placeholder:text-ink-3 field-sizing-content w-full resize-none bg-transparent leading-normal outline-none focus-visible:outline-0"
+                            />
+                            <p
+                                id="editor-excerpt-hint"
+                                className="text-ink-3 text-caption"
+                            >
+                                {excerpt.description}
+                            </p>
+                            <MetadataProposal
+                                handle="excerpt"
+                                label={excerpt.label}
+                                metadata={metadata}
+                            />
+                        </div>
+                    )}
+
+                    {featured && (
+                        <FeaturedImage
+                            field={featured}
+                            value={values[featured.key]}
+                            onChange={(next) => setValue(featured.key, next)}
+                        />
+                    )}
+
+                    <section
+                        aria-labelledby="editor-body-label"
+                        className="grid grid-cols-1"
+                    >
+                        <span id="editor-body-label" className="sr-only">
+                            {__('Body')}
+                        </span>
+                        <div data-slot="editor-body">
+                            <ProseEditor
+                                document={session.document}
+                                cards={page.manifest.cards}
+                                menuCards={menuCards}
+                                contentType={session.type}
+                                status={status}
+                                permissions={session.can}
+                                spellcheck={spellcheck}
+                                smartQuotes={
+                                    preferences['editor.smart_quotes'] !== false
+                                }
+                                siteUrl={page.siteUrl}
+                                onChange={(next) =>
+                                    setDocument(next as EditorDocument)
+                                }
+                                onEditor={setEditor}
+                            />
+                        </div>
+                    </section>
+
+                    <DetailsSection
+                        fields={fields}
+                        values={values}
+                        onChange={setValue}
+                        errors={fieldErrors}
+                        noun={noun}
+                        plural={type?.plural ?? 'Items'}
+                    />
+
+                    {themeRegion === null && (
+                        <SearchPanel
+                            fields={fields}
+                            values={values}
+                            onChange={setValue}
+                            seo={page.seo}
+                            search={search}
+                            address={address}
+                            contentId={session.id}
+                            noun={noun}
+                            plural={plural}
+                            media={media}
+                            loading={loading}
+                            addMedia={addMedia}
+                            metadata={metadata}
+                            open={searchOpen}
+                            onOpenChange={setSearchOpen}
+                            onGoToChecks={focus ? null : goToChecks}
+                        />
+                    )}
+                </FieldControlContext.Provider>
+                <PublishConfirmation
+                    confirming={confirming}
+                    title={title.trim() || 'Untitled'}
+                    noun={noun}
+                    siteTimezone={page.siteTimezone}
+                    checks={search.publishingChecks}
+                    busy={busy}
+                    onConfirm={confirm}
+                    onCancel={() => setConfirming(null)}
+                />
+                <StaleDialog
+                    stale={saving.stale}
+                    title={title}
+                    noun={themeRegion !== null ? 'region' : noun}
+                    document={body}
+                    // A second region row can't be made, so no new draft is offered.
+                    onSaveAsDraft={
+                        themeRegion === null ? saveAsDraft : undefined
+                    }
+                    onLeave={saving.release}
+                />
+                <LeaveDialog
+                    open={saving.asking}
+                    onStay={saving.stay}
+                    onLeave={saving.leave}
+                />
+            </EditorPage>
         </>
     );
 }

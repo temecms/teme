@@ -1,6 +1,5 @@
-// Later (I-200): extensions contribute entries to this list in phase 5.
-// Core draws them, so they look like the rest of the editor; the region
-// shows a fixed number and puts the rest under "More".
+// Later (I-200): extensions contribute entries to the bubble's More group.
+import { Content as MenuContent } from '@radix-ui/react-dropdown-menu';
 import { isNodeSelection } from '@tiptap/core';
 import type { Editor } from '@tiptap/core';
 import { useEditorState } from '@tiptap/react';
@@ -8,47 +7,54 @@ import { BubbleMenu as TiptapBubbleMenu } from '@tiptap/react/menus';
 import {
     Bold,
     Code,
-    Highlighter,
     Italic,
     Link as LinkIcon,
+    MoreHorizontal,
+    RemoveFormatting,
     Strikethrough,
+    Subscript as SubscriptIcon,
+    Superscript as SuperscriptIcon,
     Underline as UnderlineIcon,
 } from 'lucide-react';
 import type { ComponentProps } from 'react';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { __ } from '@/lib/i18n';
 import { LinkPopover } from './link-popover';
 import { RewriteMenu } from './rewrite/rewrite-menu';
+import { isTouch } from './use-touch';
 
 function MarkButton({
     label,
     active,
-    className,
-    children,
     ...props
 }: ComponentProps<'button'> & { label: string; active: boolean }) {
     return (
-        <button
+        <Button
             type="button"
+            variant="ghost"
+            size="icon-sm"
             aria-label={label}
             aria-pressed={active}
             title={label}
-            className={cn(
-                'hover:bg-surface-3 focus-visible:ring-ring inline-flex size-[30px] items-center justify-center rounded-md outline-none focus-visible:ring-2 [&_svg]:size-4',
-                active && 'bg-surface-2 ring-line ring-1 ring-inset',
-                className,
-            )}
             {...props}
-        >
-            {children}
-        </button>
+        />
     );
 }
 
 /**
- * The menu on a text selection: the core marks, the link, and Rewrite when
- * the editor offers it. A plugin's
- * selection actions will arrive under a More group here (plugins.md, surface
- * 3); the toolbar never takes them.
+ * The menu on a text selection (docs/architecture/design-system.md, 4.39):
+ * Bold, Italic, Strikethrough and Inline code, the link, and More with the
+ * rest of the core marks, then Rewrite when the editor offers it. A
+ * plugin's selection buttons will arrive in More's "From plugins" group
+ * (plugins.md, surface 3); the toolbar never takes them. On touch it does
+ * not open: the toolbar has the formats, and the system's own text menu is
+ * left alone.
  */
 export function BubbleMenu({
     editor,
@@ -66,7 +72,8 @@ export function BubbleMenu({
             underline: current.isActive('underline'),
             strike: current.isActive('strike'),
             code: current.isActive('code'),
-            highlight: current.isActive('highlight'),
+            superscript: current.isActive('superscript'),
+            subscript: current.isActive('subscript'),
             link: current.isActive('link'),
         }),
     });
@@ -76,6 +83,7 @@ export function BubbleMenu({
         <TiptapBubbleMenu
             editor={editor}
             shouldShow={({ editor: current, element, view, state, from, to }) =>
+                !isTouch() &&
                 (view.hasFocus() || element.contains(document.activeElement)) &&
                 !isNodeSelection(state.selection) &&
                 state.doc.textBetween(from, to).length > 0 &&
@@ -84,60 +92,96 @@ export function BubbleMenu({
         >
             <div
                 role="toolbar"
-                aria-label="Selection"
-                className="bg-surface border-line shadow-float relative z-20 flex items-center gap-0.5 rounded-lg border p-1"
+                aria-label={__('Selection')}
+                data-slot="bubble-menu"
+                className="bg-surface shadow-float relative z-(--z-float) flex items-center gap-0.5 rounded-lg p-1"
             >
                 <MarkButton
-                    label="Bold"
+                    label={__('Bold')}
                     active={state.bold}
                     onClick={() => chain().toggleBold().run()}
                 >
                     <Bold />
                 </MarkButton>
                 <MarkButton
-                    label="Italic"
+                    label={__('Italic')}
                     active={state.italic}
                     onClick={() => chain().toggleItalic().run()}
                 >
                     <Italic />
                 </MarkButton>
                 <MarkButton
-                    label="Underline"
-                    active={state.underline}
-                    onClick={() => chain().toggleUnderline().run()}
-                >
-                    <UnderlineIcon />
-                </MarkButton>
-                <MarkButton
-                    label="Strikethrough"
+                    label={__('Strikethrough')}
                     active={state.strike}
                     onClick={() => chain().toggleStrike().run()}
                 >
                     <Strikethrough />
                 </MarkButton>
                 <MarkButton
-                    label="Inline code"
+                    label={__('Inline code')}
                     active={state.code}
                     onClick={() => chain().toggleCode().run()}
                 >
                     <Code />
                 </MarkButton>
-                <MarkButton
-                    label="Highlight"
-                    active={state.highlight}
-                    onClick={() => chain().toggleHighlight().run()}
-                >
-                    <Highlighter />
-                </MarkButton>
+                <span aria-hidden className="bg-line mx-1 h-5 w-px" />
                 <LinkPopover
                     editor={editor}
                     siteUrl={siteUrl}
                     trigger={
-                        <MarkButton label="Link" active={state.link}>
+                        <MarkButton label={__('Link')} active={state.link}>
                             <LinkIcon />
                         </MarkButton>
                     }
                 />
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={__('More')}
+                            title={__('More')}
+                        >
+                            <MoreHorizontal />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    {/* In place, not portalled: focus stays inside the selection menu, which hides when it leaves. */}
+                    <MenuContent
+                        align="end"
+                        sideOffset={4}
+                        className="bg-surface text-ink shadow-float z-(--z-float) flex min-w-55 flex-col rounded-lg p-1"
+                    >
+                        <DropdownMenuCheckboxItem
+                            checked={state.underline}
+                            onSelect={() => chain().toggleUnderline().run()}
+                        >
+                            <UnderlineIcon />
+                            {__('Underline')}
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                            checked={state.superscript}
+                            onSelect={() => chain().toggleSuperscript().run()}
+                        >
+                            <SuperscriptIcon />
+                            {__('Superscript')}
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem
+                            checked={state.subscript}
+                            onSelect={() => chain().toggleSubscript().run()}
+                        >
+                            <SubscriptIcon />
+                            {__('Subscript')}
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuItem
+                            onSelect={() => chain().unsetAllMarks().run()}
+                        >
+                            <RemoveFormatting />
+                            {__('Clear formatting')}
+                        </DropdownMenuItem>
+                        {/* Later (I-200): a plugin's selection buttons, drawn by core under a "From plugins" heading, once there are any. */}
+                    </MenuContent>
+                </DropdownMenu>
                 <RewriteMenu editor={editor} />
             </div>
         </TiptapBubbleMenu>

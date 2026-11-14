@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { __ } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -144,10 +145,10 @@ export function EditorHeader({
     return (
         // Below 640px the header keeps to its essentials so nothing is pushed off
         // the screen: pinned panels stay in the ⋮ menu, and Focus is its icon.
-        <header className="border-line bg-page flex h-12 min-w-0 shrink-0 items-center gap-1.5 border-b px-3 sm:gap-3 sm:px-4">
+        <header className="border-line bg-chrome flex h-(--top-h) min-w-0 shrink-0 items-center gap-2 border-b px-3 sm:gap-3 sm:px-4">
             <Link
                 href={backHref}
-                className="text-ink-2 hover:text-ink inline-flex items-center gap-1.5 text-[13px]"
+                className="text-ink-2 hover:text-ink text-small inline-flex items-center gap-2"
             >
                 <ArrowLeft className="size-4" />
                 {backLabel}
@@ -163,9 +164,9 @@ export function EditorHeader({
                         key={panel.id}
                         variant="ghost"
                         size="icon"
-                        aria-label={panel.label}
+                        aria-label={__(panel.label)}
                         aria-pressed={activePane === panel.id}
-                        title={panel.label}
+                        title={__(panel.label)}
                         onClick={() => onTogglePane(panel.id)}
                         className="aria-pressed:bg-surface-2 max-sm:hidden"
                     >
@@ -178,19 +179,19 @@ export function EditorHeader({
                         <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="All panels"
+                            aria-label={__('All panels')}
                         >
                             <EllipsisVertical />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Panels</DropdownMenuLabel>
+                        <DropdownMenuLabel>{__('Panels')}</DropdownMenuLabel>
                         {panels.map((panel) => (
                             <DropdownMenuItem
                                 key={panel.id}
                                 onSelect={() => onTogglePane(panel.id)}
                             >
-                                {panel.label}
+                                {__(panel.label)}
                             </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
@@ -200,7 +201,7 @@ export function EditorHeader({
                                 onSelect={() => togglePin(panel.id)}
                             >
                                 {unpinned.includes(panel.id) ? 'Pin' : 'Unpin'}{' '}
-                                {panel.label}
+                                {__(panel.label)}
                             </DropdownMenuItem>
                         ))}
                     </DropdownMenuContent>
@@ -209,9 +210,11 @@ export function EditorHeader({
             <Button
                 variant="ghost"
                 size="icon"
-                aria-label={railOpen ? 'Hide settings' : 'Show settings'}
+                aria-label={
+                    railOpen ? __('Hide settings') : __('Show settings')
+                }
                 aria-pressed={railOpen}
-                title={railOpen ? 'Hide settings' : 'Show settings'}
+                title={railOpen ? __('Hide settings') : __('Show settings')}
                 onClick={onToggleRail}
                 className="aria-pressed:bg-surface-2"
             >
@@ -225,7 +228,7 @@ export function EditorHeader({
             >
                 {focus ? <Minimize2 /> : <Maximize2 />}
                 <span className="max-sm:sr-only">
-                    {focus ? 'Leave focus' : 'Focus'}
+                    {focus ? __('Leave focus') : __('Focus')}
                 </span>
             </Button>
         </header>

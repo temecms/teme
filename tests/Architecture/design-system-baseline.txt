@@ -3,7 +3,6 @@ R1	js/components/ai-settings/service-panel.tsx	min-w-[260px]
 R1	js/components/comments/comment-details.tsx	grid-cols-[7rem_1fr]
 R1	js/components/comments/comment-details.tsx	sm:max-w-[480px]
 R1	js/components/comments/quick-edit.tsx	sm:max-w-[480px]
-R1	js/components/editor/bubble-menu.tsx	size-[30px]
 R1	js/components/editor/cards/audio-card.tsx	h-[54px]
 R1	js/components/editor/cards/button-card.tsx	h-[34px]
 R1	js/components/editor/cards/button-card.tsx	h-[34px]
@@ -40,13 +39,6 @@ R1	js/components/editor/rail/search-previews.tsx	min-h-[72px]
 R1	js/components/editor/rewrite/rewrite-menu.tsx	h-[30px]
 R1	js/components/editor/rewrite/rewrite-menu.tsx	min-w-[8rem]
 R1	js/components/editor/share-panel.tsx	h-[34px]
-R1	js/components/editor/toolbar.tsx	@max-[280px]:w-[84px]
-R1	js/components/editor/toolbar.tsx	@max-[520px]:w-[104px]
-R1	js/components/editor/toolbar.tsx	h-[30px]
-R1	js/components/editor/toolbar.tsx	h-[30px]
-R1	js/components/editor/toolbar.tsx	h-[30px]
-R1	js/components/editor/toolbar.tsx	h-[30px]
-R1	js/components/editor/toolbar.tsx	size-[30px]
 R1	js/components/fields/brand-colour-setting.tsx	h-[34px]
 R1	js/components/fields/brand-colour-setting.tsx	h-[34px]
 R1	js/components/fields/field-control.tsx	max-w-[360px]
@@ -86,7 +78,6 @@ R1	js/components/ui/sidebar.tsx	group-data-[collapsible=offcanvas]:right-[calc(v
 R1	js/components/ui/sidebar.tsx	peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))]
 R1	js/pages/content/compare.tsx	h-[34px]
 R1	js/pages/content/compare.tsx	h-[34px]
-R1	js/pages/content/edit.tsx	min-h-[34px]
 R1	js/pages/content/index.tsx	sm:max-w-[480px]
 R1	js/pages/content/index.tsx	w-[72px]
 R1	js/pages/settings/addresses.tsx	max-w-[960px]
@@ -143,13 +134,6 @@ R15	js/components/fields/brand-colour-setting.tsx	style: color
 R15	js/components/list/bulk-edit-dialog.tsx	style: paddingLeft
 R15	js/components/list/filter-button.tsx	style: paddingLeft
 R15	js/components/term-tree-picker.tsx	style: paddingLeft
-R2	css/app.css	.teme-prose { font-size: 16px }
-R2	css/app.css	.teme-prose code { font-size: 0.875em }
-R2	css/app.css	.teme-prose h2 { font-size: 1.5em }
-R2	css/app.css	.teme-prose h3 { font-size: 1.25em }
-R2	css/app.css	.teme-prose h4 { font-size: 1.1em }
-R2	css/app.css	.teme-prose pre { font-size: 0.875em }
-R2	css/app.css	.teme-prose table { font-size: 0.95em }
 R2	js/components/ai-settings/month-figures.tsx	text-[12px]
 R2	js/components/ai-settings/month-figures.tsx	text-[12px]
 R2	js/components/ai-settings/month-figures.tsx	text-[13px]
@@ -301,7 +285,6 @@ R2	js/components/editor/diff-view.tsx	text-[11px]
 R2	js/components/editor/diff-view.tsx	text-[13px]
 R2	js/components/editor/diff-view.tsx	text-[14px]
 R2	js/components/editor/diff-view.tsx	text-[14px]
-R2	js/components/editor/editor-header.tsx	text-[13px]
 R2	js/components/editor/editor-rail.tsx	text-[13px]
 R2	js/components/editor/editor-rail.tsx	text-[13px]
 R2	js/components/editor/editor-rail.tsx	text-xs
@@ -373,7 +356,6 @@ R2	js/components/editor/rail/checks-panel.tsx	text-[13px]
 R2	js/components/editor/rail/checks-panel.tsx	text-[13px]
 R2	js/components/editor/rail/checks-panel.tsx	text-xs
 R2	js/components/editor/rail/checks-panel.tsx	text-xs
-R2	js/components/editor/rail/document-panel.tsx	text-[11px]
 R2	js/components/editor/rail/document-panel.tsx	text-[11px]
 R2	js/components/editor/rail/document-panel.tsx	text-[13px]
 R2	js/components/editor/rail/document-panel.tsx	text-[13px]
@@ -451,12 +433,6 @@ R2	js/components/editor/slash-menu.tsx	text-[13px]
 R2	js/components/editor/slash-menu.tsx	text-xs
 R2	js/components/editor/stale-dialog.tsx	text-[13px]
 R2	js/components/editor/status-chip.tsx	text-[11px]
-R2	js/components/editor/toolbar.tsx	text-[13px]
-R2	js/components/editor/toolbar.tsx	text-[13px]
-R2	js/components/editor/toolbar.tsx	text-[13px]
-R2	js/components/editor/toolbar.tsx	text-[13px]
-R2	js/components/editor/toolbar.tsx	text-xs
-R2	js/components/editor/toolbar.tsx	text-xs
 R2	js/components/fields/brand-colour-setting.tsx	text-[13px]
 R2	js/components/fields/brand-colour-setting.tsx	text-[13px]
 R2	js/components/fields/brand-colour-setting.tsx	text-[13px]
@@ -660,9 +636,6 @@ R2	js/pages/comments/index.tsx	text-[12px]
 R2	js/pages/comments/index.tsx	text-[12px]
 R2	js/pages/content/compare.tsx	text-[13px]
 R2	js/pages/content/compare.tsx	text-[13px]
-R2	js/pages/content/edit.tsx	text-[28px]
-R2	js/pages/content/edit.tsx	text-sm
-R2	js/pages/content/edit.tsx	text-xs
 R2	js/pages/content/index.tsx	text-[13px]
 R2	js/pages/content/index.tsx	text-[13px]
 R2	js/pages/content/index.tsx	text-[13px]
@@ -842,8 +815,6 @@ R3	js/components/editor/cards/video-card.tsx	gap-1.5
 R3	js/components/editor/cards/video-card.tsx	mt-1.5
 R3	js/components/editor/diff-view.tsx	mb-0.5
 R3	js/components/editor/diff-view.tsx	mb-0.5
-R3	js/components/editor/editor-header.tsx	gap-1.5
-R3	js/components/editor/editor-header.tsx	gap-1.5
 R3	js/components/editor/editor-rail.tsx	py-1.5
 R3	js/components/editor/editor-rail.tsx	py-1.5
 R3	js/components/editor/fields/details-section.tsx	px-1.5
@@ -884,7 +855,6 @@ R3	js/components/editor/schedule-control.tsx	gap-1.5
 R3	js/components/editor/share-panel.tsx	gap-1.5
 R3	js/components/editor/slash-menu.tsx	py-1.5
 R3	js/components/editor/status-chip.tsx	py-0.5
-R3	js/components/editor/toolbar.tsx	py-1.5
 R3	js/components/fields/home-page-setting.tsx	py-1.5
 R3	js/components/fields/settings-field.tsx	mt-0.5
 R3	js/components/fields/settings-panel.tsx	py-3.5
@@ -961,7 +931,6 @@ R5	js/components/comments/inline-reply.tsx	<textarea>
 R5	js/components/comments/quick-edit.tsx	<textarea>
 R5	js/components/dashboard/getting-started.tsx	<button type="button">
 R5	js/components/dashboard/quick-draft.tsx	<textarea>
-R5	js/components/editor/bubble-menu.tsx	<button type="button">
 R5	js/components/editor/cards/button-card.tsx	<button type="button">
 R5	js/components/editor/cards/button-card.tsx	<input>
 R5	js/components/editor/cards/callout-card.tsx	<textarea>
@@ -985,10 +954,6 @@ R5	js/components/editor/rail/publish-panel.tsx	<button type="button">
 R5	js/components/editor/rail/search-panel.tsx	<button type="button">
 R5	js/components/editor/rewrite/rewrite-menu.tsx	<button type="button">
 R5	js/components/editor/slash-menu.tsx	<button type="button">
-R5	js/components/editor/toolbar.tsx	<button type="button">
-R5	js/components/editor/toolbar.tsx	<button type="button">
-R5	js/components/editor/toolbar.tsx	<button type="button">
-R5	js/components/editor/toolbar.tsx	<button type="button">
 R5	js/components/fields/brand-colour-setting.tsx	<input type="color">
 R5	js/components/fields/field-control.tsx	<select>
 R5	js/components/fields/field-control.tsx	<textarea>
@@ -1016,7 +981,6 @@ R5	js/components/tools/redirect-form.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<input type="radio">
 R5	js/components/tools/redirect-form.tsx	<select>
 R5	js/pages/comments/index.tsx	<button type="button">
-R5	js/pages/content/edit.tsx	<textarea>
 R5	js/pages/media/index.tsx	<button type="button">
 R5	js/pages/plugins/index.tsx	<button type="button">
 R5	js/pages/plugins/index.tsx	<table>
@@ -1039,7 +1003,6 @@ R6	js/components/app-shell.tsx	z-50
 R6	js/components/backups/key-sheet.tsx	tracking-wider
 R6	js/components/backups/schedule-form.tsx	leading-9
 R6	js/components/comments/commenter.tsx	leading-4
-R6	js/components/editor/bubble-menu.tsx	z-20
 R6	js/components/editor/cards/card-frame.tsx	tracking-wide
 R6	js/components/editor/cards/image-card.tsx	rounded
 R6	js/components/editor/cards/imported-content-card.tsx	tracking-wide
@@ -1048,7 +1011,6 @@ R6	js/components/editor/pasted-image-view.tsx	tracking-wide
 R6	js/components/editor/rewrite/rewrite-menu.tsx	z-50
 R6	js/components/editor/slash-menu.tsx	z-50
 R6	js/components/editor/status-chip.tsx	leading-4
-R6	js/components/editor/toolbar.tsx	z-10
 R6	js/components/fields/brand-colour-setting.tsx	rounded
 R6	js/components/fields/brand-colour-setting.tsx	rounded
 R6	js/components/fields/home-page-setting.tsx	rounded
@@ -1088,7 +1050,6 @@ R7	js/pages/content/compare.tsx	frame:px-4
 R7	js/pages/content/compare.tsx	frame:py-6
 R7	js/pages/content/compare.tsx	frame:sm:px-6
 R7	js/pages/content/compare.tsx	root:div
-R7	js/pages/content/edit.tsx	root:RailProvider
 R7	js/pages/content/index.tsx	frame:p-6
 R7	js/pages/content/index.tsx	frame:sm:max-w-[480px]
 R7	js/pages/content/index.tsx	root:div

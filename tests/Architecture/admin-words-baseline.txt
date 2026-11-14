@@ -260,14 +260,6 @@ components/dashboard/quick-draft.tsx	Title
 components/dashboard/quick-draft.tsx	What's it about?
 components/dashboard/site-figures.tsx	The site in figures
 components/editor/assistant/assistant-context.tsx	Undo
-components/editor/bubble-menu.tsx	Bold
-components/editor/bubble-menu.tsx	Highlight
-components/editor/bubble-menu.tsx	Inline code
-components/editor/bubble-menu.tsx	Italic
-components/editor/bubble-menu.tsx	Link
-components/editor/bubble-menu.tsx	Selection
-components/editor/bubble-menu.tsx	Strikethrough
-components/editor/bubble-menu.tsx	Underline
 components/editor/cards/audio-card.tsx	Audio
 components/editor/cards/audio-card.tsx	Caption
 components/editor/cards/audio-card.tsx	Choose an audio file from the library.
@@ -376,19 +368,11 @@ components/editor/cards/video-card.tsx	WebVTT files (.vtt) from the library, so 
 components/editor/diff-view.tsx	After
 components/editor/diff-view.tsx	Before
 components/editor/diff-view.tsx	Both versions are empty.
-components/editor/editor-header.tsx	All panels
 components/editor/editor-header.tsx	Assistant
 components/editor/editor-header.tsx	Document overview
-components/editor/editor-header.tsx	Focus
-components/editor/editor-header.tsx	Hide settings
-components/editor/editor-header.tsx	Hide settings
 components/editor/editor-header.tsx	History
-components/editor/editor-header.tsx	Leave focus
-components/editor/editor-header.tsx	Panels
 components/editor/editor-header.tsx	Pin
 components/editor/editor-header.tsx	Share
-components/editor/editor-header.tsx	Show settings
-components/editor/editor-header.tsx	Show settings
 components/editor/editor-header.tsx	Unpin
 components/editor/editor-rail.tsx	, opens in a new tab
 components/editor/editor-rail.tsx	Approve
@@ -514,10 +498,7 @@ components/editor/rail/checks-panel.tsx	warning
 components/editor/rail/document-panel.tsx	No headings yet.
 components/editor/rail/document-panel.tsx	Outline
 components/editor/rail/document-panel.tsx	Untitled heading
-components/editor/rail/document-panel.tsx	min read
 components/editor/rail/document-panel.tsx	skips a level
-components/editor/rail/document-panel.tsx	word
-components/editor/rail/document-panel.tsx	words
 components/editor/rail/fields-proposed.tsx	Discard
 components/editor/rail/fields-proposed.tsx	Show them
 components/editor/rail/fields-proposed.tsx	The proposals are under their fields.
@@ -636,7 +617,6 @@ components/editor/schedule-control.tsx	Quick choices
 components/editor/schedule-control.tsx	This evening
 components/editor/schedule-control.tsx	Times are in the site’s zone:
 components/editor/schedule-control.tsx	Tomorrow morning
-components/editor/schema.ts	Write something…
 components/editor/share-panel.tsx	Copied
 components/editor/share-panel.tsx	Copy
 components/editor/share-panel.tsx	Copy it now: it will not be shown again.
@@ -679,61 +659,6 @@ components/editor/stale-dialog.tsx	puts your words on the clipboard.
 components/editor/stale-dialog.tsx	saved a new version
 components/editor/stale-dialog.tsx	shows theirs, and your unsaved changes here are lost.
 components/editor/status-chip.tsx	Status:
-components/editor/toolbar.tsx	A line across the column, between two parts of the text.
-components/editor/toolbar.tsx	Aa
-components/editor/toolbar.tsx	Alignment
-components/editor/toolbar.tsx	Block type
-components/editor/toolbar.tsx	Bold
-components/editor/toolbar.tsx	Bulleted list
-components/editor/toolbar.tsx	Bulleted list
-components/editor/toolbar.tsx	Centre
-components/editor/toolbar.tsx	Clear formatting
-components/editor/toolbar.tsx	Code block
-components/editor/toolbar.tsx	Default alignment
-components/editor/toolbar.tsx	Delete table
-components/editor/toolbar.tsx	Delete table
-components/editor/toolbar.tsx	Filter
-components/editor/toolbar.tsx	Filter what to insert
-components/editor/toolbar.tsx	Formatting
-components/editor/toolbar.tsx	Heading 2
-components/editor/toolbar.tsx	Heading 3
-components/editor/toolbar.tsx	Heading 4
-components/editor/toolbar.tsx	Highlight
-components/editor/toolbar.tsx	Horizontal rule
-components/editor/toolbar.tsx	Inline code
-components/editor/toolbar.tsx	Insert
-components/editor/toolbar.tsx	Insert a table
-components/editor/toolbar.tsx	Italic
-components/editor/toolbar.tsx	Justified
-components/editor/toolbar.tsx	Left
-components/editor/toolbar.tsx	Link
-components/editor/toolbar.tsx	More
-components/editor/toolbar.tsx	More
-components/editor/toolbar.tsx	More
-components/editor/toolbar.tsx	Nothing matches.
-components/editor/toolbar.tsx	Numbered list
-components/editor/toolbar.tsx	Numbered list
-components/editor/toolbar.tsx	Paragraph
-components/editor/toolbar.tsx	Quote
-components/editor/toolbar.tsx	Quote
-components/editor/toolbar.tsx	Quote
-components/editor/toolbar.tsx	Redo
-components/editor/toolbar.tsx	Redo
-components/editor/toolbar.tsx	Right
-components/editor/toolbar.tsx	Strikethrough
-components/editor/toolbar.tsx	Strikethrough
-components/editor/toolbar.tsx	Subscript
-components/editor/toolbar.tsx	Superscript
-components/editor/toolbar.tsx	Table
-components/editor/toolbar.tsx	Task list
-components/editor/toolbar.tsx	Task list
-components/editor/toolbar.tsx	Text
-components/editor/toolbar.tsx	Text: alignment, highlight and more
-components/editor/toolbar.tsx	Text: alignment, highlight and more
-components/editor/toolbar.tsx	Underline
-components/editor/toolbar.tsx	Underline
-components/editor/toolbar.tsx	Undo
-components/editor/toolbar.tsx	Undo
 components/editor/use-search-preview.ts	Untitled
 components/fields/brand-colour-setting.tsx	Brand colour
 components/fields/brand-colour-setting.tsx	Brand colour
@@ -1406,19 +1331,13 @@ pages/content/compare.tsx	Compare: {}
 pages/content/compare.tsx	Restore the {} version
 pages/content/compare.tsx	What changed between two revisions. Nothing here changes the article.
 pages/content/edit.tsx	Assistant
-pages/content/edit.tsx	Body
 pages/content/edit.tsx	Document overview
-pages/content/edit.tsx	Edit:
-pages/content/edit.tsx	Edit: {}
 pages/content/edit.tsx	Every saved version
 pages/content/edit.tsx	Hide or show everything but the writing
 pages/content/edit.tsx	History
 pages/content/edit.tsx	Open history
-pages/content/edit.tsx	Region: {}
-pages/content/edit.tsx	Region: {}, used by {}
 pages/content/edit.tsx	Share
 pages/content/edit.tsx	The connection failed. Try again.
-pages/content/edit.tsx	Title
 pages/content/edit.tsx	Toggle focus mode
 pages/content/edit.tsx	Untitled
 pages/content/edit.tsx	Untitled

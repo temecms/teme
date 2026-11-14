@@ -16,10 +16,12 @@ export function TextareaControl({
     rows = 2,
     className = defaultClass,
     spellCheck,
+    placeholder,
 }: FieldControlProps & {
     rows?: number;
     className?: string;
     spellCheck?: boolean;
+    placeholder?: string;
 }) {
     return (
         <textarea
@@ -28,6 +30,7 @@ export function TextareaControl({
             aria-describedby={describedBy}
             aria-invalid={invalid || undefined}
             rows={rows}
+            placeholder={placeholder}
             maxLength={maxLengthOf(field)}
             value={textOf(value)}
             onChange={(event) => onChange(event.target.value)}

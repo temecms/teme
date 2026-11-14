@@ -1,5 +1,6 @@
 import type { Editor } from '@tiptap/core';
 import { useEditorState } from '@tiptap/react';
+import { __ } from '@/lib/i18n';
 
 /** Words a person reads in a minute, for "time to read". */
 const WORDS_PER_MINUTE = 230;
@@ -67,19 +68,32 @@ export function overviewOf(editor: Editor): Overview {
     };
 }
 
-/** "1,240 words · 6 min read": the compact count at the foot of the editor. */
+/** Words, characters and reading time, under the body (docs/architecture/design-system.md, 4.39). */
 export function WordCount({ editor }: { editor: Editor }) {
     const overview = useEditorState({
         editor,
         selector: ({ editor: current }) => overviewOf(current),
     });
+    const counts: [string, string][] = [
+        [__('Words'), overview.words.toLocaleString()],
+        [__('Characters'), overview.characters.toLocaleString()],
+        [__('Reading time'), __(':count min', { count: overview.minutes })],
+    ];
 
     return (
-        <p className="text-ink-2 border-line border-t px-5 py-2 text-[11px]">
-            {overview.words.toLocaleString()}{' '}
-            {overview.words === 1 ? 'word' : 'words'} · {overview.minutes} min
-            read
-        </p>
+        <dl
+            data-test="body-counts"
+            className="text-ink-3 text-small mt-8 flex flex-wrap gap-x-6 gap-y-1 px-4 py-4 md:px-16"
+        >
+            {counts.map(([label, value]) => (
+                <div key={label} className="flex gap-2">
+                    <dt>{label}</dt>
+                    <dd className="text-ink-2 font-medium tabular-nums">
+                        {value}
+                    </dd>
+                </div>
+            ))}
+        </dl>
     );
 }
 
