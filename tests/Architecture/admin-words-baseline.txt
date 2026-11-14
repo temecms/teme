@@ -975,15 +975,6 @@ components/list/select-all-matching.tsx	Move all {} to the trash?
 components/list/select-all-matching.tsx	Restore all {}?
 components/list/select-all-matching.tsx	Select all {}
 components/list/select-all-matching.tsx	{} {} You can restore them from the trash.
-components/manage-two-factor.tsx	Continue setup
-components/manage-two-factor.tsx	Disable two-factor sign-in
-components/manage-two-factor.tsx	Disable two-factor sign-in
-components/manage-two-factor.tsx	Disable two-factor sign-in?
-components/manage-two-factor.tsx	Enable two-factor sign-in
-components/manage-two-factor.tsx	Once it’s on, signing in also asks for a code from an authenticator app on your phone.
-components/manage-two-factor.tsx	Signing in will need only your password until you set it up again, with a new authenticator entry and new recovery codes.
-components/manage-two-factor.tsx	Two-factor sign-in
-components/manage-two-factor.tsx	When you sign in, you also type the code from the authenticator app on your phone.
 components/media-drawer.tsx	Click the preview to set the focal point, which square crops keep in view.
 components/media-drawer.tsx	Delete permanently
 components/media-drawer.tsx	Delete permanently
@@ -1298,25 +1289,6 @@ components/tools/update-progress.tsx	{} to Teme {} requested at the server at {}
 components/tools/update-progress.tsx	{} to Teme {} requested by {} at {}. The updater starts it within a minute.
 components/tools/update-progress.tsx	’s additions, which
 components/tools/update-progress.tsx	’s additions, which
-components/two-factor-recovery-codes.tsx	Each code signs you in once if you lose your phone. Keep them in a password manager.
-components/two-factor-recovery-codes.tsx	Hide
-components/two-factor-recovery-codes.tsx	Loading recovery codes
-components/two-factor-recovery-codes.tsx	New codes replace these. The old ones stop working.
-components/two-factor-recovery-codes.tsx	Recovery codes
-components/two-factor-recovery-codes.tsx	Recovery codes
-components/two-factor-recovery-codes.tsx	Regenerate codes
-components/two-factor-recovery-codes.tsx	View
-components/two-factor-recovery-codes.tsx	recovery codes
-components/two-factor-setup-modal.tsx	Authentication code
-components/two-factor-setup-modal.tsx	Back
-components/two-factor-setup-modal.tsx	Confirm
-components/two-factor-setup-modal.tsx	Enable two-factor sign-in
-components/two-factor-setup-modal.tsx	Enter the 6-digit code from your authenticator app
-components/two-factor-setup-modal.tsx	Scan the QR code, or type the setup key, in your authenticator app.
-components/two-factor-setup-modal.tsx	Scan the QR code, or type the setup key, in your authenticator app.
-components/two-factor-setup-modal.tsx	Two-factor sign-in is on
-components/two-factor-setup-modal.tsx	Verify authentication code
-components/two-factor-setup-modal.tsx	or type this setup key
 components/types/builder-parts.tsx	Can’t be used
 components/types/builder-parts.tsx	Code
 components/types/builder-parts.tsx	Made here
@@ -1381,14 +1353,6 @@ layouts/settings/layout.tsx	{} for “{}”
 lib/discussion.ts	Closed
 lib/discussion.ts	Hidden
 lib/discussion.ts	Open
-pages/account/preferences.tsx	Appearance
-pages/account/preferences.tsx	Dark
-pages/account/preferences.tsx	Light
-pages/account/preferences.tsx	Match the system
-pages/account/preferences.tsx	Preferences
-pages/account/preferences.tsx	Preferences
-pages/account/preferences.tsx	Save preferences
-pages/account/preferences.tsx	Saved as you choose.
 pages/auth/accept-invitation.tsx	Choose a password to finish setting up your account.
 pages/auth/accept-invitation.tsx	Choose your password
 pages/auth/accept-invitation.tsx	Confirm password

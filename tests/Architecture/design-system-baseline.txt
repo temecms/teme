@@ -135,7 +135,6 @@ R10	js/components/editor/use-teme-editor.ts	outline-none
 R10	js/components/list/date-filter.tsx	outline-none
 R10	js/components/list/filter-button.tsx	outline-none
 R10	js/components/palette/command-palette.tsx	outline-none
-R10	js/components/two-factor-setup-modal.tsx	outline-none
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
@@ -156,9 +155,6 @@ R14	js/components/fields/media-setting.tsx	animate-pulse
 R14	js/components/text-link.tsx	duration-300
 R14	js/components/text-link.tsx	ease-out
 R14	js/components/tools/update-progress.tsx	animate-spin
-R14	js/components/two-factor-recovery-codes.tsx	animate-pulse
-R14	js/components/two-factor-recovery-codes.tsx	duration-300
-R14	js/components/two-factor-recovery-codes.tsx	transition-all
 R14	js/components/ui/sidebar.tsx	ease-linear
 R14	js/components/ui/sidebar.tsx	transition-all
 R14	js/pages/auth/forgot-password.tsx	animate-spin
@@ -170,7 +166,6 @@ R15	js/components/fields/brand-colour-setting.tsx	style: color
 R15	js/components/list/bulk-edit-dialog.tsx	style: paddingLeft
 R15	js/components/list/filter-button.tsx	style: paddingLeft
 R15	js/components/term-tree-picker.tsx	style: paddingLeft
-R15	js/components/two-factor-setup-modal.tsx	style: filter
 R2	css/app.css	.teme-prose { font-size: 16px }
 R2	css/app.css	.teme-prose code { font-size: 0.875em }
 R2	css/app.css	.teme-prose h2 { font-size: 1.5em }
@@ -604,8 +599,6 @@ R2	js/components/list/screen-options.tsx	text-xs
 R2	js/components/list/screen-options.tsx	text-xs
 R2	js/components/list/tab-strip.tsx	text-[11px]
 R2	js/components/list/tab-strip.tsx	text-[13px]
-R2	js/components/manage-two-factor.tsx	text-sm
-R2	js/components/manage-two-factor.tsx	text-sm
 R2	js/components/media-drawer.tsx	text-[13px]
 R2	js/components/media-drawer.tsx	text-sm
 R2	js/components/media-drawer.tsx	text-sm
@@ -725,8 +718,6 @@ R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-xs
-R2	js/components/two-factor-recovery-codes.tsx	text-sm
-R2	js/components/two-factor-recovery-codes.tsx	text-xs
 R2	js/components/types/builder-parts.tsx	text-sm
 R2	js/components/types/builder-parts.tsx	text-sm
 R2	js/components/types/builder-parts.tsx	text-sm
@@ -751,7 +742,6 @@ R2	js/components/user-menu-content.tsx	text-sm
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[11px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[13px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[22px]
-R2	js/pages/account/preferences.tsx	text-sm
 R2	js/pages/auth/forgot-password.tsx	text-sm
 R2	js/pages/auth/forgot-password.tsx	text-sm
 R2	js/pages/auth/login.tsx	text-[13px]
@@ -1104,8 +1094,6 @@ R3	js/components/term-picker.tsx	py-0.5
 R3	js/components/tools/redirect-form.tsx	py-1.5
 R3	js/components/tools/update-progress.tsx	mt-0.5
 R3	js/components/tools/update-progress.tsx	py-0.5
-R3	js/components/two-factor-setup-modal.tsx	p-0.5
-R3	js/components/two-factor-setup-modal.tsx	p-2.5
 R3	js/components/types/builder-parts.tsx	mt-0.5
 R3	js/components/types/field-sheet.tsx	gap-1.5
 R3	js/components/types/field-sheet.tsx	gap-1.5
@@ -1234,8 +1222,6 @@ R5	js/components/term-picker.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<input type="radio">
 R5	js/components/tools/redirect-form.tsx	<select>
-R5	js/components/two-factor-setup-modal.tsx	<button>
-R5	js/components/two-factor-setup-modal.tsx	<input type="text">
 R5	js/components/types/field-sheet.tsx	<input type="radio">
 R5	js/components/types/field-sheet.tsx	<input type="radio">
 R5	js/components/types/field-sheet.tsx	<textarea>
@@ -1314,16 +1300,12 @@ R6	js/components/themes/theme-regions.tsx	rounded
 R6	js/components/themes/theme-regions.tsx	rounded
 R6	js/components/tools/redirect-form.tsx	rounded
 R6	js/components/tools/update-progress.tsx	rounded
-R6	js/components/two-factor-recovery-codes.tsx	rounded
-R6	js/components/two-factor-setup-modal.tsx	z-10
-R6	js/components/two-factor-setup-modal.tsx	z-20
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
 R6	js/pages/content/index.tsx	rounded
 R6	js/pages/regions/index.tsx	rounded
 R6	js/pages/themes/index.tsx	z-10
 R6	js/pages/tools/updates.tsx	rounded
-R7	js/pages/account/preferences.tsx	root:div
 R7	js/pages/auth/accept-invitation.tsx	root:Form
 R7	js/pages/auth/confirm-password.tsx	root:Form
 R7	js/pages/auth/forgot-password.tsx	root:div

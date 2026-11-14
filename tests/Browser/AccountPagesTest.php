@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Users\Operations\Input\SetPictureInput;
 use App\Domain\Users\Operations\SetPicture;
 use App\Domain\Users\Queries\PersonPictures;
@@ -128,3 +129,67 @@ it('shows the save bar once a detail changes on Profile, and saves it', function
 
     expect($this->admin->refresh()->name)->toBe('Ada Lovelace');
 });
+
+it('saves a choice on Preferences the moment it is made, and keeps it after a reload', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/account/preferences');
+    cmWaitUntil($page, 'document.getElementById("field-editor.smart_quotes") !== null');
+
+    $page->assertScript('document.querySelector(\'[data-test="save-bar"]\') === null')
+        ->click('[id="field-editor.smart_quotes"]');
+    cmWaitUntil($page, 'document.body.innerText.includes("Preferences saved.")');
+
+    $page->navigate('/admin/account/preferences');
+    cmWaitUntil($page, 'document.getElementById("field-editor.smart_quotes") !== null');
+
+    $page->assertScript('document.getElementById("field-editor.smart_quotes").getAttribute("data-state")', 'unchecked');
+
+    expect(PreferencesFor::user($this->admin->refresh())['editor.smart_quotes'])->toBeFalse();
+});
+
+it('keeps a typed number until the field is left', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/account/preferences');
+    cmWaitUntil($page, 'document.getElementById("field-editor.rail_width") !== null');
+
+    $page->clear('[id="field-editor.rail_width"]')
+        ->type('[id="field-editor.rail_width"]', '400');
+
+    // Nothing is sent while the field keeps the focus.
+    expect(PreferencesFor::user($this->admin->refresh())['editor.rail_width'])->toBe(360);
+
+    $page->keys('[id="field-editor.rail_width"]', 'Tab');
+    cmWaitUntil($page, 'document.body.innerText.includes("Preferences saved.")');
+
+    expect(PreferencesFor::user($this->admin->refresh())['editor.rail_width'])->toBe(400);
+});
+
+it('opens Two-factor sign-in from the account list after the password, with Turn on two-factor sign-in', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/account/profile');
+    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Account"]\') !== null');
+
+    $page->click('nav[aria-label="Account"] >> text="Two-factor sign-in"')
+        // The password screen is another page; type() and click() wait for its field and button.
+        ->type('#password', 'password')
+        ->click('[data-test="confirm-password-button"]');
+    cmWaitUntil($page, 'document.querySelector("h1")?.textContent === "Two-factor sign-in"');
+
+    $page->assertSee('Turn on two-factor sign-in');
+});
+
+it('passes axe on Preferences and Two-factor sign-in, every target 24 pixels or more, in both schemes', function (string $path, string $scheme): void {
+    lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
+
+    $page = cmNavigate(cmSignIn($this->admin), $path);
+
+    if ($path === '/admin/account/two-factor') {
+        // The password screen is another page; type() and click() wait for its field and button.
+        $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
+    }
+
+    cmWaitUntil($page, 'location.pathname === "'.$path.'" && document.querySelectorAll("h1").length === 1');
+    $page->assertNoAccessibilityIssues(3);
+
+    $targets = cmSmallTargets($page);
+
+    expect($targets['small'])->toBe([])
+        ->and($targets['checked'])->toBeGreaterThan(0);
+})->with(['/admin/account/preferences', '/admin/account/two-factor'])->with(['light', 'dark']);
