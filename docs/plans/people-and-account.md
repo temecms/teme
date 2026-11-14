@@ -750,3 +750,17 @@ No STOP.
 ### How to try it
 
 On Your account › Profile, choose a picture from Media; see it in the account list, the account menu and on People. As an administrator, remove someone else's picture from their row's More menu. Open Two-factor sign-in from the account list. In a phone-sized window, open the account pages from the one button, and see People as cards.
+
+### Follow-up W3-2
+
+The review's fixes, one commit each:
+
+- 33650ca fix(account): Preferences waits for any typed field to be left before saving. `typed()` now counts a textarea and every input but checkbox, radio, hidden, file, range and color; `onFocus` and `onBlur` are kept. Seen red first: `AccountPagesTest` "keeps typed words in a box until the field is left, sending nothing at each key" failed with `Failed asserting that 5 is identical to 0` (five sends for five keys).
+- 4c82eac fix(account): the picture waits for a verified email address, saying why. Choose from Media and Remove are drawn disabled until the address is verified, with "Verify your email address to change your picture."; the routes stay in the `verified` group. Seen red first: "keeps the picture as it is until the email address is verified, saying why" timed out (`Timeout 5000ms exceeded.`) waiting for the Choose button, which was not drawn.
+- 59cb375 fix(account): the picture's error is announced (`role="alert"`), and the account menu's I-1393 note says the role is now shared and only drawing it is left.
+
+- B-?? (draft) The review asks for "a textarea preference (a fixture key registered in the test)", but `PreferenceRegistry` takes only boolean, select, number and list, and refuses any other type. Options: add a text type to the registry (a product change outside this part); put a textarea into the page's form from the test's script (React's change handling ignores an element it did not draw, so it proves nothing); place the fixture among the registry's declarations by reflection, in the test only. Chosen: the last; the page draws the fixture's textarea through `SettingsField` as it would a plugin's. The case counts each save request as it starts, by wrapping `XMLHttpRequest.prototype.open`, because a finished-request count missed requests still in flight.
+- B-?? (draft) "Confirm your email address to choose a picture." (new in this part) gives way to the review's "Verify your email address to change your picture.", which now covers Remove too.
+- Environment: the test PostgreSQL cluster and Valkey had stopped when the follow-up started. I restarted them with the setup script's own commands (`pg_ctlcluster 18 test start`, `valkey-server --port 6380 …`) and changed nothing else.
+
+Checks: Pint, PHPStan, types, lint and Architecture (103 passed) after each fix; `ShellTest` (Feature) 37 passed. After `npm run build`: `AccountPagesTest` 18 passed, `PeopleScreenTest` 14 passed.
