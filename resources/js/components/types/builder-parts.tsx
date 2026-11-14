@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { StatusPill } from '@/components/ui/status-pill';
 import { navIcon } from '@/lib/nav-icons';
 
 /**
  * The parts the type builder and the taxonomy builder share: a labelled
  * field, a flag with its reason, the facts of a read-only page, the hint
- * under a control, the source badge and the list toggle.
+ * under a control, the source pill and the list toggle.
  */
 
 export function Field({
@@ -32,7 +32,7 @@ export function Field({
     onChange: (value: string) => void;
 }) {
     return (
-        <div className="grid min-w-0 gap-2">
+        <div className="grid min-w-0 gap-1">
             <Label htmlFor={id}>{label}</Label>
             <Input
                 id={id}
@@ -73,23 +73,24 @@ export function Flag({
     return (
         <div className="grid gap-1">
             <div className="flex items-start gap-2">
-                <Checkbox
-                    id={id}
-                    name={name}
-                    value={value}
-                    checked={checked}
-                    disabled={disabled}
-                    onCheckedChange={onCheckedChange}
-                    className="mt-0.5"
-                />
+                <span className="text-body flex h-lh shrink-0 items-center">
+                    <Checkbox
+                        id={id}
+                        name={name}
+                        value={value}
+                        checked={checked}
+                        disabled={disabled}
+                        onCheckedChange={onCheckedChange}
+                    />
+                </span>
                 {disabled && checked && (
                     <input type="hidden" name={name} value={value} />
                 )}
-                <div className="grid gap-0.5">
+                <div className="grid gap-1">
                     <Label htmlFor={id}>{label}</Label>
                     {hint !== undefined && <Hint>{hint}</Hint>}
                     {reason !== undefined && (
-                        <p className="text-sm">{reason}</p>
+                        <p className="text-small">{reason}</p>
                     )}
                 </div>
             </div>
@@ -110,14 +111,14 @@ export function SourceBadge({
     }
 
     if (mode === 'view' || source === 'code') {
-        return <Badge variant="outline">Code</Badge>;
+        return <StatusPill tone="neutral">Code</StatusPill>;
     }
 
     if (source === 'refused') {
-        return <Badge variant="destructive">Can’t be used</Badge>;
+        return <StatusPill tone="danger">Can’t be used</StatusPill>;
     }
 
-    return <Badge variant="secondary">Made here</Badge>;
+    return <StatusPill tone="info">Made here</StatusPill>;
 }
 
 export function IconName({ name }: { name: string }) {
@@ -143,15 +144,15 @@ export function Fact({
     children: ReactNode;
 }) {
     return (
-        <div className="grid gap-0.5 sm:grid-cols-[180px_1fr] sm:gap-4">
-            <dt className="text-sm font-medium">{label}</dt>
-            <dd className="min-w-0 text-sm">{children}</dd>
+        <div className="grid gap-1 sm:grid-cols-3 sm:gap-4">
+            <dt className="text-body font-medium">{label}</dt>
+            <dd className="text-body min-w-0 sm:col-span-2">{children}</dd>
         </div>
     );
 }
 
 export function Hint({ children }: { children: ReactNode }) {
-    return <p className="text-ink-2 text-sm">{children}</p>;
+    return <p className="text-small text-ink-2">{children}</p>;
 }
 
 export function toggle(current: string[], key: string, on: boolean): string[] {

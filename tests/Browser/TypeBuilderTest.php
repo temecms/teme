@@ -65,11 +65,16 @@ it('changes Films while they have items, each control that can’t change saying
 
     expect($page->script('() => [document.querySelector("#type-public").disabled, document.querySelector("#type-single").disabled]'))->toBe([true, true])
         // A ticked control that can't change is still sent as it stands: a disabled input never is.
-        ->and($page->script('() => document.querySelectorAll(\'main form input[type="hidden"][name="public"][value="1"]\').length'))->toBe(1)
-        ->and($page->script('() => { const bar = document.querySelector("[data-test=\"save-bar\"]").getBoundingClientRect(); return bar.top >= 0 && bar.bottom <= window.innerHeight; }'))->toBeTrue();
+        ->and($page->script('() => document.querySelectorAll(\'main form input[type="hidden"][name="public"][value="1"]\').length'))->toBe(1);
 
-    $page->type('#type-plural', 'Movies')->click('[data-test="type-save"]');
+    $page->type('#type-plural', 'Movies');
+
+    // The bar shows once there is a change, inside the window.
+    expect($page->script('() => { const bar = document.querySelector("[data-test=\"save-bar\"]"); const box = bar.getBoundingClientRect(); return !bar.hidden && box.height > 0 && box.top >= 0 && box.bottom <= window.innerHeight; }'))->toBeTrue();
+
+    $page->click('[data-test="type-save"]');
     ($this->seen)($page, 'Saved Movies.');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === true');
 
     expect(app(ContentTypeRegistry::class)->get('film')->public)->toBeTrue()
         ->and(app(ContentTypeRegistry::class)->get('film')->plural)->toBe('Movies');
@@ -90,7 +95,7 @@ it('gives Films their own permissions from the Permissions panel, and shows who 
 
     expect($page->script('() => document.querySelectorAll(\'[data-test="type-permissions-table"] tbody tr\').length'))->toBe(6)
         ->and($page->script('() => document.querySelector(\'[data-test="type-permissions-table"] tbody tr:nth-child(4) code\').textContent'))->toBe('film.publish')
-        ->and($page->script('() => document.querySelector("#type-permissions-own").checked'))->toBeTrue()
+        ->and($page->script('() => document.querySelector("#type-permissions-own").getAttribute("aria-checked") === "true"'))->toBeTrue()
         ->and(app(ContentTypeRegistry::class)->get('film')->ability('publish'))->toBe('film.publish');
 });
 
@@ -195,7 +200,8 @@ it('saves a type that isn’t public, has items and was saved as searchable, its
     $page = cmSignIn($this->admin)->navigate('/admin/types/note');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="type-save"]\') !== null');
 
-    $page->click('[data-test="type-save"]');
+    // The save bar shows once something changes.
+    $page->type('#type-singular', 'Memo')->click('[data-test="type-save"]');
     ($this->seen)($page, 'Saved Notes.');
 
     app(ContentTypeRegistry::class)->refreshStored();
@@ -228,4 +234,78 @@ it('preloads at most 48 files on the media screen, the whole icon set staying on
     $preloaded = $page->script('() => [...document.querySelectorAll(\'link[rel="modulepreload"]\')].map((link) => link.href)');
 
     expect(collect($preloaded)->filter(fn (string $href): bool => str_ends_with($href, $iconSet)))->toBeEmpty();
+});
+
+it('moves between Films\' sections from the row of tabs without leaving the page, and keeps what was typed', function (): void {
+    tbSite($this->admin);
+
+    // A view shorter than the form, so the page can scroll Permissions, near its foot, to the top.
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 700), '/admin/types/film');
+    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this type"]\') !== null');
+
+    $page->append('#type-plural', ' (new)');
+    $page->click('nav[aria-label="Sections of this type"] a[href="#type-section-permissions"]');
+
+    // The view: the nearest box that scrolls the section, else the window.
+    cmWaitUntil($page, <<<'JS'
+        (() => {
+            const section = document.querySelector("#type-section-permissions");
+            let view = section.parentElement;
+
+            while (view !== null && !(['auto', 'scroll'].includes(getComputedStyle(view).overflowY) && view.scrollHeight > view.clientHeight)) {
+                view = view.parentElement;
+            }
+
+            const top = view === null ? 0 : Math.max(0, view.getBoundingClientRect().top);
+
+            return Math.abs(section.getBoundingClientRect().top - top) <= 80;
+        })()
+        JS);
+
+    expect($page->script('() => document.querySelector(\'nav[aria-label="Sections of this type"] a[href="#type-section-permissions"]\').getAttribute("aria-current")'))->toBe('location')
+        ->and($page->script('() => location.pathname'))->toBe('/admin/types/film')
+        ->and($page->script('() => document.querySelector(\'[data-test="leave-guard"]\') === null'))->toBeTrue()
+        ->and($page->script('() => document.querySelector("#type-plural").value.endsWith(" (new)")'))->toBeTrue()
+        ->and($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeFalse();
+});
+
+it('shows the save bar when only the icon changes, and Discard puts the icon back', function (): void {
+    tbSite($this->admin);
+    $savedIcon = app(ContentTypeRegistry::class)->get('film')->icon;
+
+    $page = cmSignIn($this->admin)->navigate('/admin/types/film');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="type-icon-change"]\') !== null');
+
+    $page->click('[data-test="type-icon-change"]');
+    cmWaitUntil($page, $this->dialogSettled.' && document.querySelector(\'[role="dialog"] #icon-search\') !== null');
+
+    $page->type('#icon-search', 'clapper');
+    cmWaitUntil($page, 'document.querySelector(\'[role="dialog"] button[aria-label="clapperboard"] svg path\') !== null');
+    $page->click('[role="dialog"] button[aria-label="clapperboard"]');
+    cmWaitUntil($page, 'document.querySelector(\'[role="dialog"]\') === null && document.querySelector(\'input[name="icon"]\').value === "clapperboard"');
+
+    expect($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeFalse();
+
+    $page->click('[data-test="save-bar-discard"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === true');
+
+    expect($page->script('() => document.querySelector(\'input[name="icon"]\').value'))->toBe($savedIcon);
+});
+
+it('keeps the row of tabs from covering a section\'s top at 375 pixels', function (): void {
+    tbSite($this->admin);
+
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 812), '/admin/types/film');
+    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this type"]\') !== null');
+
+    // A section the page can scroll to its top: the last one sits at the page's foot.
+    $page->click('nav[aria-label="Sections of this type"] a[href="#type-section-site"]');
+
+    // Once the scroll has brought the section to the top of the window.
+    cmWaitUntil($page, '(() => { const top = document.querySelector("#type-section-site").getBoundingClientRect().top; return top >= 0 && top <= 80; })()');
+
+    expect($page->script(<<<'JS'
+        () => Math.round(document.querySelector('#type-section-site').getBoundingClientRect().top)
+            >= Math.round(document.querySelector('nav[aria-label="Sections of this type"]').getBoundingClientRect().bottom)
+        JS))->toBeTrue();
 });

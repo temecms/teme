@@ -1679,10 +1679,8 @@ pages/navigation/edit.tsx	Only the name changes. Themes that show this menu keep
 pages/navigation/edit.tsx	Rename
 pages/navigation/edit.tsx	Rename menu
 pages/navigation/edit.tsx	Rename the menu
-pages/navigation/edit.tsx	Save menu
 pages/navigation/edit.tsx	Show in
 pages/navigation/edit.tsx	This menu has no items yet
-pages/navigation/edit.tsx	Unsaved changes
 pages/navigation/edit.tsx	Where {} shows a menu. Each place shows one menu.
 pages/navigation/edit.tsx	{} (this menu)
 pages/navigation/edit.tsx	{} will show no menu until you choose another. This cannot be undone.
@@ -1860,7 +1858,6 @@ pages/taxonomies/index.tsx	You can still look at each taxonomy, and download tem
 pages/taxonomies/index.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	, which keeps every old address working as a redirect.
 pages/taxonomies/show.tsx	/admin/
-pages/taxonomies/show.tsx	Add taxonomy
 pages/taxonomies/show.tsx	Address base
 pages/taxonomies/show.tsx	Admin address
 pages/taxonomies/show.tsx	Arranged
@@ -1899,7 +1896,6 @@ pages/taxonomies/show.tsx	Plural name
 pages/taxonomies/show.tsx	Public address
 pages/taxonomies/show.tsx	Public address
 pages/taxonomies/show.tsx	Public pages
-pages/taxonomies/show.tsx	Save taxonomy
 pages/taxonomies/show.tsx	Settings › Addresses
 pages/taxonomies/show.tsx	Singular name
 pages/taxonomies/show.tsx	Singular name
@@ -1957,31 +1953,14 @@ pages/terms/index.tsx	Some themes show it on the {}’s page, and search engines
 pages/terms/index.tsx	The last part of its address. Leave it empty to make one from the name.
 pages/terms/index.tsx	Use the form to add the first one.
 pages/terms/index.tsx	{} in {}
-pages/themes/index.tsx	A menu you choose here shows once you publish, and replaces whatever Content › Navigation sets for that place. Places you don’t change here keep Navigation’s menu.
-pages/themes/index.tsx	Archive
-pages/themes/index.tsx	Content
-pages/themes/index.tsx	Discard
-pages/themes/index.tsx	Edit menus
 pages/themes/index.tsx	How the public site looks. A theme draws the site; it adds no features of its own.
-pages/themes/index.tsx	Latest posts
-pages/themes/index.tsx	Menus
-pages/themes/index.tsx	None
 pages/themes/index.tsx	Open Settings › General
-pages/themes/index.tsx	Preview
-pages/themes/index.tsx	Publish
 pages/themes/index.tsx	Saved as a draft.
 pages/themes/index.tsx	Saving the draft…
-pages/themes/index.tsx	Site
 pages/themes/index.tsx	The last change was not saved. Check the fields marked below.
 pages/themes/index.tsx	The site’s name, tagline and brand colour stay when you change theme.
 pages/themes/index.tsx	Themes
 pages/themes/index.tsx	Themes
-pages/themes/index.tsx	Unpublished design changes
-pages/themes/index.tsx	Unpublished design changes
-pages/themes/index.tsx	Visitors see these once you activate
-pages/themes/index.tsx	has no settings or menu places of its own.
-pages/themes/index.tsx	settings
-pages/themes/index.tsx	· by {}
 pages/tools/ai-activity.tsx	1 request used a model with no price, so its cost is left out.
 pages/tools/ai-activity.tsx	A removed person
 pages/tools/ai-activity.tsx	AI activity
@@ -2385,7 +2364,6 @@ pages/types/show.tsx	/{segment}/{slug}/
 pages/types/show.tsx	/{}/{slug}/
 pages/types/show.tsx	1 field of your own:
 pages/types/show.tsx	Add fields once the type is saved.
-pages/types/show.tsx	Add type
 pages/types/show.tsx	Admin address
 pages/types/show.tsx	Admin address
 pages/types/show.tsx	Archive page
@@ -2450,7 +2428,6 @@ pages/types/show.tsx	Public address
 pages/types/show.tsx	Public address
 pages/types/show.tsx	Public addresses
 pages/types/show.tsx	Roles can’t be changed yet: this shows what each role may do. To change what someone can do, give them another role on People.
-pages/types/show.tsx	Save type
 pages/types/show.tsx	Settings › Addresses
 pages/types/show.tsx	Shown in site search
 pages/types/show.tsx	Singular name

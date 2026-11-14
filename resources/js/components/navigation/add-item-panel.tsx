@@ -6,6 +6,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Sheet,
     SheetContent,
@@ -13,7 +14,6 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 import { search as searchTerms } from '@/routes/terms';
 import type { MenuItem, MenuTargetKind } from '@/types';
 import { shownTitle, quotedTitle } from '@/lib/titles';
@@ -43,19 +43,21 @@ function Results({
         <div className="grid gap-4">
             {groups.map((group) => (
                 <section key={group.label} className="grid gap-1">
-                    <h3 className="text-ink-2 text-[12px] font-semibold">
+                    <h3 className="text-ink-2 text-caption font-semibold">
                         {group.label}
                     </h3>
                     <ul className="grid">
                         {group.items.map((item) => (
                             <li key={item.id}>
-                                <button
+                                <Button
                                     type="button"
-                                    className="hover:bg-surface-2 w-full rounded px-2 py-1.5 text-left text-[13px]"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-ink w-full justify-start"
                                     onClick={item.add}
                                 >
                                     {item.title}
-                                </button>
+                                </Button>
                             </li>
                         ))}
                     </ul>
@@ -274,7 +276,7 @@ export function AddItemPanel({
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="w-full sm:max-w-[480px]">
+            <SheetContent>
                 <SheetHeader>
                     <SheetTitle>Add an item</SheetTitle>
                     <SheetDescription>
@@ -283,199 +285,204 @@ export function AddItemPanel({
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="grid gap-4 overflow-y-auto px-4 pb-4">
-                    <div
-                        role="tablist"
-                        aria-label="What to add"
-                        className="border-line flex flex-wrap gap-x-5 border-b"
-                        onKeyDown={onTabKey}
-                    >
-                        {tabs.map((item) => (
-                            <button
-                                key={item.key}
-                                id={`add-item-tab-${item.key}`}
-                                type="button"
-                                role="tab"
-                                aria-selected={tab === item.key}
-                                aria-controls={`add-item-panel-${item.key}`}
-                                tabIndex={tab === item.key ? 0 : -1}
-                                onClick={() => setTab(item.key)}
-                                className={cn(
-                                    '-mb-px inline-flex h-9 items-center border-b-2 px-0.5 text-[13px]',
-                                    tab === item.key
-                                        ? 'border-accent text-ink font-semibold'
-                                        : 'text-ink-2 hover:text-ink border-transparent font-medium',
-                                )}
+                <ScrollArea className="flex-1">
+                    <div className="grid gap-4 px-4 pb-4">
+                        <div
+                            role="tablist"
+                            aria-label="What to add"
+                            className="flex flex-wrap gap-1"
+                            onKeyDown={onTabKey}
+                        >
+                            {tabs.map((item) => (
+                                <Button
+                                    key={item.key}
+                                    id={`add-item-tab-${item.key}`}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={tab === item.key}
+                                    aria-controls={`add-item-panel-${item.key}`}
+                                    tabIndex={tab === item.key ? 0 : -1}
+                                    onClick={() => setTab(item.key)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="aria-selected:bg-surface-3 aria-selected:text-ink"
+                                >
+                                    {item.label}
+                                </Button>
+                            ))}
+                        </div>
+
+                        {tab === 'home' && (
+                            <div
+                                id="add-item-panel-home"
+                                role="tabpanel"
+                                aria-labelledby="add-item-tab-home"
+                                className="grid justify-items-start gap-3"
                             >
-                                {item.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {tab === 'home' && (
-                        <div
-                            id="add-item-panel-home"
-                            role="tabpanel"
-                            aria-labelledby="add-item-tab-home"
-                            className="grid justify-items-start gap-3"
-                        >
-                            <p className="text-ink-2 text-[13px]">
-                                A link to the front page of the site. The label
-                                starts as “Home”.
-                            </p>
-                            <Button type="button" onClick={addHome}>
-                                Add the home page
-                            </Button>
-                        </div>
-                    )}
-
-                    {tab === 'heading' && (
-                        <form
-                            id="add-item-panel-heading"
-                            role="tabpanel"
-                            aria-labelledby="add-item-tab-heading"
-                            className="grid gap-3"
-                            onSubmit={(event) => {
-                                event.preventDefault();
-                                addHeading();
-                            }}
-                        >
-                            <p className="text-ink-2 text-[13px]">
-                                {HEADING_HINT}
-                            </p>
-                            <div className="grid gap-2">
-                                <Label htmlFor="add-item-heading">Label</Label>
-                                <Input
-                                    id="add-item-heading"
-                                    value={heading}
-                                    onChange={(event) =>
-                                        setHeading(event.target.value)
-                                    }
-                                    maxLength={200}
-                                    aria-describedby="add-item-heading-error"
-                                    aria-invalid={
-                                        headingError !== undefined
-                                            ? true
-                                            : undefined
-                                    }
-                                    required
-                                />
-                                <InputError
-                                    id="add-item-heading-error"
-                                    message={headingError}
-                                />
-                            </div>
-                            <div>
-                                <Button>Add heading</Button>
-                            </div>
-                        </form>
-                    )}
-
-                    {tab === 'content' && (
-                        <div
-                            id="add-item-panel-content"
-                            role="tabpanel"
-                            aria-labelledby="add-item-tab-content"
-                            className="grid gap-3"
-                        >
-                            <Input
-                                value={contentQuery}
-                                onChange={(event) =>
-                                    setContentQuery(event.target.value)
-                                }
-                                placeholder="Find by title"
-                                aria-label="Find by title"
-                            />
-                            {contentGroups.length === 0 ? (
-                                <p className="text-ink-2 text-[13px]">
-                                    Nothing found.
+                                <p className="text-ink-2 text-small">
+                                    A link to the front page of the site. The
+                                    label starts as “Home”.
                                 </p>
-                            ) : (
-                                <Results groups={contentGroups} />
-                            )}
-                        </div>
-                    )}
+                                <Button type="button" onClick={addHome}>
+                                    Add the home page
+                                </Button>
+                            </div>
+                        )}
 
-                    {tab === 'terms' && (
-                        <div
-                            id="add-item-panel-terms"
-                            role="tabpanel"
-                            aria-labelledby="add-item-tab-terms"
-                            className="grid gap-3"
-                        >
-                            <Input
-                                value={termQuery}
-                                onChange={(event) =>
-                                    setTermQuery(event.target.value)
-                                }
-                                placeholder="Find by name"
-                                aria-label="Find by name"
-                            />
-                            {termQuery.trim() !== '' &&
-                                (termGroups.length === 0 ? (
-                                    <p className="text-ink-2 text-[13px]">
+                        {tab === 'heading' && (
+                            <form
+                                id="add-item-panel-heading"
+                                role="tabpanel"
+                                aria-labelledby="add-item-tab-heading"
+                                className="grid gap-3"
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    addHeading();
+                                }}
+                            >
+                                <p className="text-ink-2 text-small">
+                                    {HEADING_HINT}
+                                </p>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="add-item-heading">
+                                        Label
+                                    </Label>
+                                    <Input
+                                        id="add-item-heading"
+                                        value={heading}
+                                        onChange={(event) =>
+                                            setHeading(event.target.value)
+                                        }
+                                        maxLength={200}
+                                        aria-describedby="add-item-heading-error"
+                                        aria-invalid={
+                                            headingError !== undefined
+                                                ? true
+                                                : undefined
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        id="add-item-heading-error"
+                                        message={headingError}
+                                    />
+                                </div>
+                                <div>
+                                    <Button>Add heading</Button>
+                                </div>
+                            </form>
+                        )}
+
+                        {tab === 'content' && (
+                            <div
+                                id="add-item-panel-content"
+                                role="tabpanel"
+                                aria-labelledby="add-item-tab-content"
+                                className="grid gap-3"
+                            >
+                                <Input
+                                    value={contentQuery}
+                                    onChange={(event) =>
+                                        setContentQuery(event.target.value)
+                                    }
+                                    placeholder="Find by title"
+                                    aria-label="Find by title"
+                                />
+                                {contentGroups.length === 0 ? (
+                                    <p className="text-ink-2 text-small">
                                         Nothing found.
                                     </p>
                                 ) : (
-                                    <Results groups={termGroups} />
-                                ))}
-                        </div>
-                    )}
+                                    <Results groups={contentGroups} />
+                                )}
+                            </div>
+                        )}
 
-                    {tab === 'address' && (
-                        <form
-                            id="add-item-panel-address"
-                            role="tabpanel"
-                            aria-labelledby="add-item-tab-address"
-                            className="grid gap-3"
-                            onSubmit={(event) => {
-                                event.preventDefault();
-                                addAddress();
-                            }}
-                        >
-                            <div className="grid gap-2">
-                                <Label htmlFor="add-item-url">Address</Label>
+                        {tab === 'terms' && (
+                            <div
+                                id="add-item-panel-terms"
+                                role="tabpanel"
+                                aria-labelledby="add-item-tab-terms"
+                                className="grid gap-3"
+                            >
                                 <Input
-                                    id="add-item-url"
-                                    value={url}
+                                    value={termQuery}
                                     onChange={(event) =>
-                                        setUrl(event.target.value)
+                                        setTermQuery(event.target.value)
                                     }
-                                    placeholder="https://example.org/"
-                                    aria-describedby="add-item-url-error"
-                                    aria-invalid={
-                                        urlError !== undefined
-                                            ? true
-                                            : undefined
-                                    }
-                                    required
+                                    placeholder="Find by name"
+                                    aria-label="Find by name"
                                 />
-                                <InputError
-                                    id="add-item-url-error"
-                                    message={urlError}
-                                />
+                                {termQuery.trim() !== '' &&
+                                    (termGroups.length === 0 ? (
+                                        <p className="text-ink-2 text-small">
+                                            Nothing found.
+                                        </p>
+                                    ) : (
+                                        <Results groups={termGroups} />
+                                    ))}
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="add-item-label">Label</Label>
-                                <Input
-                                    id="add-item-label"
-                                    value={label}
-                                    onChange={(event) =>
-                                        setLabel(event.target.value)
-                                    }
-                                    maxLength={200}
-                                />
-                            </div>
-                            <div>
-                                <Button>Add</Button>
-                            </div>
-                        </form>
-                    )}
+                        )}
 
-                    <p role="status" className="sr-only">
-                        {added}
-                    </p>
-                </div>
+                        {tab === 'address' && (
+                            <form
+                                id="add-item-panel-address"
+                                role="tabpanel"
+                                aria-labelledby="add-item-tab-address"
+                                className="grid gap-3"
+                                onSubmit={(event) => {
+                                    event.preventDefault();
+                                    addAddress();
+                                }}
+                            >
+                                <div className="grid gap-2">
+                                    <Label htmlFor="add-item-url">
+                                        Address
+                                    </Label>
+                                    <Input
+                                        id="add-item-url"
+                                        value={url}
+                                        onChange={(event) =>
+                                            setUrl(event.target.value)
+                                        }
+                                        placeholder="https://example.org/"
+                                        aria-describedby="add-item-url-error"
+                                        aria-invalid={
+                                            urlError !== undefined
+                                                ? true
+                                                : undefined
+                                        }
+                                        required
+                                    />
+                                    <InputError
+                                        id="add-item-url-error"
+                                        message={urlError}
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="add-item-label">
+                                        Label
+                                    </Label>
+                                    <Input
+                                        id="add-item-label"
+                                        value={label}
+                                        onChange={(event) =>
+                                            setLabel(event.target.value)
+                                        }
+                                        maxLength={200}
+                                    />
+                                </div>
+                                <div>
+                                    <Button>Add</Button>
+                                </div>
+                            </form>
+                        )}
+
+                        <p role="status" className="sr-only">
+                            {added}
+                        </p>
+                    </div>
+                </ScrollArea>
             </SheetContent>
         </Sheet>
     );

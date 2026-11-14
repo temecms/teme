@@ -91,3 +91,9 @@ export type DesignPage = {
     /** Whether the viewer may edit regions, so each links to where it is edited. */
     canEditRegions: boolean;
 };
+
+/** A theme's own settings page: what Themes sends, without the regions. */
+export type DesignSettingsPage = Omit<
+    DesignPage,
+    'regions' | 'previewRegions' | 'canEditRegions'
+>;

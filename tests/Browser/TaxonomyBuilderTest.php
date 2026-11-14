@@ -189,3 +189,36 @@ it('shows an editor no Set up on the term screen', function (): void {
 
     expect($page->script('() => document.querySelector("[data-test=\"term-setup\"]")'))->toBeNull();
 });
+
+it('moves between Genres\' sections from the row of tabs without leaving the page', function (): void {
+    ($this->site)();
+
+    // A view shorter than the form, so the page can scroll On the site, near its foot, to the top.
+    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 700), '/admin/taxonomies/genre');
+    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this taxonomy"]\') !== null');
+
+    $page->append('#taxonomy-plural', ' (new)');
+    $page->click('nav[aria-label="Sections of this taxonomy"] a[href="#taxonomy-section-site"]');
+
+    // The view: the nearest box that scrolls the section, else the window.
+    cmWaitUntil($page, <<<'JS'
+        (() => {
+            const section = document.querySelector("#taxonomy-section-site");
+            let view = section.parentElement;
+
+            while (view !== null && !(['auto', 'scroll'].includes(getComputedStyle(view).overflowY) && view.scrollHeight > view.clientHeight)) {
+                view = view.parentElement;
+            }
+
+            const top = view === null ? 0 : Math.max(0, view.getBoundingClientRect().top);
+
+            return Math.abs(section.getBoundingClientRect().top - top) <= 80;
+        })()
+        JS);
+
+    expect($page->script('() => document.querySelector(\'nav[aria-label="Sections of this taxonomy"] a[href="#taxonomy-section-site"]\').getAttribute("aria-current")'))->toBe('location')
+        ->and($page->script('() => location.pathname'))->toBe('/admin/taxonomies/genre')
+        ->and($page->script('() => document.querySelector(\'[data-test="leave-guard"]\') === null'))->toBeTrue()
+        ->and($page->script('() => document.querySelector("#taxonomy-plural").value.endsWith(" (new)")'))->toBeTrue()
+        ->and($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeFalse();
+});

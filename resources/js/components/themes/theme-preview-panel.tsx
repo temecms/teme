@@ -1,8 +1,8 @@
 import { Link } from '@inertiajs/react';
-import { Eye } from 'lucide-react';
 import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
 import { show as showSettings } from '@/routes/settings';
 import type { ThemePreview } from '@/types';
 
@@ -41,85 +41,90 @@ export function ThemePreviewPanel({
     children?: ReactNode;
 }) {
     return (
-        <section
+        <Notice
+            tone="info"
+            role="region"
             aria-labelledby="theme-preview-heading"
             data-test="theme-preview-panel"
-            className="border-ink grid gap-4 rounded border p-4"
         >
-            <div className="grid gap-1">
-                <h2
-                    id="theme-preview-heading"
-                    tabIndex={-1}
-                    className="flex items-center gap-2 text-[15px] font-semibold"
-                >
-                    <Eye aria-hidden="true" className="size-4" />
-                    Previewing {preview.name} {preview.version}
-                </h2>
-                <p className="text-ink-2 text-[13px]">
-                    {activeName === null
-                        ? 'Visitors still see plain pages.'
-                        : `Visitors still see ${activeName}.`}{' '}
-                    Anyone who may change the design sees this preview until it
-                    is activated or stopped.
-                </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-                <Button
-                    type="button"
-                    size="sm"
-                    disabled={busy}
-                    onClick={onActivate}
-                    data-test="theme-activate"
-                >
-                    Activate {preview.name}
-                </Button>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={onOpenSite}
-                >
-                    Open the site in preview
-                </Button>
-                <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={onStop}
-                    aria-describedby={
-                        preview.changed ? 'theme-preview-drops' : undefined
-                    }
-                    data-test="theme-stop"
-                >
-                    Stop previewing
-                </Button>
-            </div>
-            {(colourError !== undefined || themeError !== undefined) && (
-                <div role="alert" className="grid gap-1">
-                    <InputError message={colourError ?? themeError} />
-                    {colourError !== undefined && (
-                        <Link
-                            href={showSettings({ group: 'general' })}
-                            className="text-[13px] underline"
-                        >
-                            Change the brand colour in Settings › General
-                        </Link>
-                    )}
+            <div className="grid gap-4">
+                <div className="grid gap-1">
+                    <h2
+                        id="theme-preview-heading"
+                        tabIndex={-1}
+                        className="text-body font-semibold"
+                    >
+                        Previewing {preview.name} {preview.version}
+                    </h2>
+                    <p className="text-small text-ink-2">
+                        {activeName === null
+                            ? 'Visitors still see plain pages.'
+                            : `Visitors still see ${activeName}.`}{' '}
+                        Anyone who may change the design sees this preview until
+                        it is activated or stopped.
+                    </p>
                 </div>
-            )}
-            {preview.changed && (
-                <p id="theme-preview-drops" className="text-ink-2 text-[13px]">
-                    Stopping drops the changes made to {preview.name}’s settings
-                    and menus.
-                </p>
-            )}
-            {unbound.length > 0 && (
-                <p className="text-[13px]" role="note">
-                    These places in {preview.name} show no menu yet:{' '}
-                    {unbound.join(', ')}. Choose them under Menus below.
-                </p>
-            )}
-            {children}
-        </section>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                        type="button"
+                        size="sm"
+                        disabled={busy}
+                        onClick={onActivate}
+                        data-test="theme-activate"
+                    >
+                        Activate {preview.name}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="neutral"
+                        size="sm"
+                        onClick={onOpenSite}
+                    >
+                        Open the site in preview
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="neutral"
+                        size="sm"
+                        onClick={onStop}
+                        aria-describedby={
+                            preview.changed ? 'theme-preview-drops' : undefined
+                        }
+                        data-test="theme-stop"
+                    >
+                        Stop previewing
+                    </Button>
+                </div>
+                {(colourError !== undefined || themeError !== undefined) && (
+                    <div role="alert" className="grid gap-1">
+                        <InputError message={colourError ?? themeError} />
+                        {colourError !== undefined && (
+                            <Link
+                                href={showSettings({ group: 'general' })}
+                                className="text-small underline"
+                            >
+                                Change the brand colour in Settings › General
+                            </Link>
+                        )}
+                    </div>
+                )}
+                {preview.changed && (
+                    <p
+                        id="theme-preview-drops"
+                        className="text-small text-ink-2"
+                    >
+                        Stopping drops the changes made to {preview.name}’s
+                        settings and menus.
+                    </p>
+                )}
+                {unbound.length > 0 && (
+                    <p className="text-small">
+                        These places in {preview.name} show no menu yet:{' '}
+                        {unbound.join(', ')}. Choose them under Menus below.
+                    </p>
+                )}
+                {children}
+            </div>
+        </Notice>
     );
 }

@@ -27,9 +27,9 @@ it('draws Open Settings › General as a button beside the site-settings line on
 });
 
 it('puts Edit menus in the Menus panel’s header on Themes', function (): void {
-    $source = ($this->flat)('pages/themes/index.tsx');
-    $header = ($this->at)($source, '<PanelHeader id="design-menus">');
-    $end = ($this->at)($source, '</PanelHeader>', $header);
+    $source = ($this->flat)('pages/themes/settings.tsx');
+    $header = ($this->at)($source, "title={__('Menus')}");
+    $end = ($this->at)($source, '<Field', $header);
 
     expect(substr($source, $header, $end - $header))->toContain('Edit menus')->toContain('asChild')
         ->and($source)->not->toContain('Edit menus on Content');

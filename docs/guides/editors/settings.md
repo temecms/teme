@@ -16,6 +16,7 @@ sources:
   - resources/js/components/fields
   - resources/js/layouts/settings
   - resources/js/pages/themes
+  - resources/js/components/themes
   - app/Domain/Settings
   - app/Domain/Seo
   - app/Domain/Addresses

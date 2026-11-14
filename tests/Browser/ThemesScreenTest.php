@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Design\Operations\Input\SaveDesignDraftInput;
+use App\Domain\Design\Operations\SaveDesignDraft;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -63,14 +65,18 @@ it('previews a theme from its row, focusing the panel, with no foot bar, and sto
 
     $page->click('[data-test="theme-default"] [data-test="theme-preview"]');
 
-    cmWaitUntil($page, "document.activeElement?.id === 'theme-preview-heading' && document.querySelector('#design-show_author_box') !== null");
+    cmWaitUntil($page, "document.activeElement?.id === 'theme-preview-heading'");
 
     $page->assertScript("document.querySelector('#theme-preview-heading')?.textContent?.trim() === 'Previewing Teme Default 0.1.0'")
         ->assertScript("document.querySelector('[data-test=\"theme-default\"] [data-test=\"theme-state\"]')?.textContent === 'Previewing'")
         // While a theme is previewed, the panel's buttons are the draft's two ends.
         ->assertScript("document.querySelector('[aria-label=\"Unpublished design changes\"]') === null")
-        // A change to the previewed theme's settings, waiting for its save, then Stop at once.
-        ->click('#design-show_author_box')
+        ->click('[data-test="theme-default"] [data-test="theme-settings-link"]');
+
+    cmWaitUntil($page, "location.pathname === '/admin/themes/default/settings' && document.querySelector('#design-show_author_box') !== null");
+
+    // A change to the previewed theme's settings, waiting for its save, then Stop at once.
+    $page->click('#design-show_author_box')
         ->click('[data-test="theme-stop"]');
 
     ($this->textShown)($page, 'Stopped previewing Teme Default.');
@@ -132,7 +138,11 @@ it('activates a previewed theme with a change made a moment before, saying it is
 
     $page->click('[data-test="theme-default"] [data-test="theme-preview"]');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-activate\"]') !== null && document.querySelector('#design-show_author_box') !== null");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-default\"] [data-test=\"theme-settings-link\"]') !== null");
+
+    $page->click('[data-test="theme-default"] [data-test="theme-settings-link"]');
+
+    cmWaitUntil($page, "location.pathname === '/admin/themes/default/settings' && document.querySelector('[data-test=\"theme-activate\"]') !== null && document.querySelector('#design-show_author_box') !== null");
 
     // Teme Default shows the author's box by default; the change is still waiting for its save when Activate is pressed.
     $page->click('#design-show_author_box')
@@ -141,6 +151,9 @@ it('activates a previewed theme with a change made a moment before, saying it is
     // Teme Default places one region, which nobody has filled for it.
     ($this->textShown)($page, 'Teme Default is live. 1 region stays empty until you fill it in Content › Regions.');
     cmWaitUntil($page, "document.querySelector('[data-test=\"theme-preview-panel\"]') === null");
+
+    cmNavigate($page, '/admin/themes');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-list\"]') !== null");
 
     $page->assertScript("document.querySelector('[data-test=\"theme-list\"]')?.firstElementChild?.getAttribute('data-test') === 'theme-default'")
         ->assertScript("document.querySelector('[data-test=\"theme-default\"] [data-test=\"theme-state\"]')?.textContent === 'Active'");
@@ -152,14 +165,73 @@ it('activates a previewed theme with a change made a moment before, saying it is
 it('takes the active theme\'s row to its settings, headed by its name, with the brand colour left to General', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/themes');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-good\"] [href=\"#theme-settings\"]') !== null");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"theme-good\"] [data-test=\"theme-settings-link\"]') !== null");
 
-    $page->click('[data-test="theme-good"] [href="#theme-settings"]');
+    // The note to General stands on the list, whatever the chosen theme.
+    $page->assertScript("document.body.innerText.includes('The site’s name, tagline and brand colour stay when you change theme.')")
+        ->click('[data-test="theme-good"] [data-test="theme-settings-link"]');
 
-    cmWaitUntil($page, "location.hash === '#theme-settings' && document.querySelector('#theme-settings-heading') !== null");
+    cmWaitUntil($page, "location.pathname === '/admin/themes/good/settings' && document.querySelector('main h1') !== null");
 
-    $page->assertScript("document.querySelector('#theme-settings-heading')?.textContent === 'Fixture Good settings'")
-        ->assertSeeIn('#theme-settings', 'A menu you choose here shows once you publish')
-        // The note to General stands above the section, whatever the chosen theme.
-        ->assertScript("document.querySelector('#theme-settings')?.innerText.includes('brand colour stay when you change theme') === false && document.body.innerText.includes('The site’s name, tagline and brand colour stay when you change theme.')");
+    $page->assertScript("document.querySelector('main h1')?.textContent === 'Fixture Good settings'")
+        ->assertSeeIn('[data-test="design-menus"]', 'A menu you choose here shows once you publish')
+        ->assertScript("document.querySelector('main')?.innerText.includes('brand colour stay when you change theme') === false");
+});
+
+it('keeps Themes inside the page at 375 pixels: one column of cards, nothing scrolling sideways, every target 24 pixels or more', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 812), '/admin/themes');
+
+    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"theme-list\"] > li').length === 4");
+
+    $sizes = $page->script(<<<'JS'
+        () => {
+            const view = document.querySelector('main');
+            const lefts = [...document.querySelectorAll('[data-test="theme-list"] > li')].map((card) => Math.round(card.getBoundingClientRect().left));
+
+            return {
+                page: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+                view: view.scrollWidth <= view.clientWidth,
+                columns: new Set(lefts).size,
+            };
+        }
+        JS);
+
+    expect($sizes)->toBe(['page' => 0, 'view' => true, 'columns' => 1]);
+
+    $targets = cmSmallTargets($page);
+
+    expect($targets['small'])->toBe([])
+        ->and($targets['checked'])->toBeGreaterThan(0);
+});
+
+it('asks before discarding the unpublished design changes, and discards on Discard changes', function (): void {
+    app(SaveDesignDraft::class)->execute(new SaveDesignDraftInput(['theme.good' => ['feed_layout' => 'grid']], (string) $this->admin->id));
+
+    $page = cmSignIn($this->admin)->navigate('/admin/themes');
+
+    cmWaitUntil($page, "document.querySelector('[aria-label=\"Unpublished design changes\"]') !== null");
+
+    $page->click('[aria-label="Unpublished design changes"] [data-test="design-discard"]');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"design-discard-dialog\"]') !== null");
+    shellSettled($page, '[data-test="design-discard-dialog"]');
+
+    expect(DB::table('settings')->whereNotNull('draft_values')->exists())->toBeTrue();
+
+    $page->click('Keep them');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"design-discard-dialog\"]') === null");
+
+    expect(DB::table('settings')->whereNotNull('draft_values')->exists())->toBeTrue();
+
+    $page->click('[aria-label="Unpublished design changes"] [data-test="design-discard"]');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"design-discard-dialog\"]') !== null");
+    shellSettled($page, '[data-test="design-discard-dialog"]');
+
+    $page->click('[data-test="design-discard-confirm"]');
+
+    ($this->textShown)($page, 'Unpublished design changes discarded.');
+
+    expect(DB::table('settings')->whereNotNull('draft_values')->exists())->toBeFalse();
 });
