@@ -1,9 +1,14 @@
 import { Form, router } from '@inertiajs/react';
 import { Circle, CircleCheck, CircleX, Loader2, Undo2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import CancelUpdateController from '@/actions/App/Http/Admin/Tools/Updates/CancelUpdateController';
 import RequestUpdateController from '@/actions/App/Http/Admin/Tools/Updates/RequestUpdateController';
 import { Button } from '@/components/ui/button';
+import { Panel, PanelBody } from '@/components/ui/panel';
+import { Progress } from '@/components/ui/progress';
+import { TextButton } from '@/components/ui/text-button';
+import { __, __n } from '@/lib/i18n';
 import type { TemeUpdate, TemeUpdateStep, UpdatesPage } from '@/types';
 
 /** The seven steps of an update, in the order the updater takes them. */
@@ -20,14 +25,21 @@ const STEPS = [
 /** Minutes without a look from the updater before the requested block says so (Q3a). */
 const UPDATER_QUIET_MINUTES = 2;
 
-/** How each state of a step reads to a screen reader. */
-const STATE_WORDS: Record<string, string> = {
-    done: 'Done',
-    started: 'Under way',
-    pending: 'Waiting',
-    failed: 'Failed',
-    'switched-back': 'Switched back',
-};
+/** The command that restores a backup, typed at the server as it is. */
+const RESTORE_COMMAND = 'php artisan teme:backup:restore';
+
+/** How each state of a step reads to a screen reader, looked up as it is drawn. */
+function stateWords(state: string): string {
+    const words: Record<string, string> = {
+        done: __('Done'),
+        started: __('Under way'),
+        pending: __('Waiting'),
+        failed: __('Failed'),
+        'switched-back': __('Switched back'),
+    };
+
+    return words[state] ?? state;
+}
 
 /** A length of time as "42 s" or "3 min 40 s". */
 export function duration(startedAt: string, finishedAt: string): string {
@@ -42,14 +54,44 @@ export function duration(startedAt: string, finishedAt: string): string {
     const rest = seconds % 60;
 
     if (minutes === 0) {
-        return `${rest} s`;
+        return __(':seconds s', { seconds: rest });
     }
 
-    return rest === 0 ? `${minutes} min` : `${minutes} min ${rest} s`;
+    return rest === 0
+        ? __(':minutes min', { minutes })
+        : __(':minutes min :seconds s', { minutes, seconds: rest });
 }
 
-function Code({ children }: { children: React.ReactNode }) {
-    return <code className="bg-surface-2 rounded px-1 py-0.5">{children}</code>;
+/** A command or a setting's name, as it is typed. */
+export function Code({ children }: { children: ReactNode }) {
+    return <code className="bg-surface-2 rounded-sm px-1">{children}</code>;
+}
+
+/**
+ * A translated sentence with commands or settings' names in it: each `:name`
+ * the words hold is drawn as `Code`, so the whole sentence stays one line to
+ * translate.
+ */
+export function WithCode({
+    words,
+    codes,
+}: {
+    words: string;
+    codes: Record<string, string>;
+}) {
+    return (
+        <>
+            {words
+                .split(/(:[a-z]+)/)
+                .map((part, at) =>
+                    part.startsWith(':') && part.slice(1) in codes ? (
+                        <Code key={at}>{codes[part.slice(1)]}</Code>
+                    ) : (
+                        <Fragment key={at}>{part}</Fragment>
+                    ),
+                )}
+        </>
+    );
 }
 
 /** Every step, in order, those the updater hasn't recorded yet as waiting. */
@@ -75,64 +117,73 @@ function stepWords(
     switch (step.step) {
         case 'deploy': {
             if (step.state !== 'done') {
-                return 'deploy';
+                return __('deploy');
             }
 
             const backup = update.backupRun ?? deploy?.backupRun ?? null;
 
             return backup !== null
-                ? `deploy: backup ${backup} taken, ${migrations(deploy?.migrations ?? 0)} ran`
-                : 'deploy: no migration was waiting';
+                ? __n(
+                      'deploy: backup :backup taken, :count migration ran|deploy: backup :backup taken, :count migrations ran',
+                      deploy?.migrations ?? 0,
+                      { backup },
+                  )
+                : __('deploy: no migration was waiting');
         }
         case 'web':
-            return `web answers with ${update.to}`;
+            return __('web answers with :version', { version: update.to });
         case 'worker':
-            return 'worker: healthy';
+            return __('worker: healthy');
         case 'worker-long':
-            return 'worker-long: healthy';
+            return __('worker-long: healthy');
         case 'scheduler':
-            return 'scheduler: healthy';
+            return __('scheduler: healthy');
         case 'check':
-            return `Last check: every part healthy, and the site answers with ${update.to}`;
+            return __(
+                'Last check: every part healthy, and the site answers with :version',
+                { version: update.to },
+            );
         default:
-            return `updater: asked to start on ${update.to}`;
+            return __('updater: asked to start on :version', {
+                version: update.to,
+            });
     }
 }
 
-function migrations(count: number): string {
-    return `${count} ${count === 1 ? 'migration' : 'migrations'}`;
-}
-
 function StateIcon({ state }: { state: string }) {
-    const label = STATE_WORDS[state] ?? state;
-    const common = 'mt-0.5 size-4 shrink-0';
+    const common = 'size-4 shrink-0';
 
     return (
         <>
-            {state === 'done' ? (
-                <CircleCheck
-                    aria-hidden="true"
-                    className={`${common} text-ok-ink`}
-                />
-            ) : state === 'started' ? (
-                <Loader2
-                    aria-hidden="true"
-                    className={`${common} animate-spin`}
-                />
-            ) : state === 'failed' ? (
-                <CircleX
-                    aria-hidden="true"
-                    className={`${common} text-danger-ink`}
-                />
-            ) : state === 'switched-back' ? (
-                <Undo2
-                    aria-hidden="true"
-                    className={`${common} text-warn-ink`}
-                />
-            ) : (
-                <Circle aria-hidden="true" className={`${common} text-ink-2`} />
-            )}
-            <span className="sr-only">{label}. </span>
+            <span className="flex h-5 items-center">
+                {state === 'done' ? (
+                    <CircleCheck
+                        aria-hidden="true"
+                        className={`${common} text-ok-ink`}
+                    />
+                ) : state === 'started' ? (
+                    <Loader2
+                        aria-hidden="true"
+                        className={`${common} motion-safe:animate-spin`}
+                    />
+                ) : state === 'failed' ? (
+                    <CircleX
+                        aria-hidden="true"
+                        className={`${common} text-danger-ink`}
+                    />
+                ) : state === 'switched-back' ? (
+                    <Undo2
+                        aria-hidden="true"
+                        className={`${common} text-warn-ink`}
+                    />
+                ) : (
+                    <Circle
+                        aria-hidden="true"
+                        className={`${common} text-ink-2`}
+                    />
+                )}
+            </span>
+            <span className="sr-only">{`${stateWords(state)}. `}</span>
         </>
     );
 }
@@ -148,7 +199,7 @@ function Steps({
     when: (iso: string) => string;
 }) {
     return (
-        <ol className="space-y-2" data-test="update-steps">
+        <ol className="grid gap-2" data-test="update-steps">
             {allSteps(update).map((step) => {
                 const time = step.finishedAt ?? step.startedAt;
 
@@ -289,7 +340,7 @@ function CarryingOnRequest({
                     removePending();
                 }
             }}
-            className="space-y-1"
+            className="grid justify-items-start gap-1"
         >
             {({ processing }) => (
                 <>
@@ -321,20 +372,20 @@ export function UpdateButton({
     canUpdate: string | null;
     open: boolean;
 }) {
-    const reason = open ? 'An update is under way.' : canUpdate;
+    const reason = open ? __('An update is under way.') : canUpdate;
 
     return (
         <CarryingOnRequest
             version={version}
             kind="update"
-            label={`Update to ${version}`}
+            label={__('Update to :version', { version })}
             variant={reason === null ? 'default' : 'outline'}
             disabled={reason !== null}
             describedBy={reason === null ? undefined : 'update-reason'}
             testId="update-now"
             below={
                 reason !== null && (
-                    <p id="update-reason" className="text-ink-2 text-xs">
+                    <p id="update-reason" className="text-ink-2 text-small">
                         {reason}
                     </p>
                 )
@@ -359,203 +410,308 @@ export function UpdateProgress({
 }) {
     const [shown, setShown] = useState(false);
     const rolling = update.kind === 'rollback';
-    const noun = rolling ? 'roll back' : 'update';
     const deploy = deploys.find(
         (run) =>
             run.outcome === 'deployed' &&
             run.version === update.to &&
             (update.startedAt === null || run.finishedAt >= update.startedAt),
     );
-    const done = allSteps(update).filter((step) => step.state === 'done');
+    const steps = allSteps(update);
+    const done = steps.filter((step) => step.state === 'done');
     const ended = ['done', 'switched_back', 'failed'].includes(update.status);
     const took =
         update.startedAt !== null && update.finishedAt !== null
             ? duration(update.startedAt, update.finishedAt)
-            : null;
+            : '';
     const finished = update.finishedAt === null ? '' : when(update.finishedAt);
     const quiet =
         updaterSeenAt === null ||
         Date.now() - new Date(updaterSeenAt).getTime() >
             UPDATER_QUIET_MINUTES * 60_000;
     const backup = update.backupRun ?? deploy?.backupRun ?? null;
+    const lead = 'text-body font-semibold';
 
     return (
-        <section
+        <Panel
             aria-labelledby="update-lead"
             data-test="update-block"
             data-status={update.status}
-            className="border-line space-y-3 rounded-md border p-4 text-[13px]"
         >
-            {update.status === 'requested' && (
-                <>
-                    <p
-                        id="update-lead"
-                        role="status"
-                        className="text-base font-medium"
-                    >
-                        {update.requestedBy === null
-                            ? `${rolling ? 'Roll back' : 'Update'} to Teme ${update.to} requested at the server at ${when(update.requestedAt)}. The updater starts it within a minute.`
-                            : `${rolling ? 'Roll back' : 'Update'} to Teme ${update.to} requested by ${update.requestedBy} at ${when(update.requestedAt)}. The updater starts it within a minute.`}
-                    </p>
-                    {quiet && (
-                        <p className="text-ink-2">
-                            {updaterSeenAt === null
-                                ? 'No updater has looked for requests yet. Without one, update by hand: see How to update.'
-                                : `No updater has looked for requests since ${when(updaterSeenAt)}. Without one, update by hand: see How to update.`}
+            <PanelBody className="text-body pt-5">
+                {update.status === 'requested' && (
+                    <>
+                        <p id="update-lead" role="status" className={lead}>
+                            {update.requestedBy === null
+                                ? rolling
+                                    ? __(
+                                          'Roll back to Teme :version requested at the server at :time. The updater starts it within a minute.',
+                                          {
+                                              version: update.to,
+                                              time: when(update.requestedAt),
+                                          },
+                                      )
+                                    : __(
+                                          'Update to Teme :version requested at the server at :time. The updater starts it within a minute.',
+                                          {
+                                              version: update.to,
+                                              time: when(update.requestedAt),
+                                          },
+                                      )
+                                : rolling
+                                  ? __(
+                                        'Roll back to Teme :version requested by :name at :time. The updater starts it within a minute.',
+                                        {
+                                            version: update.to,
+                                            name: update.requestedBy,
+                                            time: when(update.requestedAt),
+                                        },
+                                    )
+                                  : __(
+                                        'Update to Teme :version requested by :name at :time. The updater starts it within a minute.',
+                                        {
+                                            version: update.to,
+                                            name: update.requestedBy,
+                                            time: when(update.requestedAt),
+                                        },
+                                    )}
                         </p>
-                    )}
-                    {update.canCancel && (
-                        <Form
-                            {...CancelUpdateController.form({
-                                update: update.id,
-                            })}
-                        >
-                            {({ processing }) => (
-                                <Button
-                                    type="submit"
-                                    variant="outline"
-                                    data-test="update-cancel"
-                                    disabled={processing}
-                                >
-                                    Cancel the update
-                                </Button>
-                            )}
-                        </Form>
-                    )}
-                </>
-            )}
-
-            {update.status === 'running' && (
-                <>
-                    <h2 id="update-lead" className="text-base font-medium">
-                        {rolling ? 'Rolling back' : 'Updating'} to Teme{' '}
-                        {update.to}
-                    </h2>
-                    <p role="status">
-                        Started {when(update.startedAt ?? update.requestedAt)} ·{' '}
-                        {duration(
-                            update.startedAt ?? update.requestedAt,
-                            new Date().toISOString(),
-                        )}{' '}
-                        so far. The site is down for a short while as the
-                        service deploys, then each part is checked on the new
-                        release.
-                    </p>
-                    <div className="space-y-1">
-                        <progress
-                            value={done.length}
-                            max={STEPS.length}
-                            aria-label={`${done.length} of 7 steps`}
-                            className="w-full"
-                        />
-                        <p className="text-ink-2">{done.length} of 7 steps</p>
-                    </div>
-                    <Steps update={update} deploy={deploy} when={when} />
-                </>
-            )}
-
-            {update.status === 'done' && (
-                <>
-                    <p
-                        id="update-lead"
-                        role="status"
-                        className="text-base font-medium"
-                    >
-                        {rolling
-                            ? `Rolled back to Teme ${update.to} at ${finished}.`
-                            : `Updated to Teme ${update.to} at ${finished}. It took ${took ?? ''}${
-                                  backup !== null && deploy !== undefined
-                                      ? `; ${migrations(deploy.migrations)} ran after a backup.`
-                                      : '.'
-                              }`}
-                    </p>
-                    {!rolling &&
-                        rollback !== null &&
-                        (rollback.refusal === null ? (
-                            <div className="space-y-2">
-                                <p className="text-ink-2">
-                                    Rolling back switches every part to{' '}
-                                    {rollback.version} again. The database keeps{' '}
-                                    {update.to}’s additions, which{' '}
-                                    {rollback.version} runs beside.
-                                </p>
-                                <CarryingOnRequest
-                                    version={rollback.version}
-                                    kind="rollback"
-                                    label={`Roll back to ${rollback.version}`}
-                                    variant="outline"
-                                    testId="update-rollback"
-                                />
-                            </div>
-                        ) : (
-                            <p className="text-ink-2">{rollback.refusal}</p>
-                        ))}
-                </>
-            )}
-
-            {update.status === 'switched_back' && (
-                <>
-                    <p
-                        id="update-lead"
-                        role="status"
-                        className="text-base font-medium"
-                    >
-                        The {noun} to Teme {update.to} was switched back at{' '}
-                        {finished}. {update.error ?? ''} So every part runs{' '}
-                        {update.from} again.
-                    </p>
-                    <p className="text-ink-2">
-                        The database keeps {update.to}’s additions, which{' '}
-                        {update.from} runs beside. Nothing else needs doing.
-                    </p>
-                </>
-            )}
-
-            {update.status === 'failed' && (
-                <>
-                    <p
-                        id="update-lead"
-                        role="status"
-                        className="text-base font-medium"
-                    >
-                        The {noun} to Teme {update.to} stopped:{' '}
-                        {update.error ?? ''} The site runs {update.from}.
-                    </p>
-                    {backup !== null && (
-                        <p>
-                            A backup was taken just before: {backup}. If the
-                            database needs it, restore it at the server:{' '}
-                            <Code>php artisan teme:backup:restore</Code>, then
-                            choose that backup.
-                        </p>
-                    )}
-                </>
-            )}
-
-            {ended && (
-                <div className="space-y-2">
-                    <Button
-                        type="button"
-                        variant="link"
-                        className="h-auto p-0 text-[13px]"
-                        data-test="update-steps-toggle"
-                        aria-expanded={shown}
-                        aria-controls="update-what-happened"
-                        onClick={() => setShown(!shown)}
-                    >
-                        {shown ? 'Hide the steps' : 'See what happened'}
-                    </Button>
-                    <div id="update-what-happened" hidden={!shown}>
-                        {shown && (
-                            <Steps
-                                update={update}
-                                deploy={deploy}
-                                when={when}
-                            />
+                        {quiet && (
+                            <p className="text-ink-2">
+                                {updaterSeenAt === null
+                                    ? __(
+                                          'No updater has looked for requests yet. Without one, update by hand: see How to update.',
+                                      )
+                                    : __(
+                                          'No updater has looked for requests since :time. Without one, update by hand: see How to update.',
+                                          { time: when(updaterSeenAt) },
+                                      )}
+                            </p>
                         )}
+                        {update.canCancel && (
+                            <Form
+                                {...CancelUpdateController.form({
+                                    update: update.id,
+                                })}
+                            >
+                                {({ processing }) => (
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        data-test="update-cancel"
+                                        disabled={processing}
+                                    >
+                                        {__('Cancel the update')}
+                                    </Button>
+                                )}
+                            </Form>
+                        )}
+                    </>
+                )}
+
+                {update.status === 'running' && (
+                    <>
+                        <h2
+                            id="update-lead"
+                            className="text-lead font-semibold"
+                        >
+                            {rolling
+                                ? __('Rolling back to Teme :version', {
+                                      version: update.to,
+                                  })
+                                : __('Updating to Teme :version', {
+                                      version: update.to,
+                                  })}
+                        </h2>
+                        <p role="status">
+                            {__(
+                                'Started :time · :took so far. The site is down for a short while as the service deploys, then each part is checked on the new release.',
+                                {
+                                    time: when(
+                                        update.startedAt ?? update.requestedAt,
+                                    ),
+                                    took: duration(
+                                        update.startedAt ?? update.requestedAt,
+                                        new Date().toISOString(),
+                                    ),
+                                },
+                            )}
+                        </p>
+                        <div className="grid gap-1">
+                            <Progress
+                                value={done.length}
+                                max={STEPS.length}
+                                tone={
+                                    steps.some(
+                                        (step) => step.state === 'failed',
+                                    )
+                                        ? 'danger'
+                                        : done.length === STEPS.length
+                                          ? 'ok'
+                                          : 'accent'
+                                }
+                                label={__(':done of :total steps', {
+                                    done: done.length,
+                                    total: STEPS.length,
+                                })}
+                            />
+                            <p className="text-ink-2 text-small">
+                                {__(':done of :total steps', {
+                                    done: done.length,
+                                    total: STEPS.length,
+                                })}
+                            </p>
+                        </div>
+                        <Steps update={update} deploy={deploy} when={when} />
+                    </>
+                )}
+
+                {update.status === 'done' && (
+                    <>
+                        <p id="update-lead" role="status" className={lead}>
+                            {rolling
+                                ? __('Rolled back to Teme :version at :time.', {
+                                      version: update.to,
+                                      time: finished,
+                                  })
+                                : backup !== null && deploy !== undefined
+                                  ? __n(
+                                        'Updated to Teme :version at :time. It took :took; :count migration ran after a backup.|Updated to Teme :version at :time. It took :took; :count migrations ran after a backup.',
+                                        deploy.migrations,
+                                        {
+                                            version: update.to,
+                                            time: finished,
+                                            took,
+                                        },
+                                    )
+                                  : __(
+                                        'Updated to Teme :version at :time. It took :took.',
+                                        {
+                                            version: update.to,
+                                            time: finished,
+                                            took,
+                                        },
+                                    )}
+                        </p>
+                        {!rolling &&
+                            rollback !== null &&
+                            (rollback.refusal === null ? (
+                                <div className="grid gap-2">
+                                    <p className="text-ink-2">
+                                        {__(
+                                            'Rolling back switches every part to :back again. The database keeps :version’s additions, which :back runs beside.',
+                                            {
+                                                back: rollback.version,
+                                                version: update.to,
+                                            },
+                                        )}
+                                    </p>
+                                    <CarryingOnRequest
+                                        version={rollback.version}
+                                        kind="rollback"
+                                        label={__('Roll back to :version', {
+                                            version: rollback.version,
+                                        })}
+                                        variant="outline"
+                                        testId="update-rollback"
+                                    />
+                                </div>
+                            ) : (
+                                <p className="text-ink-2">{rollback.refusal}</p>
+                            ))}
+                    </>
+                )}
+
+                {update.status === 'switched_back' && (
+                    <>
+                        <p id="update-lead" role="status" className={lead}>
+                            {rolling
+                                ? __(
+                                      'The roll back to Teme :version was switched back at :time. :error So every part runs :from again.',
+                                      {
+                                          version: update.to,
+                                          time: finished,
+                                          error: update.error ?? '',
+                                          from: update.from,
+                                      },
+                                  )
+                                : __(
+                                      'The update to Teme :version was switched back at :time. :error So every part runs :from again.',
+                                      {
+                                          version: update.to,
+                                          time: finished,
+                                          error: update.error ?? '',
+                                          from: update.from,
+                                      },
+                                  )}
+                        </p>
+                        <p className="text-ink-2">
+                            {__(
+                                'The database keeps :version’s additions, which :from runs beside. Nothing else needs doing.',
+                                { version: update.to, from: update.from },
+                            )}
+                        </p>
+                    </>
+                )}
+
+                {update.status === 'failed' && (
+                    <>
+                        <p id="update-lead" role="status" className={lead}>
+                            {rolling
+                                ? __(
+                                      'The roll back to Teme :version stopped: :error The site runs :from.',
+                                      {
+                                          version: update.to,
+                                          error: update.error ?? '',
+                                          from: update.from,
+                                      },
+                                  )
+                                : __(
+                                      'The update to Teme :version stopped: :error The site runs :from.',
+                                      {
+                                          version: update.to,
+                                          error: update.error ?? '',
+                                          from: update.from,
+                                      },
+                                  )}
+                        </p>
+                        {backup !== null && (
+                            <p>
+                                <WithCode
+                                    words={__(
+                                        'A backup was taken just before: :backup. If the database needs it, restore it at the server: :command, then choose that backup.',
+                                        { backup },
+                                    )}
+                                    codes={{ command: RESTORE_COMMAND }}
+                                />
+                            </p>
+                        )}
+                    </>
+                )}
+
+                {ended && (
+                    <div className="grid justify-items-start gap-2">
+                        <TextButton
+                            data-test="update-steps-toggle"
+                            aria-expanded={shown}
+                            aria-controls="update-what-happened"
+                            onClick={() => setShown(!shown)}
+                        >
+                            {shown
+                                ? __('Hide the steps')
+                                : __('See what happened')}
+                        </TextButton>
+                        <div id="update-what-happened" hidden={!shown}>
+                            {shown && (
+                                <Steps
+                                    update={update}
+                                    deploy={deploy}
+                                    when={when}
+                                />
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
-        </section>
+                )}
+            </PanelBody>
+        </Panel>
     );
 }

@@ -35,6 +35,7 @@ dataset('tool screens', [
     'Import' => [['pages/tools/import/', 'components/import/']],
     // The place form, pages/tools/backups/place.tsx, is another part's and is left as it is.
     'Backups' => [['pages/tools/backups/index.tsx', 'pages/tools/backups/set-up.tsx', 'pages/tools/backups/sftp.tsx', 'pages/tools/backups/new-key.tsx', 'pages/tools/backups/recovery-key.tsx', 'components/backups/']],
+    'Page cache and Updates' => [['pages/tools/page-cache.tsx', 'pages/tools/updates.tsx', 'components/tools/update-progress.tsx']],
 ]);
 
 it('leaves no design-system line on :dataset', function (array $paths): void {

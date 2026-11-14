@@ -990,44 +990,6 @@ components/tools/redirects-head.tsx	404 log
 components/tools/redirects-head.tsx	Redirects
 components/tools/redirects-head.tsx	Redirects
 components/tools/redirects-head.tsx	Redirects and the 404 log
-components/tools/update-progress.tsx	, then choose that backup.
-components/tools/update-progress.tsx	. If the database needs it, restore it at the server:
-components/tools/update-progress.tsx	A backup was taken just before:
-components/tools/update-progress.tsx	Cancel the update
-components/tools/update-progress.tsx	Hide the steps
-components/tools/update-progress.tsx	No updater has looked for requests since {}. Without one, update by hand: see How to update.
-components/tools/update-progress.tsx	No updater has looked for requests yet. Without one, update by hand: see How to update.
-components/tools/update-progress.tsx	Roll back to {}
-components/tools/update-progress.tsx	Rolled back to Teme {} at {}.
-components/tools/update-progress.tsx	Rolling back
-components/tools/update-progress.tsx	Rolling back switches every part to
-components/tools/update-progress.tsx	See what happened
-components/tools/update-progress.tsx	So every part runs
-components/tools/update-progress.tsx	Started
-components/tools/update-progress.tsx	The
-components/tools/update-progress.tsx	The
-components/tools/update-progress.tsx	The database keeps
-components/tools/update-progress.tsx	The site runs
-components/tools/update-progress.tsx	Update to {}
-components/tools/update-progress.tsx	Updated to Teme {} at {}. It took {}{}
-components/tools/update-progress.tsx	Updating
-components/tools/update-progress.tsx	again.
-components/tools/update-progress.tsx	again. The database keeps
-components/tools/update-progress.tsx	of 7 steps
-components/tools/update-progress.tsx	php artisan teme:backup:restore
-components/tools/update-progress.tsx	runs beside.
-components/tools/update-progress.tsx	runs beside. Nothing else needs doing.
-components/tools/update-progress.tsx	so far. The site is down for a short while as the service deploys, then each part is checked on the new release.
-components/tools/update-progress.tsx	stopped:
-components/tools/update-progress.tsx	to Teme
-components/tools/update-progress.tsx	to Teme
-components/tools/update-progress.tsx	to Teme
-components/tools/update-progress.tsx	was switched back at
-components/tools/update-progress.tsx	{} of 7 steps
-components/tools/update-progress.tsx	{} to Teme {} requested at the server at {}. The updater starts it within a minute.
-components/tools/update-progress.tsx	{} to Teme {} requested by {} at {}. The updater starts it within a minute.
-components/tools/update-progress.tsx	’s additions, which
-components/tools/update-progress.tsx	’s additions, which
 components/types/builder-parts.tsx	Can’t be used
 components/types/builder-parts.tsx	Code
 components/types/builder-parts.tsx	Made here
@@ -1670,31 +1632,6 @@ pages/tools/not-found.tsx	Redirects
 pages/tools/not-found.tsx	Redirects
 pages/tools/not-found.tsx	Tools
 pages/tools/not-found.tsx	addresses. When it’s full, the address seen least recently makes room. Bots probing for WordPress and server files, such as /wp-login.php, are ignored. Counts are written every minute, so the newest take a moment to appear.
-pages/tools/page-cache.tsx	, cleared with it
-pages/tools/page-cache.tsx	. A search’s page:
-pages/tools/page-cache.tsx	. A “not found” page:
-pages/tools/page-cache.tsx	A page:
-pages/tools/page-cache.tsx	Clear the page cache
-pages/tools/page-cache.tsx	How long pages live
-pages/tools/page-cache.tsx	In front of it
-pages/tools/page-cache.tsx	Kept in
-pages/tools/page-cache.tsx	Last cleared here
-pages/tools/page-cache.tsx	Never
-pages/tools/page-cache.tsx	Now
-pages/tools/page-cache.tsx	Off
-pages/tools/page-cache.tsx	On
-pages/tools/page-cache.tsx	Page cache
-pages/tools/page-cache.tsx	Page cache
-pages/tools/page-cache.tsx	Page cache
-pages/tools/page-cache.tsx	Saved copies of public pages. Readers who aren’t signed in get these, so each page is drawn once rather than on every visit.
-pages/tools/page-cache.tsx	Status
-pages/tools/page-cache.tsx	The page cache is off.
-pages/tools/page-cache.tsx	This server doesn’t save pages, so each is drawn on every visit, and there’s nothing to clear. The host switches it on with PAGE_CACHE_ENABLED.
-pages/tools/page-cache.tsx	Tools
-pages/tools/page-cache.tsx	When something is published, changed or taken down, Teme clears the pages that show it straight away. Clear everything only if a page still looks out of date, for example after a theme’s files change.
-pages/tools/page-cache.tsx	While you’re signed in you always see pages drawn afresh, never the saved copies. To see what readers get, open the page in a private window.
-pages/tools/page-cache.tsx	You rarely need to clear it.
-pages/tools/page-cache.tsx	{}, by {}
 pages/tools/redirects.tsx	, its old address keeps sending readers to it by itself. Add a redirect for an address Teme never had, such as one from the old site.
 pages/tools/redirects.tsx	A deleted file
 pages/tools/redirects.tsx	A deleted item
@@ -1735,95 +1672,6 @@ pages/tools/redirects.tsx	Switch on
 pages/tools/redirects.tsx	The file
 pages/tools/redirects.tsx	Tools
 pages/tools/redirects.tsx	When a post or page gets a new address, in the editor or in
-pages/tools/updates.tsx	, published
-pages/tools/updates.tsx	, published
-pages/tools/updates.tsx	, the last time Teme could read it.
-pages/tools/updates.tsx	.env
-pages/tools/updates.tsx	All well.
-pages/tools/updates.tsx	Also after yours
-pages/tools/updates.tsx	Available
-pages/tools/updates.tsx	Backup failed
-pages/tools/updates.tsx	Busy
-pages/tools/updates.tsx	Channel
-pages/tools/updates.tsx	Checking for releases
-pages/tools/updates.tsx	Deployed
-pages/tools/updates.tsx	Deployed Teme {} on {}.
-pages/tools/updates.tsx	Deploys
-pages/tools/updates.tsx	Failed
-pages/tools/updates.tsx	Follows the version this site runs. To choose, set
-pages/tools/updates.tsx	Gets: every release, pre-releases too
-pages/tools/updates.tsx	Gets: releases only
-pages/tools/updates.tsx	How to update
-pages/tools/updates.tsx	Last checked
-pages/tools/updates.tsx	Last deploy
-pages/tools/updates.tsx	Last read the list
-pages/tools/updates.tsx	Migration failed
-pages/tools/updates.tsx	Needs maintenance mode
-pages/tools/updates.tsx	No deploy recorded yet. Each
-pages/tools/updates.tsx	No deploy recorded yet. Each
-pages/tools/updates.tsx	No release has been found yet.
-pages/tools/updates.tsx	Not checked yet. It runs within the hour, or now with
-pages/tools/updates.tsx	On Dokploy:
-pages/tools/updates.tsx	Once an hour Teme asks GitHub for its list of releases. It sends nothing about this site.
-pages/tools/updates.tsx	Pre-release
-pages/tools/updates.tsx	Problem:
-pages/tools/updates.tsx	Published
-pages/tools/updates.tsx	Read it on GitHub
-pages/tools/updates.tsx	Refused
-pages/tools/updates.tsx	Security fixes
-pages/tools/updates.tsx	See the backup
-pages/tools/updates.tsx	Set by
-pages/tools/updates.tsx	Show all {} lines
-pages/tools/updates.tsx	Show less
-pages/tools/updates.tsx	TEME_IMAGE
-pages/tools/updates.tsx	TEME_IMAGE
-pages/tools/updates.tsx	TEME_UPDATER_IMAGE
-pages/tools/updates.tsx	TEME_UPDATES_CHANNEL
-pages/tools/updates.tsx	TEME_UPDATES_CHANNEL
-pages/tools/updates.tsx	TEME_UPDATES_CHECK
-pages/tools/updates.tsx	Teme
-pages/tools/updates.tsx	Teme
-pages/tools/updates.tsx	Teme
-pages/tools/updates.tsx	Teme {} is available
-pages/tools/updates.tsx	The last ten, newest first.
-pages/tools/updates.tsx	The newest release is Teme
-pages/tools/updates.tsx	This build isn’t a release, so Teme doesn’t compare it with the releases.
-pages/tools/updates.tsx	This build isn’t a release, so Teme doesn’t compare it with the releases.
-pages/tools/updates.tsx	This list is from
-pages/tools/updates.tsx	This release changes the database in a way the one before can’t run beside. The site must be in maintenance mode while it deploys: see the release’s notes.
-pages/tools/updates.tsx	This site
-pages/tools/updates.tsx	This site runs the newest release it gets.
-pages/tools/updates.tsx	To update by hand instead:
-pages/tools/updates.tsx	Tools
-pages/tools/updates.tsx	Unfinished
-pages/tools/updates.tsx	Update checks are off on this server (
-pages/tools/updates.tsx	Update checks are off, so this list isn’t kept up to date.
-pages/tools/updates.tsx	Updates
-pages/tools/updates.tsx	Updates
-pages/tools/updates.tsx	Updates
-pages/tools/updates.tsx	Version
-pages/tools/updates.tsx	Which Teme this site runs, and the releases after it.
-pages/tools/updates.tsx	With Docker Compose:
-pages/tools/updates.tsx	and
-pages/tools/updates.tsx	and
-pages/tools/updates.tsx	brings them too.
-pages/tools/updates.tsx	carries security fixes. Updating to
-pages/tools/updates.tsx	change
-pages/tools/updates.tsx	docker compose pull
-pages/tools/updates.tsx	docker compose up --detach
-pages/tools/updates.tsx	in
-pages/tools/updates.tsx	is recorded from this release on.
-pages/tools/updates.tsx	is recorded from this release on.
-pages/tools/updates.tsx	php artisan teme:deploy
-pages/tools/updates.tsx	php artisan teme:deploy
-pages/tools/updates.tsx	php artisan teme:updates:check
-pages/tools/updates.tsx	set
-pages/tools/updates.tsx	to the new tag and Deploy.
-pages/tools/updates.tsx	to the new tag, then run
-pages/tools/updates.tsx	{} releases after yours · Teme {} is the newest
-pages/tools/updates.tsx	· Build
-pages/tools/updates.tsx	· Published
-pages/tools/updates.tsx	· took
 pages/types/fields.tsx	Actions for {}
 pages/types/fields.tsx	Add field
 pages/types/fields.tsx	Cancel

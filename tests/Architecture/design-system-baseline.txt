@@ -98,9 +98,6 @@ R1	js/pages/settings/site-code.tsx	sm:max-w-[560px]
 R1	js/pages/terms/index.tsx	lg:grid-cols-[300px_minmax(0,1fr)]
 R1	js/pages/terms/index.tsx	sm:max-w-[480px]
 R1	js/pages/tools/ai-activity.tsx	grid-cols-[max-content_1fr]
-R1	js/pages/tools/page-cache.tsx	grid-cols-[max-content_1fr]
-R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
-R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R10	js/components/app-content.tsx	outline-none
 R10	js/components/editor/editor-shell.tsx	outline-none
 R10	js/components/editor/rail/search-panel.tsx	outline-none
@@ -125,7 +122,6 @@ R14	js/components/editor/rail/social-image.tsx	animate-pulse
 R14	js/components/fields/media-setting.tsx	animate-pulse
 R14	js/components/text-link.tsx	duration-300
 R14	js/components/text-link.tsx	ease-out
-R14	js/components/tools/update-progress.tsx	animate-spin
 R14	js/components/ui/sidebar.tsx	ease-linear
 R14	js/components/ui/sidebar.tsx	transition-all
 R15	js/components/editor/editor-shell.tsx	style: gridTemplateColumns
@@ -526,14 +522,6 @@ R2	js/components/tools/redirect-form.tsx	text-sm
 R2	js/components/tools/redirect-form.tsx	text-sm
 R2	js/components/tools/redirect-form.tsx	text-sm
 R2	js/components/tools/redirect-form.tsx	text-xs
-R2	js/components/tools/update-progress.tsx	text-[13px]
-R2	js/components/tools/update-progress.tsx	text-[13px]
-R2	js/components/tools/update-progress.tsx	text-base
-R2	js/components/tools/update-progress.tsx	text-base
-R2	js/components/tools/update-progress.tsx	text-base
-R2	js/components/tools/update-progress.tsx	text-base
-R2	js/components/tools/update-progress.tsx	text-base
-R2	js/components/tools/update-progress.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
 R2	js/pages/comments/index.tsx	text-[11px]
 R2	js/pages/comments/index.tsx	text-[12px]
@@ -655,17 +643,11 @@ R2	js/pages/tools/jobs.tsx	text-[13px]
 R2	js/pages/tools/jobs.tsx	text-xs
 R2	js/pages/tools/not-found.tsx	text-[13px]
 R2	js/pages/tools/not-found.tsx	text-[13px]
-R2	js/pages/tools/page-cache.tsx	text-[13px]
-R2	js/pages/tools/page-cache.tsx	text-base
-R2	js/pages/tools/page-cache.tsx	text-sm
 R2	js/pages/tools/redirects.tsx	text-[12px]
 R2	js/pages/tools/redirects.tsx	text-[12px]
 R2	js/pages/tools/redirects.tsx	text-[12px]
 R2	js/pages/tools/redirects.tsx	text-[12px]
 R2	js/pages/tools/redirects.tsx	text-sm
-R2	js/pages/tools/updates.tsx	text-[13px]
-R2	js/pages/tools/updates.tsx	text-[13px]
-R2	js/pages/tools/updates.tsx	text-base
 R3	js/components/comments/comment-details.tsx	mt-0.5
 R3	js/components/comments/comment-details.tsx	space-y-1.5
 R3	js/components/comments/commenter.tsx	gap-1.5
@@ -758,8 +740,6 @@ R3	js/components/plugins/consent-dialog.tsx	gap-1.5
 R3	js/components/plugins/consent-dialog.tsx	px-1.5
 R3	js/components/seo/who-publishes.tsx	mt-0.5
 R3	js/components/tools/redirect-form.tsx	py-1.5
-R3	js/components/tools/update-progress.tsx	mt-0.5
-R3	js/components/tools/update-progress.tsx	py-0.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=default]/menu-button:top-1.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=lg]/menu-button:top-2.5
 R3	js/components/ui/sidebar.tsx	top-1.5
@@ -791,14 +771,7 @@ R3	js/pages/tools/ai-activity.tsx	gap-1.5
 R3	js/pages/tools/ai-activity.tsx	gap-1.5
 R3	js/pages/tools/ai-activity.tsx	mt-0.5
 R3	js/pages/tools/ai-activity.tsx	mt-0.5
-R3	js/pages/tools/page-cache.tsx	mt-0.5
 R3	js/pages/tools/redirects.tsx	mt-0.5
-R3	js/pages/tools/updates.tsx	gap-1.5
-R3	js/pages/tools/updates.tsx	mt-0.5
-R3	js/pages/tools/updates.tsx	mt-0.5
-R3	js/pages/tools/updates.tsx	py-0.5
-R3	js/pages/tools/updates.tsx	space-y-0.5
-R3	js/pages/tools/updates.tsx	space-y-0.5
 R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
@@ -873,7 +846,6 @@ R5	js/pages/settings/site-code.tsx	<select>
 R5	js/pages/settings/site-code.tsx	<textarea>
 R5	js/pages/settings/site-code.tsx	<textarea>
 R5	js/pages/terms/index.tsx	<textarea>
-R5	js/pages/tools/updates.tsx	<details>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
@@ -912,11 +884,9 @@ R6	js/components/media/media-modal.tsx	z-10
 R6	js/components/media/page-drop.tsx	z-40
 R6	js/components/plugins/consent-dialog.tsx	leading-4
 R6	js/components/tools/redirect-form.tsx	rounded
-R6	js/components/tools/update-progress.tsx	rounded
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
 R6	js/pages/content/index.tsx	rounded
-R6	js/pages/tools/updates.tsx	rounded
 R7	js/pages/comments/index.tsx	frame:p-6
 R7	js/pages/comments/index.tsx	root:CommentDetailsDrawer
 R7	js/pages/comments/index.tsx	root:DeleteComments
@@ -970,20 +940,12 @@ R7	js/pages/tools/ai-activity.tsx	root:div
 R7	js/pages/tools/not-found.tsx	frame:p-6
 R7	js/pages/tools/not-found.tsx	root:div
 R7	js/pages/tools/not-found.tsx	root:RedirectForm
-R7	js/pages/tools/page-cache.tsx	frame:max-w-3xl
-R7	js/pages/tools/page-cache.tsx	frame:p-4
-R7	js/pages/tools/page-cache.tsx	frame:p-4
-R7	js/pages/tools/page-cache.tsx	frame:p-6
-R7	js/pages/tools/page-cache.tsx	root:div
 R7	js/pages/tools/redirects.tsx	frame:p-4
 R7	js/pages/tools/redirects.tsx	frame:p-6
 R7	js/pages/tools/redirects.tsx	root:div
 R7	js/pages/tools/redirects.tsx	root:ImportRedirects
 R7	js/pages/tools/redirects.tsx	root:ImportReportDialog
 R7	js/pages/tools/redirects.tsx	root:RedirectForm
-R7	js/pages/tools/updates.tsx	frame:max-w-3xl
-R7	js/pages/tools/updates.tsx	frame:p-6
-R7	js/pages/tools/updates.tsx	root:div
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
 R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
@@ -1035,7 +997,4 @@ R9	js/pages/settings/search-and-social.tsx	role="note"
 R9	js/pages/settings/site-code.tsx	role="note"
 R9	js/pages/settings/site-code.tsx	role="note"
 R9	js/pages/tools/ai-activity.tsx	role="note"
-R9	js/pages/tools/page-cache.tsx	role="note"
 R9	js/pages/tools/redirects.tsx	role="note"
-R9	js/pages/tools/updates.tsx	role="note"
-R9	js/pages/tools/updates.tsx	role="note"
