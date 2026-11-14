@@ -5,10 +5,13 @@
     $brand = $page->brand();
     $site = $brand['name'] ?? __('this site');
     $home = $page->home();
+    // A refusal that says why (a policy's own reason) says it in place of the general words.
+    $reason = trim((string) $exception->getMessage());
+    $reason = in_array($reason, ['', 'This action is unauthorized.', __('This action is unauthorized.')], true) ? null : $reason;
 @endphp
 <x-teme::standalone :title="__('You can’t open this page')" :error="$code" :brand="$brand">
     <p class="sa-pill sa-pill-warn">{{ __('Error :code', ['code' => $code]) }}</p>
     <h1>{{ __('You can’t open this page') }}</h1>
-    <p class="sa-quiet">{{ __('Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.', ['site' => $site]) }}</p>
+    <p class="sa-quiet">{{ $reason ?? __('Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.', ['site' => $site]) }}</p>
     <a class="sa-button" href="{{ $home['url'] }}">{{ $home['label'] }}</a>
 </x-teme::standalone>

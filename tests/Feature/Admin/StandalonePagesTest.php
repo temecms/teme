@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Http\Standalone\StandaloneStyle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Teme\Contracts\Settings\SettingsReader;
 
 uses(RefreshDatabase::class);
@@ -138,7 +137,7 @@ it('draws Teme\'s mark when the site\'s name cannot be read', function (): void 
         ->shouldReceive('string')
         ->andThrow(new RuntimeException('The database is gone.'));
 
-    $html = (string) view('errors.500', ['exception' => new HttpException(500)])->render();
+    $html = (string) $this->get('/admin/_sa-error/500')->assertStatus(500)->getContent();
     $page = saPage($html);
 
     expect($page->query("//main[@data-error='500']")->length)->toBe(1)
