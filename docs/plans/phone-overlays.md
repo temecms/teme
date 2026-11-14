@@ -396,3 +396,22 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: setup; commits; each test seen red (task, file, case, the failure's first line); the design-system and admin-words counts before and after; existing tests whose selectors changed, and why; differences from the plan as B-?? (draft), each with what was found, the options and the choice; changelog lines; any STOP. -->
+
+### Setup
+
+- Before setup, `/tmp/teme-cloud-setup.log`: none; working directory `/home/user/teme`. PHP was 8.3 and neither PostgreSQL nor Valkey answered, so `bash scripts/cloud-setup.sh` ran once (20:55 to 21:07 UTC). After it: PHP 8.4.27, Node 24.22.1, `pg_isready` accepting on 5433, Valkey PONG on 6380.
+- Stack from the locks: Laravel 13.39.0, Inertia Laravel 3.5.2, Pest 5.3.4, pest-plugin-browser 5.1.2; React 19.3.1, `@inertiajs/react` 3.9.1, Tailwind 4.3.3, Vite 8.3.5, TypeScript 7.0.2, `@radix-ui/react-dialog` 1.3.1, `-dropdown-menu` 2.2.1, `-slot` 1.5.0.
+
+### Task 0
+
+- `origin/main` at `4b8cc3b`. The design-system commit is `e7f2af7` (the grep also lists its merge, `bd0e715`, whose message quotes it); the Combobox commit is `772e0dd`.
+- None of the four new files existed. `ui/dialog.tsx` writes the three slots, `ui/sheet.tsx` `sheet-content`; `app.css` holds `--dialog-xl-h` and `max-width: 39.99rem`. Every opt-in file uses the part named. `UserMenuContent` is used only in `account-menu.tsx` and `user-menu-content.tsx`. `tests/Pest.php` holds the five helpers.
+- `ConfirmAction` users: `backups/key-actions.tsx`, `backups/places-list.tsx`, `backups/verdict.tsx`, `editor/restore-button.tsx`, `import/run-report.tsx`, `manage-two-factor.tsx`, `media-drawer.tsx`, `people/row-actions.tsx`, `pages/content/index.tsx`, `pages/navigation/edit.tsx`, `pages/navigation/index.tsx`, `pages/settings/site-code.tsx`, `pages/taxonomies/index.tsx`, `pages/taxonomies/show.tsx`, `pages/terms/index.tsx`, `pages/tools/redirects.tsx`, `pages/types/index.tsx`, `pages/types/show.tsx`.
+- `ui/settings-pages` and `ui/remaining-screens` change none of the Owns files.
+- `DesignSystemTest` and `AdminWordsTest` green. The design-system baseline: 1,228 lines (R1 114, R2 661, R3 149, R5 82, R6 41, R7 89, R8 34, R9 23, R10 14, R14 13, R15 8). Lines naming Owns files: `personalise-menu-dialog.tsx` 5 (R1 `max-h-[90vh]`, R2 `text-[11px]`, `text-[13px]`, `text-xs`, R8 `overflow-y-auto`), `user-menu-content.tsx` 2 (R2 `text-sm`, R3 `py-1.5`). The admin-words count: 2,350; Owns lines: `confirm-action.tsx` 1, `personalise-menu-dialog.tsx` 9, `user-menu-content.tsx` 4.
+- Browser files naming these overlays: `AccountPagesTest`, `FirstRunTest`, `PeopleScreenTest`, `ShellResponsiveTest`, `ShellTest`, `SignInPagesTest`.
+
+
+### Progress
+
+- Done to Task 1, the quick check green.

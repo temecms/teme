@@ -109,6 +109,8 @@ import { DetailPage } from '@/components/patterns/detail-page';
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { HubCard, HubPage } from '@/components/patterns/hub-page';
 import { InPageNav } from '@/components/patterns/in-page-nav';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
+import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { ListPage } from '@/components/patterns/list-page';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { __ } from '@/lib/i18n';
@@ -582,6 +584,130 @@ function ComboboxDemo() {
                     searchPlaceholder={__('Search people')}
                 />
             </Field>
+        </div>
+    );
+}
+
+/** The phone overlays: a dialog with a long body, a confirmation from the foot and a side sheet, each through its pattern. */
+function PhoneOverlaysDemo() {
+    const fields = [
+        __('Title'),
+        __('Subtitle'),
+        __('Address'),
+        __('Author'),
+        __('Category'),
+        __('Tags'),
+        __('Summary'),
+        __('Image description'),
+        __('Search title'),
+        __('Search description'),
+        __('Social title'),
+        __('Social description'),
+    ];
+
+    return (
+        <div className="flex flex-wrap items-center gap-3">
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="neutral"
+                        data-test="catalogue-overlay-dialog"
+                    >
+                        {__('Edit the details')}
+                    </Button>
+                </DialogTrigger>
+                <ResponsiveDialogContent
+                    size="md"
+                    data-test="catalogue-overlay-dialog-content"
+                >
+                    <DialogHeader>
+                        <DialogTitle>{__('Edit the details')}</DialogTitle>
+                        <DialogDescription>
+                            {__('Only you see these changes.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {fields.map((label, index) => (
+                        <Field
+                            key={label}
+                            htmlFor={`catalogue-overlay-field-${index}`}
+                            label={label}
+                        >
+                            <Input id={`catalogue-overlay-field-${index}`} />
+                        </Field>
+                    ))}
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="neutral">{__('Cancel')}</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button
+                                variant="primary"
+                                data-test="catalogue-overlay-dialog-save"
+                            >
+                                {__('Save')}
+                            </Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </ResponsiveDialogContent>
+            </Dialog>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="neutral"
+                        data-test="catalogue-overlay-confirm"
+                    >
+                        {__('Delete this draft?')}
+                    </Button>
+                </DialogTrigger>
+                <ResponsiveDialogContent
+                    phone="foot"
+                    data-test="catalogue-overlay-confirm-content"
+                >
+                    <DialogHeader>
+                        <DialogTitle>{__('Delete this draft?')}</DialogTitle>
+                        <DialogDescription>
+                            {__('It is gone for good.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button
+                                variant="neutral"
+                                data-test="catalogue-overlay-confirm-cancel"
+                            >
+                                {__('Cancel')}
+                            </Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button variant="danger">{__('Delete')}</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </ResponsiveDialogContent>
+            </Dialog>
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button
+                        variant="neutral"
+                        data-test="catalogue-overlay-sheet"
+                    >
+                        {__('Details')}
+                    </Button>
+                </SheetTrigger>
+                <ResponsiveSheetContent
+                    side="right"
+                    data-test="catalogue-overlay-sheet-content"
+                >
+                    <SheetHeader>
+                        <SheetTitle>{__('Details')}</SheetTitle>
+                        <SheetDescription>
+                            {__('A page, published.')}
+                        </SheetDescription>
+                    </SheetHeader>
+                    <p className="text-ink-2 px-6">
+                        {__('Changes apply on the next visit.')}
+                    </p>
+                </ResponsiveSheetContent>
+            </Sheet>
         </div>
     );
 }
@@ -1914,6 +2040,16 @@ export default function Catalogue() {
                             </p>
                         </DetailPage>
                     </PatternFrame>
+                </Section>
+
+                <Section
+                    id="phone-overlays"
+                    title={__('Phone overlays')}
+                    description={__(
+                        'Below 640 pixels: a dialog fills the screen, a confirmation and a menu open from its foot, and a side sheet fills it.',
+                    )}
+                >
+                    <PhoneOverlaysDemo />
                 </Section>
             </div>
         </>
