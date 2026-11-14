@@ -198,15 +198,6 @@ export default function AiSettings(props: AiSettingsPage) {
                                         </SettingsPanel>
                                     );
                                 })}
-
-                                <div className="space-y-2">
-                                    <p className="text-small text-ink-2">
-                                        Saving may ask for your password. If it
-                                        does, you’ll come back here to save
-                                        again, and any key you typed must be
-                                        typed again.
-                                    </p>
-                                </div>
                             </>
                         )}
                     </SettingsForm>
