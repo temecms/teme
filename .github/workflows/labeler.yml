@@ -1,7 +1,8 @@
-# Gives a pull request its area labels from the files it changes, by the
-# map in .github/labeler.yml. The action reads the map from the base branch
-# and never checks out or runs the pull request's code, which is what makes
-# pull_request_target safe here.
+# Gives a pull request its labels from what it changes: its areas, by the
+# map in .github/labeler.yml, and its size, by the lines it adds and removes.
+# Neither job checks out or runs the pull request's code, which is what makes
+# pull_request_target safe here: the labeler reads the map from the base
+# branch, and the size comes from the numbers GitHub already reports.
 name: Labels
 
 on:
@@ -13,8 +14,32 @@ permissions:
   pull-requests: write
 
 jobs:
-  label:
+  area:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/labeler@bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13 # v7.0.0
+
+  size:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const pull = context.payload.pull_request;
+            const lines = pull.additions + pull.deletions;
+            const sizes = [['size/XS', 10], ['size/S', 50], ['size/M', 250], ['size/L', 1000], ['size/XL', Infinity]];
+            const size = sizes.find(([, under]) => lines < under)[0];
+            const { owner, repo } = context.repo;
+            const current = pull.labels.map((l) => l.name).filter((name) => name.startsWith('size/'));
+
+            for (const name of current.filter((name) => name !== size)) {
+              await github.rest.issues.removeLabel({ owner, repo, issue_number: pull.number, name }).catch(() => {});
+            }
+            if (!current.includes(size)) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: pull.number, labels: [size] });
+            }
