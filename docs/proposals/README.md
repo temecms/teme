@@ -25,3 +25,8 @@ The proposal keeps the reasons. How the built thing works is described in [`docs
 
 | Proposal | Status | Issue | Release |
 |---|---|---|---|
+| [One searchable list: the Combobox](combobox.md) | accepted | — | — |
+| [Settings pages on the new design system](settings-pages.md) | accepted | — | — |
+| [People and your account on the new design system](people-and-account.md) | accepted | — | — |
+| [The sign-in pages on one card](sign-in-pages.md) | accepted | — | — |
+| [The remaining admin screens on the new design system](remaining-screens.md) | accepted | — | — |
