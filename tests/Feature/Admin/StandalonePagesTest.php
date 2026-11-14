@@ -157,7 +157,14 @@ it('draws Teme\'s mark when the site\'s name cannot be read', function (): void 
     expect($page->query("//main[@data-error='500']")->length)->toBe(1)
         ->and($html)->toContain('<svg aria-hidden="true"')
         ->and($page->query("//*[@class='sa-name']")->length)->toBe(0)
-        ->and(trim((string) $page->query("//*[@class='sa-brand']/*[@class='sa-product']")->item(0)?->textContent))->toBe('Teme');
+        ->and(trim((string) $page->query("//*[@class='sa-brand']/*[@class='sa-product']")->item(0)?->textContent))->toBe('Teme')
+        ->and($html)->toContain('.sa-icon-tile')
+        ->and($html)->toContain('class="sa-icon-deep"');
+
+    foreach (['tile', 'edge', 'deep', 'light', 'pale'] as $name) {
+        expect($html)->not->toMatch('/\\.'.$name.'\\b/')
+            ->and($html)->not->toContain('class="'.$name.'"');
+    }
 });
 
 it('leaves the public site\'s errors to the theme', function (): void {

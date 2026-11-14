@@ -43,7 +43,8 @@ final readonly class StandalonePage
 
     /**
      * Teme's icon as inline markup, hidden from screen readers and 36 pixels
-     * square; an empty string when the file cannot be read.
+     * square, its class names prefixed so its style touches nothing else on
+     * the page; an empty string when the file cannot be read.
      */
     public function temeMark(): string
     {
@@ -54,6 +55,9 @@ final readonly class StandalonePage
         }
 
         $svg = (string) preg_replace('#<title>.*?</title>\s*#s', '', $svg);
+        // Its own class names, prefixed: inline, its style reaches the whole page.
+        $svg = (string) preg_replace('/\.(tile|edge|deep|light|pale)\b/', '.sa-icon-$1', $svg);
+        $svg = (string) preg_replace('/class="(tile|edge|deep|light|pale)"/', 'class="sa-icon-$1"', $svg);
 
         return (string) preg_replace('/<svg\b/', '<svg aria-hidden="true" focusable="false" width="36" height="36"', $svg, 1);
     }
