@@ -50,7 +50,7 @@ export function Proposal({
                           part.changed ? (
                               <del
                                   key={index}
-                                  className="bg-destructive/10 text-destructive line-through"
+                                  className="bg-danger/10 text-danger-ink line-through"
                               >
                                   {part.text}
                               </del>
@@ -65,7 +65,7 @@ export function Proposal({
                     part.changed ? (
                         <ins
                             key={index}
-                            className="bg-success-muted text-success underline"
+                            className="bg-ok-soft text-ok-ink underline"
                         >
                             {part.text}
                         </ins>

@@ -28,9 +28,7 @@ export function SetupSteps({ current }: { current: 1 | 2 | 3 }) {
                         key={step}
                         aria-current={number === current ? 'step' : undefined}
                         className={
-                            number === current
-                                ? 'font-medium'
-                                : 'text-muted-foreground'
+                            number === current ? 'font-medium' : 'text-ink-2'
                         }
                     >
                         <span aria-hidden="true">{number} </span>

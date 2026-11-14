@@ -156,13 +156,13 @@ export function SharePane({
                             {copied ? 'Copied' : 'Copy'}
                         </Button>
                     </div>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-ink-2 text-xs">
                         Copy it now: it will not be shown again.
                     </p>
                 </div>
             )}
             {problem && (
-                <p role="alert" className="text-destructive text-xs">
+                <p role="alert" className="text-danger-ink text-xs">
                     {problem}
                 </p>
             )}
@@ -170,7 +170,7 @@ export function SharePane({
                 <ul
                     aria-label="Preview links"
                     data-test="share-links"
-                    className="border-border grid gap-2 border-t pt-3"
+                    className="border-line grid gap-2 border-t pt-3"
                 >
                     {links.map((link) => (
                         <li
@@ -185,7 +185,7 @@ export function SharePane({
                                           ? `Revoked ${when(link.revokedAt)}`
                                           : `Expired ${when(link.expiresAt)}`}
                                 </span>
-                                <span className="text-muted-foreground text-xs">
+                                <span className="text-ink-2 text-xs">
                                     Made by{' '}
                                     {link.createdByName ?? 'a removed account'},{' '}
                                     {when(link.createdAt)} · {views(link)}
@@ -196,7 +196,7 @@ export function SharePane({
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    className="text-destructive"
+                                    className="text-danger-ink"
                                     onClick={() => void revoke(link.id)}
                                 >
                                     Revoke

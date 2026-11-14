@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
-import { AlertTriangle, X, XCircle } from 'lucide-react';
+import { OctagonAlert, TriangleAlert, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import type { FlashToast } from '@/types/ui';
 
 /** How long a result stays: 6 seconds, or 10 when it offers an Undo or a place to go, so the offer can be found. */
@@ -9,11 +10,15 @@ const DURATION_WITH_ACTION = 10_000;
 
 type Action = { label: string; onClick: () => void };
 
+/** A button in the toast's inverse colours. */
+const inverse =
+    'text-page hover:bg-page/15 hover:text-page active:bg-page/15 active:text-page focus-visible:outline-page';
+
 /**
- * One toast: the foreground colour as its background and the card colour as
- * its text, the one shadow, the message, at most one action, and a Dismiss.
- * Colour is not how the kind is told: a warning or an error has an icon and
- * is spoken as one.
+ * One toast (docs/architecture/design-system.md, section 4.21): the ink as
+ * its ground and the page colour as its words, the message, at most one
+ * action, and a Dismiss. Colour is not how the kind is told: a warning or a
+ * failure leads with its icon and is spoken as one.
  */
 function FlashToastView({
     id,
@@ -26,19 +31,16 @@ function FlashToastView({
     message: string;
     action?: Action;
 }) {
-    const buttonClass =
-        'focus-visible:outline-card rounded-md focus-visible:outline-2 focus-visible:outline-offset-1';
-
     return (
         <div
             data-test="flash-toast"
-            className="bg-foreground text-card flex w-full items-center gap-2.5 rounded-lg py-2.5 pr-2 pl-3.5 text-[13px] shadow-(--shadow)"
+            className="bg-ink text-page shadow-float text-body flex min-h-11 w-full items-center gap-3 rounded-lg py-2 pr-2 pl-4 font-medium"
         >
             {type === 'warning' && (
-                <AlertTriangle aria-hidden="true" className="size-4 shrink-0" />
+                <TriangleAlert aria-hidden="true" className="size-5 shrink-0" />
             )}
             {type === 'error' && (
-                <XCircle aria-hidden="true" className="size-4 shrink-0" />
+                <OctagonAlert aria-hidden="true" className="size-5 shrink-0" />
             )}
             <p className="min-w-0 flex-1">
                 {type === 'warning' && (
@@ -48,26 +50,30 @@ function FlashToastView({
                 {message}
             </p>
             {action && (
-                <button
+                <Button
                     type="button"
-                    className={`${buttonClass} min-h-7 cursor-pointer px-1.5 font-semibold underline underline-offset-2`}
+                    variant="ghost"
+                    size="sm"
+                    className={inverse}
                     onClick={() => {
                         toast.dismiss(id);
                         action.onClick();
                     }}
                 >
                     {action.label}
-                </button>
+                </Button>
             )}
-            <button
+            <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 data-test="flash-toast-dismiss"
                 aria-label="Dismiss"
-                className={`${buttonClass} grid size-7 shrink-0 cursor-pointer place-items-center`}
+                className={inverse}
                 onClick={() => toast.dismiss(id)}
             >
-                <X aria-hidden="true" className="size-4" />
-            </button>
+                <X aria-hidden="true" />
+            </Button>
         </div>
     );
 }

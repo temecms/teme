@@ -21,6 +21,8 @@ export type AdminNavChild = {
     href: string;
     /** What waits for this person here (I-220); a parent's includes its children's. 0 draws none. */
     badge: number;
+    /** Planned and not built (I-3408): drawn with a Soon tag, opening nothing; its href is empty. */
+    soon?: true;
 };
 
 /** A screen of a hub, such as Settings › General, for the palette's Go to. */

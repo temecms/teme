@@ -97,7 +97,7 @@ export default function TwoFactorRecoveryCodes({
                                     </Button>
                                     <p
                                         id="regenerate-warning"
-                                        className="text-muted-foreground text-xs"
+                                        className="text-ink-2 text-xs"
                                     >
                                         New codes replace these. The old ones
                                         stop working.
@@ -119,7 +119,7 @@ export default function TwoFactorRecoveryCodes({
                             <>
                                 <div
                                     ref={codesSectionRef}
-                                    className="bg-muted grid gap-1 rounded-lg p-4 font-mono text-sm"
+                                    className="bg-surface-2 grid gap-1 rounded-lg p-4 font-mono text-sm"
                                     role="list"
                                     aria-label="Recovery codes"
                                 >
@@ -143,7 +143,7 @@ export default function TwoFactorRecoveryCodes({
                                                 (_, index) => (
                                                     <div
                                                         key={index}
-                                                        className="bg-muted-foreground/20 h-4 animate-pulse rounded"
+                                                        className="bg-ink-2/20 h-4 animate-pulse rounded"
                                                         aria-hidden="true"
                                                     />
                                                 ),

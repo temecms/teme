@@ -28,37 +28,44 @@ export type GoToTarget = {
  * hub's pages, as "Posts › Categories" and "Settings › General" (I-220).
  */
 export function goToTargets(nav: AdminNavEntry[]): GoToTarget[] {
-    return nav.flatMap((entry, index) => [
-        {
-            id: `go.${entry.key}`,
-            label: entry.label,
-            icon: entry.icon,
-            href: entry.href,
-            // A hidden entry is out of the sidebar only; here it says so.
-            ...(entry.hidden ? { description: 'Hidden from your menu' } : {}),
-            order: index * 1000,
-            keywords: [entry.key],
-        },
-        ...entry.children.map((child, position) => ({
-            id: `go.${child.key}`,
-            label: `${entry.label} › ${child.label}`,
-            icon: child.icon,
-            href: child.href,
-            order: index * 1000 + 1 + position,
-            keywords: [child.key, entry.key],
-        })),
-        ...entry.screens.map((screen, position) => ({
-            id: `go.${entry.key}.${screen.key}`,
-            label: `${entry.label} › ${screen.label}`,
-            icon: screen.icon,
-            href: screen.href,
-            ...(screen.external === true
-                ? { description: 'Opens in a new tab', external: true }
-                : {}),
-            order: index * 1000 + 500 + position,
-            keywords: [screen.key, entry.key],
-        })),
-    ]);
+    // A planned entry opens nothing, so Go to never offers it (I-3408).
+    return nav
+        .filter((entry) => entry.soon !== true)
+        .flatMap((entry, index) => [
+            {
+                id: `go.${entry.key}`,
+                label: entry.label,
+                icon: entry.icon,
+                href: entry.href,
+                // A hidden entry is out of the sidebar only; here it says so.
+                ...(entry.hidden
+                    ? { description: 'Hidden from your menu' }
+                    : {}),
+                order: index * 1000,
+                keywords: [entry.key],
+            },
+            ...entry.children
+                .filter((child) => child.soon !== true)
+                .map((child, position) => ({
+                    id: `go.${child.key}`,
+                    label: `${entry.label} › ${child.label}`,
+                    icon: child.icon,
+                    href: child.href,
+                    order: index * 1000 + 1 + position,
+                    keywords: [child.key, entry.key],
+                })),
+            ...entry.screens.map((screen, position) => ({
+                id: `go.${entry.key}.${screen.key}`,
+                label: `${entry.label} › ${screen.label}`,
+                icon: screen.icon,
+                href: screen.href,
+                ...(screen.external === true
+                    ? { description: 'Opens in a new tab', external: true }
+                    : {}),
+                order: index * 1000 + 500 + position,
+                keywords: [screen.key, entry.key],
+            })),
+        ]);
 }
 
 /** Go to: each target, visited when chosen. */

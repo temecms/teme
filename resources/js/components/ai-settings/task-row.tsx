@@ -81,7 +81,7 @@ function ModelSelect({
                 options={choices}
                 aria-describedby={`${id}-hint ${id}-error`}
             />
-            <p id={`${id}-hint`} className="text-muted-foreground text-sm">
+            <p id={`${id}-hint`} className="text-ink-2 text-sm">
                 {modelHint(chosen, stale)}
             </p>
             <InputError id={`${id}-error`} message={error} />
@@ -116,7 +116,7 @@ export function TaskRow({ task, values, errors }: RowProps) {
         <section
             aria-labelledby={`ai-task-${task.key}-heading`}
             data-test={`ai-task-${task.key}`}
-            className="border-border grid gap-3 border-t pt-4"
+            className="border-line grid gap-3 border-t pt-4"
         >
             <div className="grid gap-1">
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -129,16 +129,14 @@ export function TaskRow({ task, values, errors }: RowProps) {
                     <span
                         data-test={`ai-task-status-${task.key}`}
                         className={
-                            task.on
-                                ? 'text-foreground text-sm'
-                                : 'text-muted-foreground text-sm'
+                            task.on ? 'text-ink text-sm' : 'text-ink-2 text-sm'
                         }
                     >
                         {task.status}
                     </span>
                 </div>
                 {task.note !== null && (
-                    <p className="text-muted-foreground text-sm">{task.note}</p>
+                    <p className="text-ink-2 text-sm">{task.note}</p>
                 )}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">

@@ -125,12 +125,12 @@ export default function Addresses(page: AddressesPage) {
                     </Button>
                 </div>
 
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     Old addresses keep working: visitors and search engines are
                     sent to the new one.
                 </p>
 
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     The home page and the posts page are chosen in Reading.
                 </p>
 
@@ -152,7 +152,7 @@ export default function Addresses(page: AddressesPage) {
                                 {clashes.length > 0 && (
                                     <div
                                         role="alert"
-                                        className="bg-destructive-muted text-destructive grid gap-1 rounded-md px-3 py-2 text-[13px]"
+                                        className="bg-danger-soft text-danger-ink grid gap-1 rounded-md px-3 py-2 text-[13px]"
                                     >
                                         <p className="font-medium">
                                             These would share an address:
@@ -192,7 +192,7 @@ export default function Addresses(page: AddressesPage) {
                                                 <span className="w-32">
                                                     {preset.label}
                                                 </span>
-                                                <code className="text-muted-foreground">
+                                                <code className="text-ink-2">
                                                     {page.example
                                                         ? render(
                                                               preset.pattern,
@@ -248,11 +248,11 @@ export default function Addresses(page: AddressesPage) {
                                             </div>
                                         )}
                                         {page.example && (
-                                            <p className="text-muted-foreground text-[13px]">
+                                            <p className="text-ink-2 text-[13px]">
                                                 Your newest{' '}
                                                 {archive.singular.toLowerCase()}{' '}
                                                 would be at{' '}
-                                                <span className="text-foreground font-medium">
+                                                <span className="text-ink font-medium">
                                                     {render(
                                                         archivePattern,
                                                         page.example,
@@ -320,13 +320,13 @@ export default function Addresses(page: AddressesPage) {
                                                             />
                                                             <p
                                                                 id={`archive-${type.key}-hint`}
-                                                                className="text-muted-foreground text-xs"
+                                                                className="text-ink-2 text-xs"
                                                             >
                                                                 {`At ${typeArchive.address}. Its feed is at ${typeArchive.feed}.`}
                                                             </p>
                                                             {typeArchive.holder !==
                                                                 null && (
-                                                                <p className="text-warning text-xs">
+                                                                <p className="text-warn-ink text-xs">
                                                                     {`${typeArchive.address} shows ${typeArchive.holder} instead, because it had the address first. Give the archive page another address, or move ${typeArchive.holder}.`}
                                                                 </p>
                                                             )}
@@ -372,7 +372,7 @@ export default function Addresses(page: AddressesPage) {
                                             />
                                             {(bases[taxonomy.key] ?? '') ===
                                                 '' && (
-                                                <p className="text-muted-foreground text-xs">
+                                                <p className="text-ink-2 text-xs">
                                                     {taxonomy.plural} will share
                                                     the root with other
                                                     addresses.
@@ -410,7 +410,7 @@ export default function Addresses(page: AddressesPage) {
                                         (progress.running ? (
                                             <p
                                                 role="status"
-                                                className="text-muted-foreground text-[13px]"
+                                                className="text-ink-2 text-[13px]"
                                             >
                                                 Updating addresses:{' '}
                                                 {progress.done.toLocaleString()}{' '}
@@ -420,7 +420,7 @@ export default function Addresses(page: AddressesPage) {
                                         ) : (
                                             <p
                                                 role="status"
-                                                className="text-muted-foreground text-[13px]"
+                                                className="text-ink-2 text-[13px]"
                                             >
                                                 Every address is up to date.
                                             </p>

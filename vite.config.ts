@@ -35,6 +35,22 @@ export default defineConfig({
             formVariants: true,
         }),
     ]),
+    build: {
+        rolldownOptions: {
+            output: {
+                codeSplitting: {
+                    groups: [
+                        // Every icon a page imports by name in one file, instead of one small file an icon (I-3311).
+                        {
+                            name: 'icons',
+                            test: /lucide-react[\\/]dist[\\/]esm[\\/]icons[\\/](?!index\.js)[^\\/]+\.js$/,
+                            tags: ['$initial'],
+                        },
+                    ],
+                },
+            },
+        },
+    },
     server: {
         watch: {
             ignored: [

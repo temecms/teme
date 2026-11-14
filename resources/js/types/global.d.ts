@@ -25,6 +25,8 @@ declare module '@inertiajs/core' {
             settingsNav: SettingsNavItem[];
             /** The one banner this person should see, such as a theme that can't be used (I-221). */
             statusBanner: StatusBanner | null;
+            /** Every status check's banner this person may act on, the most pressing first (I-3397). */
+            siteStatus: StatusBanner[];
             /** The header's jobs button and bell (I-104); null for anyone not signed in and verified. */
             headerCounts: HeaderCounts | null;
             contentTypes: ContentTypeInfo[];

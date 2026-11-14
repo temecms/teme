@@ -8,12 +8,14 @@ uses(TestCase::class);
 
 // uiComponent() lives in tests/Pest.php.
 
-it('sets the control heights the design system asks for', function (): void {
+it('sets the control heights the design system asks for, from the tokens', function (): void {
     $button = uiComponent('components/ui/button.tsx');
 
-    expect($button)->toContain('h-[34px]')   // default
-        ->and($button)->toContain('h-7')      // sm, 28px
-        ->and($button)->toContain('h-10');    // lg, 40px
+    expect($button)->toContain('h-(--ctl-h)')
+        ->and($button)->toContain('h-(--ctl-h-sm)')
+        ->and($button)->toContain('h-(--ctl-h-xs)')
+        ->and(uiComponent('components/ui/input.tsx'))->toContain('h-(--ctl-h)')
+        ->and(uiComponent('components/ui/select.tsx'))->toContain('h-(--ctl-h)');
 });
 
 it('draws the focus ring at full strength', function (string $path): void {
@@ -47,40 +49,49 @@ it('offers the two empty choices through the select field', function (string $pa
     'reassigning a deleted person\'s content' => ['pages/users/index.tsx', 'No one — they wrote nothing'],
 ]);
 
-it('rounds a badge at 2px and fills no status with a solid colour', function (): void {
+it('rounds a badge fully and fills no status with a solid colour', function (): void {
     $badge = uiComponent('components/ui/badge.tsx');
 
-    expect($badge)->toContain('rounded-sm')
-        ->and($badge)->not->toContain('rounded-md')
-        ->and($badge)->toContain('bg-success-muted text-success')
-        ->and($badge)->toContain('bg-destructive-muted text-destructive');
+    expect($badge)->toContain('rounded-full')
+        ->and($badge)->not->toContain('rounded-sm')
+        ->and($badge)->toContain('bg-ok-soft text-ok-ink')
+        ->and($badge)->toContain('bg-danger-soft text-danger-ink');
 });
 
-it('does not shadow or round a panel', function (): void {
+it('lifts a panel on the soft shadow, with no border', function (): void {
     $panel = uiComponent('components/ui/panel.tsx');
 
-    expect($panel)->not->toContain('shadow')
-        ->and($panel)->not->toContain('rounded')
-        ->and($panel)->toContain('border-t');
+    expect($panel)->toContain('shadow-raised')
+        ->and($panel)->toContain('rounded-lg')
+        ->and($panel)->toContain('bg-surface')
+        ->and($panel)->not->toContain('border-t');
 });
 
-it('leaves the shadow to things that float', function (string $path): void {
-    expect(uiComponent($path))->toContain('shadow');
-})->with(['components/ui/dialog.tsx', 'components/ui/sheet.tsx', 'components/ui/dropdown-menu.tsx', 'components/ui/popover.tsx']);
+it('gives the stronger shadows to things that float', function (string $path, string $shadow): void {
+    expect(uiComponent($path))->toContain($shadow);
+})->with([
+    ['components/ui/dialog.tsx', 'shadow-modal'],
+    ['components/ui/sheet.tsx', 'shadow-modal'],
+    ['components/ui/dropdown-menu.tsx', 'shadow-float'],
+    ['components/ui/popover.tsx', 'shadow-float'],
+]);
 
-it('takes the shadow off the card, which no longer floats', function (): void {
-    expect(uiComponent('components/ui/card.tsx'))->not->toContain('shadow-sm')
-        ->and(uiComponent('components/ui/card.tsx'))->not->toContain('rounded-xl')
-        ->and(uiComponent('components/ui/card.tsx'))->toContain('rounded-lg');
+it('draws the card as a panel', function (): void {
+    $card = uiComponent('components/ui/card.tsx');
+
+    expect($card)->toContain('shadow-raised')
+        ->and($card)->toContain('rounded-lg')
+        ->and($card)->not->toContain('shadow-sm')
+        ->and($card)->not->toContain('rounded-xl');
 });
 
 it('marks the current tab with the foreground and a 2px accent underline', function (): void {
     $tabs = uiComponent('components/list/tab-strip.tsx');
 
     expect($tabs)->toContain('border-b-2')
-        ->and($tabs)->toContain('border-primary text-foreground')
+        ->and($tabs)->toContain('border-accent text-ink')
         ->and($tabs)->toContain('h-9')
-        ->and($tabs)->not->toContain('text-primary');
+        ->and($tabs)->not->toContain('text-accent');
 });
 
 it('draws 44px rows separated by hairlines in one bordered region', function (): void {
@@ -97,7 +108,7 @@ it('draws 44px rows separated by hairlines in one bordered region', function ():
 it('gives the bulk bar a muted background and a hairline, not the accent', function (): void {
     $bar = uiComponent('components/list/bulk-bar.tsx');
 
-    expect($bar)->toContain('bg-muted')
-        ->and($bar)->toContain('border-input')
-        ->and($bar)->not->toContain('primary');
+    expect($bar)->toContain('bg-surface-2')
+        ->and($bar)->toContain('border-edge')
+        ->and($bar)->not->toContain('bg-accent');
 });

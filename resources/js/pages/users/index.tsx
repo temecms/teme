@@ -90,7 +90,7 @@ function OwnRowLock() {
                 aria-disabled="true"
                 aria-describedby="own-role-reason"
                 data-test="own-row-lock"
-                className="text-muted-foreground -my-1 cursor-not-allowed"
+                className="text-ink-2 -my-1 cursor-not-allowed"
                 onClick={(event) => event.preventDefault()}
             >
                 <Lock aria-hidden="true" />
@@ -98,7 +98,7 @@ function OwnRowLock() {
             </Button>
             <p
                 id="own-role-reason"
-                className="text-muted-foreground w-56 text-right text-xs"
+                className="text-ink-2 w-56 text-right text-xs"
             >
                 {OWN_ROLE_REASON}
             </p>
@@ -316,7 +316,7 @@ function InviteDialog({
                                     message={errors.role}
                                 />
                             </div>
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-ink-2 text-xs">
                                 {SENDING_MAY_ASK}
                             </p>
                             <DialogFooter>
@@ -333,7 +333,7 @@ function InviteDialog({
                     )}
                 </Form>
                 {askPassword && (
-                    <div className="border-border space-y-3 rounded-md border p-4">
+                    <div className="border-line space-y-3 rounded-md border p-4">
                         <p className="text-sm">
                             Type your password to carry on. What you typed stays
                             here.
@@ -416,7 +416,7 @@ function RoleDialog({
                                         />
                                         <p
                                             id="change-role-hint"
-                                            className="text-muted-foreground text-xs"
+                                            className="text-ink-2 text-xs"
                                         >
                                             {person.invitedAt === null
                                                 ? ROLE_HINT_PERSON
@@ -427,7 +427,7 @@ function RoleDialog({
                                             message={errors.role ?? errors.user}
                                         />
                                     </div>
-                                    <p className="text-muted-foreground text-xs">
+                                    <p className="text-ink-2 text-xs">
                                         {CHANGING_MAY_ASK}
                                     </p>
                                     <DialogFooter>
@@ -508,7 +508,7 @@ function DeleteDialog({
                                         />
                                         <p
                                             id={`reassign-${person.id}-hint`}
-                                            className="text-muted-foreground text-xs"
+                                            className="text-ink-2 text-xs"
                                         >
                                             {__(
                                                 'Their name stays on what they wrote.',
@@ -522,7 +522,7 @@ function DeleteDialog({
                                             }
                                         />
                                     </div>
-                                    <p className="text-muted-foreground text-xs">
+                                    <p className="text-ink-2 text-xs">
                                         {DELETING_MAY_ASK}
                                     </p>
                                     <DialogFooter>
@@ -591,7 +591,7 @@ export default function UsersIndex({
                             <Badge variant="outline">You</Badge>
                         )}
                     </div>
-                    <div className="text-muted-foreground">{user.email}</div>
+                    <div className="text-ink-2">{user.email}</div>
                     {/* Each of your own row's actions is refused for yourself, so it has the lock, not links. */}
                     {user.id === currentUserId ? (
                         <OwnRowLock />
@@ -633,7 +633,7 @@ export default function UsersIndex({
             owner: 'core',
             header: 'Last sign-in',
             cell: (user) => (
-                <span className="text-muted-foreground">
+                <span className="text-ink-2">
                     {user.lastSignInAt
                         ? new Date(user.lastSignInAt).toLocaleString()
                         : 'Never'}
@@ -650,7 +650,7 @@ export default function UsersIndex({
             cell: (user) => (
                 <>
                     <div className="font-semibold">{user.name}</div>
-                    <div className="text-muted-foreground">{user.email}</div>
+                    <div className="text-ink-2">{user.email}</div>
                     <RowLinks
                         label={`Actions for ${user.name}`}
                         more={`More actions for ${user.name}`}
@@ -675,7 +675,7 @@ export default function UsersIndex({
                         {user.invitedAt ? shortDate(user.invitedAt) : '—'}
                     </span>
                     {user.invitedBy && (
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-ink-2 text-xs">
                             {`by ${user.invitedBy}`}
                         </span>
                     )}
@@ -689,7 +689,7 @@ export default function UsersIndex({
             cell: (user) => (
                 <div className="flex flex-wrap items-center gap-1">
                     {user.linkWorksUntil ? (
-                        <span className="text-muted-foreground">
+                        <span className="text-ink-2">
                             {`Works until ${shortDate(user.linkWorksUntil)}`}
                         </span>
                     ) : (

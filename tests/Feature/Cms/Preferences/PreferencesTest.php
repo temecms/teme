@@ -31,8 +31,6 @@ it('gives a person the declared defaults before they change anything', function 
         'editor.focus_mode_default' => false,
         'lists.per_page' => 50,
         'appearance.mode' => 'system',
-        'appearance.look' => 'dark_chrome',
-        'appearance.high_contrast' => false,
         'dashboard.getting_started_hidden' => false,
         'notifications.comments.waiting' => ['mail'],
         'notifications.comments.approved' => ['mail'],

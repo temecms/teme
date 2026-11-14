@@ -48,7 +48,7 @@ export function ConnectForm({
                                     {' '}
                                     <a
                                         href={companion.releases}
-                                        className="text-foreground underline underline-offset-4"
+                                        className="text-ink underline underline-offset-4"
                                     >
                                         Download Teme Companion
                                     </a>
@@ -95,7 +95,7 @@ export function ConnectForm({
                                 />
                                 <p
                                     id="import-address-hint"
-                                    className="text-muted-foreground text-[13px]"
+                                    className="text-ink-2 text-[13px]"
                                 >
                                     The address readers use, such as
                                     https://example.com.
@@ -120,7 +120,7 @@ export function ConnectForm({
                             />
                             <p
                                 id="import-user-name-hint"
-                                className="text-muted-foreground text-[13px]"
+                                className="text-ink-2 text-[13px]"
                             >
                                 An administrator’s.
                             </p>
@@ -142,7 +142,7 @@ export function ConnectForm({
                             />
                             <p
                                 id="import-application-password-hint"
-                                className="text-muted-foreground text-[13px]"
+                                className="text-ink-2 text-[13px]"
                             >
                                 Teme keeps it encrypted until you choose Forget
                                 this site, and never shows it again.
@@ -160,7 +160,7 @@ export function ConnectForm({
                         >
                             {processing ? 'Connecting…' : 'Connect'}
                         </Button>
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             Connecting can take up to two minutes if the site is
                             slow to answer.
                         </p>

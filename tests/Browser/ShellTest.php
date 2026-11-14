@@ -200,11 +200,11 @@ it('opens the palette from the search button', function (): void {
 });
 
 it('draws the parents above a child screen, and nothing above Home', function (): void {
-    $page = cmSignIn($this->admin)->assertNotPresent('[data-test="page-trail"]');
+    $page = cmSignIn($this->admin)->assertNotPresent('[data-test="crumbs"] a');
 
     $page->navigate('/admin/tools/page-cache')
-        ->assertVisible('[data-test="page-trail"]')
-        ->assertSeeIn('[data-test="page-trail"]', 'Tools');
+        ->assertVisible('[data-test="crumbs"]')
+        ->assertSeeIn('[data-test="crumbs"] a', 'Tools');
 });
 
 it('lists Profile, Security, Preferences and Sign out under the person\'s name and email', function (): void {

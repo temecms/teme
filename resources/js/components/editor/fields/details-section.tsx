@@ -48,7 +48,7 @@ export function DetailsSection({
                 >
                     Details
                 </h2>
-                <p className="text-muted-foreground text-xs">
+                <p className="text-ink-2 text-xs">
                     What every {noun} records. Fields are set up in Site › Types
                     › {plural}.
                 </p>
@@ -77,7 +77,7 @@ export function DetailsSection({
                                     {field.label}
                                 </Label>
                                 {field.required && (
-                                    <span className="bg-muted text-muted-foreground rounded-sm px-1.5 py-0.5 text-[11px] font-medium">
+                                    <span className="bg-surface-2 text-ink-2 rounded-sm px-1.5 py-0.5 text-[11px] font-medium">
                                         Required
                                     </span>
                                 )}
@@ -101,10 +101,7 @@ export function DetailsSection({
                             />
                         </div>
                         {help && (
-                            <p
-                                id={`${id}-help`}
-                                className="text-muted-foreground text-xs"
-                            >
+                            <p id={`${id}-help`} className="text-ink-2 text-xs">
                                 {field.description}
                             </p>
                         )}
@@ -112,7 +109,7 @@ export function DetailsSection({
                             <p
                                 id={`${id}-error`}
                                 role="alert"
-                                className="text-destructive text-xs"
+                                className="text-danger-ink text-xs"
                             >
                                 {error}
                             </p>

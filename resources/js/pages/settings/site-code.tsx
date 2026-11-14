@@ -22,10 +22,10 @@ import { formatInZone } from '@/lib/zoned-time';
 import type { SiteCodeChange, SiteCodeEntry, SiteCodePage } from '@/types';
 
 const controlClass =
-    'border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
 
 const codeClass =
-    'bg-muted text-foreground overflow-x-auto rounded-md p-3 font-mono text-xs whitespace-pre-wrap break-all';
+    'bg-surface-2 text-ink overflow-x-auto rounded-md p-3 font-mono text-xs whitespace-pre-wrap break-all';
 
 /** What is open in the drawer: nothing, a new entry, or one being edited. */
 type Editing = null | 'new' | SiteCodeEntry;
@@ -37,7 +37,7 @@ function Notice({ locked }: { locked: boolean }) {
         <div
             role="note"
             data-test="site-code-notice"
-            className="border-border flex gap-3 rounded-md border p-4 text-sm"
+            className="border-line flex gap-3 rounded-md border p-4 text-sm"
         >
             <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
             {locked ? (
@@ -84,12 +84,12 @@ function EntryRow({
     return (
         <div
             data-test="site-code-entry"
-            className="border-border space-y-3 rounded-md border p-4"
+            className="border-line space-y-3 rounded-md border p-4"
         >
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="flex flex-wrap items-center gap-2 text-sm">
                     <strong className="font-medium">{entry.name}</strong>
-                    <span className="text-muted-foreground">{status}</span>
+                    <span className="text-ink-2">{status}</span>
                 </p>
 
                 {!locked && (
@@ -152,7 +152,7 @@ function EntryRow({
                                         size="sm"
                                         disabled={processing}
                                         data-test="site-code-delete"
-                                        className="text-destructive"
+                                        className="text-danger-ink"
                                     >
                                         Delete
                                         <span className="sr-only">
@@ -173,7 +173,7 @@ function EntryRow({
                 <div
                     role="note"
                     data-test="site-code-structured-data"
-                    className="border-border rounded-md border p-3 text-sm"
+                    className="border-line rounded-md border p-3 text-sm"
                 >
                     <p>
                         <strong className="font-medium">
@@ -187,7 +187,7 @@ function EntryRow({
                 </div>
             )}
 
-            <p className="text-muted-foreground text-xs">
+            <p className="text-ink-2 text-xs">
                 Last changed by {entry.changedBy},{' '}
                 {formatInZone(entry.changedAt, siteTimezone)}
             </p>
@@ -203,9 +203,7 @@ function ChangeOrigins({ origins }: { origins: string[] | null }) {
 
     return (
         <p className="text-xs [overflow-wrap:anywhere]">
-            <span className="text-muted-foreground">
-                {__('Also connects to')}
-            </span>{' '}
+            <span className="text-ink-2">{__('Also connects to')}</span>{' '}
             {origins.length === 0 ? (
                 __('nothing')
             ) : (
@@ -223,12 +221,12 @@ function ChangeRow({
     siteTimezone: string;
 }) {
     return (
-        <li className="border-border space-y-2 border-b py-3 text-sm last:border-b-0">
+        <li className="border-line space-y-2 border-b py-3 text-sm last:border-b-0">
             <p>
                 <strong className="font-medium">
                     {change.what} “{change.name}”
                 </strong>{' '}
-                <span className="text-muted-foreground">
+                <span className="text-ink-2">
                     · {change.who}, {formatInZone(change.when, siteTimezone)}
                 </span>
             </p>
@@ -241,14 +239,14 @@ function ChangeRow({
                 </summary>
                 <div className="mt-2 grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
-                        <p className="text-muted-foreground text-xs">Before</p>
+                        <p className="text-ink-2 text-xs">Before</p>
                         <pre className={codeClass}>
                             {change.before ?? 'Nothing'}
                         </pre>
                         <ChangeOrigins origins={change.beforeOrigins} />
                     </div>
                     <div className="space-y-1">
-                        <p className="text-muted-foreground text-xs">After</p>
+                        <p className="text-ink-2 text-xs">After</p>
                         <pre className={codeClass}>
                             {change.after ?? 'Nothing'}
                         </pre>
@@ -299,10 +297,7 @@ function OriginsField({
                 aria-invalid={error ? true : undefined}
                 className={`${controlClass} font-mono`}
             />
-            <p
-                id="site-code-origins-hint"
-                className="text-muted-foreground text-xs"
-            >
+            <p id="site-code-origins-hint" className="text-ink-2 text-xs">
                 {__(
                     'Analytics and chat code often send data to, or load more from, addresses that aren’t written in it. List each host, one a line: plausible.io, or *.example.com for every address under it. Addresses written in the code are found on their own.',
                 )}
@@ -312,7 +307,7 @@ function OriginsField({
                 <p
                     id="site-code-found"
                     data-test="site-code-found"
-                    className="text-muted-foreground text-xs [overflow-wrap:anywhere]"
+                    className="text-ink-2 text-xs [overflow-wrap:anywhere]"
                 >
                     {entry.found.length === 0 ? (
                         __('No addresses found in the code.')
@@ -374,7 +369,7 @@ function CodeForm({
                         />
                         <p
                             id="site-code-name-hint"
-                            className="text-muted-foreground text-xs"
+                            className="text-ink-2 text-xs"
                         >
                             So everyone can tell what it is, such as “Visitor
                             analytics”.
@@ -421,7 +416,7 @@ function CodeForm({
                         />
                         <p
                             id="site-code-code-hint"
-                            className="text-muted-foreground text-xs"
+                            className="text-ink-2 text-xs"
                         >
                             Added to every public page, in the place you chose.
                         </p>
@@ -449,7 +444,7 @@ function CodeForm({
                         </div>
                         <p
                             id="site-code-on-hint"
-                            className="text-muted-foreground text-xs"
+                            className="text-ink-2 text-xs"
                         >
                             Off keeps it here without adding it to any page.
                         </p>
@@ -520,9 +515,7 @@ export default function SiteCodeSettings({
                         description={place.where}
                     >
                         {place.entries.length === 0 ? (
-                            <p className="text-muted-foreground text-sm">
-                                Nothing here.
-                            </p>
+                            <p className="text-ink-2 text-sm">Nothing here.</p>
                         ) : (
                             place.entries.map((entry) => (
                                 <EntryRow
@@ -543,9 +536,7 @@ export default function SiteCodeSettings({
                     description="Newest first. The security log keeps each one for a year."
                 >
                     {changes.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">
-                            No changes yet.
-                        </p>
+                        <p className="text-ink-2 text-sm">No changes yet.</p>
                     ) : (
                         <ul>
                             {changes.map((change) => (

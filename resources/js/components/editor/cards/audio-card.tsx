@@ -12,7 +12,7 @@ type AudioAttrs = {
     transcript: string | null;
 };
 
-const MUTED = 'text-muted-foreground mt-1.5 text-[13px]';
+const MUTED = 'text-ink-2 mt-1.5 text-[13px]';
 
 /**
  * An audio card as it will play: the browser's player, the caption, and the
@@ -69,7 +69,7 @@ export function AudioCard({
                         )}
                         {transcript !== '' && (
                             <p className={`${MUTED} line-clamp-2`}>
-                                <span className="text-foreground font-medium">
+                                <span className="text-ink font-medium">
                                     Transcript
                                 </span>{' '}
                                 {transcript}
@@ -77,17 +77,17 @@ export function AudioCard({
                         )}
                     </figure>
                 ) : item ? (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         This file isn’t audio, so the site shows nothing here.
                         Replace it or remove the card.
                     </p>
                 ) : attrs.mediaId && loading.includes(attrs.mediaId) ? (
                     <div
                         aria-busy="true"
-                        className="bg-muted h-[54px] w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 h-[54px] w-full animate-pulse rounded-sm"
                     />
                 ) : (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         {attrs.mediaId
                             ? 'This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.'
                             : 'Choose an audio file from the library.'}

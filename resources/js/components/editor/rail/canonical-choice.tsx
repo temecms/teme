@@ -67,7 +67,7 @@ function Choice({
                 name="editor-canonical"
                 checked={checked}
                 onChange={onSelect}
-                className="accent-primary size-4"
+                className="accent-accent size-4"
             />
             {children}
         </label>
@@ -143,10 +143,7 @@ export function CanonicalChoice({
             <legend className="mb-1 text-sm leading-none font-medium">
                 Canonical address
             </legend>
-            <p
-                id="editor-canonical-hint"
-                className="text-muted-foreground mb-1 text-xs"
-            >
+            <p id="editor-canonical-hint" className="text-ink-2 mb-1 text-xs">
                 Where the original of this {noun} lives, if it was first
                 published elsewhere. Search engines are then asked to list the
                 original instead.
@@ -183,7 +180,7 @@ export function CanonicalChoice({
                         onChange={(event) => setQuery(event.target.value)}
                     />
                     {query.trim() !== '' && targets.length === 0 && (
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-ink-2 text-xs">
                             Nothing matches “{query.trim()}”.
                         </p>
                     )}
@@ -213,12 +210,12 @@ export function CanonicalChoice({
                                                 onChange({ item: target.id });
                                                 setQuery('');
                                             }}
-                                            className="hover:bg-accent focus-visible:ring-ring flex min-h-6 w-full items-baseline gap-2 rounded-sm px-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
+                                            className="hover:bg-surface-3 focus-visible:ring-ring flex min-h-6 w-full items-baseline gap-2 rounded-sm px-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
                                         >
                                             <span>
                                                 {shownTitle(target.title)}
                                             </span>
-                                            <span className="text-muted-foreground text-xs">
+                                            <span className="text-ink-2 text-xs">
                                                 {target.status === 'published'
                                                     ? singular
                                                     : `${singular}, not published`}
@@ -237,13 +234,13 @@ export function CanonicalChoice({
                             >
                                 Chosen: {quotedTitle(chosen.title)}
                             </p>
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-ink-2 text-xs">
                                 The link follows it if its address changes.
                             </p>
                             {chosen.state === 'unpublished' && (
                                 <p
                                     data-test="canonical-note"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     “{quotedTitle(chosen.title)}” isn’t
                                     published, so search engines are sent to
@@ -282,17 +279,14 @@ export function CanonicalChoice({
                     <p
                         id="editor-canonical-url-error"
                         role="alert"
-                        className="text-destructive text-xs"
+                        className="text-danger-ink text-xs"
                     >
                         {text.trim() !== '' ? problem : null}
                     </p>
                 </div>
             )}
             {gone && (
-                <p
-                    data-test="canonical-note"
-                    className="text-muted-foreground text-xs"
-                >
+                <p data-test="canonical-note" className="text-ink-2 text-xs">
                     The item chosen before is in the trash or was deleted, so
                     this {noun}’s own address is back in use. Choose another if
                     you need one.

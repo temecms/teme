@@ -160,12 +160,11 @@ export function FilterButton({
                     className={cn(
                         'h-8 font-normal',
                         isMobile && 'shrink-0 rounded-full',
-                        active && 'bg-accent',
+                        active && 'bg-surface-3',
                     )}
                 >
                     <span>
-                        <span className="text-muted-foreground">{label}:</span>{' '}
-                        {value}
+                        <span className="text-ink-2">{label}:</span> {value}
                     </span>
                     <ChevronDown className="size-3.5" />
                 </Button>
@@ -199,7 +198,7 @@ function PanelLinks({
                     onClick={onChoose}
                     style={{ paddingLeft: `${8 + (choice.depth ?? 0) * 16}px` }}
                     className={cn(
-                        'hover:bg-accent focus-visible:bg-accent flex min-h-8 items-center gap-2 rounded-md pr-2 text-[13px] outline-none',
+                        'hover:bg-surface-3 focus-visible:bg-surface-3 flex min-h-8 items-center gap-2 rounded-md pr-2 text-[13px] outline-none',
                         isMobile && 'min-h-11',
                     )}
                 >

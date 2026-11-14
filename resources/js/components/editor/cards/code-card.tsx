@@ -36,12 +36,10 @@ export function CodeCard({
                 onChange={(event) =>
                     updateAttributes({ code: event.target.value })
                 }
-                className="bg-muted focus-visible:ring-ring field-sizing-content w-full resize-none rounded-sm px-3 py-2 font-mono text-[13px] outline-none focus-visible:ring-2"
+                className="bg-surface-2 focus-visible:ring-ring field-sizing-content w-full resize-none rounded-sm px-3 py-2 font-mono text-[13px] outline-none focus-visible:ring-2"
             />
             {caption && (
-                <p className="text-muted-foreground mt-1.5 text-[13px]">
-                    {caption}
-                </p>
+                <p className="text-ink-2 mt-1.5 text-[13px]">{caption}</p>
             )}
         </CardFrame>
     );

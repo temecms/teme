@@ -71,9 +71,9 @@ export function PublishWhen({
                 <p
                     className={
                         failed
-                            ? 'text-destructive'
+                            ? 'text-danger-ink'
                             : held
-                              ? 'text-warning'
+                              ? 'text-warn-ink'
                               : undefined
                     }
                 >
@@ -129,7 +129,7 @@ export function PublishWhen({
         );
     } else if (!decides) {
         row = (
-            <span className="text-muted-foreground">
+            <span className="text-ink-2">
                 {pending && canPublish ? 'When you approve it' : 'After review'}
             </span>
         );
@@ -151,13 +151,13 @@ export function PublishWhen({
 
     return (
         <>
-            <dt className="text-muted-foreground">{label}</dt>
+            <dt className="text-ink-2">{label}</dt>
             <dd className="min-w-0" data-test="publish-when">
                 {row}
             </dd>
             {when.later && decides && (
                 <>
-                    <dt className="text-muted-foreground">
+                    <dt className="text-ink-2">
                         <label htmlFor="editor-when-at">Date and time</label>
                     </dt>
                     <dd className="min-w-0">

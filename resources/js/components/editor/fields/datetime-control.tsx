@@ -126,7 +126,7 @@ export function DatetimeControl({
                     className="w-auto"
                 />
             </div>
-            <p id={`${id}-zone`} className="text-muted-foreground text-xs">
+            <p id={`${id}-zone`} className="text-ink-2 text-xs">
                 Times are in the site’s zone: {zoneName} ({siteTimezone}).
             </p>
         </div>

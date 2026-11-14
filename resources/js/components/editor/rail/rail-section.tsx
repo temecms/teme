@@ -36,7 +36,7 @@ export function RailSection({
                         <h2>{title}</h2>
                         <ChevronDown
                             aria-hidden
-                            className="text-muted-foreground size-4 transition-transform data-[open=false]:-rotate-90"
+                            className="text-ink-2 size-4 transition-transform data-[open=false]:-rotate-90"
                             data-open={open}
                         />
                     </CollapsibleTrigger>

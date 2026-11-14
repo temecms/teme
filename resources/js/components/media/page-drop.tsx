@@ -100,7 +100,7 @@ export function PageDrop({ onFiles }: { onFiles: (files: FileList) => void }) {
         <div
             data-test="page-drop"
             aria-hidden="true"
-            className="bg-background/90 border-primary pointer-events-none fixed inset-0 z-40 flex items-center justify-center border-2 border-dashed text-sm font-medium"
+            className="bg-page/90 border-accent pointer-events-none fixed inset-0 z-40 flex items-center justify-center border-2 border-dashed text-sm font-medium"
         >
             <span className="flex items-center gap-2">
                 <Upload className="size-5" />

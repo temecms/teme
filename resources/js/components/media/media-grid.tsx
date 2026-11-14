@@ -22,7 +22,7 @@ export function Thumb({ row }: { row: MediaRow }) {
 
     if (row.kind === 'image') {
         return (
-            <span className="bg-muted text-muted-foreground flex aspect-square w-full items-center justify-center rounded text-xs">
+            <span className="bg-surface-2 text-ink-2 flex aspect-square w-full items-center justify-center rounded text-xs">
                 {row.processing === 'failed' ? 'Failed' : 'Preparing…'}
             </span>
         );
@@ -31,7 +31,7 @@ export function Thumb({ row }: { row: MediaRow }) {
     const Icon = icons[row.kind];
 
     return (
-        <span className="bg-muted flex aspect-square w-full items-center justify-center rounded">
+        <span className="bg-surface-2 flex aspect-square w-full items-center justify-center rounded">
             <Icon className="size-8" />
         </span>
     );
@@ -76,13 +76,13 @@ export function MediaGrid({
                             className={cn(
                                 'relative w-full rounded text-left ring-offset-2',
                                 (selected || row.id === focusedId) &&
-                                    'ring-primary ring-2',
+                                    'ring-accent ring-2',
                             )}
                             onClick={() => onChoose(row.id)}
                         >
                             <Thumb row={row} />
                             {selected && (
-                                <span className="bg-primary text-primary-foreground absolute top-1 right-1 rounded-full p-0.5">
+                                <span className="bg-accent text-on-accent absolute top-1 right-1 rounded-full p-0.5">
                                     <Check className="size-3" />
                                     <span className="sr-only">Selected</span>
                                 </span>

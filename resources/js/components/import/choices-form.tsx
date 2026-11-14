@@ -52,7 +52,7 @@ export function ChoicesForm({
                             <legend className="text-sm font-medium">
                                 Menu locations
                             </legend>
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 Where each menu goes in this site’s theme.
                             </p>
                             {form.slots.length === 0 && (
@@ -106,7 +106,7 @@ export function ChoicesForm({
                             <legend className="text-sm font-medium">
                                 Page templates
                             </legend>
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 The template each WordPress page template
                                 becomes.
                             </p>
@@ -157,7 +157,7 @@ export function ChoicesForm({
                             <legend className="text-sm font-medium">
                                 Custom roles
                             </legend>
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 WordPress roles Teme doesn’t have. People with
                                 them get the role you choose, or stay behind.
                             </p>
@@ -202,7 +202,7 @@ export function ChoicesForm({
                         />
                         <p
                             id="import-owner-hint"
-                            className="text-muted-foreground text-[13px]"
+                            className="text-ink-2 text-[13px]"
                         >
                             Posts and pages whose WordPress author was deleted
                             belong to this person.
@@ -221,7 +221,7 @@ export function ChoicesForm({
                             <legend className="text-sm font-medium">
                                 Images from other sites
                             </legend>
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 Posts show images kept on these sites. Tick a
                                 site to bring its images into the media library.
                                 The rest become links, with each image’s
@@ -287,7 +287,7 @@ export function ChoicesForm({
                         />
                         <p
                             id="import-pause-hint"
-                            className="text-muted-foreground text-[13px]"
+                            className="text-ink-2 text-[13px]"
                         >
                             The old site stays live while Teme reads it. A pause
                             keeps it quick for its readers.
@@ -311,7 +311,7 @@ export function ChoicesForm({
                         >
                             Start the import
                         </Button>
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             Teme asks for your password first. The import runs
                             in the background: you can leave this page, and the
                             result reaches your inbox.

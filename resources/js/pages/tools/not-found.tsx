@@ -57,7 +57,7 @@ export default function NotFound(page: NotFoundPage) {
             header: 'Came from',
             cell: (row) =>
                 row.referrerHost ?? (
-                    <span className="text-muted-foreground">Not known</span>
+                    <span className="text-ink-2">Not known</span>
                 ),
         },
         {
@@ -132,12 +132,12 @@ export default function NotFound(page: NotFoundPage) {
                     }
                 />
 
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     One row per address. Only the site a reader came from is
                     kept: no IP address and no browser.
                 </p>
 
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     Keeps up to {keep.toLocaleString()} addresses. When it’s
                     full, the address seen least recently makes room. Bots
                     probing for WordPress and server files, such as

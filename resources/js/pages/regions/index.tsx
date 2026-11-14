@@ -54,23 +54,21 @@ export default function RegionsIndex({
             cell: (row) => (
                 <div className="grid gap-1">
                     {row.cardLabels.length === 0 ? (
-                        <span className="text-muted-foreground">Text only</span>
+                        <span className="text-ink-2">Text only</span>
                     ) : (
                         <span className="flex flex-wrap gap-1">
                             {row.cardLabels.map((label) => (
                                 <span
                                     key={label}
                                     data-test="region-card"
-                                    className="bg-muted rounded px-1.5 py-0.5 text-[11px] font-medium"
+                                    className="bg-surface-2 rounded px-1.5 py-0.5 text-[11px] font-medium"
                                 >
                                     {label}
                                 </span>
                             ))}
                         </span>
                     )}
-                    <span className="text-muted-foreground text-xs">
-                        {row.limit}
-                    </span>
+                    <span className="text-ink-2 text-xs">{row.limit}</span>
                 </div>
             ),
         },
@@ -80,11 +78,7 @@ export default function RegionsIndex({
             header: 'State',
             cell: (row) => (
                 <span
-                    className={
-                        row.state === 'empty'
-                            ? 'text-muted-foreground'
-                            : undefined
-                    }
+                    className={row.state === 'empty' ? 'text-ink-2' : undefined}
                 >
                     {STATES[row.state]}
                 </span>
@@ -95,9 +89,7 @@ export default function RegionsIndex({
             owner: 'core',
             header: 'Last edited',
             cell: (row) => (
-                <span className="text-muted-foreground">
-                    {edited(row.editedAt)}
-                </span>
+                <span className="text-ink-2">{edited(row.editedAt)}</span>
             ),
         },
         {
@@ -160,7 +152,7 @@ export default function RegionsIndex({
             header: 'Theme',
             cell: (row) =>
                 row.themeName ?? (
-                    <span className="text-muted-foreground">
+                    <span className="text-ink-2">
                         Theme no longer installed
                     </span>
                 ),
@@ -176,9 +168,7 @@ export default function RegionsIndex({
             owner: 'core',
             header: 'Last edited',
             cell: (row) => (
-                <span className="text-muted-foreground">
-                    {edited(row.editedAt)}
-                </span>
+                <span className="text-ink-2">{edited(row.editedAt)}</span>
             ),
         },
     ];
@@ -233,11 +223,11 @@ export default function RegionsIndex({
                                 className="text-[15px] font-semibold"
                             >
                                 From other themes{' '}
-                                <span className="text-muted-foreground tabular-nums">
+                                <span className="text-ink-2 tabular-nums">
                                     {others.length}
                                 </span>
                             </h2>
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 {
                                     'Kept as they were from themes you aren’t using. Each shows again if you switch back to its theme.'
                                 }

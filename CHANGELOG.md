@@ -2,6 +2,26 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
+## [Unreleased]
+
+The admin's new look, part one: one design system for every screen, and the frame every screen sits in. Screens not yet rebuilt take the new colours, type and controls in their old layouts; they are rebuilt in later parts (`docs/proposals/`).
+
+### Added
+
+- One look for the admin, light or dark, with Ember as its accent: the design system's colours, type scale, radii and shadows as tokens (`docs/architecture/design-system.md`). More contrast follows the computer's own setting
+- Every shared control, overlay and surface restyled; new radio group, switch, field, text button, keyboard key, segmented control, tabs, progress bar and scroll area
+- The admin's shell: a sidebar with a search button, folding sections, sub-entries and counts, foldable to an icon rail; between 768 and 1023 pixels the rail, with the full menu opening over the page; below 768 a drawer. A 60-pixel top bar with the page's crumbs (a switcher on hubs and sections), jobs, a site-status button and panel read from the status checks, the inbox and the account; on phones one status button for jobs, the site status and the inbox together. Controls are at least 44 pixels on touch screens
+- Shared parts: status pills, term chips with "+N", Soon tags (a planned menu entry can carry one), plugin marks and icons, icon tiles, people's pictures, step bars, one notice, the empty, loading and failed states, a save bar that asks before leaving unsaved changes, and one fresh-password prompt
+- Page patterns for lists, forms, settings, hubs and details; Tools › Jobs, a backup place, Settings › Languages and Tools are on them
+- A design catalogue at `/admin/_catalogue` on local and test sites only
+- A check that holds the admin to its design system, with a list of today's exceptions that may only shrink
+
+### Changed
+
+- The three looks and the high-contrast setting are gone; a look someone chose is no longer read
+- Toasts sit at the foot of the page, in the middle
+- The admin's icons that pages use at first load share one file, so a screen loads fewer files; the full icon set still loads only when the icon picker or an unknown icon needs it
+
 ## [0.7.0-alpha.2] — 2026-11-14
 
 The first release from Teme's public repository, `temecms/teme`, with its image at `ghcr.io/temecms/teme`. It is 0.7.0-alpha.1 with the update check moved to the public repository.

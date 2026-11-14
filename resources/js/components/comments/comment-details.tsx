@@ -32,7 +32,7 @@ const STATE_ICONS = {
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return (
         <div className="grid grid-cols-[7rem_1fr] gap-3 text-[13px]">
-            <dt className="text-muted-foreground">{label}</dt>
+            <dt className="text-ink-2">{label}</dt>
             <dd className="min-w-0 break-words">{children}</dd>
         </div>
     );
@@ -63,12 +63,10 @@ export function CommentDetailsDrawer({
 }) {
     const judgement = details?.judgement;
     const parked = details?.status === 'spam' || details?.status === 'trash';
-    const none = <span className="text-muted-foreground">None</span>;
+    const none = <span className="text-ink-2">None</span>;
     // A reply written in the admin keeps no address or browser, and says why (C6).
     const noneHere = details?.writtenInAdmin ? (
-        <span className="text-muted-foreground">
-            None: written in the admin
-        </span>
+        <span className="text-ink-2">None: written in the admin</span>
     ) : (
         none
     );
@@ -88,9 +86,9 @@ export function CommentDetailsDrawer({
                   dateStyle: 'medium',
                   timeZone: siteTimezone,
               }).format(new Date(details.erasesAt));
-    const erased = <span className="text-muted-foreground">Erased</span>;
+    const erased = <span className="text-ink-2">Erased</span>;
     const under = (words: string) => (
-        <span className="text-muted-foreground block text-xs">{words}</span>
+        <span className="text-ink-2 block text-xs">{words}</span>
     );
     const imported =
         details?.legacyId != null
@@ -223,7 +221,7 @@ export function CommentDetailsDrawer({
                                     Moderation
                                 </h3>
                                 {judgement.byline && (
-                                    <p className="text-muted-foreground text-[12px]">
+                                    <p className="text-ink-2 text-[12px]">
                                         {judgement.byline}
                                     </p>
                                 )}
@@ -260,7 +258,7 @@ export function CommentDetailsDrawer({
                                     </ul>
                                 )}
                                 {judgement.hint && (
-                                    <p className="text-muted-foreground mt-2 text-[12px]">
+                                    <p className="text-ink-2 mt-2 text-[12px]">
                                         {judgement.hint}
                                     </p>
                                 )}

@@ -141,7 +141,7 @@ function CheckKey() {
                     </div>
 
                     {askPassword && (
-                        <div className="border-border space-y-3 rounded-md border p-4">
+                        <div className="border-line space-y-3 rounded-md border p-4">
                             <p className="text-sm">
                                 Type your password to carry on. What you typed
                                 stays here.

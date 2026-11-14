@@ -64,7 +64,7 @@ export function TermPicker({
                 {value.map((term) => (
                     <span
                         key={term.id}
-                        className="bg-muted flex items-center gap-1 rounded px-2 py-0.5 text-xs"
+                        className="bg-surface-2 flex items-center gap-1 rounded px-2 py-0.5 text-xs"
                     >
                         {term.name}
                         <button
@@ -96,7 +96,7 @@ export function TermPicker({
                         <li key={term.id}>
                             <button
                                 type="button"
-                                className="hover:bg-muted w-full px-2 py-1 text-left"
+                                className="hover:bg-surface-2 w-full px-2 py-1 text-left"
                                 onClick={() => {
                                     onChange([
                                         ...value,

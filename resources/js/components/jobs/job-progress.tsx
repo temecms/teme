@@ -25,11 +25,9 @@ export function JobProgress({
                 }
                 value={job.total === null ? undefined : job.done}
                 data-state={job.state}
-                className="bg-muted [&::-moz-progress-bar]:bg-foreground [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-foreground data-[state=failed]:[&::-moz-progress-bar]:bg-destructive data-[state=failed]:[&::-webkit-progress-value]:bg-destructive data-[state=finished]:[&::-moz-progress-bar]:bg-success data-[state=finished]:[&::-webkit-progress-value]:bg-success h-1.5 w-full overflow-hidden rounded-full"
+                className="bg-surface-2 [&::-moz-progress-bar]:bg-ink [&::-webkit-progress-bar]:bg-surface-2 [&::-webkit-progress-value]:bg-ink data-[state=failed]:[&::-moz-progress-bar]:bg-danger data-[state=failed]:[&::-webkit-progress-value]:bg-danger data-[state=finished]:[&::-moz-progress-bar]:bg-ok data-[state=finished]:[&::-webkit-progress-value]:bg-ok h-1.5 w-full overflow-hidden rounded-full"
             />
-            <span className="text-muted-foreground text-xs tabular-nums">
-                {words}
-            </span>
+            <span className="text-ink-2 text-xs tabular-nums">{words}</span>
         </div>
     );
 }

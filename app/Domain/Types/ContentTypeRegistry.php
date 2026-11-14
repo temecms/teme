@@ -32,7 +32,7 @@ final class ContentTypeRegistry
         'dashboard', 'media', 'users', 'settings', 'account', 'terms', 'content', 'preview', 'search', 'quick-draft', 'navigation', 'regions', 'comments', 'tools',
         'themes', 'plugins', 'ai', 'inbox', 'my-jobs', 'types', 'taxonomies',
         'login', 'logout', 'two-factor', 'two-factor-challenge', 'user', 'api', 'up', 'invitation', 'setup', 'register',
-        'email', 'forgot-password', 'reset-password',
+        'email', 'forgot-password', 'reset-password', '_catalogue',
     ];
 
     private const string KEY = '/^[a-z][a-z0-9_]{0,31}$/';

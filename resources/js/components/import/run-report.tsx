@@ -127,7 +127,7 @@ export function RunReport({
             {report.ready !== null && (
                 <div
                     role="note"
-                    className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                    className="border-line flex gap-3 rounded-md border p-4 text-sm"
                 >
                     <Info
                         aria-hidden="true"
@@ -174,7 +174,7 @@ export function RunReport({
                     />
                 )}
                 {report.more && (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         The full report lists the rest.
                     </p>
                 )}
@@ -188,7 +188,7 @@ export function RunReport({
                                 href={downloads.everything}
                                 download
                                 data-test="import-download"
-                                className="text-foreground inline-block min-h-6 underline underline-offset-4"
+                                className="text-ink inline-block min-h-6 underline underline-offset-4"
                             >
                                 Download the full report
                             </a>
@@ -198,13 +198,13 @@ export function RunReport({
                                 href={downloads.attention}
                                 download
                                 data-test="import-download"
-                                className="text-foreground inline-block min-h-6 underline underline-offset-4"
+                                className="text-ink inline-block min-h-6 underline underline-offset-4"
                             >
                                 Download what needs attention
                             </a>
                         </li>
                     </ul>
-                    <p className="text-muted-foreground">
+                    <p className="text-ink-2">
                         The full report has a line for every item and what
                         happened to it. The other has only what failed or has a
                         warning.

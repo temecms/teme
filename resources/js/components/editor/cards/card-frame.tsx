@@ -23,7 +23,7 @@ function FrameButton({
             aria-label={label}
             title={label}
             className={cn(
-                'hover:bg-accent focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-1 rounded-md px-2 text-[12px] font-medium whitespace-nowrap outline-none focus-visible:ring-2 [&_svg]:size-3.5',
+                'hover:bg-surface-3 focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-1 rounded-md px-2 text-[12px] font-medium whitespace-nowrap outline-none focus-visible:ring-2 [&_svg]:size-3.5',
                 className,
             )}
             {...props}
@@ -65,7 +65,7 @@ export function CardFrame({
     return (
         <NodeViewWrapper
             className={cn(
-                'group border-border bg-card relative my-4 rounded-md border',
+                'group border-line bg-surface relative my-4 rounded-md border',
                 selected && 'ring-ring ring-2',
             )}
             contentEditable={false}
@@ -76,11 +76,11 @@ export function CardFrame({
                     draggable
                     aria-hidden
                     title="Drag to move"
-                    className="text-muted-foreground cursor-grab [&_svg]:size-4"
+                    className="text-ink-2 cursor-grab [&_svg]:size-4"
                 >
                     <GripVertical />
                 </span>
-                <span className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                <span className="text-ink-2 text-[11px] font-medium tracking-wide uppercase">
                     {label}
                 </span>
                 <div
@@ -95,7 +95,7 @@ export function CardFrame({
                         <FrameButton
                             label={warning.label}
                             onClick={warning.onClick ?? (() => setOpen(true))}
-                            className="bg-warning-muted text-warning hover:bg-warning-muted"
+                            className="bg-warn-soft text-warn-ink hover:bg-warn-soft"
                         >
                             <AlertTriangle />
                             {warning.label}
@@ -131,7 +131,7 @@ export function CardFrame({
             {open && (
                 <div
                     id={panel}
-                    className="border-border grid gap-3 border-t px-3 py-3"
+                    className="border-line grid gap-3 border-t px-3 py-3"
                 >
                     {settings}
                 </div>
@@ -141,7 +141,7 @@ export function CardFrame({
 }
 
 const FIELD =
-    'border-input bg-card focus-visible:ring-ring focus-visible:ring-offset-background w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
+    'border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
 
 /** One labelled setting in a card's panel. */
 export function CardField({
@@ -161,7 +161,7 @@ export function CardField({
             <Label htmlFor={id}>{label}</Label>
             {children({ id, 'aria-describedby': hint ? hintId : undefined })}
             {hint && (
-                <p id={hintId} className="text-muted-foreground text-xs">
+                <p id={hintId} className="text-ink-2 text-xs">
                     {hint}
                 </p>
             )}

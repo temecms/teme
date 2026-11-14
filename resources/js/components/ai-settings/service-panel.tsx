@@ -82,7 +82,7 @@ export function ServicePanel({
         <section
             aria-labelledby={`ai-service-${key}-heading`}
             data-test={`ai-service-${key}`}
-            className="border-border grid gap-3 border-t pt-4"
+            className="border-line grid gap-3 border-t pt-4"
         >
             <div className="grid gap-1">
                 <h3
@@ -91,7 +91,7 @@ export function ServicePanel({
                 >
                     {label}
                 </h3>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-ink-2 text-sm">
                     Text you ask AI about is sent to {label} when a task uses
                     one of its models.
                 </p>
@@ -229,10 +229,7 @@ export function ServicePanel({
                     </div>
                 )}
 
-                <p
-                    id={`ai-key-hint-${key}`}
-                    className="text-muted-foreground text-sm"
-                >
+                <p id={`ai-key-hint-${key}`} className="text-ink-2 text-sm">
                     Teme keeps keys encrypted and never shows them again, here
                     or anywhere else.
                 </p>

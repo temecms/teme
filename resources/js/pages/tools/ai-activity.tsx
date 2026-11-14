@@ -42,7 +42,7 @@ function Summary({
         <section
             aria-labelledby="ai-activity-month"
             data-test="ai-activity-summary"
-            className="border-border rounded-md border p-4"
+            className="border-line rounded-md border p-4"
         >
             <h2 id="ai-activity-month" className="text-base font-medium">
                 {summary.current
@@ -50,17 +50,17 @@ function Summary({
                     : summary.label}
             </h2>
             <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[13px]">
-                <dt className="text-muted-foreground">Spent</dt>
+                <dt className="text-ink-2">Spent</dt>
                 <dd>
                     {formatCost(summary.costMicrounits)}
                     {summary.unpricedRequests > 0 && (
-                        <span className="text-muted-foreground block text-[12px]">
+                        <span className="text-ink-2 block text-[12px]">
                             {summary.unpricedRequests === 1
                                 ? '1 request used a model with no price, so its cost is left out.'
                                 : `${summary.unpricedRequests.toLocaleString()} requests used a model with no price, so their cost is left out.`}
                         </span>
                     )}
-                    <span className="text-muted-foreground block text-[12px]">
+                    <span className="text-ink-2 block text-[12px]">
                         Cost is Teme’s own sum from each model’s price, in US
                         dollars, so it can differ a little from an AI company’s
                         invoice. Requests are removed after 12 months; the
@@ -68,12 +68,12 @@ function Summary({
                     </span>
                 </dd>
 
-                <dt className="text-muted-foreground">Requests</dt>
+                <dt className="text-ink-2">Requests</dt>
                 <dd>{summary.requests.toLocaleString()}</dd>
 
                 {summary.current && (
                     <>
-                        <dt className="text-muted-foreground">Budget</dt>
+                        <dt className="text-ink-2">Budget</dt>
                         <dd>
                             {budget === null ? (
                                 <>
@@ -126,7 +126,7 @@ function Summary({
                     )}
                 </p>
             )}
-            <p className="text-muted-foreground mt-3 text-[12px]">
+            <p className="text-ink-2 mt-3 text-[12px]">
                 Months follow UTC, as the AI companies bill.
             </p>
         </section>
@@ -218,9 +218,7 @@ export default function AiActivity(page: AiActivityPage) {
             header: 'Person',
             cell: (row) =>
                 row.person.name ?? (
-                    <span className="text-muted-foreground">
-                        A removed person
-                    </span>
+                    <span className="text-ink-2">A removed person</span>
                 ),
         },
         {
@@ -231,7 +229,7 @@ export default function AiActivity(page: AiActivityPage) {
                 <>
                     {row.task.label}
                     {row.variant !== null && (
-                        <span className="text-muted-foreground block text-[12px]">
+                        <span className="text-ink-2 block text-[12px]">
                             {row.variant.label}
                         </span>
                     )}
@@ -252,7 +250,7 @@ export default function AiActivity(page: AiActivityPage) {
                 <>
                     <OutcomeBadge outcome={row.outcome} />
                     {row.why !== null && (
-                        <span className="text-muted-foreground mt-1 block max-w-64 text-[12px] whitespace-normal">
+                        <span className="text-ink-2 mt-1 block max-w-64 text-[12px] whitespace-normal">
                             {row.why}
                         </span>
                     )}
@@ -265,14 +263,14 @@ export default function AiActivity(page: AiActivityPage) {
             header: 'Model',
             cell: (row) =>
                 row.model === null ? (
-                    <span className="text-muted-foreground">None</span>
+                    <span className="text-ink-2">None</span>
                 ) : (
                     <>
                         <span className="font-mono text-[12px]">
                             {row.model}
                         </span>
                         {row.provider !== null && (
-                            <span className="text-muted-foreground block text-[12px]">
+                            <span className="text-ink-2 block text-[12px]">
                                 {row.provider}
                             </span>
                         )}
@@ -289,14 +287,10 @@ export default function AiActivity(page: AiActivityPage) {
 
                 return (
                     <>
-                        <span
-                            className={
-                                cost.known ? undefined : 'text-muted-foreground'
-                            }
-                        >
+                        <span className={cost.known ? undefined : 'text-ink-2'}>
                             {cost.text}
                         </span>
-                        <span className="text-muted-foreground block text-[12px]">
+                        <span className="text-ink-2 block text-[12px]">
                             {tokenWords(tokensUsed(row.tokens))}
                         </span>
                     </>
@@ -336,7 +330,7 @@ export default function AiActivity(page: AiActivityPage) {
                     <div
                         role="note"
                         data-test="ai-activity-off"
-                        className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
                     >
                         <Info
                             aria-hidden="true"
@@ -356,7 +350,7 @@ export default function AiActivity(page: AiActivityPage) {
                     <div
                         role="status"
                         data-test="ai-activity-missing"
-                        className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
                     >
                         <Info
                             aria-hidden="true"

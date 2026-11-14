@@ -146,7 +146,7 @@ export function MediaFilters({
                     <button
                         type="button"
                         aria-label={`Remove this filter: Uploaded for “${chosenItem.title || 'Untitled'}”`}
-                        className="hover:bg-accent focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+                        className="hover:bg-surface-3 focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
                         onClick={() => onChange({ uploadedFor: '' })}
                     >
                         <X aria-hidden className="size-3" />

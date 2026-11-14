@@ -100,14 +100,14 @@ export function DateFilter({
     };
 
     const row = cn(
-        'hover:bg-accent focus-visible:bg-accent flex min-h-8 items-center gap-2 rounded-md px-2 text-[13px] outline-none',
+        'hover:bg-surface-3 focus-visible:bg-surface-3 flex min-h-8 items-center gap-2 rounded-md px-2 text-[13px] outline-none',
         isMobile && 'min-h-11',
     );
     const count = (value: number | null) =>
         value === null ? null : (
             <span
                 data-test="date-count"
-                className="text-muted-foreground ml-auto font-mono text-[11px]"
+                className="text-ink-2 ml-auto font-mono text-[11px]"
             >
                 {value}
             </span>
@@ -127,11 +127,11 @@ export function DateFilter({
                     className={cn(
                         'h-8 font-normal',
                         isMobile && 'shrink-0 rounded-full',
-                        inForce && 'bg-accent',
+                        inForce && 'bg-surface-3',
                     )}
                 >
                     <span>
-                        <span className="text-muted-foreground">Date:</span>{' '}
+                        <span className="text-ink-2">Date:</span>{' '}
                         {dateValue(filters)}
                     </span>
                     <ChevronDown className="size-3.5" />
@@ -142,7 +142,7 @@ export function DateFilter({
                 <div className="w-64">
                     <p
                         data-test="date-hint"
-                        className="text-muted-foreground px-2 py-1 text-xs"
+                        className="text-ink-2 px-2 py-1 text-xs"
                     >
                         {dates.by === 'published'
                             ? 'By date published.'
@@ -166,7 +166,7 @@ export function DateFilter({
                         </Link>
                         {years.map((group) => (
                             <div key={group.year}>
-                                <p className="text-muted-foreground px-2 pt-2 text-[11px] font-semibold">
+                                <p className="text-ink-2 px-2 pt-2 text-[11px] font-semibold">
                                     {group.year}
                                 </p>
                                 {group.months.map((entry) => (
@@ -236,7 +236,7 @@ export function DateFilter({
                             />
                         </div>
                     </div>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-ink-2 text-xs">
                         {dates.by === 'published'
                             ? 'By date published. Leave To empty for “since”.'
                             : 'By last update. Leave To empty for “since”.'}

@@ -45,7 +45,7 @@ export function RunProgress({
                         className={
                             step.state === 'now'
                                 ? 'flex items-center gap-2 font-medium'
-                                : 'text-muted-foreground flex items-center gap-2'
+                                : 'text-ink-2 flex items-center gap-2'
                         }
                     >
                         {step.state === 'done' && (
@@ -70,7 +70,7 @@ export function RunProgress({
 
             {running ? (
                 <div className="space-y-2">
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         You can leave this page. The import carries on in the
                         background, and the result reaches your inbox.
                     </p>
@@ -106,7 +106,7 @@ export function RunProgress({
                             </Button>
                         )}
                     </Form>
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         Carrying on picks up where it stopped. Teme asks for
                         your password first.
                     </p>

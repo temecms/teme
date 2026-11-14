@@ -45,7 +45,7 @@ export function OutcomeBadge({
 export function AiSubject({ subject }: { subject: AiActivityRow['subject'] }) {
     if (subject.state === 'gone') {
         return (
-            <span className="text-muted-foreground">
+            <span className="text-ink-2">
                 {subject.kind === 'media'
                     ? 'A deleted image'
                     : 'A deleted item'}
@@ -71,7 +71,7 @@ export function AiSubject({ subject }: { subject: AiActivityRow['subject'] }) {
             ) : (
                 title
             )}
-            <span className="text-muted-foreground block text-[12px]">
+            <span className="text-ink-2 block text-[12px]">
                 {subject.state === 'trashed'
                     ? `${subject.kindLabel}, in the trash`
                     : subject.kindLabel}
@@ -83,7 +83,7 @@ export function AiSubject({ subject }: { subject: AiActivityRow['subject'] }) {
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return (
         <div className="grid grid-cols-[8rem_1fr] gap-3 text-[13px]">
-            <dt className="text-muted-foreground">{label}</dt>
+            <dt className="text-ink-2">{label}</dt>
             <dd className="min-w-0 break-words">{children}</dd>
         </div>
     );
@@ -144,7 +144,7 @@ export function AiActivityDetails({
                                 </Row>
                                 <Row label="Person">
                                     {details.person.name ?? (
-                                        <span className="text-muted-foreground">
+                                        <span className="text-ink-2">
                                             A removed person
                                         </span>
                                     )}
@@ -159,16 +159,14 @@ export function AiActivityDetails({
                                 </Row>
                                 <Row label="Model">
                                     {details.model === null ? (
-                                        <span className="text-muted-foreground">
-                                            None
-                                        </span>
+                                        <span className="text-ink-2">None</span>
                                     ) : (
                                         <>
                                             <span className="font-mono text-[12px]">
                                                 {details.model}
                                             </span>
                                             {details.provider !== null && (
-                                                <span className="text-muted-foreground block text-[12px]">
+                                                <span className="text-ink-2 block text-[12px]">
                                                     {details.provider}
                                                 </span>
                                             )}
@@ -198,13 +196,13 @@ export function AiActivityDetails({
                                         className={
                                             cost.known
                                                 ? undefined
-                                                : 'text-muted-foreground'
+                                                : 'text-ink-2'
                                         }
                                     >
                                         {cost.text}
                                     </span>
                                     {details.costMicrounits === null && (
-                                        <span className="text-muted-foreground block text-[12px]">
+                                        <span className="text-ink-2 block text-[12px]">
                                             No price is set for this model, so
                                             this request isn’t counted in the
                                             month’s spend.
@@ -215,11 +213,11 @@ export function AiActivityDetails({
                                     <>
                                         <Row label="Alt text before">
                                             {details.altText.before ?? (
-                                                <span className="text-muted-foreground">
+                                                <span className="text-ink-2">
                                                     None
                                                 </span>
                                             )}
-                                            <span className="text-muted-foreground block text-[12px]">
+                                            <span className="text-ink-2 block text-[12px]">
                                                 {details.altText.before === null
                                                     ? 'The image had none. To put that back, clear its alt text in Media.'
                                                     : 'To put it back, copy it into the image’s alt text in Media.'}

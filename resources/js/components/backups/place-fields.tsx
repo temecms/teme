@@ -25,7 +25,7 @@ const KINDS: { kind: BackupPlaceKind; name: string; line: string }[] = [
     },
 ];
 
-const hint = 'text-muted-foreground text-xs';
+const hint = 'text-ink-2 text-xs';
 
 /** A labelled field with its hint and its error tied to it. */
 function Field({
@@ -110,7 +110,7 @@ export function PlaceFields({
                         {KINDS.map((option) => (
                             <label
                                 key={option.kind}
-                                className="border-border has-checked:border-primary has-focus-visible:ring-ring flex min-h-11 cursor-pointer flex-col gap-1 rounded-md border p-3 has-checked:ring-1 has-focus-visible:ring-2"
+                                className="border-line has-checked:border-accent has-focus-visible:ring-ring flex min-h-11 cursor-pointer flex-col gap-1 rounded-md border p-3 has-checked:ring-1 has-focus-visible:ring-2"
                             >
                                 <span className="flex items-center gap-2 text-sm font-medium">
                                     <input
@@ -126,7 +126,7 @@ export function PlaceFields({
                                     />
                                     {option.name}
                                 </span>
-                                <span className="text-muted-foreground text-xs">
+                                <span className="text-ink-2 text-xs">
                                     {option.line}
                                 </span>
                             </label>
@@ -376,7 +376,7 @@ export function PlaceFields({
                                     'setup-public-key',
                                     true,
                                 )}
-                                className="border-input bg-background w-full rounded-md border px-3 py-2 font-mono text-xs break-all"
+                                className="border-edge bg-page w-full rounded-md border px-3 py-2 font-mono text-xs break-all"
                             />
                             <Button
                                 type="button"

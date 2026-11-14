@@ -19,7 +19,7 @@ export function KeysList({
                 Recovery keys
             </h2>
 
-            <p className="text-muted-foreground text-[13px]">
+            <p className="text-ink-2 text-[13px]">
                 Teme keeps no copy of a recovery key. If this server and every
                 recovery key are lost, nobody can open the backups, Teme
                 included.
@@ -33,7 +33,7 @@ export function KeysList({
 
             {!paused && <KeyActions keys={keys} />}
 
-            <ul className="border-border divide-border divide-y rounded-md border">
+            <ul className="border-line divide-line divide-y rounded-md border">
                 {keys.map((key) => (
                     <li
                         key={key.label}
@@ -43,7 +43,7 @@ export function KeysList({
                         <p>
                             <span className="font-medium">{key.label}</span>
                             {key.missingAt.length > 0 && (
-                                <span className="text-muted-foreground">
+                                <span className="text-ink-2">
                                     {' '}
                                     · Doesn’t open {key.missingAt.join(
                                         ', ',

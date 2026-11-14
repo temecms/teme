@@ -90,7 +90,7 @@ export function SiteAnalysis({
                         <div
                             role="note"
                             data-test="import-warning"
-                            className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                            className="border-line flex gap-3 rounded-md border p-4 text-sm"
                         >
                             <Info
                                 aria-hidden="true"
@@ -159,7 +159,7 @@ export function SiteAnalysis({
                                             </>
                                         )}
                                         , {row.count.toLocaleString()}
-                                        <span className="text-muted-foreground block">
+                                        <span className="text-ink-2 block">
                                             {row.why}
                                         </span>
                                     </li>
@@ -169,7 +169,7 @@ export function SiteAnalysis({
                     </div>
 
                     <div className="space-y-3">
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             Counted from the site report made in WordPress
                             {analysis.reportedAt !== null &&
                                 ` on ${formatInZone(analysis.reportedAt, siteTimezone)}`}

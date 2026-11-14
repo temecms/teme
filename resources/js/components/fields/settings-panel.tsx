@@ -78,7 +78,7 @@ export function SettingsPanel({
                 <p
                     id={lineId}
                     data-test="settings-panel-description"
-                    className="text-muted-foreground text-[13px]"
+                    className="text-ink-2 text-[13px]"
                 >
                     {description}
                 </p>
@@ -96,7 +96,7 @@ export function SettingsPanel({
     const common = {
         id,
         'data-test': 'settings-panel',
-        className: cn('border-border bg-card min-w-0 border', className),
+        className: cn('border-line bg-surface min-w-0 border', className),
     };
 
     if (as === 'section') {

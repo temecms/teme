@@ -151,7 +151,7 @@ export function Fact({
 }
 
 export function Hint({ children }: { children: ReactNode }) {
-    return <p className="text-muted-foreground text-sm">{children}</p>;
+    return <p className="text-ink-2 text-sm">{children}</p>;
 }
 
 export function toggle(current: string[], key: string, on: boolean): string[] {

@@ -57,21 +57,19 @@ export default function PageCache({
 
                 <section
                     aria-labelledby="page-cache-now"
-                    className="border-border rounded-md border p-4"
+                    className="border-line rounded-md border p-4"
                 >
                     <h2 id="page-cache-now" className="text-base font-medium">
                         Now
                     </h2>
                     <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[13px]">
-                        <dt className="text-muted-foreground">Status</dt>
+                        <dt className="text-ink-2">Status</dt>
                         <dd>{on ? 'On' : 'Off'}</dd>
 
-                        <dt className="text-muted-foreground">Kept in</dt>
+                        <dt className="text-ink-2">Kept in</dt>
                         <dd>{keptIn}</dd>
 
-                        <dt className="text-muted-foreground">
-                            How long pages live
-                        </dt>
+                        <dt className="text-ink-2">How long pages live</dt>
                         <dd>
                             A page: {lives.any}. A search’s page: {lives.search}
                             . A “not found” page: {lives.notFound}.
@@ -79,16 +77,12 @@ export default function PageCache({
 
                         {cdn !== null && (
                             <>
-                                <dt className="text-muted-foreground">
-                                    In front of it
-                                </dt>
+                                <dt className="text-ink-2">In front of it</dt>
                                 <dd>{cdn}, cleared with it</dd>
                             </>
                         )}
 
-                        <dt className="text-muted-foreground">
-                            Last cleared here
-                        </dt>
+                        <dt className="text-ink-2">Last cleared here</dt>
                         <dd>
                             {cleared === null
                                 ? 'Never'
@@ -100,7 +94,7 @@ export default function PageCache({
                 <div
                     role="note"
                     data-test="page-cache-notice"
-                    className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                    className="border-line flex gap-3 rounded-md border p-4 text-sm"
                 >
                     <Info
                         aria-hidden="true"

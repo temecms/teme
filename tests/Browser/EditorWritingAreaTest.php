@@ -116,7 +116,8 @@ it('fills the room between the menu and the side panel, paragraphs keeping the r
     $closed = ($this->measure)($page);
     ($this->fills)($closed);
 
-    expect($folded['column'] - $open['column'])->toEqualWithDelta(240 - 56, 2)
+    // The sidebar open and folded to its rail: 264 and 68 (docs/architecture/design-system.md, section 2.9).
+    expect($folded['column'] - $open['column'])->toEqualWithDelta(264 - 68, 2)
         ->and($closed['column'] - $folded['column'])->toEqualWithDelta(360, 2);
 })->with([
     '1440 × 900' => [1440, 900],

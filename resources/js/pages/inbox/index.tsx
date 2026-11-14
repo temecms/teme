@@ -28,7 +28,7 @@ export default function Inbox({
                             <div className="flex items-center gap-3">
                                 <span
                                     data-test="inbox-unread"
-                                    className="text-muted-foreground text-[13px]"
+                                    className="text-ink-2 text-[13px]"
                                 >
                                     {unread >= 100
                                         ? '99+'

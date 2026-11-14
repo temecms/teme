@@ -130,7 +130,7 @@ function QuickEdit({
                             defaultValue={row.slug}
                         />
                         {row.status === 'published' && (
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-ink-2 text-xs">
                                 Changing a published address takes effect at
                                 once, and the old one stops working.
                             </p>
@@ -202,7 +202,7 @@ function QuickEdit({
                             />
                             <p
                                 id={`discussion-${row.id}-meaning`}
-                                className="text-muted-foreground text-xs"
+                                className="text-ink-2 text-xs"
                             >
                                 {choiceOf(discussion).meaning}
                                 {!row.discussion.canSet &&
@@ -246,9 +246,7 @@ function QuickEdit({
                                     className="size-16 rounded object-cover"
                                 />
                             ) : (
-                                <span className="text-muted-foreground text-sm">
-                                    None
-                                </span>
+                                <span className="text-ink-2 text-sm">None</span>
                             )}
                             <Button
                                 type="button"
@@ -496,15 +494,15 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
     if (row.status === 'scheduled' && row.scheduledFor !== null) {
         return (
             <span className="grid">
-                <span className="text-muted-foreground">
+                <span className="text-ink-2">
                     {formatInZone(row.scheduledFor, page.siteTimezone)} (
                     {page.siteTimezone})
                 </span>
                 {row.scheduleIssue === 'failed' && (
-                    <span className="text-destructive text-xs">Failed</span>
+                    <span className="text-danger-ink text-xs">Failed</span>
                 )}
                 {row.scheduleIssue === 'held' && (
-                    <span className="text-warning text-xs">Held</span>
+                    <span className="text-warn-ink text-xs">Held</span>
                 )}
             </span>
         );
@@ -512,7 +510,7 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
 
     if (row.review !== null) {
         return (
-            <span className="text-muted-foreground grid">
+            <span className="text-ink-2 grid">
                 <span>
                     Submitted{' '}
                     {formatInZone(row.review.submittedAt, page.siteTimezone)}
@@ -530,12 +528,12 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
 
     return (
         <span className="grid">
-            <span className="text-muted-foreground">
+            <span className="text-ink-2">
                 {new Date(
                     live ? (row.publishedAt ?? row.updatedAt) : row.updatedAt,
                 ).toLocaleDateString()}
             </span>
-            <span className="text-muted-foreground text-xs">
+            <span className="text-ink-2 text-xs">
                 {live ? 'Published' : 'Last modified'}
             </span>
         </span>
@@ -876,7 +874,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                 ) : (
                     <span
                         data-test="featured-none"
-                        className="border-input text-muted-foreground grid h-8 w-12 place-items-center rounded-sm border border-dashed"
+                        className="border-edge text-ink-2 grid h-8 w-12 place-items-center rounded-sm border border-dashed"
                     >
                         <ImageIcon aria-hidden className="size-3.5" />
                         <span className="sr-only">No featured image</span>
@@ -916,7 +914,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                         {suffix !== null && (
                             <span
                                 data-test="status-suffix"
-                                className="text-muted-foreground"
+                                className="text-ink-2"
                             >
                                 {` — ${suffix}`}
                             </span>
@@ -1135,7 +1133,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                             {searchIn === 'body' && (
                                 <span
                                     id="search-in-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     Published text only
                                 </span>
@@ -1265,7 +1263,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                 {(reviewFilter !== undefined || termChips.length > 0) && (
                     <div className="flex flex-wrap gap-2">
                         {reviewFilter !== undefined && (
-                            <span className="border-border bg-muted inline-flex items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-3 text-[13px]">
+                            <span className="border-line bg-surface-2 inline-flex items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-3 text-[13px]">
                                 {reviewFilter}
                                 <Link
                                     href={
@@ -1282,7 +1280,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                                         ).url
                                     }
                                     aria-label={`Remove the filter: ${reviewFilter}`}
-                                    className="hover:bg-accent inline-flex size-6 items-center justify-center rounded-full"
+                                    className="hover:bg-surface-3 inline-flex size-6 items-center justify-center rounded-full"
                                 >
                                     <X className="size-3.5" />
                                 </Link>
@@ -1292,13 +1290,13 @@ export default function ContentIndex(page: ContentIndexPage) {
                             <span
                                 key={chip.key}
                                 data-test="filter-chip"
-                                className="border-border bg-muted inline-flex items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-3 text-[13px]"
+                                className="border-line bg-surface-2 inline-flex items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-3 text-[13px]"
                             >
                                 {chip.label}
                                 <Link
                                     href={chip.href}
                                     aria-label={`Remove the filter: ${chip.label}`}
-                                    className="hover:bg-accent inline-flex size-6 items-center justify-center rounded-full"
+                                    className="hover:bg-surface-3 inline-flex size-6 items-center justify-center rounded-full"
                                 >
                                     <X className="size-3.5" />
                                 </Link>
@@ -1310,7 +1308,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                 {page.scheduleWarning.length > 0 && (
                     <div
                         role="status"
-                        className="bg-warning-muted text-warning grid gap-1 rounded-md px-3 py-2 text-[13px]"
+                        className="bg-warn-soft text-warn-ink grid gap-1 rounded-md px-3 py-2 text-[13px]"
                     >
                         {page.scheduleWarning.map((line) => (
                             <p key={line} className="flex items-start gap-2">
@@ -1324,7 +1322,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                 {editReport && (
                     <div
                         role="status"
-                        className="border-border grid gap-2 border-y py-3 text-[13px]"
+                        className="border-line grid gap-2 border-y py-3 text-[13px]"
                     >
                         <p className="font-medium">
                             {editReport.done} changed;{' '}
@@ -1355,7 +1353,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                             </>
                         )}
                         {editReport.notSent.length > 0 && (
-                            <p className="text-destructive">
+                            <p className="text-danger-ink">
                                 Something went wrong, so these weren’t changed:{' '}
                                 {editReport.notSent
                                     .map((item) => shownTitle(item.title))
@@ -1369,7 +1367,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                 {page.bulk && page.bulk.skipped.length > 0 && (
                     <div
                         role="status"
-                        className="border-border border-y py-3 text-[13px]"
+                        className="border-line border-y py-3 text-[13px]"
                     >
                         <p className="font-medium">
                             {page.bulk.done} changed; {page.bulk.skipped.length}{' '}

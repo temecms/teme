@@ -19,7 +19,7 @@ export function DashboardPanel({ panel }: { panel: DashboardPanelData }) {
                 {panel.seeAll !== null && (
                     <Link
                         href={panel.seeAll}
-                        className="text-link text-[13px] font-normal underline-offset-2 hover:underline"
+                        className="text-accent-ink text-[13px] font-normal underline-offset-2 hover:underline"
                     >
                         See all
                         <span className="sr-only"> {panel.label}</span>
@@ -31,7 +31,7 @@ export function DashboardPanel({ panel }: { panel: DashboardPanelData }) {
                     {panel.rows.map((row) => (
                         <li
                             key={row.id}
-                            className="border-border grid min-h-11 content-center gap-0.5 border-t py-2 text-[13px]"
+                            className="border-line grid min-h-11 content-center gap-0.5 border-t py-2 text-[13px]"
                         >
                             <Link
                                 href={row.url}
@@ -39,7 +39,7 @@ export function DashboardPanel({ panel }: { panel: DashboardPanelData }) {
                             >
                                 {shownTitle(row.title)}
                             </Link>
-                            <span className="text-muted-foreground break-words">
+                            <span className="text-ink-2 break-words">
                                 {row.subtitle}
                             </span>
                         </li>

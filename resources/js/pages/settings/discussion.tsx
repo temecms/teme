@@ -51,12 +51,12 @@ export default function DiscussionSettings({
                                         >
                                             Save the comments switch
                                         </Button>
-                                        <span className="text-muted-foreground text-xs">
+                                        <span className="text-ink-2 text-xs">
                                             Saves this switch only.
                                         </span>
                                     </>
                                 ) : (
-                                    <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                                    <p className="text-ink-2 flex items-center gap-2 text-sm">
                                         <Lock
                                             aria-hidden="true"
                                             className="size-4"
@@ -120,7 +120,7 @@ export default function DiscussionSettings({
                                                     {fieldset.info.label}
                                                 </p>
                                                 <p>{fieldset.info.value}</p>
-                                                <p className="text-muted-foreground flex items-start gap-2">
+                                                <p className="text-ink-2 flex items-start gap-2">
                                                     <Info
                                                         aria-hidden="true"
                                                         className="mt-0.5 size-4 shrink-0"

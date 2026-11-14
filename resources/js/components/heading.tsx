@@ -28,9 +28,7 @@ export default function Heading({
             >
                 {title}
             </Tag>
-            {description && (
-                <p className="text-muted-foreground text-sm">{description}</p>
-            )}
+            {description && <p className="text-ink-2 text-sm">{description}</p>}
         </header>
     );
 }

@@ -18,7 +18,7 @@ function PopoverTrigger({
 function PopoverContent({
   className,
   align = "center",
-  sideOffset = 4,
+  sideOffset = 6,
   collisionPadding = 8,
   ...props
 }: React.ComponentProps<typeof PopoverPrimitive.Content>) {
@@ -30,7 +30,7 @@ function PopoverContent({
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          "bg-popover text-popover-foreground z-50 max-h-(--radix-popover-content-available-height) overflow-y-auto rounded-lg border p-1.5 shadow-(--shadow) outline-none",
+          "z-(--z-float) max-h-(--radix-popover-content-available-height) overflow-y-auto rounded-lg bg-surface p-4 text-ink shadow-float outline-none duration-(--dur-2) ease-(--ease) data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-97 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-97",
           className
         )}
         {...props}

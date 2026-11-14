@@ -77,7 +77,7 @@ export function PrimaryCategory({
             <p
                 id="editor-primary-category-hint"
                 data-test="primary-category-hint"
-                className="text-muted-foreground text-xs"
+                className="text-ink-2 text-xs"
             >
                 {hint.join(' ')}
             </p>

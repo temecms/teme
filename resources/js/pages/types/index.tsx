@@ -120,7 +120,7 @@ export default function TypesIndex({ locked, types }: TypesIndexPage) {
                     caption="Types"
                     rowProps={(row) =>
                         row.source === 'refused'
-                            ? { className: 'bg-destructive-muted' }
+                            ? { className: 'bg-danger-soft' }
                             : {}
                     }
                 />
@@ -138,24 +138,24 @@ function TypeCell({ row, locked }: { row: TypeRow; locked: boolean }) {
 
     return (
         <div className="flex min-w-0 items-start gap-3">
-            <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-md border">
+            <span className="bg-surface-2 flex size-8 shrink-0 items-center justify-center rounded-md border">
                 <Icon aria-hidden className="size-4" />
             </span>
             <div className="min-w-0">
                 <Link
                     href={show.url(row.key)}
-                    className="text-link font-medium hover:underline"
+                    className="text-accent-ink font-medium hover:underline"
                 >
                     {row.plural}
                 </Link>
-                <div className="text-muted-foreground flex flex-wrap items-center gap-2">
+                <div className="text-ink-2 flex flex-wrap items-center gap-2">
                     <code className="text-xs break-all">{row.key}</code>
                     <span className="sm:hidden">
                         <SourceBadge source={row.source} />
                     </span>
                 </div>
                 {row.source === 'refused' && row.reason !== null && (
-                    <p className="text-destructive mt-1 flex items-start gap-1 text-xs text-pretty">
+                    <p className="text-danger-ink mt-1 flex items-start gap-1 text-xs text-pretty">
                         <XCircle
                             aria-hidden
                             className="mt-0.5 size-3.5 shrink-0"
@@ -183,7 +183,10 @@ function ItemsCell({ row }: { row: TypeRow }) {
             {row.listUrl === null ? (
                 row.items
             ) : (
-                <Link href={row.listUrl} className="text-link hover:underline">
+                <Link
+                    href={row.listUrl}
+                    className="text-accent-ink hover:underline"
+                >
                     {row.items}
                 </Link>
             )}
@@ -193,7 +196,7 @@ function ItemsCell({ row }: { row: TypeRow }) {
                 ) : (
                     <Link
                         href={`${row.listUrl}?tab=trash`}
-                        className="text-link hover:underline"
+                        className="text-accent-ink hover:underline"
                     >
                         {row.trashed} in the trash
                     </Link>

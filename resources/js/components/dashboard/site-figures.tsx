@@ -27,9 +27,7 @@ function Figure({ figure }: { figure: SiteFigure }) {
             <span className="text-[22px] leading-none font-semibold tabular-nums">
                 {figure.value.toLocaleString()}
             </span>
-            <span className="text-muted-foreground mt-1 text-xs">
-                {figure.label}
-            </span>
+            <span className="text-ink-2 mt-1 text-xs">{figure.label}</span>
         </>
     );
 
@@ -54,7 +52,7 @@ export function SiteFigures({ figures }: { figures: SiteFigure[] }) {
     return (
         <section
             aria-labelledby="site-figures"
-            className="border-border border-t pt-4"
+            className="border-line border-t pt-4"
         >
             <h2 id="site-figures" className="sr-only">
                 The site in figures
@@ -62,7 +60,7 @@ export function SiteFigures({ figures }: { figures: SiteFigure[] }) {
             <div className="flex flex-wrap gap-x-10 gap-y-4">
                 {grouped(figures).map(({ group, figures: members }) => (
                     <div key={group ?? members[0].key} className="grid gap-1.5">
-                        <p className="text-muted-foreground text-[11px] font-medium">
+                        <p className="text-ink-2 text-[11px] font-medium">
                             {group ?? ' '}
                         </p>
                         <ul

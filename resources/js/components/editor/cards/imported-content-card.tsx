@@ -50,7 +50,7 @@ const PROPS: Record<string, string> = {
 
 /** The editor's prose look for the preview's elements. */
 const PREVIEW =
-    'border-border max-h-96 overflow-auto rounded-sm border p-3 text-[14px] leading-relaxed [&>*+*]:mt-2 [&_blockquote]:border-l-2 [&_blockquote]:ps-3 [&_caption]:text-muted-foreground [&_caption]:text-start [&_dd]:ms-5 [&_dt]:font-semibold [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:ps-5 [&_pre]:whitespace-pre-wrap [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:p-1.5 [&_th]:border [&_th]:p-1.5 [&_th]:text-start [&_ul]:list-disc [&_ul]:ps-5';
+    'border-line max-h-96 overflow-auto rounded-sm border p-3 text-[14px] leading-relaxed [&>*+*]:mt-2 [&_blockquote]:border-l-2 [&_blockquote]:ps-3 [&_caption]:text-ink-2 [&_caption]:text-start [&_dd]:ms-5 [&_dt]:font-semibold [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:ps-5 [&_pre]:whitespace-pre-wrap [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:p-1.5 [&_th]:border [&_th]:p-1.5 [&_th]:text-start [&_ul]:list-disc [&_ul]:ps-5';
 
 /** The tree as readers see it, for the box's preview; a link is drawn as words, so a click never leaves the editor. */
 function Preview({ parts }: { parts: MarkupPart[] }) {
@@ -87,7 +87,7 @@ function Preview({ parts }: { parts: MarkupPart[] }) {
                         className="inline-block h-auto max-w-full"
                     />
                 ) : (
-                    <span key={index} className="text-muted-foreground italic">
+                    <span key={index} className="text-ink-2 italic">
                         A picture that is no longer in the library.
                     </span>
                 );
@@ -97,7 +97,7 @@ function Preview({ parts }: { parts: MarkupPart[] }) {
                 return (
                     <span
                         key={index}
-                        className="text-primary underline"
+                        className="text-accent underline"
                         title={String(attrs.href ?? '')}
                     >
                         {children}
@@ -177,7 +177,7 @@ export function ImportedContentCard({
             role="group"
             aria-label="Imported content card"
             className={cn(
-                'border-border bg-card relative my-4 rounded-md border',
+                'border-line bg-surface relative my-4 rounded-md border',
                 selected && 'ring-ring ring-2',
             )}
             contentEditable={false}
@@ -188,19 +188,17 @@ export function ImportedContentCard({
                     draggable
                     aria-hidden
                     title="Drag to move"
-                    className="text-muted-foreground cursor-grab [&_svg]:size-4"
+                    className="text-ink-2 cursor-grab [&_svg]:size-4"
                 >
                     <GripVertical />
                 </span>
-                <span className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+                <span className="text-ink-2 text-[11px] font-medium tracking-wide uppercase">
                     Imported content
                 </span>
                 <span
                     className={cn(
                         'ml-auto rounded-md px-2 py-0.5 text-[12px] font-medium',
-                        kept
-                            ? 'text-muted-foreground'
-                            : 'bg-warning-muted text-warning',
+                        kept ? 'text-ink-2' : 'bg-warn-soft text-warn-ink',
                     )}
                 >
                     {kept ? 'Kept' : 'Needs a decision'}
@@ -209,9 +207,7 @@ export function ImportedContentCard({
             <div className="grid gap-2 px-3 pt-1 pb-3">
                 <p className="text-[13px] font-medium">{headline(parts)}</p>
                 {source !== null && (
-                    <p className="text-muted-foreground text-[13px]">
-                        {source}
-                    </p>
+                    <p className="text-ink-2 text-[13px]">{source}</p>
                 )}
                 <div
                     role="region"
@@ -249,7 +245,7 @@ export function ImportedContentCard({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-destructive"
+                        className="text-danger-ink"
                         aria-label="Delete imported content"
                         onClick={deleteNode}
                     >
@@ -257,12 +253,12 @@ export function ImportedContentCard({
                     </Button>
                 </div>
                 {kept && (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         Kept as readers see it. The import’s report no longer
                         lists it.
                     </p>
                 )}
-                <p id={hint} className="text-muted-foreground text-xs">
+                <p id={hint} className="text-ink-2 text-xs">
                     Convert to paragraphs gives you text to edit and loses the
                     layout. Keep as it is leaves it as readers see it. Delete
                     takes it out of the text. Each can be undone.
@@ -275,7 +271,7 @@ export function ImportedContentCard({
 /** The rail's inspector for the card: nothing to set, only a decision to make on the box. */
 export function ImportedContentSettings() {
     return (
-        <p className="text-muted-foreground text-[13px]">
+        <p className="text-ink-2 text-[13px]">
             It holds what readers saw on the old site, cleaned, and can’t be
             edited here. Convert it to paragraphs to edit its words, keep it as
             it is, or delete it.

@@ -57,7 +57,7 @@ export default function SettingsGroup({
         <>
             {themePerPage !== null && (
                 <p
-                    className="text-muted-foreground text-[13px]"
+                    className="text-ink-2 text-[13px]"
                     data-test="theme-per-page"
                 >
                     {themePerPage.theme === null
@@ -70,9 +70,7 @@ export default function SettingsGroup({
                 <div className="grid gap-1" data-test="image-widths">
                     <p className="text-sm font-medium">{imageWidths.label}</p>
                     <p className="text-[13px]">{imageWidths.value}</p>
-                    <p className="text-muted-foreground text-[13px]">
-                        {imageWidths.hint}
-                    </p>
+                    <p className="text-ink-2 text-[13px]">{imageWidths.hint}</p>
                 </div>
             )}
         </>

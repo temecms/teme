@@ -25,6 +25,7 @@ const byName = new Map<string, LucideIcon>(
     Object.entries(icons).map(([key, icon]) => [squashedName(key), icon]),
 );
 
+// The set must stay one lazy file (I-3311): the icons group in vite.config.ts depends on it.
 /** Every Lucide icon with its stored name, in alphabetical order of name. */
 export const lucideIcons: readonly { name: string; Icon: LucideIcon }[] =
     Object.entries(icons)

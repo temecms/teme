@@ -54,14 +54,12 @@ export function UnknownCard({ node, selected }: ReactNodeViewProps) {
         <NodeViewWrapper
             data-card={node.type.name}
             className={
-                'border-border bg-muted text-muted-foreground my-4 rounded-md border p-4 text-[13px]' +
+                'border-line bg-surface-2 text-ink-2 my-4 rounded-md border p-4 text-[13px]' +
                 (selected ? ' ring-ring ring-2' : '')
             }
             contentEditable={false}
         >
-            <span className="text-foreground font-semibold">
-                {node.type.name}
-            </span>{' '}
+            <span className="text-ink font-semibold">{node.type.name}</span>{' '}
             card
         </NodeViewWrapper>
     );

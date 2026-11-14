@@ -10,14 +10,14 @@ it('draws a flush sidebar, not an inset one', function (): void {
         ->toContain('<Sidebar collapsible="icon">');
 });
 
-it('holds View site, Personalise menu and Collapse menu in the sidebar foot', function (string $words, string $hook): void {
+it('holds View site, Customise menu and Fold the menu in the sidebar foot', function (string $words, string $hook): void {
     expect(uiComponent('components/app-sidebar.tsx'))
         ->toContain($words)
         ->toContain($hook);
 })->with([
     'the site link' => ['View site', 'data-test="view-site"'],
-    'the personalise button' => ['Personalise menu', 'data-test="personalise-menu"'],
-    'the collapse button' => ['Collapse menu', 'data-test="collapse-menu"'],
+    'the customise button' => ['Customise menu', 'data-test="personalise-menu"'],
+    'the fold button' => ['Fold the menu', 'data-test="collapse-menu"'],
 ]);
 
 it('keeps the menu coming from the server, as the navigation test needs', function (): void {
@@ -33,14 +33,14 @@ it('moves the account menu out of the sidebar', function (): void {
         ->not->toContain('AccountMenu');
 });
 
-it('keeps the sidebar head level with the header, in the sans face, and the collapsed link named', function (): void {
+it('marks the site with its initial in the serif on the accent, its name over the product line, and keeps the folded link named', function (): void {
     $brand = uiComponent('components/brand.tsx');
 
-    expect($brand)->toContain('h-[52px]')
-        ->toContain('data-test="sidebar-brand"')
+    expect($brand)->toContain('data-test="sidebar-brand"')
         ->toContain('group-data-[collapsible=icon]:sr-only')
         ->not->toContain('group-data-[collapsible=icon]:hidden')
-        ->not->toContain('font-serif')
+        ->toContain('font-serif')
+        ->toContain('bg-accent')
         ->toContain('Later (I-1390)')
         ->and(uiComponent('hooks/use-brand.ts'))->toContain(' · ');
 });
@@ -52,18 +52,23 @@ it('names the drawer under 768 pixels as the main menu', function (): void {
         ->not->toContain('Displays the mobile sidebar.');
 });
 
-it('puts Search or jump to… in the header, with the jobs button and the bell, and no breadcrumbs', function (): void {
+it('puts Search or jump to… at the top of the sidebar, opening the palette', function (): void {
+    expect(uiComponent('components/app-sidebar.tsx'))
+        ->toContain('Search or jump to…')
+        ->toContain('teme:palette')
+        ->toContain('data-test="palette-button"');
+});
+
+it('puts the crumbs at the start of the top bar, then the jobs, the site status, the bell and the account menu', function (): void {
     $header = uiComponent('components/app-sidebar-header.tsx');
 
-    expect($header)->toContain('Search or jump to…')
-        ->toContain('teme:palette')
-        ->toContain('data-test="palette-button"')
-        ->toContain('<JobsButton')
-        ->toContain('<InboxBell')
+    expect($header)->toContain('<header')
         ->toContain('Later (I-1391)')
-        ->toContain('<header')
-        ->not->toContain('Breadcrumbs')
-        ->and(strpos($header, 'Search or jump to…'))->toBeLessThan(strpos($header, '<AccountMenu />'));
+        ->and(strpos($header, '<Crumbs'))->toBeInt()
+        ->and(strpos($header, '<Crumbs'))->toBeLessThan(strpos($header, '<JobsButton'))
+        ->and(strpos($header, '<JobsButton'))->toBeLessThan(strpos($header, '<SiteStatus'))
+        ->and(strpos($header, '<SiteStatus'))->toBeLessThan(strpos($header, '<InboxBell'))
+        ->and(strpos($header, '<InboxBell'))->toBeLessThan(strpos($header, '<AccountMenu />'));
 });
 
 it('moves the account menu to the header', function (): void {
@@ -113,13 +118,17 @@ it('draws the banner as a labelled region with its text in the foreground colour
         ->not->toContain('Dismiss');
 });
 
-it('draws the parents of a page above it, and nothing for a page with none', function (): void {
-    $trail = uiComponent('components/page-trail.tsx');
+it('draws the trail of a page in the top bar, the page itself last, and no trail above the page', function (): void {
+    expect(uiComponent('components/patterns/crumbs.tsx'))
+        ->toContain('data-test="crumbs"')
+        ->toContain("__('Where you are')")
+        ->toContain('aria-current="page"')
+        ->and(uiComponent('layouts/app/app-sidebar-layout.tsx'))->not->toContain('<PageTrail')
+        ->and(file_exists(resource_path('js/components/page-trail.tsx')))->toBeFalse();
+});
 
-    expect($trail)->toContain('slice(0, -1)')
-        ->toContain('aria-label="Breadcrumb"')
-        ->toContain('data-test="page-trail"')
-        ->and(uiComponent('layouts/app/app-sidebar-layout.tsx'))->toContain('<PageTrail');
+it('gives the crumbs’ switcher a 44 pixel target on coarse pointers', function (): void {
+    expect(uiComponent('components/patterns/crumbs.tsx'))->toContain('pointer-coarse:size-11');
 });
 
 it('draws every toast through the one component, with a Dismiss and the timings the build decided', function (): void {
@@ -140,10 +149,10 @@ it('draws every toast through the one component, with a Dismiss and the timings 
         ->not->toContain('toast[');
 });
 
-it('sets the container where toasts stack', function (): void {
+it('sets the container where toasts stack, at the foot of the screen in the middle', function (): void {
     expect(uiComponent('components/ui/sonner.tsx'))
-        ->toContain('position="bottom-right"')
-        ->toContain('offset={16}')
+        ->toContain('position="bottom-center"')
+        ->toContain('offset={24}')
         ->toContain('visibleToasts={3}')
         ->toContain("'--width': '400px'");
 });

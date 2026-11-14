@@ -41,7 +41,7 @@ export function Commenter({
                         <Badge variant="outline">Trackback</Badge>
                     )}
                 </p>
-                <div className="text-muted-foreground space-y-0.5 text-[12px] leading-4">
+                <div className="text-ink-2 space-y-0.5 text-[12px] leading-4">
                     {row.authorEmail && <p>{row.authorEmail}</p>}
                     {website && <p>{website}</p>}
                     {ip && onFindAddress && (
@@ -49,7 +49,7 @@ export function Commenter({
                             type="button"
                             title="Find every comment from this IP address"
                             // At least 24 pixels tall (WCAG 2.2, 2.5.8).
-                            className="hover:text-foreground focus-visible:ring-ring inline-flex min-h-6 items-center rounded-sm font-mono underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                            className="hover:text-ink focus-visible:ring-ring inline-flex min-h-6 items-center rounded-sm font-mono underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:outline-none"
                             onClick={() => onFindAddress(ip)}
                         >
                             {ip}

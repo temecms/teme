@@ -7,7 +7,7 @@ import type { RecoveryKeyPageProps } from '@/types/backups';
 /** Only the sheet prints: everything else in the page is hidden on paper. */
 const PRINT_ONLY = `@media print {
     body > :not(#key-print-sheet) { display: none !important; }
-    #key-print-sheet { display: block !important; background: white; color: black; color-scheme: light; }
+    #key-print-sheet { display: block !important; background: var(--paper); color: CanvasText; color-scheme: light; }
 }`;
 
 const SENTENCES = [
@@ -39,7 +39,7 @@ export function KeySheet({
     return (
         <section className="space-y-5">
             <div className="space-y-1">
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     Teme shows it once and keeps no copy.
                 </p>
             </div>
@@ -52,11 +52,11 @@ export function KeySheet({
                     <li
                         key={index}
                         data-test="key-group"
-                        className="border-border rounded-md border p-3"
+                        className="border-line rounded-md border p-3"
                     >
                         <span
                             aria-hidden="true"
-                            className="text-muted-foreground block text-xs"
+                            className="text-ink-2 block text-xs"
                         >
                             {index + 1}
                         </span>

@@ -7,9 +7,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* @tokens */
+/* The admin's design system (docs/architecture/design-system.md, section 2).
+   Every value lives here; the CSS variable names are part of the plugin
+   contract. Only the light and dark blocks, the accent pair and the
+   contrast, motion and width blocks set a value; components only read them. */
+
 @theme {
-    /* IBM Plex, bundled (I-196), with the system stack behind every family so
-       text is readable before a file arrives. */
+    /* IBM Plex, bundled (I-196), with the system stack behind every family. */
     --font-sans:
         'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui,
         -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif,
@@ -20,322 +25,427 @@
         'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
         monospace;
 
-    --radius-sm: 0.125rem; /* 2px — chips, badges, inline code */
-    --radius-md: var(--radius); /* 4px — buttons, inputs, menu items */
-    --radius-lg: 0.375rem; /* 6px — popovers, dialogs, drawers */
+    /* No colour exists but the tokens below: Tailwind's palette is gone. */
+    --color-*: initial;
 
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
+    /* The six sizes (2.8), in rem so a reader's own text size still counts:
+       12, 13, 15, 18, 24 and 34px at the browser's default. Tailwind's own
+       sizes stay defined until DesignSystemTest's R2 reaches zero. */
+    --text-caption: 0.75rem;
+    --text-caption--line-height: 1.5;
+    --text-small: 0.8125rem;
+    --text-small--line-height: 1.5;
+    --text-body: 0.9375rem;
+    --text-body--line-height: 1.5;
+    --text-lead: 1.125rem;
+    --text-lead--line-height: 1.35;
+    --text-title: 1.5rem;
+    --text-title--line-height: 1.2;
+    --text-display: 2.125rem;
+    --text-display--line-height: 1.18;
 
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
+    /* Radii (2.6). */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
 
-    --color-popover: var(--popover);
-    --color-popover-foreground: var(--popover-foreground);
+    /* Breakpoints (2.12): xl is 1360px, and there is no 2xl. */
+    --breakpoint-sm: 40rem;
+    --breakpoint-md: 48rem;
+    --breakpoint-lg: 64rem;
+    --breakpoint-xl: 85rem;
+    --breakpoint-2xl: initial;
 
-    --color-primary: var(--primary);
-    --color-primary-foreground: var(--primary-foreground);
+    /* The skeleton's shimmer (4.24). */
+    --animate-shimmer: shimmer 1.3s linear infinite;
 
-    --color-secondary: var(--secondary);
-    --color-secondary-foreground: var(--secondary-foreground);
-
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
-
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
-
-    --color-destructive: var(--destructive);
-    --color-destructive-foreground: var(--destructive-foreground);
-
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-
-    --color-success: var(--success);
-    --color-success-muted: var(--success-muted);
-    --color-warning: var(--warning);
-    --color-warning-muted: var(--warning-muted);
-    --color-destructive-muted: var(--destructive-muted);
-    --color-faint: var(--faint);
-    --color-link: var(--link);
-    --color-selected: var(--selected);
-
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
-
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-muted: var(--sidebar-muted);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+    @keyframes shimmer {
+        from {
+            background-position: 200% 0;
+        }
+        to {
+            background-position: -200% 0;
+        }
+    }
 }
 
+@theme inline {
+    --color-page: var(--page);
+    --color-chrome: var(--chrome);
+    --color-surface: var(--surface);
+    --color-surface-2: var(--surface-2);
+    --color-surface-3: var(--surface-3);
+    --color-surface-4: var(--surface-4);
+    --color-line: var(--line);
+    --color-edge: var(--edge);
+    --color-ink: var(--ink);
+    --color-ink-2: var(--ink-2);
+    --color-ink-3: var(--ink-3);
+    --color-neutral-dot: var(--neutral-dot);
+    --color-scrim: var(--scrim);
+    --color-soft-edge: var(--soft-edge);
+
+    --color-img-outline: var(--img-outline);
+    --color-photo-scrim: var(--photo-scrim);
+    --color-on-photo: var(--on-photo);
+    --color-paper: var(--paper);
+
+    --color-accent: var(--accent);
+    --color-accent-hover: var(--accent-hover);
+    --color-on-accent: var(--on-accent);
+    --color-accent-ink: var(--accent-ink);
+    --color-accent-soft: var(--accent-soft);
+    --color-accent-soft-2: var(--accent-soft-2);
+    --color-on-accent-soft: var(--on-accent-soft);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+
+    --color-ok: var(--ok);
+    --color-ok-soft: var(--ok-soft);
+    --color-ok-ink: var(--ok-ink);
+    --color-info: var(--info);
+    --color-info-soft: var(--info-soft);
+    --color-info-ink: var(--info-ink);
+    --color-warn: var(--warn);
+    --color-warn-soft: var(--warn-soft);
+    --color-warn-ink: var(--warn-ink);
+    --color-danger: var(--danger);
+    --color-danger-soft: var(--danger-soft);
+    --color-danger-ink: var(--danger-ink);
+    --color-danger-hover: var(--danger-hover);
+    --color-on-danger: var(--on-danger);
+    --color-ai: var(--ai);
+    --color-ai-soft: var(--ai-soft);
+    --color-ai-ink: var(--ai-ink);
+}
+
+/* @accent */
+/* The accent is two numbers, hue and chroma, and the solid's lightness
+   (2.2). Every accent token is computed from them, and nothing outside
+   this block may name the accent's numbers. Ember is Teme's (I-3402). */
 :root {
-    /* The neutral ramp is achromatic (study M §2). A chroma other than zero
-       here is a bug, and DesignTokensTest fails on it. */
-    --background: #f6f6f7;
-    --foreground: #1a1a1a;
-    --card: #ffffff;
-    --card-foreground: #1a1a1a;
-    --popover: #ffffff;
-    --popover-foreground: #1a1a1a;
-    --secondary: #f1f1f2;
-    --secondary-foreground: #1a1a1a;
-    --muted: #f1f1f2;
-    --muted-foreground: #5c5c5c;
-    --faint: #8a8a8a;
-    --border: #e4e4e5;
-    --input: #cfcfd1;
+    --accent-h: 42;
+    --accent-c: 0.16;
+    --accent-l: 0.52;
 
-    /* The accent does two jobs: the primary action and the focus ring (I-188). */
-    --primary: #0a6273;
-    --primary-foreground: #ffffff;
-    --ring: #0a6273;
-
-    /* Hover and selection are neutral. Ghost's source notes that a darker
-       grey for selection would compete with row hover, so selection is blue. */
-    --accent: #ebebec;
-    --accent-foreground: #1a1a1a;
-    --selected: #eef3fd;
-    --link: #1d4ed8;
-
-    --success: #18794e;
-    --success-muted: #e7f3ec;
-    --warning: #8a5300;
-    --warning-muted: #faf0dd;
-    --destructive: #b42318;
-    --destructive-foreground: #ffffff;
-    --destructive-muted: #fbeae8;
-
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-
-    --radius: 0.25rem;
-
-    /* The one shadow, for things that float (admin-design §Depth). */
-    --shadow: 0 8px 24px rgb(0 0 0 / 0.1), 0 1px 2px rgb(0 0 0 / 0.06);
-
-    /* Dark chrome is the default look (I-198): a dark sidebar, light content. */
-    --sidebar: #1d1d1f;
-    --sidebar-foreground: #ededee;
-    --sidebar-muted: #a5a5a7;
-    --sidebar-primary: #48adc2; /* the active item's bar and the focus ring stay visible on dark */
-    --sidebar-primary-foreground: #05222a;
-    --sidebar-accent: #333335; /* the active item's background */
-    --sidebar-accent-foreground: #ededee;
-    --sidebar-border: #2c2c2e;
-    --sidebar-ring: #48adc2;
-
-    /* Structure: read only by the shell and 1.5a's shared components
-       (PageHeader, Panel, DataTable, the page padding). A look may re-set them. */
-    --ui-size: 13px;
-    --h1-size: 22px;
-    --section-size: 15px;
-    --page-pad: 24px;
-    --cell-y: 12px;
-    --list-y: 14px;
-    --divider-soft: var(--border);
+    --accent: oklch(var(--accent-l) var(--accent-c) var(--accent-h));
+    --accent-hover: oklch(
+        from var(--accent)
+            calc(l - 0.06 + 0.12 * clamp(0, (l - 0.58) * 1000, 1)) c h
+    );
+    --on-accent: oklch(
+        from var(--accent) clamp(0.2, (0.58 - l) * 1000, 0.99) 0.02 h
+    );
+    --accent-ink: oklch(0.47 var(--accent-c) var(--accent-h));
+    --accent-soft: oklch(0.955 calc(var(--accent-c) * 0.28) var(--accent-h));
+    --accent-soft-2: oklch(0.915 calc(var(--accent-c) * 0.45) var(--accent-h));
+    --on-accent-soft: oklch(0.37 var(--accent-c) var(--accent-h));
+    --ring: oklch(0.55 var(--accent-c) var(--accent-h));
+    --chart-1: var(--accent);
+    --chart-2: oklch(0.8 0.05 var(--accent-h));
 }
 
 .dark {
-    /* Re-defined, not flipped (study M §2: Ghost re-defines; Laradashboard
-       pairs steps in markup and its dark surfaces disagree with each other). */
-    --background: #141414;
-    --foreground: #ededee;
-    --card: #1c1c1d;
-    --card-foreground: #ededee;
-    --popover: #1c1c1d;
-    --popover-foreground: #ededee;
-    --secondary: #242425;
-    --secondary-foreground: #ededee;
-    --muted: #242425;
-    --muted-foreground: #a5a5a7;
-    --faint: #7a7a7c;
-    --border: #2c2c2e;
-    --input: #3d3d3f;
+    --accent-l: 0.74;
 
-    --primary: #48adc2;
-    --primary-foreground: #05222a;
-    --ring: #48adc2;
+    --accent: oklch(
+        var(--accent-l) calc(var(--accent-c) * 0.95) var(--accent-h)
+    );
+    --accent-hover: oklch(
+        from var(--accent)
+            calc(l - 0.06 + 0.12 * clamp(0, (l - 0.58) * 1000, 1))
+            calc(var(--accent-c) * 0.9) h
+    );
+    --accent-ink: oklch(0.8 calc(var(--accent-c) * 0.85) var(--accent-h));
+    --accent-soft: oklch(0.3 calc(var(--accent-c) * 0.38) var(--accent-h));
+    --accent-soft-2: oklch(0.36 calc(var(--accent-c) * 0.5) var(--accent-h));
+    --on-accent-soft: oklch(0.88 calc(var(--accent-c) * 0.6) var(--accent-h));
+    --ring: oklch(0.78 var(--accent-c) var(--accent-h));
+    --chart-2: oklch(0.45 0.06 var(--accent-h));
+}
+/* @end-accent */
 
-    --accent: #2c2c2e;
-    --accent-foreground: #ededee;
-    --selected: #1e2533;
-    --link: #8ab0ff;
+:root {
+    /* The neutral ramp (2.1): hue 260, chroma at most 0.004; the page none. */
+    --page: oklch(0.9875 0 0);
+    --chrome: oklch(0.97 0.002 260);
+    --surface: oklch(1 0 0);
+    --surface-2: oklch(0.978 0.001 260);
+    --surface-3: oklch(0.952 0.002 260);
+    --surface-4: oklch(0.918 0.003 260);
+    --line: oklch(0.922 0.002 260);
+    --edge: oklch(0.64 0.004 260);
+    --ink: oklch(0.22 0.004 260);
+    --ink-2: oklch(0.43 0.004 260);
+    --ink-3: oklch(0.52 0.004 260);
+    --neutral-dot: oklch(0.62 0.004 260);
+    --scrim: oklch(0.2 0.004 260 / 0.38);
+    --scroll-thumb: oklch(0.82 0.002 260);
+    --scroll-thumb-hover: oklch(0.7 0.003 260);
+    /* A soft ground's edge: none, until the computer asks for more contrast. */
+    --soft-edge: transparent;
 
-    --success: #5fc393;
-    --success-muted: #14302a;
-    --warning: #e0ae60;
-    --warning-muted: #322614;
-    --destructive: #f08076;
-    --destructive-foreground: #141414;
-    --destructive-muted: #3a1b19;
+    /* Content colours: pictures and what sits on them. */
+    --img-outline: oklch(0 0 0 / 0.1);
+    --photo-scrim: oklch(0 0 0 / 0.55);
+    --on-photo: oklch(1 0 0);
+    --paper: oklch(1 0 0);
 
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
+    /* Status (2.3): a solid, a soft ground and an ink for each. */
+    --ok: oklch(0.52 0.13 150);
+    --ok-soft: oklch(0.95 0.04 150);
+    --ok-ink: oklch(0.38 0.1 150);
+    --info: oklch(0.56 0.12 240);
+    --info-soft: oklch(0.955 0.025 240);
+    --info-ink: oklch(0.42 0.11 245);
+    --warn: oklch(0.76 0.15 85);
+    --warn-soft: oklch(0.965 0.05 92);
+    --warn-ink: oklch(0.45 0.1 85);
+    --danger: oklch(0.53 0.2 18);
+    --danger-soft: oklch(0.955 0.03 18);
+    --danger-ink: oklch(0.45 0.18 18);
+    --danger-hover: oklch(0.47 0.2 18);
+    --on-danger: oklch(0.99 0.005 18);
+    --ai: oklch(0.55 0.17 300);
+    --ai-soft: oklch(0.955 0.03 300);
+    --ai-ink: oklch(0.45 0.15 300);
 
-    --sidebar: #0b0b0c;
-    --sidebar-foreground: #ededee;
-    --sidebar-muted: #a5a5a7;
-    --sidebar-primary: #48adc2;
-    --sidebar-primary-foreground: #05222a;
-    --sidebar-accent: #29292b;
-    --sidebar-accent-foreground: #ededee;
-    --sidebar-border: #222224;
-    --sidebar-ring: #48adc2;
+    /* Elevation (2.5). */
+    --shadow-raised:
+        0 1px 2px oklch(0.25 0 0 / 0.06), 0 2px 10px oklch(0.25 0 0 / 0.045);
+    --shadow-float:
+        0 2px 6px oklch(0.2 0 0 / 0.08), 0 12px 32px oklch(0.2 0 0 / 0.12);
+    --shadow-modal:
+        0 8px 24px oklch(0.2 0 0 / 0.14), 0 32px 72px oklch(0.2 0 0 / 0.18);
+
+    /* Sizes (2.9). */
+    --ctl-h: 36px;
+    --ctl-h-sm: 32px;
+    --ctl-h-xs: 28px;
+    --row-h: 92px;
+    --top-h: 60px;
+    --side-w: 264px;
+    --side-w-rail: 68px;
+    --rail-w: 344px;
+    --measure: 704px;
+    --page-max: 1280px;
+    --form-max: 760px;
+    --detail-w: 360px;
+    --dialog-sm: 480px;
+    --dialog-md: 640px;
+    --dialog-lg: 860px;
+    --dialog-xl-w: min(1120px, 100vw - 80px);
+    --dialog-xl-h: min(740px, 100vh - 48px);
+    --sheet-w: 480px;
+
+    /* Motion (2.10). */
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+    --dur-1: 120ms;
+    --dur-2: 180ms;
+    --dur-3: 240ms;
+    --press: 0.96;
+
+    /* Layers (2.11). */
+    --z-sticky: 10;
+    --z-toolbar: 20;
+    --z-workspace: 100;
+    --z-overlay: 200;
+    --z-float: 300;
+    --z-tooltip: 400;
+    --z-toast: 500;
 }
 
-/* A look is only token values (I-198); no component may mention one. Each
-   look's dark block comes after its light one and matches its specificity, so
-   dark mode wins. Values from docs/prototypes/2026-09-22-admin-v9.source.html. */
+.dark {
+    --page: oklch(0.185 0.002 260);
+    --chrome: oklch(0.165 0.002 260);
+    --surface: oklch(0.225 0.003 260);
+    --surface-2: oklch(0.252 0.003 260);
+    --surface-3: oklch(0.29 0.003 260);
+    --surface-4: oklch(0.33 0.004 260);
+    --line: oklch(0.3 0.003 260);
+    --edge: oklch(0.56 0.004 260);
+    --ink: oklch(0.95 0.002 260);
+    --ink-2: oklch(0.8 0.003 260);
+    --ink-3: oklch(0.7 0.003 260);
+    --neutral-dot: oklch(0.66 0.004 260);
+    --scrim: oklch(0.08 0.002 260 / 0.62);
+    --scroll-thumb: oklch(0.38 0.003 260);
+    --scroll-thumb-hover: oklch(0.48 0.004 260);
 
-/* Standard: a white sidebar with a hairline. */
-:root[data-look='standard'] {
-    --sidebar: #ffffff;
-    --sidebar-foreground: #1a1a1a;
-    --sidebar-muted: #6b6b6e;
-    --sidebar-primary: #0a6273;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #ebebec;
-    --sidebar-accent-foreground: #1a1a1a;
-    --sidebar-border: #e4e4e5;
-    --sidebar-ring: #0a6273;
+    --img-outline: oklch(1 0 0 / 0.1);
+
+    --ok: oklch(0.74 0.14 150);
+    --ok-soft: oklch(0.3 0.05 150);
+    --ok-ink: oklch(0.86 0.1 150);
+    --info: oklch(0.74 0.11 240);
+    --info-soft: oklch(0.3 0.04 240);
+    --info-ink: oklch(0.86 0.07 240);
+    --warn: oklch(0.82 0.15 88);
+    --warn-soft: oklch(0.32 0.05 85);
+    --warn-ink: oklch(0.88 0.12 90);
+    --danger: oklch(0.7 0.18 18);
+    --danger-soft: oklch(0.31 0.06 18);
+    --danger-ink: oklch(0.85 0.09 18);
+    --danger-hover: oklch(0.76 0.18 18);
+    --on-danger: oklch(0.2 0.03 18);
+    --ai: oklch(0.74 0.13 300);
+    --ai-soft: oklch(0.31 0.06 300);
+    --ai-ink: oklch(0.87 0.08 300);
+
+    --shadow-raised:
+        0 1px 2px oklch(0 0 0 / 0.35), 0 0 0 1px oklch(1 0 0 / 0.035);
+    --shadow-float:
+        0 4px 12px oklch(0 0 0 / 0.4), 0 16px 40px oklch(0 0 0 / 0.45),
+        0 0 0 1px oklch(1 0 0 / 0.06);
+    --shadow-modal:
+        0 12px 32px oklch(0 0 0 / 0.5), 0 40px 80px oklch(0 0 0 / 0.55),
+        0 0 0 1px oklch(1 0 0 / 0.07);
 }
 
-.dark[data-look='standard'] {
-    --sidebar: #1c1c1d;
-    --sidebar-foreground: #ededee;
-    --sidebar-muted: #a5a5a7;
-    --sidebar-primary: #48adc2;
-    --sidebar-primary-foreground: #05222a;
-    --sidebar-accent: #2c2c2e;
-    --sidebar-accent-foreground: #ededee;
-    --sidebar-border: #2c2c2e;
-    --sidebar-ring: #48adc2;
+/* Side panels narrow below 1360px (2.9). */
+@media (max-width: 84.99rem) {
+    :root {
+        --detail-w: 320px;
+    }
 }
 
-/* Quiet: one white surface everywhere, more room, 14px interface, fewer dividers. */
-:root[data-look='quiet'] {
-    --background: #ffffff;
-    --muted: #f4f4f5;
-    --accent: #efeff0;
-    --ui-size: 14px;
-    --h1-size: 24px;
-    --section-size: 16px;
-    --page-pad: 32px;
-    --cell-y: 14px;
-    --list-y: 16px;
-    --divider-soft: transparent;
-    --sidebar: #ffffff;
-    --sidebar-foreground: #1a1a1a;
-    --sidebar-muted: #6b6b6e;
-    --sidebar-primary: #0a6273;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #f4f4f5;
-    --sidebar-accent-foreground: #1a1a1a;
-    --sidebar-border: #e4e4e5;
-    --sidebar-ring: #0a6273;
+/* Touch layouts (docs/architecture/design-system.md, section 2.12): a coarse
+   pointer or a width under 768px makes every control 44px tall. */
+@media (pointer: coarse), (max-width: 47.99rem) {
+    :root {
+        --ctl-h: 44px;
+        --ctl-h-sm: 44px;
+    }
 }
 
-.dark[data-look='quiet'] {
-    --background: #1a1a1b;
-    --card: #1a1a1b;
-    --popover: #202022;
-    --muted: #232325;
-    --accent: #2a2a2c;
-    --sidebar: #1a1a1b;
-    --sidebar-foreground: #ededee;
-    --sidebar-muted: #a5a5a7;
-    --sidebar-primary: #48adc2;
-    --sidebar-primary-foreground: #05222a;
-    --sidebar-accent: #232325;
-    --sidebar-accent-foreground: #ededee;
-    --sidebar-border: #2c2c2e;
-    --sidebar-ring: #48adc2;
+/* Inputs take 16px text under 640px, so a phone does not zoom (2.8). */
+@media (max-width: 39.99rem) {
+    input,
+    textarea,
+    [data-slot='select-trigger'] {
+        font-size: 1rem;
+    }
 }
 
-/* High contrast, under any look: black-on-white, with Dark chrome's sidebar in black. */
-:root[data-contrast='high'] {
-    --background: #ffffff;
-    --card: #ffffff;
-    --popover: #ffffff;
-    --muted: #ededed;
-    --accent: #e0e0e0;
-    --foreground: #000000;
-    --muted-foreground: #2e2e2e;
-    --border: #767676;
-    --input: #1a1a1a;
-    --primary: #00495a;
-    --primary-foreground: #ffffff;
-    --ring: #000000;
-    --link: #0030b0;
-    --divider-soft: #767676;
-    --sidebar: #000000;
-    --sidebar-foreground: #ffffff;
-    --sidebar-muted: #d6d6d6;
-    --sidebar-primary: #7fd6e8;
-    --sidebar-primary-foreground: #00181d;
-    --sidebar-accent: #333333;
-    --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #8f8f8f;
-    --sidebar-ring: #ffffff;
+/* More contrast follows the computer's own setting (I-3404); it only
+   re-values tokens, so no component knows it is on. */
+@media (prefers-contrast: more) {
+    :root {
+        --ink-2: oklch(0.36 0.004 260);
+        --ink-3: oklch(0.42 0.004 260);
+        --edge: oklch(0.52 0.004 260);
+        --line: oklch(0.52 0.004 260);
+        --soft-edge: var(--edge);
+        --accent-soft: var(--surface);
+        --accent-soft-2: var(--surface);
+        --ok-soft: var(--surface);
+        --info-soft: var(--surface);
+        --warn-soft: var(--surface);
+        --danger-soft: var(--surface);
+        --ai-soft: var(--surface);
+    }
+
+    .dark {
+        --ink-2: oklch(0.86 0.004 260);
+        --ink-3: oklch(0.8 0.004 260);
+        --edge: oklch(0.66 0.004 260);
+        --line: oklch(0.66 0.004 260);
+        --soft-edge: var(--edge);
+        --accent-soft: var(--surface);
+        --accent-soft-2: var(--surface);
+        --ok-soft: var(--surface);
+        --info-soft: var(--surface);
+        --warn-soft: var(--surface);
+        --danger-soft: var(--surface);
+        --ai-soft: var(--surface);
+    }
 }
 
-:root[data-contrast='high']:is([data-look='standard'], [data-look='quiet']) {
-    --sidebar: #ffffff;
-    --sidebar-foreground: #000000;
-    --sidebar-muted: #2e2e2e;
-    --sidebar-primary: #00495a;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #d6d6d6;
-    --sidebar-accent-foreground: #000000;
-    --sidebar-border: #767676;
-    --sidebar-ring: #000000;
+/* Windows high contrast: an edge on every soft ground, since grounds alone
+   vanish there (section 7). */
+@media (forced-colors: active) {
+    :root {
+        --soft-edge: CanvasText;
+    }
 }
 
-:root.dark[data-contrast='high'] {
-    --background: #000000;
-    --card: #0a0a0a;
-    --popover: #0a0a0a;
-    --muted: #1c1c1c;
-    --accent: #2a2a2a;
-    --foreground: #ffffff;
-    --muted-foreground: #d6d6d6;
-    --border: #8f8f8f;
-    --input: #e0e0e0;
-    --primary: #7fd6e8;
-    --primary-foreground: #00181d;
-    --ring: #ffffff;
-    --link: #a8c4ff;
-    --divider-soft: #8f8f8f;
-    --sidebar: #000000;
-    --sidebar-foreground: #ffffff;
-    --sidebar-muted: #d6d6d6;
-    --sidebar-primary: #7fd6e8;
-    --sidebar-primary-foreground: #00181d;
-    --sidebar-accent: #333333;
-    --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #8f8f8f;
-    --sidebar-ring: #ffffff;
+/* Reduced motion (2.10): every duration 1ms and no press; the spinners
+   keep turning, as the only sign of work going on. */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --dur-1: 1ms;
+        --dur-2: 1ms;
+        --dur-3: 1ms;
+        --press: 1;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+    }
+
+    .animate-spin {
+        animation-duration: 1s !important;
+        animation-iteration-count: infinite !important;
+    }
+}
+/* @end-tokens */
+
+/* Elevation as classes (2.5). */
+@utility shadow-raised {
+    box-shadow: var(--shadow-raised);
+}
+
+@utility shadow-float {
+    box-shadow: var(--shadow-float);
+}
+
+@utility shadow-modal {
+    box-shadow: var(--shadow-modal);
+}
+
+/* A soft ground's edge under more contrast and forced colours (section 7). */
+@utility soft-edge {
+    outline: 1px solid var(--soft-edge);
+    outline-offset: -1px;
+}
+
+/* The 1.5px edge of an unchecked box or radio (4.8, 4.9). */
+@utility border-control {
+    border: 1.5px solid var(--edge);
+}
+
+/* The skeleton's ground (4.24): still under reduced motion. */
+@utility skeleton-shimmer {
+    background: linear-gradient(
+        90deg,
+        var(--surface-3) 0%,
+        var(--surface-2) 50%,
+        var(--surface-3) 100%
+    );
+    background-size: 200% 100%;
+
+    @media (prefers-reduced-motion: reduce) {
+        background: var(--surface-3);
+    }
 }
 
 @layer base {
     * {
-        @apply border-border;
+        border-color: var(--line);
+        scrollbar-width: thin;
+        scrollbar-color: var(--scroll-thumb) transparent;
+    }
+
+    *:hover {
+        scrollbar-color: var(--scroll-thumb-hover) transparent;
     }
 
     /* The scrollbar's room is kept, so a dialog that locks scrolling never shifts the page (I-3130). */
@@ -344,9 +454,46 @@
     }
 
     body {
-        @apply bg-background text-foreground;
-        font-size: var(--ui-size);
+        background-color: var(--page);
+        color: var(--ink);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
     }
+
+    b,
+    strong {
+        font-weight: 600;
+    }
+
+    svg.lucide {
+        stroke-width: 1.75;
+    }
+
+    /* A checkbox's tick and dash are drawn heavier (design-system.md, 4.8). */
+    [data-slot='checkbox-indicator'] svg.lucide {
+        stroke-width: 2.5;
+    }
+
+    /* Radix keeps a hidden input beside each checkbox and pulls it back by its
+       own width onto the box. First in a flex or grid row (hidden inputs aside), it
+       starts at the row's start, not after the box, so that pull would push it
+       off a full-width sheet's edge on a phone; this puts it back on the box. */
+    :is(.flex, .inline-flex, .grid, .inline-grid)
+        > button[data-slot='checkbox']:not(:not(input[type='hidden']) ~ button)
+        + input[aria-hidden='true'] {
+        translate: 100%;
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+/* Radix hides the select's scrollbar from an unlayered style of its own, so
+   this rule sits outside the layers: the list shows the thin one (2.14). */
+[data-slot='select-viewport'][data-radix-select-viewport] {
+    scrollbar-width: thin;
 }
 
 /* Focus mode (slice 1.5c, I-191): the editor hides the admin's chrome while
@@ -378,7 +525,7 @@ html.editor-workspace #main-content {
     font-family: var(--font-serif);
     font-size: 16px;
     line-height: 1.6;
-    color: var(--foreground);
+    color: var(--ink);
 }
 
 .teme-prose > * + * {
@@ -453,24 +600,24 @@ html.editor-workspace #main-content {
 }
 
 .teme-prose blockquote {
-    border-left: 3px solid var(--border);
+    border-left: 3px solid var(--line);
     padding-left: 1em;
-    color: var(--muted-foreground);
+    color: var(--ink-2);
 }
 
 .teme-prose code {
     font-family: var(--font-mono);
     font-size: 0.875em;
-    background: var(--muted);
-    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    border-radius: var(--radius-xs);
     padding: 0.1em 0.3em;
 }
 
 .teme-prose pre {
     font-family: var(--font-mono);
     font-size: 0.875em;
-    background: var(--muted);
-    border-radius: var(--radius);
+    background: var(--surface-2);
+    border-radius: var(--radius-xs);
     padding: 0.75em 1em;
     overflow-x: auto;
 }
@@ -481,18 +628,18 @@ html.editor-workspace #main-content {
 }
 
 .teme-prose mark {
-    background: var(--warning-muted);
+    background: var(--warn-soft);
     color: inherit;
 }
 
 .teme-prose a {
-    color: var(--link);
+    color: var(--accent-ink);
     text-decoration: underline;
 }
 
 .teme-prose hr {
     border: 0;
-    border-top: 1px solid var(--border);
+    border-top: 1px solid var(--line);
     margin: 1.5em 0;
 }
 
@@ -505,20 +652,20 @@ html.editor-workspace #main-content {
 
 .teme-prose th,
 .teme-prose td {
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     padding: 0.35em 0.6em;
     vertical-align: top;
 }
 
 .teme-prose th {
-    background: var(--muted);
+    background: var(--surface-2);
     font-weight: 600;
     text-align: left;
 }
 
 .teme-prose p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
-    color: var(--faint);
+    color: var(--ink-3);
     float: left;
     height: 0;
     pointer-events: none;

@@ -85,12 +85,12 @@ export function ImageCard({
                             className="h-auto w-full rounded-sm"
                         />
                         {missingAlt && (
-                            <span className="bg-warning-muted text-warning absolute top-2 left-2 rounded px-1.5 py-0.5 text-[11px] font-medium">
+                            <span className="bg-warn-soft text-warn-ink absolute top-2 left-2 rounded px-1.5 py-0.5 text-[11px] font-medium">
                                 Alt missing
                             </span>
                         )}
                         {(attrs.caption || attrs.credit) && (
-                            <figcaption className="text-muted-foreground mt-1.5 text-[13px]">
+                            <figcaption className="text-ink-2 mt-1.5 text-[13px]">
                                 {attrs.caption}
                                 {attrs.credit && (
                                     <span className="ml-2 text-[11px] uppercase">
@@ -103,10 +103,10 @@ export function ImageCard({
                 ) : attrs.mediaId && loading.includes(attrs.mediaId) ? (
                     <div
                         aria-busy="true"
-                        className="bg-muted aspect-[3/2] w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 aspect-[3/2] w-full animate-pulse rounded-sm"
                     />
                 ) : (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         {attrs.mediaId
                             ? 'This image is no longer in the library, so the site shows nothing here. Replace it or remove the card.'
                             : 'Choose an image from the library.'}

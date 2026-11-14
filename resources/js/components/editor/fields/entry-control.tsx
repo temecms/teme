@@ -47,17 +47,15 @@ export function EntryControl({
             <div
                 id={id}
                 aria-describedby={describedBy}
-                className="border-input bg-card flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border px-3 py-2"
+                className="border-edge bg-surface flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border px-3 py-2"
             >
                 {item ? (
                     <span className="text-[13px]">
                         {shownTitle(item.title)}{' '}
-                        <span className="text-muted-foreground text-xs">
-                            {kind(item)}
-                        </span>
+                        <span className="text-ink-2 text-xs">{kind(item)}</span>
                     </span>
                 ) : (
-                    <span className="text-muted-foreground text-[13px]">
+                    <span className="text-ink-2 text-[13px]">
                         An item that no longer exists
                     </span>
                 )}
@@ -76,7 +74,7 @@ export function EntryControl({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-destructive"
+                        className="text-danger-ink"
                         onClick={() => onChange(null)}
                     >
                         Remove
@@ -99,7 +97,7 @@ export function EntryControl({
                 onChange={(event) => setQuery(event.target.value)}
             />
             {query.trim() !== '' && targets.length === 0 && (
-                <p className="text-muted-foreground text-xs">No items match.</p>
+                <p className="text-ink-2 text-xs">No items match.</p>
             )}
             {query.trim() !== '' && targets.length > 0 && (
                 <ul className="grid gap-0.5">
@@ -117,10 +115,10 @@ export function EntryControl({
                                     setQuery('');
                                     setSearching(false);
                                 }}
-                                className="hover:bg-accent focus-visible:ring-ring flex min-h-6 w-full items-baseline gap-2 rounded-sm px-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
+                                className="hover:bg-surface-3 focus-visible:ring-ring flex min-h-6 w-full items-baseline gap-2 rounded-sm px-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
                             >
                                 <span>{shownTitle(target.title)}</span>
-                                <span className="text-muted-foreground text-xs">
+                                <span className="text-ink-2 text-xs">
                                     {kind(target)}
                                 </span>
                             </button>

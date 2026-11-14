@@ -37,16 +37,14 @@ export function MetadataProposal({
             role="group"
             aria-label={`Proposed ${field}`}
             data-ai-proposal={handle}
-            className="bg-muted grid gap-1 rounded-md border p-3 text-[13px]"
+            className="bg-surface-2 grid gap-1 rounded-md border p-3 text-[13px]"
         >
             <p>
-                <span className="text-muted-foreground">Proposed: </span>
+                <span className="text-ink-2">Proposed: </span>
                 {proposal}
             </p>
             <div className="flex items-center justify-between gap-2">
-                <p className="text-muted-foreground text-xs">
-                    {characterCount(proposal)}
-                </p>
+                <p className="text-ink-2 text-xs">{characterCount(proposal)}</p>
                 <Button
                     size="sm"
                     data-test="metadata-use"
@@ -58,7 +56,7 @@ export function MetadataProposal({
                 </Button>
             </div>
             {message !== null && (
-                <p role="alert" className="text-destructive text-xs">
+                <p role="alert" className="text-danger-ink text-xs">
                     {message}
                 </p>
             )}

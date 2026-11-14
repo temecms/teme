@@ -68,7 +68,7 @@ export default function IconPicker({
                     />
                 </div>
 
-                <p aria-live="polite" className="text-muted-foreground text-sm">
+                <p aria-live="polite" className="text-ink-2 text-sm">
                     {countLine(matches.length, search.trim())}
                 </p>
 

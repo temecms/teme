@@ -47,13 +47,13 @@ export function ButtonCard({
                     className={cn(
                         'inline-flex h-9 items-center rounded-md px-4 text-[14px] font-medium',
                         style === 'secondary'
-                            ? 'border-border border'
-                            : 'bg-primary text-primary-foreground',
+                            ? 'border-line border'
+                            : 'bg-accent text-on-accent',
                     )}
                 >
                     {label || 'Button'}
                 </span>
-                <span className="text-muted-foreground truncate text-xs">
+                <span className="text-ink-2 truncate text-xs">
                     {contentId
                         ? 'Leads to an item on this site'
                         : url || 'Leads nowhere yet'}
@@ -97,10 +97,10 @@ export function ButtonSettings({
                             placeholder="Search by title"
                             onFocus={() => setSearching(true)}
                             onChange={(event) => setQuery(event.target.value)}
-                            className="border-input bg-card focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
+                            className="border-edge bg-surface focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
                         />
                         {searching && targets.length > 0 && (
-                            <ul className="border-border max-h-40 overflow-y-auto rounded-md border">
+                            <ul className="border-line max-h-40 overflow-y-auto rounded-md border">
                                 {targets.map((target) => (
                                     <li key={target.id}>
                                         <button
@@ -113,7 +113,7 @@ export function ButtonSettings({
                                                 setChosenTitle(target.title);
                                                 setSearching(false);
                                             }}
-                                            className="hover:bg-accent focus-visible:ring-ring w-full px-2 py-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
+                                            className="hover:bg-surface-3 focus-visible:ring-ring w-full px-2 py-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
                                         >
                                             {shownTitle(target.title)}
                                         </button>

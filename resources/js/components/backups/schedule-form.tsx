@@ -59,7 +59,7 @@ export function ScheduleForm({
                         />
                         <p
                             id="schedule-hour-hint"
-                            className="text-muted-foreground text-xs"
+                            className="text-ink-2 text-xs"
                         >
                             In the site’s time zone, {schedule.zone}. Choose an
                             hour when few people visit.
@@ -122,7 +122,7 @@ export function ScheduleForm({
                         message={errors['values.keep_monthly']}
                     />
 
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-ink-2 text-xs">
                         Older backups are removed once a week, never while a
                         backup runs. Keeping fewer removes the extra ones at the
                         next weekly removal.

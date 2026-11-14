@@ -39,6 +39,7 @@ use App\Http\Admin\Contents\ScheduleController;
 use App\Http\Admin\Contents\StructuredDataController;
 use App\Http\Admin\Dashboard\DashboardController;
 use App\Http\Admin\Dashboard\QuickDraftController;
+use App\Http\Admin\Dev\CatalogueController;
 use App\Http\Admin\InboxController;
 use App\Http\Admin\Media\ImportImageController;
 use App\Http\Admin\Media\MediaItemController;
@@ -115,6 +116,10 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         // No can: middleware: the ability is the main type's, and CreateDraft
         // authorizes (a refusal is a 403).
         Route::post('quick-draft', QuickDraftController::class)->name('dashboard.quick-draft');
+        // The design system's catalogue (docs/architecture/design-system.md, section 9.3): local and tests only.
+        if (app()->environment(['local', 'testing'])) {
+            Route::get('_catalogue', CatalogueController::class)->name('catalogue');
+        }
         Route::get('search', SearchController::class)
             ->middleware('throttle:admin-search')
             ->name('search');

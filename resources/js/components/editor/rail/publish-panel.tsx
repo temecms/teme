@@ -265,7 +265,7 @@ export function PublishPanel({
             </PanelHeader>
             <PanelBody>
                 <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-[13px]">
-                    <dt className="text-muted-foreground">Status</dt>
+                    <dt className="text-ink-2">Status</dt>
                     <dd className="min-w-0">
                         <StatusChip
                             named={false}
@@ -278,9 +278,7 @@ export function PublishPanel({
                     </dd>
                     {!themeRegion && (
                         <>
-                            <dt className="text-muted-foreground">
-                                Visibility
-                            </dt>
+                            <dt className="text-ink-2">Visibility</dt>
                             <dd className="min-w-0">
                                 {canSetVisibility ? (
                                     <>
@@ -326,7 +324,7 @@ export function PublishPanel({
                                         />
                                         <p
                                             id="editor-visibility-meaning"
-                                            className="text-muted-foreground mt-1 text-xs"
+                                            className="text-ink-2 mt-1 text-xs"
                                         >
                                             {visibilityMeaning}
                                             {protectedAlready &&
@@ -337,7 +335,7 @@ export function PublishPanel({
                                             <p
                                                 id="editor-visibility-error"
                                                 role="alert"
-                                                className="text-destructive mt-1 text-xs"
+                                                className="text-danger-ink mt-1 text-xs"
                                             >
                                                 {visibilityProblem}
                                             </p>
@@ -373,7 +371,7 @@ export function PublishPanel({
                                                 />
                                                 <p
                                                     id="editor-password-hint"
-                                                    className="text-muted-foreground text-xs"
+                                                    className="text-ink-2 text-xs"
                                                 >
                                                     {`Give it to the people who should read this ${noun}. Changing it asks everyone for the new one.`}
                                                 </p>
@@ -381,7 +379,7 @@ export function PublishPanel({
                                                     <p
                                                         id="editor-password-error"
                                                         role="alert"
-                                                        className="text-destructive text-xs"
+                                                        className="text-danger-ink text-xs"
                                                     >
                                                         {passwordProblem}
                                                     </p>
@@ -414,7 +412,7 @@ export function PublishPanel({
                                 ) : (
                                     <>
                                         {visibilityChoice.label}
-                                        <p className="text-muted-foreground mt-1 text-xs">
+                                        <p className="text-ink-2 mt-1 text-xs">
                                             {visibilityMeaning} Whoever
                                             publishes it sets this.
                                         </p>
@@ -425,9 +423,7 @@ export function PublishPanel({
                     )}
                     {!themeRegion && discussion !== null && (
                         <>
-                            <dt className="text-muted-foreground">
-                                Discussion
-                            </dt>
+                            <dt className="text-ink-2">Discussion</dt>
                             <dd className="min-w-0">
                                 {canSetDiscussion ? (
                                     <>
@@ -461,7 +457,7 @@ export function PublishPanel({
                                         />
                                         <p
                                             id="editor-discussion-meaning"
-                                            className="text-muted-foreground mt-1 text-xs"
+                                            className="text-ink-2 mt-1 text-xs"
                                         >
                                             {choiceOf(discussion.value).meaning}
                                             {discussionNote !== null &&
@@ -473,7 +469,7 @@ export function PublishPanel({
                                             <p
                                                 id="editor-discussion-error"
                                                 role="alert"
-                                                className="text-destructive mt-1 text-xs"
+                                                className="text-danger-ink mt-1 text-xs"
                                             >
                                                 {discussionProblem}
                                             </p>
@@ -482,7 +478,7 @@ export function PublishPanel({
                                 ) : (
                                     <>
                                         {choiceOf(discussion.value).label}
-                                        <p className="text-muted-foreground mt-1 text-xs">
+                                        <p className="text-ink-2 mt-1 text-xs">
                                             {choiceOf(discussion.value).meaning}
                                             {discussionNote !== null &&
                                                 ` ${discussionNote}`}
@@ -497,7 +493,7 @@ export function PublishPanel({
                     )}
                     {status === 'published' && (
                         <>
-                            <dt className="text-muted-foreground">Published</dt>
+                            <dt className="text-ink-2">Published</dt>
                             <dd>
                                 {publishedAt
                                     ? new Date(publishedAt).toLocaleString([], {
@@ -521,7 +517,7 @@ export function PublishPanel({
                     />
                     {!themeRegion && (
                         <>
-                            <dt className="text-muted-foreground">Address</dt>
+                            <dt className="text-ink-2">Address</dt>
                             <dd className="min-w-0">
                                 <DropdownMenu
                                     open={open}
@@ -537,7 +533,7 @@ export function PublishPanel({
                                     >
                                         <button
                                             type="button"
-                                            className="text-link block max-w-full truncate text-left underline-offset-2 hover:underline"
+                                            className="text-accent-ink block max-w-full truncate text-left underline-offset-2 hover:underline"
                                         >
                                             /{slug}
                                         </button>
@@ -579,7 +575,7 @@ export function PublishPanel({
                                             />
                                             <p
                                                 id="editor-slug-url"
-                                                className="text-muted-foreground text-xs break-all"
+                                                className="text-ink-2 text-xs break-all"
                                             >
                                                 {addressOf(
                                                     siteUrl,
@@ -590,7 +586,7 @@ export function PublishPanel({
                                             {problem && (
                                                 <p
                                                     role="alert"
-                                                    className="text-destructive text-xs"
+                                                    className="text-danger-ink text-xs"
                                                 >
                                                     {problem}
                                                 </p>
@@ -613,7 +609,7 @@ export function PublishPanel({
                                         href={url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-link text-xs underline-offset-2 hover:underline"
+                                        className="text-accent-ink text-xs underline-offset-2 hover:underline"
                                     >
                                         View on site
                                     </a>
@@ -625,9 +621,7 @@ export function PublishPanel({
                         template !== null &&
                         (templates.length > 0 || missingNote !== null) && (
                             <>
-                                <dt className="text-muted-foreground">
-                                    Template
-                                </dt>
+                                <dt className="text-ink-2">Template</dt>
                                 <dd className="min-w-0">
                                     {templates.length > 0 && (
                                         <SelectField
@@ -647,7 +641,7 @@ export function PublishPanel({
                                     {missingNote !== null && (
                                         <p
                                             id="editor-template-missing"
-                                            className="text-muted-foreground mt-1 text-xs"
+                                            className="text-ink-2 mt-1 text-xs"
                                         >
                                             {missingNote}
                                         </p>
@@ -657,7 +651,7 @@ export function PublishPanel({
                         )}
                     {!themeRegion && (
                         <>
-                            <dt className="text-muted-foreground">Author</dt>
+                            <dt className="text-ink-2">Author</dt>
                             <dd className="min-w-0">
                                 {authors !== null ? (
                                     <>
@@ -710,7 +704,7 @@ export function PublishPanel({
                                         {status === 'published' && (
                                             <p
                                                 id="editor-author-live"
-                                                className="text-muted-foreground mt-1 text-xs"
+                                                className="text-ink-2 mt-1 text-xs"
                                             >
                                                 {PUBLISH_WORDS.authorLive(noun)}
                                             </p>
@@ -719,7 +713,7 @@ export function PublishPanel({
                                             <p
                                                 id="editor-author-error"
                                                 role="alert"
-                                                className="text-destructive mt-1 text-xs"
+                                                className="text-danger-ink mt-1 text-xs"
                                             >
                                                 {authorProblem}
                                             </p>
@@ -731,12 +725,12 @@ export function PublishPanel({
                             </dd>
                         </>
                     )}
-                    <dt className="text-muted-foreground">History</dt>
+                    <dt className="text-ink-2">History</dt>
                     <dd>
                         <button
                             type="button"
                             onClick={onOpenHistory}
-                            className="text-link focus-visible:ring-ring rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2"
+                            className="text-accent-ink focus-visible:ring-ring rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2"
                         >
                             {revisionCount === 1
                                 ? '1 revision'

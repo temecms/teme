@@ -56,7 +56,7 @@ it('says nothing under the pager on Jobs', function (): void {
 
 it('offers Open inbox among the header’s actions on Jobs', function (): void {
     $source = ($this->flat)('pages/tools/jobs.tsx');
-    $action = ($this->at)($source, 'action={');
+    $action = ($this->at)($source, 'actions={');
 
     expect(($this->at)($source, 'Open inbox', $action))->toBeLessThan(($this->at)($source, '<DataTable'))
         ->and(($this->at)($source, 'asChild', $action))->toBeLessThan(($this->at)($source, 'Open inbox', $action))

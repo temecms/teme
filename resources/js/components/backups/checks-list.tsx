@@ -12,16 +12,16 @@ export function ChecksList({ checks }: { checks: BackupCheck[] }) {
                 Latest checks
             </h2>
 
-            <p className="text-muted-foreground text-[13px]">
+            <p className="text-ink-2 text-[13px]">
                 Every backup is checked where it lands. A seventh of every place
                 is read back each night, and once a week a backup is restored
                 into a spare database to prove it works.
             </p>
 
             {checks.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No checks yet.</p>
+                <p className="text-ink-2 text-sm">No checks yet.</p>
             ) : (
-                <ul className="border-border divide-border divide-y rounded-md border">
+                <ul className="border-line divide-line divide-y rounded-md border">
                     {checks.map((check) => (
                         <li
                             key={check.id}
@@ -32,7 +32,7 @@ export function ChecksList({ checks }: { checks: BackupCheck[] }) {
                                 className={
                                     check.passed
                                         ? 'flex items-center gap-1.5 text-sm font-medium'
-                                        : 'text-destructive flex items-center gap-1.5 text-sm font-medium'
+                                        : 'text-danger-ink flex items-center gap-1.5 text-sm font-medium'
                                 }
                             >
                                 {check.passed ? (
@@ -51,7 +51,7 @@ export function ChecksList({ checks }: { checks: BackupCheck[] }) {
                             <p className="text-sm break-words">
                                 {check.sentence}
                             </p>
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 {check.kindLabel}
                                 {check.place !== null &&
                                     ` at ${check.place}`},{' '}

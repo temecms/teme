@@ -43,7 +43,7 @@ export function SiteRuns({
                     <Link
                         href={row.href}
                         aria-label={`Show the report of the import started ${formatInZone(row.startedAt, siteTimezone)}`}
-                        className="text-foreground underline underline-offset-4"
+                        className="text-ink underline underline-offset-4"
                     >
                         Show its report
                     </Link>

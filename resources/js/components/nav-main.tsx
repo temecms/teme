@@ -1,7 +1,10 @@
 import { Link } from '@inertiajs/react';
+import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { showToast } from '@/components/flash-toast';
 import {
     SidebarGroup,
-    SidebarGroupLabel,
+    SidebarGroupFold,
     SidebarMenu,
     SidebarMenuBadge,
     SidebarMenuButton,
@@ -9,25 +12,64 @@ import {
     SidebarMenuSub,
     SidebarMenuSubButton,
     SidebarMenuSubItem,
+    SidebarMenuSubSoon,
+    useSidebar,
 } from '@/components/ui/sidebar';
+import { SoonTag } from '@/components/ui/soon-tag';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
+import { cn } from '@/lib/utils';
 import type { AdminNavChild, AdminNavEntry } from '@/types';
 
-/** The headings of the menu's sections. Home has none. */
-const headings: Record<AdminNavEntry['section'], string | null> = {
-    home: null,
-    content: 'Content',
-    site: 'Site',
-};
+/** The menu's sections, in order. */
+const SECTIONS: AdminNavEntry['section'][] = ['home', 'content', 'site'];
 
-/** The class every top-level menu button shares. */
-const buttonClass =
-    'text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-foreground h-[34px] text-[13px] data-[active=true]:font-semibold data-[active=true]:shadow-[inset_2px_0_0_var(--sidebar-primary)]';
+/** A section's heading, looked up while drawing. Home has none. */
+function headingOf(section: AdminNavEntry['section']): string | null {
+    if (section === 'home') {
+        return null;
+    }
+
+    return section === 'content' ? __('Content') : __('Site');
+}
+
+/** Where a section's fold is remembered, one key per section. */
+const foldKey = (group: string): string => `teme.nav.folded.${group}`;
+
+/** Whether a section was left folded; storage may be missing or refused. */
+function readFolded(group: string): boolean {
+    try {
+        return window.localStorage.getItem(foldKey(group)) === '1';
+    } catch {
+        return false;
+    }
+}
+
+/** Remembers a section's fold, when storage lets it. */
+function writeFolded(group: string, folded: boolean): void {
+    try {
+        window.localStorage.setItem(foldKey(group), folded ? '1' : '0');
+    } catch {
+        // Storage refused: the fold lasts until the page is left.
+    }
+}
+
+/** Says that a planned entry opens nothing yet (I-3408). */
+function sayPlanned(label: string): void {
+    showToast({
+        type: 'info',
+        message: __(':label is planned and not built yet.', { label }),
+    });
+}
+
+/** A planned entry stays clickable, to say so, and stays quiet. */
+const SOON =
+    'text-ink-3 aria-disabled:pointer-events-auto aria-disabled:opacity-100';
 
 /**
- * What waits for the person at an entry (I-220, v9's badgeHtml): drawn above
- * 0, "99+" above 99, and said as "Comments, 12 need action".
+ * What waits for the person at an entry (I-220): drawn above 0, "99+" above
+ * 99, and said as "Comments, 12 need action"; a dot on the folded rail.
  */
 function NavBadge({ count }: { count: number }) {
     if (count <= 0) {
@@ -35,13 +77,130 @@ function NavBadge({ count }: { count: number }) {
     }
 
     return (
-        <SidebarMenuBadge>
-            <span className="sr-only">, </span>
-            {count > 99 ? '99+' : count}
-            <span className="sr-only">
-                {count === 1 ? ' needs action' : ' need action'}
-            </span>
-        </SidebarMenuBadge>
+        <>
+            <SidebarMenuBadge>
+                <span className="sr-only">, </span>
+                {count > 99 ? '99+' : count}
+                <span className="sr-only">
+                    {count === 1 ? __(' needs action') : __(' need action')}
+                </span>
+            </SidebarMenuBadge>
+            <span
+                aria-hidden="true"
+                className="bg-accent pointer-events-none absolute end-1 top-1 hidden size-2 rounded-full group-data-[collapsible=icon]:block"
+            />
+        </>
+    );
+}
+
+/** A group's heading: a button that folds the group; a short line on the rail. */
+function GroupHeading({
+    label,
+    folded,
+    onToggle,
+}: {
+    label: string;
+    folded: boolean;
+    onToggle: () => void;
+}) {
+    return (
+        <>
+            <SidebarGroupFold
+                aria-expanded={!folded}
+                aria-label={__('Show or hide :group', { group: label })}
+                onClick={onToggle}
+            >
+                <span>{label}</span>
+                <ChevronDown
+                    aria-hidden="true"
+                    className={cn(
+                        'transition-transform duration-(--dur-1) ease-(--ease)',
+                        folded && '-rotate-90',
+                    )}
+                />
+            </SidebarGroupFold>
+            <span
+                aria-hidden="true"
+                className="bg-line mx-auto mb-2 hidden h-0.5 w-5 rounded-full group-data-[collapsible=icon]:block"
+            />
+        </>
+    );
+}
+
+/** One entry, 38 tall: its icon, its label and its count, or its Soon tag. */
+function EntryButton({
+    item,
+    isActive,
+}: {
+    item: AdminNavChild;
+    isActive: boolean;
+}) {
+    const Icon = navIcon(item.icon);
+
+    if (item.soon) {
+        return (
+            <SidebarMenuButton
+                aria-disabled="true"
+                data-test={`nav-${item.key}`}
+                tooltip={{ children: item.label }}
+                onClick={() => sayPlanned(item.label)}
+                className={SOON}
+            >
+                <Icon />
+                <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                <SoonTag className="group-data-[collapsible=icon]:hidden" />
+            </SidebarMenuButton>
+        );
+    }
+
+    return (
+        <>
+            <SidebarMenuButton
+                asChild
+                isActive={isActive}
+                tooltip={{ children: item.label }}
+            >
+                <Link href={item.href} prefetch>
+                    <Icon />
+                    <span>{item.label}</span>
+                </Link>
+            </SidebarMenuButton>
+            <NavBadge count={item.badge} />
+        </>
+    );
+}
+
+/** One sub-entry, 32 tall: a child of the current entry, or a hub's screen. */
+function SubEntry({
+    item,
+    isActive,
+}: {
+    item: Pick<AdminNavChild, 'key' | 'label' | 'href' | 'soon'> & {
+        badge?: number;
+    };
+    isActive: boolean;
+}) {
+    return (
+        <SidebarMenuSubItem>
+            {item.soon ? (
+                <SidebarMenuSubSoon
+                    data-test={`nav-${item.key}`}
+                    onClick={() => sayPlanned(item.label)}
+                >
+                    <span>{item.label}</span>
+                    <SoonTag />
+                </SidebarMenuSubSoon>
+            ) : (
+                <>
+                    <SidebarMenuSubButton asChild isActive={isActive}>
+                        <Link href={item.href} prefetch>
+                            {item.label}
+                        </Link>
+                    </SidebarMenuSubButton>
+                    <NavBadge count={item.badge ?? 0} />
+                </>
+            )}
+        </SidebarMenuSubItem>
     );
 }
 
@@ -62,126 +221,125 @@ export function NavMain({
     const { currentUrl, isCurrentUrl } = useCurrentUrl();
     // A page is within an entry when it is the entry's page or under its address.
     const within = (href: string): boolean =>
-        currentUrl === href || currentUrl.startsWith(`${href}/`);
+        href !== '' &&
+        (currentUrl === href || currentUrl.startsWith(`${href}/`));
     const items = all.filter((item) => !item.hidden);
-    const sections = (
-        Object.keys(headings) as AdminNavEntry['section'][]
-    ).filter((section) => items.some((item) => item.section === section));
+    const sections = SECTIONS.filter((section) =>
+        items.some((item) => item.section === section),
+    );
+    const [folded, setFolded] = useState<Record<string, boolean>>(() =>
+        Object.fromEntries(
+            ['pinned', ...sections].map((group) => [group, readFolded(group)]),
+        ),
+    );
+
+    const toggle = (group: string) =>
+        setFolded((now) => {
+            const next = now[group] !== true;
+            writeFolded(group, next);
+
+            return { ...now, [group]: next };
+        });
+
+    // The rail has no headings to unfold, so a folded section still shows its icons there.
+    const { isMobile, state, overlayOpen } = useSidebar();
+    const onRail = !isMobile && state === 'collapsed' && !overlayOpen;
+
+    const entry = (item: AdminNavEntry) => {
+        if (item.soon) {
+            return (
+                <SidebarMenuItem key={item.key}>
+                    <EntryButton item={item} isActive={false} />
+                </SidebarMenuItem>
+            );
+        }
+
+        // A hub's entry is current on any of its pages, as Settings is on Settings › Media.
+        const hubOpen = item.screens.some((screen) => within(screen.href));
+        const childOpen = item.children.some((child) => within(child.href));
+        const screens = item.screens.filter((screen) => !screen.external);
+
+        return (
+            <SidebarMenuItem key={item.key}>
+                <EntryButton
+                    item={item}
+                    isActive={isCurrentUrl(item.href) || hubOpen}
+                />
+                {/* Children only under the current entry, so the menu stays short (I-220). */}
+                {item.children.length > 0 &&
+                    (within(item.href) || childOpen) && (
+                        <SidebarMenuSub>
+                            {item.children.map((child) => (
+                                <SubEntry
+                                    key={child.key}
+                                    item={child}
+                                    isActive={within(child.href)}
+                                />
+                            ))}
+                        </SidebarMenuSub>
+                    )}
+                {item.children.length === 0 && hubOpen && (
+                    <SidebarMenuSub>
+                        {screens.map((screen) => (
+                            <SubEntry
+                                key={screen.key}
+                                item={screen}
+                                isActive={within(screen.href)}
+                            />
+                        ))}
+                    </SidebarMenuSub>
+                )}
+            </SidebarMenuItem>
+        );
+    };
 
     return (
-        // The menu's own landmark (v9's nav), for those who jump between regions; the
-        // groups keep the gap the sidebar's content gave them.
+        // The menu's own landmark, for those who jump between regions.
         <nav aria-label="Main" className="flex flex-col gap-2">
             {pinned.length > 0 && (
                 <SidebarGroup className="px-2 py-0">
-                    <SidebarGroupLabel className="text-sidebar-muted text-[11px] font-medium">
-                        Pinned
-                    </SidebarGroupLabel>
-                    <SidebarMenu>
-                        {pinned.map((item) => {
-                            const Icon = navIcon(item.icon);
-
-                            return (
+                    <GroupHeading
+                        label={__('Pinned')}
+                        folded={folded.pinned === true}
+                        onToggle={() => toggle('pinned')}
+                    />
+                    {(folded.pinned !== true || onRail) && (
+                        <SidebarMenu>
+                            {pinned.map((item) => (
                                 <SidebarMenuItem key={item.key}>
-                                    <SidebarMenuButton
-                                        asChild
-                                        className={buttonClass}
+                                    <EntryButton
+                                        item={item}
                                         isActive={isCurrentUrl(item.href)}
-                                        tooltip={{ children: item.label }}
-                                    >
-                                        <Link href={item.href} prefetch>
-                                            <Icon />
-                                            <span>{item.label}</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                    <NavBadge count={item.badge} />
+                                    />
                                 </SidebarMenuItem>
-                            );
-                        })}
-                    </SidebarMenu>
+                            ))}
+                        </SidebarMenu>
+                    )}
                 </SidebarGroup>
             )}
-            {sections.map((section) => (
-                <SidebarGroup key={section} className="px-2 py-0">
-                    {headings[section] && (
-                        <SidebarGroupLabel className="text-sidebar-muted text-[11px] font-medium">
-                            {headings[section]}
-                        </SidebarGroupLabel>
-                    )}
-                    <SidebarMenu>
-                        {items
-                            .filter((item) => item.section === section)
-                            .map((item) => {
-                                const Icon = navIcon(item.icon);
+            {sections.map((section) => {
+                const heading = headingOf(section);
+                const isFolded = heading !== null && folded[section] === true;
 
-                                return (
-                                    <SidebarMenuItem key={item.key}>
-                                        <SidebarMenuButton
-                                            asChild
-                                            // The current item: a muted fill, the
-                                            // foreground, and a 2px accent bar on
-                                            // its leading edge, never accent text.
-                                            className={buttonClass}
-                                            // A hub's entry is current on any of its pages, as Settings is on Settings › Media.
-                                            isActive={
-                                                isCurrentUrl(item.href) ||
-                                                item.screens.some((screen) =>
-                                                    within(screen.href),
-                                                )
-                                            }
-                                            tooltip={{ children: item.label }}
-                                        >
-                                            <Link href={item.href} prefetch>
-                                                <Icon />
-                                                <span>{item.label}</span>
-                                            </Link>
-                                        </SidebarMenuButton>
-                                        <NavBadge count={item.badge} />
-                                        {/* Children only inside their parent's area, so the menu stays short (I-220). */}
-                                        {item.children.length > 0 &&
-                                            (within(item.href) ||
-                                                item.children.some((child) =>
-                                                    within(child.href),
-                                                )) && (
-                                                <SidebarMenuSub>
-                                                    {item.children.map(
-                                                        (child) => (
-                                                            <SidebarMenuSubItem
-                                                                key={child.key}
-                                                            >
-                                                                <SidebarMenuSubButton
-                                                                    asChild
-                                                                    isActive={within(
-                                                                        child.href,
-                                                                    )}
-                                                                >
-                                                                    <Link
-                                                                        href={
-                                                                            child.href
-                                                                        }
-                                                                        prefetch
-                                                                    >
-                                                                        {
-                                                                            child.label
-                                                                        }
-                                                                    </Link>
-                                                                </SidebarMenuSubButton>
-                                                                <NavBadge
-                                                                    count={
-                                                                        child.badge
-                                                                    }
-                                                                />
-                                                            </SidebarMenuSubItem>
-                                                        ),
-                                                    )}
-                                                </SidebarMenuSub>
-                                            )}
-                                    </SidebarMenuItem>
-                                );
-                            })}
-                    </SidebarMenu>
-                </SidebarGroup>
-            ))}
+                return (
+                    <SidebarGroup key={section} className="px-2 py-0">
+                        {heading !== null && (
+                            <GroupHeading
+                                label={heading}
+                                folded={isFolded}
+                                onToggle={() => toggle(section)}
+                            />
+                        )}
+                        {(!isFolded || onRail) && (
+                            <SidebarMenu>
+                                {items
+                                    .filter((item) => item.section === section)
+                                    .map(entry)}
+                            </SidebarMenu>
+                        )}
+                    </SidebarGroup>
+                );
+            })}
         </nav>
     );
 }

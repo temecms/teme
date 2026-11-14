@@ -108,7 +108,7 @@ export function ConsentDialog({
                                     >
                                         <span>{line.words}</span>
                                         {line.new && (
-                                            <span className="bg-primary text-primary-foreground rounded-sm px-1.5 text-[11px] leading-4 font-semibold">
+                                            <span className="bg-accent text-on-accent rounded-sm px-1.5 text-[11px] leading-4 font-semibold">
                                                 {__('NEW')}
                                             </span>
                                         )}

@@ -36,7 +36,7 @@ export default function AiSettings(props: AiSettingsPage) {
                     <div
                         role="note"
                         data-test="ai-off"
-                        className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
                     >
                         <Info
                             aria-hidden="true"
@@ -74,7 +74,7 @@ export default function AiSettings(props: AiSettingsPage) {
                                     <div
                                         role="note"
                                         data-test="ai-none-on"
-                                        className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
                                     >
                                         <Info
                                             aria-hidden="true"
@@ -137,7 +137,7 @@ export default function AiSettings(props: AiSettingsPage) {
                                                 description="Choose the model each task uses. A task with no model is off, and nobody sees it. The fallback is asked once when the first model can’t be reached or is busy."
                                             >
                                                 {section.tasks.length === 0 ? (
-                                                    <p className="text-muted-foreground text-sm">
+                                                    <p className="text-ink-2 text-sm">
                                                         No AI task is installed
                                                         yet.
                                                     </p>
@@ -213,7 +213,7 @@ export default function AiSettings(props: AiSettingsPage) {
                                     testId="ai-settings-save"
                                 />
                                 <div className="space-y-2">
-                                    <p className="text-muted-foreground text-sm">
+                                    <p className="text-ink-2 text-sm">
                                         Saving may ask for your password. If it
                                         does, you’ll come back here to save
                                         again, and any key you typed must be

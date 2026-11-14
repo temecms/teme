@@ -16,7 +16,7 @@ const LABELS: Record<DiffBlock['kind'], string | null> = {
  * reads as a document rather than an alarm.
  */
 const MARKS =
-    '[&_ins]:bg-success-muted [&_ins]:no-underline [&_del]:bg-destructive-muted [&_del]:line-through';
+    '[&_ins]:bg-ok-soft [&_ins]:no-underline [&_del]:bg-danger-soft [&_del]:line-through';
 
 /**
  * A comparison of two revisions, block by block: side by side above a wide
@@ -26,9 +26,7 @@ const MARKS =
 export function DiffView({ blocks }: { blocks: DiffBlock[] }) {
     if (blocks.length === 0) {
         return (
-            <p className="text-muted-foreground text-[13px]">
-                Both versions are empty.
-            </p>
+            <p className="text-ink-2 text-[13px]">Both versions are empty.</p>
         );
     }
 
@@ -40,21 +38,20 @@ export function DiffView({ blocks }: { blocks: DiffBlock[] }) {
                 return (
                     <li
                         key={index}
-                        className="border-border grid gap-2 border-b pb-2 last:border-b-0 lg:grid-cols-2 lg:gap-6"
+                        className="border-line grid gap-2 border-b pb-2 last:border-b-0 lg:grid-cols-2 lg:gap-6"
                     >
                         <div
                             className={cn(
                                 'min-w-0 rounded-sm px-2 py-1 text-[14px] leading-relaxed',
-                                block.kind === 'removed' &&
-                                    'bg-destructive-muted',
+                                block.kind === 'removed' && 'bg-danger-soft',
                                 MARKS,
                             )}
                         >
-                            <span className="text-muted-foreground mb-0.5 block text-[11px] lg:hidden">
+                            <span className="text-ink-2 mb-0.5 block text-[11px] lg:hidden">
                                 Before
                             </span>
                             {block.before === null ? (
-                                <span className="text-muted-foreground">—</span>
+                                <span className="text-ink-2">—</span>
                             ) : (
                                 <span
                                     dangerouslySetInnerHTML={{
@@ -66,18 +63,18 @@ export function DiffView({ blocks }: { blocks: DiffBlock[] }) {
                         <div
                             className={cn(
                                 'min-w-0 rounded-sm px-2 py-1 text-[14px] leading-relaxed',
-                                block.kind === 'added' && 'bg-success-muted',
+                                block.kind === 'added' && 'bg-ok-soft',
                                 MARKS,
                             )}
                         >
-                            <span className="text-muted-foreground mb-0.5 flex items-center gap-2 text-[11px]">
+                            <span className="text-ink-2 mb-0.5 flex items-center gap-2 text-[11px]">
                                 <span className="lg:hidden">After</span>
                                 {label && (
                                     <span className="font-medium">{label}</span>
                                 )}
                             </span>
                             {block.after === null ? (
-                                <span className="text-muted-foreground">—</span>
+                                <span className="text-ink-2">—</span>
                             ) : (
                                 <span
                                     dangerouslySetInnerHTML={{

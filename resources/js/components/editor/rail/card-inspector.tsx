@@ -39,9 +39,7 @@ export function CardInspector({
     return (
         <div className="grid gap-3 p-4">
             {entry && (
-                <p className="text-muted-foreground text-[13px]">
-                    {entry.description}
-                </p>
+                <p className="text-ink-2 text-[13px]">{entry.description}</p>
             )}
             {Settings ? (
                 <Settings
@@ -54,7 +52,7 @@ export function CardInspector({
                     }
                 />
             ) : (
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     This card is edited in place.
                 </p>
             )}

@@ -246,12 +246,15 @@ it('passes axe with the Date list open and with Screen options open, every targe
     $page = cmSignIn($this->editor)->navigate('/admin/posts')->click('[data-test="filter-date"]');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"filter-date-panel\"] [data-test=\"date-month\"]') !== null");
+    // The popover fades in; axe must read its colours once the fade is over.
+    shellSettled($page, '[data-slot="popover-content"]');
     $page->assertNoAccessibilityIssues(3);
     $date = cmSmallTargets($page);
 
     $page->keys('[data-test="date-all"]', 'Escape')->click('[data-test="screen-options"]');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"screen-options-panel\"]') !== null && document.querySelector('[data-test=\"filter-date-panel\"]') === null");
+    shellSettled($page, '[data-slot="popover-content"]');
     $page->assertNoAccessibilityIssues(3);
     $screen = cmSmallTargets($page);
 

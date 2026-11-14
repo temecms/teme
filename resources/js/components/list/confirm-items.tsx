@@ -50,7 +50,7 @@ export function ConfirmItems({
                         aria-label={listLabel}
                         data-test="confirm-items-list"
                         tabIndex={0}
-                        className="border-border max-h-60 list-disc overflow-y-auto rounded border py-2 pr-3 pl-8 text-[13px]"
+                        className="border-line max-h-60 list-disc overflow-y-auto rounded border py-2 pr-3 pl-8 text-[13px]"
                     >
                         {items.map((name, at) => (
                             <li key={`${at}-${name}`}>{name}</li>

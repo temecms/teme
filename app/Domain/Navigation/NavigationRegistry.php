@@ -27,7 +27,7 @@ final class NavigationRegistry
             throw new InvalidArgumentException("A menu entry [{$entry->key}] is already registered.");
         }
 
-        if ($entry->route === null && $entry->hub === null) {
+        if ($entry->route === null && $entry->hub === null && ! $entry->soon) {
             throw new InvalidArgumentException("The menu entry [{$entry->key}] needs a route or a hub.");
         }
 

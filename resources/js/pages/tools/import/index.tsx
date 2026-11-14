@@ -23,7 +23,7 @@ export default function ImportIndex({
             cell: (row) => (
                 <Link
                     href={row.href}
-                    className="text-foreground font-medium underline underline-offset-4"
+                    className="text-ink font-medium underline underline-offset-4"
                 >
                     {row.address}
                 </Link>

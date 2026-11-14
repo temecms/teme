@@ -5,8 +5,9 @@ import { dashboard, home } from '@/routes';
 
 // Later (I-1390): an uploaded site icon takes the letter's place.
 /**
- * The site's mark: one letter in the sans face, on a square. The serif is
- * for the writing only, never for the admin's chrome.
+ * The site's mark: one letter on a square. In the sidebar it is the site's
+ * initial in the serif on the accent (docs/architecture/design-system.md,
+ * section 4.32); the sign-in screens keep theirs.
  */
 export function BrandMark({
     tone,
@@ -24,8 +25,8 @@ export function BrandMark({
             className={cn(
                 'flex shrink-0 items-center justify-center leading-none font-semibold',
                 tone === 'sidebar'
-                    ? 'bg-sidebar-foreground text-sidebar size-6 rounded-md text-[13px]'
-                    : 'bg-foreground text-background size-10 rounded-md text-lg',
+                    ? 'bg-accent text-on-accent text-lead size-9 rounded-md font-serif'
+                    : 'bg-ink text-page size-10 rounded-md text-lg',
                 className,
             )}
         >
@@ -35,9 +36,9 @@ export function BrandMark({
 }
 
 /**
- * The sidebar's head: the mark, the site's name and the line under it, 52px
- * tall so its rule meets the header's. While the sidebar is collapsed the
- * words are for screen readers only, so the link keeps its name.
+ * The sidebar's head: the mark, the site's name and the line under it. While
+ * the sidebar is folded the words are for screen readers only, so the link
+ * keeps its name.
  */
 export function SidebarBrand() {
     const brand = useBrand();
@@ -47,12 +48,14 @@ export function SidebarBrand() {
             href={dashboard()}
             prefetch
             data-test="sidebar-brand"
-            className="focus-visible:ring-sidebar-ring flex h-[52px] items-center gap-2.5 px-4 outline-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 focus-visible:ring-2 focus-visible:ring-inset"
+            className="focus-visible:outline-ring flex min-h-17 items-center gap-3 px-4 pt-4 pb-3 outline-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 focus-visible:outline-2 focus-visible:-outline-offset-2"
         >
             <BrandMark tone="sidebar" />
-            <span className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:sr-only">
-                <span className="truncate font-semibold">{brand.name}</span>
-                <span className="text-sidebar-muted truncate text-[11px]">
+            <span className="grid min-w-0 flex-1 text-start group-data-[collapsible=icon]:sr-only">
+                <span className="text-body text-ink truncate font-semibold">
+                    {brand.name}
+                </span>
+                <span className="text-caption text-ink-3 truncate">
                     {brandLine(brand)}
                 </span>
             </span>
@@ -77,9 +80,7 @@ export function SignInBrand({ name }: { name?: string } = {}) {
             <span className="text-[15px] font-semibold">
                 {name ?? brand.name}
             </span>
-            <span className="text-muted-foreground text-[11px]">
-                {brandLine(brand)}
-            </span>
+            <span className="text-ink-2 text-[11px]">{brandLine(brand)}</span>
         </Link>
     );
 }

@@ -54,7 +54,7 @@ export function SocialImage({
             </span>
             {id === null ? (
                 <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-ink-2 text-xs">
                         {FALLBACK[card.imageFrom ?? ''] ?? 'No image.'}
                     </p>
                     <Button
@@ -82,10 +82,10 @@ export function SocialImage({
                     ) : loading.includes(id) ? (
                         <div
                             aria-busy="true"
-                            className="bg-muted aspect-[40/21] w-24 animate-pulse rounded-sm"
+                            className="bg-surface-2 aspect-[40/21] w-24 animate-pulse rounded-sm"
                         />
                     ) : (
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-ink-2 text-xs">
                             This image is no longer in the library.
                         </p>
                     )}

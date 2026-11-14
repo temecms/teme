@@ -269,7 +269,7 @@ export function MediaModal({
                     <DialogTitle>{action}</DialogTitle>
                     <div className="flex items-end justify-between gap-2">
                         <nav className="flex gap-2 text-sm">
-                            <span className="border-primary text-foreground border-b-2 pb-1 font-medium">
+                            <span className="border-accent text-ink border-b-2 pb-1 font-medium">
                                 Library
                             </span>
                         </nav>
@@ -312,7 +312,7 @@ export function MediaModal({
 
                 <div className="relative flex flex-1 overflow-hidden">
                     {dragOver && (
-                        <div className="bg-background/90 absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed text-sm font-medium">
+                        <div className="bg-page/90 absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed text-sm font-medium">
                             Drop files to upload
                         </div>
                     )}
@@ -357,7 +357,7 @@ export function MediaModal({
                         {rows.length === 0 &&
                             (filtersOn ? (
                                 <div className="grid justify-items-start gap-2 text-sm">
-                                    <p className="text-muted-foreground">
+                                    <p className="text-ink-2">
                                         {!otherFiltersOn && openItem !== null
                                             ? `Nothing has been uploaded for this ${openItem.noun} yet.`
                                             : 'Nothing in the library matches these filters.'}
@@ -372,7 +372,7 @@ export function MediaModal({
                                     </Button>
                                 </div>
                             ) : (
-                                <p className="text-muted-foreground text-sm">
+                                <p className="text-ink-2 text-sm">
                                     Nothing here yet. Upload files, or drop them
                                     here.
                                 </p>
@@ -402,7 +402,7 @@ export function MediaModal({
                         className="w-72 shrink-0 overflow-y-auto border-l"
                     >
                         {focusedId === null ? (
-                            <p className="text-muted-foreground p-4 text-sm">
+                            <p className="text-ink-2 p-4 text-sm">
                                 Select a file to see its details.
                             </p>
                         ) : (
@@ -419,7 +419,7 @@ export function MediaModal({
                     <span
                         role="status"
                         data-test="media-modal-status"
-                        className="text-muted-foreground text-sm"
+                        className="text-ink-2 text-sm"
                     >
                         {status}
                     </span>

@@ -22,7 +22,7 @@ export function MonthFigures({
         <section
             aria-labelledby="ai-settings-month-heading"
             data-test="ai-settings-month"
-            className="border-border rounded-md border p-4"
+            className="border-line rounded-md border p-4"
         >
             <h3
                 id="ai-settings-month-heading"
@@ -31,11 +31,11 @@ export function MonthFigures({
                 This month: {month.label}
             </h3>
             <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[13px]">
-                <dt className="text-muted-foreground">Spent</dt>
+                <dt className="text-ink-2">Spent</dt>
                 <dd>
                     {formatCost(month.costMicrounits)}
                     {month.unpricedRequests > 0 && (
-                        <span className="text-muted-foreground block text-[12px]">
+                        <span className="text-ink-2 block text-[12px]">
                             {month.unpricedRequests === 1
                                 ? '1 request used a model with no price, so its cost is left out.'
                                 : `${month.unpricedRequests.toLocaleString()} requests used a model with no price, so their cost is left out.`}
@@ -43,10 +43,10 @@ export function MonthFigures({
                     )}
                 </dd>
 
-                <dt className="text-muted-foreground">Requests</dt>
+                <dt className="text-ink-2">Requests</dt>
                 <dd>{month.requests.toLocaleString()}</dd>
 
-                <dt className="text-muted-foreground">Budget</dt>
+                <dt className="text-ink-2">Budget</dt>
                 <dd>
                     {budget === null
                         ? 'None set'
@@ -61,7 +61,7 @@ export function MonthFigures({
                     AI is unavailable to everyone until the new month starts.
                 </p>
             )}
-            <p className="text-muted-foreground mt-3 text-[12px]">
+            <p className="text-ink-2 mt-3 text-[12px]">
                 Months follow UTC, as the AI companies bill.
             </p>
             {activityUrl !== null && (

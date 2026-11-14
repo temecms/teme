@@ -41,7 +41,7 @@ export function MetaChanges({
     return (
         <section
             aria-labelledby="meta-changes-title"
-            className="border-border grid gap-2 rounded-md border px-4 py-3 text-[13px]"
+            className="border-line grid gap-2 rounded-md border px-4 py-3 text-[13px]"
         >
             <h2 id="meta-changes-title" className="font-semibold">
                 Fields and categories
@@ -49,17 +49,13 @@ export function MetaChanges({
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1">
                 {fields.map((change) => (
                     <div key={change.key} className="contents">
-                        <dt className="text-muted-foreground">
-                            {change.label}
-                        </dt>
+                        <dt className="text-ink-2">{change.label}</dt>
                         <dd className="break-words">{fieldLine(change)}</dd>
                     </div>
                 ))}
                 {terms.map((change) => (
                     <div key={change.taxonomy} className="contents">
-                        <dt className="text-muted-foreground">
-                            {change.label}
-                        </dt>
+                        <dt className="text-ink-2">{change.label}</dt>
                         <dd className="break-words">{termLine(change)}</dd>
                     </div>
                 ))}

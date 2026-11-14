@@ -64,10 +64,10 @@ export function UploadList({
                         />
                     )}
                     {entry.state === 'failed' && (
-                        <p className="text-destructive">{entry.message}</p>
+                        <p className="text-danger-ink">{entry.message}</p>
                     )}
                     {entry.state === 'duplicate' && (
-                        <p className="text-muted-foreground">
+                        <p className="text-ink-2">
                             Already in the library as “{entry.duplicateTitle}”.
                         </p>
                     )}

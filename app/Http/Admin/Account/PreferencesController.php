@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Admin\Account;
 
 use App\Domain\Notices\NoticePreferences;
-use App\Domain\Preferences\BuiltInPreferences;
 use App\Domain\Preferences\Operations\Input\UpdatePreferencesInput;
 use App\Domain\Preferences\Operations\UpdatePreferences;
 use App\Domain\Preferences\PreferenceDefinition;
@@ -41,7 +40,6 @@ final class PreferencesController extends Controller
         return Inertia::render('account/preferences', [
             'fields' => $fields,
             'values' => PreferencesFor::user($user),
-            'lookDescriptions' => BuiltInPreferences::LOOK_DESCRIPTIONS,
         ]);
     }
 

@@ -83,7 +83,7 @@ export function GalleryCard({
                             ))}
                         </ul>
                         {attrs.caption && (
-                            <figcaption className="text-muted-foreground mt-1.5 text-[13px]">
+                            <figcaption className="text-ink-2 mt-1.5 text-[13px]">
                                 {attrs.caption}
                             </figcaption>
                         )}
@@ -91,17 +91,17 @@ export function GalleryCard({
                 ) : ids.some((id) => loading.includes(id)) ? (
                     <div
                         aria-busy="true"
-                        className="bg-muted h-32 w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 h-32 w-full animate-pulse rounded-sm"
                     />
                 ) : (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         {ids.length > 0
                             ? 'These images are no longer in the library, so the site shows nothing here.'
                             : 'Choose two or more images from the library.'}
                     </p>
                 )}
                 {items.length < ids.length && items.length > 0 && (
-                    <p className="text-muted-foreground mt-1.5 text-xs">
+                    <p className="text-ink-2 mt-1.5 text-xs">
                         {ids.length - items.length} of the images are no longer
                         in the library and are left out.
                     </p>

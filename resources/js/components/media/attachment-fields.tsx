@@ -14,7 +14,7 @@ export const MEDIA_KINDS: Record<MediaKind, string> = {
 };
 
 export const attachmentTextareaClass =
-    'border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
 
 export function attachmentSize(bytes: number): string {
     return bytes < 1024 * 1024
@@ -25,7 +25,7 @@ export function attachmentSize(bytes: number): string {
 /** File name, type, dimensions, size and uploader — shown by the drawer and the modal alike. */
 export function AttachmentMeta({ item }: { item: MediaDetailsData }) {
     return (
-        <dl className="text-muted-foreground grid grid-cols-2 gap-1 text-xs">
+        <dl className="text-ink-2 grid grid-cols-2 gap-1 text-xs">
             <dt>File</dt>
             <dd className="truncate">{item.filename}</dd>
             <dt>Type</dt>
@@ -130,7 +130,7 @@ export function AttachmentFields({
                         disabled={disabled}
                         onBlur={blur('alt')}
                     />
-                    <p className="text-muted-foreground text-xs">{altHint}</p>
+                    <p className="text-ink-2 text-xs">{altHint}</p>
                     <InputError
                         id={`attachment-${item.id}-alt-error`}
                         message={errors.alt}

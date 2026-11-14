@@ -6,9 +6,9 @@ import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 
 const TONES: Record<string, string> = {
-    note: 'border-l-border',
-    tip: 'border-l-success',
-    warning: 'border-l-warning',
+    note: 'border-l-line',
+    tip: 'border-l-ok',
+    warning: 'border-l-warn',
 };
 
 /**
@@ -43,7 +43,7 @@ export function CalloutCard({
                     updateAttributes({ text: event.target.value })
                 }
                 className={cn(
-                    'bg-muted focus-visible:ring-ring field-sizing-content w-full resize-none rounded-sm border-l-4 px-3 py-2 text-[15px] outline-none focus-visible:ring-2',
+                    'bg-surface-2 focus-visible:ring-ring field-sizing-content w-full resize-none rounded-sm border-l-4 px-3 py-2 text-[15px] outline-none focus-visible:ring-2',
                     TONES[tone] ?? TONES.note,
                 )}
             />

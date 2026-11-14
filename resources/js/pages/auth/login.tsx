@@ -30,7 +30,7 @@ export default function Login({
         <>
             <Head title="Sign in" />
             {status && (
-                <div className="text-success mb-4 text-center text-sm font-medium">
+                <div className="text-ok-ink mb-4 text-center text-sm font-medium">
                     {' '}
                     {status}{' '}
                 </div>
@@ -39,11 +39,11 @@ export default function Login({
             {firstRun && (
                 <div
                     data-test="first-run-notice"
-                    className="border-border bg-muted mb-2 flex gap-2.5 rounded-md border px-4 py-3 text-[13px]"
+                    className="border-line bg-surface-2 mb-2 flex gap-2.5 rounded-md border px-4 py-3 text-[13px]"
                 >
                     <Info
                         aria-hidden="true"
-                        className="text-muted-foreground mt-0.5 size-4 shrink-0"
+                        className="text-ink-2 mt-0.5 size-4 shrink-0"
                     />
                     <div>
                         <p>{__('This site has no accounts yet.')}</p>

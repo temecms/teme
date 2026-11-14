@@ -51,7 +51,7 @@ void createInertiaApp({
     },
     progress: {
         // Inertia writes this into the progress bar's CSS, so a token works.
-        color: 'var(--primary)',
+        color: 'var(--accent)',
     },
 });
 

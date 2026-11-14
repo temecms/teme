@@ -44,7 +44,7 @@ export function ThemePreviewPanel({
         <section
             aria-labelledby="theme-preview-heading"
             data-test="theme-preview-panel"
-            className="border-foreground grid gap-4 rounded border p-4"
+            className="border-ink grid gap-4 rounded border p-4"
         >
             <div className="grid gap-1">
                 <h2
@@ -55,7 +55,7 @@ export function ThemePreviewPanel({
                     <Eye aria-hidden="true" className="size-4" />
                     Previewing {preview.name} {preview.version}
                 </h2>
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     {activeName === null
                         ? 'Visitors still see plain pages.'
                         : `Visitors still see ${activeName}.`}{' '}
@@ -108,10 +108,7 @@ export function ThemePreviewPanel({
                 </div>
             )}
             {preview.changed && (
-                <p
-                    id="theme-preview-drops"
-                    className="text-muted-foreground text-[13px]"
-                >
+                <p id="theme-preview-drops" className="text-ink-2 text-[13px]">
                     Stopping drops the changes made to {preview.name}’s settings
                     and menus.
                 </p>

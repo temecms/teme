@@ -29,7 +29,7 @@ export function TabStrip({
     return (
         <nav
             aria-label={label}
-            className="border-border flex flex-wrap gap-x-5 border-b"
+            className="border-line flex flex-wrap gap-x-5 border-b"
         >
             {tabs.map((tab) => {
                 const active = tab.key === current;
@@ -43,13 +43,13 @@ export function TabStrip({
                         className={cn(
                             '-mb-px inline-flex h-9 items-center gap-1.5 border-b-2 px-0.5 text-[13px]',
                             active
-                                ? 'border-primary text-foreground font-semibold'
-                                : 'text-muted-foreground hover:text-foreground border-transparent font-medium',
+                                ? 'border-accent text-ink font-semibold'
+                                : 'text-ink-2 hover:text-ink border-transparent font-medium',
                         )}
                     >
                         {tab.label}
                         {tab.count !== undefined && (
-                            <span className="text-muted-foreground font-mono text-[11px] font-normal">
+                            <span className="text-ink-2 font-mono text-[11px] font-normal">
                                 {tab.count.toLocaleString()}
                             </span>
                         )}

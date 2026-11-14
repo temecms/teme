@@ -65,14 +65,14 @@ export default function Notifications({ notices, inboxHref }: Props) {
                 </div>
 
                 {notices.length === 0 ? (
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-ink-2 text-sm">
                         {__('There are no emails to choose here.')}
                     </p>
                 ) : (
                     <Form
                         {...NotificationsController.update.form()}
                         options={{ preserveScroll: true }}
-                        className="border-border space-y-6 border-t pt-6"
+                        className="border-line space-y-6 border-t pt-6"
                     >
                         {({ processing, errors }) => (
                             <>
@@ -82,7 +82,7 @@ export default function Notifications({ notices, inboxHref }: Props) {
                                     </legend>
                                     <p
                                         id="notifications-hint"
-                                        className="text-muted-foreground text-sm"
+                                        className="text-ink-2 text-sm"
                                     >
                                         {__(
                                             'Here you turn these off for yourself. Some can also be turned off for everyone, in Settings.',
@@ -181,7 +181,7 @@ export default function Notifications({ notices, inboxHref }: Props) {
                                                 notice.switchedOff !== null && (
                                                     <p
                                                         id={`pref-${notice.key}-off`}
-                                                        className="text-muted-foreground text-sm"
+                                                        className="text-ink-2 text-sm"
                                                     >
                                                         {notice.switchedOff}
                                                     </p>

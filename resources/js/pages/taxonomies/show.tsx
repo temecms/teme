@@ -184,7 +184,7 @@ function TaxonomyForm({ page }: { page: TaxonomyPage }) {
                             <div className="grid gap-2">
                                 <p className="text-sm font-medium">Icon</p>
                                 <div className="flex items-center gap-2">
-                                    <span className="bg-muted flex size-8 items-center justify-center rounded-md border">
+                                    <span className="bg-surface-2 flex size-8 items-center justify-center rounded-md border">
                                         <Icon aria-hidden className="size-4" />
                                     </span>
                                     <Button
@@ -461,7 +461,7 @@ function ViewPanels({ page }: { page: TaxonomyPage }) {
                                 {' '}
                                 <Link
                                     href={page.termsUrl}
-                                    className="text-link underline underline-offset-2"
+                                    className="text-accent-ink underline underline-offset-2"
                                 >
                                     Open {taxonomy.plural}
                                 </Link>
@@ -484,7 +484,7 @@ function ViewPanels({ page }: { page: TaxonomyPage }) {
                             <code>{page.address}</code>{' '}
                             <Link
                                 href={addresses.url()}
-                                className="text-link underline underline-offset-2"
+                                className="text-accent-ink underline underline-offset-2"
                             >
                                 Change in Settings › Addresses
                             </Link>
@@ -513,7 +513,7 @@ function AddressLine({ page }: { page: TaxonomyPage }) {
                 )}
                 <Link
                     href={addresses.url()}
-                    className="text-link underline underline-offset-2"
+                    className="text-accent-ink underline underline-offset-2"
                 >
                     Change in Settings › Addresses
                 </Link>
@@ -534,7 +534,7 @@ function DeletePanel({ page }: { page: TaxonomyPage }) {
                 <p className="flex flex-wrap gap-3">
                     <Link
                         href={page.termsUrl}
-                        className="text-link hover:underline"
+                        className="text-accent-ink hover:underline"
                     >
                         Open {plural}
                     </Link>
@@ -584,7 +584,7 @@ function CodeNote({ page }: { page: TaxonomyPage }) {
                     Their address base can still change:{' '}
                     <Link
                         href={addresses.url()}
-                        className="text-link underline underline-offset-2"
+                        className="text-accent-ink underline underline-offset-2"
                     >
                         Settings › Addresses
                     </Link>

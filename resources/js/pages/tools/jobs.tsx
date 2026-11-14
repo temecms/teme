@@ -6,8 +6,8 @@ import { JobProgress } from '@/components/jobs/job-progress';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
 import { Pager } from '@/components/list/pager';
+import { ListPage } from '@/components/patterns/list-page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatInZone } from '@/lib/zoned-time';
@@ -86,7 +86,7 @@ export default function Jobs({
                         {row.stateLabel}
                     </Badge>
                     {row.message !== null && (
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-ink-2 text-xs">
                             {row.message}
                         </span>
                     )}
@@ -100,7 +100,7 @@ export default function Jobs({
             cell: (row) => (
                 <div className="grid gap-0.5 text-[13px]">
                     <span>{formatInZone(row.startedAt, siteTimezone)}</span>
-                    <span className="text-muted-foreground">
+                    <span className="text-ink-2">
                         {startedBy(row.startedBy)}
                     </span>
                 </div>
@@ -157,38 +157,36 @@ export default function Jobs({
         <>
             <Head title="Jobs" />
 
-            <div className="space-y-6 p-6">
-                <PageHeader
-                    title="Jobs"
-                    description="Imports, bulk changes and other long tasks. When one you started finishes, you’ll get a message in your inbox, so you can leave this page."
-                    action={
-                        <>
-                            {failed > 0 && (
-                                <Form
-                                    {...JobsController.retryFailed.form()}
-                                    options={{ preserveScroll: true }}
-                                >
-                                    {({ processing }) => (
-                                        <Button
-                                            type="submit"
-                                            variant="outline"
-                                            data-test="jobs-retry-failed"
-                                            disabled={processing}
-                                        >
-                                            <RefreshCw aria-hidden="true" />
-                                            Retry all failed (
-                                            {failed.toLocaleString()})
-                                        </Button>
-                                    )}
-                                </Form>
-                            )}
-                            <Button variant="outline" asChild>
-                                <Link href={inboxHref}>Open inbox</Link>
-                            </Button>
-                        </>
-                    }
-                />
-
+            <ListPage
+                title="Jobs"
+                description="Imports, bulk changes and other long tasks. When one you started finishes, you’ll get a message in your inbox, so you can leave this page."
+                actions={
+                    <>
+                        {failed > 0 && (
+                            <Form
+                                {...JobsController.retryFailed.form()}
+                                options={{ preserveScroll: true }}
+                            >
+                                {({ processing }) => (
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        data-test="jobs-retry-failed"
+                                        disabled={processing}
+                                    >
+                                        <RefreshCw aria-hidden="true" />
+                                        Retry all failed (
+                                        {failed.toLocaleString()})
+                                    </Button>
+                                )}
+                            </Form>
+                        )}
+                        <Button variant="outline" asChild>
+                            <Link href={inboxHref}>Open inbox</Link>
+                        </Button>
+                    </>
+                }
+            >
                 <DataTable
                     caption="Jobs"
                     columns={columns}
@@ -204,7 +202,7 @@ export default function Jobs({
                 />
 
                 {rows.length > 0 && <Pager newer={newer} older={older} />}
-            </div>
+            </ListPage>
         </>
     );
 }

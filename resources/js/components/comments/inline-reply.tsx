@@ -42,7 +42,7 @@ export function InlineReply({
                 rows={3}
                 maxLength={5000}
                 autoFocus
-                className="border-input bg-background focus-visible:ring-ring rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2"
+                className="border-edge bg-page focus-visible:ring-ring rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2"
                 value={form.data.text}
                 onChange={(event) => form.setData('text', event.target.value)}
                 aria-invalid={form.errors.text ? true : undefined}
@@ -55,7 +55,7 @@ export function InlineReply({
             {waiting && (
                 <p
                     id={`reply-${row.id}-hint`}
-                    className="text-muted-foreground text-[12px]"
+                    className="text-ink-2 text-[12px]"
                 >
                     Replying also approves this comment.
                 </p>

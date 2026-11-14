@@ -32,7 +32,7 @@ function PendingKey({ page }: { page: BackupsPage }) {
         <section
             aria-label="A recovery key waiting to be finished"
             data-test="backup-pending"
-            className="border-border space-y-3 rounded-md border p-4"
+            className="border-line space-y-3 rounded-md border p-4"
         >
             <p className="text-sm">
                 If you wrote {pending.label} down, type groups {a} and {b} to
@@ -55,7 +55,7 @@ function PendingKey({ page }: { page: BackupsPage }) {
                             )}
                         </Form>
                     ) : (
-                        <p className="text-muted-foreground self-center text-sm">
+                        <p className="text-ink-2 self-center text-sm">
                             Or add the key again from Recovery keys.
                         </p>
                     )

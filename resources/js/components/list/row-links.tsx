@@ -8,7 +8,7 @@ import type { RowAction } from './row-actions';
 import { splitRowActions } from './row-action-order';
 
 const LINK =
-    'text-link focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 hover:underline focus-visible:ring-2 focus-visible:outline-none';
+    'text-accent-ink focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 hover:underline focus-visible:ring-2 focus-visible:outline-none';
 
 /**
  * A row's actions as links under its title (I-3130): up to four on the line,
@@ -40,10 +40,7 @@ export function RowLinks({
             {line.map((item, at) => (
                 <Fragment key={item.id}>
                     {at > 0 && (
-                        <span
-                            aria-hidden="true"
-                            className="text-muted-foreground"
-                        >
+                        <span aria-hidden="true" className="text-ink-2">
                             ·
                         </span>
                     )}
@@ -52,7 +49,7 @@ export function RowLinks({
             ))}
             {rest.length > 0 && (
                 <>
-                    <span aria-hidden="true" className="text-muted-foreground">
+                    <span aria-hidden="true" className="text-ink-2">
                         ·
                     </span>
                     <RowActionsMenu items={rest} label={more} />
@@ -64,7 +61,7 @@ export function RowLinks({
 
 /** One action on the line, by what it does: goes, opens something, or sends. */
 function LineItem({ item }: { item: RowAction }): ReactElement {
-    const className = cn(LINK, item.destructive && 'text-destructive');
+    const className = cn(LINK, item.destructive && 'text-danger-ink');
 
     if ('href' in item) {
         return item.newTab ? (

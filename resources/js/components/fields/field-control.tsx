@@ -7,7 +7,7 @@ import { MediaSetting } from './media-setting';
 import { PairsSetting } from './pairs-setting';
 
 const controlClass =
-    'border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
 
 type Props = {
     field: FieldDefinition;
@@ -69,7 +69,7 @@ export function FieldControl({
                     {field.unit !== null && field.unit !== undefined && (
                         <span
                             data-test="field-unit"
-                            className="text-muted-foreground text-[13px]"
+                            className="text-ink-2 text-[13px]"
                         >
                             {field.unit}
                         </span>
@@ -237,7 +237,7 @@ export function FieldControl({
                         disabled={disabled || secret?.source === 'environment'}
                     />
                     {secret?.source === 'environment' && (
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-ink-2 text-xs">
                             Provided by the server's environment.
                         </p>
                     )}

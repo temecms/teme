@@ -136,13 +136,13 @@ export function TypedBack({
                     </div>
                 ))}
             </div>
-            <p id="typed-back-hint" className="text-muted-foreground text-xs">
+            <p id="typed-back-hint" className="text-ink-2 text-xs">
                 Four letters and digits, as printed. Upper or lower case.
             </p>
             <InputError id="typed-back-error" message={error} />
 
             {askPassword && (
-                <div className="border-border max-w-sm space-y-3 rounded-md border p-4">
+                <div className="border-line max-w-sm space-y-3 rounded-md border p-4">
                     <p className="text-sm">
                         Type your password to carry on. The key stays on this
                         page.

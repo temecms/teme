@@ -2,16 +2,13 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-/**
- * The table's outer frame, and nothing else. A list screen wraps its table in
- * exactly one bordered region; every other region of a screen is a Panel.
- */
+/** A region lifted off the page, drawn as a panel (docs/architecture/design-system.md, section 4.28). */
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground border-border flex flex-col rounded-lg border",
+        "flex flex-col rounded-lg bg-surface text-ink shadow-raised",
         className
       )}
       {...props}
@@ -23,7 +20,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-header"
-      className={cn("flex flex-col gap-1.5 px-6", className)}
+      className={cn("flex flex-col gap-1 px-5", className)}
       {...props}
     />
   )
@@ -33,7 +30,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
+      className={cn("text-body font-semibold", className)}
       {...props}
     />
   )
@@ -43,7 +40,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-small text-ink-2", className)}
       {...props}
     />
   )
@@ -53,7 +50,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-content"
-      className={cn("px-6", className)}
+      className={cn("px-5", className)}
       {...props}
     />
   )
@@ -63,7 +60,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center px-6", className)}
+      className={cn("flex items-center px-5", className)}
       {...props}
     />
   )

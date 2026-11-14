@@ -56,17 +56,17 @@ export function HeaderPanel({
                 <Dialog.Content
                     aria-describedby={undefined}
                     data-test={testId}
-                    className="bg-popover text-popover-foreground border-border absolute top-full right-0 z-50 mt-1.5 max-h-[min(520px,calc(100vh-80px))] w-[min(380px,calc(100vw-16px))] overflow-y-auto rounded-lg border shadow-(--shadow) max-md:fixed max-md:inset-x-2 max-md:top-14 max-md:w-auto"
+                    className="bg-surface text-ink shadow-float absolute end-0 top-full z-(--z-float) mt-2 max-h-130 w-100 overflow-y-auto rounded-lg max-md:fixed max-md:inset-x-2 max-md:top-14 max-md:w-auto"
                 >
-                    <div className="bg-popover sticky top-0 flex items-center justify-between border-b px-3.5 py-2.5">
-                        <Dialog.Title className="text-[13px] font-semibold">
+                    <div className="bg-surface border-line sticky top-0 flex min-h-12 items-center justify-between gap-3 border-b px-4 py-2">
+                        <Dialog.Title className="text-body font-semibold">
                             {title}
                         </Dialog.Title>
                         {action}
                     </div>
                     {children}
                     {footer !== undefined && (
-                        <div className="border-t px-3.5 py-2.5 text-[13px]">
+                        <div className="border-line text-small border-t px-4 py-3">
                             {footer}
                         </div>
                     )}

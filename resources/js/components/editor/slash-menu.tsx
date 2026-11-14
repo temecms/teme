@@ -243,7 +243,7 @@ export function SlashMenu({
         <div
             role="listbox"
             aria-label="Insert"
-            className="bg-popover text-popover-foreground border-border fixed z-50 max-h-72 w-72 overflow-y-auto rounded-lg border p-1 shadow-(--shadow)"
+            className="bg-surface text-ink border-line shadow-float fixed z-50 max-h-72 w-72 overflow-y-auto rounded-lg border p-1"
             style={{ top: coords.bottom + 6, left: coords.left }}
         >
             {entries.map((entry, index) => (
@@ -261,11 +261,11 @@ export function SlashMenu({
                             .run();
                         entry.run(context);
                     }}
-                    className="aria-selected:bg-accent grid w-full rounded-sm px-2 py-1.5 text-left text-[13px]"
+                    className="aria-selected:bg-surface-3 grid w-full rounded-sm px-2 py-1.5 text-left text-[13px]"
                 >
                     <span className="font-medium">{entry.label}</span>
                     {entry.description && (
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-ink-2 text-xs">
                             {entry.description}
                         </span>
                     )}

@@ -15,18 +15,8 @@ import type { HeaderCounts, InboxLatestAnswer } from '@/types/jobs';
  */
 export function InboxBell({ counts }: { counts: HeaderCounts | null }) {
     const [open, setOpen] = useState(false);
-    const [latest, setLatest] = useState<InboxLatestAnswer | null>(null);
-    const [failed, setFailed] = useState(false);
-    const { submit } = useHttp();
-
-    const load = useCallback(() => {
-        void (submit(InboxController.latest()) as Promise<InboxLatestAnswer>)
-            .then((answer) => {
-                setLatest(answer);
-                setFailed(false);
-            })
-            .catch(() => setFailed(true));
-    }, [submit]);
+    const inbox = useInboxLatest();
+    const { latest, load } = inbox;
 
     if (counts === null) {
         return null;
@@ -57,13 +47,13 @@ export function InboxBell({ counts }: { counts: HeaderCounts | null }) {
                             ? `Inbox, ${unread >= 100 ? '99+' : unread} unread`
                             : 'Inbox'
                     }
-                    className="relative max-md:size-11"
+                    className="relative"
                 >
                     <Bell aria-hidden="true" />
                     {unread > 0 && (
                         <span
                             aria-hidden="true"
-                            className="bg-foreground text-card absolute top-[3px] right-[2px] h-4 min-w-4 rounded-lg px-1 font-mono text-[10px] leading-4"
+                            className="bg-ink text-page text-caption pointer-events-none absolute end-0 top-0 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 font-mono"
                         >
                             {unread >= 100 ? '99+' : unread}
                         </span>
@@ -98,16 +88,48 @@ export function InboxBell({ counts }: { counts: HeaderCounts | null }) {
                 </Link>
             }
         >
+            <InboxPanelBody inbox={inbox} />
+        </HeaderPanel>
+    );
+}
+
+/** The latest ten inbox items, loaded on demand, as the panel and the status sheet show them. */
+export function useInboxLatest(): {
+    latest: InboxLatestAnswer | null;
+    failed: boolean;
+    load: () => void;
+} {
+    const [latest, setLatest] = useState<InboxLatestAnswer | null>(null);
+    const [failed, setFailed] = useState(false);
+    const { submit } = useHttp();
+
+    const load = useCallback(() => {
+        void (submit(InboxController.latest()) as Promise<InboxLatestAnswer>)
+            .then((answer) => {
+                setLatest(answer);
+                setFailed(false);
+            })
+            .catch(() => setFailed(true));
+    }, [submit]);
+
+    return { latest, failed, load };
+}
+
+/** The inbox panel's content, also drawn in the small screens' status sheet. */
+export function InboxPanelBody({
+    inbox: { latest, failed },
+}: {
+    inbox: ReturnType<typeof useInboxLatest>;
+}) {
+    return (
+        <>
             {failed && (
-                <p
-                    role="status"
-                    className="text-muted-foreground p-3.5 text-[13px]"
-                >
+                <p role="status" className="text-ink-2 text-small px-4 py-3">
                     Your inbox couldn’t be loaded. Try again in a moment.
                 </p>
             )}
             {!failed && latest === null && (
-                <div className="grid gap-2 p-3.5" role="status">
+                <div className="grid gap-2 px-4 py-3" role="status">
                     <Skeleton className="h-10 motion-safe:animate-pulse" />
                     <Skeleton className="h-10 motion-safe:animate-pulse" />
                 </div>
@@ -119,6 +141,6 @@ export function InboxBell({ counts }: { counts: HeaderCounts | null }) {
                     inPanel
                 />
             )}
-        </HeaderPanel>
+        </>
     );
 }

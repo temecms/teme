@@ -52,13 +52,8 @@ components/ai/proposal.tsx	Use
 components/ai/proposal.tsx	Using…
 components/alert-error.tsx	Something went wrong.
 components/app-shell.tsx	Skip to content
-components/app-sidebar-header.tsx	Ctrl K
 components/app-sidebar-header.tsx	Open menu
-components/app-sidebar-header.tsx	Search or jump to…
-components/app-sidebar-header.tsx	⌘K
 components/app-sidebar.tsx	, opens in a new tab
-components/app-sidebar.tsx	Collapse menu
-components/app-sidebar.tsx	Personalise menu
 components/app-sidebar.tsx	View site
 components/backups/back-up-now.tsx	Back up now
 components/backups/back-up-now.tsx	Cancel
@@ -1076,9 +1071,6 @@ components/media/upload-list.tsx	Uploading {}
 components/media/upload-list.tsx	Use the existing one
 components/media/use-media-uploads.ts	The upload failed.
 components/nav-main.tsx	Main
-components/nav-main.tsx	Pinned
-components/nav-main.tsx	need action
-components/nav-main.tsx	needs action
 components/navigation/add-item-panel.tsx	A link to the front page of the site. The label starts as “Home”.
 components/navigation/add-item-panel.tsx	Add
 components/navigation/add-item-panel.tsx	Add an item
@@ -1110,7 +1102,6 @@ components/navigation/tree-editor.tsx	Move up
 components/navigation/tree-editor.tsx	Open in new tab
 components/navigation/tree-editor.tsx	Remove
 components/navigation/tree-editor.tsx	Remove {}
-components/page-trail.tsx	Breadcrumb
 components/palette/command-palette.tsx	AI
 components/palette/command-palette.tsx	Command palette
 components/palette/command-palette.tsx	Content
@@ -1143,7 +1134,6 @@ components/password-input.tsx	Show password
 components/personalise-menu-dialog.tsx	Changes apply to your menu only. Pin up to
 components/personalise-menu-dialog.tsx	Move {} down
 components/personalise-menu-dialog.tsx	Move {} up
-components/personalise-menu-dialog.tsx	Personalise menu
 components/personalise-menu-dialog.tsx	Pin
 components/personalise-menu-dialog.tsx	Pinned
 components/personalise-menu-dialog.tsx	Reset to default
@@ -1368,17 +1358,12 @@ components/types/field-sheet.tsx	{}’ editor shows it in Details as soon as it�
 components/types/icon-picker.tsx	Choose an icon
 components/types/icon-picker.tsx	Every Lucide icon, by name. It shows beside the type’s name in the menu.
 components/types/icon-picker.tsx	Search icons
-components/ui/breadcrumb.tsx	More
-components/ui/breadcrumb.tsx	breadcrumb
-components/ui/dialog.tsx	Close
-components/ui/sheet.tsx	Close
 components/ui/sidebar.tsx	Main menu
 components/ui/sidebar.tsx	Main menu
 components/ui/sidebar.tsx	The menu for every admin screen.
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
-components/ui/spinner.tsx	Loading
 components/user-menu-content.tsx	Preferences
 components/user-menu-content.tsx	Profile
 components/user-menu-content.tsx	Security
@@ -1411,9 +1396,6 @@ pages/account/preferences.tsx	Preferences
 pages/account/preferences.tsx	Preferences
 pages/account/preferences.tsx	Save preferences
 pages/account/preferences.tsx	Saved as you choose.
-pages/account/preferences.tsx	Your choice couldn’t be saved, so the admin is back as it was. Try again in a moment.
-pages/account/preferences.tsx	{} Saved as you choose.
-pages/account/preferences.tsx	{} Saved as you choose.
 pages/account/profile.tsx	Bio
 pages/account/profile.tsx	Email address
 pages/account/profile.tsx	Email address
@@ -2082,18 +2064,11 @@ pages/tools/backups/new-key.tsx	Making the key…
 pages/tools/backups/new-key.tsx	Name it after who keeps it, such as Sam’s key.
 pages/tools/backups/new-key.tsx	Name the key
 pages/tools/backups/new-key.tsx	Tools
-pages/tools/backups/place.tsx	Add the place
-pages/tools/backups/place.tsx	Adding…
 pages/tools/backups/place.tsx	Another place to keep backups, kept in step with the others.
 pages/tools/backups/place.tsx	Backups
 pages/tools/backups/place.tsx	Cancel
-pages/tools/backups/place.tsx	Continue
-pages/tools/backups/place.tsx	Continue
 pages/tools/backups/place.tsx	Its name, or where it is. Teme checks that the backups at the new address are the same ones.
 pages/tools/backups/place.tsx	Making the place can take a few minutes on a distant server. Keep this page open.
-pages/tools/backups/place.tsx	Reading the server’s fingerprint…
-pages/tools/backups/place.tsx	Save changes
-pages/tools/backups/place.tsx	Saving…
 pages/tools/backups/place.tsx	Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.
 pages/tools/backups/place.tsx	Tools
 pages/tools/backups/place.tsx	Your recovery key
@@ -2152,7 +2127,6 @@ pages/tools/import/show.tsx	Import
 pages/tools/import/show.tsx	Teme uses these for this import and for each catch-up after it.
 pages/tools/import/show.tsx	Tools
 pages/tools/import/show.tsx	Your choices
-pages/tools/index.tsx	(opens in a new tab)
 pages/tools/index.tsx	Tools
 pages/tools/index.tsx	Tools
 pages/tools/index.tsx	Tools

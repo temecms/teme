@@ -44,7 +44,7 @@ Use a long, random password; a password manager makes that easy. For two-factor 
 
 Open **Preferences**. What you choose here is yours; nobody else sees it.
 
-- **Appearance** sets the look: **Match the system**, **Light** or **Dark**, and a choice of **High contrast**. A change applies at once.
+- **Appearance** sets the look: **Match the system**, **Light** or **Dark**. A change applies at once.
 - Further down are the things that change how the editor and the lists work for you, such as whether the editor opens in focus mode and how many rows a list shows.
 
 Choose **Save preferences** when you have changed any.

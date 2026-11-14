@@ -17,7 +17,7 @@ type Props = {
 
 /** Settings › General's native select, as the time zone setting draws it. */
 const selectClass =
-    'border-input bg-background focus-visible:ring-ring mt-1 block w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring mt-1 block w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
 
 /** The browser's own zone when the list has it, as Drupal's installer fills it; else UTC. */
 function browserZone(timezones: string[]): string {
@@ -28,7 +28,7 @@ function browserZone(timezones: string[]): string {
 
 function Hint({ id, children }: { id: string; children: ReactNode }) {
     return (
-        <p id={id} className="text-muted-foreground text-[13px] text-pretty">
+        <p id={id} className="text-ink-2 text-[13px] text-pretty">
             {children}
         </p>
     );
@@ -143,7 +143,7 @@ export default function SetUp({ timezones, passwordRules }: Props) {
                             />
                         </div>
 
-                        <hr className="border-border" />
+                        <hr className="border-line" />
 
                         <div className="grid gap-2">
                             <Label htmlFor="name">{__('Your name')}</Label>

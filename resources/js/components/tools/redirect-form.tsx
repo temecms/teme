@@ -32,9 +32,9 @@ const STATUSES: [number, string][] = [
 ];
 
 const controlClass =
-    'border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
 
-const hintClass = 'text-muted-foreground text-xs';
+const hintClass = 'text-ink-2 text-xs';
 
 /** The kind of target a redirect has, as the form's three choices name it. */
 function kindOf(redirect: RedirectRow | null): Kind {
@@ -208,13 +208,13 @@ function Fields({
                                 />
                                 {query.trim() !== '' &&
                                     (found.length > 0 ? (
-                                        <ul className="border-border rounded border">
+                                        <ul className="border-line rounded border">
                                             {found.map((target) => (
                                                 <li key={target.id}>
                                                     <button
                                                         type="button"
                                                         data-test="redirect-item-option"
-                                                        className="hover:bg-muted min-h-6 w-full px-3 py-1.5 text-left text-[13px]"
+                                                        className="hover:bg-surface-2 min-h-6 w-full px-3 py-1.5 text-left text-[13px]"
                                                         onClick={() => {
                                                             setItem({
                                                                 id: target.id,
@@ -226,7 +226,7 @@ function Fields({
                                                         {shownTitle(
                                                             target.title,
                                                         )}{' '}
-                                                        <span className="text-muted-foreground">
+                                                        <span className="text-ink-2">
                                                             {singular(
                                                                 target.type,
                                                             )}
@@ -239,7 +239,7 @@ function Fields({
                                             ))}
                                         </ul>
                                     ) : (
-                                        <p className="text-muted-foreground text-[13px]">
+                                        <p className="text-ink-2 text-[13px]">
                                             Nothing matches “{query}”.
                                         </p>
                                     ))}

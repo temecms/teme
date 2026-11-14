@@ -21,7 +21,7 @@ export function PresenceLine({ people }: { people: EditorPerson[] }) {
     return (
         <span
             role="status"
-            className="bg-warning-muted text-warning rounded-sm px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap"
+            className="bg-warn-soft text-warn-ink rounded-sm px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap"
         >
             {names(people)} {people.length === 1 ? 'is' : 'are'} also editing.
         </span>

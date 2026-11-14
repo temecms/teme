@@ -22,7 +22,7 @@ export function GettingStarted({ steps }: { steps: GettingStartedStep[] }) {
         <Panel aria-labelledby="getting-started">
             <PanelHeader>
                 <h2 id="getting-started">Getting started</h2>
-                <span className="text-muted-foreground text-xs font-normal">
+                <span className="text-ink-2 text-xs font-normal">
                     {done} of {steps.length} done
                 </span>
                 <span className="flex-1" />
@@ -33,7 +33,7 @@ export function GettingStarted({ steps }: { steps: GettingStartedStep[] }) {
                             'dashboard.getting_started_hidden': true,
                         }).then((saved) => setHidden(saved))
                     }
-                    className="text-link text-[13px] font-normal underline-offset-2 hover:underline"
+                    className="text-accent-ink text-[13px] font-normal underline-offset-2 hover:underline"
                 >
                     Hide this
                 </button>
@@ -43,21 +43,21 @@ export function GettingStarted({ steps }: { steps: GettingStartedStep[] }) {
                     {steps.map((step) => (
                         <li
                             key={step.key}
-                            className="border-border flex min-h-11 items-center gap-2 border-t py-2 text-[13px] [&_svg]:size-4"
+                            className="border-line flex min-h-11 items-center gap-2 border-t py-2 text-[13px] [&_svg]:size-4"
                         >
                             {step.done ? (
                                 <>
-                                    <CheckCircle2 className="text-success" />
-                                    <span className="text-muted-foreground">
+                                    <CheckCircle2 className="text-ok-ink" />
+                                    <span className="text-ink-2">
                                         {step.label}
                                     </span>
                                 </>
                             ) : (
                                 <>
-                                    <Circle className="text-muted-foreground" />
+                                    <Circle className="text-ink-2" />
                                     <Link
                                         href={step.url}
-                                        className="text-link underline-offset-2 hover:underline"
+                                        className="text-accent-ink underline-offset-2 hover:underline"
                                     >
                                         {step.label}
                                     </Link>

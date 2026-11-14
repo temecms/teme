@@ -88,7 +88,7 @@ export function ScreenOptions({
             }
         >
             <div className="grid w-72 max-w-full gap-4 p-2">
-                <p className="text-muted-foreground text-xs">
+                <p className="text-ink-2 text-xs">
                     What this list shows for you. Other people keep their own
                     choices.
                 </p>
@@ -134,7 +134,7 @@ export function ScreenOptions({
                     />
                 </div>
                 <div className="flex items-center gap-2">
-                    <p role="status" className="text-muted-foreground text-xs">
+                    <p role="status" className="text-ink-2 text-xs">
                         {state === 'saved' && 'Saved to your preferences'}
                         {state === 'failed' &&
                             "Couldn't save. Try again in a moment."}

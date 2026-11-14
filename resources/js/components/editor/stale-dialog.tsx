@@ -114,7 +114,7 @@ export function StaleDialog({
                         and your unsaved changes here are lost.
                     </p>
                     {problem && (
-                        <p role="alert" className="text-destructive">
+                        <p role="alert" className="text-danger-ink">
                             {problem}
                         </p>
                     )}
