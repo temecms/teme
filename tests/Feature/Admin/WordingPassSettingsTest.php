@@ -98,12 +98,12 @@ it('warns what regenerating does beside the Regenerate codes button', function (
 it('says why the reader is on the sign-in screen above the form', function (): void {
     $source = ($this->flat)('pages/auth/login.tsx');
 
-    expect(($this->at)($source, '{status && ('))->toBeLessThan(($this->at)($source, '<Form'));
+    expect(($this->at)($source, 'notices='))->toBeLessThan(($this->at)($source, '<Form'));
 });
 
 it('offers Back to sign in on its own, not inside a sentence', function (): void {
     expect(($this->flat)('pages/auth/forgot-password.tsx'))
-        ->toContain('<TextLink href={login()}>Back to sign in</TextLink>')
+        ->toContain("<TextButton asChild className=\"min-h-(--ctl-h)\"> <Link href={login()}>{__('Back to sign in')}</Link> </TextButton>")
         ->not->toContain('Or, return to');
 });
 
@@ -111,6 +111,6 @@ it('offers the other way to sign in as a button of its own under Continue', func
     $source = ($this->flat)('pages/auth/two-factor-challenge.tsx');
     $continue = ($this->at)($source, 'Continue');
 
-    expect(($this->at)($source, 'variant="outline"', $continue))->toBeLessThan(($this->at)($source, '{authConfigContent.toggleText}', $continue))
+    expect(($this->at)($source, 'variant="neutral"', $continue))->toBeLessThan(($this->at)($source, '{authConfigContent.toggleText}', $continue))
         ->and($source)->not->toContain('or you can');
 });

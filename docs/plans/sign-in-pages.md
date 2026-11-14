@@ -539,3 +539,93 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: commits; each test seen red (task, file, case, the failure's first line); the design-system counts per rule and the admin-words count before and after; the 403 screen chosen in Task 5; differences from the plan as B-?? (draft); changelog lines; any STOP. -->
+
+**Setup.** `/tmp/teme-cloud-setup.log`: "2026-11-14T14:50:11Z ran in /home/user/teme as root", "2026-11-14T15:01:59Z finished"; working directory `/home/user/teme`. PHP 8.4.27, PostgreSQL 18 on 5433, Valkey on 6380, Node 24.22.1. Base `origin/main` at `e77848d`, holding the foundation commit `e7f2af7`.
+
+**Checkpoints.**
+- Done to Task 1 at `77456b5`, the quick check green.
+- Done to Task 2 at `416f069`, the quick check green.
+- Done to Task 3 at `2109c73`, the quick check green.
+- Done to Task 4 at `ccc4306`, the quick check green.
+- Done to Task 5 at `c0223f6`, the quick check green.
+- Task 6: the full `composer check` green after `c515ed0`.
+
+**Stack, from the locks.** Laravel 13.39.0, Fortify 1.41.0, inertia-laravel 3.5.2, `@inertiajs/react` 3.9.1, React 19.3.1, Tailwind 4.3.3, Vite 8.3.5 (through vite-plus 0.3.0), Pest 5.3.4, `pestphp/pest-plugin-browser` 5.1.2.
+
+**Task 0.** Every line matched by its text: the foundation commit is in `origin/main` (`e7f2af7`, merged as `bd0e715`); none of the new paths existed; the eight `ui/` files exist and R7 accepts `AuthPage`; the `auth/` case returned `AuthLayout`; `SignInBrand` and the `screen` tone were only in `brand.tsx`; `AuthLayoutProps` only in `types/ui.ts` and the simple layout; one `tabIndex={-1}`; the throttle, login view, `auth.throttle` words, holding view and its policy, and `PublicPage::error` as written; two token markers, one `@theme {`, one `@theme inline {`, two `.dark {`; eight helpers. Owned design-system lines 33 (R1 2, R2 16, R3 4, R5 2, R7 8, R14 1); owned admin words 59; `AdminWordsTest` count 2552.
+
+### Commits
+
+- `77456b5` feat(auth): the sign-in page learns how long sign-in is paused
+- `416f069` feat(site): the error pages and the holding page on the one card
+- `2109c73` feat(admin): the sign-in page on the one card, with a live wait when sign-in is paused
+- `ccc4306` feat(admin): every sign-in page on the one card
+- `c0223f6` test(site): the error pages pass axe on the card
+- `c515ed0` fix(site): the 403 page says a refusal's own reason when it has one
+- this commit: docs(plans): sign-in pages' records
+
+### Tests seen red first
+
+- Task 1, `SignInPausedTest`, all five cases: "Property [retryAfter] does not exist." Planted `+ 1` on the flashed timestamp: "gives the sign-in page the wait…" red ("Failed asserting that 901 is identical to 900."), and "counts down…" red (801 for 800).
+- Task 2, `StandalonePagesTest`: "Target class [App\Http\Standalone\StandaloneStyle] does not exist.", "View [errors.500] not found.", and each error page "Failed asserting that 0 is identical to 1." (no `main[data-error]`). `HoldingPageTest` "draws the approved picture…": "Failed asserting that two arrays are identical." (`div.sa-brand` missing). Planted `#fff` in the card's rules: "writes no color…" red. Planted a `build()` without its marker guard: "keeps an empty stylesheet…" red ("substr(): Argument #2 ($offset) must be of type int, false given").
+- Task 3, `tests/Browser/SignInPagesTest.php`: every case red on the missing `[data-slot="auth-card"]` (timeouts) or the unnamed eye button ("Failed asserting that null is identical to 'Show password'."). `ShellTest`'s two cases red on the old sources (the old login source; "auth-page.tsx: Failed to open stream"). Planted `tabIndex={-1}` back on the eye: the Tab case red ("null is identical to 'Show password'").
+- Task 4, the every-page case: red on each page's card (timeouts), and on two-factor "Failed asserting that two arrays are identical" (axe). The changed `WordingPassSettingsTest` (two of three cases), `ShellTest` and the old sources: three red. `AccessibilityTest` with a page's `error=` removed: "Expecting [] not to be empty". (`WordingPassSettingsTest`'s "says why the reader is on the sign-in screen above the form" was already green, since `login.tsx` moved in Task 3.)
+- Task 5, the error pages' browser case: green at its first run; no fault in the card.
+
+### Counts
+
+- Design-system baseline, the owned files: 33 lines before, 0 after: R1 −2 (131 → 129), R2 −16 (823 → 807), R3 −4 (183 → 179), R5 −2 (102 → 100), R7 −8 (135 → 127), R14 −1 (19 → 18). As the plan expected.
+- Admin words: −59 (2552 → 2493). As the plan expected.
+- No line added, no number raised, the scanner not touched.
+
+### Gates
+
+- Before, at the base (`e77848d`): Pint, PHPStan, types, lint and the Architecture suite green (101 passed, 1203 assertions). The Unit and Feature suites did not finish within the 30-minute limit of a background run in this container (4 cores), so there is no base total for them.
+- First full `composer check` after Task 5: 1 failed, 2 skipped, 10454 passed (53388 assertions). The failure was this part's, `OthersWorkTest` "refuses to open someone else's draft in the editor, and says why": the new 403 page dropped the policy's reason. Fixed in `c515ed0` (B-?? below); the files asserting a 403's words, `tests/Feature/Cms`, and `StandalonePagesTest` green after it.
+- Final full `composer check`: Pint passed, PHPStan no errors, types and lint passed, Architecture 101 passed (1203 assertions), Unit and Feature 2 skipped, 10455 passed (53390 assertions).
+- Browser, after `npm run build` and the themes' build and link, one file at a time: `SignInPagesTest` 17 passed (280 assertions), `FirstRunTest` 6 passed (44), `ShellTest` 17 passed (179), `ShellResponsiveTest` 10 passed (69), `TwoEditorsTest` 1 passed (10), `PeopleScreenTest` 10 passed (95), `SaveBarTest` 1 passed (12), `BackupsScreenTest` 13 passed (103), `DesignCatalogueTest` 18 passed (149). No browser assertion needed updating.
+
+### Decisions and plan faults (B-?? drafts)
+
+Each found, the options weighed, the one taken and why, and its commit.
+
+1. **B-?? (draft), a static memo.** S3's `private static ?string $tokens` fails `NoStaticStateTest` (I-087: no static state in `app/`). Options: an instance property; `Cache::memo()`; a scoped binding; widening the test's allow-list (a STOP). Took the instance property: the smallest change, and reading `app.css` once per error page is cheap. The docblock's "the memo lasts the process" no longer holds. `416f069`.
+2. **B-?? (draft), "white" in `white-space`.** The plan's "no `white`, `black`" check matched the screen-reader rule's `white-space`. Options: drop the rule from the card; match the color words only when not part of a longer word. Took the second: same meaning. `416f069`.
+3. **B-?? (draft), the 503 with `Retry-After`.** The plan names "a test route" without one; added `GET` and `POST` `/admin/_sa-maintenance` that `abort(503, '', ['Retry-After' => '60'])`. `416f069`.
+4. **B-?? (draft), "counts down from the moment of the refusal".** The plan's second read (after `travel(800)`) would be null anyway, because the first read spends the flash. Options: keep it (proves nothing); refuse again before travelling. Took the second: the new refusal flashes the 800 seconds left, and the read after they pass is null. `77456b5`.
+5. **B-?? (draft), the errors bag.** The session holds the errors as an array here, so "the two refusals' error bags are equal" compares them JSON-encoded, as `NoEnumerationTest` does. `77456b5`.
+6. **B-?? (draft), Teme's mark with no name.** S2 says Teme's mark "and the name Teme" stand in; Task 2's test says the Teme case has no `.sa-name`. Options: follow S2 and change the test; follow the test. Took the test (the test's meaning is binding): the Blade card draws Teme's icon alone, and the error page still names the site through ":site" or "this site". On the React card Teme's case shows the icon with the shared `brand.product` ("Teme") beside it, as A2 says; written from the prop, not a literal, so the admin-words check sees no new word. `416f069`, `2109c73`.
+7. **B-?? (draft), the holding page's plain paragraphs.** The test's picture names the foot as `p` and the notice's first two children as `p`, `p`, by tag and class. So the foot carries `data-foot` and the notice's title is styled as `.sa-notice > p:first-child`, both on the card's own rules. `416f069`.
+8. **B-?? (draft), one "Error :code".** Every pill writes `__('Error :code', ['code' => …])` (the plan's word list has "Error :code"), not a string per code; the tab's title is the page's heading. `416f069`.
+9. **B-?? (draft), the setup page moved in Task 3.** It imported the deleted `auth-simple-layout.tsx`, so it moved with the layouts in Task 3 rather than in Task 4. Between `2109c73` and `ccc4306`, the six other pages drew without a frame and `AccessibilityTest`'s login row was red; Task 4 settled both. `2109c73`.
+10. **B-?? (draft), the eye button's spacing.** The design check's R3 flags `pe-11` and `me-0.5`, so the input keeps `pe-12` and the button sits `end-1`. `BrandMark` keeps its `tone` prop with the one value `sidebar` (the `screen` tone is gone), unused in the body. `2109c73`.
+11. **B-?? (draft), the countdown's last second.** The limiter's timer outlives the whole seconds the refusal names by up to a second (its store counts from the moment of the hit), so a person who presses Sign in the instant the count reaches zero is told "Try again in 0 seconds". Options: flash one more second (more than the refusal says, against S1); leave the server as it is and let the browser case wait 1.1 seconds after the count ends. Took the second, and left it open (below). `2109c73`.
+12. **B-?? (draft), two-factor at 320 pixels.** Six 44-pixel slots are wider than the card at 320, so the page gives each slot `max-sm:size-10` (40 pixels) through its `className`; `ui/input-otp.tsx` is untouched. `ccc4306`.
+13. **B-?? (draft), `AccessibilityTest` and `FieldInline`.** The count of field errors drawn by Field covers `<Field … error=` and `<FieldInline … error=`. `ccc4306`.
+14. **B-?? (draft), the recovery code's id.** Its `Field` uses `id="recovery-code"`, so its error keeps today's `#recovery-code-error`; the "Enter recovery code" placeholder goes with the others (a label says it). `ccc4306`.
+15. **B-?? (draft), the admin's 404 in the browser.** A guest at `/admin/no-such-screen` is sent to sign in, so the case signs in as the editor first, then visits it; the 403 is People (`users.index`), refused to editors. `c0223f6`.
+16. **B-?? (draft), the 403's own reason.** Laravel's 403 page printed the exception's message; `OthersWorkTest` proves a refused editor is told why ("You can't edit this item."). Options: change that test (changes what it proves: a STOP); print the reason under the general words; print it in their place. Took the third: a refusal with its own reason shows it as the page's text, and one without (or Laravel's "This action is unauthorized.") shows S6's words. `c515ed0`.
+17. **B-?? (draft), the Teme-mark case.** It reaches the 500 page through the test route over HTTP, as the plan says; a reader that throws does not stop the request before the route. `c515ed0`.
+
+No contract the plan names changed. No `ui/`, `patterns/` (existing), token, scanner or `tests/Pest.php` change. No dependency change.
+
+### Open
+
+- The countdown's last second (B-?? 11): a person pressing at zero can be told "Try again in 0 seconds". A fix belongs to the throttle (flash the timer's real end), which S1 rules out here.
+- The plan's open points 1 to 6 stand as written.
+
+### Changelog line (for the maintainers)
+
+"The sign-in pages, the error pages and the holding page share one new design, work on a 320-pixel phone, and count down the wait when sign-in is paused after too many tries."
+
+### How to try it
+
+Sign out; sign in at 1280 and at 320 pixels wide; press the eye beside the password, or Tab to it. Get the password wrong five times, try a sixth, and watch the wait count down (from 15 minutes under the default settings). Visit `/admin/no-such-screen` signed in, and People as an editor. On a site with no accounts, visit `/` for the holding page.
+
+### Follow-up W4-2 (the review's fixes)
+
+- `f95de8b` fix(auth): the countdown ends once the limiter has let go. `SignInPaused` counts to one second past the refusal's number and shows `Math.min(left, seconds)`, so the words never say more than the refusal did; the server is unchanged. The browser case's 1.1-second sleep is gone: without the fix it was red in two of three runs ("Actual path [/admin/login] does not equal expected path [/admin]."), and green in seven of seven runs with it. This replaces B-?? 11 and its open point.
+- `b7c6d41` feat(site): Teme's name beside its mark on the error and holding pages, as `<span class="sa-product">Teme</span>`; the `sa-name` check stays. Red first: "Failed asserting that two strings are identical" (no `.sa-product`). Revises B-?? 6.
+- `4c0f575` test(site): two `StandalonePagesTest` cases, a 403 carrying its own reason shows it in `.sa-quiet`, and one carrying Laravel's "This action is unauthorized." shows the general words. Both passed on the code; each was seen red with its half of the 403 page's logic planted out (the reason never used; Laravel's words not filtered).
+- `4ad0c74` fix(site): the inlined Teme icon's class names (`tile`, `edge`, `deep`, `light`, `pale`) become `sa-icon-…` in its `<style>` and its elements. Red first: the Teme-mark case's new assertions ("Expected … to contain .sa-icon-tile").
+- Checks: the quick check green (Pint, PHPStan, types, lint, Architecture 101 passed); `tests/Feature/Auth` 45 passed; `StandalonePagesTest` 16 passed (162 assertions); after `npm run build`, `SignInPagesTest` 17 passed (280 assertions). The container's services had stopped between sessions; `scripts/cloud-setup.sh` brought them back.

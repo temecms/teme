@@ -6,8 +6,10 @@ namespace App\Providers;
 
 use App\Actions\Fortify\ResetUserPassword;
 use App\Domain\Users\Queries\FirstRun;
+use App\Http\Admin\Auth\ThrottleSignIn;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -58,6 +60,7 @@ final class FortifyServiceProvider extends ServiceProvider
             'canRemember' => app(SettingsReader::class)->int('security', 'session_remember_days') > 0,
             'status' => $request->session()->get('status'),
             'firstRun' => app(FirstRun::class)->needed(),
+            'retryAfter' => self::retryAfter($request),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
@@ -77,6 +80,23 @@ final class FortifyServiceProvider extends ServiceProvider
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor-challenge'));
 
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
+    }
+
+    /**
+     * Seconds until sign-in opens again, from the moment the throttle flashed for
+     * this browser's last refused attempt; null when nothing was refused.
+     */
+    private static function retryAfter(Request $request): ?int
+    {
+        $at = $request->session()->get(ThrottleSignIn::RETRY_AT);
+
+        if (! is_int($at)) {
+            return null;
+        }
+
+        $seconds = $at - Date::now()->getTimestamp();
+
+        return $seconds > 0 ? $seconds : null;
     }
 
     /**

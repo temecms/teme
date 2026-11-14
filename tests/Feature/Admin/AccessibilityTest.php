@@ -8,13 +8,16 @@ declare(strict_types=1);
 it('ties every field error to its field', function (string $file, ?string $partner = null): void {
     // A source scan: every InputError carries an id, and the controls name
     // those ids with aria-describedby. A partner is the file that draws the
-    // control when another file draws the error.
+    // control when another file draws the error. An error given to Field is
+    // tied by Field itself, which writes its id and the control's
+    // aria-describedby (resources/js/components/ui/field.tsx).
     $source = uiComponent($file);
     $controls = $source.($partner === null ? '' : uiComponent($partner));
 
     preg_match_all('/<InputError\b(?:=>|[^>])*>/s', $source, $errors);
+    preg_match_all('/<Field(?:Inline)?\b(?:=>|[^>])*\berror=/s', $source, $fieldErrors);
 
-    expect($errors[0])->not->toBeEmpty();
+    expect([...$errors[0], ...$fieldErrors[0]])->not->toBeEmpty();
 
     foreach ($errors[0] as $error) {
         expect($error)->toContain('id=');
