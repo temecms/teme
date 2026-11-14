@@ -543,4 +543,5 @@ Stop, write why under Records, commit and push, then stop, when:
 **Setup.** `/tmp/teme-cloud-setup.log`: "2026-11-14T14:50:11Z ran in /home/user/teme as root", "2026-11-14T15:01:59Z finished"; working directory `/home/user/teme`. PHP 8.4.27, PostgreSQL 18 on 5433, Valkey on 6380, Node 24.22.1. Base `origin/main` at `e77848d`, holding the foundation commit `e7f2af7`.
 
 **Checkpoints.**
-- Done to Task 1, the quick check green.
+- Done to Task 1 at `77456b5`, the quick check green.
+- Done to Task 2, the quick check green.
