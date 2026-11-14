@@ -162,6 +162,25 @@ it('takes 450 comments in three pages, the third done', function (): void {
         ->and(DB::table('comments')->where('author_email', 'ada@example.com')->count())->toBe(0);
 });
 
+it('erases at most one page of comments a step, whatever plan the database picks', function (): void {
+    // Held comments: none is on a public page, so the step can run on its own.
+    foreach (range(1, 450) as $count) {
+        cmRow($this->item, ['status' => 'pending']);
+    }
+
+    // Under load PostgreSQL may run the page's subquery again for each row it
+    // updates; the plan that does so is forced here, so the page must hold.
+    foreach (['enable_hashjoin', 'enable_mergejoin', 'enable_hashagg', 'enable_sort', 'enable_material'] as $setting) {
+        DB::statement("SET LOCAL {$setting} = off");
+    }
+
+    $first = $this->holder->erase(new PersonalDataSubject('ada@example.com', null), 1);
+
+    expect($first->removed)->toBe(200)
+        ->and($first->done)->toBeFalse()
+        ->and(DB::table('comments')->where('author_email', 'ada@example.com')->count())->toBe(250);
+});
+
 it('purges an approved comment’s pages after commit, and not a spam one’s, nor anything on a rollback (rule 6)', function (): void {
     $folder = cacheOn();
     $approved = cmComment($this->item);
