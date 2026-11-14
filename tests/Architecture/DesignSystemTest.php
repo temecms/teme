@@ -68,7 +68,7 @@ function dsCounts(): array
 {
     return [
         'R1' => 101,
-        'R2' => 562,
+        'R2' => 567,
         'R3' => 140,
         'R5' => 80,
         'R6' => 38,

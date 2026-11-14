@@ -630,6 +630,11 @@ R2	js/pages/plugins/index.tsx	text-[13px]
 R2	js/pages/plugins/index.tsx	text-[13px]
 R2	js/pages/plugins/index.tsx	text-[13px]
 R2	js/pages/plugins/index.tsx	text-xs
+R2	js/pages/settings/site-code.tsx	text-sm
+R2	js/pages/settings/site-code.tsx	text-sm
+R2	js/pages/settings/site-code.tsx	text-sm
+R2	js/pages/settings/site-code.tsx	text-sm
+R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/plugins/index.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
