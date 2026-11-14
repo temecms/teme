@@ -40,6 +40,8 @@ it('shows a plugin’s notice as a banner to plugins.manage holders, linking to 
         'message' => 'Example sync needs its token.',
         'actionLabel' => 'Open Example sync’s settings',
         'actionUrl' => route('settings.show', ['group' => 'plugin.example-sync']),
+        'label' => 'Example sync',
+        'plugin' => 'Example sync',
     ])
         ->and($checks->forUser($editor))->toBeNull()
         ->and(exampleCheck(new StatusNotice('error', 'The workspace refused the token.'))->banner()?->toArray())->toBe([
@@ -47,6 +49,8 @@ it('shows a plugin’s notice as a banner to plugins.manage holders, linking to 
             'message' => 'The workspace refused the token.',
             'actionLabel' => null,
             'actionUrl' => null,
+            'label' => '',
+            'plugin' => null,
         ]);
 });
 
@@ -56,6 +60,11 @@ it('ranks every plugin banner below Teme’s own', function (): void {
         public function ability(): string
         {
             return 'plugins.manage';
+        }
+
+        public function label(): string
+        {
+            return 'Updates';
         }
 
         public function banner(): ?StatusBanner

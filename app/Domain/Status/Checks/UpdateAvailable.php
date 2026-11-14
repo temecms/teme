@@ -23,6 +23,11 @@ final readonly class UpdateAvailable implements StatusCheck
         return 'updates.manage';
     }
 
+    public function label(): string
+    {
+        return __('Updates');
+    }
+
     public function banner(): ?StatusBanner
     {
         $newer = $this->state->newerSummaries();

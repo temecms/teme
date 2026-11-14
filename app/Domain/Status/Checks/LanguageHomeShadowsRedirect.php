@@ -25,6 +25,11 @@ final readonly class LanguageHomeShadowsRedirect implements StatusCheck
         return 'redirects.manage';
     }
 
+    public function label(): string
+    {
+        return __('Languages');
+    }
+
     public function banner(): ?StatusBanner
     {
         $languages = app(SiteLanguages::class);
