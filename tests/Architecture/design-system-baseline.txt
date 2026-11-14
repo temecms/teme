@@ -1367,7 +1367,6 @@ R8	js/components/types/field-sheet.tsx	overflow-y-auto
 R8	js/components/types/icon-picker.tsx	overflow-y-auto
 R8	js/components/ui/popover.tsx	overflow-y-auto
 R8	js/components/ui/sidebar.tsx	overflow-auto
-R8	js/layouts/settings/layout.tsx	overflow-x-auto
 R8	js/pages/content/index.tsx	overflow-x-auto
 R8	js/pages/content/index.tsx	overflow-y-auto
 R8	js/pages/settings/site-code.tsx	overflow-x-auto

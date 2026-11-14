@@ -111,3 +111,12 @@ it('switches comments at once, and holds the switch while the sections below hav
     $page->click('#field-comments');
     cmWaitUntil($page, 'document.body.textContent.includes("Comments switched off.")');
 });
+
+it('marks the field Find a setting lands on', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/settings/media');
+    $page->type('[data-test="find-setting"]', 'time zone');
+    cmWaitUntil($page, 'document.querySelector(\'#settings-found a[href$="#field-timezone"]\') !== null');
+
+    $page->click('#settings-found a[href$="#field-timezone"]');
+    cmWaitUntil($page, 'document.querySelector("#field-timezone")?.closest(\'[data-slot="settings-field"]\')?.hasAttribute("data-found") === true');
+});
