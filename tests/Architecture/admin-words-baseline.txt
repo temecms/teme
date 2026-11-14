@@ -803,118 +803,6 @@ components/header/jobs-button.tsx	Started
 components/header/jobs-button.tsx	Your jobs
 components/header/jobs-button.tsx	Your jobs
 components/header/jobs-button.tsx	Your jobs couldn’t be loaded. Try again in a moment.
-components/import/choices-form.tsx	1 image
-components/import/choices-form.tsx	1 page
-components/import/choices-form.tsx	Custom roles
-components/import/choices-form.tsx	Don’t place it
-components/import/choices-form.tsx	Images from other sites
-components/import/choices-form.tsx	Items whose author is gone
-components/import/choices-form.tsx	Menu locations
-components/import/choices-form.tsx	Page templates
-components/import/choices-form.tsx	Pause between requests
-components/import/choices-form.tsx	Posts and pages whose WordPress author was deleted belong to this person.
-components/import/choices-form.tsx	Posts show images kept on these sites. Tick a site to bring its images into the media library. The rest become links, with each image’s description as the words.
-components/import/choices-form.tsx	Start the import
-components/import/choices-form.tsx	Teme asks for your password first. The import runs in the background: you can leave this page, and the result reaches your inbox.
-components/import/choices-form.tsx	The old site stays live while Teme reads it. A pause keeps it quick for its readers.
-components/import/choices-form.tsx	The template each WordPress page template becomes.
-components/import/choices-form.tsx	The theme’s default
-components/import/choices-form.tsx	This theme has no places for menus. Menus come across, and you can place them later.
-components/import/choices-form.tsx	Where each menu goes in this site’s theme.
-components/import/choices-form.tsx	WordPress roles Teme doesn’t have. People with them get the role you choose, or stay behind.
-components/import/choices-form.tsx	{} images
-components/import/choices-form.tsx	{} pages
-components/import/connect-form.tsx	An administrator’s.
-components/import/connect-form.tsx	Application password
-components/import/connect-form.tsx	Connect
-components/import/connect-form.tsx	Connect a WordPress site
-components/import/connect-form.tsx	Connect again
-components/import/connect-form.tsx	Connecting can take up to two minutes if the site is slow to answer.
-components/import/connect-form.tsx	Connecting…
-components/import/connect-form.tsx	Download Teme Companion
-components/import/connect-form.tsx	First, on the WordPress site:
-components/import/connect-form.tsx	Install and activate the Teme Companion plugin, version
-components/import/connect-form.tsx	Open Tools › Teme site report and run it. Teme reads the report to show what comes across.
-components/import/connect-form.tsx	Open Users › Profile and add an application password named Teme. Copy it: WordPress shows it once.
-components/import/connect-form.tsx	Site address
-components/import/connect-form.tsx	Teme keeps it encrypted until you choose Forget this site, and never shows it again.
-components/import/connect-form.tsx	The address readers use, such as https://example.com.
-components/import/connect-form.tsx	To import from this site again, make a new application password in WordPress and enter it here.
-components/import/connect-form.tsx	WordPress user name
-components/import/connect-form.tsx	https://example.com
-components/import/connect-form.tsx	or later.
-components/import/import-steps.tsx	(current step)
-components/import/import-steps.tsx	(done)
-components/import/import-steps.tsx	Analyze
-components/import/import-steps.tsx	Choose
-components/import/import-steps.tsx	Connect
-components/import/import-steps.tsx	Import
-components/import/import-steps.tsx	Import steps
-components/import/import-steps.tsx	Report
-components/import/run-progress.tsx	(done)
-components/import/run-progress.tsx	(now)
-components/import/run-progress.tsx	Carry on
-components/import/run-progress.tsx	Carrying on picks up where it stopped. Teme asks for your password first.
-components/import/run-progress.tsx	Importing
-components/import/run-progress.tsx	Steps of this import
-components/import/run-progress.tsx	Stop the import
-components/import/run-progress.tsx	Stopped
-components/import/run-progress.tsx	You can leave this page. The import carries on in the background, and the result reaches your inbox.
-components/import/run-progress.tsx	created ·
-components/import/run-progress.tsx	failed ·
-components/import/run-progress.tsx	skipped ·
-components/import/run-progress.tsx	updated ·
-components/import/run-progress.tsx	with warnings
-components/import/run-report.tsx	: new and edited posts and pages, new comments and new redirects. Anything deleted on WordPress since is listed, never deleted here.
-components/import/run-report.tsx	Brings across what changed on WordPress since
-components/import/run-report.tsx	Catch up
-components/import/run-report.tsx	Catch up
-components/import/run-report.tsx	Download the full report
-components/import/run-report.tsx	Download what needs attention
-components/import/run-report.tsx	Finished
-components/import/run-report.tsx	Forget this site
-components/import/run-report.tsx	Forget this site
-components/import/run-report.tsx	Forget this site’s application password?
-components/import/run-report.tsx	No warnings or errors.
-components/import/run-report.tsx	Not ready to switch yet: {} attention. Fix them on WordPress or here, then catch up.
-components/import/run-report.tsx	Nothing came across in this import.
-components/import/run-report.tsx	Ready to switch: nothing failed and every old address answers on Teme.
-components/import/run-report.tsx	Report
-components/import/run-report.tsx	Report of the import started
-components/import/run-report.tsx	Report so far
-components/import/run-report.tsx	Show the latest import
-components/import/run-report.tsx	Teme deletes its copy of the application password. What was imported stays, and so does this site’s report. To import from it again, connect it again.
-components/import/run-report.tsx	The full report has a line for every item and what happened to it. The other has only what failed or has a warning.
-components/import/run-report.tsx	The full report lists the rest.
-components/import/run-report.tsx	Warnings and errors
-components/import/run-report.tsx	What came across
-components/import/run-report.tsx	When you’ve switched to Teme, forget this site, then revoke its application password in WordPress.
-components/import/run-report.tsx	created,
-components/import/run-report.tsx	failed,
-components/import/run-report.tsx	skipped,
-components/import/run-report.tsx	then
-components/import/run-report.tsx	updated,
-components/import/run-report.tsx	with warnings.
-components/import/site-analysis.tsx	. To count again, run Tools › Teme site report there, then choose Analyze again.
-components/import/site-analysis.tsx	Analyze again
-components/import/site-analysis.tsx	Counted from the site report made in WordPress
-components/import/site-analysis.tsx	Each post’s and page’s own SEO fields come from
-components/import/site-analysis.tsx	Every old address keeps working: at the same address, or through a permanent redirect to its new one.
-components/import/site-analysis.tsx	Most of this site’s addresses belong to custom types:
-components/import/site-analysis.tsx	Not imported
-components/import/site-analysis.tsx	Nothing: everything on this site comes across.
-components/import/site-analysis.tsx	Reading the site report…
-components/import/site-analysis.tsx	What comes across
-components/import/site-analysis.tsx	What comes across
-components/import/site-analysis.tsx	What comes across
-components/import/site-analysis.tsx	WordPress hasn’t made a site report yet. On the WordPress site, open Tools › Teme site report and run it, then choose Analyze again.
-components/import/site-analysis.tsx	of
-components/import/site-analysis.tsx	on {}
-components/import/site-analysis.tsx	published items. Teme can’t import custom types yet, so those addresses would answer “not found” after the switch. Move this site once Teme can import them.
-components/import/site-runs.tsx	Imports of this site
-components/import/site-runs.tsx	Report
-components/import/site-runs.tsx	Show its report
-components/import/site-runs.tsx	Show the report of the import started {}
 components/inbox/inbox-list.tsx	(unread)
 components/inbox/inbox-list.tsx	Inbox items
 components/inbox/inbox-list.tsx	Nothing new
@@ -1965,17 +1853,6 @@ pages/tools/backups/sftp.tsx	The public key could not be copied. Select it and c
 pages/tools/backups/sftp.tsx	Tools
 pages/tools/backups/sftp.tsx	Your recovery key
 pages/tools/backups/sftp.tsx	answered with the fingerprint below. Ask whoever runs it to check it’s theirs before you go on.
-pages/tools/import/index.tsx	Import
-pages/tools/import/index.tsx	Import
-pages/tools/import/index.tsx	Import
-pages/tools/import/index.tsx	Move a WordPress site into Teme: its posts, pages, media, people, comments and menus. Every old address keeps working.
-pages/tools/import/index.tsx	Password forgotten
-pages/tools/import/index.tsx	Sites
-pages/tools/import/index.tsx	Tools
-pages/tools/import/show.tsx	Import
-pages/tools/import/show.tsx	Teme uses these for this import and for each catch-up after it.
-pages/tools/import/show.tsx	Tools
-pages/tools/import/show.tsx	Your choices
 pages/tools/index.tsx	Tools
 pages/tools/index.tsx	Tools
 pages/tools/index.tsx	Tools

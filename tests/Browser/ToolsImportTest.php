@@ -121,6 +121,22 @@ it('connects a site, reads what comes across, confirms the password and starts t
     expect($run->state)->toBe(ImportRunState::Running)
         ->and($run->choices['outside_images'])->toBe(['cdn.partner.example']);
 });
+it('marks one current step on a site’s page, Choose once the plan has arrived', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/import');
+    tiWaitUntil($page, tiPresent('[data-test="import-connect"]'));
+    $page->type('#import-address', FakeCompanion::SITE)
+        ->type('#import-user-name', FakeCompanion::USER)
+        ->type('#import-application-password', FakeCompanion::PASSWORD)
+        ->click('[data-test="import-connect"]');
+
+    tiWaitUntil($page, tiPresent('[data-test="import-start"]'));
+
+    expect($page->script('() => document.querySelector(\'[data-test="import-step"][data-slot="step-bar"]\') !== null'))->toBeTrue()
+        ->and($page->script('() => [...document.querySelectorAll(\'[data-test="import-step"] [aria-current="step"]\')].map((step) => step.textContent.trim())'))->toHaveCount(1)
+        ->and($page->script('() => document.querySelector(\'[data-test="import-step"] [aria-current="step"]\').textContent'))->toContain('Choose')
+        ->and($page->script('() => [...document.querySelectorAll(\'[data-test="import-step"] > li\')].slice(0, 2).map((step) => step.dataset.state)'))->toBe(['done', 'done']);
+});
+
 it('passes axe on a finished import’s report, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
     ['source' => $source] = ImportRecords::finishedImport($this->admin->id);
