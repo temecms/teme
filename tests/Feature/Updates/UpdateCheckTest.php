@@ -50,7 +50,7 @@ it('asks GitHub once, with the token, sending nothing about the site', function 
         $everything = $request->url().json_encode($request->headers()).$request->body();
 
         return $request->method() === 'GET'
-            && $request->url() === 'https://api.github.com/repos/Krafty-Sprouts-Media-LLC/Teme/releases?per_page=100'
+            && $request->url() === 'https://api.github.com/repos/temecms/teme/releases?per_page=100'
             && $names === ['accept', 'authorization', 'user-agent', 'x-github-api-version']
             && $request->header('User-Agent') === ['Teme']
             && $request->header('Accept') === ['application/vnd.github+json']
@@ -89,7 +89,7 @@ it('keeps each release as Teme reads it, and the ETag', function (): void {
         ->and((bool) $rc15->security)->toBeTrue()
         ->and((bool) $rc15->maintenance)->toBeTrue()
         ->and($rc15->notes)->toBe("### Security\n\n- A fix")
-        ->and($rc15->url)->toBe('https://github.com/Krafty-Sprouts-Media-LLC/Teme/releases/tag/v0.1.0-rc.15')
+        ->and($rc15->url)->toBe('https://github.com/temecms/teme/releases/tag/v0.1.0-rc.15')
         ->and((bool) $release->prerelease)->toBeFalse()
         ->and($release->url)->toBeNull()
         ->and(mb_strlen((string) DB::table('teme_releases')->where('version', '0.1.0-rc.14')->value('notes')))->toBe(65535)
@@ -165,19 +165,19 @@ it('records why a check failed, and keeps the last list and ETag', function (Clo
     'rate-limited, 429' => [fn (ResponseSequence $then) => $then->push(['message' => 'Too many requests'], 429, ['Retry-After' => '60']), 'GitHub’s limit on requests was reached. Teme asks again within the hour.'],
     'token refused' => [fn (ResponseSequence $then) => $then->push(['message' => 'Bad credentials'], 401), 'GitHub refused the token in TEME_GITHUB_TOKEN. Make a new read-only token for the repository and set it.'],
     'refused' => [fn (ResponseSequence $then) => $then->push(['message' => 'Forbidden'], 403), 'GitHub refused the request (403). Teme asks again within the hour.'],
-    'not found, with a token' => [fn (ResponseSequence $then) => $then->push(['message' => 'Not Found'], 404), 'GitHub can’t find Krafty-Sprouts-Media-LLC/Teme, or the token in TEME_GITHUB_TOKEN can’t read it.'],
+    'not found, with a token' => [fn (ResponseSequence $then) => $then->push(['message' => 'Not Found'], 404), 'GitHub can’t find temecms/teme, or the token in TEME_GITHUB_TOKEN can’t read it.'],
     'a server error' => [fn (ResponseSequence $then) => $then->push('Bad gateway', 502), 'GitHub answered 502. Teme asks again within the hour.'],
     'a redirect, not followed' => [fn (ResponseSequence $then) => $then->push('', 301, ['Location' => 'https://api.github.com/repositories/1/releases']), 'GitHub answered 301. Teme asks again within the hour.'],
     'not a list' => [fn (ResponseSequence $then) => $then->push(['message' => 'Moved'], 200), 'GitHub’s answer couldn’t be read. Teme asks again within the hour.'],
 ]);
 
-it('says to set the token when the repository can’t be found without one', function (): void {
+it('says the repository can’t be found, without asking for a token', function (): void {
     config(['teme.updates.token' => null]);
     updFake(Http::response(['message' => 'Not Found'], 404));
 
     app(CheckForUpdates::class)->run();
 
-    expect(($this->check)()->error)->toBe('GitHub can’t find Krafty-Sprouts-Media-LLC/Teme. While the repository is private, set TEME_GITHUB_TOKEN to a read-only token for it.')
+    expect(($this->check)()->error)->toBe('GitHub can’t find temecms/teme. Teme asks again within the hour.')
         ->and(($this->check)()->succeeded_at)->toBeNull()
         // The screen, drawn by web without the token, reads this.
         ->and((bool) ($this->check)()->token_set)->toBeFalse()
@@ -217,7 +217,7 @@ it('refuses when there is no actor and no operator, writing nothing', function (
 });
 
 it('refuses a release whose version isn’t one, or comes twice, writing nothing', function (): void {
-    $release = Release::fromGitHub(updItem('0.1.0-rc.14'), 'Krafty-Sprouts-Media-LLC/Teme');
+    $release = Release::fromGitHub(updItem('0.1.0-rc.14'), 'temecms/teme');
     $notOne = new Release('not-a-version', false, false, false, '', null, CarbonImmutable::now());
 
     expect(fn () => app(RecordReleaseCheck::class)->execute(new RecordReleaseCheckInput(ReleaseCheck::found([$notOne], null), CarbonImmutable::now(), true)))

@@ -4572,7 +4572,7 @@ function updItem(string $version, array $overrides = []): array
         'draft' => false,
         'prerelease' => str_contains($version, '-'),
         'published_at' => '2026-11-10T09:00:00Z',
-        'html_url' => 'https://github.com/Krafty-Sprouts-Media-LLC/Teme/releases/tag/v'.$version,
+        'html_url' => 'https://github.com/temecms/teme/releases/tag/v'.$version,
         'body' => "Notes for {$version}.\n\n<!-- teme-release {\"format\":1,\"security\":false,\"maintenance\":false} -->\n",
         ...$overrides,
     ];
@@ -4584,7 +4584,7 @@ function updItem(string $version, array $overrides = []): array
 function updFake(mixed $response): void
 {
     Http::preventStrayRequests();
-    Http::fake(['https://api.github.com/repos/Krafty-Sprouts-Media-LLC/Teme/releases*' => $response]);
+    Http::fake(['https://api.github.com/repos/temecms/teme/releases*' => $response]);
 }
 
 /** The operator acting, as at the server's shell. */

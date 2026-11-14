@@ -24,7 +24,7 @@ use Tests\Fixtures\Updates\FakePlatform;
 
 uses(RefreshDatabase::class);
 
-const UC_IMAGE = 'ghcr.io/krafty-sprouts-media-llc/teme';
+const UC_IMAGE = 'ghcr.io/temecms/teme';
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);

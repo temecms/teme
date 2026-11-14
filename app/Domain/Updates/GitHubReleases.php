@@ -58,7 +58,7 @@ final readonly class GitHubReleases
             $status === 403 => ReleaseCheck::failed('GitHub refused the request (403). '.self::AGAIN),
             $status === 404 => ReleaseCheck::failed($hasToken
                 ? "GitHub can’t find {$repository}, or the token in TEME_GITHUB_TOKEN can’t read it."
-                : "GitHub can’t find {$repository}. While the repository is private, set TEME_GITHUB_TOKEN to a read-only token for it."),
+                : "GitHub can’t find {$repository}. ".self::AGAIN),
             default => ReleaseCheck::failed("GitHub answered {$status}. ".self::AGAIN),
         };
     }

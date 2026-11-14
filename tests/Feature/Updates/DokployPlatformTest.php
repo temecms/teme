@@ -25,7 +25,7 @@ uses(RefreshDatabase::class);
 const DP_BASE = 'https://dokploy.example.org';
 const DP_TOKEN = 'dokploy-secret-token';
 const DP_KEY = 'base64:planted-app-key';
-const DP_REPOSITORY = 'ghcr.io/krafty-sprouts-media-llc/teme';
+const DP_REPOSITORY = 'ghcr.io/temecms/teme';
 
 beforeEach(function (): void {
     config([

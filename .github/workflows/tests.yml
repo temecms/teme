@@ -20,11 +20,9 @@ on:
       - 'docs/**'
       - '**/*.md'
       - '.ai/**'
+  # Every pull request runs everything, documents-only ones too: `checks` is a
+  # required status on main, and a run that never starts would never report it.
   pull_request:
-    paths-ignore:
-      - 'docs/**'
-      - '**/*.md'
-      - '.ai/**'
   workflow_dispatch:
 
 concurrency:

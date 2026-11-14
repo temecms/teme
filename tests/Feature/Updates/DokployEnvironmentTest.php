@@ -6,8 +6,8 @@ use App\Domain\Updates\Updater\DokployEnvironment;
 use App\Domain\Updates\Updater\ImageSetting;
 use App\Domain\Updates\Updater\PlatformRefused;
 
-const DE_OLD = 'ghcr.io/krafty-sprouts-media-llc/teme:0.1.0-rc.14';
-const DE_NEW = 'ghcr.io/krafty-sprouts-media-llc/teme:0.1.0-rc.15';
+const DE_OLD = 'ghcr.io/temecms/teme:0.1.0-rc.14';
+const DE_NEW = 'ghcr.io/temecms/teme:0.1.0-rc.15';
 
 /** The text of a Compose service's environment, with a planted APP_KEY, a quoted password and the token around $line. */
 function deText(string $lines, string $eol = "\n"): string

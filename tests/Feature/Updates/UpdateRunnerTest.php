@@ -32,7 +32,7 @@ use Tests\Fixtures\Updates\FakePlatform;
 
 uses(RefreshDatabase::class);
 
-const UR_IMAGE = 'ghcr.io/krafty-sprouts-media-llc/teme';
+const UR_IMAGE = 'ghcr.io/temecms/teme';
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
@@ -887,8 +887,8 @@ it('rolls back as it updates: the previous image on the service, the same way', 
 });
 
 it('builds the image name only from Teme’s repository and a release’s version', function (): void {
-    expect(ImageName::for('0.1.0-rc.15'))->toBe('ghcr.io/krafty-sprouts-media-llc/teme:0.1.0-rc.15')
-        ->and(ImageName::for('1.20.3'))->toBe('ghcr.io/krafty-sprouts-media-llc/teme:1.20.3');
+    expect(ImageName::for('0.1.0-rc.15'))->toBe('ghcr.io/temecms/teme:0.1.0-rc.15')
+        ->and(ImageName::for('1.20.3'))->toBe('ghcr.io/temecms/teme:1.20.3');
 });
 
 it('refuses anything else before any call', function (string $version, string $repository, string $sentence): void {
