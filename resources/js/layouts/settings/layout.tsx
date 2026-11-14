@@ -106,6 +106,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         field?.addEventListener('blur', unmark, { once: true });
 
         return () => {
+            unmark();
             field?.removeEventListener('input', unmark);
             field?.removeEventListener('blur', unmark);
         };

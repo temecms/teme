@@ -126,6 +126,24 @@ it('writes nothing when the person may change General but not the site design', 
     expect(sspVersion('general'))->toBe(0)->and(sspVersion('design'))->toBe($design);
 });
 
+it('writes nothing when the person may change Reading but not the addresses its home page lives in', function (): void {
+    $person = User::factory()->create();
+    $person->givePermissionTo('settings.general.manage');
+    $addresses = sspVersion('addresses');
+
+    $this->actingAs($person)->from('/admin/settings/reading')
+        ->put('/admin/settings/reading', [
+            'values' => ['posts_per_page' => 12],
+            'expected_version' => sspVersion('reading'),
+            'front_shows' => 'posts',
+            'front_page_id' => '',
+            'posts_page_id' => '',
+        ])
+        ->assertForbidden();
+
+    expect(sspVersion('reading'))->toBe(0)->and(sspVersion('addresses'))->toBe($addresses);
+});
+
 it('refuses the Operation itself for someone with no right to the group, writing nothing', function (): void {
     $person = User::factory()->create();
 

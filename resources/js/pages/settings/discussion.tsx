@@ -51,7 +51,7 @@ export default function DiscussionSettings({
                 preserveScroll: true,
                 onStart: () => setSwitching(true),
                 onFinish: () => setSwitching(false),
-                onError: (errors) => setSwitchError(errors.expected_version),
+                onError: (errors) => setSwitchError(Object.values(errors)[0]),
                 onSuccess: () => setSwitchError(undefined),
             },
         );
