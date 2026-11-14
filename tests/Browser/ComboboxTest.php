@@ -366,3 +366,22 @@ it('offers no Create to someone who may not create tags', function (): void {
     $page->assertScript("document.querySelectorAll('[role=\"option\"]').length === 0");
     expect(DB::table('terms')->where('name', 'Lighthouse keepers')->exists())->toBeFalse();
 });
+
+it('ticks nothing when Enter is pressed while a new search is still loading', function (): void {
+    taxonomyTerm('tag', 'Harbour');
+    $item = lifecycleDraft($this->admin, 'Ferry notes');
+
+    $page = cbEditorAtTags($this->admin, $item);
+
+    cbType($page, 'harbour');
+    shellSettled($page, '[data-slot="popover-content"]');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Harbour'");
+
+    // A new search starts; until it answers, the one result shown is the last search's.
+    cbType($page, 's');
+    cbPress($page, 'Enter');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && document.activeElement?.value === 'harbours'");
+    $page->assertScript("document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]').length === 0")
+        ->assertScript("document.querySelectorAll('[role=\"option\"][aria-checked=\"true\"]').length === 0");
+});

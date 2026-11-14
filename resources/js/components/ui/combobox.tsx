@@ -75,7 +75,7 @@ const itemToKey = (option: ComboboxOption | null) => option?.value
 const itemToString = (option: ComboboxOption | null) => option?.label ?? ""
 
 // The popover's search is never the value: leaving or Esc chooses nothing and clears nothing.
-function comboboxReducer(multiple: boolean) {
+function comboboxReducer(multiple: boolean, loading: boolean) {
   return (
     state: UseComboboxState<ComboboxOption>,
     { type, changes, props }: UseComboboxStateChangeOptions<ComboboxOption>
@@ -95,9 +95,11 @@ function comboboxReducer(multiple: boolean) {
         return { ...changes, inputValue: state.inputValue }
       case useCombobox.stateChangeTypes.InputKeyDownEnter:
       case useCombobox.stateChangeTypes.ItemClick: {
-        // Enter with nothing highlighted and one result chooses that result.
+        // Enter with nothing highlighted and one result chooses that result, never
+        // while a new search is loading and the result shown is the last search's.
         const only =
           type === useCombobox.stateChangeTypes.InputKeyDownEnter &&
+          !loading &&
           state.highlightedIndex < 0 &&
           props.items.length === 1 &&
           !props.items[0].disabled
@@ -323,7 +325,7 @@ function Combobox(props: ComboboxProps) {
     isOpen: open,
     inputValue: searchValue,
     selectedItem: multiple ? null : (chosenList[0] ?? null),
-    stateReducer: comboboxReducer(multiple),
+    stateReducer: comboboxReducer(multiple, search?.loading === true),
     onIsOpenChange: ({ isOpen }) => {
       if (!isOpen) {
         changeOpen(false)

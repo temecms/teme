@@ -169,7 +169,15 @@ export function TermPicker({
                         })),
                     );
                 }}
-                search={{ value: query, onChange: setQuery, loading }}
+                search={{
+                    value: query,
+                    onChange: (next) => {
+                        // Loading from the keystroke on, so Enter never takes the last search's answer.
+                        setQuery(next);
+                        setLoading(next.trim() !== '');
+                    },
+                    loading,
+                }}
                 triggerLabel={__('Find a :name', {
                     name: singular.toLowerCase(),
                 })}
