@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Combobox, type ComboboxOption } from '@/components/ui/combobox';
 import {
     Collapsible,
     CollapsibleContent,
@@ -425,6 +426,171 @@ function PatternFrame({
  * section 9.3): the tokens and every shared part in the states a still page
  * can hold. Only a local site and the tests can open it.
  */
+/** The Combobox in every state: one choice, several, an empty list, a search under way, disabled and in error. */
+function ComboboxDemo() {
+    const authors: ComboboxOption[] = [
+        __('Ada Lovelace'),
+        __('Alan Turing'),
+        __('Barbara Liskov'),
+        __('Claude Shannon'),
+        __('Donald Knuth'),
+        __('Edsger Dijkstra'),
+        __('Frances Allen'),
+        __('Grace Hopper'),
+        __('Hedy Lamarr'),
+        __('Ivan Sutherland'),
+        __('John McCarthy'),
+        __('Karen Spärck Jones'),
+        __('Leslie Lamport'),
+        __('Margaret Hamilton'),
+        __('Mary Kenneth Keller'),
+        __('Niklaus Wirth'),
+        __('Radia Perlman'),
+        __('Robin Milner'),
+        __('Sophie Wilson'),
+        __('Tim Berners-Lee'),
+        __('Tony Hoare'),
+        __('Vint Cerf'),
+        __('Whitfield Diffie'),
+        __('Yukihiro Matsumoto'),
+        __('Adele Goldberg'),
+        __('Brian Kernighan'),
+        __('Carol Shaw'),
+        __('Dennis Ritchie'),
+    ].map((label, index) => ({
+        value: `author-${index + 1}`,
+        label,
+    }));
+
+    // Two people with one name, told apart by their second line.
+    authors.push(
+        {
+            value: 'author-29',
+            label: __('Sam Rivers'),
+            description: __('Editor, Travel desk'),
+        },
+        {
+            value: 'author-30',
+            label: __('Sam Rivers'),
+            description: __('Contributor, Food desk'),
+        },
+    );
+
+    const tags: ComboboxOption[] = [
+        __('Harbor'),
+        __('Ferries'),
+        __('Islands'),
+        __('Lighthouses'),
+        __('Tides'),
+        __('Fishing'),
+        __('Boatbuilding'),
+        __('Coastal walks'),
+        __('Seabirds'),
+        __('Weather'),
+        __('Markets'),
+        __('Festivals'),
+        __('History'),
+        __('Food'),
+        __('Music'),
+        __('Museums'),
+        __('Beaches'),
+        __('Cliffs'),
+        __('Sailing'),
+        __('Swimming'),
+    ].map((label, index) => ({ value: `tag-${index + 1}`, label }));
+
+    const [author, setAuthor] = useState<ComboboxOption | null>(authors[2]);
+    const [chosenTags, setChosenTags] = useState<ComboboxOption[]>([
+        tags[1],
+        tags[4],
+    ]);
+    const [searching, setSearching] = useState('');
+
+    return (
+        <div className="grid max-w-md gap-4">
+            <Field htmlFor="catalogue-combobox-single" label={__('Author')}>
+                <Combobox
+                    id="catalogue-combobox-single"
+                    name="author"
+                    options={authors}
+                    value={author}
+                    onValueChange={setAuthor}
+                    placeholder={__('Choose an author')}
+                    searchPlaceholder={__('Search authors')}
+                />
+            </Field>
+            <Field htmlFor="catalogue-combobox-multi" label={__('Tags')}>
+                <Combobox
+                    id="catalogue-combobox-multi"
+                    multiple
+                    name="tags[]"
+                    options={tags}
+                    value={chosenTags}
+                    onValueChange={setChosenTags}
+                    removeLabel={(option) =>
+                        __('Remove :name', { name: option.label })
+                    }
+                    placeholder={__('Choose tags')}
+                    searchPlaceholder={__('Search tags')}
+                />
+            </Field>
+            <Field
+                htmlFor="catalogue-combobox-empty-list"
+                label={__('Parent page')}
+            >
+                <Combobox
+                    id="catalogue-combobox-empty-list"
+                    options={[]}
+                    value={null}
+                    onValueChange={() => {}}
+                    placeholder={__('No parent')}
+                    searchPlaceholder={__('Search pages')}
+                />
+            </Field>
+            <Field htmlFor="catalogue-combobox-searching" label={__('Link to')}>
+                <Combobox
+                    id="catalogue-combobox-searching"
+                    options={[]}
+                    value={null}
+                    onValueChange={() => {}}
+                    search={{
+                        value: searching,
+                        onChange: setSearching,
+                        loading: true,
+                    }}
+                    placeholder={__('Choose a post')}
+                    searchPlaceholder={__('Search posts')}
+                />
+            </Field>
+            <Field htmlFor="catalogue-combobox-disabled" label={__('Reviewer')}>
+                <Combobox
+                    id="catalogue-combobox-disabled"
+                    disabled
+                    options={authors}
+                    value={authors[0]}
+                    onValueChange={() => {}}
+                    placeholder={__('Choose a reviewer')}
+                    searchPlaceholder={__('Search people')}
+                />
+            </Field>
+            <Field
+                htmlFor="catalogue-combobox-error"
+                label={__('Owner')}
+                error={__('Choose who owns this page.')}
+            >
+                <Combobox
+                    id="catalogue-combobox-error"
+                    options={authors}
+                    value={null}
+                    onValueChange={() => {}}
+                    placeholder={__('Choose an owner')}
+                    searchPlaceholder={__('Search people')}
+                />
+            </Field>
+        </div>
+    );
+}
+
 export default function Catalogue() {
     const uses: Record<string, string> = {
         'text-caption': __('Help under a field, badges, group headings'),
@@ -827,6 +993,16 @@ export default function Catalogue() {
                             />
                         </Field>
                     </div>
+                </Section>
+
+                <Section
+                    id="combobox"
+                    title={__('Comboboxes')}
+                    description={__(
+                        'One choice, several choices, an empty list, a search under way, disabled, and in error.',
+                    )}
+                >
+                    <ComboboxDemo />
                 </Section>
 
                 <Section
