@@ -227,9 +227,11 @@ export function TreeEditor({
     errors: Record<string, string>;
 }) {
     const [announcement, setAnnouncement] = useState('');
-    const [focus, setFocus] = useState<{ key: string; control: string } | null>(
-        null,
-    );
+    const [focus, setFocus] = useState<{
+        key: string;
+        control: string;
+        later?: boolean;
+    } | null>(null);
     // A move chosen from an item's menu brings focus back to that menu's button itself,
     // once the menu has closed and let focus go.
     const movedFromMenu = useRef<{ key: string; control: string } | null>(null);
@@ -245,7 +247,16 @@ export function TreeEditor({
                 `[data-control="${focus.control}"]:not(:disabled)`,
             ) ?? row?.querySelector<HTMLElement>("input[data-control='label']");
 
-        control?.focus();
+        if (!focus.later) {
+            control?.focus();
+
+            return;
+        }
+
+        // A removed item's menu hands focus back as it goes: take it after that.
+        const timer = window.setTimeout(() => control?.focus(), 0);
+
+        return () => window.clearTimeout(timer);
     }, [focus, items]);
 
     /** Makes the move, or says why not; where focus goes after it, or null when refused. */
@@ -284,13 +295,27 @@ export function TreeEditor({
         onChange(tree);
     };
 
-    const remove = (path: number[]) => {
+    /** Removes the item; from its menu, focus goes to the item now in its place, else the one before, else its parent. */
+    const remove = (path: number[], fromMenu = false) => {
         const tree = structuredClone(items);
-        const [item] = listAt(tree, path.slice(0, -1)).splice(
-            path[path.length - 1],
-            1,
-        );
+        const siblings = listAt(tree, path.slice(0, -1));
+        const index = path[path.length - 1];
+        const [item] = siblings.splice(index, 1);
         onChange(tree);
+
+        if (fromMenu) {
+            const next =
+                siblings[index] ??
+                siblings[index - 1] ??
+                (path.length > 1
+                    ? listAt(tree, path.slice(0, -2))[path[path.length - 2]]
+                    : undefined);
+
+            if (next !== undefined) {
+                setFocus({ key: next.key, control: 'more', later: true });
+            }
+        }
+
         setAnnouncement(
             item.children.length > 0
                 ? `Removed “${nameOf(item)}” and the items under it.`
@@ -353,7 +378,7 @@ export function TreeEditor({
                                                   })
                                         }
                                         maxLength={200}
-                                        className="h-8 w-64 max-w-full min-w-0 max-sm:h-11 max-sm:flex-1"
+                                        className="h-(--ctl-h) w-64 max-w-full min-w-0 max-sm:flex-1"
                                         onChange={(event) =>
                                             update(path, {
                                                 label: event.target.value,
@@ -435,7 +460,9 @@ export function TreeEditor({
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
                                                 variant="destructive"
-                                                onSelect={() => remove(path)}
+                                                onSelect={() =>
+                                                    remove(path, true)
+                                                }
                                             >
                                                 <Trash2 aria-hidden />
                                                 {__('Remove')}

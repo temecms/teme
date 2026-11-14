@@ -296,3 +296,18 @@ it('says in the menu why a move can\'t be made', function (): void {
         })()
         JS);
 });
+
+it('puts focus on the next item\'s menu button after Remove from an item\'s menu on a phone', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), "/admin/navigation/{$this->menu->id}");
+
+    cmWaitUntil($page, 'document.querySelector(\'[aria-label="More actions for Home"]\') !== null');
+
+    $page->click('[aria-label="More actions for Home"]');
+
+    shellSettled($page, '[data-slot="dropdown-menu-content"]');
+
+    $page->click('[data-slot="dropdown-menu-content"] >> text="Remove"');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"dropdown-menu-content\"]') === null && document.querySelector('[aria-label=\"More actions for Home\"]') === null");
+    cmWaitUntil($page, 'document.activeElement?.getAttribute("aria-label") === "More actions for About"');
+});
