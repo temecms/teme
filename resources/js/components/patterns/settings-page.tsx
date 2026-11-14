@@ -11,16 +11,24 @@ export function SettingsPage({
     title,
     description,
     titleAs,
+    actions,
     children,
 }: {
     title: string;
     description?: ReactNode;
     titleAs?: 'h1' | 'div';
+    /** The header's buttons, such as Addresses' "Choose the home page". */
+    actions?: ReactNode;
     children?: ReactNode;
 }) {
     return (
         <div data-slot="settings-page" className="max-w-(--form-max)">
-            <PageHeader title={title} description={description} as={titleAs} />
+            <PageHeader
+                title={title}
+                description={description}
+                actions={actions}
+                as={titleAs}
+            />
             {children}
         </div>
     );

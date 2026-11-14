@@ -148,25 +148,33 @@ it('keeps what you typed on the screen while you search', function (): void {
     expect($page->script('() => document.querySelector(\'nav[aria-label="Settings"]\').closest("[hidden]") === null'))->toBeTrue();
 });
 
-it('at a phone\'s width, draws the Settings menu as a row that scrolls inside itself, never the page, passing axe', function (): void {
+it('at a phone\'s width, opens the Settings menu from one button, never scrolling the page sideways, passing axe', function (): void {
     $page = cmSignIn($this->admin)->resize(375, 812)
         ->navigate(route('settings.show', ['group' => 'general'], false))
         ->assertScript(menuHeadingIs('General'), true);
 
+    $page->assertScript('getComputedStyle(document.querySelector(\'nav[aria-label="Settings"]\')).display === "none"')
+        ->assertScript('(() => { const button = document.querySelector(\'[data-test="settings-groups-button"]\'); return button.textContent.includes("Settings groups") && button.textContent.includes("General") && button.getAttribute("aria-expanded") === "false"; })()');
+
+    $page->click('[data-test="settings-groups-button"]');
+
     $sizes = $page->script(<<<'JS'
         () => {
             const menu = document.querySelector('nav[aria-label="Settings"]');
+            const [first, second] = [...menu.querySelectorAll('a')].map((link) => link.getBoundingClientRect());
 
             return {
+                expanded: document.querySelector('[data-test="settings-groups-button"]').getAttribute('aria-expanded'),
+                shown: getComputedStyle(menu).display !== 'none',
+                stacked: Math.round(first.left) === Math.round(second.left) && second.top >= first.bottom,
                 // How far the page scrolls sideways: none. The kept scrollbar gutter (I-3130) makes the raw difference negative.
                 page: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
-                menu: menu.scrollWidth > menu.clientWidth,
                 heading: getComputedStyle(menu.querySelector('[data-test="settings-heading"]')).display,
             };
         }
         JS);
 
-    expect($sizes)->toBe(['page' => 0, 'menu' => true, 'heading' => 'none']);
+    expect($sizes)->toBe(['expanded' => 'true', 'shown' => true, 'stacked' => true, 'page' => 0, 'heading' => 'block']);
 
     $page->assertNoAccessibilityIssues(3);
 });

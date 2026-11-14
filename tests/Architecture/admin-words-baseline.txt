@@ -742,7 +742,6 @@ components/fields/brand-colour-setting.tsx	Brand colour
 components/fields/brand-colour-setting.tsx	Only someone who may change the site’s design can change the brand colour.
 components/fields/brand-colour-setting.tsx	Pick the brand colour
 components/fields/brand-colour-setting.tsx	Sample button
-components/fields/brand-colour-setting.tsx	Save brand colour
 components/fields/brand-colour-setting.tsx	The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme.
 components/fields/brand-colour-setting.tsx	The theme sets no colour of its own.
 components/fields/brand-colour-setting.tsx	The theme’s own colour is used in each of its colour schemes.
@@ -762,10 +761,8 @@ components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page shows
 components/fields/home-page-setting.tsx	Only someone who may change the site’s addresses can change the home page.
-components/fields/home-page-setting.tsx	Save home page
 components/fields/home-page-setting.tsx	Search published pages
 components/fields/home-page-setting.tsx	What visitors see at the site’s own address.
-components/fields/home-page-setting.tsx	Your latest
 components/fields/home-page-setting.tsx	{} page
 components/fields/hours-setting.tsx	Add a second opening
 components/fields/hours-setting.tsx	Closed
@@ -1602,15 +1599,12 @@ pages/settings/addresses.tsx	Numeric
 pages/settings/addresses.tsx	Old addresses keep working: visitors and search engines are sent to the new one.
 pages/settings/addresses.tsx	Other addresses
 pages/settings/addresses.tsx	Post name
-pages/settings/addresses.tsx	Save address settings
 pages/settings/addresses.tsx	The home page and the posts page are chosen in Reading.
 pages/settings/addresses.tsx	The public addresses of every public type, taxonomy and author.
 pages/settings/addresses.tsx	These would share an address:
-pages/settings/addresses.tsx	Updating addresses:
 pages/settings/addresses.tsx	Your newest
 pages/settings/addresses.tsx	address
 pages/settings/addresses.tsx	base
-pages/settings/addresses.tsx	of
 pages/settings/addresses.tsx	will share the root with other addresses.
 pages/settings/addresses.tsx	would be at
 pages/settings/addresses.tsx	{} address
@@ -1626,8 +1620,6 @@ pages/settings/ai.tsx	How often one person may ask, and how much the site may sp
 pages/settings/ai.tsx	No AI task is installed yet.
 pages/settings/ai.tsx	No AI task is on yet.
 pages/settings/ai.tsx	Nobody is offered AI and nothing is sent to an AI service. These settings can’t be changed until your host switches it on again; they’re kept as they were.
-pages/settings/ai.tsx	Save AI settings
-pages/settings/ai.tsx	Saving may ask for your password. If it does, you’ll come back here to save again, and any key you typed must be typed again.
 pages/settings/ai.tsx	Set a key for one of the services below and save, then choose a model for each task under Models.
 pages/settings/discussion.tsx	Comments are an optional part of Teme, switched on or off for the whole site.
 pages/settings/discussion.tsx	Comments are off, so the settings for them are hidden. They’re kept, unchanged, for when comments are switched back on.
@@ -1635,10 +1627,6 @@ pages/settings/discussion.tsx	Comments on this site
 pages/settings/discussion.tsx	Discussion
 pages/settings/discussion.tsx	Discussion settings
 pages/settings/discussion.tsx	Only administrators can switch comments on or off.
-pages/settings/discussion.tsx	Save discussion settings
-pages/settings/discussion.tsx	Save the comments switch
-pages/settings/discussion.tsx	Saves this switch only.
-pages/settings/group.tsx	Save {} settings
 pages/settings/group.tsx	The default is {}.
 pages/settings/group.tsx	{} settings
 pages/settings/group.tsx	{}’s own number is {}.
@@ -1652,7 +1640,6 @@ pages/settings/search-and-social.tsx	It doesn’t change while search engines ar
 pages/settings/search-and-social.tsx	No verification tags.
 pages/settings/search-and-social.tsx	Open the 404 log
 pages/settings/search-and-social.tsx	Page 2 shows as:
-pages/settings/search-and-social.tsx	Save search and social settings
 pages/settings/search-and-social.tsx	Scripts belong in
 pages/settings/search-and-social.tsx	Search and social
 pages/settings/search-and-social.tsx	Search and social settings

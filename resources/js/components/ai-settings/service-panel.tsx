@@ -87,11 +87,11 @@ export function ServicePanel({
             <div className="grid gap-1">
                 <h3
                     id={`ai-service-${key}-heading`}
-                    className="text-[15px] font-medium"
+                    className="text-body font-medium"
                 >
                     {label}
                 </h3>
-                <p className="text-ink-2 text-sm">
+                <p className="text-small text-ink-2">
                     Text you ask AI about is sent to {label} when a task uses
                     one of its models.
                 </p>
@@ -105,7 +105,7 @@ export function ServicePanel({
                 <div className="flex flex-wrap items-center gap-2">
                     <span
                         id={`ai-key-label-${key}`}
-                        className="text-sm font-medium"
+                        className="text-small font-medium"
                     >
                         API key
                     </span>
@@ -169,7 +169,7 @@ export function ServicePanel({
                 </div>
 
                 {state === 'set-by-server' && (
-                    <p className="text-sm">
+                    <p className="text-small">
                         Your host set this key on the server, so it can’t be
                         changed or removed here.
                     </p>
@@ -177,7 +177,7 @@ export function ServicePanel({
 
                 {mode === 'replacing' && (
                     <div className="flex flex-wrap items-end gap-2">
-                        <div className="grid min-w-[260px] flex-1 gap-1">
+                        <div className="grid min-w-64 flex-1 gap-1">
                             <Label htmlFor={`ai-key-${key}`}>
                                 New {label} API key
                             </Label>
@@ -212,7 +212,7 @@ export function ServicePanel({
                             name="clear_secrets[]"
                             value={keyField}
                         />
-                        <p className="text-sm">
+                        <p className="text-small">
                             The key will be removed when you save. {label}’s
                             models stop working until it has a key again.
                         </p>
@@ -229,7 +229,7 @@ export function ServicePanel({
                     </div>
                 )}
 
-                <p id={`ai-key-hint-${key}`} className="text-ink-2 text-sm">
+                <p id={`ai-key-hint-${key}`} className="text-small text-ink-2">
                     Teme keeps keys encrypted and never shows them again, here
                     or anywhere else.
                 </p>
@@ -241,7 +241,7 @@ export function ServicePanel({
                     role="status"
                     aria-live="polite"
                     data-test={`ai-key-check-result-${key}`}
-                    className="text-sm"
+                    className="text-small"
                 >
                     {check}
                 </p>
@@ -252,7 +252,7 @@ export function ServicePanel({
                 data-test={`ai-other-model-${key}`}
                 className="grid gap-3"
             >
-                <summary className="cursor-pointer py-1 text-sm font-medium">
+                <summary className="text-small cursor-pointer py-1 font-medium">
                     Another {label} model
                 </summary>
                 <div className="mt-3 grid gap-4">
