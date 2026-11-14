@@ -7,8 +7,10 @@ import {
     DropdownMenu,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
+import { __ } from '@/lib/i18n';
 
 // Later (I-1393): the person's role beside their name, once the shared user carries it.
 /**
@@ -32,7 +34,7 @@ export function AccountMenu() {
                     type="button"
                     variant="ghost"
                     data-test="account-menu-button"
-                    aria-label={`Account: ${auth.user.name}`}
+                    aria-label={__('Account: :name', { name: auth.user.name })}
                     className="gap-2 px-1 max-md:size-11 max-md:px-0"
                 >
                     <Avatar className="size-8">
@@ -55,9 +57,11 @@ export function AccountMenu() {
                 data-slot="dropdown-menu-content"
                 align="end"
                 sideOffset={4}
-                className="bg-surface text-ink data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 shadow-float z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 overflow-x-hidden overflow-y-auto rounded-md border p-1"
+                className="bg-surface text-ink motion-safe:data-[state=open]:animate-in motion-safe:data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 shadow-float z-(--z-float) flex max-h-(--radix-dropdown-menu-content-available-height) min-w-56 flex-col overflow-hidden rounded-md border"
             >
-                <UserMenuContent user={auth.user} />
+                <ScrollArea className="p-1">
+                    <UserMenuContent user={auth.user} />
+                </ScrollArea>
             </DropdownMenuPrimitive.Content>
         </DropdownMenu>
     );

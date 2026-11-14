@@ -142,8 +142,6 @@ R10	js/components/ui/dropdown-menu.tsx	outline-hidden
 R10	js/components/ui/input.tsx	outline-none
 R10	js/components/ui/popover.tsx	outline-none
 R10	js/components/ui/select.tsx	outline-hidden
-R14	js/components/account-menu.tsx	data-[state=closed]:animate-out
-R14	js/components/account-menu.tsx	data-[state=open]:animate-in
 R14	js/components/editor/cards/audio-card.tsx	animate-pulse
 R14	js/components/editor/cards/gallery-card.tsx	animate-pulse
 R14	js/components/editor/cards/image-card.tsx	animate-pulse
@@ -736,8 +734,6 @@ R2	js/components/types/field-sheet.tsx	text-xs
 R2	js/components/types/field-sheet.tsx	text-xs
 R2	js/components/types/field-sheet.tsx	text-xs
 R2	js/components/types/icon-picker.tsx	text-sm
-R2	js/components/user-info.tsx	text-sm
-R2	js/components/user-info.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[11px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[13px]
@@ -965,15 +961,6 @@ R2	js/pages/types/show.tsx	text-sm
 R2	js/pages/types/show.tsx	text-sm
 R2	js/pages/types/show.tsx	text-sm
 R2	js/pages/types/show.tsx	text-xs
-R2	js/pages/users/index.tsx	text-sm
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
 R3	js/components/backups/checks-list.tsx	gap-1.5
 R3	js/components/backups/checks-list.tsx	gap-1.5
 R3	js/components/backups/places-list.tsx	gap-1.5
@@ -1254,7 +1241,6 @@ R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/show.tsx	<input type="radio">
 R5	js/pages/types/show.tsx	<input type="radio">
 R5	js/pages/types/show.tsx	<table>
-R6	js/components/account-menu.tsx	z-50
 R6	js/components/app-shell.tsx	z-50
 R6	js/components/backups/key-sheet.tsx	tracking-wider
 R6	js/components/backups/schedule-form.tsx	leading-9
@@ -1431,13 +1417,7 @@ R7	js/pages/types/index.tsx	root:div
 R7	js/pages/types/show.tsx	frame:max-w-[768px]
 R7	js/pages/types/show.tsx	frame:p-6
 R7	js/pages/types/show.tsx	root:div
-R7	js/pages/users/index.tsx	frame:p-6
-R7	js/pages/users/index.tsx	root:DeleteDialog
-R7	js/pages/users/index.tsx	root:div
-R7	js/pages/users/index.tsx	root:InviteDialog
-R7	js/pages/users/index.tsx	root:RoleDialog
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
-R8	js/components/account-menu.tsx	overflow-y-auto
 R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
 R8	js/components/editor/cards/button-card.tsx	overflow-y-auto

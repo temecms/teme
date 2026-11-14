@@ -27,12 +27,14 @@ it('gives every list screen exactly one h1', function (string $name, array $para
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component($component));
 
-    // A source scan: PageHeader draws the only h1, and the page draws none
-    // of its own.
+    // A source scan: PageHeader draws the only h1, itself or through the
+    // ListPage pattern that draws it once, and the page draws none of its own.
     $source = uiComponent("pages/{$component}.tsx");
 
-    expect(substr_count($source, '<PageHeader'))->toBe(1)
+    expect(substr_count($source, '<PageHeader') + substr_count($source, '<ListPage'))->toBe(1)
         ->and($source)->not->toContain('<h1')
+        ->and(substr_count(uiComponent('components/patterns/list-page.tsx'), '<PageHeader'))->toBe(1)
+        ->and(uiComponent('components/patterns/page-header.tsx'))->toContain("as: Title = 'h1'")
         ->and(substr_count(uiComponent('components/list/page-header.tsx'), '<h1'))->toBe(1);
 })->with([
     'posts' => ['content.index', ['type' => 'posts'], 'content/index'],

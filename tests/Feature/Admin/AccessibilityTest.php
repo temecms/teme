@@ -23,7 +23,6 @@ it('ties every field error to its field', function (string $file, ?string $partn
     expect(substr_count($controls, 'aria-describedby='))->toBeGreaterThanOrEqual(count($errors[0]));
 })->with([
     ['pages/content/index.tsx'],
-    ['pages/users/index.tsx'],
     ['pages/terms/index.tsx'],
     ['pages/auth/login.tsx'],
     ['pages/auth/forgot-password.tsx'],
@@ -71,7 +70,9 @@ it('labels every select and every input', function (string $file): void {
 })->with([
     // The invite form's role select and the row role select, which the audit
     // found unlabelled, are on the Users page.
-    'pages/users/index.tsx',
+    'components/people/invite-dialog.tsx',
+    'components/people/role-dialog.tsx',
+    'components/people/delete-dialog.tsx',
     'pages/content/index.tsx',
     'pages/terms/index.tsx',
     'pages/media/index.tsx',

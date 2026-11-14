@@ -15,6 +15,8 @@ export type UserRow = {
     invitedBy: string | null;
     /** When its link stops working; null once it has, or when none is held. */
     linkWorksUntil: string | null;
+    /** The picture's address, built at render time; null for none, and always for an invitation. */
+    picture: string | null;
 };
 
 export type RoleOption = { value: string; label: string };
