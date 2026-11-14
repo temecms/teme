@@ -152,7 +152,7 @@ it('filters by tab with each count, and the ⋯ button has a name', function ():
         ->assertScript("document.querySelector('[data-test=\"plugin-hello\"] [data-test=\"plugin-menu\"]').getAttribute('aria-label') === 'Actions for Hello'")
         ->click('[data-test="plugins-tab-attention"]');
 
-    $page->assertScript("document.querySelectorAll('[data-test=\"plugins-table\"] tbody tr').length === 2");
+    $page->assertScript("document.querySelectorAll('[data-test=\"plugins-list\"] > li').length === 2");
 });
 
 it('shows the reason under a plugin that can’t be used', function (): void {
@@ -170,6 +170,122 @@ it('shows the empty state', function (): void {
 
     $page = cmSignIn($this->admin)->navigate('/admin/plugins');
 
-    ($this->seen)($page, 'No plugins are installed. Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.');
+    ($this->seen)($page, 'No plugins are installed');
+    ($this->seen)($page, 'Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.');
     expect(cmAxeViolations($page))->toBe([]);
 });
+
+it('shows each plugin’s icon, its initials at 32 pixels, beside its name', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Installed, not enabled yet.');
+
+    $icon = $page->script(<<<'JS'
+        () => {
+            const icons = document.querySelectorAll('[data-test="plugin-hello"] [data-slot="plugin-icon"]');
+            const box = icons[0]?.getBoundingClientRect();
+
+            return {
+                count: icons.length,
+                initials: icons[0]?.textContent ?? null,
+                size: box ? [Math.round(box.width), Math.round(box.height)] : null,
+                hidden: icons[0]?.getAttribute('aria-hidden') ?? null,
+                rows: document.querySelectorAll('[data-test="plugins-list"] > li').length,
+                everyRow: [...document.querySelectorAll('[data-test="plugins-list"] > li')].every((row) => row.querySelectorAll('[data-slot="plugin-icon"]').length === 1),
+            };
+        }
+        JS);
+
+    expect($icon)->toBe([
+        'count' => 1,
+        'initials' => 'H',
+        'size' => [32, 32],
+        'hidden' => 'true',
+        'rows' => 2,
+        'everyRow' => true,
+    ]);
+});
+
+it('gives each state its pill and tone', function (): void {
+    ($this->site)();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Review access for 1.1.0');
+
+    $pills = $page->script(<<<'JS'
+        () => Object.fromEntries(['hello', 'widened', 'gone'].map((code) => {
+            const pill = document.querySelector(`[data-test="plugin-${code}"] [data-test="plugin-state"]`);
+
+            return [code, [pill?.getAttribute('data-tone') ?? null, pill?.textContent ?? null]];
+        }))
+        JS);
+
+    expect($pills)->toBe([
+        'hello' => ['neutral', 'Disabled'],
+        'widened' => ['warn', 'Needs attention'],
+        'gone' => ['danger', 'Can’t be used'],
+    ]);
+
+    // The reason under a waiting plugin is in the warning's ink.
+    $page->assertScript(<<<'JS'
+        (() => {
+            const probe = document.createElement('span');
+            probe.className = 'text-warn-ink';
+            document.body.append(probe);
+            const ink = getComputedStyle(probe).color;
+            probe.remove();
+
+            return getComputedStyle(document.querySelector('[data-test="plugin-widened"] [data-test="plugin-reason"]')).color === ink;
+        })()
+        JS);
+});
+
+it('shows the plugin’s icon at 56 pixels in both dialogs', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Installed, not enabled yet.');
+
+    $icon = <<<'JS'
+        (() => {
+            const icons = document.querySelectorAll('[role="dialog"] [data-slot="dialog-header"] [data-slot="plugin-icon"]');
+            const box = icons[0]?.getBoundingClientRect();
+
+            return icons.length === 1 && Math.round(box.width) === 56 && Math.round(box.height) === 56;
+        })()
+        JS;
+
+    $page->click('[data-test="plugin-hello"] [data-test="plugin-enable"]');
+    cmWaitUntil($page, $this->settled);
+    $page->assertScript($icon)->keys('[role="dialog"]', 'Escape');
+    cmWaitUntil($page, $this->closed);
+
+    $page->click('[data-test="plugin-hello"] [data-test="plugin-menu"]')->click('[data-test="plugin-details"]');
+    cmWaitUntil($page, $this->settled);
+    $page->assertScript($icon);
+});
+
+it('moves between the views with the arrow keys', function (): void {
+    ($this->site)();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Review access for 1.1.0');
+
+    $page->click('[data-test="plugins-tab-all"]');
+    $page->page()->locator('[data-test="plugins-tab-all"]')->press('ArrowRight', ['delay' => 50]);
+    $page->page()->locator('[data-test="plugins-tab-enabled"]')->press('ArrowRight', ['delay' => 50]);
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"plugins-tab-disabled\"]').getAttribute('aria-selected') === 'true' && document.activeElement === document.querySelector('[data-test=\"plugins-tab-disabled\"]')");
+    $page->assertScript("[...document.querySelectorAll('[role=\"tabpanel\"]:not([hidden]) [data-test=\"plugins-list\"] > li')].map((row) => row.getAttribute('data-test')).join('|') === 'plugin-hello'");
+});
+
+it('stacks each row at 375 and 320 pixels with nothing scrolling sideways, every target 24 pixels or more', function (int $width): void {
+    ($this->site)();
+
+    $page = cmSignIn($this->admin)->resize($width, 812)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Review access for 1.1.0');
+
+    expect(($this->sideways)($page))->toBe(0)
+        ->and($page->script(<<<'JS'
+            () => [...document.querySelectorAll('[data-test="plugins-list"] [data-test="plugin-menu"], [data-test="plugins-list"] [data-test="plugin-enable"], [data-test="plugins-list"] [data-test="plugin-disable"]')]
+                .every((button) => { const box = button.getBoundingClientRect(); return box.left >= 0 && box.right <= document.documentElement.clientWidth; })
+            JS))->toBeTrue()
+        ->and(cmSmallTargets($page)['small'])->toBe([]);
+})->with([375, 320]);

@@ -611,17 +611,6 @@ R2	js/components/media/upload-list.tsx	text-sm
 R2	js/components/personalise-menu-dialog.tsx	text-[11px]
 R2	js/components/personalise-menu-dialog.tsx	text-[13px]
 R2	js/components/personalise-menu-dialog.tsx	text-xs
-R2	js/components/plugins/consent-dialog.tsx	text-[11px]
-R2	js/components/plugins/consent-dialog.tsx	text-[13px]
-R2	js/components/plugins/consent-dialog.tsx	text-[13px]
-R2	js/components/plugins/consent-dialog.tsx	text-[13px]
-R2	js/components/plugins/details-dialog.tsx	text-[13px]
-R2	js/components/plugins/details-dialog.tsx	text-[13px]
-R2	js/components/plugins/details-dialog.tsx	text-[13px]
-R2	js/components/plugins/details-dialog.tsx	text-[13px]
-R2	js/components/plugins/details-dialog.tsx	text-[13px]
-R2	js/components/plugins/details-dialog.tsx	text-[13px]
-R2	js/components/plugins/details-dialog.tsx	text-xs
 R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
@@ -687,12 +676,6 @@ R2	js/pages/media/index.tsx	text-xs
 R2	js/pages/media/index.tsx	text-xs
 R2	js/pages/media/index.tsx	text-xs
 R2	js/pages/media/index.tsx	text-xs
-R2	js/pages/plugins/index.tsx	text-[13px]
-R2	js/pages/plugins/index.tsx	text-[13px]
-R2	js/pages/plugins/index.tsx	text-[13px]
-R2	js/pages/plugins/index.tsx	text-[13px]
-R2	js/pages/plugins/index.tsx	text-xs
-R2	js/pages/plugins/index.tsx	text-xs
 R2	js/pages/settings/addresses.tsx	text-[13px]
 R2	js/pages/settings/addresses.tsx	text-[13px]
 R2	js/pages/settings/addresses.tsx	text-[13px]
@@ -912,8 +895,6 @@ R3	js/components/list/row-links.tsx	mt-0.5
 R3	js/components/list/tab-strip.tsx	gap-1.5
 R3	js/components/list/tab-strip.tsx	px-0.5
 R3	js/components/media/media-grid.tsx	p-0.5
-R3	js/components/plugins/consent-dialog.tsx	gap-1.5
-R3	js/components/plugins/consent-dialog.tsx	px-1.5
 R3	js/components/seo/who-publishes.tsx	mt-0.5
 R3	js/components/tools/redirect-form.tsx	py-1.5
 R3	js/components/tools/update-progress.tsx	mt-0.5
@@ -933,8 +914,6 @@ R3	js/pages/content/index.tsx	pr-0.5
 R3	js/pages/content/index.tsx	py-0.5
 R3	js/pages/content/index.tsx	py-0.5
 R3	js/pages/dashboard.tsx	mt-0.5
-R3	js/pages/plugins/index.tsx	gap-1.5
-R3	js/pages/plugins/index.tsx	px-0.5
 R3	js/pages/settings/ai.tsx	mt-0.5
 R3	js/pages/settings/ai.tsx	mt-0.5
 R3	js/pages/settings/discussion.tsx	mt-0.5
@@ -1022,8 +1001,6 @@ R5	js/components/tools/redirect-form.tsx	<select>
 R5	js/pages/comments/index.tsx	<button type="button">
 R5	js/pages/content/edit.tsx	<textarea>
 R5	js/pages/media/index.tsx	<button type="button">
-R5	js/pages/plugins/index.tsx	<button type="button">
-R5	js/pages/plugins/index.tsx	<table>
 R5	js/pages/settings/addresses.tsx	<input type="radio">
 R5	js/pages/settings/addresses.tsx	<input type="radio">
 R5	js/pages/settings/search-and-social.tsx	<details>
@@ -1073,7 +1050,6 @@ R6	js/components/media/media-grid.tsx	rounded
 R6	js/components/media/media-grid.tsx	rounded
 R6	js/components/media/media-modal.tsx	z-10
 R6	js/components/media/page-drop.tsx	z-40
-R6	js/components/plugins/consent-dialog.tsx	leading-4
 R6	js/components/tools/redirect-form.tsx	rounded
 R6	js/components/tools/update-progress.tsx	rounded
 R6	js/components/ui/sidebar.tsx	z-20
@@ -1104,11 +1080,6 @@ R7	js/pages/media/index.tsx	frame:p-6
 R7	js/pages/media/index.tsx	root:div
 R7	js/pages/media/index.tsx	root:MediaDrawer
 R7	js/pages/media/index.tsx	root:PageDrop
-R7	js/pages/plugins/index.tsx	frame:max-w-5xl
-R7	js/pages/plugins/index.tsx	frame:p-6
-R7	js/pages/plugins/index.tsx	root:ConsentDialog
-R7	js/pages/plugins/index.tsx	root:DetailsDialog
-R7	js/pages/plugins/index.tsx	root:div
 R7	js/pages/settings/addresses.tsx	frame:max-w-[960px]
 R7	js/pages/settings/addresses.tsx	root:div
 R7	js/pages/settings/ai.tsx	frame:max-w-[960px]
