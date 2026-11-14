@@ -37,7 +37,7 @@ Each step waits for the one before it: the database is healthy, then `teme-db-se
    - `APP_URL`: your site's address, with `https://`.
    - `APP_KEY`: make it once and keep it. On Linux or macOS: `echo "base64:$(openssl rand -base64 32)"`. On Windows PowerShell: `$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); "base64:" + [Convert]::ToBase64String($b)`.
    - `DB_PASSWORD` and `POSTGRES_PASSWORD`: two long passwords of letters and digits only. A `$` in a value is rewritten by Compose.
-   - `TEME_GITHUB_TOKEN`: the token that lets the scheduler see new releases. [Configuring Teme](../configure.md) lists the other settings. The updater's three Dokploy settings are in [Updating from the admin](#updating-from-the-admin).
+   - `TEME_GITHUB_TOKEN` (optional): a read-only token that raises GitHub's limit when the scheduler asks for new releases. [Configuring Teme](../configure.md) lists the other settings. The updater's three Dokploy settings are in [Updating from the admin](#updating-from-the-admin).
 4. **Set the domain.** In Domains, add your site's address with the service `web`, port `8080`, and HTTPS on.
 5. **Deploy.**
 6. **Make the first administrator.** The `deploy` container's log (the service's Logs, `deploy`) ends with the setup page's address and a setup code: open the address, enter the code and fill in the form. Or open the Terminal for the `web` container. It opens in `/`, not in Teme's folder, so run `cd /var/www/html` first, then `php artisan teme:user:create --email=you@example.com --name="Your Name" --role=administrator`. Open the link it prints and sign in.

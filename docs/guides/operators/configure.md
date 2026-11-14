@@ -91,7 +91,7 @@ Set `TEME_UPDATES_CHECK` and `TEME_UPDATES_CHANNEL` the same on every role: `web
 | Variable | Default | What it does |
 |---|---|---|
 | `TEME_UPDATES_CHECK` | on | Whether Teme asks GitHub once an hour for its releases. It sends nothing about this site. `false` turns it off. |
-| `TEME_GITHUB_TOKEN` | none | A fine-grained GitHub token with Contents: read on Teme's repository alone, while the repository is private. Give it to the scheduler only, never to `web` or the workers: the recipe reads it from `secrets/github_token` in the scheduler alone. |
+| `TEME_GITHUB_TOKEN` | none | Optional. A fine-grained GitHub token with Contents: read on Teme's repository alone; it only raises GitHub's limit on requests. Give it to the scheduler only, never to `web` or the workers: the recipe reads it from `secrets/github_token` in the scheduler alone. |
 | `TEME_UPDATES_CHANNEL` | follows the version this site runs | `stable` for releases only, `prerelease` for every release. |
 | `TEME_UPDATER_PLATFORM` | none | `dokploy`. The updater only: the Dokploy file sets it on the `updater` service. |
 | `TEME_IMAGE_REPOSITORY` | none | `ghcr.io/<owner>/teme`, the image without its tag. The Dokploy file's, on the Environment tab. |

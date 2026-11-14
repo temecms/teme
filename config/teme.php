@@ -105,14 +105,14 @@ return [
      * The update check (I-?? draft): once an hour the scheduler asks GitHub
      * for Teme's releases, sending nothing about this site. TEME_UPDATES_CHECK
      * switches it off, read as TEME_AI is. TEME_GITHUB_TOKEN, a read-only
-     * token for this one repository, is needed while it is private.
+     * token, is optional: it only raises GitHub's limit on requests.
      * TEME_UPDATES_CHANNEL is stable or prerelease; unset, it follows the
      * version this site runs.
      */
     'updates' => [
         'check' => in_array(env('TEME_UPDATES_CHECK'), [null, ''], true)
             || filter_var(env('TEME_UPDATES_CHECK'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true,
-        'repository' => 'Krafty-Sprouts-Media-LLC/Teme',
+        'repository' => 'temecms/teme',
         'token' => env('TEME_GITHUB_TOKEN'),
         'channel' => env('TEME_UPDATES_CHANNEL'),
     ],
