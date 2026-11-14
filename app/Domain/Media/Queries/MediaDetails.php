@@ -9,6 +9,7 @@ use App\Domain\Media\MediaDisks;
 use App\Domain\Media\MediaUrls;
 use App\Domain\Media\Models\Media;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /**
@@ -69,6 +70,8 @@ final class MediaDetails
             'uploadedFor' => $uploadedFor,
             'createdAt' => $media->created_at?->toIso8601String(),
             'updatedAt' => $media->updated_at?->toIso8601String(),
+            // Whose picture it is, counted only: names are People's to show (I-3410).
+            'pictureOf' => DB::table('users')->where('picture_media_id', $media->id)->count(),
             'uploaderName' => $media->uploaded_by === null ? null : User::query()->whereKey($media->uploaded_by)->value('name'),
             'can' => [
                 'edit' => Gate::forUser($viewer)->allows('update', $media),

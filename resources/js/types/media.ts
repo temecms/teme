@@ -58,6 +58,8 @@ export type MediaDetailsData = MediaRow & {
     uploadedFor: UploadedFor | null;
     can: { edit: boolean; delete: boolean };
     altText: AltTextOffer | null;
+    /** How many people use it as their picture; never who (I-3410). */
+    pictureOf: number;
 };
 
 export type MediaUsage = {
