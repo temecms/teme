@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
     ChevronDownIcon,
     ChevronRightIcon,
@@ -102,7 +102,7 @@ import { EmptyState } from '@/components/list/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Notice } from '@/components/ui/notice';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
 import { SaveBar } from '@/components/patterns/save-bar';
 import { DetailPage } from '@/components/patterns/detail-page';
@@ -110,6 +110,7 @@ import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { HubCard, HubPage } from '@/components/patterns/hub-page';
 import { InPageNav } from '@/components/patterns/in-page-nav';
 import { ListPage } from '@/components/patterns/list-page';
+import { PluginAreaPage } from '@/components/patterns/plugin-area-page';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { __ } from '@/lib/i18n';
 
@@ -339,6 +340,80 @@ function StatesDemo() {
 }
 
 /** A small form of two fields with the save bar, which shows once something changes. */
+/** A page of the sample plugin's area that throws once asked to, as a plugin's page can. */
+function FailingAreaPage({ name, fail }: { name: string; fail: boolean }) {
+    if (fail) {
+        throw new Error(`The sample page ${name} failed.`);
+    }
+
+    return (
+        <p data-test="plugin-area-body" className="text-body text-ink-2">
+            {__('This is the :page page.', { page: name })}
+        </p>
+    );
+}
+
+/** A plugin's own area, its current page read from the address, with a page that can be made to fail. */
+function PluginAreaDemo() {
+    const { url } = usePage();
+    const [failing, setFailing] = useState(false);
+
+    // Fails once: by the time Try again is pressed, the page draws again.
+    useEffect(() => {
+        if (failing) {
+            setFailing(false);
+        }
+    }, [failing]);
+    const area =
+        new URLSearchParams(url.split('?')[1]?.split('#')[0] ?? '').get(
+            'area',
+        ) ?? 'overview';
+    const pages = [
+        { key: 'overview', label: __('Overview') },
+        { key: 'link-report', label: __('Link report') },
+        { key: 'orphaned-posts', label: __('Orphaned posts') },
+        { key: 'broken-links', label: __('Broken links'), count: 12 },
+        { key: 'settings', label: __('Settings') },
+        { key: 'exports', label: __('Exports') },
+        { key: 'logs', label: __('Logs') },
+    ].map(({ key, ...page }) => ({
+        ...page,
+        href: `?area=${key}#plugin-area`,
+        current: key === area,
+    }));
+    const current = pages.find((page) => page.current) ?? pages[0];
+
+    return (
+        <PluginAreaPage
+            titleAs="div"
+            plugin={{ name: __('Link checker') }}
+            title={__('Link checker')}
+            description={__(
+                'Finds links on the site that lead nowhere, and posts nothing links to.',
+            )}
+            actions={
+                <Button type="button" variant="neutral">
+                    {__('Check now')}
+                </Button>
+            }
+            pages={pages}
+        >
+            <div className="grid justify-items-start gap-3">
+                <FailingAreaPage name={current.label} fail={failing} />
+                <Button
+                    type="button"
+                    variant="neutral"
+                    size="sm"
+                    data-test="plugin-area-break"
+                    onClick={() => setFailing(true)}
+                >
+                    {__('Make this page fail')}
+                </Button>
+            </div>
+        </PluginAreaPage>
+    );
+}
+
 function SaveBarDemo() {
     const [name, setName] = useState('');
     const [line, setLine] = useState('');
@@ -1629,6 +1704,16 @@ export default function Catalogue() {
                             />
                         ))}
                     </div>
+                </Section>
+
+                <Section
+                    id="plugin-area"
+                    title={__('A plugin’s own area')}
+                    description={__(
+                        'The plugin’s icon and mark at the head, its pages under it, and one sentence when a page fails.',
+                    )}
+                >
+                    <PluginAreaDemo />
                 </Section>
 
                 <Section
