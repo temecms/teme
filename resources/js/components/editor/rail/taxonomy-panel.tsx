@@ -78,6 +78,8 @@ export function TaxonomyPanel({
                                 singular={taxonomy.singular}
                                 label={taxonomy.plural}
                                 labelHidden
+                                canCreate={taxonomy.canCreate}
+                                segment={taxonomy.segment}
                                 value={mine}
                                 onChange={(next) =>
                                     replace(

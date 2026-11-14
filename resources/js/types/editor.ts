@@ -89,6 +89,8 @@ export type EditorSession = {
         plural: string;
         segment: string;
         hierarchical: boolean;
+        /** Whether the server lets this person create its terms. */
+        canCreate: boolean;
         /** A hierarchical taxonomy's every term (TermPicker::tree); null for a flat one. */
         terms: { id: string; name: string; parentId: string | null }[] | null;
     }[];

@@ -69,6 +69,8 @@ export type TypeTaxonomy = {
     plural: string;
     segment: string;
     hierarchical: boolean;
+    /** Whether the server lets this person create its terms. */
+    canCreate: boolean;
 };
 
 export type ContentIndexPage = {

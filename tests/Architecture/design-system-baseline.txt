@@ -658,9 +658,6 @@ R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
-R2	js/components/term-picker.tsx	text-sm
-R2	js/components/term-picker.tsx	text-sm
-R2	js/components/term-picker.tsx	text-xs
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-xs
@@ -1057,7 +1054,6 @@ R3	js/components/navigation/tree-editor.tsx	py-0.5
 R3	js/components/plugins/consent-dialog.tsx	gap-1.5
 R3	js/components/plugins/consent-dialog.tsx	px-1.5
 R3	js/components/seo/who-publishes.tsx	mt-0.5
-R3	js/components/term-picker.tsx	py-0.5
 R3	js/components/tools/redirect-form.tsx	py-1.5
 R3	js/components/tools/update-progress.tsx	mt-0.5
 R3	js/components/tools/update-progress.tsx	py-0.5
@@ -1180,8 +1176,6 @@ R5	js/components/navigation/add-item-panel.tsx	<button type="button">
 R5	js/components/navigation/add-item-panel.tsx	<button type="button">
 R5	js/components/palette/command-palette.tsx	<input>
 R5	js/components/seo/who-publishes.tsx	<select>
-R5	js/components/term-picker.tsx	<button type="button">
-R5	js/components/term-picker.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<input type="radio">
 R5	js/components/tools/redirect-form.tsx	<select>
@@ -1253,8 +1247,6 @@ R6	js/components/media/page-drop.tsx	z-40
 R6	js/components/navigation/add-item-panel.tsx	rounded
 R6	js/components/navigation/tree-editor.tsx	rounded
 R6	js/components/plugins/consent-dialog.tsx	leading-4
-R6	js/components/term-picker.tsx	rounded
-R6	js/components/term-picker.tsx	rounded
 R6	js/components/themes/theme-list.tsx	rounded
 R6	js/components/themes/theme-preview-panel.tsx	rounded
 R6	js/components/themes/theme-regions.tsx	rounded

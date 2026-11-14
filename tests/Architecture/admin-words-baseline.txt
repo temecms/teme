@@ -1134,8 +1134,6 @@ components/seo/who-publishes.tsx	Owned by
 components/seo/who-publishes.tsx	The business
 components/seo/who-publishes.tsx	This person no longer has an account, so search engines are told nobody in particular publishes the site. Choose someone else, or Nobody in particular.
 components/status-banner.tsx	Site notice
-components/term-picker.tsx	Find a {}
-components/term-picker.tsx	Remove {}
 components/term-tree-picker.tsx	+ Add
 components/term-tree-picker.tsx	Add
 components/term-tree-picker.tsx	Cancel
