@@ -1970,31 +1970,14 @@ pages/terms/index.tsx	Some themes show it on the {}’s page, and search engines
 pages/terms/index.tsx	The last part of its address. Leave it empty to make one from the name.
 pages/terms/index.tsx	Use the form to add the first one.
 pages/terms/index.tsx	{} in {}
-pages/themes/index.tsx	A menu you choose here shows once you publish, and replaces whatever Content › Navigation sets for that place. Places you don’t change here keep Navigation’s menu.
-pages/themes/index.tsx	Archive
-pages/themes/index.tsx	Content
-pages/themes/index.tsx	Discard
-pages/themes/index.tsx	Edit menus
 pages/themes/index.tsx	How the public site looks. A theme draws the site; it adds no features of its own.
-pages/themes/index.tsx	Latest posts
-pages/themes/index.tsx	Menus
-pages/themes/index.tsx	None
 pages/themes/index.tsx	Open Settings › General
-pages/themes/index.tsx	Preview
-pages/themes/index.tsx	Publish
 pages/themes/index.tsx	Saved as a draft.
 pages/themes/index.tsx	Saving the draft…
-pages/themes/index.tsx	Site
 pages/themes/index.tsx	The last change was not saved. Check the fields marked below.
 pages/themes/index.tsx	The site’s name, tagline and brand colour stay when you change theme.
 pages/themes/index.tsx	Themes
 pages/themes/index.tsx	Themes
-pages/themes/index.tsx	Unpublished design changes
-pages/themes/index.tsx	Unpublished design changes
-pages/themes/index.tsx	Visitors see these once you activate
-pages/themes/index.tsx	has no settings or menu places of its own.
-pages/themes/index.tsx	settings
-pages/themes/index.tsx	· by {}
 pages/tools/ai-activity.tsx	1 request used a model with no price, so its cost is left out.
 pages/tools/ai-activity.tsx	A removed person
 pages/tools/ai-activity.tsx	AI activity

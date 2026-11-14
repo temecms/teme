@@ -680,15 +680,6 @@ R2	js/components/term-picker.tsx	text-xs
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-xs
-R2	js/components/themes/theme-list.tsx	text-[13px]
-R2	js/components/themes/theme-list.tsx	text-[13px]
-R2	js/components/themes/theme-list.tsx	text-[15px]
-R2	js/components/themes/theme-list.tsx	text-xs
-R2	js/components/themes/theme-preview-panel.tsx	text-[13px]
-R2	js/components/themes/theme-preview-panel.tsx	text-[13px]
-R2	js/components/themes/theme-preview-panel.tsx	text-[13px]
-R2	js/components/themes/theme-preview-panel.tsx	text-[13px]
-R2	js/components/themes/theme-preview-panel.tsx	text-[15px]
 R2	js/components/themes/theme-regions.tsx	text-[13px]
 R2	js/components/themes/theme-regions.tsx	text-[13px]
 R2	js/components/themes/theme-regions.tsx	text-[13px]
@@ -897,16 +888,6 @@ R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/terms/index.tsx	text-xs
-R2	js/pages/themes/index.tsx	text-[13px]
-R2	js/pages/themes/index.tsx	text-[13px]
-R2	js/pages/themes/index.tsx	text-[13px]
-R2	js/pages/themes/index.tsx	text-[13px]
-R2	js/pages/themes/index.tsx	text-[13px]
-R2	js/pages/themes/index.tsx	text-[13px]
-R2	js/pages/themes/index.tsx	text-[13px]
-R2	js/pages/themes/index.tsx	text-[15px]
-R2	js/pages/themes/index.tsx	text-xs
-R2	js/pages/themes/index.tsx	text-xs
 R2	js/pages/tools/ai-activity.tsx	text-[12px]
 R2	js/pages/tools/ai-activity.tsx	text-[12px]
 R2	js/pages/tools/ai-activity.tsx	text-[12px]
@@ -1320,8 +1301,6 @@ R6	js/components/navigation/tree-editor.tsx	rounded
 R6	js/components/plugins/consent-dialog.tsx	leading-4
 R6	js/components/term-picker.tsx	rounded
 R6	js/components/term-picker.tsx	rounded
-R6	js/components/themes/theme-list.tsx	rounded
-R6	js/components/themes/theme-preview-panel.tsx	rounded
 R6	js/components/themes/theme-regions.tsx	rounded
 R6	js/components/themes/theme-regions.tsx	rounded
 R6	js/components/tools/redirect-form.tsx	rounded
@@ -1333,7 +1312,6 @@ R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
 R6	js/pages/content/index.tsx	rounded
 R6	js/pages/regions/index.tsx	rounded
-R6	js/pages/themes/index.tsx	z-10
 R6	js/pages/tools/updates.tsx	rounded
 R7	js/pages/account/notifications.tsx	root:div
 R7	js/pages/account/preferences.tsx	root:div
@@ -1412,8 +1390,6 @@ R7	js/pages/terms/index.tsx	frame:p-6
 R7	js/pages/terms/index.tsx	frame:sm:max-w-[480px]
 R7	js/pages/terms/index.tsx	root:div
 R7	js/pages/terms/index.tsx	root:Sheet
-R7	js/pages/themes/index.tsx	frame:p-6
-R7	js/pages/themes/index.tsx	root:div
 R7	js/pages/tools/ai-activity.tsx	frame:p-6
 R7	js/pages/tools/ai-activity.tsx	root:AiActivityDetails
 R7	js/pages/tools/ai-activity.tsx	root:div
@@ -1519,7 +1495,6 @@ R9	js/components/import/site-analysis.tsx	role="note"
 R9	js/components/media-drawer.tsx	role="note"
 R9	js/components/navigation/tree-editor.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/seo/who-publishes.tsx	role="note"
-R9	js/components/themes/theme-preview-panel.tsx	role="note"
 R9	js/pages/content/index.tsx	classes: bg-warn-soft px-3 py-2
 R9	js/pages/dashboard.tsx	role="note"
 R9	js/pages/settings/addresses.tsx	classes: bg-danger-soft px-3 py-2
