@@ -63,7 +63,6 @@ R1	js/components/import/site-analysis.tsx	grid-cols-[max-content_1fr]
 R1	js/components/import/site-analysis.tsx	max-w-[640px]
 R1	js/components/import/site-analysis.tsx	max-w-[640px]
 R1	js/components/import/site-analysis.tsx	max-w-[640px]
-R1	js/components/inbox/inbox-list.tsx	grid-cols-[8px_minmax(0,1fr)]
 R1	js/components/jobs/job-progress.tsx	min-w-[180px]
 R1	js/components/list/bulk-edit-dialog.tsx	max-h-[90vh]
 R1	js/components/list/data-table.tsx	leading-[18px]
@@ -562,9 +561,6 @@ R2	js/components/import/site-analysis.tsx	text-base
 R2	js/components/import/site-analysis.tsx	text-base
 R2	js/components/import/site-analysis.tsx	text-sm
 R2	js/components/import/site-runs.tsx	text-base
-R2	js/components/inbox/inbox-list.tsx	text-[13px]
-R2	js/components/inbox/inbox-list.tsx	text-xs
-R2	js/components/inbox/inbox-list.tsx	text-xs
 R2	js/components/input-error.tsx	text-sm
 R2	js/components/jobs/job-progress.tsx	text-xs
 R2	js/components/list/bulk-bar.tsx	text-[13px]
@@ -734,7 +730,6 @@ R2	js/pages/content/index.tsx	text-xs
 R2	js/pages/content/index.tsx	text-xs
 R2	js/pages/dashboard.tsx	text-[13px]
 R2	js/pages/dashboard.tsx	text-sm
-R2	js/pages/inbox/index.tsx	text-[13px]
 R2	js/pages/media/index.tsx	text-xs
 R2	js/pages/media/index.tsx	text-xs
 R2	js/pages/media/index.tsx	text-xs
@@ -967,10 +962,6 @@ R3	js/components/import/connect-form.tsx	gap-1.5
 R3	js/components/import/connect-form.tsx	gap-1.5
 R3	js/components/import/run-report.tsx	mt-0.5
 R3	js/components/import/site-analysis.tsx	mt-0.5
-R3	js/components/inbox/inbox-list.tsx	gap-x-2.5
-R3	js/components/inbox/inbox-list.tsx	mt-1.5
-R3	js/components/inbox/inbox-list.tsx	px-3.5
-R3	js/components/inbox/inbox-list.tsx	py-2.5
 R3	js/components/list/bulk-edit-dialog.tsx	p-0.5
 R3	js/components/list/bulk-edit-dialog.tsx	py-0.5
 R3	js/components/list/date-filter.tsx	my-1.5
@@ -1198,9 +1189,6 @@ R7	js/pages/content/index.tsx	root:div
 R7	js/pages/content/index.tsx	root:Sheet
 R7	js/pages/dashboard.tsx	frame:p-6
 R7	js/pages/dashboard.tsx	root:div
-R7	js/pages/inbox/index.tsx	frame:max-w-3xl
-R7	js/pages/inbox/index.tsx	frame:p-6
-R7	js/pages/inbox/index.tsx	root:div
 R7	js/pages/media/index.tsx	frame:p-6
 R7	js/pages/media/index.tsx	root:div
 R7	js/pages/media/index.tsx	root:MediaDrawer
