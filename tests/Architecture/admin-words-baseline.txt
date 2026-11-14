@@ -1368,13 +1368,6 @@ components/user-menu-content.tsx	Preferences
 components/user-menu-content.tsx	Profile
 components/user-menu-content.tsx	Security
 components/user-menu-content.tsx	Sign out
-layouts/account/layout.tsx	Account
-layouts/account/layout.tsx	Account
-layouts/account/layout.tsx	Notifications
-layouts/account/layout.tsx	Preferences
-layouts/account/layout.tsx	Profile
-layouts/account/layout.tsx	Security
-layouts/account/layout.tsx	Signed in as {}. Each panel saves on its own.
 layouts/auth/auth-simple-layout.tsx	Powered by Teme
 layouts/settings/layout.tsx	Clear
 layouts/settings/layout.tsx	Find a setting

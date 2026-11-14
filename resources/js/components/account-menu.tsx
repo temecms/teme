@@ -36,7 +36,10 @@ export function AccountMenu() {
                     className="gap-2 px-1 max-md:size-11 max-md:px-0"
                 >
                     <Avatar className="size-8">
-                        <AvatarImage src={auth.user.avatar} alt="" />
+                        <AvatarImage
+                            src={auth.user.picture ?? undefined}
+                            alt=""
+                        />
                         <AvatarFallback className="bg-accent-soft-2 text-on-accent-soft text-caption font-semibold">
                             {getInitials(auth.user.name)}
                         </AvatarFallback>

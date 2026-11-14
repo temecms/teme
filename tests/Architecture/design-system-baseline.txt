@@ -96,7 +96,6 @@ R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--side
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]
 R1	js/components/ui/sidebar.tsx	peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))]
-R1	js/layouts/account/layout.tsx	lg:grid-cols-[200px_minmax(0,1fr)]
 R1	js/layouts/auth/auth-simple-layout.tsx	tracking-[-0.015em]
 R1	js/pages/content/compare.tsx	h-[34px]
 R1	js/pages/content/compare.tsx	h-[34px]
@@ -749,7 +748,6 @@ R2	js/components/types/icon-picker.tsx	text-sm
 R2	js/components/user-info.tsx	text-sm
 R2	js/components/user-info.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
-R2	js/layouts/account/layout.tsx	text-[13px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[11px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[13px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[22px]

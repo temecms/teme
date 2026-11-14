@@ -4,7 +4,10 @@ export type User = {
     email: string;
     emailVerified: boolean;
     capabilities: string[];
-    avatar?: string;
+    /** The first role's label, or null without one. */
+    role: string | null;
+    /** The picture's address, or null: initials show instead. */
+    picture: string | null;
 };
 
 export type Auth = {
