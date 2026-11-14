@@ -355,3 +355,21 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: Task 0's values; commits; each test seen red (task, file, case, the failure's first line); the two baselines' counts per rule before and after; every "Decided: … Options: … Chose: … because …"; differences from the plan as B-?? (draft); any STOP. -->
+
+### Task 0
+
+- Setup: `2026-11-14T20:55:09Z ran in /home/user/teme as root`, `2026-11-14T21:05:31Z finished`; working directory `/home/user/teme`.
+- `origin/main` at `4b8cc3b` (Merge pull request #275). The `--grep` line finds two commits, not one: `e7f2af7` (the feature commit itself) and `bd0e715` (its merge, whose message repeats the line). See B-?? (draft) 1.
+- Every file in Step 2 exists; the six pattern exports and `export { StepBar }` are there; `tools/status` is nowhere in `routes` or `resources/js`.
+- Files importing `list/page-header` or `list/tab-strip`: `ai-activity`, `page-cache`, `updates`, `backups/index`, `backups/new-key`, `backups/recovery-key`, `backups/set-up`, `backups/sftp`, `import/index`, `import/show`, and `components/tools/redirects-head` (two imports), as expected.
+- Last commits under `components/list`: `3abbcfc` (the tag picker's create-by-typing) and `e7f2af7`; the content-lists part has not merged, so the props of `DataTable`, `Pager`, `EmptyState`, `BulkBar` and `RowLinks` are as this plan expects.
+- Design-system lines on owned files: 298 (R1 18, R2 182, R3 32, R5 7, R6 5, R7 42, R8 4, R9 7, R14 1). Admin-words lines on owned files: 652. Whole baselines: 1228 and 2350 lines. `dsCounts()`: R1 114, R2 661, R3 149, R5 82, R6 41, R7 89, R8 34, R9 23, R10 14, R14 13, R15 8; `AdminWordsTest`'s count 2350.
+- `tests/Pest.php` holds the nine helpers. PHP 8.4.27, Node 24.22.1, PostgreSQL 18.7 answering on 5433, Valkey answering on 6380.
+- Stack from the locks: laravel/framework v13.39.0, inertiajs/inertia-laravel v3.5.2, pestphp/pest v5.3.4, pestphp/pest-plugin-browser v5.1.2; react 19.3.1, @inertiajs/react 3.9.1, typescript 7.0.2, tailwindcss 4.3.3, vite 8.3.5, vite-plus 0.3.0, @radix-ui/react-radio-group 1.5.1, @radix-ui/react-collapsible 1.2.1.
+- `composer check` at the base: Pint, PHPStan, types and lint pass; Architecture 105 passed (1225 assertions); Unit and Feature 10490 passed, 2 skipped (53816 assertions).
+
+### Progress
+
+- Done to Task 1 at `890afa7`, the quick check green.
+- Done to Task 2 at `f295084`, the quick check green.
+
