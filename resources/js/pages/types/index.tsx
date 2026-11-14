@@ -4,19 +4,20 @@ import TypesController from '@/actions/App/Http/Admin/TypesController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
-import { PageHeader } from '@/components/list/page-header';
 import { RowLinks } from '@/components/list/row-links';
+import { ListPage } from '@/components/patterns/list-page';
 import type { RowAction } from '@/components/list/row-actions';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
+import { StatusPill } from '@/components/ui/status-pill';
 import { navIcon } from '@/lib/nav-icons';
 import { index as typesIndex, show } from '@/routes/types';
 import type { TypeRow, TypesIndexPage } from '@/types';
 
 const sources = {
-    code: { label: 'Code', variant: 'outline' },
-    stored: { label: 'Made here', variant: 'secondary' },
-    refused: { label: 'Can’t be used', variant: 'destructive' },
+    code: { label: 'Code', tone: 'neutral' },
+    stored: { label: 'Made here', tone: 'info' },
+    refused: { label: 'Can’t be used', tone: 'danger' },
 } as const;
 
 /**
@@ -66,66 +67,62 @@ export default function TypesIndex({ locked, types }: TypesIndexPage) {
     ];
 
     return (
-        <>
+        <ListPage
+            title="Types"
+            description="The kinds of content this site keeps. Types declared by code are shown, but can’t be changed here."
+            actions={
+                <>
+                    {!locked && (
+                        <Button asChild>
+                            <Link
+                                href={TypesController.create.url()}
+                                data-test="types-add"
+                            >
+                                Add new type
+                            </Link>
+                        </Button>
+                    )}
+                    <Button variant="neutral" asChild>
+                        <a
+                            href={TypesController.download.url()}
+                            download
+                            data-test="types-download"
+                        >
+                            <Download aria-hidden className="size-4" />
+                            Download teme-types.json
+                        </a>
+                    </Button>
+                </>
+            }
+        >
             <Head title="Types" />
 
-            <div className="min-w-0 space-y-4 p-6">
-                <PageHeader
-                    title="Types"
-                    description="The kinds of content this site keeps. Types declared by code are shown, but can’t be changed here."
-                    action={
-                        <>
-                            <Button variant="outline" asChild>
-                                <a
-                                    href={TypesController.download.url()}
-                                    download
-                                    data-test="types-download"
-                                >
-                                    <Download aria-hidden className="size-4" />
-                                    Download teme-types.json
-                                </a>
-                            </Button>
-                            {!locked && (
-                                <Button asChild>
-                                    <Link
-                                        href={TypesController.create.url()}
-                                        data-test="types-add"
-                                    >
-                                        Add new type
-                                    </Link>
-                                </Button>
-                            )}
-                        </>
-                    }
-                />
+            {locked && (
+                <Notice tone="info">
+                    <p>
+                        Types are locked on this site (TEME_TYPES_LOCKED):
+                        change them where they’re made, and bring them here with{' '}
+                        <code>php artisan teme:types:import</code>.
+                    </p>
+                    <p>
+                        You can still look at each type, and download
+                        teme-types.json.
+                    </p>
+                </Notice>
+            )}
 
-                {locked && (
-                    <div className="grid gap-1 text-sm">
-                        <p>
-                            Types are locked on this site (TEME_TYPES_LOCKED):
-                            change them where they’re made, and bring them here
-                            with <code>php artisan teme:types:import</code>.
-                        </p>
-                        <p>
-                            You can still look at each type, and download
-                            teme-types.json.
-                        </p>
-                    </div>
-                )}
-
-                <DataTable
-                    columns={columns}
-                    rows={types}
-                    rowKey={(row) => row.key}
-                    caption="Types"
-                    rowProps={(row) =>
-                        row.source === 'refused'
-                            ? { className: 'bg-danger-soft' }
-                            : {}
-                    }
-                />
-            </div>
-        </>
+            <DataTable
+                columns={columns}
+                rows={types}
+                rowKey={(row) => row.key}
+                caption="Types"
+                rowProps={(row) =>
+                    row.source === 'refused'
+                        ? { className: 'bg-danger-soft' }
+                        : {}
+                }
+            />
+        </ListPage>
     );
 }
 
@@ -149,17 +146,16 @@ function TypeCell({ row, locked }: { row: TypeRow; locked: boolean }) {
                     {row.plural}
                 </Link>
                 <div className="text-ink-2 flex flex-wrap items-center gap-2">
-                    <code className="text-xs break-all">{row.key}</code>
+                    <code className="text-caption break-all">{row.key}</code>
                     <span className="sm:hidden">
                         <SourceBadge source={row.source} />
                     </span>
                 </div>
                 {row.source === 'refused' && row.reason !== null && (
-                    <p className="text-danger-ink mt-1 flex items-start gap-1 text-xs text-pretty">
-                        <XCircle
-                            aria-hidden
-                            className="mt-0.5 size-3.5 shrink-0"
-                        />
+                    <p className="text-danger-ink text-caption mt-1 flex items-start gap-1 text-pretty">
+                        <span className="flex h-lh shrink-0 items-center">
+                            <XCircle aria-hidden className="size-3.5" />
+                        </span>
                         Can’t be used: {row.reason}
                     </p>
                 )}
@@ -185,7 +181,7 @@ function ItemsCell({ row }: { row: TypeRow }) {
             ) : (
                 <Link
                     href={row.listUrl}
-                    className="text-accent-ink hover:underline"
+                    className="text-accent-ink inline-flex min-h-(--ctl-h-sm) items-center hover:underline"
                 >
                     {row.items}
                 </Link>
@@ -196,7 +192,7 @@ function ItemsCell({ row }: { row: TypeRow }) {
                 ) : (
                     <Link
                         href={`${row.listUrl}?tab=trash`}
-                        className="text-accent-ink hover:underline"
+                        className="text-accent-ink inline-flex min-h-(--ctl-h-sm) items-center hover:underline"
                     >
                         {row.trashed} in the trash
                     </Link>
@@ -206,9 +202,9 @@ function ItemsCell({ row }: { row: TypeRow }) {
 }
 
 function SourceBadge({ source }: { source: TypeRow['source'] }) {
-    const badge = sources[source];
+    const pill = sources[source];
 
-    return <Badge variant={badge.variant}>{badge.label}</Badge>;
+    return <StatusPill tone={pill.tone}>{pill.label}</StatusPill>;
 }
 
 function actions(row: TypeRow, locked: boolean): RowAction[] {

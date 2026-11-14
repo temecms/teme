@@ -62,3 +62,20 @@ it('opens an item where it leads and marks it read, then marks the rest read', f
     expect(DB::table('inbox_items')->where('id', $this->opened)->value('read_at'))->not->toBeNull()
         ->and(DB::table('inbox_items')->whereNull('read_at')->count())->toBe(0);
 });
+
+it('gives each item\'s title a 44-pixel target at 375 pixels, with nothing scrolling sideways', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 812), '/admin/inbox');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"inbox-item\"] button') !== null");
+
+    $sizes = $page->script(<<<'JS'
+        () => ({
+            page: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+            titles: [...document.querySelectorAll('[data-test="inbox-item"] button')].map((button) => Math.round(button.getBoundingClientRect().height)),
+        })
+        JS);
+
+    expect($sizes['page'])->toBe(0)
+        ->and($sizes['titles'])->not->toBe([])
+        ->and(min($sizes['titles']))->toBeGreaterThanOrEqual(44);
+});

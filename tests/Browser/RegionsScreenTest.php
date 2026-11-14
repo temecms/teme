@@ -41,7 +41,7 @@ it('passes axe on Regions in both schemes, each region showing its cards by thei
         ->navigate('/admin/regions')
         ->assertSee('At most 5 blocks')
         // Card labels, not the manifest's names: assertSee would match either case.
-        ->assertScript("[...document.querySelectorAll('[data-test=\"region-card\"]')].map((chip) => chip.textContent).join(', ')", 'Callout, Button')
+        ->assertScript("[...document.querySelectorAll('[data-test=\"region-cards\"] [data-slot=\"term-chip\"]')].map((chip) => chip.textContent).join(', ')", 'Callout, Button')
         ->assertNotPresent('[data-test="unplaced"]')
         ->assertNoAccessibilityIssues(3);
 
@@ -88,3 +88,25 @@ it('heads a region\'s editor with its name, its theme and what it takes, passing
     expect($targets['small'])->toBe([])
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
+
+it('keeps Regions inside the page at 375 pixels, its cards as chips, every target 24 pixels or more', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), '/admin/regions');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"region-cards\"] [data-slot=\"term-chip\"]') !== null");
+
+    $sizes = $page->script(<<<'JS'
+        () => ({
+            page: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+            chips: document.querySelectorAll('[data-test="region-cards"] [data-slot="term-chip"]').length,
+            more: document.querySelectorAll('[data-test="region-cards"] [data-test="term-chips-more"]').length,
+        })
+        JS);
+
+    $targets = cmSmallTargets($page);
+
+    // Callout and Button: both chips, or the first and a "+1" where both do not fit.
+    expect($sizes['page'])->toBe(0)
+        ->and($sizes['chips'] + $sizes['more'])->toBe(2)
+        ->and($targets['small'])->toBe([])
+        ->and($targets['checked'])->toBeGreaterThan(0);
+});

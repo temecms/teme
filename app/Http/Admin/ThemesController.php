@@ -33,9 +33,9 @@ use Teme\Contracts\Settings\Setting;
 
 /**
  * Site › Themes: the installed themes, a theme's preview and activation, the
- * regions each places, and the chosen theme's settings and menu places, every
- * change drafted and published through the design's Operations. It changes
- * nothing itself.
+ * regions each places, and each chosen theme's settings page with its menu
+ * places, every change drafted and published through the design's
+ * Operations. It changes nothing itself.
  */
 final class ThemesController extends Controller
 {
@@ -50,6 +50,23 @@ final class ThemesController extends Controller
             'previewRegions' => $previewed === null ? null : $regions->forTheme($previewed),
             'canEditRegions' => $request->user()?->can('regions.manage') === true,
         ]);
+    }
+
+    /**
+     * One theme's own settings and menu places. Only the theme the design names
+     * has them to change (the one previewed, else the one in use), so any other
+     * installed theme's address leads back to the list.
+     */
+    public function settings(string $code, DesignScreen $screen, ThemeRegistry $themes): Response|RedirectResponse
+    {
+        $theme = $themes->find($code) ?? abort(404);
+        $data = $screen->data();
+
+        if ($theme->code !== $data['theme'] || ! $theme->usable()) {
+            return to_route('themes.index');
+        }
+
+        return Inertia::render('themes/settings', $data);
     }
 
     /**

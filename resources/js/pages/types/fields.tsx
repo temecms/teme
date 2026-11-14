@@ -3,9 +3,8 @@ import { GripVertical, Lock, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import TypeFieldsController from '@/actions/App/Http/Admin/TypeFieldsController';
-import { PageHeader } from '@/components/list/page-header';
+import { ListPage } from '@/components/patterns/list-page';
 import { FieldSheet } from '@/components/types/field-sheet';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -16,14 +15,16 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Notice } from '@/components/ui/notice';
+import { Panel } from '@/components/ui/panel';
+import { StatusPill } from '@/components/ui/status-pill';
 import { cn } from '@/lib/utils';
 import { index as typesIndex } from '@/routes/types';
 import { index as fieldsIndex } from '@/routes/types/fields';
 import type { FieldRow, FieldsPage, FieldsPageType } from '@/types';
 
-/** A row's action, drawn as a link under its name. */
-const LINK =
-    'text-accent-ink focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 text-xs hover:underline focus-visible:ring-2 focus-visible:outline-none';
+/** A row's action, drawn as words under its name. */
+const LINK = 'text-accent-ink';
 
 /** How many items hold a value, as the removed list and the dialog say it. */
 function holdingPhrase(type: FieldsPageType, holding: number): string {
@@ -94,315 +95,311 @@ export default function TypeFields(page: FieldsPage) {
         );
 
     return (
-        <>
+        <ListPage
+            title={`${type.singular} fields`}
+            description={`What the editor asks for on each ${type.noun}, in this order. A saved change works at once.`}
+            actions={
+                !locked && (
+                    <Button
+                        type="button"
+                        onClick={() => {
+                            setEditing(null);
+                            setAdding(true);
+                        }}
+                    >
+                        <Plus aria-hidden className="size-4" />
+                        Add field
+                    </Button>
+                )
+            }
+        >
             <Head title={`${type.singular} fields`} />
 
-            <div className="max-w-[1004px] min-w-0 space-y-6 p-6">
-                <PageHeader
-                    title={`${type.singular} fields`}
-                    description={`What the editor asks for on each ${type.noun}, in this order. A saved change works at once.`}
-                    action={
-                        !locked && (
-                            <Button
-                                type="button"
-                                onClick={() => {
-                                    setEditing(null);
-                                    setAdding(true);
-                                }}
-                            >
-                                <Plus aria-hidden className="size-4" />
-                                Add field
-                            </Button>
-                        )
-                    }
-                />
+            {locked && (
+                <Notice tone="info">
+                    The types are locked on this site, so fields can’t be added
+                    or changed here.
+                </Notice>
+            )}
 
-                {locked && (
-                    <p className="text-sm">
-                        The types are locked on this site, so fields can’t be
-                        added or changed here.
+            <Card>
+                {fields.length === 0 ? (
+                    <p className="text-body text-ink-2 p-4">
+                        No fields of your own yet. Add one, and the editor shows
+                        it in Details at once.
                     </p>
-                )}
-
-                <Card>
-                    {fields.length === 0 ? (
-                        <p className="text-ink-2 p-4 text-sm">
-                            No fields of your own yet. Add one, and the editor
-                            shows it in Details at once.
-                        </p>
-                    ) : (
-                        <table className="w-full text-[13px]">
-                            <thead>
-                                <tr className="border-line border-b text-left">
-                                    <Th className="w-8">
-                                        <span className="sr-only">Order</span>
-                                    </Th>
-                                    <Th>Field</Th>
-                                    <Th className="hidden sm:table-cell">
-                                        Field type
-                                    </Th>
-                                    <Th className="hidden md:table-cell">
-                                        Site search
-                                    </Th>
-                                    <Th className="hidden md:table-cell">
-                                        Filterable
-                                    </Th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {fields.map((row, at) => (
-                                    <tr
-                                        key={row.key}
-                                        data-test={`field-row-${row.handle}`}
-                                        draggable={!locked}
-                                        onDragStart={(event) => {
-                                            setDragging(row.key);
-                                            event.dataTransfer.effectAllowed =
-                                                'move';
-                                            event.dataTransfer.setData(
-                                                'text/plain',
-                                                row.key,
-                                            );
-                                        }}
-                                        onDragEnd={() => setDragging(null)}
-                                        onDragOver={(event) => {
-                                            if (dragging !== null) {
-                                                event.preventDefault();
-                                            }
-                                        }}
-                                        onDrop={(event) => {
+                ) : (
+                    <table className="text-small w-full">
+                        <thead>
+                            <tr className="border-line border-b text-left">
+                                <Th className="w-8">
+                                    <span className="sr-only">Order</span>
+                                </Th>
+                                <Th>Field</Th>
+                                <Th className="hidden sm:table-cell">
+                                    Field type
+                                </Th>
+                                <Th className="hidden md:table-cell">
+                                    Site search
+                                </Th>
+                                <Th className="hidden md:table-cell">
+                                    Filterable
+                                </Th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {fields.map((row, at) => (
+                                <tr
+                                    key={row.key}
+                                    data-test={`field-row-${row.handle}`}
+                                    draggable={!locked}
+                                    onDragStart={(event) => {
+                                        setDragging(row.key);
+                                        event.dataTransfer.effectAllowed =
+                                            'move';
+                                        event.dataTransfer.setData(
+                                            'text/plain',
+                                            row.key,
+                                        );
+                                    }}
+                                    onDragEnd={() => setDragging(null)}
+                                    onDragOver={(event) => {
+                                        if (dragging !== null) {
                                             event.preventDefault();
-                                            const from = fields.find(
-                                                (field) =>
-                                                    field.key === dragging,
-                                            );
-                                            setDragging(null);
+                                        }
+                                    }}
+                                    onDrop={(event) => {
+                                        event.preventDefault();
+                                        const from = fields.find(
+                                            (field) => field.key === dragging,
+                                        );
+                                        setDragging(null);
 
-                                            if (
-                                                from !== undefined &&
-                                                from.key !== row.key
-                                            ) {
-                                                move(from, row.position);
-                                            }
-                                        }}
-                                        className={cn(
-                                            'border-line border-b align-top last:border-b-0',
-                                            dragging === row.key &&
-                                                'opacity-50',
+                                        if (
+                                            from !== undefined &&
+                                            from.key !== row.key
+                                        ) {
+                                            move(from, row.position);
+                                        }
+                                    }}
+                                    className={cn(
+                                        'border-line border-b align-top last:border-b-0',
+                                        dragging === row.key && 'opacity-50',
+                                    )}
+                                >
+                                    <td className="w-8 py-3 pl-3">
+                                        {!locked && (
+                                            <span
+                                                title="Drag to reorder"
+                                                className="text-ink-2 inline-flex cursor-grab"
+                                                data-test="field-grip"
+                                            >
+                                                <GripVertical
+                                                    aria-hidden
+                                                    className="size-4"
+                                                />
+                                            </span>
                                         )}
-                                    >
-                                        <td className="w-8 py-3 pl-3">
-                                            {!locked && (
-                                                <span
-                                                    title="Drag to reorder"
-                                                    className="text-ink-2 inline-flex cursor-grab"
-                                                    data-test="field-grip"
-                                                >
-                                                    <GripVertical
-                                                        aria-hidden
-                                                        className="size-4"
-                                                    />
-                                                </span>
+                                    </td>
+                                    <td className="min-w-0 py-3 pr-3">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className="font-medium">
+                                                {row.label}
+                                            </span>
+                                            {row.required && (
+                                                <StatusPill tone="neutral">
+                                                    Required
+                                                </StatusPill>
                                             )}
-                                        </td>
-                                        <td className="min-w-0 py-3 pr-3">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <span className="font-medium">
-                                                    {row.label}
-                                                </span>
-                                                {row.required && (
-                                                    <Badge variant="secondary">
-                                                        Required
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                            <div className="text-ink-2 font-mono text-xs break-all">
-                                                {row.handle}
-                                            </div>
-                                            <div className="text-ink-2 text-xs sm:hidden">
-                                                {typeLabel(page, row)}
-                                                {row.summary !== '' &&
-                                                    ` · ${row.summary}`}
-                                            </div>
-                                            {!locked && (
-                                                <RowActions label={row.label}>
-                                                    <button
+                                        </div>
+                                        <div className="text-caption text-ink-2 font-mono break-all">
+                                            {row.handle}
+                                        </div>
+                                        <div className="text-caption text-ink-2 sm:hidden">
+                                            {typeLabel(page, row)}
+                                            {row.summary !== '' &&
+                                                ` · ${row.summary}`}
+                                        </div>
+                                        {!locked && (
+                                            <RowActions label={row.label}>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="xs"
+                                                    className={LINK}
+                                                    onClick={() => {
+                                                        setAdding(false);
+                                                        setEditing(row);
+                                                    }}
+                                                >
+                                                    Edit
+                                                </Button>
+                                                {at > 0 && (
+                                                    <Button
                                                         type="button"
+                                                        variant="ghost"
+                                                        size="xs"
                                                         className={LINK}
-                                                        onClick={() => {
-                                                            setAdding(false);
-                                                            setEditing(row);
-                                                        }}
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    {at > 0 && (
-                                                        <button
-                                                            type="button"
-                                                            className={LINK}
-                                                            data-move={`${row.key}:up`}
-                                                            onClick={() =>
-                                                                move(
-                                                                    row,
-                                                                    fields[
-                                                                        at - 1
-                                                                    ].position,
-                                                                    'up',
-                                                                )
-                                                            }
-                                                        >
-                                                            Move up
-                                                        </button>
-                                                    )}
-                                                    {at < fields.length - 1 && (
-                                                        <button
-                                                            type="button"
-                                                            className={LINK}
-                                                            data-move={`${row.key}:down`}
-                                                            onClick={() =>
-                                                                move(
-                                                                    row,
-                                                                    fields[
-                                                                        at + 1
-                                                                    ].position,
-                                                                    'down',
-                                                                )
-                                                            }
-                                                        >
-                                                            Move down
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        type="button"
-                                                        className={cn(
-                                                            LINK,
-                                                            'text-danger-ink',
-                                                        )}
+                                                        data-move={`${row.key}:up`}
                                                         onClick={() =>
-                                                            setRemoving(row)
+                                                            move(
+                                                                row,
+                                                                fields[at - 1]
+                                                                    .position,
+                                                                'up',
+                                                            )
                                                         }
                                                     >
-                                                        Remove
-                                                    </button>
-                                                </RowActions>
-                                            )}
-                                        </td>
-                                        <td className="hidden py-3 pr-3 sm:table-cell">
-                                            {typeLabel(page, row)}
-                                            {row.summary !== '' && (
-                                                <div className="text-ink-2 text-xs">
-                                                    {row.summary}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="hidden py-3 pr-3 md:table-cell">
-                                            {row.search ? 'Yes' : 'No'}
-                                        </td>
-                                        <td className="hidden py-3 pr-3 md:table-cell">
-                                            {row.filterable ? 'Yes' : 'No'}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                </Card>
-
-                {page.fromTeme.length > 0 && <FromTeme page={page} />}
-
-                {page.removed.length > 0 && (
-                    <Card>
-                        <CardHeading
-                            title="Removed fields"
-                            line="Hidden from the editor and the site. Their values are still stored, so Restore brings a field back with them."
-                        />
-                        <table className="w-full text-[13px]">
-                            <thead>
-                                <tr className="border-line border-y text-left">
-                                    <Th className="pl-4">Field</Th>
-                                    <Th className="hidden sm:table-cell">
-                                        Values kept
-                                    </Th>
-                                    <Th className="hidden sm:table-cell">
-                                        Removed
-                                    </Th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {page.removed.map((row) => (
-                                    <tr
-                                        key={row.key}
-                                        data-test={`removed-row-${row.handle}`}
-                                        className="border-line border-b align-top last:border-b-0"
-                                    >
-                                        <td className="py-3 pr-3 pl-4">
-                                            <div className="font-medium">
-                                                {row.label}
-                                            </div>
-                                            <div className="text-ink-2 font-mono text-xs break-all">
-                                                {row.handle} ·{' '}
-                                                {catalogueLabel(
-                                                    page,
-                                                    row.fieldType,
+                                                        Move up
+                                                    </Button>
                                                 )}
-                                            </div>
-                                            <div className="text-ink-2 text-xs sm:hidden">
-                                                {holdingPhrase(
-                                                    type,
-                                                    row.holding,
-                                                )}{' '}
-                                                · removed {row.removedAt}
-                                            </div>
-                                            {!locked && (
-                                                <RowActions label={row.label}>
-                                                    <Form
-                                                        {...TypeFieldsController.restore.form(
-                                                            {
-                                                                key: type.key,
-                                                                field: row.key,
-                                                            },
-                                                        )}
-                                                        options={{
-                                                            preserveScroll: true,
-                                                        }}
+                                                {at < fields.length - 1 && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="xs"
+                                                        className={LINK}
+                                                        data-move={`${row.key}:down`}
+                                                        onClick={() =>
+                                                            move(
+                                                                row,
+                                                                fields[at + 1]
+                                                                    .position,
+                                                                'down',
+                                                            )
+                                                        }
                                                     >
-                                                        <button
-                                                            type="submit"
-                                                            className={LINK}
-                                                        >
-                                                            Restore
-                                                        </button>
-                                                    </Form>
-                                                </RowActions>
-                                            )}
-                                        </td>
-                                        <td className="hidden py-3 pr-3 sm:table-cell">
-                                            {holdingPhrase(type, row.holding)}
-                                        </td>
-                                        <td className="hidden py-3 pr-3 sm:table-cell">
-                                            {row.removedBy === null
-                                                ? row.removedAt
-                                                : `${row.removedAt}, by ${row.removedBy}`}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </Card>
-                )}
-
-                {page.unreadable.length > 0 && (
-                    <Card>
-                        <div className="grid gap-2 p-4" data-test="unreadable">
-                            {page.unreadable.map((row) => (
-                                <p key={row.key} className="text-sm">
-                                    {row.sentence}
-                                </p>
+                                                        Move down
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="xs"
+                                                    className="text-danger-ink"
+                                                    onClick={() =>
+                                                        setRemoving(row)
+                                                    }
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </RowActions>
+                                        )}
+                                    </td>
+                                    <td className="hidden py-3 pr-3 sm:table-cell">
+                                        {typeLabel(page, row)}
+                                        {row.summary !== '' && (
+                                            <div className="text-caption text-ink-2">
+                                                {row.summary}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td className="hidden py-3 pr-3 md:table-cell">
+                                        {row.search ? 'Yes' : 'No'}
+                                    </td>
+                                    <td className="hidden py-3 pr-3 md:table-cell">
+                                        {row.filterable ? 'Yes' : 'No'}
+                                    </td>
+                                </tr>
                             ))}
-                        </div>
-                    </Card>
+                        </tbody>
+                    </table>
                 )}
-            </div>
+            </Card>
+
+            {page.fromTeme.length > 0 && <FromTeme page={page} />}
+
+            {page.removed.length > 0 && (
+                <Card>
+                    <CardHeading
+                        title="Removed fields"
+                        line="Hidden from the editor and the site. Their values are still stored, so Restore brings a field back with them."
+                    />
+                    <table className="text-small w-full">
+                        <thead>
+                            <tr className="border-line border-y text-left">
+                                <Th className="pl-4">Field</Th>
+                                <Th className="hidden sm:table-cell">
+                                    Values kept
+                                </Th>
+                                <Th className="hidden sm:table-cell">
+                                    Removed
+                                </Th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {page.removed.map((row) => (
+                                <tr
+                                    key={row.key}
+                                    data-test={`removed-row-${row.handle}`}
+                                    className="border-line border-b align-top last:border-b-0"
+                                >
+                                    <td className="py-3 pr-3 pl-4">
+                                        <div className="font-medium">
+                                            {row.label}
+                                        </div>
+                                        <div className="text-caption text-ink-2 font-mono break-all">
+                                            {row.handle} ·{' '}
+                                            {catalogueLabel(
+                                                page,
+                                                row.fieldType,
+                                            )}
+                                        </div>
+                                        <div className="text-caption text-ink-2 sm:hidden">
+                                            {holdingPhrase(type, row.holding)} ·
+                                            removed {row.removedAt}
+                                        </div>
+                                        {!locked && (
+                                            <RowActions label={row.label}>
+                                                <Form
+                                                    {...TypeFieldsController.restore.form(
+                                                        {
+                                                            key: type.key,
+                                                            field: row.key,
+                                                        },
+                                                    )}
+                                                    options={{
+                                                        preserveScroll: true,
+                                                    }}
+                                                >
+                                                    <Button
+                                                        type="submit"
+                                                        variant="ghost"
+                                                        size="xs"
+                                                        className={LINK}
+                                                    >
+                                                        Restore
+                                                    </Button>
+                                                </Form>
+                                            </RowActions>
+                                        )}
+                                    </td>
+                                    <td className="hidden py-3 pr-3 sm:table-cell">
+                                        {holdingPhrase(type, row.holding)}
+                                    </td>
+                                    <td className="hidden py-3 pr-3 sm:table-cell">
+                                        {row.removedBy === null
+                                            ? row.removedAt
+                                            : `${row.removedAt}, by ${row.removedBy}`}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </Card>
+            )}
+
+            {page.unreadable.length > 0 && (
+                <Card>
+                    <div className="grid gap-2 p-4" data-test="unreadable">
+                        {page.unreadable.map((row) => (
+                            <p key={row.key} className="text-body">
+                                {row.sentence}
+                            </p>
+                        ))}
+                    </div>
+                </Card>
+            )}
 
             {!locked && (
                 <FieldSheet
@@ -438,7 +435,7 @@ export default function TypeFields(page: FieldsPage) {
                     setEditing(null);
                 }}
             />
-        </>
+        </ListPage>
     );
 }
 
@@ -451,11 +448,7 @@ function catalogueLabel(page: FieldsPage, name: string): string {
 }
 
 function Card({ children }: { children: ReactNode }) {
-    return (
-        <section className="border-line bg-surface overflow-hidden rounded-md border">
-            {children}
-        </section>
-    );
+    return <Panel className="overflow-hidden">{children}</Panel>;
 }
 
 function CardHeading({
@@ -469,11 +462,11 @@ function CardHeading({
 }) {
     return (
         <div className="grid gap-1 p-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <h2 className="text-body flex items-center gap-2 font-semibold">
                 {icon}
                 {title}
             </h2>
-            <p className="text-ink-2 text-[13px] text-pretty">{line}</p>
+            <p className="text-small text-ink-2 text-pretty">{line}</p>
         </div>
     );
 }
@@ -489,7 +482,7 @@ function Th({
         <th
             scope="col"
             className={cn(
-                'text-ink-2 py-2 pr-3 text-xs font-medium',
+                'text-caption text-ink-2 py-2 pr-3 font-medium',
                 className,
             )}
         >
@@ -518,7 +511,10 @@ function RowActions({
             {items.map((item, at) => (
                 <span key={at} className="inline-flex items-center gap-x-1">
                     {at > 0 && (
-                        <span aria-hidden="true" className="text-ink-2 text-xs">
+                        <span
+                            aria-hidden="true"
+                            className="text-caption text-ink-2"
+                        >
                             ·
                         </span>
                     )}
@@ -540,7 +536,7 @@ function FromTeme({ page }: { page: FieldsPage }) {
                         They come with the features ticked under{' '}
                         <Link
                             href={page.type.typeUrl}
-                            className="text-accent-ink underline underline-offset-2"
+                            className="text-accent-ink underline underline-offset-3"
                         >
                             In the editor
                         </Link>{' '}
@@ -550,7 +546,7 @@ function FromTeme({ page }: { page: FieldsPage }) {
                     </>
                 }
             />
-            <table className="w-full text-[13px]">
+            <table className="text-small w-full">
                 <thead>
                     <tr className="border-line border-y text-left">
                         <Th className="w-8 pl-3">
@@ -583,18 +579,20 @@ function FromTeme({ page }: { page: FieldsPage }) {
                                         <span className="font-medium">
                                             {row.name}
                                         </span>
-                                        <Badge variant="outline">Code</Badge>
+                                        <StatusPill tone="neutral">
+                                            Code
+                                        </StatusPill>
                                     </div>
-                                    <div className="text-ink-2 font-mono text-xs break-all">
+                                    <div className="text-caption text-ink-2 font-mono break-all">
                                         {row.handles}
                                     </div>
-                                    <div className="text-ink-2 text-xs sm:hidden">
+                                    <div className="text-caption text-ink-2 sm:hidden">
                                         {row.fieldType} · {row.where}
                                     </div>
                                 </td>
                                 <td className="hidden py-3 pr-3 sm:table-cell">
                                     {row.fieldType}
-                                    <div className="text-ink-2 text-xs">
+                                    <div className="text-caption text-ink-2">
                                         {where}
                                     </div>
                                 </td>
@@ -652,7 +650,7 @@ function RemoveDialog({
                 </DialogHeader>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">Cancel</Button>
+                        <Button variant="neutral">Cancel</Button>
                     </DialogClose>
                     <Button
                         disabled={processing}

@@ -5,19 +5,20 @@ import TypesController from '@/actions/App/Http/Admin/TypesController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
-import { PageHeader } from '@/components/list/page-header';
 import { RowLinks } from '@/components/list/row-links';
+import { ListPage } from '@/components/patterns/list-page';
 import type { RowAction } from '@/components/list/row-actions';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
+import { StatusPill } from '@/components/ui/status-pill';
 import { navIcon } from '@/lib/nav-icons';
 import { index as taxonomiesIndex, show } from '@/routes/taxonomies';
 import type { TaxonomiesIndexPage, TaxonomyRow } from '@/types';
 
 const sources = {
-    code: { label: 'Code', variant: 'outline' },
-    stored: { label: 'Made here', variant: 'secondary' },
-    refused: { label: 'Can’t be used', variant: 'destructive' },
+    code: { label: 'Code', tone: 'neutral' },
+    stored: { label: 'Made here', tone: 'info' },
+    refused: { label: 'Can’t be used', tone: 'danger' },
 } as const;
 
 /** "Films", "Posts and Films", "Movies, TV Shows and Games". */
@@ -86,67 +87,62 @@ export default function TaxonomiesIndex({
     ];
 
     return (
-        <>
+        <ListPage
+            title="Taxonomies"
+            description="The ways this site groups its content, such as categories and tags. Taxonomies declared by code are shown, but can’t be changed here."
+            actions={
+                <>
+                    {!locked && (
+                        <Button asChild>
+                            <Link
+                                href={TaxonomiesController.create.url()}
+                                data-test="taxonomies-add"
+                            >
+                                Add new taxonomy
+                            </Link>
+                        </Button>
+                    )}
+                    <Button variant="neutral" asChild>
+                        <a
+                            href={TypesController.download.url()}
+                            download
+                            data-test="taxonomies-download"
+                        >
+                            <Download aria-hidden className="size-4" />
+                            Download teme-types.json
+                        </a>
+                    </Button>
+                </>
+            }
+        >
             <Head title="Taxonomies" />
 
-            <div className="min-w-0 space-y-4 p-6">
-                <PageHeader
-                    title="Taxonomies"
-                    description="The ways this site groups its content, such as categories and tags. Taxonomies declared by code are shown, but can’t be changed here."
-                    action={
-                        <>
-                            <Button variant="outline" asChild>
-                                <a
-                                    href={TypesController.download.url()}
-                                    download
-                                    data-test="taxonomies-download"
-                                >
-                                    <Download aria-hidden className="size-4" />
-                                    Download teme-types.json
-                                </a>
-                            </Button>
-                            {!locked && (
-                                <Button asChild>
-                                    <Link
-                                        href={TaxonomiesController.create.url()}
-                                        data-test="taxonomies-add"
-                                    >
-                                        Add new taxonomy
-                                    </Link>
-                                </Button>
-                            )}
-                        </>
-                    }
-                />
+            {locked && (
+                <Notice tone="info">
+                    <p>
+                        Taxonomies are locked on this site (TEME_TYPES_LOCKED):
+                        change them where they’re made, and bring them here with{' '}
+                        <code>php artisan teme:types:import</code>.
+                    </p>
+                    <p>
+                        You can still look at each taxonomy, and download
+                        teme-types.json.
+                    </p>
+                </Notice>
+            )}
 
-                {locked && (
-                    <div className="grid gap-1 text-sm">
-                        <p>
-                            Taxonomies are locked on this site
-                            (TEME_TYPES_LOCKED): change them where they’re made,
-                            and bring them here with{' '}
-                            <code>php artisan teme:types:import</code>.
-                        </p>
-                        <p>
-                            You can still look at each taxonomy, and download
-                            teme-types.json.
-                        </p>
-                    </div>
-                )}
-
-                <DataTable
-                    columns={columns}
-                    rows={taxonomies}
-                    rowKey={(row) => row.key}
-                    caption="Taxonomies"
-                    rowProps={(row) =>
-                        row.source === 'refused'
-                            ? { className: 'bg-danger-soft' }
-                            : {}
-                    }
-                />
-            </div>
-        </>
+            <DataTable
+                columns={columns}
+                rows={taxonomies}
+                rowKey={(row) => row.key}
+                caption="Taxonomies"
+                rowProps={(row) =>
+                    row.source === 'refused'
+                        ? { className: 'bg-danger-soft' }
+                        : {}
+                }
+            />
+        </ListPage>
     );
 }
 
@@ -170,17 +166,16 @@ function TaxonomyCell({ row, locked }: { row: TaxonomyRow; locked: boolean }) {
                     {row.plural}
                 </Link>
                 <div className="text-ink-2 flex flex-wrap items-center gap-2">
-                    <code className="text-xs break-all">{row.key}</code>
+                    <code className="text-caption break-all">{row.key}</code>
                     <span className="sm:hidden">
                         <SourceBadge source={row.source} />
                     </span>
                 </div>
                 {row.source === 'refused' && row.reason !== null && (
-                    <p className="text-danger-ink mt-1 flex items-start gap-1 text-xs text-pretty">
-                        <XCircle
-                            aria-hidden
-                            className="mt-0.5 size-3.5 shrink-0"
-                        />
+                    <p className="text-danger-ink text-caption mt-1 flex items-start gap-1 text-pretty">
+                        <span className="flex h-lh shrink-0 items-center">
+                            <XCircle aria-hidden className="size-3.5" />
+                        </span>
                         Can’t be used: {row.reason}
                     </p>
                 )}
@@ -202,7 +197,7 @@ function TermsCell({ row }: { row: TaxonomyRow }) {
     return (
         <Link
             href={row.termsUrl}
-            className="text-accent-ink inline-flex min-h-6 min-w-6 items-center justify-end font-mono tabular-nums hover:underline"
+            className="text-accent-ink inline-flex min-h-(--ctl-h-sm) min-w-6 items-center justify-end font-mono tabular-nums hover:underline"
         >
             {row.terms.toLocaleString()}
         </Link>
@@ -210,9 +205,9 @@ function TermsCell({ row }: { row: TaxonomyRow }) {
 }
 
 function SourceBadge({ source }: { source: TaxonomyRow['source'] }) {
-    const badge = sources[source];
+    const pill = sources[source];
 
-    return <Badge variant={badge.variant}>{badge.label}</Badge>;
+    return <StatusPill tone={pill.tone}>{pill.label}</StatusPill>;
 }
 
 function actions(row: TaxonomyRow, locked: boolean): RowAction[] {

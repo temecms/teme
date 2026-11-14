@@ -28,6 +28,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Sheet,
     SheetContent,
@@ -36,6 +38,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type {
     FieldCatalogueEntry,
@@ -79,10 +82,6 @@ const SHOW: [FieldShowValue, string][] = [
     ['hidden', 'Not shown'],
 ];
 
-/** A text area drawn as the admin's inputs are. */
-const AREA =
-    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
-
 /** A choice row as the sheet keeps it: whether it was stored before, so its value stays. */
 type ChoiceRow = FieldChoice & { id: number; stored: boolean };
 
@@ -125,10 +124,7 @@ export function FieldSheet({
 }) {
     return (
         <Sheet open={open} onOpenChange={(next) => !next && onClose()}>
-            <SheetContent
-                className="w-full overflow-y-auto sm:max-w-[480px]"
-                data-test="field-sheet"
-            >
+            <SheetContent data-test="field-sheet">
                 <SheetHeader>
                     <SheetTitle>
                         {editing === null
@@ -243,243 +239,252 @@ function FieldForm({
         >
             {({ processing, errors }) => (
                 <>
-                    <div className="grid gap-5 px-4 pb-4">
-                        <InputError message={errors.key ?? errors.type} />
-                        <div className="grid gap-5 sm:grid-cols-2">
-                            <div className="grid min-w-0 content-start gap-2">
-                                <Label htmlFor="field-label">Label</Label>
-                                <Input
-                                    id="field-label"
-                                    name="label"
-                                    value={label}
-                                    aria-describedby="field-label-hint"
-                                    aria-invalid={
-                                        errors.label ? true : undefined
-                                    }
-                                    onChange={(event) => {
-                                        setLabel(event.target.value);
-
-                                        if (!handleTouched) {
-                                            setHandle(
-                                                handleFrom(event.target.value),
-                                            );
+                    <ScrollArea className="flex-1">
+                        <div className="grid gap-5 px-6 pb-4">
+                            <InputError message={errors.key ?? errors.type} />
+                            <div className="grid gap-5 sm:grid-cols-2">
+                                <div className="grid min-w-0 content-start gap-2">
+                                    <Label htmlFor="field-label">Label</Label>
+                                    <Input
+                                        id="field-label"
+                                        name="label"
+                                        value={label}
+                                        aria-describedby="field-label-hint"
+                                        aria-invalid={
+                                            errors.label ? true : undefined
                                         }
-                                    }}
-                                />
-                                <Hint id="field-label-hint">
-                                    What editors see.
-                                </Hint>
-                                <InputError message={errors.label} />
-                            </div>
-                            <div className="grid min-w-0 content-start gap-2">
-                                <Label htmlFor="field-handle">Handle</Label>
-                                <Input
-                                    id="field-handle"
-                                    name="handle"
-                                    value={handle}
-                                    className="font-mono"
-                                    autoComplete="off"
-                                    spellCheck={false}
-                                    aria-describedby="field-handle-hint"
-                                    aria-invalid={
-                                        errors.handle ? true : undefined
-                                    }
-                                    onChange={(event) => {
-                                        setHandle(event.target.value);
-                                        setHandleTouched(true);
-                                    }}
-                                />
-                                <Hint id="field-handle-hint">
-                                    {editing === null ? (
-                                        <>
-                                            What templates use:{' '}
-                                            <code>{`field('${handle}')`}</code>.
-                                            Made from the label.
-                                        </>
-                                    ) : (
-                                        'Changing it keeps every value; templates that use the old handle need the new one.'
-                                    )}
-                                </Hint>
-                                <InputError message={errors.handle} />
-                            </div>
-                        </div>
+                                        onChange={(event) => {
+                                            setLabel(event.target.value);
 
-                        {editing === null ? (
-                            <div className="grid gap-3">
-                                <div className="grid gap-1">
-                                    <p
-                                        id="field-type-label"
-                                        className="text-sm leading-none font-medium"
-                                    >
-                                        Field type
-                                    </p>
-                                    <Hint id="field-type-hint">
-                                        What kind of value it holds. It can’t
-                                        change once the field is made.
+                                            if (!handleTouched) {
+                                                setHandle(
+                                                    handleFrom(
+                                                        event.target.value,
+                                                    ),
+                                                );
+                                            }
+                                        }}
+                                    />
+                                    <Hint id="field-label-hint">
+                                        What editors see.
                                     </Hint>
+                                    <InputError message={errors.label} />
                                 </div>
-                                <div
-                                    role="radiogroup"
-                                    aria-labelledby="field-type-label"
-                                    aria-describedby="field-type-hint"
-                                    className="grid gap-1.5 sm:grid-cols-2"
-                                >
-                                    {catalogue.map((entry) => (
-                                        <TypeChoice
-                                            key={entry.name}
-                                            icon={ICONS[entry.icon] ?? File}
-                                            name={entry.label}
-                                            line={entry.line}
-                                            value={entry.name}
-                                            checked={fieldType === entry.name}
-                                            onChange={() => choose(entry.name)}
-                                        />
-                                    ))}
-                                </div>
-                                <InputError message={errors.fieldType} />
-                                {settings}
-                                <div className="grid gap-1.5">
-                                    <p
-                                        id="field-type-later"
-                                        className="text-ink-2 text-xs font-medium"
-                                    >
-                                        Coming in later updates
-                                    </p>
-                                    <div
-                                        role="radiogroup"
-                                        aria-labelledby="field-type-later"
-                                        className="grid gap-1.5 sm:grid-cols-2"
-                                    >
-                                        {LATER.map(([icon, name, line]) => (
-                                            <TypeChoice
-                                                key={name}
-                                                icon={icon}
-                                                name={name}
-                                                line={line}
-                                                disabled
-                                            />
-                                        ))}
-                                    </div>
+                                <div className="grid min-w-0 content-start gap-2">
+                                    <Label htmlFor="field-handle">Handle</Label>
+                                    <Input
+                                        id="field-handle"
+                                        name="handle"
+                                        value={handle}
+                                        className="font-mono"
+                                        autoComplete="off"
+                                        spellCheck={false}
+                                        aria-describedby="field-handle-hint"
+                                        aria-invalid={
+                                            errors.handle ? true : undefined
+                                        }
+                                        onChange={(event) => {
+                                            setHandle(event.target.value);
+                                            setHandleTouched(true);
+                                        }}
+                                    />
+                                    <Hint id="field-handle-hint">
+                                        {editing === null ? (
+                                            <>
+                                                What templates use:{' '}
+                                                <code>{`field('${handle}')`}</code>
+                                                . Made from the label.
+                                            </>
+                                        ) : (
+                                            'Changing it keeps every value; templates that use the old handle need the new one.'
+                                        )}
+                                    </Hint>
+                                    <InputError message={errors.handle} />
                                 </div>
                             </div>
-                        ) : (
-                            <div className="grid gap-3">
-                                <div className="grid gap-2">
-                                    <p className="text-sm leading-none font-medium">
-                                        Field type
-                                    </p>
-                                    <input
-                                        type="hidden"
+
+                            {editing === null ? (
+                                <div className="grid gap-3">
+                                    <div className="grid gap-1">
+                                        <p
+                                            id="field-type-label"
+                                            className="text-body leading-none font-medium"
+                                        >
+                                            Field type
+                                        </p>
+                                        <Hint id="field-type-hint">
+                                            What kind of value it holds. It
+                                            can’t change once the field is made.
+                                        </Hint>
+                                    </div>
+                                    <RadioGroup
                                         name="fieldType"
                                         value={fieldType}
-                                    />
-                                    <p className="flex items-center gap-2 text-[13px]">
-                                        {(() => {
-                                            const Icon =
-                                                ICONS[chosen?.icon ?? ''] ??
-                                                File;
-
-                                            return (
-                                                <Icon
-                                                    aria-hidden
-                                                    className="size-4"
-                                                />
-                                            );
-                                        })()}
-                                        {chosen?.label ?? fieldType}
-                                    </p>
-                                    <Hint>
-                                        Can’t change: stored values would be
-                                        read as another kind. To change it, add
-                                        a new field and remove this one.
-                                    </Hint>
+                                        onValueChange={choose}
+                                        aria-labelledby="field-type-label"
+                                        aria-describedby="field-type-hint"
+                                        className="grid gap-2 sm:grid-cols-2"
+                                    >
+                                        {catalogue.map((entry) => (
+                                            <TypeChoice
+                                                key={entry.name}
+                                                icon={ICONS[entry.icon] ?? File}
+                                                name={entry.label}
+                                                line={entry.line}
+                                                value={entry.name}
+                                                checked={
+                                                    fieldType === entry.name
+                                                }
+                                            />
+                                        ))}
+                                    </RadioGroup>
                                     <InputError message={errors.fieldType} />
+                                    {settings}
+                                    <div className="grid gap-2">
+                                        <p
+                                            id="field-type-later"
+                                            className="text-caption text-ink-2 font-medium"
+                                        >
+                                            Coming in later updates
+                                        </p>
+                                        <RadioGroup
+                                            aria-labelledby="field-type-later"
+                                            disabled
+                                            className="grid gap-2 sm:grid-cols-2"
+                                        >
+                                            {LATER.map(([icon, name, line]) => (
+                                                <TypeChoice
+                                                    key={name}
+                                                    icon={icon}
+                                                    name={name}
+                                                    line={line}
+                                                    value={name}
+                                                    disabled
+                                                />
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
                                 </div>
-                                {settings}
-                            </div>
-                        )}
-                        <InputError
-                            message={
-                                errors['settings.choices'] ??
-                                errors['settings.dateOnly'] ??
-                                errors.settings
-                            }
-                        />
+                            ) : (
+                                <div className="grid gap-3">
+                                    <div className="grid gap-2">
+                                        <p className="text-body leading-none font-medium">
+                                            Field type
+                                        </p>
+                                        <input
+                                            type="hidden"
+                                            name="fieldType"
+                                            value={fieldType}
+                                        />
+                                        <p className="text-small flex items-center gap-2">
+                                            {(() => {
+                                                const Icon =
+                                                    ICONS[chosen?.icon ?? ''] ??
+                                                    File;
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="field-help">Help text</Label>
-                            <textarea
-                                id="field-help"
-                                name="help"
-                                rows={2}
-                                value={help}
-                                className={AREA}
-                                aria-describedby="field-help-hint"
-                                onChange={(event) =>
-                                    setHelp(event.target.value)
+                                                return (
+                                                    <Icon
+                                                        aria-hidden
+                                                        className="size-4"
+                                                    />
+                                                );
+                                            })()}
+                                            {chosen?.label ?? fieldType}
+                                        </p>
+                                        <Hint>
+                                            Can’t change: stored values would be
+                                            read as another kind. To change it,
+                                            add a new field and remove this one.
+                                        </Hint>
+                                        <InputError
+                                            message={errors.fieldType}
+                                        />
+                                    </div>
+                                    {settings}
+                                </div>
+                            )}
+                            <InputError
+                                message={
+                                    errors['settings.choices'] ??
+                                    errors['settings.dateOnly'] ??
+                                    errors.settings
                                 }
                             />
-                            <Hint id="field-help-hint">
-                                Shown under the field in the editor.
-                            </Hint>
-                            <InputError message={errors.help} />
-                        </div>
 
-                        {chosen !== undefined && (
-                            <div className="grid gap-3">
-                                {chosen.required && (
-                                    <Box
-                                        id="field-required"
-                                        name="required"
-                                        label="Required"
-                                        hint={`A ${type.noun} needs one to be published. ${type.plural} published before are checked when next published.`}
-                                        checked={required}
-                                        error={errors.required}
-                                        onChange={setRequired}
-                                    />
-                                )}
-                                {chosen.search && (
-                                    <Box
-                                        id="field-search"
-                                        name="search"
-                                        label="Include in site search"
-                                        hint={`A search for one of its words finds the ${type.plural.toLowerCase()} with it. On by default for text and choices.`}
-                                        checked={search}
-                                        error={errors.search}
-                                        onChange={setSearch}
-                                    />
-                                )}
-                                {chosen.filterable && (
-                                    <Box
-                                        id="field-filterable"
-                                        name="filterable"
-                                        label="Filterable"
-                                        hint="Lists can be filtered and sorted by it once a later update adds filters."
-                                        checked={filterable}
-                                        error={errors.filterable}
-                                        onChange={setFilterable}
-                                    />
-                                )}
+                            <div className="grid gap-2">
+                                <Label htmlFor="field-help">Help text</Label>
+                                <Textarea
+                                    id="field-help"
+                                    name="help"
+                                    rows={2}
+                                    value={help}
+                                    aria-describedby="field-help-hint"
+                                    onChange={(event) =>
+                                        setHelp(event.target.value)
+                                    }
+                                />
+                                <Hint id="field-help-hint">
+                                    Shown under the field in the editor.
+                                </Hint>
+                                <InputError message={errors.help} />
                             </div>
-                        )}
 
-                        <ShowOnSite value={show} onChange={setShow} />
-                        <InputError message={errors.show} />
-                    </div>
+                            {chosen !== undefined && (
+                                <div className="grid gap-3">
+                                    {chosen.required && (
+                                        <Box
+                                            id="field-required"
+                                            name="required"
+                                            label="Required"
+                                            hint={`A ${type.noun} needs one to be published. ${type.plural} published before are checked when next published.`}
+                                            checked={required}
+                                            error={errors.required}
+                                            onChange={setRequired}
+                                        />
+                                    )}
+                                    {chosen.search && (
+                                        <Box
+                                            id="field-search"
+                                            name="search"
+                                            label="Include in site search"
+                                            hint={`A search for one of its words finds the ${type.plural.toLowerCase()} with it. On by default for text and choices.`}
+                                            checked={search}
+                                            error={errors.search}
+                                            onChange={setSearch}
+                                        />
+                                    )}
+                                    {chosen.filterable && (
+                                        <Box
+                                            id="field-filterable"
+                                            name="filterable"
+                                            label="Filterable"
+                                            hint="Lists can be filtered and sorted by it once a later update adds filters."
+                                            checked={filterable}
+                                            error={errors.filterable}
+                                            onChange={setFilterable}
+                                        />
+                                    )}
+                                </div>
+                            )}
 
-                    <SheetFooter className="bg-surface sticky bottom-0 mt-auto flex-row flex-wrap border-t">
+                            <ShowOnSite value={show} onChange={setShow} />
+                            <InputError message={errors.show} />
+                        </div>
+                    </ScrollArea>
+
+                    <SheetFooter className="bg-surface mt-auto flex-row flex-wrap border-t">
                         <Button type="submit" disabled={processing}>
                             {editing === null ? 'Add field' : 'Save field'}
                         </Button>
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="neutral"
                             onClick={onClose}
                         >
                             Cancel
                         </Button>
                         {removeButton !== undefined && (
-                            <span className="ml-auto">{removeButton}</span>
+                            <span className="ms-auto">{removeButton}</span>
                         )}
                     </SheetFooter>
                 </>
@@ -490,7 +495,7 @@ function FieldForm({
 
 function Hint({ id, children }: { id?: string; children: ReactNode }) {
     return (
-        <p id={id} className="text-ink-2 text-xs text-pretty">
+        <p id={id} className="text-caption text-ink-2 text-pretty">
             {children}
         </p>
     );
@@ -503,37 +508,31 @@ function TypeChoice({
     value,
     checked = false,
     disabled = false,
-    onChange,
 }: {
     icon: LucideIcon;
     name: string;
     line: string;
-    value?: string;
+    value: string;
     checked?: boolean;
     disabled?: boolean;
-    onChange?: () => void;
 }) {
     return (
         <label
             className={cn(
-                'border-line flex items-start gap-2.5 rounded-md border p-2.5 text-[13px]',
+                'border-line text-small flex items-start gap-3 rounded-md border p-3',
                 checked && 'border-accent bg-surface-3',
                 disabled ? 'text-ink-2 cursor-not-allowed' : 'cursor-pointer',
             )}
         >
-            <input
-                type="radio"
-                name={disabled ? undefined : 'fieldType'}
-                value={value}
-                checked={checked}
-                disabled={disabled}
-                onChange={onChange}
-                className="accent-accent mt-0.5 size-4 shrink-0"
-            />
-            <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
-            <span className="grid gap-0.5">
+            <span className="flex h-lh shrink-0 items-center">
+                <RadioGroupItem value={value} disabled={disabled} />
+            </span>
+            <span className="flex h-lh shrink-0 items-center">
+                <Icon aria-hidden className="size-4" />
+            </span>
+            <span className="grid gap-1">
                 <span className="font-medium">{name}</span>
-                <span className="text-ink-2 text-xs">{line}</span>
+                <span className="text-caption text-ink-2">{line}</span>
             </span>
         </label>
     );
@@ -559,30 +558,31 @@ function Choices({
         <div className="grid gap-2">
             <p
                 id="field-choices-label"
-                className="text-sm leading-none font-medium"
+                className="text-body leading-none font-medium"
             >
                 Choices
             </p>
             <div
                 role="group"
                 aria-labelledby="field-choices-label"
-                className="grid gap-1.5"
+                className="grid gap-2"
             >
-                <div className="text-ink-2 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem] gap-2 text-xs font-medium">
-                    <span id="field-choices-stored">Stored as</span>
-                    <span id="field-choices-shown">Shown as</span>
-                    <span />
+                <div className="text-caption text-ink-2 flex gap-2 font-medium">
+                    <span id="field-choices-stored" className="min-w-0 flex-1">
+                        Stored as
+                    </span>
+                    <span id="field-choices-shown" className="min-w-0 flex-1">
+                        Shown as
+                    </span>
+                    <span className="w-8 shrink-0" />
                 </div>
                 {choices.map((choice, at) => (
-                    <div
-                        key={choice.id}
-                        className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem] items-center gap-2"
-                    >
+                    <div key={choice.id} className="flex items-center gap-2">
                         <Input
                             name={`settings[choices][${at}][value]`}
                             value={choice.value}
                             readOnly={choice.stored}
-                            className="read-only:bg-surface-2 font-mono"
+                            className="read-only:bg-surface-2 min-w-0 flex-1 font-mono"
                             autoComplete="off"
                             spellCheck={false}
                             aria-labelledby="field-choices-stored"
@@ -593,6 +593,7 @@ function Choices({
                         <Input
                             name={`settings[choices][${at}][label]`}
                             value={choice.label}
+                            className="min-w-0 flex-1"
                             aria-labelledby="field-choices-shown"
                             onChange={(event) =>
                                 change(choice.id, {
@@ -604,7 +605,7 @@ function Choices({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="size-8"
+                            className="size-8 shrink-0"
                             onClick={() =>
                                 onChange(
                                     choices.filter(
@@ -627,7 +628,7 @@ function Choices({
             <div>
                 <Button
                     type="button"
-                    variant="outline"
+                    variant="neutral"
                     size="sm"
                     onClick={onAdd}
                 >
@@ -663,7 +664,7 @@ function AskFor({
         <div className="grid gap-2">
             <p
                 id="field-ask-label"
-                className="text-sm leading-none font-medium"
+                className="text-body leading-none font-medium"
             >
                 Ask for
             </p>
@@ -672,24 +673,25 @@ function AskFor({
                 name="settings[dateOnly]"
                 value={dateOnly ? '1' : '0'}
             />
-            <div
-                role="radiogroup"
+            <RadioGroup
+                name="field-ask"
+                value={dateOnly ? 'date' : 'datetime'}
+                disabled={disabled}
+                onValueChange={(next) => onChange(next === 'date')}
                 aria-labelledby="field-ask-label"
                 aria-describedby="field-ask-hint"
-                className="grid gap-1.5"
             >
                 {rows.map(([value, name, id]) => (
                     <RadioRow
                         key={id}
                         id={id}
-                        group="field-ask"
+                        value={value ? 'date' : 'datetime'}
                         label={name}
                         checked={dateOnly === value}
                         disabled={disabled}
-                        onChange={() => onChange(value)}
                     />
                 ))}
-            </div>
+            </RadioGroup>
             <Hint id="field-ask-hint">
                 Can’t change once a {noun} holds a value.
             </Hint>
@@ -708,28 +710,27 @@ function ShowOnSite({
         <div className="grid gap-2">
             <p
                 id="field-show-label"
-                className="text-sm leading-none font-medium"
+                className="text-body leading-none font-medium"
             >
                 Show on the site
             </p>
-            <div
-                role="radiogroup"
+            <RadioGroup
+                name="show"
+                value={value}
+                onValueChange={(next) => onChange(next as FieldShowValue)}
                 aria-labelledby="field-show-label"
                 aria-describedby="field-show-hint"
-                className="grid gap-1.5"
             >
                 {SHOW.map(([option, label]) => (
                     <RadioRow
                         key={option}
                         id={`field-show-${option}`}
-                        group="show"
                         value={option}
                         label={label}
                         checked={value === option}
-                        onChange={() => onChange(option)}
                     />
                 ))}
-            </div>
+            </RadioGroup>
             <Hint id="field-show-hint">
                 The default theme lists shown fields with their labels and skips
                 empty ones. A theme can place any field itself.
@@ -740,40 +741,27 @@ function ShowOnSite({
 
 function RadioRow({
     id,
-    group,
     value,
     label,
     checked,
     disabled = false,
-    onChange,
 }: {
     id: string;
-    group: string;
-    value?: string;
+    value: string;
     label: string;
     checked: boolean;
     disabled?: boolean;
-    onChange: () => void;
 }) {
     return (
         <label
             htmlFor={id}
             className={cn(
-                'border-line flex items-center gap-2.5 rounded-md border px-2.5 py-2 text-[13px] font-medium',
+                'border-line text-small flex items-center gap-3 rounded-md border px-3 py-2 font-medium',
                 checked && 'border-accent bg-surface-3',
-                disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                disabled ? 'cursor-not-allowed opacity-55' : 'cursor-pointer',
             )}
         >
-            <input
-                id={id}
-                type="radio"
-                name={group}
-                value={value}
-                checked={checked}
-                disabled={disabled}
-                onChange={onChange}
-                className="accent-accent size-4 shrink-0"
-            />
+            <RadioGroupItem id={id} value={value} disabled={disabled} />
             {label}
         </label>
     );
@@ -797,15 +785,16 @@ function Box({
     onChange: (checked: boolean) => void;
 }) {
     return (
-        <div className="flex items-start gap-2.5">
+        <div className="flex items-start gap-3">
             <input type="hidden" name={name} value={checked ? '1' : '0'} />
-            <Checkbox
-                id={id}
-                checked={checked}
-                aria-describedby={`${id}-hint`}
-                className="mt-0.5"
-                onCheckedChange={(next) => onChange(next === true)}
-            />
+            <span className="text-body flex h-lh shrink-0 items-center">
+                <Checkbox
+                    id={id}
+                    checked={checked}
+                    aria-describedby={`${id}-hint`}
+                    onCheckedChange={(next) => onChange(next === true)}
+                />
+            </span>
             <div className="grid gap-1">
                 <Label htmlFor={id}>{label}</Label>
                 <Hint id={`${id}-hint`}>{hint}</Hint>

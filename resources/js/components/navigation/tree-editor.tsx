@@ -3,13 +3,23 @@ import {
     ArrowLeft,
     ArrowRight,
     ArrowUp,
+    MoreHorizontal,
     Trash2,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { StatusPill } from '@/components/ui/status-pill';
+import { __ } from '@/lib/i18n';
 import type { MenuItem } from '@/types';
 
 /** The deepest a menu goes (SaveNavigationItems::MAX_DEPTH). */
@@ -217,9 +227,14 @@ export function TreeEditor({
     errors: Record<string, string>;
 }) {
     const [announcement, setAnnouncement] = useState('');
-    const [focus, setFocus] = useState<{ key: string; control: string } | null>(
-        null,
-    );
+    const [focus, setFocus] = useState<{
+        key: string;
+        control: string;
+        later?: boolean;
+    } | null>(null);
+    // A move chosen from an item's menu brings focus back to that menu's button itself,
+    // once the menu has closed and let focus go.
+    const movedFromMenu = useRef<{ key: string; control: string } | null>(null);
 
     useEffect(() => {
         if (focus === null) {
@@ -230,18 +245,32 @@ export function TreeEditor({
         const control =
             row?.querySelector<HTMLElement>(
                 `[data-control="${focus.control}"]:not(:disabled)`,
-            ) ?? row?.querySelector<HTMLElement>('[data-control="label"]');
+            ) ?? row?.querySelector<HTMLElement>("input[data-control='label']");
 
-        control?.focus();
+        if (!focus.later) {
+            control?.focus();
+
+            return;
+        }
+
+        // A removed item's menu hands focus back as it goes: take it after that.
+        const timer = window.setTimeout(() => control?.focus(), 0);
+
+        return () => window.clearTimeout(timer);
     }, [focus, items]);
 
-    const apply = (path: number[], move: Move, control: string) => {
+    /** Makes the move, or says why not; where focus goes after it, or null when refused. */
+    const apply = (
+        path: number[],
+        move: Move,
+        control: string,
+    ): { key: string; control: string } | null => {
         const reason = refusal(items, path, move);
 
         if (reason !== null) {
             setAnnouncement(reason);
 
-            return;
+            return null;
         }
 
         const result = moved(items, path, move);
@@ -252,6 +281,8 @@ export function TreeEditor({
         onChange(result.tree);
         setAnnouncement(spoken(result.tree, result.path, move));
         setFocus({ key: item.key, control });
+
+        return { key: item.key, control };
     };
 
     const update = (path: number[], change: Partial<EditorItem>) => {
@@ -264,13 +295,27 @@ export function TreeEditor({
         onChange(tree);
     };
 
-    const remove = (path: number[]) => {
+    /** Removes the item; from its menu, focus goes to the item now in its place, else the one before, else its parent. */
+    const remove = (path: number[], fromMenu = false) => {
         const tree = structuredClone(items);
-        const [item] = listAt(tree, path.slice(0, -1)).splice(
-            path[path.length - 1],
-            1,
-        );
+        const siblings = listAt(tree, path.slice(0, -1));
+        const index = path[path.length - 1];
+        const [item] = siblings.splice(index, 1);
         onChange(tree);
+
+        if (fromMenu) {
+            const next =
+                siblings[index] ??
+                siblings[index - 1] ??
+                (path.length > 1
+                    ? listAt(tree, path.slice(0, -2))[path[path.length - 2]]
+                    : undefined);
+
+            if (next !== undefined) {
+                setFocus({ key: next.key, control: 'more', later: true });
+            }
+        }
+
         setAnnouncement(
             item.children.length > 0
                 ? `Removed “${nameOf(item)}” and the items under it.`
@@ -310,40 +355,133 @@ export function TreeEditor({
                             }}
                         >
                             <div className="flex flex-wrap items-center gap-2">
-                                <Input
-                                    data-control="label"
-                                    aria-label={`Label for ${item.target}`}
-                                    aria-describedby={
-                                        error ? `${item.key}-error` : undefined
-                                    }
-                                    aria-invalid={error ? true : undefined}
-                                    value={item.label ?? ''}
-                                    aria-required={heading ? true : undefined}
-                                    placeholder={
-                                        item.kind === 'url' || heading
-                                            ? 'Label'
-                                            : nameOf({ ...item, label: null })
-                                    }
-                                    maxLength={200}
-                                    className="h-8 max-w-64"
-                                    onChange={(event) =>
-                                        update(path, {
-                                            label: event.target.value,
-                                        })
-                                    }
-                                />
-                                <span className="text-ink-2 min-w-0 truncate text-[13px]">
+                                <div className="flex min-w-0 flex-1 items-center gap-2 max-sm:basis-full sm:flex-none">
+                                    <Input
+                                        data-control="label"
+                                        aria-label={`Label for ${item.target}`}
+                                        aria-describedby={
+                                            error
+                                                ? `${item.key}-error`
+                                                : undefined
+                                        }
+                                        aria-invalid={error ? true : undefined}
+                                        value={item.label ?? ''}
+                                        aria-required={
+                                            heading ? true : undefined
+                                        }
+                                        placeholder={
+                                            item.kind === 'url' || heading
+                                                ? 'Label'
+                                                : nameOf({
+                                                      ...item,
+                                                      label: null,
+                                                  })
+                                        }
+                                        maxLength={200}
+                                        className="h-(--ctl-h) w-64 max-w-full min-w-0 max-sm:flex-1"
+                                        onChange={(event) =>
+                                            update(path, {
+                                                label: event.target.value,
+                                            })
+                                        }
+                                    />
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                data-control="more"
+                                                aria-label={__(
+                                                    'More actions for :name',
+                                                    { name },
+                                                )}
+                                                className="sm:hidden"
+                                            >
+                                                <MoreHorizontal aria-hidden />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="end"
+                                            onCloseAutoFocus={(event) => {
+                                                const moved =
+                                                    movedFromMenu.current;
+
+                                                if (moved !== null) {
+                                                    movedFromMenu.current =
+                                                        null;
+                                                    event.preventDefault();
+                                                    setFocus({ ...moved });
+                                                }
+                                            }}
+                                        >
+                                            {MOVES.map(
+                                                ({
+                                                    move,
+                                                    label,
+                                                    icon: Icon,
+                                                }) => {
+                                                    const reason = refusal(
+                                                        items,
+                                                        path,
+                                                        move,
+                                                    );
+
+                                                    return (
+                                                        <DropdownMenuItem
+                                                            key={move}
+                                                            disabled={
+                                                                reason !== null
+                                                            }
+                                                            className="h-auto min-h-(--ctl-h) items-start py-2"
+                                                            onSelect={() => {
+                                                                movedFromMenu.current =
+                                                                    apply(
+                                                                        path,
+                                                                        move,
+                                                                        'more',
+                                                                    );
+                                                            }}
+                                                        >
+                                                            <Icon aria-hidden />
+                                                            <span className="grid">
+                                                                {label}
+                                                                {reason !==
+                                                                    null && (
+                                                                    <span className="text-small text-ink-3">
+                                                                        {reason}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                        </DropdownMenuItem>
+                                                    );
+                                                },
+                                            )}
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                variant="destructive"
+                                                onSelect={() =>
+                                                    remove(path, true)
+                                                }
+                                            >
+                                                <Trash2 aria-hidden />
+                                                {__('Remove')}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <span className="text-small text-ink-2 min-w-0 truncate">
                                     {item.target}
                                 </span>
                                 {warning && (
-                                    <span className="bg-warn-soft text-warn-ink rounded px-1.5 py-0.5 text-[11px] font-medium">
+                                    <StatusPill tone="warn">
                                         {warning}
-                                    </span>
+                                    </StatusPill>
                                 )}
                             </div>
                             <div className="flex flex-wrap items-center gap-1">
                                 {!heading && (
-                                    <label className="mr-2 flex items-center gap-2 text-[13px]">
+                                    <label className="text-small me-2 flex items-center gap-2">
                                         <Checkbox
                                             data-control="new-tab"
                                             checked={item.opensNewTab}
@@ -357,50 +495,58 @@ export function TreeEditor({
                                         Open in new tab
                                     </label>
                                 )}
-                                {MOVES.map(({ move, label, icon: Icon }) => {
-                                    const reason = refusal(items, path, move);
+                                <div className="flex items-center gap-1 max-sm:hidden">
+                                    {MOVES.map(
+                                        ({ move, label, icon: Icon }) => {
+                                            const reason = refusal(
+                                                items,
+                                                path,
+                                                move,
+                                            );
 
-                                    return (
-                                        <Button
-                                            key={move}
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            data-control={move}
-                                            aria-label={`${label}: ${name}`}
-                                            title={reason ?? label}
-                                            disabled={reason !== null}
-                                            onClick={() =>
-                                                apply(path, move, move)
-                                            }
-                                        >
-                                            <Icon className="size-4" />
-                                        </Button>
-                                    );
-                                })}
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    data-control="remove"
-                                    aria-label={`Remove ${name}`}
-                                    title="Remove"
-                                    onClick={() => remove(path)}
-                                >
-                                    <Trash2 className="size-4" />
-                                </Button>
+                                            return (
+                                                <Button
+                                                    key={move}
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    data-control={move}
+                                                    aria-label={`${label}: ${name}`}
+                                                    title={reason ?? label}
+                                                    disabled={reason !== null}
+                                                    onClick={() =>
+                                                        apply(path, move, move)
+                                                    }
+                                                >
+                                                    <Icon className="size-4" />
+                                                </Button>
+                                            );
+                                        },
+                                    )}
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        data-control="remove"
+                                        aria-label={`Remove ${name}`}
+                                        title="Remove"
+                                        onClick={() => remove(path)}
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                </div>
                             </div>
                             {error && (
                                 <p
                                     id={`${item.key}-error`}
-                                    className="text-danger-ink text-[13px]"
+                                    className="text-small text-danger-ink"
                                 >
                                     {error}
                                 </p>
                             )}
                         </div>
                         {item.children.length > 0 && (
-                            <div className="mt-2 ml-6">
+                            <div className="ms-6 mt-2">
                                 {rows(
                                     item.children,
                                     path,

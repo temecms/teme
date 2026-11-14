@@ -181,6 +181,9 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::get('{code}/screenshot', [ThemesController::class, 'screenshot'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('screenshot');
+                Route::get('{code}/settings', [ThemesController::class, 'settings'])
+                    ->where('code', ManifestValidator::CODE_PATTERN)
+                    ->name('settings');
             });
 
         // Site › Plugins (I-3353): the plugins found, enabled through a consent

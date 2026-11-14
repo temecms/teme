@@ -1,11 +1,12 @@
-import { Form, Head, router, usePage } from '@inertiajs/react';
+import { Form, Head, router, setLayoutProps, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import NavigationController from '@/actions/App/Http/Admin/NavigationController';
 import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
+import { FormPage, FormPanel } from '@/components/patterns/form-page';
+import { SaveBar } from '@/components/patterns/save-bar';
 import { AddItemPanel } from '@/components/navigation/add-item-panel';
 import {
     newItem,
@@ -25,6 +26,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import { __ } from '@/lib/i18n';
 import type { MenuItem, NavigationEditPage } from '@/types';
 
 export default function NavigationEdit({
@@ -81,156 +83,157 @@ export default function NavigationEdit({
             { preserveState: true, preserveScroll: true },
         );
 
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Navigation'), href: NavigationController.index() },
+            {
+                title: navigation.name,
+                href: NavigationController.edit({ id: navigation.id }),
+            },
+        ],
+    });
+
     return (
-        <>
+        <FormPage
+            title={navigation.name}
+            description="Arrange the items, then save. An item that points at a page, post, category or tag takes its title unless you give it a label."
+            actions={
+                <>
+                    <Button
+                        variant="neutral"
+                        type="button"
+                        onClick={() => setRenaming(true)}
+                    >
+                        Rename
+                    </Button>
+                    <Form
+                        {...NavigationController.destroy.form({
+                            id: navigation.id,
+                        })}
+                    >
+                        <ConfirmAction
+                            title={`Delete the menu “${navigation.name}”?`}
+                            description={
+                                shownIn.length === 0
+                                    ? 'It isn’t shown anywhere. This cannot be undone.'
+                                    : `${shownIn.map((slot) => slot.label).join(' and ')} will show no menu until you choose another. This cannot be undone.`
+                            }
+                            confirmLabel="Delete menu"
+                        >
+                            <Button variant="neutral">Delete…</Button>
+                        </ConfirmAction>
+                    </Form>
+                </>
+            }
+        >
             <Head title={navigation.name} />
 
-            <div className="space-y-6 p-6">
-                <PageHeader
-                    title={navigation.name}
-                    description="Arrange the items, then save. An item that points at a page, post, category or tag takes its title unless you give it a label."
-                    action={
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                type="button"
-                                onClick={() => setRenaming(true)}
-                            >
-                                Rename
-                            </Button>
-                            <Form
-                                {...NavigationController.destroy.form({
-                                    id: navigation.id,
-                                })}
-                            >
-                                <ConfirmAction
-                                    title={`Delete the menu “${navigation.name}”?`}
-                                    description={
-                                        shownIn.length === 0
-                                            ? 'It isn’t shown anywhere. This cannot be undone.'
-                                            : `${shownIn.map((slot) => slot.label).join(' and ')} will show no menu until you choose another. This cannot be undone.`
-                                    }
-                                    confirmLabel="Delete menu"
-                                >
-                                    <Button variant="outline">Delete…</Button>
-                                </ConfirmAction>
-                            </Form>
-                        </div>
-                    }
-                />
-
+            <div className="grid gap-4">
                 {themeCode !== null && slots.length > 0 && (
-                    <section
-                        aria-labelledby="show-in"
-                        className="grid max-w-xl gap-3"
+                    <FormPanel
+                        title="Show in"
+                        description={`Where ${themeName ?? 'the site’s theme'} shows a menu. Each place shows one menu.`}
                     >
-                        <div className="grid gap-1">
-                            <h2
-                                id="show-in"
-                                className="text-[15px] font-semibold"
-                            >
-                                Show in
-                            </h2>
-                            <p className="text-ink-2 text-[13px]">
-                                {`Where ${themeName ?? 'the site’s theme'} shows a menu. Each place shows one menu.`}
-                            </p>
-                        </div>
                         {slots.map((slot) => (
                             <div
                                 key={slot.slot}
-                                className="grid gap-2 sm:grid-cols-[140px_1fr] sm:items-center"
+                                className="grid gap-2 sm:grid-cols-3 sm:items-center"
                             >
                                 <Label htmlFor={`slot-${slot.slot}`}>
                                     {slot.label}
                                 </Label>
-                                <SelectField
-                                    id={`slot-${slot.slot}`}
-                                    value={slot.navigationId ?? ''}
-                                    emptyLabel="None"
-                                    options={menus.map((menu) => ({
-                                        value: menu.id,
-                                        label:
-                                            menu.id === navigation.id
-                                                ? `${menu.name} (this menu)`
-                                                : menu.name,
-                                    }))}
-                                    onValueChange={(value) =>
-                                        bind(slot.slot, value)
-                                    }
-                                />
+                                <div className="min-w-0 sm:col-span-2">
+                                    <SelectField
+                                        id={`slot-${slot.slot}`}
+                                        value={slot.navigationId ?? ''}
+                                        emptyLabel="None"
+                                        options={menus.map((menu) => ({
+                                            value: menu.id,
+                                            label:
+                                                menu.id === navigation.id
+                                                    ? `${menu.name} (this menu)`
+                                                    : menu.name,
+                                        }))}
+                                        onValueChange={(value) =>
+                                            bind(slot.slot, value)
+                                        }
+                                    />
+                                </div>
                             </div>
                         ))}
                         <InputError
                             message={errors.slot ?? errors.navigation}
                         />
-                    </section>
+                    </FormPanel>
                 )}
 
-                <section aria-labelledby="items" className="grid gap-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <h2 id="items" className="text-[15px] font-semibold">
-                            Items
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            {dirty && (
-                                <span className="text-ink-2 text-[13px]">
-                                    Unsaved changes
-                                </span>
-                            )}
+                <form
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        save();
+                    }}
+                >
+                    <FormPanel title="Items">
+                        <div>
                             <Button
-                                variant="outline"
+                                variant="neutral"
                                 type="button"
                                 onClick={() => setAdding(true)}
                             >
-                                <Plus className="size-4" />
+                                <Plus aria-hidden className="size-4" />
                                 Add item
                             </Button>
-                            <Button
-                                type="button"
-                                disabled={!dirty || saving}
-                                onClick={save}
-                            >
-                                Save menu
-                            </Button>
                         </div>
-                    </div>
 
-                    {showErrors && (
-                        <InputError
-                            message={errors.tree ?? errors.navigation}
-                        />
-                    )}
+                        {showErrors && (
+                            <InputError
+                                message={errors.tree ?? errors.navigation}
+                            />
+                        )}
 
-                    {tree.length === 0 ? (
-                        <EmptyState
-                            kind="nothing-yet"
-                            title="This menu has no items yet"
-                            description="Add the home page, pages, posts, categories, tags or any address."
-                            action={
-                                <Button
-                                    variant="outline"
-                                    type="button"
-                                    onClick={() => setAdding(true)}
-                                >
-                                    Add an item
-                                </Button>
-                            }
-                        />
-                    ) : (
-                        <TreeEditor
-                            items={tree}
-                            onChange={change}
-                            errors={showErrors ? errors : {}}
-                        />
-                    )}
+                        {tree.length === 0 ? (
+                            <EmptyState
+                                kind="nothing-yet"
+                                title="This menu has no items yet"
+                                description="Add the home page, pages, posts, categories, tags or any address."
+                                action={
+                                    <Button
+                                        variant="neutral"
+                                        type="button"
+                                        onClick={() => setAdding(true)}
+                                    >
+                                        Add an item
+                                    </Button>
+                                }
+                            />
+                        ) : (
+                            <TreeEditor
+                                items={tree}
+                                onChange={change}
+                                errors={showErrors ? errors : {}}
+                            />
+                        )}
 
-                    <p className="text-ink-2 text-[13px]">
-                        Move an item with its buttons, or with Alt and the arrow
-                        keys: up and down to reorder, right to put it under the
-                        item above, left to bring it out. Menus go three levels
-                        deep.
-                    </p>
-                </section>
+                        <p className="text-small text-ink-2">
+                            Move an item with its buttons, or with Alt and the
+                            arrow keys: up and down to reorder, right to put it
+                            under the item above, left to bring it out. Menus go
+                            three levels deep.
+                        </p>
+                    </FormPanel>
+                    <SaveBar
+                        dirty={dirty}
+                        processing={saving}
+                        saveLabel={__('Save menu')}
+                        testId="menu-save"
+                        what={__('“:name”', { name: navigation.name })}
+                        onDiscard={() => {
+                            setTree(withKeys(items));
+                            setDirty(false);
+                            setShowErrors(true);
+                        }}
+                    />
+                </form>
             </div>
 
             <AddItemPanel
@@ -242,7 +245,7 @@ export default function NavigationEdit({
             />
 
             <Sheet open={renaming} onOpenChange={setRenaming}>
-                <SheetContent className="w-full sm:max-w-[480px]">
+                <SheetContent>
                     <SheetHeader>
                         <SheetTitle>Rename the menu</SheetTitle>
                         <SheetDescription>
@@ -292,11 +295,11 @@ export default function NavigationEdit({
                     </Form>
                 </SheetContent>
             </Sheet>
-        </>
+        </FormPage>
     );
 }
 
-// The last item is this screen, which its heading names: the trail draws the parents only.
+// The menu's own name takes the last place once the page draws (setLayoutProps above).
 NavigationEdit.layout = {
     breadcrumbs: [
         { title: 'Navigation', href: NavigationController.index() },
