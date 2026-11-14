@@ -403,3 +403,15 @@ Stop, write why under Records, commit and push, then stop, when:
 - Seen red at the base, `RowUndoTest`: 2 failed, first line "Failed asserting that false is true." (no `undo` in the toast after publishing and after trashing); its three refused cases passed at the base, as they should.
 - Existing case changed, meaning kept: `TrashOfferTest` "offers nothing to someone who can't manage redirects, or after trashing what was never published" compared the whole toast; it now checks the type and words and that there is no `link` (no redirect offer), since the toast now also carries Undo.
 - Done to Task 2 at `e8b8ec2`, the quick check green.
+
+### Task 3
+
+- Seen red at the base: `RowMenuOrderTest` 4 failed, first line "ERR_MODULE_NOT_FOUND" (`row-menu-order.ts` missing); `SharedControlsTest` the two rewritten cases failed against today's table and bulk bar; `ListPartsTest` "draws row actions with no hover rule" failed (`row-line.tsx` missing), and "keeps every export the other screens import" passed, as it should.
+- Counts: design-system baseline 1,228 to 1,219 lines (R1 114 to 112, R2 661 to 658, R5 82 to 81, R6 41 to 39, R8 34 to 33); admin words 2,350 to 2,348.
+- Other screens' browser files, after `npm run build`, one at a time, all green: MediaScreenTest 11, RedirectsScreenTest 6, JobsScreenTest 3, AiActivityScreenTest 6, PeopleScreenTest 14, TypeBuilderTest 15, TaxonomyBuilderTest 10, InboxScreenTest 4, ToolsScreensTest 3. NavigationScreensTest and RegionsScreenTest name neither a table nor a bulk bar, so they were not run.
+- B-05 (draft): `ListPartsTest` "pages these lists only through the numbered pager" is committed with each page's task (content in Task 4, terms in Task 5, comments in Task 6), one page added to its list each time, so the Architecture suite stays green after each task. Options: commit it here red (breaks the quick check); commit it with all three pages in Task 6 (no red seen for the first two). Commit `ecde2ff`.
+- B-06 (draft): `data-table.tsx` keeps its plain `<table>` (its R5 line stays): there is no table in `components/ui`, and this part adds none. Options: add one (a `components/ui` change, a STOP); wrap it under another name (dodges the check). Commit `ecde2ff`.
+- B-07 (draft): every cell is padded the same (`py-3`), so the first lines of all cells align, instead of the plan's taller top padding on the title cell; the row heights the browser test measures come from the title cell's two lines. Commit `ecde2ff`.
+- B-08 (draft): the header row sticks to the top of the table's own sideways scroll frame, not of the page, since a sticky header cannot stick outside its scroll container. Commit `ecde2ff`.
+- B-09 (draft): the column chooser measures the table frame by an ID that `data-table.tsx` exports (`TABLE_FRAME_ID`), not by a `[data-slot=…]` selector, which the design check reads as an arbitrary value. Commit `ecde2ff`.
+- Done to Task 3 at `ecde2ff`, the quick check green.
