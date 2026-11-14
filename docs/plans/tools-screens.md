@@ -368,11 +368,89 @@ Stop, write why under Records, commit and push, then stop, when:
 - Stack from the locks: laravel/framework v13.39.0, inertiajs/inertia-laravel v3.5.2, pestphp/pest v5.3.4, pestphp/pest-plugin-browser v5.1.2; react 19.3.1, @inertiajs/react 3.9.1, typescript 7.0.2, tailwindcss 4.3.3, vite 8.3.5, vite-plus 0.3.0, @radix-ui/react-radio-group 1.5.1, @radix-ui/react-collapsible 1.2.1.
 - `composer check` at the base: Pint, PHPStan, types and lint pass; Architecture 105 passed (1225 assertions); Unit and Feature 10490 passed, 2 skipped (53816 assertions).
 
-### Progress
+### Commits
 
-- Done to Task 1 at `890afa7`, the quick check green.
-- Done to Task 2 at `f295084`, the quick check green.
+- `890afa7` feat(admin): Import on the design system, with the shared step bar
+- `f295084` feat(admin): Backups on the design system, with the shared step bar and password prompt
+- `25a1d42` docs(plans): tools screens progress to Task 2
+- `65cfc11` feat(admin): Page cache and Updates on the design system
+- `a0d220b` docs(plans): tools screens progress to Task 3
+- `608eaa0` feat(admin): Redirects and the 404 log on the design system
+- `28b8d22` docs(plans): tools screens progress to Task 4
+- `e5b5499` feat(admin): AI activity on the design system
+- `af745ad` docs(plans): tools screens progress to Task 5
+- this commit: docs(plans): tools screens records
 
-- Done to Task 3 at `65cfc11`, the quick check green; `ToolsFramesTest`, `ToolsScreensTest`, `UpdatesScreenTest` and `UpdaterScreenTest` green in the browser.
-- Done to Task 4 at `608eaa0`, the quick check green; `ToolsFramesTest` and `RedirectsScreenTest` green in the browser.
-- Done to Task 5 at `e5b5499`, the quick check green; `ToolsFramesTest` and `AiActivityScreenTest` green in the browser, and the feature `AiActivityScreenTest`.
+Each task ended with the quick check green (Pint, PHPStan, types, lint, the Architecture suite, `WordingPassToolsTest`, `AccessibilityTest`) and the browser files it touched green, one at a time, after `npm run build`.
+
+### The gate
+
+- `composer check` at `af745ad`: Pint, PHPStan, types and lint pass; Architecture 115 passed (1235 assertions); Unit and Feature 10490 passed, 2 skipped (53790 assertions).
+- Browser files, one at a time after `npm run build`, `npm run build:themes` and `php artisan teme:themes:link`: `ToolsFramesTest` 7, `ToolsImportTest` 7, `ImportImagesTest` 5, `ImportedContentCardTest` 4, `BackupsScreenTest` 14, `SaveBarTest` 1, `ToolsScreensTest` 3, `UpdatesScreenTest` 9, `UpdaterScreenTest` 19, `RedirectsScreenTest` 6, `AiActivityScreenTest` 6, `ShellTest` 17, `FullPassTest` 40, all passed.
+- `git diff --stat origin/main --` the paths Task 6 names: nothing.
+
+### Tests seen red
+
+- Task 1, `tests/Architecture/ToolsScreensTest.php`, the Import row's two cases: "Failed asserting that two arrays are identical" (the baselines still listed Import's lines and words).
+- Task 1, `tests/Browser/ToolsFramesTest.php`, every row (all seven, from the whole dataset kept aside and run at the base): "Timeout 5000ms exceeded" waiting for one `[data-slot="page"]`.
+- Task 1, `tests/Browser/ToolsImportTest.php`, "marks one current step on a site’s page, Choose once the plan has arrived": "Failed asserting that false is true" (no step bar).
+- Task 2, `ToolsScreensTest`, the Backups row's two cases, against the base baselines: arrays not identical.
+- Task 2, `tests/Browser/BackupsScreenTest.php`, "draws setup’s three steps on the step bar, the first current": "Failed asserting that 0 is identical to 3"; "asks for the password in place on the key page, and keeps the key there" and "checks a recovery key in its dialog": "Timeout 5000ms exceeded" waiting for `[data-test="fresh-password-input"]`.
+- Task 3, `ToolsScreensTest`, the Page cache and Updates row's two cases, against the base baselines: "2 failed".
+- Task 4, `ToolsScreensTest`, the Redirects and the 404 log row's two cases, against the base baselines: "2 failed".
+- Task 5, `ToolsScreensTest`, the AI activity row's two cases, against the base baselines: "2 failed".
+
+### Counts
+
+| | Before | After |
+|---|---|---|
+| `design-system-baseline.txt` lines | 1228 | 930 |
+| `admin-words-baseline.txt` lines (`AdminWordsTest`) | 2350 | 1698 |
+| R1 | 114 | 96 |
+| R2 | 661 | 479 |
+| R3 | 149 | 117 |
+| R5 | 82 | 75 |
+| R6 | 41 | 36 |
+| R7 | 89 | 47 |
+| R8 | 34 | 30 |
+| R9 | 23 | 16 |
+| R10 | 14 | 14 |
+| R14 | 13 | 12 |
+| R15 | 8 | 8 |
+
+The 298 design lines and 652 word lines Task 0 counted on owned files are all gone; no line was added to either baseline and no count was raised.
+
+### Decided
+
+- Decided: tones where D4 names none. Import's custom-types warning `warn`; ready to switch `ok`, not ready `warn`; message levels error `danger`, warning `warn`; "Password forgotten" `neutral`. Backups' place states failing `danger`, paused `warn`, ready `ok`; the verdict's unfinished and paused states a `danger` Notice. Updates' "Pre-release" `neutral`, "Security fixes" and "Needs maintenance mode" `warn`; deploy outcomes deployed `ok`, failed, refused, backup failed and migration failed `danger`, unfinished and busy `warn`. Redirects' "Pattern" `neutral`, the 404 log's "Redirected" `ok`. AI outcomes applied `ok`, failed and refused `danger`, suggested `info`, discarded and stale `neutral`. Options: `neutral` everywhere D4 is silent, or the nearest tone. Chose the nearest tone, because the pill's word stays and the tone only helps.
+- Decided: Updates' notes. The security-before line `warn` (D4), the maintenance note `info`, the check's error `warn` with its "Problem:" lead kept for screen readers only. Options: `info` for the check's error, as D4's default. Chose `warn`, because its words report a failure.
+- Decided: commands and settings' names inside Updates' sentences go through a small `WithCode` helper in `update-progress.tsx`: the sentence is translated whole, and each `:name` it holds is drawn as code. Options: split each sentence into `__()` pieces around the code, or drop the code look and fill plain placeholders. Chose `WithCode`, because a whole sentence translates better and the code look stays.
+- Decided: sentences broken by a control or a link (Backups' schedule sentence, Redirects' notice around its Settings › Addresses link) are split into `__()` pieces. Options: a helper like `WithCode` for nodes. Chose pieces, because each sentence holds a live control or link, not a string.
+- Decided: the panels have no border, so the verdict's colored left edge and the Available panel's warn border go; the icon, the words, the notice and the pill carry the level.
+- Decided: the drawers' own widths (`sm:max-w-[560px]` on the redirect form, `sm:max-w-[480px]` on AI activity's details) go, and both take the sheet's token width (`--sheet-w`, 480px). Options: a new token for 560 (the tokens are not this part's), or an arbitrary width (R1). Chose the token width.
+- Decided: the update's progress bar is `danger` when any step failed, `ok` when all seven are done, `accent` otherwise. The running step's spinner keeps turning under `motion-safe:` only (R14). Icons beside wrapped text sit in an `h-5` box instead of `mt-0.5` (R3).
+- Decided: two-column definition lists use `sm:grid-cols-(--facts-cols)` with the columns on a style custom property (R15 allows it): Page cache, Updates (twice), AI activity's summary, and AI activity's drawer (`8rem 1fr`), one column on phones.
+- Decided: the place choices on Backups' setup became a vertical `RadioGroupChoice` list, and the redirect form's three target kinds a wrapping `RadioGroup` row; each item keeps its id and the group its `name`.
+- Decided: the budget-reached note keeps "Change the budget" inline after its words, not in the Notice's action slot, so `WordingPassToolsTest`'s order holds; it and "That request is gone" keep `role="status"`.
+- Decided: the redirect form's From, Status and Note use `Field` (their help ids become `-help`); the To blocks keep their hint and error lines with their ids; the title search's options are ghost `Button`s. The bulk delete's error got an id.
+- Decided: `ToolsFramesTest`'s rows were added task by task, the whole dataset kept aside to show it red at the base.
+
+### Differences from the plan
+
+- B-?? (draft) 1. Task 0's `--grep` line finds two commits, not one: the feature commit `e7f2af7` and its merge `bd0e715`, whose message repeats the line. Options: STOP, or read it as the same change. Chose to continue, because both are the same change already on `main`. Commit `890afa7`.
+- B-?? (draft) 2. The plan's Backups architecture row, `pages/tools/backups/`, also covers `place.tsx`, another part's file that this plan says does not change. Options: change `place.tsx` (not owned), keep its lines in the baselines and let the row fail, or narrow the row. Chose to narrow the row to the five owned pages and `components/backups/`, with a comment; it was seen red against the base baselines. Commit `f295084`.
+- B-?? (draft) 3. The plan's `shellSettled($page, '[data-slot="fresh-password"]')` names a slot only `FreshPasswordInline` has; the key page uses `FreshPasswordDialog`. Options: add the slot to the pattern (not this part's), or wait on the dialog's own slot. Chose `[data-slot="dialog-content"]`. Commit `f295084`.
+- B-?? (draft) 4. `BackupsScreenTest` "checks a recovery key in its dialog" is not in the plan's table of changed tests, but D6 replaces the box its selectors name. Options: STOP, or move it to the shared prompt's hooks (`fresh-password-input`, `fresh-password-confirm`) with its meaning kept. Chose the second, because D6 forces it and the case still proves the key is checked after a password prompt. Commit `f295084`.
+- B-?? (draft) 5. `AccessibilityTest`'s needles for Remove: the formatter wraps `confirmLabel={__('Remove :name', { name: place.name })}` over lines, and the needle's regex reads raw source. Options: a one-line needle that never matches, or the stem. Chose `confirmLabel={__('Remove :name', {` for the place and verdict rows; Replace kept the plan's one-line needle. Commit `f295084`.
+- B-?? (draft) 6. `run-progress.tsx`'s bar is `JobProgress` from `components/jobs`, not this part's, so "run-progress's bar on Progress" did not apply; its run steps moved to `StepBar`, so "(now)" and "(done)" go as with the import steps. Commit `890afa7`.
+- B-?? (draft) 7. `WordingPassToolsTest`'s needles take the source as now written: the headings' `Heading')} </h2>`, the 404 log's `<ListPage`, and AI activity's `Spent')}</dt>`. The words, their order and their places are unchanged. Commits `f295084`, `608eaa0`, `e5b5499`.
+
+No STOP.
+
+### How to try it
+
+On a local site, open Tools › Import and one site, Tools › Backups and its setup, Page cache, Updates, Redirects and its 404 log, and AI activity, at full width and at 375 pixels. Each page has one heading, nothing scrolls sideways, and the import's and backups' steps show on the shared step bar.
+
+### For the changelog
+
+- The Tools screens (Import, Backups, Page cache, Updates, Redirects and AI activity) now share the admin's look, with clearer steps and notices, and can be translated.
