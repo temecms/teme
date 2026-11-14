@@ -1389,31 +1389,6 @@ pages/account/preferences.tsx	Preferences
 pages/account/preferences.tsx	Preferences
 pages/account/preferences.tsx	Save preferences
 pages/account/preferences.tsx	Saved as you choose.
-pages/account/profile.tsx	Bio
-pages/account/profile.tsx	Email address
-pages/account/profile.tsx	Email address
-pages/account/profile.tsx	Full name
-pages/account/profile.tsx	Name
-pages/account/profile.tsx	Profile
-pages/account/profile.tsx	Profile
-pages/account/profile.tsx	Profile
-pages/account/profile.tsx	Resend confirmation email
-pages/account/profile.tsx	Save
-pages/account/profile.tsx	Sent. Check your email for the new link.
-pages/account/profile.tsx	Shown on your author page and under your posts.
-pages/account/profile.tsx	Update your name and email address
-pages/account/profile.tsx	Your email address isn’t confirmed yet.
-pages/account/security.tsx	Confirm password
-pages/account/security.tsx	Confirm password
-pages/account/security.tsx	Current password
-pages/account/security.tsx	Current password
-pages/account/security.tsx	New password
-pages/account/security.tsx	New password
-pages/account/security.tsx	Save
-pages/account/security.tsx	Security
-pages/account/security.tsx	Security
-pages/account/security.tsx	Update password
-pages/account/security.tsx	Use a long, random password.
 pages/auth/accept-invitation.tsx	Choose a password to finish setting up your account.
 pages/auth/accept-invitation.tsx	Choose your password
 pages/auth/accept-invitation.tsx	Confirm password

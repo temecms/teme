@@ -751,16 +751,7 @@ R2	js/components/user-menu-content.tsx	text-sm
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[11px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[13px]
 R2	js/layouts/auth/auth-simple-layout.tsx	text-[22px]
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
 R2	js/pages/account/preferences.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
 R2	js/pages/auth/forgot-password.tsx	text-sm
 R2	js/pages/auth/forgot-password.tsx	text-sm
 R2	js/pages/auth/login.tsx	text-[13px]
@@ -1248,7 +1239,6 @@ R5	js/components/two-factor-setup-modal.tsx	<input type="text">
 R5	js/components/types/field-sheet.tsx	<input type="radio">
 R5	js/components/types/field-sheet.tsx	<input type="radio">
 R5	js/components/types/field-sheet.tsx	<textarea>
-R5	js/pages/account/profile.tsx	<textarea>
 R5	js/pages/auth/set-up.tsx	<select>
 R5	js/pages/comments/index.tsx	<button type="button">
 R5	js/pages/content/edit.tsx	<textarea>
@@ -1333,11 +1323,7 @@ R6	js/pages/content/index.tsx	rounded
 R6	js/pages/regions/index.tsx	rounded
 R6	js/pages/themes/index.tsx	z-10
 R6	js/pages/tools/updates.tsx	rounded
-R7	js/pages/account/notifications.tsx	root:div
 R7	js/pages/account/preferences.tsx	root:div
-R7	js/pages/account/profile.tsx	root:div
-R7	js/pages/account/security.tsx	root:div
-R7	js/pages/account/security.tsx	root:ManageTwoFactor
 R7	js/pages/auth/accept-invitation.tsx	root:Form
 R7	js/pages/auth/confirm-password.tsx	root:Form
 R7	js/pages/auth/forgot-password.tsx	root:div

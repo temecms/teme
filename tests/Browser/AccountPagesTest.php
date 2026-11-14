@@ -89,3 +89,42 @@ it('passes axe on Account › Profile with every target 24 pixels or more, at 12
     expect($targets['small'])->toBe([])
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark'])->with([1280, 375]);
+
+it('chooses a picture from Media on Profile, shows it at once, and removes it again', function (): void {
+    $writer = User::factory()->create(['name' => 'Bea Author'])->assignRole('author');
+    pageImage($writer, 400, 400);
+
+    $page = cmNavigate(cmSignIn($writer), '/admin/account/profile');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="picture-choose"]\') !== null');
+    $page->assertScript('document.querySelector(\'[data-slot="form-panel"] [data-slot="person-picture"] img\') === null')
+        ->click('[data-test="picture-choose"]');
+    shellSettled($page, '[role="dialog"]');
+    cmWaitUntil($page, 'document.querySelector(\'[role="dialog"] [role="option"]\') !== null');
+    $page->click('[role="dialog"] [role="option"] >> nth=0')
+        ->click('[role="dialog"] button >> text="Use as picture"');
+    cmWaitUntil($page, 'document.body.innerText.includes("Picture changed.") && document.querySelector(\'nav[aria-label="Account"] img\') !== null');
+
+    expect($writer->refresh()->picture_media_id)->not->toBeNull();
+
+    $page->click('[data-test="picture-remove"]');
+    cmWaitUntil($page, 'document.body.innerText.includes("Picture removed. Your initials show instead.") && document.querySelector(\'nav[aria-label="Account"] img\') === null');
+
+    expect($writer->refresh()->picture_media_id)->toBeNull();
+});
+
+it('shows the save bar once a detail changes on Profile, and saves it', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/account/profile');
+    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Account"]\') !== null');
+
+    $page->assertScript('document.querySelector(\'[data-test="save-bar"]\')?.hidden !== false')
+        ->clear('#name')
+        ->type('#name', 'Ada Lovelace');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\')?.hidden === false');
+
+    $page->click('[data-test="update-profile-button"]');
+    cmWaitUntil($page, 'document.body.innerText.includes("Profile updated.") && document.querySelector(\'[data-test="save-bar"]\').hidden');
+
+    $page->assertScript('document.querySelector(\'nav[aria-label="Account"]\').innerText.includes("Ada Lovelace")');
+
+    expect($this->admin->refresh()->name)->toBe('Ada Lovelace');
+});

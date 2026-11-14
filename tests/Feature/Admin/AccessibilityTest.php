@@ -25,8 +25,6 @@ it('ties every field error to its field', function (string $file, ?string $partn
     ['pages/content/index.tsx'],
     ['pages/users/index.tsx'],
     ['pages/terms/index.tsx'],
-    ['pages/account/profile.tsx'],
-    ['pages/account/security.tsx'],
     ['pages/auth/login.tsx'],
     ['pages/auth/forgot-password.tsx'],
     ['pages/auth/reset-password.tsx'],

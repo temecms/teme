@@ -61,12 +61,18 @@ it('says where one item’s code goes in Site code’s description, not at its f
 
 it('says where the bio shows in a hint under the box, not in its label', function (): void {
     $source = ($this->flat)('pages/account/profile.tsx');
+    $field = ($this->flat)('components/ui/field.tsx');
+    $bio = ($this->at)($source, '<Field htmlFor="bio"');
 
-    expect(($this->at)($source, 'Shown on your author page and under your posts.'))
-        ->toBeGreaterThan(($this->at)($source, 'id="bio"'))
-        ->toBeLessThan(($this->at)($source, 'id="bio-error"'))
-        ->and($source)->toContain('aria-describedby="bio-hint bio-error"')
-        ->not->toContain('Bio — shown');
+    // The words are the bio Field's help, never its label; Field draws the help after the box and before the error, both tied to the box.
+    expect(($this->at)($source, "help={__( 'Shown on your author page and under your posts.', )}", $bio))
+        ->toBeGreaterThan(($this->at)($source, "label={__('Bio')}", $bio))
+        ->toBeLessThan(($this->at)($source, 'id="bio"', $bio))
+        ->and(($this->at)($field, '<FieldHelp id={id} help={help} />'))
+        ->toBeGreaterThan(($this->at)($field, '{tie(children, id, help, error)}'))
+        ->toBeLessThan(($this->at)($field, '<FieldError id={id} error={error}'))
+        ->and($field)->toContain('const ids = [help ? `${id}-help` : null, error ? `${id}-error` : null]')
+        ->and($source)->not->toContain('Bio — shown');
 });
 
 it('offers Resend confirmation email as a button, not a link inside a sentence', function (): void {
