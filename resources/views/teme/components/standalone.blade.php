@@ -56,7 +56,8 @@
             font: 600 var(--text-lead)/1 var(--font-serif);
         }
 
-        .sa-name {
+        .sa-name,
+        .sa-product {
             font-size: var(--text-body);
             font-weight: 600;
             overflow-wrap: anywhere;
@@ -188,6 +189,7 @@
         <span class="sa-name">{{ $brand['name'] }}</span>
 @else
         {!! app(\App\Http\Standalone\StandalonePage::class)->temeMark() !!}
+        <span class="sa-product">Teme</span>
 @endif
     </div>
     {{ $slot }}
