@@ -66,4 +66,4 @@ Please report vulnerabilities privately, as [`SECURITY.md`](SECURITY.md) describ
 
 ## License
 
-TemeCMS is open source under the [MIT license](LICENSE), © Krafty Sprouts Media LLC.
+TemeCMS is open source under the [MIT license](LICENSE), © Krafty Sprouts Media LLC. The names TemeCMS and Teme, and the logo, are trademarks; [`TRADEMARK.md`](TRADEMARK.md) says how you may use them.
