@@ -20,9 +20,12 @@ concurrency:
 
 jobs:
   triage:
+    # Outside contributors only: maintainers and bots write their own way.
     if: >-
-      (github.event.issue && !github.event.issue.pull_request && github.event.issue.user.type != 'Bot')
-      || (github.event.pull_request && github.event.pull_request.user.type != 'Bot')
+      (github.event.issue && !github.event.issue.pull_request && github.event.issue.user.type != 'Bot'
+        && !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association))
+      || (github.event.pull_request && github.event.pull_request.user.type != 'Bot'
+        && !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

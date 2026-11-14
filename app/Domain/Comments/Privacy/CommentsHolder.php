@@ -89,11 +89,11 @@ final class CommentsHolder implements PersonalDataHolder
         // Always the first page: an anonymised comment stops matching. Waited
         // on, never skipped: a skipped row would be left while the page said
         // done. updated_at stays: erasing isn't an edit.
+        // The page is picked once, as its own materialised step: a subquery the
+        // planner may run again for each row would skip the rows this statement
+        // already changed and take more than a page.
         $erased = DB::select(<<<'SQL'
-            UPDATE comments SET
-                author_name = ?, author_email = NULL, author_url = NULL, author_user_id = NULL,
-                ip = NULL, user_agent = NULL, commenter_token_hash = NULL, moderation = NULL
-            WHERE id IN (
+            WITH page AS MATERIALIZED (
                 SELECT id FROM comments
                 WHERE (
                     (author_email = ? AND (author_user_id IS NULL OR author_user_id = ?::bigint))
@@ -103,8 +103,13 @@ final class CommentsHolder implements PersonalDataHolder
                 LIMIT ?
                 FOR UPDATE
             )
-            RETURNING id, content_id, status
-            SQL, [__('Anonymous'), $subject->email, $subject->accountId, $subject->accountId, self::ERASE_PAGE]);
+            UPDATE comments SET
+                author_name = ?, author_email = NULL, author_url = NULL, author_user_id = NULL,
+                ip = NULL, user_agent = NULL, commenter_token_hash = NULL, moderation = NULL
+            FROM page
+            WHERE comments.id = page.id
+            RETURNING comments.id, comments.content_id, comments.status
+            SQL, [$subject->email, $subject->accountId, $subject->accountId, self::ERASE_PAGE, __('Anonymous')]);
 
         $ids = array_map(fn (object $row): string => (string) $row->id, $erased);
 
