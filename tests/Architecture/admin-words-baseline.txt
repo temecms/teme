@@ -1129,8 +1129,6 @@ components/palette/palette-commands.ts	Start a new {} in the editor
 components/palette/palette-commands.ts	Suggest alt text for this image
 components/palette/palette-commands.ts	Suggest metadata for this post
 components/palette/palette-commands.ts	Upload files
-components/password-input.tsx	Hide password
-components/password-input.tsx	Show password
 components/personalise-menu-dialog.tsx	Changes apply to your menu only. Pin up to
 components/personalise-menu-dialog.tsx	Move {} down
 components/personalise-menu-dialog.tsx	Move {} up
@@ -1375,7 +1373,6 @@ layouts/account/layout.tsx	Preferences
 layouts/account/layout.tsx	Profile
 layouts/account/layout.tsx	Security
 layouts/account/layout.tsx	Signed in as {}. Each panel saves on its own.
-layouts/auth/auth-simple-layout.tsx	Powered by Teme
 layouts/settings/layout.tsx	Clear
 layouts/settings/layout.tsx	Find a setting
 layouts/settings/layout.tsx	Find a setting, e.g. time zone
@@ -1443,16 +1440,6 @@ pages/auth/forgot-password.tsx	Enter your email to receive a password reset link
 pages/auth/forgot-password.tsx	Forgot password
 pages/auth/forgot-password.tsx	Forgot password
 pages/auth/forgot-password.tsx	email@example.com
-pages/auth/login.tsx	Email address
-pages/auth/login.tsx	Forgot your password?
-pages/auth/login.tsx	Password
-pages/auth/login.tsx	Password
-pages/auth/login.tsx	Remember me
-pages/auth/login.tsx	Sign in
-pages/auth/login.tsx	Sign in
-pages/auth/login.tsx	Sign in
-pages/auth/login.tsx	Use your email address and password.
-pages/auth/login.tsx	email@example.com
 pages/auth/reset-password.tsx	Choose a new password.
 pages/auth/reset-password.tsx	Confirm password
 pages/auth/reset-password.tsx	Confirm password

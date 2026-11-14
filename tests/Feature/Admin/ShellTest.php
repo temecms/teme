@@ -161,9 +161,8 @@ it('says sign in on the sign-in screens, in plain words', function (): void {
     $flat = fn (string $path): string => (string) preg_replace('/\s+/', ' ', uiComponent($path));
 
     expect($flat('pages/auth/login.tsx'))
-        ->toContain("title: 'Sign in'")
-        ->toContain("description: 'Use your email address and password.'")
-        ->toContain('<Head title="Sign in" />')
+        ->toContain("title={__('Sign in')}")
+        ->toContain("lead={__('Use your email address and password.')}")
         ->toContain('data-test="login-button"')
         ->not->toContain('Log in')
         ->and($flat('pages/auth/forgot-password.tsx'))->toContain('>Back to sign in</TextLink>')
@@ -176,9 +175,9 @@ it('says sign in on the sign-in screens, in plain words', function (): void {
 });
 
 it('frames the sign-in screens with the site\'s mark, one main and one h1', function (): void {
-    $layout = uiComponent('layouts/auth/auth-simple-layout.tsx');
+    $layout = uiComponent('components/patterns/auth-page.tsx');
 
-    expect($layout)->toContain('<SignInBrand name={brandName}')
+    expect($layout)->toContain('<SignInBrand')
         ->toContain('<main')
         ->toContain('<h1')
         ->not->toContain('AppLogoIcon');

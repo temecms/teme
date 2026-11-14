@@ -544,4 +544,5 @@ Stop, write why under Records, commit and push, then stop, when:
 
 **Checkpoints.**
 - Done to Task 1 at `77456b5`, the quick check green.
-- Done to Task 2, the quick check green.
+- Done to Task 2 at `416f069`, the quick check green.
+- Done to Task 3, the quick check green.
