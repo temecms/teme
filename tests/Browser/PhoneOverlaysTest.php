@@ -339,3 +339,51 @@ it('fills a phone\'s screen with the status sheet at 600 pixels', function (): v
 
     expect($box['width'])->toBe($box['vw']);
 });
+
+it('opens the account menu as a sheet from the foot of a phone\'s screen, and signs out from it', function (): void {
+    $page = cmSignIn($this->admin)->resize(375, 667);
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="account-menu-button"]\') !== null');
+
+    $page->click('[data-test="account-menu-button"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="sheet-content"] [role="menu"]\') !== null');
+    shellSettled($page, '[data-slot="sheet-content"]');
+
+    $box = poBox($page, '[data-slot="sheet-content"]');
+
+    expect($box['bottom'])->toBe($box['vh']);
+
+    $page->assertScript('[...document.querySelectorAll(\'[data-slot="sheet-content"] [role="menu"] [role="menuitem"]\')].some((item) => item.textContent.trim() === "Profile")')
+        ->assertScript('document.querySelector(\'[data-slot="sheet-content"] [role="menu"] [data-test="logout-button"]\')?.getAttribute("role")', 'menuitem')
+        ->click('[data-test="logout-button"]');
+
+    // Signing out answers with the site's home, which is not an admin page: Inertia either goes there or draws it in its own frame.
+    $home = json_encode(parse_url(route('home'), PHP_URL_PATH) ?? '/', JSON_THROW_ON_ERROR);
+    cmWaitUntil($page, "location.pathname === {$home} || document.querySelector('iframe') !== null");
+    cmNavigate($page, '/admin')->assertPathIs('/admin/login');
+});
+
+it('opens the account pages as a sheet from the foot of a phone\'s screen', function (): void {
+    $this->actingAs($this->admin)->get(route('notifications.edit'))->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 667), '/admin/account/notifications');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="account-pages"]\') !== null');
+
+    $page->click('[data-test="account-pages"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="sheet-content"] [role="menu"]\') !== null');
+    shellSettled($page, '[data-slot="sheet-content"]');
+
+    $page->assertScript('document.querySelector(\'[data-slot="sheet-content"] [data-slot="sheet-title"]\').textContent', 'Account pages')
+        ->assertScript('document.querySelectorAll(\'[data-slot="sheet-content"] [role="menu"] a\').length', 5)
+        ->assertAttribute('[data-slot="sheet-content"] [role="menu"] a[href$="/admin/account/notifications"]', 'aria-current', 'page');
+});
+
+it('keeps the account menu inside the top bar from 640 up', function (): void {
+    $page = cmSignIn($this->admin)->resize(1280, 900);
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="account-menu-button"]\') !== null');
+
+    $page->click('[data-test="account-menu-button"]');
+    cmWaitUntil($page, 'document.querySelector(\'[role="menu"]\') !== null');
+
+    $page->assertScript('document.querySelector(\'[role="menu"]\').closest("header") !== null && document.querySelector(\'[role="menu"]\').parentElement !== document.body')
+        ->assertScript('document.querySelector(\'[data-slot="sheet-content"]\') === null');
+});

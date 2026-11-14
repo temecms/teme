@@ -1330,10 +1330,6 @@ components/ui/sidebar.tsx	The menu for every admin screen.
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
-components/user-menu-content.tsx	Preferences
-components/user-menu-content.tsx	Profile
-components/user-menu-content.tsx	Security
-components/user-menu-content.tsx	Sign out
 layouts/settings/layout.tsx	Clear
 layouts/settings/layout.tsx	Find a setting
 layouts/settings/layout.tsx	Find a setting, e.g. time zone
