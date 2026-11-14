@@ -50,23 +50,6 @@ export default function SearchAndSocialSettings({
     publisher,
     version,
 }: SearchAndSocialPage) {
-    const [separator, setSeparator] = useState(
-        typeof values.title_separator === 'string'
-            ? values.title_separator
-            : '',
-    );
-    const [templates, setTemplates] = useState<Record<string, string>>(() =>
-        Object.fromEntries(
-            titles.rows.map((row) => [
-                row.template,
-                typeof values[row.template] === 'string'
-                    ? (values[row.template] as string)
-                    : '',
-            ]),
-        ),
-    );
-    const shownSeparator =
-        separator.trim() === '' ? titles.separator : separator.trim();
     setLayoutProps({
         breadcrumbs: [
             {
@@ -75,12 +58,6 @@ export default function SearchAndSocialSettings({
             },
         ],
     });
-    const allFields = new Map<string, FieldDefinition>(
-        sections.flatMap((section) =>
-            section.fields.map((field) => [field.key, field] as const),
-        ),
-    );
-
     return (
         <>
             <Head title="Search and social settings" />
@@ -149,387 +126,379 @@ export default function SearchAndSocialSettings({
                     })}
                 >
                     {({ errors }) => (
-                        <>
-                            <input
-                                type="hidden"
-                                name="expected_version"
-                                value={version}
-                            />
-                            <InputError
-                                id="expected-version-error"
-                                message={errors.expected_version}
-                            />
-
-                            {sections.map((section) => (
-                                <SettingsPanel
-                                    key={section.key}
-                                    id={`section-${section.key}`}
-                                    title={section.label}
-                                >
-                                    {section.key === 'titles-and-listing' && (
-                                        <>
-                                            {discouraged && (
-                                                <Notice
-                                                    tone="warn"
-                                                    data-test="seo-titles-discouraged"
-                                                >
-                                                    <p className="font-medium">
-                                                        Search engines are asked
-                                                        to stay away from the
-                                                        whole site.
-                                                    </p>
-                                                    <p>
-                                                        Every page asks search
-                                                        engines not to list it,
-                                                        whatever these rows say.
-                                                    </p>
-                                                </Notice>
-                                            )}
-
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="field-title_separator">
-                                                    Separator
-                                                </Label>
-                                                <Input
-                                                    id="field-title_separator"
-                                                    name="values[title_separator]"
-                                                    maxLength={5}
-                                                    value={separator}
-                                                    onChange={(event) =>
-                                                        setSeparator(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    placeholder={
-                                                        titles.separator
-                                                    }
-                                                    autoComplete="off"
-                                                    aria-describedby="field-title_separator-hint field-title_separator-error"
-                                                    className="w-24"
-                                                />
-                                                <p
-                                                    id="field-title_separator-hint"
-                                                    className="text-small text-ink-2"
-                                                >
-                                                    Goes between the parts of
-                                                    every title. Empty uses the
-                                                    one {titles.themeName}{' '}
-                                                    suggests, “
-                                                    {titles.separator}”.
-                                                </p>
-                                                <InputError
-                                                    id="field-title_separator-error"
-                                                    message={
-                                                        errors[
-                                                            'values.title_separator'
-                                                        ]
-                                                    }
-                                                />
-                                            </div>
-
-                                            <p className="text-small">
-                                                Titles are made from templates.
-                                                Tokens:{' '}
-                                                {titles.tokens.map(
-                                                    (token, index) => (
-                                                        <span key={token}>
-                                                            {index > 0 && ' '}
-                                                            <code className="font-mono">{`{${token}}`}</code>
-                                                        </span>
-                                                    ),
-                                                )}
-                                                . {'{title}'} is the page’s own
-                                                heading: an item’s title, an
-                                                archive’s name, or what was
-                                                searched for. {'{page}'} gives
-                                                “Page 2 of 7” from the second
-                                                page on, and empty tokens and
-                                                doubled separators are dropped.
-                                                An item’s own SEO title takes
-                                                the place of its template, word
-                                                for word.
-                                            </p>
-
-                                            {section.note !== null && (
-                                                <p className="text-small text-ink-2">
-                                                    {section.note}
-                                                </p>
-                                            )}
-                                            <div
-                                                role="group"
-                                                aria-label="Titles, and hiding from search engines, by kind of page"
-                                                className="border-line divide-line divide-y rounded-lg border"
-                                            >
-                                                {titles.rows.map((row) => (
-                                                    <TitleRow
-                                                        key={row.key}
-                                                        row={row}
-                                                        typed={
-                                                            templates[
-                                                                row.template
-                                                            ] ?? ''
-                                                        }
-                                                        onType={(text) =>
-                                                            setTemplates(
-                                                                (current) => ({
-                                                                    ...current,
-                                                                    [row.template]:
-                                                                        text,
-                                                                }),
-                                                            )
-                                                        }
-                                                        separator={
-                                                            shownSeparator
-                                                        }
-                                                        hideLabel={
-                                                            row.hide === null
-                                                                ? ''
-                                                                : (allFields.get(
-                                                                      row.hide,
-                                                                  )?.label ??
-                                                                  '')
-                                                        }
-                                                        hidden={
-                                                            row.hide !== null &&
-                                                            values[row.hide] ===
-                                                                true
-                                                        }
-                                                        error={
-                                                            errors[
-                                                                `values.${row.template}`
-                                                            ]
-                                                        }
-                                                    />
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {section.key === 'site-verification' && (
-                                        <>
-                                            {section.note !== null && (
-                                                <p className="text-small text-ink-2">
-                                                    {section.note} Scripts
-                                                    belong in{' '}
-                                                    {siteCodeUrl === null ? (
-                                                        'Site code'
-                                                    ) : (
-                                                        <a
-                                                            href={siteCodeUrl}
-                                                            className="underline underline-offset-2"
-                                                        >
-                                                            Site code
-                                                        </a>
-                                                    )}
-                                                    .
-                                                </p>
-                                            )}
-                                            {section.fields.map((field) => (
-                                                <div
-                                                    key={field.key}
-                                                    className="grid gap-2"
-                                                >
-                                                    <Label
-                                                        htmlFor={`field-${field.key}`}
-                                                    >
-                                                        {field.label}
-                                                    </Label>
-                                                    <PairsSetting
-                                                        field={field}
-                                                        name={`values[${field.key}]`}
-                                                        value={
-                                                            values[field.key]
-                                                        }
-                                                        addLabel="Add a tag"
-                                                        rowLabel={(n) =>
-                                                            `Verification tag ${n}`
-                                                        }
-                                                        emptyLabel="No verification tags."
-                                                        removeLabel={(n) =>
-                                                            `verification tag ${n}`
-                                                        }
-                                                        namePlaceholder="google-site-verification"
-                                                    />
-                                                    <p
-                                                        id={`field-${field.key}-hint`}
-                                                        className="text-small text-ink-2"
-                                                    >
-                                                        {field.description}
-                                                    </p>
-                                                    <InputError
-                                                        id={`field-${field.key}-error`}
-                                                        message={
-                                                            errors[
-                                                                `values.${field.key}`
-                                                            ]
-                                                        }
-                                                    />
-                                                </div>
-                                            ))}
-                                        </>
-                                    )}
-
-                                    {section.key === 'robots-txt' && (
-                                        <>
-                                            {section.fields.map((field) =>
-                                                field.key ===
-                                                'robots_extra_rules' ? (
-                                                    <div
-                                                        key={field.key}
-                                                        className="grid gap-2"
-                                                    >
-                                                        <Label
-                                                            htmlFor={`field-${field.key}`}
-                                                        >
-                                                            {field.label}
-                                                        </Label>
-                                                        <textarea
-                                                            id={`field-${field.key}`}
-                                                            name={`values[${field.key}]`}
-                                                            rows={4}
-                                                            maxLength={
-                                                                field.maxLength ??
-                                                                undefined
-                                                            }
-                                                            defaultValue={
-                                                                typeof values[
-                                                                    field.key
-                                                                ] === 'string'
-                                                                    ? (values[
-                                                                          field
-                                                                              .key
-                                                                      ] as string)
-                                                                    : ''
-                                                            }
-                                                            spellCheck={false}
-                                                            placeholder={
-                                                                'User-agent: *\nDisallow: /print/'
-                                                            }
-                                                            aria-describedby={`field-${field.key}-hint field-${field.key}-error`}
-                                                            className={`${textareaClass} font-mono`}
-                                                        />
-                                                        <p
-                                                            id={`field-${field.key}-hint`}
-                                                            className="text-small text-ink-2"
-                                                        >
-                                                            {field.description}
-                                                        </p>
-                                                        <InputError
-                                                            id={`field-${field.key}-error`}
-                                                            message={
-                                                                errors[
-                                                                    `values.${field.key}`
-                                                                ]
-                                                            }
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <SettingsField
-                                                        key={field.key}
-                                                        field={field}
-                                                        value={
-                                                            values[field.key]
-                                                        }
-                                                        media={
-                                                            media[field.key] ??
-                                                            null
-                                                        }
-                                                        error={
-                                                            errors[
-                                                                `values.${field.key}`
-                                                            ]
-                                                        }
-                                                    />
-                                                ),
-                                            )}
-                                            <p className="text-small text-ink-2">
-                                                Teme’s list:{' '}
-                                                {robots.crawlers.join(', ')}.
-                                            </p>
-                                            <details
-                                                data-test="seo-robots-preview"
-                                                className="border-line rounded-md border"
-                                            >
-                                                <summary className="text-small cursor-pointer px-4 py-2 font-medium">
-                                                    What robots.txt says now
-                                                </summary>
-                                                <div className="grid gap-2 px-4 pb-4">
-                                                    <pre className="text-caption font-mono break-all whitespace-pre-wrap">
-                                                        {robots.text}
-                                                    </pre>
-                                                    <p className="text-small text-ink-2">
-                                                        As last saved.
-                                                    </p>
-                                                    {discouraged && (
-                                                        <p className="text-small text-ink-2">
-                                                            It doesn’t change
-                                                            while search engines
-                                                            are discouraged: a
-                                                            search engine kept
-                                                            out couldn’t read
-                                                            each page’s request
-                                                            not to be listed.
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </details>
-                                        </>
-                                    )}
-
-                                    {section.key === 'who-publishes' && (
-                                        <WhoPublishesSection
-                                            section={section}
-                                            values={values}
-                                            media={media}
-                                            errors={errors}
-                                            publisher={publisher}
-                                        />
-                                    )}
-
-                                    {section.key !== 'titles-and-listing' &&
-                                        section.key !== 'site-verification' &&
-                                        section.key !== 'robots-txt' &&
-                                        section.key !== 'who-publishes' &&
-                                        section.fields.map((field) => (
-                                            <SettingsField
-                                                key={field.key}
-                                                field={field}
-                                                value={values[field.key]}
-                                                media={media[field.key] ?? null}
-                                                error={
-                                                    errors[
-                                                        `values.${field.key}`
-                                                    ]
-                                                }
-                                            />
-                                        ))}
-
-                                    {section.note !== null &&
-                                        section.key !== 'site-verification' &&
-                                        section.key !==
-                                            'titles-and-listing' && (
-                                            <p className="text-small text-ink-2">
-                                                {section.note}
-                                            </p>
-                                        )}
-
-                                    {section.key === 'not-found-log' &&
-                                        notFoundLogUrl !== null && (
-                                            <p className="text-small">
-                                                <a
-                                                    href={notFoundLogUrl}
-                                                    className="underline underline-offset-2"
-                                                >
-                                                    Open the 404 log
-                                                </a>
-                                            </p>
-                                        )}
-                                </SettingsPanel>
-                            ))}
-                        </>
+                        <SearchAndSocialSections
+                            discouraged={discouraged}
+                            sections={sections}
+                            titles={titles}
+                            robots={robots}
+                            siteCodeUrl={siteCodeUrl}
+                            notFoundLogUrl={notFoundLogUrl}
+                            values={values}
+                            media={media}
+                            publisher={publisher}
+                            version={version}
+                            errors={errors}
+                        />
                     )}
                 </SettingsForm>
             </SettingsPage>
+        </>
+    );
+}
+
+type SectionsProps = Pick<
+    SearchAndSocialPage,
+    | 'discouraged'
+    | 'sections'
+    | 'titles'
+    | 'robots'
+    | 'siteCodeUrl'
+    | 'notFoundLogUrl'
+    | 'values'
+    | 'media'
+    | 'publisher'
+    | 'version'
+> & { errors: Record<string, string> };
+
+/**
+ * The form's sections, holding the typed separator and templates: drawn
+ * inside SettingsForm, so Discard draws them again from the page's props.
+ */
+function SearchAndSocialSections({
+    discouraged,
+    sections,
+    titles,
+    robots,
+    siteCodeUrl,
+    notFoundLogUrl,
+    values,
+    media,
+    publisher,
+    version,
+    errors,
+}: SectionsProps) {
+    const [separator, setSeparator] = useState(
+        typeof values.title_separator === 'string'
+            ? values.title_separator
+            : '',
+    );
+    const [templates, setTemplates] = useState<Record<string, string>>(() =>
+        Object.fromEntries(
+            titles.rows.map((row) => [
+                row.template,
+                typeof values[row.template] === 'string'
+                    ? (values[row.template] as string)
+                    : '',
+            ]),
+        ),
+    );
+    const shownSeparator =
+        separator.trim() === '' ? titles.separator : separator.trim();
+    const allFields = new Map<string, FieldDefinition>(
+        sections.flatMap((section) =>
+            section.fields.map((field) => [field.key, field] as const),
+        ),
+    );
+
+    return (
+        <>
+            <input type="hidden" name="expected_version" value={version} />
+            <InputError
+                id="expected-version-error"
+                message={errors.expected_version}
+            />
+
+            {sections.map((section) => (
+                <SettingsPanel
+                    key={section.key}
+                    id={`section-${section.key}`}
+                    title={section.label}
+                >
+                    {section.key === 'titles-and-listing' && (
+                        <>
+                            {discouraged && (
+                                <Notice
+                                    tone="warn"
+                                    data-test="seo-titles-discouraged"
+                                >
+                                    <p className="font-medium">
+                                        Search engines are asked to stay away
+                                        from the whole site.
+                                    </p>
+                                    <p>
+                                        Every page asks search engines not to
+                                        list it, whatever these rows say.
+                                    </p>
+                                </Notice>
+                            )}
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="field-title_separator">
+                                    Separator
+                                </Label>
+                                <Input
+                                    id="field-title_separator"
+                                    name="values[title_separator]"
+                                    maxLength={5}
+                                    value={separator}
+                                    onChange={(event) =>
+                                        setSeparator(event.target.value)
+                                    }
+                                    placeholder={titles.separator}
+                                    autoComplete="off"
+                                    aria-describedby="field-title_separator-hint field-title_separator-error"
+                                    className="w-24"
+                                />
+                                <p
+                                    id="field-title_separator-hint"
+                                    className="text-small text-ink-2"
+                                >
+                                    Goes between the parts of every title. Empty
+                                    uses the one {titles.themeName} suggests, “
+                                    {titles.separator}”.
+                                </p>
+                                <InputError
+                                    id="field-title_separator-error"
+                                    message={errors['values.title_separator']}
+                                />
+                            </div>
+
+                            <p className="text-small">
+                                Titles are made from templates. Tokens:{' '}
+                                {titles.tokens.map((token, index) => (
+                                    <span key={token}>
+                                        {index > 0 && ' '}
+                                        <code className="font-mono">{`{${token}}`}</code>
+                                    </span>
+                                ))}
+                                . {'{title}'} is the page’s own heading: an
+                                item’s title, an archive’s name, or what was
+                                searched for. {'{page}'} gives “Page 2 of 7”
+                                from the second page on, and empty tokens and
+                                doubled separators are dropped. An item’s own
+                                SEO title takes the place of its template, word
+                                for word.
+                            </p>
+
+                            {section.note !== null && (
+                                <p className="text-small text-ink-2">
+                                    {section.note}
+                                </p>
+                            )}
+                            <div
+                                role="group"
+                                aria-label="Titles, and hiding from search engines, by kind of page"
+                                className="border-line divide-line divide-y rounded-lg border"
+                            >
+                                {titles.rows.map((row) => (
+                                    <TitleRow
+                                        key={row.key}
+                                        row={row}
+                                        typed={templates[row.template] ?? ''}
+                                        onType={(text) =>
+                                            setTemplates((current) => ({
+                                                ...current,
+                                                [row.template]: text,
+                                            }))
+                                        }
+                                        separator={shownSeparator}
+                                        hideLabel={
+                                            row.hide === null
+                                                ? ''
+                                                : (allFields.get(row.hide)
+                                                      ?.label ?? '')
+                                        }
+                                        hidden={
+                                            row.hide !== null &&
+                                            values[row.hide] === true
+                                        }
+                                        error={errors[`values.${row.template}`]}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    {section.key === 'site-verification' && (
+                        <>
+                            {section.note !== null && (
+                                <p className="text-small text-ink-2">
+                                    {section.note} Scripts belong in{' '}
+                                    {siteCodeUrl === null ? (
+                                        'Site code'
+                                    ) : (
+                                        <a
+                                            href={siteCodeUrl}
+                                            className="underline underline-offset-2"
+                                        >
+                                            Site code
+                                        </a>
+                                    )}
+                                    .
+                                </p>
+                            )}
+                            {section.fields.map((field) => (
+                                <div key={field.key} className="grid gap-2">
+                                    <Label htmlFor={`field-${field.key}`}>
+                                        {field.label}
+                                    </Label>
+                                    <PairsSetting
+                                        field={field}
+                                        name={`values[${field.key}]`}
+                                        value={values[field.key]}
+                                        addLabel="Add a tag"
+                                        rowLabel={(n) =>
+                                            `Verification tag ${n}`
+                                        }
+                                        emptyLabel="No verification tags."
+                                        removeLabel={(n) =>
+                                            `verification tag ${n}`
+                                        }
+                                        namePlaceholder="google-site-verification"
+                                    />
+                                    <p
+                                        id={`field-${field.key}-hint`}
+                                        className="text-small text-ink-2"
+                                    >
+                                        {field.description}
+                                    </p>
+                                    <InputError
+                                        id={`field-${field.key}-error`}
+                                        message={errors[`values.${field.key}`]}
+                                    />
+                                </div>
+                            ))}
+                        </>
+                    )}
+
+                    {section.key === 'robots-txt' && (
+                        <>
+                            {section.fields.map((field) =>
+                                field.key === 'robots_extra_rules' ? (
+                                    <div key={field.key} className="grid gap-2">
+                                        <Label htmlFor={`field-${field.key}`}>
+                                            {field.label}
+                                        </Label>
+                                        <textarea
+                                            id={`field-${field.key}`}
+                                            name={`values[${field.key}]`}
+                                            rows={4}
+                                            maxLength={
+                                                field.maxLength ?? undefined
+                                            }
+                                            defaultValue={
+                                                typeof values[field.key] ===
+                                                'string'
+                                                    ? (values[
+                                                          field.key
+                                                      ] as string)
+                                                    : ''
+                                            }
+                                            spellCheck={false}
+                                            placeholder={
+                                                'User-agent: *\nDisallow: /print/'
+                                            }
+                                            aria-describedby={`field-${field.key}-hint field-${field.key}-error`}
+                                            className={`${textareaClass} font-mono`}
+                                        />
+                                        <p
+                                            id={`field-${field.key}-hint`}
+                                            className="text-small text-ink-2"
+                                        >
+                                            {field.description}
+                                        </p>
+                                        <InputError
+                                            id={`field-${field.key}-error`}
+                                            message={
+                                                errors[`values.${field.key}`]
+                                            }
+                                        />
+                                    </div>
+                                ) : (
+                                    <SettingsField
+                                        key={field.key}
+                                        field={field}
+                                        value={values[field.key]}
+                                        media={media[field.key] ?? null}
+                                        error={errors[`values.${field.key}`]}
+                                    />
+                                ),
+                            )}
+                            <p className="text-small text-ink-2">
+                                Teme’s list: {robots.crawlers.join(', ')}.
+                            </p>
+                            <details
+                                data-test="seo-robots-preview"
+                                className="border-line rounded-md border"
+                            >
+                                <summary className="text-small cursor-pointer px-4 py-2 font-medium">
+                                    What robots.txt says now
+                                </summary>
+                                <div className="grid gap-2 px-4 pb-4">
+                                    <pre className="text-caption font-mono break-all whitespace-pre-wrap">
+                                        {robots.text}
+                                    </pre>
+                                    <p className="text-small text-ink-2">
+                                        As last saved.
+                                    </p>
+                                    {discouraged && (
+                                        <p className="text-small text-ink-2">
+                                            It doesn’t change while search
+                                            engines are discouraged: a search
+                                            engine kept out couldn’t read each
+                                            page’s request not to be listed.
+                                        </p>
+                                    )}
+                                </div>
+                            </details>
+                        </>
+                    )}
+
+                    {section.key === 'who-publishes' && (
+                        <WhoPublishesSection
+                            section={section}
+                            values={values}
+                            media={media}
+                            errors={errors}
+                            publisher={publisher}
+                        />
+                    )}
+
+                    {section.key !== 'titles-and-listing' &&
+                        section.key !== 'site-verification' &&
+                        section.key !== 'robots-txt' &&
+                        section.key !== 'who-publishes' &&
+                        section.fields.map((field) => (
+                            <SettingsField
+                                key={field.key}
+                                field={field}
+                                value={values[field.key]}
+                                media={media[field.key] ?? null}
+                                error={errors[`values.${field.key}`]}
+                            />
+                        ))}
+
+                    {section.note !== null &&
+                        section.key !== 'site-verification' &&
+                        section.key !== 'titles-and-listing' && (
+                            <p className="text-small text-ink-2">
+                                {section.note}
+                            </p>
+                        )}
+
+                    {section.key === 'not-found-log' &&
+                        notFoundLogUrl !== null && (
+                            <p className="text-small">
+                                <a
+                                    href={notFoundLogUrl}
+                                    className="underline underline-offset-2"
+                                >
+                                    Open the 404 log
+                                </a>
+                            </p>
+                        )}
+                </SettingsPanel>
+            ))}
         </>
     );
 }

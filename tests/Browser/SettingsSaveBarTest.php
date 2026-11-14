@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Seo\TitlesAndListing;
+use App\Domain\Seo\WholeSite;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -119,4 +121,46 @@ it('marks the field Find a setting lands on', function (): void {
 
     $page->click('#settings-found a[href$="#field-timezone"]');
     cmWaitUntil($page, 'document.querySelector("#field-timezone")?.closest(\'[data-slot="settings-field"]\')?.hasAttribute("data-found") === true');
+});
+
+it('puts a typed base back on Discard on Addresses, and a later Save leaves it as it was', function (): void {
+    $this->actingAs($this->admin)->get('/admin/settings/addresses')->assertOk();
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/settings/addresses');
+    cmWaitUntil($page, 'document.querySelector("#base-tag") !== null');
+
+    $page->type('#base-tag', 'topic');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
+
+    $page->click('[data-test="save-bar-discard"]');
+    cmWaitUntil($page, 'document.querySelector("#base-tag").value === "tag" && document.querySelector(\'[data-test="save-bar"]\').hidden');
+
+    $page->type('#author-base', 'writer');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
+    $page->click('[data-test="settings-save"]');
+    cmWaitUntil($page, 'document.body.textContent.includes("Addresses saved")');
+
+    expect(app(SettingsReader::class)->string('addresses', 'author_base'))->toBe('writer')
+        ->and(app(SettingsReader::class)->string('addresses', 'base_tag'))->toBe('tag');
+});
+
+it('puts a typed separator back on Discard on Search and social, and a later Save leaves it as it was', function (): void {
+    $this->actingAs($this->admin)->get('/admin/settings/seo')->assertOk();
+    $before = TitlesAndListing::separator();
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/settings/seo');
+    cmWaitUntil($page, 'document.querySelector("#field-title_separator") !== null');
+    $shown = $page->script('document.querySelector("#field-title_separator").value');
+
+    $page->type('#field-title_separator', '|');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
+
+    $page->click('[data-test="save-bar-discard"]');
+    cmWaitUntil($page, 'document.querySelector("#field-title_separator").value === '.json_encode($shown).' && document.querySelector(\'[data-test="save-bar"]\').hidden');
+
+    $page->click('#field-discourage_search_engines');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
+    $page->click('[data-test="settings-save"]');
+    cmWaitUntil($page, 'document.body.textContent.includes("Search engines are asked to stay away from every page")');
+
+    expect(TitlesAndListing::separator())->toBe($before)
+        ->and(WholeSite::discouraged())->toBeTrue();
 });
