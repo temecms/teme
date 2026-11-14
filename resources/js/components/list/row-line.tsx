@@ -5,7 +5,8 @@ import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
 import type { RowAction } from './row-actions';
 
-const ITEM = 'text-small min-h-6 px-1 pointer-coarse:min-h-(--ctl-h-sm)';
+const ITEM =
+    'text-small min-h-6 px-1 pointer-coarse:min-h-(--ctl-h-sm) pointer-coarse:min-w-(--ctl-h-sm) justify-center';
 
 /**
  * A row's line of actions under its title (I-3398, the hybrid row actions):

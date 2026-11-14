@@ -446,15 +446,18 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         >
             <Head title={__('Comments')} />
 
-            <InPageNav
-                label={__('Views')}
-                items={views.map((tab) => ({
-                    label: tab.label,
-                    count: tab.count,
-                    current: tab.key === view,
-                    href: index({ query: { ...keep, view: tab.key } }).url,
-                }))}
-            />
+            {/* Its own grid cell may be narrower than its views, which then scroll sideways inside it (I-3422). */}
+            <div className="min-w-0">
+                <InPageNav
+                    label={__('Views')}
+                    items={views.map((tab) => ({
+                        label: tab.label,
+                        count: tab.count,
+                        current: tab.key === view,
+                        href: index({ query: { ...keep, view: tab.key } }).url,
+                    }))}
+                />
+            </div>
 
             <FilterRow
                 active={active}

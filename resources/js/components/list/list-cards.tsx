@@ -118,12 +118,13 @@ export function ListCards<Row>({
                         >
                             <div className="flex items-start gap-2">
                                 {select !== undefined && (
-                                    <div
+                                    // A label, so the whole 44-pixel square ticks the box.
+                                    <label
                                         data-card="select"
                                         className="-ms-3 -mt-3 grid size-11 shrink-0 place-items-center"
                                     >
                                         {select.cell(row)}
-                                    </div>
+                                    </label>
                                 )}
                                 <div
                                     data-card="title"

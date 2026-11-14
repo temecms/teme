@@ -110,7 +110,6 @@ R10	js/components/app-content.tsx	outline-none
 R10	js/components/editor/editor-shell.tsx	outline-none
 R10	js/components/editor/rail/search-panel.tsx	outline-none
 R10	js/components/editor/use-teme-editor.ts	outline-none
-R10	js/components/list/date-filter.tsx	outline-none
 R10	js/components/list/filter-button.tsx	outline-none
 R10	js/components/palette/command-palette.tsx	outline-none
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
@@ -550,12 +549,6 @@ R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/confirm-items.tsx	text-[13px]
-R2	js/components/list/date-filter.tsx	text-[11px]
-R2	js/components/list/date-filter.tsx	text-[11px]
-R2	js/components/list/date-filter.tsx	text-[13px]
-R2	js/components/list/date-filter.tsx	text-[13px]
-R2	js/components/list/date-filter.tsx	text-xs
-R2	js/components/list/date-filter.tsx	text-xs
 R2	js/components/list/filter-button.tsx	text-[13px]
 R2	js/components/list/page-header.tsx	text-[13px]
 R2	js/components/list/page-header.tsx	text-[22px]
@@ -873,7 +866,6 @@ R3	js/components/import/run-report.tsx	mt-0.5
 R3	js/components/import/site-analysis.tsx	mt-0.5
 R3	js/components/list/bulk-edit-dialog.tsx	p-0.5
 R3	js/components/list/bulk-edit-dialog.tsx	py-0.5
-R3	js/components/list/date-filter.tsx	my-1.5
 R3	js/components/list/row-links.tsx	mt-0.5
 R3	js/components/list/tab-strip.tsx	gap-1.5
 R3	js/components/list/tab-strip.tsx	px-0.5
@@ -961,7 +953,6 @@ R5	js/components/fields/home-page-setting.tsx	<input type="radio">
 R5	js/components/fields/media-setting.tsx	<button type="button">
 R5	js/components/list/bulk-edit-dialog.tsx	<button type="button">
 R5	js/components/list/data-table.tsx	<table>
-R5	js/components/list/date-filter.tsx	<button type="button">
 R5	js/components/list/row-actions.tsx	<button type="button">
 R5	js/components/list/row-actions.tsx	<button type="submit">
 R5	js/components/list/row-links.tsx	<button type="button">
@@ -1118,7 +1109,6 @@ R8	js/components/header/header-panel.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/confirm-items.tsx	overflow-y-auto
-R8	js/components/list/date-filter.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/media-drawer.tsx	overflow-y-auto

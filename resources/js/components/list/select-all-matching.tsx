@@ -8,6 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { __ } from '@/lib/i18n';
 import type { ContentIndexPage } from '@/types/content';
 
 /** What Select all matching can do to every match. */
@@ -25,7 +26,9 @@ export function matchingScope(page: ContentIndexPage): string {
     const inTrash = key === 'trash';
 
     if (page.filtered) {
-        return `matching ${plural}${inTrash ? ' in the trash' : ''}`;
+        return inTrash
+            ? __('matching :plural in the trash', { plural })
+            : __('matching :plural', { plural });
     }
 
     const tab = page.tabs.find((candidate) => candidate.key === key);
@@ -34,18 +37,22 @@ export function matchingScope(page: ContentIndexPage): string {
     const noun = count === 1 ? singular : plural;
 
     if (key === 'all') {
-        return `${numbered} ${noun}`;
+        return __(':count :noun', { count: numbered, noun });
     }
 
     if (key === 'mine') {
-        return `${numbered} of your ${noun}`;
+        return __(':count of your :noun', { count: numbered, noun });
     }
 
     if (inTrash) {
-        return `${numbered} ${noun} in the trash`;
+        return __(':count :noun in the trash', { count: numbered, noun });
     }
 
-    return `${numbered} ${noun} in the ${tab?.label ?? key} tab`;
+    return __(':count :noun in the :tab tab', {
+        count: numbered,
+        noun,
+        tab: tab?.label ?? key,
+    });
 }
 
 /**
@@ -79,7 +86,7 @@ export function SelectAllMatching({
             data-test="select-all-matching"
             onClick={onChoose}
         >
-            {`Select all ${matchingScope(page)}`}
+            {__('Select all :scope', { scope: matchingScope(page) })}
         </Button>
     );
 }
@@ -103,23 +110,33 @@ export function ConfirmMatching({
 }) {
     const scope = matchingScope(page);
     const singular = page.labels.singular.toLowerCase();
-    const background = `This runs in the background, one ${singular} at a time, and you can keep working.`;
-    const skipped = 'Any you may not change are skipped.';
+    const background = __(
+        'This runs in the background, one :singular at a time, and you can keep working.',
+        { singular },
+    );
+    const skipped = __('Any you may not change are skipped.');
     const words = {
         trash: {
-            title: `Move all ${scope} to the trash?`,
-            description: `${background} ${skipped} You can restore them from the trash.`,
-            confirm: 'Move to trash',
+            title: __('Move all :scope to the trash?', { scope }),
+            description: [
+                background,
+                skipped,
+                __('You can restore them from the trash.'),
+            ].join(' '),
+            confirm: __('Move to trash'),
         },
         restore: {
-            title: `Restore all ${scope}?`,
-            description: `${background} ${skipped}`,
-            confirm: 'Restore',
+            title: __('Restore all :scope?', { scope }),
+            description: [background, skipped].join(' '),
+            confirm: __('Restore'),
         },
         delete: {
-            title: `Delete all ${scope} permanently?`,
-            description: `All their revisions go with them. This can’t be undone. It runs in the background, one ${singular} at a time, and any you may not change are skipped.`,
-            confirm: 'Delete permanently',
+            title: __('Delete all :scope permanently?', { scope }),
+            description: __(
+                'All their revisions go with them. This can’t be undone. It runs in the background, one :singular at a time, and any you may not change are skipped.',
+                { singular },
+            ),
+            confirm: __('Delete permanently'),
         },
     };
     const shown = words[action ?? 'trash'];
@@ -134,7 +151,7 @@ export function ConfirmMatching({
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button type="button" variant="outline">
-                            Cancel
+                            {__('Cancel')}
                         </Button>
                     </DialogClose>
                     <Button

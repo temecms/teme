@@ -938,31 +938,11 @@ components/list/bulk-edit-dialog.tsx	— No change —
 components/list/bulk-edit-dialog.tsx	— No change —
 components/list/bulk-edit-dialog.tsx	— No change —
 components/list/confirm-items.tsx	Cancel
-components/list/date-filter.tsx	All dates
-components/list/date-filter.tsx	Apply dates
-components/list/date-filter.tsx	Back
-components/list/date-filter.tsx	By date published.
-components/list/date-filter.tsx	By date published. Leave To empty for “since”.
-components/list/date-filter.tsx	By last update. Leave To empty for “since”.
-components/list/date-filter.tsx	By last update. On the Published tab, by date published.
-components/list/date-filter.tsx	Choose dates
-components/list/date-filter.tsx	Choose dates…
-components/list/date-filter.tsx	Date
-components/list/date-filter.tsx	Date:
-components/list/date-filter.tsx	From
-components/list/date-filter.tsx	To
 components/list/empty-state.tsx	Clear filters
 components/list/pager.tsx	Pages
 components/list/row-actions.tsx	, opens in a new tab
 components/list/row-actions.tsx	More
 components/list/row-links.tsx	, opens in a new tab
-components/list/select-all-matching.tsx	All their revisions go with them. This can’t be undone. It runs in the background, one {} at a time, and any you may not change are skipped.
-components/list/select-all-matching.tsx	Cancel
-components/list/select-all-matching.tsx	Delete all {} permanently?
-components/list/select-all-matching.tsx	Move all {} to the trash?
-components/list/select-all-matching.tsx	Restore all {}?
-components/list/select-all-matching.tsx	Select all {}
-components/list/select-all-matching.tsx	{} {} You can restore them from the trash.
 components/media-drawer.tsx	Click the preview to set the focal point, which square crops keep in view.
 components/media-drawer.tsx	Delete permanently
 components/media-drawer.tsx	Delete permanently

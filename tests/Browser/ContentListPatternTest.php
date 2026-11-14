@@ -328,3 +328,133 @@ it('passes axe with the chooser, a row menu and a filter open, every target 24 p
             ->and($targets['checked'])->toBeGreaterThan(0);
     }
 })->with(['light', 'dark']);
+
+it('lists posts as cards on a phone with status, date and author, and no column chooser', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 812)->navigate('/admin/posts');
+
+    cmWaitUntil($page, "document.querySelectorAll('[data-slot=\"list-card\"]').length === 25")
+        ->assertScript("document.querySelector('[data-slot=\"list-cards\"]').dataset.cardFacts", 'status date author')
+        ->assertScript("document.querySelector('[data-test=\"columns\"]') === null && document.querySelector('[data-test=\"column-chooser\"]') === null", true)
+        ->assertScript("document.querySelector('table') === null", true);
+
+    $facts = cmScriptArray($page, "[...document.querySelectorAll('[data-slot=\"list-card\"] [data-card=\"facts\"]')].map((line) => ({ order: [...line.querySelectorAll('[data-fact]')].map((fact) => fact.dataset.fact).join(' '), text: line.innerText.trim() }))", 'ContentListPatternTest');
+
+    expect($facts)->toHaveCount(25);
+
+    foreach ($facts as $line) {
+        expect($line['order'])->toBe('status date author')
+            ->and($line['text'])->not->toStartWith('·')
+            ->and($line['text'])->not->toEndWith('·');
+    }
+});
+
+it('sorts the cards with the Sort control and reverses the order', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 812)->navigate('/admin/posts');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"cards-bar\"]') !== null")
+        ->click('[data-slot="cards-bar"] [aria-label="Sort"]');
+
+    // The list opens with a fade; a press before it settles is not taken as a choice.
+    cmWaitUntil($page, "document.querySelector('[role=\"listbox\"]') !== null && document.getAnimations().length === 0")
+        ->click('[role="option"] >> text="Title"');
+
+    cmWaitUntil($page, "new URLSearchParams(location.search).get('sort') === 'title'");
+
+    $page->click('[data-slot="cards-bar"] [aria-label="Reverse the order"]');
+
+    cmWaitUntil($page, "new URLSearchParams(location.search).get('sort') === 'title' && new URLSearchParams(location.search).get('direction') === 'desc'");
+});
+
+it('folds the filters into Filters (n) on a phone and applies one from the sheet', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 812)->navigate('/admin/posts');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filters-sheet\"]') !== null")
+        ->assertScript("document.querySelector('[data-test=\"filters-sheet\"]').textContent.trim()", 'Filters (0)')
+        ->click('[data-test="filters-sheet"]');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filters-panel\"]')?.getAnimations().length === 0")
+        ->click('[data-test="filters-panel"] [data-test="filter-author"] [data-slot="combobox-trigger"]')
+        ->click('[data-slot="combobox-item"] >> text="Ada Author"');
+
+    cmWaitUntil($page, "new URLSearchParams(location.search).get('author') === '{$this->author->id}' && document.querySelector('[data-test=\"filters-sheet\"]')?.textContent.trim() === 'Filters (1)'");
+});
+
+it('pins the bulk bar to the foot when a card is ticked', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 812)->navigate('/admin/posts');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"list-card\"] [role=\"checkbox\"]') !== null")
+        ->click('[aria-label="Select Post 30"]');
+
+    cmWaitUntil($page, "document.querySelector('[role=\"region\"][aria-label=\"Bulk actions\"]') !== null")
+        ->assertScript("Math.abs(document.querySelector('[role=\"region\"][aria-label=\"Bulk actions\"]').getBoundingClientRect().bottom - window.innerHeight) <= 24", true);
+});
+
+it('reads Page 1 of 2 on a phone', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 812)->navigate('/admin/posts');
+
+    cmWaitUntil($page, "document.querySelector('[aria-label=\"Pages\"]') !== null")
+        ->assertScript("document.querySelector('[aria-label=\"Pages\"]').innerText.includes('Page 1 of 2')", true);
+});
+
+it('reaches everything at 320 pixels with nothing clipped and no sideways page scroll', function (): void {
+    cmItem($this->editor, 'Harbour news');
+    $page = cmSignIn($this->editor)->resize(320, 700);
+
+    foreach (['/admin/posts', '/admin/tags', '/admin/comments'] as $path) {
+        $page->navigate($path);
+        cmWaitUntil($page, "document.querySelector('h1') !== null && {$this->fontsIn}")
+            ->assertScript('document.scrollingElement.scrollWidth <= window.innerWidth', true)
+            // Nothing clipped: the list's frame, views and filters end inside the screen.
+            ->assertScript("[...document.querySelectorAll('[data-slot=\"table-frame\"], [data-slot=\"in-page-nav\"], [data-test=\"list-filters\"]')].every((part) => part.getBoundingClientRect().right <= window.innerWidth)", true);
+    }
+
+    $page->navigate('/admin/posts');
+    cmWaitUntil($page, "document.querySelector('[aria-label=\"Select Post 30\"]') !== null");
+
+    // From the first card's tick box, Tab reaches the title, every action on its line, then its menu.
+    $reached = [];
+    $page->click('[aria-label="Select Post 30"]');
+
+    foreach (range(1, 5) as $step) {
+        $page->keys(':focus', 'Tab');
+        $reached[] = $page->script("document.activeElement?.dataset.action ?? document.activeElement?.dataset.test ?? ''");
+    }
+
+    expect($reached)->toBe(['row-title', 'edit', 'quick-edit', 'preview', 'row-menu']);
+});
+
+it('passes axe on the cards, the filters sheet and a card\'s menu, every target 44 pixels or more on touch, in both schemes', function (string $scheme): void {
+    lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
+
+    $page = visit('/admin/login')
+        ->on()->mobile()
+        ->type('email', $this->editor->email)
+        ->type('password', 'password')
+        ->click('[data-test="login-button"]')
+        ->assertPathIs('/admin')
+        ->navigate('/admin/posts');
+
+    // Every control a thumb presses, inside the given place, smaller than 44 pixels either way, a tick box by the label around it; a title's text link is a line of words, not a control.
+    $small = fn (string $within): array => cmScriptArray($page, "[...document.querySelectorAll('{$within}')].flatMap((place) => [...place.querySelectorAll('button, [role=\"checkbox\"], [role=\"menuitem\"], [role=\"combobox\"], a:not([data-test=\"row-title\"]), input')]).filter((control) => control.checkVisibility() && control.closest('[aria-hidden=\"true\"]') === null).filter((control) => { const box = (control.matches('[role=\"checkbox\"]') ? (control.closest('label') ?? control) : control).getBoundingClientRect(); return Math.min(box.width, box.height) < 44; }).map((control) => (control.dataset.action ?? control.dataset.test ?? control.getAttribute('aria-label') ?? control.textContent.trim()).slice(0, 40))", 'ContentListPatternTest');
+
+    cmWaitUntil($page, "document.querySelectorAll('[data-slot=\"list-card\"]').length === 25 && {$this->fontsIn}");
+    $page->assertNoAccessibilityIssues(3);
+    $cards = $small('[data-slot="list-card"], [data-slot="cards-bar"]');
+
+    $page->click('[data-test="filters-sheet"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filters-panel\"]')?.getAnimations().length === 0 && [...document.querySelectorAll('[data-slot=\"sheet-overlay\"]')].every((overlay) => overlay.getAnimations().length === 0)");
+    $page->assertNoAccessibilityIssues(3);
+    $sheet = $small('[data-test="filters-panel"]');
+    $page->keys('[data-test="filters-panel"]', 'Escape');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filters-panel\"]') === null && document.querySelector('[data-slot=\"sheet-overlay\"]') === null");
+
+    // By its key: the shell's bar at the top of a phone's screen sits over the first card's button once it is scrolled to.
+    $page->keys('[aria-label="More actions for Post 30"]', 'Enter');
+    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0");
+    $page->assertNoAccessibilityIssues(3);
+    $menu = $small('[role="menu"]');
+
+    expect($cards)->toBe([])
+        ->and($sheet)->toBe([])
+        ->and($menu)->toBe([]);
+})->with(['light', 'dark']);

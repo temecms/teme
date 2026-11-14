@@ -1184,18 +1184,21 @@ export default function ContentIndex(page: ContentIndexPage) {
         >
             <Head title={title} />
 
-            <InPageNav
-                label={__('Status')}
-                items={page.tabs.map((tab) => ({
-                    label: tab.label,
-                    count: tab.count,
-                    current: tab.key === activeTab,
-                    href: contentIndex(
-                        { type: page.type },
-                        { query: { tab: tab.key } },
-                    ).url,
-                }))}
-            />
+            {/* Its own grid cell may be narrower than its views, which then scroll sideways inside it (I-3422). */}
+            <div className="min-w-0">
+                <InPageNav
+                    label={__('Status')}
+                    items={page.tabs.map((tab) => ({
+                        label: tab.label,
+                        count: tab.count,
+                        current: tab.key === activeTab,
+                        href: contentIndex(
+                            { type: page.type },
+                            { query: { tab: tab.key } },
+                        ).url,
+                    }))}
+                />
+            </div>
 
             {page.scheduleWarning.length > 0 && (
                 <Notice tone="warn" role="status">
