@@ -14,6 +14,7 @@ sources:
   - resources/js/pages/regions
   - resources/js/components/themes/theme-regions.tsx
   - resources/js/components/navigation
+  - resources/js/components/patterns/save-bar.tsx
   - resources/js/components/term-picker.tsx
   - resources/js/components/term-tree-picker.tsx
   - app/Domain/Fields
