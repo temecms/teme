@@ -6,14 +6,17 @@ namespace App\Domain\Taxonomy\Queries;
 
 use App\Domain\Addresses\AddressSettings;
 use App\Domain\Support\Queries\Cursor;
+use App\Domain\Support\Queries\ListPages;
 use Illuminate\Support\Facades\DB;
 
 /**
  * The rows of a taxonomy's screen, such as Categories and Tags: a nesting
  * taxonomy's terms as whole branches, a child under its parent, and a flat
- * taxonomy's, or any search's, by name, 50 at a time by keyset. Each row
- * carries what the screen's form, confirmation and count links need (I-225).
+ * taxonomy's, or any search's, by name, 50 at a time, by number up to the
+ * cap and by keyset past it (I-3421). Each row carries what the screen's
+ * form, confirmation and count links need (I-225).
  *
+ * @phpstan-type Pages array{number: int|null, last: int, more: bool, from: int|null, to: int|null, total: int|null, newer: string|null, older: string|null}
  * @phpstan-type TermRow array{id: string, name: string, slug: string, description: string, path: string, depth: int, parentId: string|null, parentName: string|null, children: int, counts: array<string, int>, address: string|null}
  */
 final class TermList
@@ -26,24 +29,31 @@ final class TermList
     ) {}
 
     /**
-     * One page of terms by name either side of a cursor, optionally narrowed
-     * to names starting with $search: a flat taxonomy's screen, and any
-     * search, each term with its path where terms nest. "newer" is the
-     * cursor for the page before it and "older" for the page after it,
-     * ContentList's names, so one Pager serves both lists.
+     * One page of terms by name, by number or either side of a cursor,
+     * optionally narrowed to names starting with $search: a flat taxonomy's
+     * screen, and any search, each term with its path where terms nest.
+     * "paging" is its place among the pages, the count capped (ListPages),
+     * with "newer" the cursor for the page before it and "older" for the
+     * page after it, ContentList's names.
      *
-     * @return array{rows: list<TermRow>, newer: string|null, older: string|null}
+     * @return array{rows: list<TermRow>, paging: Pages}
      */
-    public function page(string $taxonomy, ?string $after, ?string $search, ?string $before = null): array
+    public function page(string $taxonomy, ?string $after, ?string $search, ?string $before = null, int $page = 1): array
     {
         $backwards = $before !== null && $before !== '';
         $cursor = Cursor::decode($backwards ? $before : $after, 2);
         $direction = $backwards ? 'desc' : 'asc';
 
-        $rows = DB::table('terms')
+        $query = DB::table('terms')
             ->where('taxonomy', $taxonomy)
-            ->when($search !== null && $search !== '', fn ($query) => $query->whereRaw('lower(name) LIKE ?', [addcslashes(mb_strtolower((string) $search), '%_\\').'%']))
+            ->when($search !== null && $search !== '', fn ($query) => $query->whereRaw('lower(name) LIKE ?', [addcslashes(mb_strtolower((string) $search), '%_\\').'%']));
+        // Counted up to the cap on every page, so every page costs the same.
+        $cappedCount = ListPages::count($query, self::PAGE);
+        $pageNumber = $cursor === null ? ListPages::requested($page) : null;
+
+        $rows = $query
             ->when($cursor !== null, fn ($query) => $query->whereRaw($backwards ? '(name, id) < (?, ?)' : '(name, id) > (?, ?)', $cursor))
+            ->when($cursor === null && $pageNumber > 1, fn ($query) => $query->offset(($pageNumber - 1) * self::PAGE))
             ->orderBy('name', $direction)
             ->orderBy('id', $direction)
             ->limit(self::PAGE + 1)
@@ -67,8 +77,15 @@ final class TermList
                 'path' => $paths[$row->id] ?? (string) $row->name,
                 'depth' => 0,
             ])->values()->all()),
-            'newer' => $first !== null && ($backwards ? $hasMore : $cursor !== null) ? Cursor::encode([$first->name, $first->id]) : null,
-            'older' => $last !== null && ($backwards || $hasMore) ? Cursor::encode([$last->name, $last->id]) : null,
+            'paging' => ListPages::describe(
+                $pageNumber,
+                self::PAGE,
+                $rows->count(),
+                null,
+                $cappedCount,
+                $first !== null && ($backwards ? $hasMore : $cursor !== null) ? Cursor::encode([$first->name, $first->id]) : null,
+                $last !== null && ($backwards || $hasMore) ? Cursor::encode([$last->name, $last->id]) : null,
+            ),
         ];
     }
 
@@ -77,20 +94,22 @@ final class TermList
      * terms by name, each followed by everything under it, a child under its
      * parent and a step deeper. A page holds up to 50 rows and never starts
      * or ends inside a branch; a branch longer than that has a page of its
-     * own. "newer" and "older" name the first and last top-level term shown;
-     * one that has gone since opens the first page.
+     * own. The pages are numbered exactly, with no cap, since the branches
+     * are already in memory (I-3421). A cursor wins over a number: "newer"
+     * and "older" name the first and last top-level term shown, and one
+     * that has gone since opens the first page.
      *
      * @param  list<array{id: string, name: string, parentId: string|null}>  $tree  every term of the taxonomy by name, as TermPicker::tree() gives them
      *
-     * @return array{rows: list<TermRow>, newer: string|null, older: string|null}
+     * @return array{rows: list<TermRow>, paging: Pages}
      */
-    public function branches(string $taxonomy, array $tree, ?string $after, ?string $before = null): array
+    public function branches(string $taxonomy, array $tree, ?string $after, ?string $before = null, int $page = 1): array
     {
         // Later (I-1491): a branch's children load when it is opened, for a tree too large to read whole.
         $branches = self::branchesOf($tree);
 
         if ($branches === []) {
-            return ['rows' => [], 'newer' => null, 'older' => null];
+            return ['rows' => [], 'paging' => ListPages::describe(1, self::PAGE, 0, 0, 0, null, null)];
         }
 
         $at = function (?string $cursor) use ($branches): ?int {
@@ -105,14 +124,55 @@ final class TermList
             return null;
         };
 
+        $sizes = array_map(count(...), $branches);
+        $windows = self::windows($sizes);
         $backwards = $before !== null && $before !== '';
-        [$from, $to] = self::window(array_map(count(...), $branches), $backwards ? null : $at($after), $backwards ? $at($before) : null);
+        $cursor = $backwards ? $at($before) : $at($after);
+
+        if ($cursor === null && ($backwards || $after === null || $after === '') && isset($windows[$page - 1])) {
+            [$from, $to] = $windows[$page - 1];
+        } else {
+            [$from, $to] = self::window($sizes, $backwards ? null : $at($after), $backwards ? $at($before) : null);
+        }
+
+        $number = array_search([$from, $to], $windows, true);
+        $rows = array_merge(...array_slice($branches, $from, $to - $from + 1));
+        $total = array_sum($sizes);
 
         return [
-            'rows' => $this->rows($taxonomy, array_merge(...array_slice($branches, $from, $to - $from + 1))),
-            'newer' => $from > 0 ? Cursor::encode([$branches[$from][0]['id']]) : null,
-            'older' => $to < count($branches) - 1 ? Cursor::encode([$branches[$to][0]['id']]) : null,
+            'rows' => $this->rows($taxonomy, $rows),
+            'paging' => [
+                'number' => $number === false ? null : $number + 1,
+                'last' => count($windows),
+                'more' => false,
+                'from' => $number === false ? null : array_sum(array_slice($sizes, 0, $from)) + 1,
+                'to' => $number === false ? null : array_sum(array_slice($sizes, 0, $to + 1)),
+                'total' => $total,
+                'newer' => $from > 0 ? Cursor::encode([$branches[$from][0]['id']]) : null,
+                'older' => $to < count($branches) - 1 ? Cursor::encode([$branches[$to][0]['id']]) : null,
+            ],
         ];
+    }
+
+    /**
+     * Every page of branches in order, as paging forward from the first cuts
+     * them, each its first and last branch.
+     *
+     * @param  list<int>  $sizes  each branch's rows, in order
+     *
+     * @return list<array{0: int, 1: int}>
+     */
+    private static function windows(array $sizes): array
+    {
+        $windows = [];
+        $start = 0;
+
+        while (isset($sizes[$start])) {
+            $windows[] = self::forward($sizes, $start);
+            $start = $windows[array_key_last($windows)][1] + 1;
+        }
+
+        return $windows;
     }
 
     /**

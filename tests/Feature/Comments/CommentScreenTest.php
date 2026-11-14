@@ -32,8 +32,8 @@ it('opens the Pending view for whoever looks after comments, with its views, its
         ->where('views.1', ['key' => 'pending', 'label' => 'Pending', 'count' => 1])
         ->where('item', null)
         ->where('details', null)
-        ->where('newer', null)
-        ->where('older', null));
+        ->where('paging.newer', null)
+        ->where('paging.older', null));
 
     cmScreen($this->editor)->assertInertia(fn (Assert $page) => $page
         ->where('own', false)

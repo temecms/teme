@@ -27,7 +27,7 @@ function listsPage(array $arguments): array
     return app(ContentList::class)->page(new ContentListRequest(...array_merge(['type' => 'post'], $arguments)));
 }
 
-it('pages 50 at a time, older and newer, with no total', function (): void {
+it('pages 50 at a time by number, with the total where it is known', function (): void {
     foreach (range(1, 55) as $n) {
         $this->travel(1)->minutes();
         lifecycleDraft($this->author, "Post {$n}");
@@ -37,19 +37,17 @@ it('pages 50 at a time, older and newer, with no total', function (): void {
 
     expect($first['rows'])->toHaveCount(50)
         ->and($first['rows'][0]['title'])->toBe('Post 55')
-        ->and($first['newer'])->toBeNull()
-        ->and($first['older'])->not->toBeNull()
-        ->and($first)->not->toHaveKey('total');
+        ->and($first['paging'])->toMatchArray(['number' => 1, 'last' => 2, 'more' => false, 'from' => 1, 'to' => 50, 'total' => 55]);
 
-    $second = listsPage(['after' => $first['older']]);
+    $second = listsPage(['page' => 2]);
 
     expect($second['rows'])->toHaveCount(5)
         ->and($second['rows'][0]['title'])->toBe('Post 5')
-        ->and($second['older'])->toBeNull();
+        ->and($second['paging'])->toMatchArray(['number' => 2, 'last' => 2, 'from' => 51, 'to' => 55, 'total' => 55]);
 
-    $back = listsPage(['before' => $second['newer']]);
+    $filtered = listsPage(['search' => 'Post']);
 
-    expect(array_column($back['rows'], 'title'))->toBe(array_column($first['rows'], 'title'));
+    expect($filtered['paging'])->toMatchArray(['number' => 1, 'last' => 2, 'total' => 55]);
 });
 
 it('lists the first page for a before cursor it cannot decode, not the oldest rows (a hand-edited link)', function (): void {

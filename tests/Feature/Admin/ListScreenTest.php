@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -77,23 +76,15 @@ it('offers a way back on every pager', function (string $name, array $parameters
         ->get(route($name, [...$parameters, ...$query]))
         ->viewData('page')['props'];
 
-    DB::flushQueryLog();
-    DB::enableQueryLog();
-
     $first = $props();
-    $second = $props(['after' => $first['older']]);
-    $back = $props(['before' => $second['newer']]);
+    $second = $props(['page' => 2]);
+    $back = $props(['page' => $second['paging']['number'] - 1]);
 
-    $sql = implode("\n", array_column(DB::getQueryLog(), 'query'));
-
-    expect($first['newer'])->toBeNull()
-        ->and($first['older'])->not->toBeNull()
+    expect($first['paging'])->toMatchArray(['number' => 1, 'last' => 2])
         ->and($second['rows'])->toHaveCount(5)
-        ->and($second['newer'])->not->toBeNull()
+        ->and($second['paging'])->toMatchArray(['number' => 2, 'last' => 2])
         ->and(array_column($back['rows'], 'id'))->toBe(array_column($first['rows'], 'id'))
-        ->and($back['newer'])->toBeNull()
-        ->and($back['older'])->toBe($first['older'])
-        ->and($sql)->not->toMatch('/\boffset\b/i');
+        ->and($back['paging'])->toBe($first['paging']);
 
     // A source scan: the page draws the shared Pager.
     expect(uiComponent("pages/{$component}.tsx"))->toContain('<Pager');
