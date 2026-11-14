@@ -21,8 +21,10 @@ export function SignInPaused({
     seconds: number;
     onDone: () => void;
 }) {
-    const [endsAt] = useState(() => Date.now() + seconds * 1000);
-    const [left, setLeft] = useState(seconds);
+    // One second more than the refusal names: the limiter's own timer can
+    // outlive its whole seconds by up to one, and the words never say more.
+    const [endsAt] = useState(() => Date.now() + (seconds + 1) * 1000);
+    const [left, setLeft] = useState(seconds + 1);
     const done = useRef(onDone);
     done.current = onDone;
 
@@ -57,7 +59,7 @@ export function SignInPaused({
             </span>
             <span aria-hidden="true" data-test="sign-in-paused-wait">
                 {__('Too many tries. Wait :time, then try again.', {
-                    time: waitWords(left),
+                    time: waitWords(Math.min(left, seconds)),
                 })}
             </span>
         </Notice>

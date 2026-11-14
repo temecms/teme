@@ -117,9 +117,6 @@ it('counts a paused sign-in down to zero, then lets the person try again', funct
 
     cmWaitUntil($page, 'document.querySelector(\'[data-test="sign-in-paused"]\') === null && !document.querySelector(\'[data-test="login-button"]\').disabled');
 
-    // The limiter's store keeps its timer up to a second past the whole seconds the refusal names.
-    $page->script('() => new Promise((resolve) => setTimeout(resolve, 1100))');
-
     $page->type('password', 'password')
         ->click('[data-test="login-button"]')
         ->assertPathIs('/admin');
