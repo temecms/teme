@@ -30,3 +30,9 @@ The proposal keeps the reasons. How the built thing works is described in [`docs
 | [People and your account on the new design system](people-and-account.md) | accepted | — | — |
 | [The sign-in pages on one card](sign-in-pages.md) | accepted | — | — |
 | [The remaining admin screens on the new design system](remaining-screens.md) | accepted | — | — |
+| [The content lists on the new design system](content-lists.md) | accepted | — | — |
+| [The editor on the new design system](editor.md) | accepted | — | — |
+| [The media library and the one picker](media.md) | accepted | — | — |
+| [The Tools screens on the new design system](tools-screens.md) | accepted | — | — |
+| [Plugins on the new design system: the Plugins screen, plugin areas and their marks](plugin-areas.md) | accepted | — | — |
+| [Dialogs and menus on phones](phone-overlays.md) | accepted | — | — |
