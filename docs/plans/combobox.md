@@ -353,3 +353,89 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: commits; each test seen red (task, file, case, the failure's first line); downshift's resolved version, license and the lock entries added; the design-system and admin-words counts before and after; differences from the plan as B-?? (draft); changelog lines; any STOP. -->
+
+### Setup
+
+- Setup log: `2026-11-14T14:50:10Z ran in /home/user/teme as root`, `2026-11-14T15:02:56Z finished` (the cloud setup script, run once). Working directory `/home/user/teme`.
+- After setup: PHP 8.4.27, PostgreSQL 18.7 on 5433 accepting connections, Valkey on 6380 answering PONG.
+- Task 0: base `origin/main` at `e77848d`, which holds `e7f2af7 feat(admin): the design system and the admin's new frame`. Every Task 0 line matched by its text. `role="listbox|option|combobox"` outside `ui/`: exactly `editor/slash-menu.tsx`, `media/media-grid.tsx`, `palette/command-palette.tsx`.
+- Stack from the locks: Laravel 13.39.0, Inertia Laravel 3.5.2, Pest 5.3.4, Pest browser plugin 5.1.2, Fortify 1.41.0; React 19.3.1, `@inertiajs/react` 3.9.1, Tailwind 4.3.3, Vite 8.3.5, TypeScript 7.0.2, `@radix-ui/react-popover` 1.3.1.
+- `downshift`: newest 9.5.0 (2026-11-09) and 9.4.1 (2026-11-07) are under two weeks old, so **9.4.0** was installed. MIT; peer `react >=16.12.0`.
+
+### Commits
+
+- `0f524a1` build(deps): add downshift 9.4.0 for the combobox (I-3436). Done to Task 1, the quick check green but for the planted first case.
+- `772e0dd` feat(admin): the combobox, one searchable list on Downshift (I-3436). Done to Task 2, the quick check green.
+- `e2c6800` feat(admin): the tag picker on the combobox. Done to Task 3, the quick check green.
+- `3abbcfc` feat(admin): create a tag by typing its name in the tag picker (Follow-up W1-2).
+- `aac9550` test(admin): highlight the found tag before Enter now that Create can follow it.
+- This records commit.
+
+### Tests seen red
+
+- Task 1, `ComboboxSourceTest`, "imports downshift in one file only": `Failed asserting that two arrays are identical` (`[]` against `['components/ui/combobox.tsx']`). "draws a list to search only through the combobox": green, then red with `role="listbox"` planted on the old picker's `<ul>` (`+ 0 => 'components/term-picker.tsx'`), then the plant removed.
+- Task 2, `ComboboxTest`, before the combobox existed: `Timeout 5000ms exceeded`, waiting for `#catalogue-combobox-error`.
+- Task 2 plants: the reducer's `InputBlur` branch removed made "chooses nothing when focus leaves with an item highlighted" red (`Failed asserting that false is identical to true`, the chosen author changed). `itemToKey` removed from `useCombobox` left "keeps two authors with one name apart" **green**: see B-?? (draft) 6.
+- Task 3, "finds and chooses a tag in the editor with the keyboard alone, and keeps it on save": `Timeout 5000ms exceeded` waiting for focus on the Tags button (`data-slot="combobox-trigger"`), as the plan expects.
+- Follow-up W1-2, `TermPickerCreateTest` (both cases): `Property [session.taxonomies.1.canCreate] does not exist` and `Property [typeTaxonomies.1.canCreate] does not exist`. "creates a tag by typing its name …": `Timeout 5000ms exceeded`, waiting for the option `Create “Lighthouse keepers”`. "offers no Create to someone who may not create tags" was green before the change too, as a guard should be.
+
+### The lock
+
+`downshift` 9.4.0 and, new to the lock: `compute-scroll-into-view` 3.2.2, `loose-envify` 1.4.0 (with a nested `js-tokens` 4.0.0), `object-assign` 4.1.1, `prop-types` 15.8.1 (with a nested `react-is` 16.13.1), and `downshift`'s nested `react-is` 18.3.1. The root's `react-is` 17.0.2 and `js-tokens` 10.0.0 stay. `npm install` dropped the root's `@rollup/rollup-win32-x64-msvc` line; it was put back by hand. One existing entry changed: see B-?? (draft) 1.
+
+### Counts
+
+- Design-system baseline: 1536 lines before, 1528 after. R2 823 → 820, R3 183 → 182, R5 102 → 100, R6 55 → 53. No line names `term-picker.tsx` or `ui/combobox.tsx`.
+- Admin words: 2552 before, 2550 after (`Find a {}` and `Remove {}` of the picker).
+- `components/palette`: unchanged.
+
+### Checks
+
+- `composer check` before Task 1 (at `e77848d`): Architecture 101 passed; Unit and Feature 10,436 passed, 2 skipped.
+- `composer check` at the end (at `3abbcfc`): Pint, PHPStan, types and lint clean; Architecture 103 passed; Unit and Feature 10,438 passed, 2 skipped.
+- Browser, after `npm run build`, one file at a time: `ComboboxTest` 16 passed (at `aac9550`); `DesignCatalogueTest` 18; `CategoriesAndTagsTest` 7; `CommentsScreenTest` 13; `ContentListsTest` 10; `DiscussionTest` 5; `FieldsPageTest` 11; `FullPassTest` 40; `ListHeaderTest` 13; `MenuAndSettingsTest` 16; `RowLinksTest` 13; `TaxonomyBuilderTest` 9; `ToolsImportTest` 6; `TypeBuilderTest` 12; `ViewDataTest` 1. The rest of the Browser suite was not run here.
+
+### Follow-up W1-2 (creating a tag by typing)
+
+The proposal's Settled 1 wins over this plan's "not in". Built with no new operation, permission or route:
+- `TermPicker` takes `canCreate` (and `segment`, see B-?? (draft) 8). When the typed text, trimmed and in any letter case, matches no result's name and no chosen tag's name, the list ends with `Create “text”`. Choosing it, or Enter when it is the only option, posts `{ name }` as JSON to `terms.store`, which runs `CreateTerm`. On success the tag is chosen and the list closes; on a refusal the server's first message (or, failing one, "Couldn’t create it. Check that the name isn’t already used.") shows under the field, tied to the button by `aria-describedby`, and nothing is added.
+- The prop comes from the pages' existing controllers: `EditorSession`'s `taxonomies[].canCreate` and the content list's `typeTaxonomies[].canCreate`, each `terms.manage` (the route's middleware) and the taxonomy's own ability (what `CreateTerm` checks). The editor rail, Quick edit and Bulk edit pass it on.
+- Tests: `tests/Feature/Admin/TermPickerCreateTest.php` (true for an editor, false for an author, on the editor and on the list) and two `ComboboxTest` cases (create and save in the editor; no Create for an author).
+- The plan's "What must not be done" line and open point 1 now say it is built here.
+
+### Decisions (B-?? drafts)
+
+1. **The lock's `@babel/runtime` loses `"devOptional": true`.** Found: `downshift` is a runtime dependency and needs `@babel/runtime`, so npm marks it as a production package; the version (7.29.7) does not change. Options: put the flag back by hand (the lock would then lie, and `npm ci --omit=dev` would skip a package `downshift` needs); STOP as the plan's "an existing lock entry changes"; or keep npm's change. Chose to keep it: nothing installed changes, only the flag that says who needs it. Commit `0f524a1`.
+2. **The reducer has three more cases than A4.** `InputClick` keeps the popover open (Downshift toggles on a click in the search, which would close it); `ControlledPropUpdatedSelectedItem` keeps the search as typed (Downshift writes the chosen label into it); `InputKeyDownEnter` with nothing highlighted and one result chooses that result (asked by Follow-up W1-2, and it serves every one-result search). Options: leave Downshift's defaults (the popover closes on a click, the search fills with a name) or add the cases. Chose to add them. Commit `772e0dd` (the third case is in it too).
+3. **The search sets its value from its own `onChange`**, not from Downshift's `onInputValueChange`. Found: through Downshift's callback the controlled value arrived a render late and a quick typist lost letters ("sam" became "sm"). Commit `772e0dd`.
+4. **Tab in the search moves focus to the button**, and that blur (Downshift's `InputBlur`, kept by the reducer) closes the popover and chooses nothing. Found: Radix's popover loops focus inside itself, so Tab never left the search. Options: let Tab loop (focus trapped in a non-modal popover); close on Tab with focus left wherever the browser puts it; close and return to the button. Chose the button, as Esc does. Commit `772e0dd`.
+5. **`ComboboxOption` gains `closes?: boolean`.** Found: the Follow-up asks the list to close after Create in a several-choice list, which otherwise stays open. Options: a prop on the Combobox to close it from outside; making the picker's Create option special inside the Combobox; a flag on the option. Chose the flag: choosing such an option closes the list even where several may be chosen. Commit `772e0dd`.
+6. **Removing `itemToKey` does not turn "keeps two authors with one name apart" red.** Found: Downshift's default key is the option object itself, and the two options are two objects, so they stay apart without it. `itemToKey` matters when the same option comes back as a new object (a new search); it is kept as A3 says. Options: a test that re-renders the options as new objects; record it. Chose to record it; the case still proves that two options with one name stay two.
+7. **Chosen names on the button end in "and N more" when they do not fit** (Settled 2), measured from a hidden copy of the names, a frame after each resize. The plan's A3 had them joined by ", " and truncated. Commit `772e0dd`.
+8. **`TermPicker` takes `segment` beside `canCreate`.** Found: `terms.store` is addressed by the taxonomy's admin segment, which the picker did not have. Options: compute the address on the server and pass it; pass the segment, which every caller already holds. Chose the segment. Commit `3abbcfc`.
+9. **The picker's callers changed** (three lines each, `canCreate` and `segment`), against Task 3's "its three callers do not change": the Follow-up asks for the prop to reach the picker. Commit `3abbcfc`.
+10. **The Task 3 editor case presses ↓ before Enter.** Found: with Create offered after the match, two options are listed, so Enter with nothing highlighted chooses nothing. The case still finds and ticks Harbour by keyboard alone. Commit `aac9550`.
+11. **The popover takes an `aria-label`, and the list's ScrollArea a `label`** (the search's placeholder), for axe's dialog-name and scrollable-region rules. No change to `ui/popover.tsx` or `ui/scroll-area.tsx`; both take the props as they are. Commit `772e0dd`.
+12. **Tags are reached from the button with ←**, as Downshift's several-choice pattern works; a tag is not a Tab stop unless it is the active one (its remove button is). The Task 2 case starts there. Commit `772e0dd`.
+13. **Announcements while searching a server.** Downshift recomputes its message only when the popover opens, the highlight, the choice or the search changes; when a server's results arrive later, no new count is announced. Left as it is; noted for the part that adopts the Combobox for remote lists.
+
+No contract the plan names changed, and no STOP.
+
+### Words
+
+New, through `__()` or `__n()`: "Nothing matches.", "Searching…", ":count result|:count results", ":name added", ":name removed", "and :count more", "Search :plural", "Create “:name”", "Couldn’t create it. Check that the name isn’t already used.", and the catalogue's section name, description, labels, placeholders and sample names. Moved into `__()`: "Find a :name", "Remove :name".
+
+### Left open
+
+- The full Browser suite (`composer check:browser`) was not run; GitHub runs it after the merge.
+- B-?? (draft) 13: announcing a server's results once they arrive.
+
+### Try it
+
+On a post with tags: Tab to the Tags button, type part of a tag's name, ↓ and Enter to tick it, Esc to close. Type a name no tag has and press Enter to create it. On a local site, `/admin/_catalogue#combobox` shows every state.
+
+### Changelog lines (for the maintainers)
+
+- Searchable lists now work the same way everywhere, starting with the tag picker, and can be used by keyboard alone.
+- A new tag can be created from the tag picker by typing its name, for people allowed to create tags.
+
