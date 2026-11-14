@@ -78,6 +78,48 @@ function poClose(mixed $page, string $name): mixed
     return cmWaitUntil($page, "document.querySelector('[data-test=\"{$name}-content\"]') === null");
 }
 
+/** Presses a key where the focus is, as a person does, without moving it first. */
+function poPress(mixed $page, string $key): mixed
+{
+    $page->page()->locator(':focus')->press($key);
+
+    return $page;
+}
+
+/** Opens the catalogue's menu and waits until it has settled, as a sheet on a phone or a dropdown from 640 up. */
+function poOpenMenu(mixed $page): mixed
+{
+    $page->click('[data-test="catalogue-overlay-menu"]');
+    cmWaitUntil($page, 'document.querySelector(\'[role="menu"]\') !== null');
+
+    return shellSettled($page, '[data-slot="sheet-content"], [data-slot="dropdown-menu-content"]');
+}
+
+/**
+ * axe's violations inside the open dropdown menu. A dropdown is not a modal
+ * dialog, so while it is open axe would also judge the page Radix hides
+ * behind it (its landmarks, and the menu's wrapper outside them); the
+ * phone's sheet is a modal dialog and is judged with the whole page.
+ *
+ * @return list<string>
+ */
+function poMenuAxeViolations(mixed $page): array
+{
+    $result = cmScriptArray($page, <<<'JS'
+        async () => (await window.axe.run(document.querySelector('[role="menu"]'))).violations.flatMap((violation) => violation.nodes.map((node) => violation.id + ': ' + node.target.join(' ')))
+        JS, 'poMenuAxeViolations', once: true);
+
+    return array_values(array_map(strval(...), $result));
+}
+
+/** Waits until the focus is on the menu item that reads $name. */
+function poFocusOn(mixed $page, string $name): mixed
+{
+    $quoted = json_encode($name, JSON_THROW_ON_ERROR);
+
+    return cmWaitUntil($page, "document.activeElement?.getAttribute('role') === 'menuitem' && document.activeElement.textContent.trim() === {$quoted}");
+}
+
 it('fills a phone\'s screen with a dialog, its title and Save in view as the body scrolls', function (): void {
     $page = poOpen(poCatalogue($this->admin, 375, 667), 'catalogue-overlay-dialog');
 
@@ -169,10 +211,76 @@ it('passes axe with each overlay open, every target 24 pixels or more, at 375 an
 
         poClose($page, $overlay);
     }
+
+    poOpenMenu($page);
+
+    $targets = cmSmallTargets($page);
+
+    expect($width < 640 ? cmAxeViolations($page) : poMenuAxeViolations($page))->toBe([], 'axe with the menu open')
+        ->and($targets['small'])->toBe([], 'targets with the menu open')
+        ->and($targets['checked'])->toBeGreaterThan(0);
+
+    if ($width < 640) {
+        $page->assertScript('[...document.querySelectorAll(\'[role="menu"] [role="menuitem"]\')].every((item) => item.getBoundingClientRect().height >= 44)');
+    }
 })->with(['light', 'dark'])->with([375, 1280]);
 
 it('scrolls nothing sideways at 320 with the dialog open', function (): void {
     $page = poOpen(poCatalogue($this->admin, 320, 640), 'catalogue-overlay-dialog');
 
     $page->assertScript('document.documentElement.scrollWidth <= document.documentElement.clientWidth');
+});
+
+it('opens a menu as a sheet from the foot of a phone\'s screen', function (): void {
+    $page = poOpenMenu(poCatalogue($this->admin, 375, 667));
+
+    $box = poBox($page, '[data-slot="sheet-content"]');
+
+    expect([$box['bottom'], $box['width']])->toBe([$box['vh'], $box['vw']]);
+
+    $page->assertScript('document.querySelector(\'[data-slot="sheet-content"] [role="menu"]\') !== null')
+        ->assertScript('document.querySelector(\'[data-slot="sheet-content"] [data-slot="sheet-title"]\').textContent', 'More actions');
+    poFocusOn($page, 'Edit');
+});
+
+it('moves through a phone menu with the arrows, Home and End, past the disabled item', function (): void {
+    $page = poOpenMenu(poCatalogue($this->admin, 375, 667));
+    poFocusOn($page, 'Edit');
+
+    poFocusOn(poPress($page, 'ArrowDown'), 'Duplicate');
+    poFocusOn(poPress($page, 'ArrowDown'), 'Move to trash');
+    poFocusOn(poPress($page, 'ArrowDown'), 'Edit');
+    poFocusOn(poPress($page, 'End'), 'Move to trash');
+    poFocusOn(poPress($page, 'Home'), 'Edit');
+    poFocusOn(poPress($page, 'ArrowUp'), 'Move to trash');
+});
+
+it('runs an item and closes on Enter, and closes on Esc with nothing run', function (): void {
+    $page = poOpenMenu(poCatalogue($this->admin, 375, 667));
+    poFocusOn($page, 'Edit');
+
+    poFocusOn(poPress($page, 'ArrowDown'), 'Duplicate');
+    poPress($page, 'Enter');
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="sheet-content"]\') === null && document.activeElement === document.querySelector(\'[data-test="catalogue-overlay-menu"]\')');
+    $page->assertScript('document.querySelector(\'[data-test="catalogue-overlay-menu-chosen"]\').textContent', 'Duplicate');
+
+    poOpenMenu($page);
+    poFocusOn($page, 'Edit');
+    poPress($page, 'Escape');
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="sheet-content"]\') === null && document.activeElement === document.querySelector(\'[data-test="catalogue-overlay-menu"]\')');
+    $page->assertScript('document.querySelector(\'[data-test="catalogue-overlay-menu-chosen"]\').textContent', 'Duplicate');
+});
+
+it('keeps the dropdown menu from 640 up', function (): void {
+    $page = poOpenMenu(poCatalogue($this->admin, 1280));
+
+    $page->assertScript('document.querySelector(\'[data-slot="dropdown-menu-content"] [role="menu"], [data-slot="dropdown-menu-content"][role="menu"]\') !== null')
+        ->assertScript('document.querySelector(\'[data-slot="sheet-content"]\') === null');
+});
+
+it('closes an open menu when the window crosses 640', function (): void {
+    $page = poOpenMenu(poCatalogue($this->admin, 375, 667));
+
+    $page->resize(1280, 900);
+    cmWaitUntil($page, 'innerWidth === 1280 && document.querySelector(\'[role="menu"]\') === null && document.querySelector(\'[data-slot="sheet-content"]\') === null');
 });

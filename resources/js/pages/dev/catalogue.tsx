@@ -1,8 +1,11 @@
 import { Head } from '@inertiajs/react';
 import {
+    ArchiveIcon,
     ChevronDownIcon,
+    CopyIcon,
     ChevronRightIcon,
     InfoIcon,
+    MoreHorizontalIcon,
     OctagonAlertIcon,
     PencilIcon,
     PlusIcon,
@@ -110,6 +113,14 @@ import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { HubCard, HubPage } from '@/components/patterns/hub-page';
 import { InPageNav } from '@/components/patterns/in-page-nav';
 import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
+import {
+    ResponsiveMenu,
+    ResponsiveMenuContent,
+    ResponsiveMenuItem,
+    ResponsiveMenuLabel,
+    ResponsiveMenuSeparator,
+    ResponsiveMenuTrigger,
+} from '@/components/patterns/responsive-menu';
 import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { ListPage } from '@/components/patterns/list-page';
 import { SettingsPage } from '@/components/patterns/settings-page';
@@ -605,8 +616,15 @@ function PhoneOverlaysDemo() {
         __('Social description'),
     ];
 
+    const [chosen, setChosen] = useState<string | null>(null);
+    const items = [
+        { name: __('Edit'), icon: PencilIcon },
+        { name: __('Duplicate'), icon: CopyIcon },
+        { name: __('Archive'), icon: ArchiveIcon, disabled: true },
+    ];
+
     return (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid justify-items-start gap-3">
             <Dialog>
                 <DialogTrigger asChild>
                     <Button
@@ -708,6 +726,46 @@ function PhoneOverlaysDemo() {
                     </p>
                 </ResponsiveSheetContent>
             </Sheet>
+            <ResponsiveMenu>
+                <ResponsiveMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        data-test="catalogue-overlay-menu"
+                        aria-label={__('More actions for :name', {
+                            name: __('Sample post'),
+                        })}
+                    >
+                        <MoreHorizontalIcon />
+                    </Button>
+                </ResponsiveMenuTrigger>
+                <ResponsiveMenuContent title={__('More actions')} align="start">
+                    <ResponsiveMenuLabel>
+                        {__('Sample post')}
+                    </ResponsiveMenuLabel>
+                    {items.map((item) => (
+                        <ResponsiveMenuItem
+                            key={item.name}
+                            disabled={item.disabled}
+                            onSelect={() => setChosen(item.name)}
+                        >
+                            <item.icon />
+                            {item.name}
+                        </ResponsiveMenuItem>
+                    ))}
+                    <ResponsiveMenuSeparator />
+                    <ResponsiveMenuItem
+                        variant="destructive"
+                        onSelect={() => setChosen(__('Move to trash'))}
+                    >
+                        <Trash2Icon />
+                        {__('Move to trash')}
+                    </ResponsiveMenuItem>
+                </ResponsiveMenuContent>
+            </ResponsiveMenu>
+            <p data-test="catalogue-overlay-menu-chosen" className="text-ink-2">
+                {chosen ?? '—'}
+            </p>
         </div>
     );
 }
