@@ -1,11 +1,16 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
-import { useRef, useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import { cn } from '@/lib/utils';
 import { CardField, CardFrame, TextSetting } from './card-frame';
-import { optionsFor, useCardEnvironment } from './card-environment';
+import {
+    optionsFor,
+    useCardEnvironment,
+    useUploadTarget,
+} from './card-environment';
+import { useMediaPicker } from '../pick-media';
+import type { MediaPickerOptions } from '../pick-media';
 import type { CardSettingsProps } from './card-environment';
 
 type GalleryAttrs = {
@@ -29,8 +34,22 @@ export function GalleryCard({
     const attrs = node.attrs as GalleryAttrs;
     const ids = attrs.mediaIds ?? [];
     const items = ids.flatMap((id) => (media[id] ? [media[id]] : []));
-    const [choosing, setChoosing] = useState(ids.length === 0);
-    const chose = useRef(false);
+    const uploadedFor = useUploadTarget();
+    const pick = (adding: boolean): MediaPickerOptions => ({
+        caller: 'gallery',
+        multi: true,
+        action: adding ? __('Insert gallery') : __('Use these images'),
+        uploadedFor,
+        onInsert: (chosen) => {
+            void addMedia(chosen);
+            updateAttributes({ mediaIds: chosen.slice(0, 24) });
+        },
+        // A new card closed without a choice is removed.
+        onClose: adding ? deleteNode : undefined,
+    });
+    const { open, picker } = useMediaPicker(
+        ids.length === 0 ? pick(true) : null,
+    );
     const tooFew = ids.length < 2;
 
     return (
@@ -42,11 +61,11 @@ export function GalleryCard({
                     tooFew
                         ? {
                               label: 'Needs two images',
-                              onClick: () => setChoosing(true),
+                              onClick: () => open(pick(ids.length === 0)),
                           }
                         : null
                 }
-                onReplace={() => setChoosing(true)}
+                onReplace={() => open(pick(ids.length === 0))}
                 replaceLabel="Choose the gallery's images"
                 onRemove={deleteNode}
                 settings={
@@ -107,26 +126,7 @@ export function GalleryCard({
                     </p>
                 )}
             </CardFrame>
-            <MediaModal
-                open={choosing}
-                onOpenChange={(open) => {
-                    setChoosing(open);
-
-                    if (!open && !chose.current && ids.length === 0) {
-                        deleteNode();
-                    }
-
-                    chose.current = false;
-                }}
-                kinds={['image']}
-                multiple
-                action={ids.length > 0 ? 'Use these images' : 'Insert gallery'}
-                onChoose={(chosen) => {
-                    chose.current = true;
-                    void addMedia(chosen);
-                    updateAttributes({ mediaIds: chosen.slice(0, 24) });
-                }}
-            />
+            {picker}
         </>
     );
 }

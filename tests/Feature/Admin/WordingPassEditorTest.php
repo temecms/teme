@@ -23,8 +23,8 @@ it('names the item’s own type in the side panel, its screen-reader line and th
         ->toContain("noun={themeRegion !== null ? 'region' : noun}")
         ->not->toContain('Article settings')
         ->not->toContain('changed this article')
-        ->and(($this->flat)('components/editor/editor-shell.tsx'))
-        ->toContain('{`The ${railNoun}’s settings`}')
+        ->and(($this->flat)('components/patterns/editor-page.tsx'))
+        ->toContain("__('The :noun’s settings', { noun: rail.noun, })")
         ->not->toContain("The article's settings")
         ->and(($this->flat)('components/editor/stale-dialog.tsx'))
         ->toContain('{`Someone else changed this ${noun}`}');

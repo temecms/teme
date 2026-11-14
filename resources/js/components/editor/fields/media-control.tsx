@@ -1,11 +1,12 @@
 import { ImageIcon } from 'lucide-react';
-import { useState } from 'react';
 import { useFieldControlContext } from '@/components/editor/fields/field-control';
 import type { FieldControlProps } from '@/components/editor/fields/field-control';
-import { MediaModal } from '@/components/media/media-modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { useUploadTarget } from '@/components/editor/cards/card-environment';
+import { useMediaPicker } from '@/components/editor/pick-media';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import type { CardMedia } from '@/types';
 
@@ -44,14 +45,28 @@ export function MediaControl({
     onChange,
     id,
     idPrefix = id,
-    chooseAction = 'Use this image',
+    featured: isFeatured = false,
 }: FieldControlProps & {
     idPrefix?: string;
-    /** The words on the library's button, such as "Use as featured image". */
-    chooseAction?: string;
+    /** The featured image's own picker: its title and "Set featured image". */
+    featured?: boolean;
 }) {
     const { media, loading, addMedia, noun } = useFieldControlContext();
-    const [choosing, setChoosing] = useState(false);
+    const uploadedFor = useUploadTarget();
+    const { open, picker } = useMediaPicker();
+    const choose = () =>
+        open({
+            caller: isFeatured ? 'featured' : 'choose',
+            multi: false,
+            action: isFeatured
+                ? undefined
+                : __('Use as :name', { name: field.label.toLowerCase() }),
+            uploadedFor,
+            onInsert: (ids) => {
+                void addMedia(ids);
+                onChange({ id: ids[0], alt: '', decorative: false });
+            },
+        });
     const allowsDecorative = field.settings.allowsDecorative === true;
     const featured = imageOf(value, allowsDecorative);
     const item: CardMedia | undefined = featured
@@ -74,7 +89,7 @@ export function MediaControl({
                 <button
                     id={`${idPrefix}-choose`}
                     type="button"
-                    onClick={() => setChoosing(true)}
+                    onClick={choose}
                     className="border-edge text-ink-2 hover:bg-surface-3 focus-visible:ring-ring flex h-24 items-center justify-center gap-2 rounded-md border border-dashed text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
                 >
                     <ImageIcon />
@@ -173,7 +188,7 @@ export function MediaControl({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setChoosing(true)}
+                                onClick={choose}
                             >
                                 Replace…
                             </Button>
@@ -190,16 +205,7 @@ export function MediaControl({
                     </div>
                 </div>
             )}
-            <MediaModal
-                open={choosing}
-                onOpenChange={setChoosing}
-                kinds={['image']}
-                action={chooseAction}
-                onChoose={(ids) => {
-                    void addMedia(ids);
-                    onChange({ id: ids[0], alt: '', decorative: false });
-                }}
-            />
+            {picker}
         </>
     );
 }

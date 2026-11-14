@@ -1,10 +1,11 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
-import { useRef, useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
+import { __ } from '@/lib/i18n';
 import { CardFrame, TextSetting } from './card-frame';
-import { useCardEnvironment } from './card-environment';
+import { useCardEnvironment, useUploadTarget } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 import type { PlayableMedia } from './media-file';
+import { useMediaPicker } from '../pick-media';
+import type { MediaPickerOptions } from '../pick-media';
 
 type AudioAttrs = {
     mediaId: string | null;
@@ -30,8 +31,21 @@ export function AudioCard({
     const item = attrs.mediaId
         ? (media[attrs.mediaId] as PlayableMedia | undefined)
         : undefined;
-    const [choosing, setChoosing] = useState(!attrs.mediaId);
-    const chose = useRef(false);
+    const uploadedFor = useUploadTarget();
+    const pick = (replacing: boolean): MediaPickerOptions => ({
+        caller: 'choose',
+        multi: false,
+        kinds: ['audio'],
+        action: replacing ? __('Replace audio') : __('Insert audio'),
+        uploadedFor,
+        onInsert: (ids) => {
+            void addMedia(ids);
+            updateAttributes({ mediaId: ids[0] });
+        },
+        // A new card closed without a choice is removed, as the Image card is.
+        onClose: replacing ? undefined : deleteNode,
+    });
+    const { open, picker } = useMediaPicker(attrs.mediaId ? null : pick(false));
     const transcript = (attrs.transcript ?? '').trim();
 
     return (
@@ -44,7 +58,7 @@ export function AudioCard({
                         ? { label: 'No transcript' }
                         : null
                 }
-                onReplace={() => setChoosing(true)}
+                onReplace={() => open(pick(attrs.mediaId !== null))}
                 replaceLabel="Replace audio"
                 onRemove={deleteNode}
                 settings={
@@ -94,25 +108,7 @@ export function AudioCard({
                     </p>
                 )}
             </CardFrame>
-            <MediaModal
-                open={choosing}
-                onOpenChange={(open) => {
-                    setChoosing(open);
-
-                    if (!open && !chose.current && !attrs.mediaId) {
-                        deleteNode();
-                    }
-
-                    chose.current = false;
-                }}
-                kinds={['audio']}
-                action={attrs.mediaId ? 'Replace audio' : 'Insert audio'}
-                onChoose={(ids) => {
-                    chose.current = true;
-                    void addMedia(ids);
-                    updateAttributes({ mediaId: ids[0] });
-                }}
-            />
+            {picker}
         </>
     );
 }

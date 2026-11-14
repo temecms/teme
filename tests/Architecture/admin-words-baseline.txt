@@ -416,8 +416,6 @@ components/editor/editor-rail.tsx	Waiting for review. Submitted
 components/editor/editor-rail.tsx	What needs to change? The writer sees this.
 components/editor/editor-rail.tsx	a removed account
 components/editor/editor-rail.tsx	by
-components/editor/editor-shell.tsx	Resize the panel
-components/editor/editor-shell.tsx	The {}’s settings
 components/editor/fields/datetime-control.tsx	Date
 components/editor/fields/datetime-control.tsx	Time
 components/editor/fields/datetime-control.tsx	Times are in the site’s zone:

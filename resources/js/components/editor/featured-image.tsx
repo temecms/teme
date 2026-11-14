@@ -30,7 +30,7 @@ export function FeaturedImage({
                 onChange={onChange}
                 id="editor-featured"
                 idPrefix="editor-featured"
-                chooseAction="Use as featured image"
+                featured
             />
             <p className="text-ink-2 text-xs">{field.description}</p>
         </section>

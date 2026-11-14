@@ -1,13 +1,13 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { useId, useRef, useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import { CardField, CardFrame, TextSetting } from './card-frame';
-import { useCardEnvironment } from './card-environment';
+import { useCardEnvironment, useUploadTarget } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 import {
     MOST_TRACKS,
@@ -19,6 +19,8 @@ import {
     tracksOf,
 } from './media-file';
 import type { CaptionTrack, PlayableMedia, TrackKind } from './media-file';
+import { useMediaPicker } from '../pick-media';
+import type { MediaPickerOptions } from '../pick-media';
 
 type VideoAttrs = {
     mediaId: string | null;
@@ -56,10 +58,33 @@ export function VideoCard({
         ? (media[attrs.mediaId] as PlayableMedia | undefined)
         : undefined;
     const poster = attrs.posterMediaId ? media[attrs.posterMediaId] : undefined;
-    const [choosing, setChoosing] = useState(!attrs.mediaId);
-    const chose = useRef(false);
     // Set when a file is chosen here, so its size is read once it loads.
     const measuring = useRef(false);
+    const uploadedFor = useUploadTarget();
+    const pick = (replacing: boolean): MediaPickerOptions => ({
+        caller: 'choose',
+        multi: false,
+        kinds: ['video'],
+        action: replacing ? __('Replace video') : __('Insert video'),
+        uploadedFor,
+        onInsert: (ids) => {
+            // The same file again: its size is already kept, and no new load would read it.
+            if (ids[0] === attrs.mediaId) {
+                return;
+            }
+
+            measuring.current = true;
+            void addMedia(ids);
+            updateAttributes({
+                mediaId: ids[0],
+                videoWidth: null,
+                videoHeight: null,
+            });
+        },
+        // A new card closed without a choice is removed.
+        onClose: replacing ? undefined : deleteNode,
+    });
+    const { open, picker } = useMediaPicker(attrs.mediaId ? null : pick(false));
     const loop = attrs.loop === true;
     const noCaptions =
         item !== undefined && !loop && tracksOf(attrs.tracks).length === 0;
@@ -70,7 +95,7 @@ export function VideoCard({
                 label="Video"
                 selected={selected}
                 warning={noCaptions ? { label: 'No captions' } : null}
-                onReplace={() => setChoosing(true)}
+                onReplace={() => open(pick(attrs.mediaId !== null))}
                 replaceLabel="Replace video"
                 onRemove={deleteNode}
                 settings={
@@ -137,36 +162,7 @@ export function VideoCard({
                     </p>
                 )}
             </CardFrame>
-            <MediaModal
-                open={choosing}
-                onOpenChange={(open) => {
-                    setChoosing(open);
-
-                    if (!open && !chose.current && !attrs.mediaId) {
-                        deleteNode();
-                    }
-
-                    chose.current = false;
-                }}
-                kinds={['video']}
-                action={attrs.mediaId ? 'Replace video' : 'Insert video'}
-                onChoose={(ids) => {
-                    chose.current = true;
-
-                    // The same file again: its size is already kept, and no new load would read it.
-                    if (ids[0] === attrs.mediaId) {
-                        return;
-                    }
-
-                    measuring.current = true;
-                    void addMedia(ids);
-                    updateAttributes({
-                        mediaId: ids[0],
-                        videoWidth: null,
-                        videoHeight: null,
-                    });
-                }}
-            />
+            {picker}
         </>
     );
 }
@@ -174,11 +170,11 @@ export function VideoCard({
 /** A video card's settings, in the card's panel or the rail's inspector. */
 export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
     const { media, addMedia } = useCardEnvironment();
+    const uploadedFor = useUploadTarget();
+    const { open, picker } = useMediaPicker();
     const attrs = raw as VideoAttrs;
     const tracks = tracksOf(attrs.tracks);
     const poster = attrs.posterMediaId ? media[attrs.posterMediaId] : undefined;
-    const [choosingPoster, setChoosingPoster] = useState(false);
-    const [choosingTrack, setChoosingTrack] = useState(false);
     const [refusal, setRefusal] = useState<string | null>(null);
     const id = useId();
 
@@ -224,7 +220,19 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setChoosingPoster(true)}
+                        onClick={() =>
+                            open({
+                                caller: 'choose',
+                                multi: false,
+                                kinds: ['image'],
+                                action: __('Use as poster'),
+                                uploadedFor,
+                                onInsert: (ids) => {
+                                    void addMedia(ids);
+                                    update({ posterMediaId: ids[0] });
+                                },
+                            })
+                        }
                     >
                         {attrs.posterMediaId
                             ? 'Replace poster'
@@ -305,7 +313,36 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                     disabled={tracks.length >= MOST_TRACKS}
                     onClick={() => {
                         setRefusal(null);
-                        setChoosingTrack(true);
+                        open({
+                            caller: 'choose',
+                            multi: false,
+                            kinds: ['document'],
+                            action: __('Add track'),
+                            uploadedFor,
+                            onInsert: (ids, rows) => {
+                                const row = rows.find(
+                                    (candidate) => candidate.id === ids[0],
+                                );
+
+                                if (row === undefined || !isCaptionFile(row)) {
+                                    setRefusal(
+                                        'That file isn’t a WebVTT file (.vtt), so it can’t be a caption track.',
+                                    );
+
+                                    return;
+                                }
+
+                                void addMedia(ids);
+                                setTracks([
+                                    ...tracks,
+                                    newTrack(
+                                        ids[0],
+                                        document.documentElement.lang,
+                                        tracks.length === 0,
+                                    ),
+                                ]);
+                            },
+                        });
                     }}
                 >
                     Add a track
@@ -321,45 +358,7 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                     </p>
                 )}
             </div>
-            <MediaModal
-                open={choosingPoster}
-                onOpenChange={setChoosingPoster}
-                kinds={['image']}
-                action="Use as poster"
-                onChoose={(ids) => {
-                    void addMedia(ids);
-                    update({ posterMediaId: ids[0] });
-                }}
-            />
-            <MediaModal
-                open={choosingTrack}
-                onOpenChange={setChoosingTrack}
-                kinds={['document']}
-                action="Add track"
-                onChoose={(ids, rows) => {
-                    const row = rows.find(
-                        (candidate) => candidate.id === ids[0],
-                    );
-
-                    if (row === undefined || !isCaptionFile(row)) {
-                        setRefusal(
-                            'That file isn’t a WebVTT file (.vtt), so it can’t be a caption track.',
-                        );
-
-                        return;
-                    }
-
-                    void addMedia(ids);
-                    setTracks([
-                        ...tracks,
-                        newTrack(
-                            ids[0],
-                            document.documentElement.lang,
-                            tracks.length === 0,
-                        ),
-                    ]);
-                }}
-            />
+            {picker}
         </>
     );
 }

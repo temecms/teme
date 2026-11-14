@@ -15,8 +15,6 @@ R1	js/components/editor/cards/embed-card.tsx	h-[34px]
 R1	js/components/editor/cards/gallery-card.tsx	h-[34px]
 R1	js/components/editor/cards/image-card.tsx	h-[34px]
 R1	js/components/editor/cards/video-card.tsx	h-[34px]
-R1	js/components/editor/editor-shell.tsx	grid-rows-[minmax(0,1fr)]
-R1	js/components/editor/editor-shell.tsx	sm:max-w-[480px]
 R1	js/components/editor/fields/media-control.tsx	h-[34px]
 R1	js/components/editor/fields/media-control.tsx	sm:grid-cols-[190px_minmax(0,1fr)]
 R1	js/components/editor/fields/textarea-control.tsx	min-h-[34px]
@@ -113,7 +111,6 @@ R1	js/pages/tools/page-cache.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R10	js/components/app-content.tsx	outline-none
-R10	js/components/editor/editor-shell.tsx	outline-none
 R10	js/components/editor/rail/search-panel.tsx	outline-none
 R10	js/components/editor/use-teme-editor.ts	outline-none
 R10	js/components/list/date-filter.tsx	outline-none
@@ -139,7 +136,6 @@ R14	js/components/text-link.tsx	ease-out
 R14	js/components/tools/update-progress.tsx	animate-spin
 R14	js/components/ui/sidebar.tsx	ease-linear
 R14	js/components/ui/sidebar.tsx	transition-all
-R15	js/components/editor/editor-shell.tsx	style: gridTemplateColumns
 R15	js/components/editor/rail/document-panel.tsx	style: paddingLeft
 R15	js/components/fields/brand-colour-setting.tsx	style: background
 R15	js/components/fields/brand-colour-setting.tsx	style: background
@@ -1048,7 +1044,6 @@ R6	js/components/editor/cards/card-frame.tsx	tracking-wide
 R6	js/components/editor/cards/image-card.tsx	rounded
 R6	js/components/editor/cards/imported-content-card.tsx	tracking-wide
 R6	js/components/editor/editor-rail.tsx	z-10
-R6	js/components/editor/editor-shell.tsx	z-10
 R6	js/components/editor/pasted-image-view.tsx	tracking-wide
 R6	js/components/editor/rewrite/rewrite-menu.tsx	z-50
 R6	js/components/editor/slash-menu.tsx	z-50
@@ -1174,9 +1169,6 @@ R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
 R8	js/components/editor/cards/button-card.tsx	overflow-y-auto
 R8	js/components/editor/cards/imported-content-card.tsx	overflow-auto
-R8	js/components/editor/editor-shell.tsx	overflow-y-auto
-R8	js/components/editor/editor-shell.tsx	overflow-y-auto
-R8	js/components/editor/editor-shell.tsx	overflow-y-auto
 R8	js/components/editor/link-popover.tsx	overflow-y-auto
 R8	js/components/editor/slash-menu.tsx	overflow-y-auto
 R8	js/components/header/header-panel.tsx	overflow-y-auto

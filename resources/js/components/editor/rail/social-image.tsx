@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
+import { useUploadTarget } from '@/components/editor/cards/card-environment';
+import { useMediaPicker } from '@/components/editor/pick-media';
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import type { SearchPreview } from '@/components/editor/use-search-preview';
 import type { CardMedia, EditorField } from '@/types/editor';
@@ -43,7 +44,19 @@ export function SocialImage({
     loading: string[];
     addMedia: (ids: string[]) => Promise<void>;
 }) {
-    const [choosing, setChoosing] = useState(false);
+    const uploadedFor = useUploadTarget();
+    const { open, picker } = useMediaPicker();
+    const choose = () =>
+        open({
+            caller: 'choose',
+            multi: false,
+            action: __('Use as social image'),
+            uploadedFor,
+            onInsert: (ids) => {
+                void addMedia(ids);
+                onChange({ id: ids[0], alt: '', decorative: false });
+            },
+        });
     const id = chosenId(value);
     const item = id === null ? undefined : media[id];
 
@@ -62,7 +75,7 @@ export function SocialImage({
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setChoosing(true)}
+                        onClick={choose}
                     >
                         Choose an image
                     </Button>
@@ -96,7 +109,7 @@ export function SocialImage({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setChoosing(true)}
+                                onClick={choose}
                             >
                                 Replace
                             </Button>
@@ -112,16 +125,7 @@ export function SocialImage({
                     </div>
                 </div>
             )}
-            <MediaModal
-                open={choosing}
-                onOpenChange={setChoosing}
-                kinds={['image']}
-                action="Use as social image"
-                onChoose={(ids) => {
-                    void addMedia(ids);
-                    onChange({ id: ids[0], alt: '', decorative: false });
-                }}
-            />
+            {picker}
         </div>
     );
 }

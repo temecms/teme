@@ -1,14 +1,18 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
-import { useRef, useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { largest, variant } from '@/lib/media-urls';
 import { cn } from '@/lib/utils';
+import { useMediaPicker } from '../pick-media';
+import type { MediaPickerOptions } from '../pick-media';
 import { CardField, CardFrame, TextSetting } from './card-frame';
 import { isMissingAlt } from '../rail/checks';
-import { optionsFor, useCardEnvironment } from './card-environment';
+import {
+    optionsFor,
+    useCardEnvironment,
+    useUploadTarget,
+} from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 
 type ImageAttrs = {
@@ -41,8 +45,21 @@ export function ImageCard({
     const { media, loading, addMedia } = useCardEnvironment();
     const attrs = node.attrs as ImageAttrs;
     const item = attrs.mediaId ? media[attrs.mediaId] : undefined;
-    const [choosing, setChoosing] = useState(!attrs.mediaId);
-    const chose = useRef(false);
+    const uploadedFor = useUploadTarget();
+    const pick = (caller: 'insert' | 'replace'): MediaPickerOptions => ({
+        caller,
+        multi: false,
+        uploadedFor,
+        onInsert: (ids) => {
+            void addMedia(ids);
+            updateAttributes({ mediaId: ids[0] });
+        },
+        // A new card closed without a choice is removed, so none names no image.
+        onClose: caller === 'insert' ? deleteNode : undefined,
+    });
+    const { open, picker } = useMediaPicker(
+        attrs.mediaId ? null : pick('insert'),
+    );
     const missingAlt = item !== undefined && isMissingAlt(attrs, item);
 
     return (
@@ -51,7 +68,9 @@ export function ImageCard({
                 label="Image"
                 selected={selected}
                 warning={missingAlt ? { label: 'Alt missing' } : null}
-                onReplace={() => setChoosing(true)}
+                onReplace={() =>
+                    open(pick(attrs.mediaId ? 'replace' : 'insert'))
+                }
                 replaceLabel="Replace image"
                 onRemove={deleteNode}
                 settings={
@@ -113,25 +132,7 @@ export function ImageCard({
                     </p>
                 )}
             </CardFrame>
-            <MediaModal
-                open={choosing}
-                onOpenChange={(open) => {
-                    setChoosing(open);
-
-                    if (!open && !chose.current && !attrs.mediaId) {
-                        deleteNode();
-                    }
-
-                    chose.current = false;
-                }}
-                kinds={['image']}
-                action={attrs.mediaId ? 'Replace image' : 'Insert image'}
-                onChoose={(ids) => {
-                    chose.current = true;
-                    void addMedia(ids);
-                    updateAttributes({ mediaId: ids[0] });
-                }}
-            />
+            {picker}
         </>
     );
 }
