@@ -89,5 +89,5 @@ it('shares only the documented user fields with the browser', function (): void 
 
     $shared = app(HandleInertiaRequests::class)->share($request);
 
-    expect(array_keys($shared['auth']['user']))->toBe(['id', 'name', 'email', 'emailVerified', 'capabilities']);
+    expect(array_keys($shared['auth']['user']))->toBe(['id', 'name', 'email', 'emailVerified', 'capabilities', 'role', 'picture']);
 });

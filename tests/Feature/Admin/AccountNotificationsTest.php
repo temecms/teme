@@ -111,9 +111,9 @@ it('no longer draws the notice choices in Preferences', function (): void {
 });
 
 it('lists Notifications between Preferences and Security in the account’s navigation', function (): void {
-    $layout = uiComponent('layouts/account/layout.tsx');
+    $layout = uiComponent('layouts/account/account-nav.tsx');
 
-    expect($layout)->toContain("{ title: 'Notifications', href: editNotifications() },")
-        ->and(strpos($layout, "title: 'Preferences'"))->toBeLessThan(strpos($layout, "title: 'Notifications'"))
-        ->and(strpos($layout, "title: 'Notifications'"))->toBeLessThan(strpos($layout, "title: 'Security'"));
+    expect($layout)->toContain("{ title: __('Notifications'), href: editNotifications() },")
+        ->and(strpos($layout, "title: __('Preferences')"))->toBeLessThan(strpos($layout, "title: __('Notifications')"))
+        ->and(strpos($layout, "title: __('Notifications')"))->toBeLessThan(strpos($layout, "title: __('Security')"));
 });

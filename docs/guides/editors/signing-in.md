@@ -7,9 +7,12 @@ screens:
   - login
   - invitation.show
   - security.edit
+  - two-factor.edit
 sources:
   - resources/js/pages/auth
   - resources/js/pages/account/security.tsx
+  - resources/js/pages/account/two-factor.tsx
+  - resources/js/layouts/account
   - resources/js/components/manage-two-factor.tsx
   - resources/js/components/two-factor-setup-modal.tsx
   - resources/js/components/two-factor-recovery-codes.tsx
@@ -49,15 +52,15 @@ If you have turned on two-factor sign-in, the page headed **Two-factor sign-in**
 
 Two-factor sign-in means a stolen password is not enough to get in. An administrator may require it for your role; if so, the admin asks you to set it up before it lets you in.
 
-1. Open your account menu, then **Security**.
-2. Under **Two-factor sign-in**, choose **Enable two-factor sign-in**.
+1. Open your account menu, then **Two-factor sign-in** in your account's list, and type your password if asked.
+2. Choose **Turn on two-factor sign-in**.
 3. In your authenticator app, scan the QR code. If you cannot scan it, type the setup key shown beside it instead.
 4. Type the first six-digit code the app shows, in **Authentication code**.
 5. Look at **Recovery codes**. Save them now, in a password manager. Each signs you in once if you lose your phone.
 
 *Warning:* if you lose both your phone and your recovery codes, only an administrator can get you back in.
 
-To turn it off, choose **Disable two-factor sign-in** and confirm. To replace your recovery codes, choose **Regenerate codes**; the old ones stop working.
+To turn it off, choose **Turn off…**, then **Turn off two-factor sign-in**. To replace your recovery codes, choose **Regenerate codes**; the old ones stop working.
 
 ## To use a recovery code
 

@@ -9,10 +9,12 @@ use App\Domain\Users\Operations\DeleteUser;
 use App\Domain\Users\Operations\Input\ChangeUserRoleInput;
 use App\Domain\Users\Operations\Input\DeleteUserInput;
 use App\Domain\Users\Operations\Input\InviteUserInput;
+use App\Domain\Users\Operations\Input\RemovePictureInput;
 use App\Domain\Users\Operations\Input\ResendInvitationInput;
 use App\Domain\Users\Operations\Input\RevokeInvitationInput;
 use App\Domain\Users\Operations\Input\SuspendUserInput;
 use App\Domain\Users\Operations\InviteUser;
+use App\Domain\Users\Operations\RemovePicture;
 use App\Domain\Users\Operations\ResendInvitation;
 use App\Domain\Users\Operations\RevokeInvitation;
 use App\Domain\Users\Operations\SuspendUser;
@@ -118,6 +120,16 @@ final class UserController extends Controller
         ));
 
         return $this->done(__('Deleted.'));
+    }
+
+    public function removePicture(Request $request, int $user, RemovePicture $removePicture): RedirectResponse
+    {
+        /** @var array{name: string, removed: bool} $removed */
+        $removed = $removePicture->execute(new RemovePictureInput((string) $user, $this->actorId($request)));
+
+        return $removed['removed']
+            ? $this->done(__('Removed the picture of :name.', ['name' => $removed['name']]))
+            : $this->done(__(':name has no picture.', ['name' => $removed['name']]), 'info');
     }
 
     private function actorId(Request $request): string
