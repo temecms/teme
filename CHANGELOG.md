@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
+## [0.7.0-alpha.2] — 2026-11-14
+
+The first release from Teme's public repository, `temecms/teme`, with its image at `ghcr.io/temecms/teme`. It is 0.7.0-alpha.1 with the update check moved to the public repository.
+
+### Changed
+
+- The hourly update check reads releases from `temecms/teme`. `TEME_GITHUB_TOKEN` is optional: it only raises GitHub's limit on requests (#3)
+- When the repository can't be found without a token, the update check no longer asks for one
+
+### Deploy
+
+- A site on 0.7.0-alpha.1 or older still checks the old repository, so it won't offer this release by itself. Update it once by hand: set `TEME_IMAGE` and `TEME_UPDATER_IMAGE` to `ghcr.io/temecms/teme:0.7.0-alpha.2` and `TEME_IMAGE_REPOSITORY` to `ghcr.io/temecms/teme`, then deploy. From then on Tools › Updates offers new releases as before
+- `TEME_GITHUB_TOKEN` can be removed
+
 ## [0.7.0-alpha.1] — 2026-11-13
 
 Slice 2.5a: Bylines, the foundation. An item can credit several people, in order, and a person needn't have an account: a news agency, a guest writer, or a writer who has left. Deleting an account keeps the departed writer's name on their work, and their author page answers at the same address. There is no screen for credits yet: they are set from the console, and the screens come in a later release. With this release the foundations of every area are in place. **Update to 0.6.0-alpha.2 (or 0.6.0-alpha.1) before this one.**

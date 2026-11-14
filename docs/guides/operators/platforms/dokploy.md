@@ -33,7 +33,7 @@ Each step waits for the one before it: the database is healthy, then `teme-db-se
 3. **Fill the Environment tab.**
    - `TEME_IMAGE`: the image with its exact tag, never `latest`.
    - `TEME_UPDATER_IMAGE`: the same image and tag as `TEME_IMAGE`.
-   - `TEME_IMAGE_REPOSITORY`: `ghcr.io/<owner>/teme`, the image without its tag.
+   - `TEME_IMAGE_REPOSITORY`: `ghcr.io/temecms/teme`, the image without its tag.
    - `APP_URL`: your site's address, with `https://`.
    - `APP_KEY`: make it once and keep it. On Linux or macOS: `echo "base64:$(openssl rand -base64 32)"`. On Windows PowerShell: `$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); "base64:" + [Convert]::ToBase64String($b)`.
    - `DB_PASSWORD` and `POSTGRES_PASSWORD`: two long passwords of letters and digits only. A `$` in a value is rewritten by Compose.
