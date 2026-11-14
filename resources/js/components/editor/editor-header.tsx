@@ -144,10 +144,10 @@ export function EditorHeader({
     return (
         // Below 640px the header keeps to its essentials so nothing is pushed off
         // the screen: pinned panels stay in the ⋮ menu, and Focus is its icon.
-        <header className="border-border bg-background flex h-12 min-w-0 shrink-0 items-center gap-1.5 border-b px-3 sm:gap-3 sm:px-4">
+        <header className="border-line bg-page flex h-12 min-w-0 shrink-0 items-center gap-1.5 border-b px-3 sm:gap-3 sm:px-4">
             <Link
                 href={backHref}
-                className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-[13px]"
+                className="text-ink-2 hover:text-ink inline-flex items-center gap-1.5 text-[13px]"
             >
                 <ArrowLeft className="size-4" />
                 {backLabel}
@@ -167,7 +167,7 @@ export function EditorHeader({
                         aria-pressed={activePane === panel.id}
                         title={panel.label}
                         onClick={() => onTogglePane(panel.id)}
-                        className="aria-pressed:bg-muted max-sm:hidden"
+                        className="aria-pressed:bg-surface-2 max-sm:hidden"
                     >
                         <panel.icon />
                     </Button>
@@ -213,7 +213,7 @@ export function EditorHeader({
                 aria-pressed={railOpen}
                 title={railOpen ? 'Hide settings' : 'Show settings'}
                 onClick={onToggleRail}
-                className="aria-pressed:bg-muted"
+                className="aria-pressed:bg-surface-2"
             >
                 <PanelRight />
             </Button>

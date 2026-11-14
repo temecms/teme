@@ -42,7 +42,7 @@ const FILTER_KEYS = [
 function Nothing({ meaning }: { meaning: string }) {
     return (
         <>
-            <span aria-hidden="true" className="text-muted-foreground">
+            <span aria-hidden="true" className="text-ink-2">
                 —
             </span>
             <span className="sr-only">{meaning}</span>
@@ -170,7 +170,7 @@ export default function MediaIndex(page: MediaIndexPage) {
                         >
                             {row.title}
                         </button>
-                        <span className="text-muted-foreground truncate text-xs">
+                        <span className="text-ink-2 truncate text-xs">
                             {row.filename}
                         </span>
                     </span>
@@ -184,7 +184,7 @@ export default function MediaIndex(page: MediaIndexPage) {
             cell: (row) => (
                 <>
                     {MEDIA_KINDS[row.kind]}
-                    <span className="text-muted-foreground block text-xs">
+                    <span className="text-ink-2 block text-xs">
                         {row.extension.toUpperCase()}
                     </span>
                 </>
@@ -213,7 +213,7 @@ export default function MediaIndex(page: MediaIndexPage) {
                     <>
                         {row.credit}
                         {row.licence && (
-                            <span className="text-muted-foreground block text-xs">
+                            <span className="text-ink-2 block text-xs">
                                 {row.licence}
                             </span>
                         )}
@@ -238,7 +238,7 @@ export default function MediaIndex(page: MediaIndexPage) {
                     {row.uploaderName && (
                         <span className="block">{row.uploaderName}</span>
                     )}
-                    <span className="text-muted-foreground text-xs">
+                    <span className="text-ink-2 text-xs">
                         {formatInZone(row.createdAt, page.siteTimezone)}
                     </span>
                 </>

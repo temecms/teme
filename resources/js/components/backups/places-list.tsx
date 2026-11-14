@@ -65,7 +65,7 @@ function Holds({ place }: { place: BackupPlace }) {
             </Button>
             <p
                 role="status"
-                className="text-muted-foreground w-full text-sm break-words empty:hidden"
+                className="text-ink-2 w-full text-sm break-words empty:hidden"
             >
                 {answer}
             </p>
@@ -94,13 +94,13 @@ export function PlacesList({
             </h2>
 
             {offServerAdvice && (
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     Add a place off this server, such as S3-compatible storage
                     or an SFTP server, to keep a copy if this server is lost.
                 </p>
             )}
 
-            <ul className="border-border divide-border divide-y rounded-md border">
+            <ul className="border-line divide-line divide-y rounded-md border">
                 {places.map((place) => (
                     <li
                         key={place.id}
@@ -111,7 +111,7 @@ export function PlacesList({
                         <div className="flex flex-wrap items-start justify-between gap-2">
                             <div className="min-w-0 space-y-1">
                                 <p className="font-medium">{place.name}</p>
-                                <p className="text-muted-foreground text-[13px]">
+                                <p className="text-ink-2 text-[13px]">
                                     {place.kindLabel}{' '}
                                     <span className="font-mono break-all">
                                         {place.where}
@@ -121,7 +121,7 @@ export function PlacesList({
                             <p
                                 className={
                                     place.state === 'failing'
-                                        ? 'text-destructive flex items-center gap-1.5 text-sm font-medium'
+                                        ? 'text-danger-ink flex items-center gap-1.5 text-sm font-medium'
                                         : 'flex items-center gap-1.5 text-sm font-medium'
                                 }
                             >
@@ -145,7 +145,7 @@ export function PlacesList({
                             </p>
                         </div>
 
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             {place.newest === null
                                 ? 'No backup here yet'
                                 : `Newest backup ${place.newest}`}
@@ -156,7 +156,7 @@ export function PlacesList({
                         </p>
 
                         {place.error !== null && (
-                            <p className="text-destructive text-sm break-words">
+                            <p className="text-danger-ink text-sm break-words">
                                 {place.error}
                             </p>
                         )}

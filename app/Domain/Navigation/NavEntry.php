@@ -30,5 +30,7 @@ final readonly class NavEntry
         public ?string $module = null,
         /** A container key, usually a class, that resolves to the BadgeProvider counting what waits here. */
         public ?string $badge = null,
+        /** Planned and not built: drawn with a Soon tag, opening nothing (I-3408). */
+        public bool $soon = false,
     ) {}
 }

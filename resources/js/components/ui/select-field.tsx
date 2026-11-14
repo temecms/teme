@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
     Select,
     SelectContent,
@@ -80,9 +81,14 @@ export function SelectField({
                         <SelectItem
                             key={option.value}
                             value={String(option.value)}
+                            className={
+                                option.depth ? 'ps-(--indent)' : undefined
+                            }
                             style={
                                 option.depth
-                                    ? { paddingLeft: 8 + option.depth * 12 }
+                                    ? ({
+                                          '--indent': `${8 + option.depth * 12}px`,
+                                      } as CSSProperties)
                                     : undefined
                             }
                         >

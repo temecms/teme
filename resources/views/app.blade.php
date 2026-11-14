@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {{-- Later (I-162): dir from the admin's language, with the admin's right-to-left. --}}
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark']) @if(($look ?? 'dark_chrome') !== 'dark_chrome') data-look="{{ $look }}" @endif @if($highContrast ?? false) data-contrast="high" @endif>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,11 +23,11 @@
         {{-- Inline style to set the HTML background color based on our theme in app.css --}}
         <style>
             html {
-                background-color: #f6f7f9;
+                background-color: oklch(0.9875 0 0);
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: oklch(0.185 0.002 260);
             }
         </style>
 

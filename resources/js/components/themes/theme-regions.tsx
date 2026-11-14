@@ -55,12 +55,12 @@ export function ThemeRegions({
                     {theme === null ? 'Regions' : `Regions in ${theme.name}`}
                 </Heading>
                 {intro !== undefined && (
-                    <p className="text-muted-foreground text-[13px]">{intro}</p>
+                    <p className="text-ink-2 text-[13px]">{intro}</p>
                 )}
             </div>
 
             {theme === null ? (
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     No theme is in use, so no region is drawn.
                 </p>
             ) : (
@@ -69,17 +69,17 @@ export function ThemeRegions({
                         <Part className="text-[13px] font-semibold">
                             {count === 1 ? '1 region' : `${count} regions`}
                         </Part>
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             The places {theme.name} puts the site’s own content,
                             such as a box after each article.
                         </p>
                     </div>
                     {count === 0 ? (
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             {theme.name} declares no regions.
                         </p>
                     ) : (
-                        <ul className="border-border divide-border divide-y rounded border text-[13px]">
+                        <ul className="border-line divide-line divide-y rounded border text-[13px]">
                             {regions.regions.map((region) => (
                                 <li
                                     key={region.key}
@@ -90,7 +90,7 @@ export function ThemeRegions({
                                         <span className="font-semibold">
                                             {region.label}
                                         </span>
-                                        <span className="text-muted-foreground text-xs">
+                                        <span className="text-ink-2 text-xs">
                                             {region.cardLabels.length === 0
                                                 ? 'Text only'
                                                 : region.cardLabels.join(
@@ -102,7 +102,7 @@ export function ThemeRegions({
                                     <span
                                         className={
                                             region.state === 'empty'
-                                                ? 'text-muted-foreground'
+                                                ? 'text-ink-2'
                                                 : undefined
                                         }
                                     >
@@ -142,22 +142,20 @@ export function ThemeRegions({
                     <Part className="text-[13px] font-semibold">
                         From other themes
                         {regions.others.length > 0 && (
-                            <span className="text-muted-foreground tabular-nums">
+                            <span className="text-ink-2 tabular-nums">
                                 {' '}
                                 {regions.others.length}
                             </span>
                         )}
                     </Part>
-                    <p className="text-muted-foreground text-[13px]">
-                        {unplacedLine}
-                    </p>
+                    <p className="text-ink-2 text-[13px]">{unplacedLine}</p>
                 </div>
                 {regions.others.length === 0 ? (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         Nothing from other themes.
                     </p>
                 ) : (
-                    <ul className="border-border divide-border divide-y rounded border text-[13px]">
+                    <ul className="border-line divide-line divide-y rounded border text-[13px]">
                         {regions.others.map((row) => (
                             <li
                                 key={row.slug}
@@ -167,7 +165,7 @@ export function ThemeRegions({
                                 <span className="font-semibold">
                                     {row.label}
                                 </span>
-                                <span className="text-muted-foreground">
+                                <span className="text-ink-2">
                                     {row.themeName === null
                                         ? 'Theme no longer installed'
                                         : `From ${row.themeName}`}{' '}

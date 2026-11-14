@@ -28,7 +28,7 @@ export function CommentsCell({
     return (
         <span className="inline-flex items-center justify-end gap-2">
             {counts.approved === 0 ? (
-                <span className="text-muted-foreground">0</span>
+                <span className="text-ink-2">0</span>
             ) : counts.mine ? (
                 // Targets of at least 24 pixels (WCAG 2.2, 2.5.8).
                 <Link

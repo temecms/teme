@@ -58,7 +58,7 @@ function deleteLabel(count: number): string {
 function RedirectTarget({ row }: { row: RedirectRow }) {
     const beneath = (address: string | null) =>
         address !== null && (
-            <span className="text-muted-foreground block font-mono text-[12px]">
+            <span className="text-ink-2 block font-mono text-[12px]">
                 {address}
             </span>
         );
@@ -66,13 +66,13 @@ function RedirectTarget({ row }: { row: RedirectRow }) {
     switch (row.to.kind) {
         case null:
             return (
-                <span className="text-muted-foreground">
+                <span className="text-ink-2">
                     Nowhere: it answers {row.status}
                 </span>
             );
         case 'content':
             return row.to.title === null || row.to.contentId === null ? (
-                <span className="text-muted-foreground">A deleted item</span>
+                <span className="text-ink-2">A deleted item</span>
             ) : (
                 <>
                     <Link
@@ -86,7 +86,7 @@ function RedirectTarget({ row }: { row: RedirectRow }) {
             );
         case 'media':
             return row.to.title === null ? (
-                <span className="text-muted-foreground">A deleted file</span>
+                <span className="text-ink-2">A deleted file</span>
             ) : (
                 <>
                     The file {row.to.title}
@@ -97,7 +97,7 @@ function RedirectTarget({ row }: { row: RedirectRow }) {
             return (
                 <>
                     <span className="font-mono">{row.to.address}</span>
-                    <span className="text-muted-foreground block text-[12px]">
+                    <span className="text-ink-2 block text-[12px]">
                         Another site
                     </span>
                 </>
@@ -198,7 +198,7 @@ export default function Redirects(page: RedirectsPage) {
                         </Badge>
                     )}
                     {row.note !== '' && (
-                        <span className="text-muted-foreground block text-[12px]">
+                        <span className="text-ink-2 block text-[12px]">
                             {row.note}
                         </span>
                     )}
@@ -261,7 +261,7 @@ export default function Redirects(page: RedirectsPage) {
             cell: (row) => (
                 <>
                     <span className="font-mono">{row.status}</span>
-                    <span className="text-muted-foreground block text-[12px]">
+                    <span className="text-ink-2 block text-[12px]">
                         {row.statusLabel}
                     </span>
                 </>
@@ -287,7 +287,7 @@ export default function Redirects(page: RedirectsPage) {
             className: 'whitespace-nowrap',
             cell: (row) =>
                 row.lastHitAt === null ? (
-                    <span className="text-muted-foreground">Never</span>
+                    <span className="text-ink-2">Never</span>
                 ) : (
                     formatInZone(row.lastHitAt, siteTimezone)
                 ),
@@ -363,7 +363,7 @@ export default function Redirects(page: RedirectsPage) {
                 <div
                     role="note"
                     data-test="redirects-notice"
-                    className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                    className="border-line flex gap-3 rounded-md border p-4 text-sm"
                 >
                     <Info
                         aria-hidden="true"

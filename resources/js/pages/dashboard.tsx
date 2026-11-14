@@ -51,11 +51,11 @@ export default function Dashboard({
                     <div
                         role="note"
                         data-test="home-search-engines"
-                        className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
                     >
                         <AlertTriangle
                             aria-hidden="true"
-                            className="text-warning mt-0.5 size-4 shrink-0"
+                            className="text-warn-ink mt-0.5 size-4 shrink-0"
                         />
                         <p>
                             <span className="font-medium">
@@ -82,7 +82,7 @@ export default function Dashboard({
 
                 {panels.length === 0 ? (
                     <div className="flex flex-wrap items-center gap-3">
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             Nothing needs you right now.
                         </p>
                         {create}

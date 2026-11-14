@@ -59,11 +59,11 @@ export function statusWords(state: ItemState): string {
 
 /** Each status's tag: an outline for a draft, a tint for the rest. */
 const TONES: Record<string, string> = {
-    draft: 'border-border text-muted-foreground border',
-    review: 'bg-warning-muted text-warning',
-    scheduled: 'bg-muted text-foreground',
-    published: 'bg-success-muted text-success',
-    private: 'bg-muted text-foreground',
+    draft: 'border-line text-ink-2 border',
+    review: 'bg-warn-soft text-warn-ink',
+    scheduled: 'bg-surface-2 text-ink',
+    published: 'bg-ok-soft text-ok-ink',
+    private: 'bg-surface-2 text-ink',
 };
 
 /**

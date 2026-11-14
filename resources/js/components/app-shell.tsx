@@ -10,7 +10,7 @@ function SkipLink() {
     return (
         <a
             href="#main-content"
-            className="bg-background text-foreground focus:ring-ring sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:ring-2"
+            className="bg-page text-ink focus:ring-ring sr-only z-50 rounded-md px-4 py-2 focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:ring-2"
         >
             Skip to content
         </a>
@@ -23,11 +23,11 @@ export function AppShell({ children }: Props) {
     return (
         <SidebarProvider
             defaultOpen={isOpen}
-            // 240px open, 56px collapsed (admin-design §Density).
+            // 264px open, 68px folded (docs/architecture/design-system.md, section 2.9).
             style={
                 {
-                    '--sidebar-width': '240px',
-                    '--sidebar-width-icon': '56px',
+                    '--sidebar-width': 'var(--side-w)',
+                    '--sidebar-width-icon': 'var(--side-w-rail)',
                 } as CSSProperties
             }
         >

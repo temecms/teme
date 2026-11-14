@@ -45,13 +45,13 @@ export function ThemeList({
                 Installed themes
             </h2>
             {themes.length === 0 ? (
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     No themes are installed.
                 </p>
             ) : (
                 <ul
                     data-test="theme-list"
-                    className="border-border divide-border divide-y rounded border"
+                    className="border-line divide-line divide-y rounded border"
                 >
                     {themes.map((theme) => (
                         <li
@@ -63,7 +63,7 @@ export function ThemeList({
                                 <img
                                     src={theme.screenshot}
                                     alt=""
-                                    className="border-border aspect-[4/3] w-28 shrink-0 border object-cover object-top"
+                                    className="border-line aspect-[4/3] w-28 shrink-0 border object-cover object-top"
                                 />
                             )}
                             <div className="grid min-w-0 flex-1 gap-1 text-[13px]">
@@ -72,7 +72,7 @@ export function ThemeList({
                                         {theme.name}
                                     </span>
                                     {theme.version !== '' && (
-                                        <span className="text-muted-foreground font-mono text-xs">
+                                        <span className="text-ink-2 font-mono text-xs">
                                             {theme.version}
                                         </span>
                                     )}
@@ -95,7 +95,7 @@ export function ThemeList({
                                     </p>
                                 )}
                                 {theme.errors.length > 0 && (
-                                    <ul className="text-destructive list-disc pl-5">
+                                    <ul className="text-danger-ink list-disc pl-5">
                                         {theme.errors.map((message) => (
                                             <li key={message}>{message}</li>
                                         ))}

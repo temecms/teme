@@ -30,7 +30,7 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
     return (
         <div className="grid gap-4 text-sm">
             {ai.tasks.some((task) => task.key === 'rewrite') && (
-                <p className="text-muted-foreground">
+                <p className="text-ink-2">
                     To rewrite text, select it within one paragraph and choose
                     Rewrite in the menu that appears.
                 </p>
@@ -39,7 +39,7 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
             <SuggestMetadataPane ai={ai} />
 
             {request === null ? (
-                <p className="text-muted-foreground">
+                <p className="text-ink-2">
                     Ask for a suggestion and it appears here. Nothing changes
                     until you choose Use, and using a suggestion is one change
                     you can undo.
@@ -52,7 +52,7 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
                 />
             )}
 
-            <p className="text-muted-foreground text-xs">
+            <p className="text-ink-2 text-xs">
                 What you ask about is sent to {providerList(ai.sentTo)}.
                 {ai.canManage && (
                     <>
@@ -66,7 +66,7 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
                     </>
                 )}
             </p>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-ink-2 text-xs">
                 Ctrl + J or ⌘ J opens and closes this pane.
             </p>
         </div>
@@ -88,7 +88,7 @@ function RequestCard({
     return (
         <section
             aria-labelledby="assistant-request"
-            className="bg-muted grid gap-2 rounded-md border p-3"
+            className="bg-surface-2 grid gap-2 rounded-md border p-3"
         >
             <h3 id="assistant-request" className="text-xs font-medium">
                 {request.scope}
@@ -112,7 +112,7 @@ function RequestCard({
                         </Button>
                     </div>
                     {request.slow && (
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-ink-2 text-xs">
                             {ASSISTANT_WORDS.slow}
                         </p>
                     )}
@@ -134,7 +134,7 @@ function RequestCard({
                     />
                 ))}
             {request.message !== null && (
-                <p role="alert" className="text-destructive">
+                <p role="alert" className="text-danger-ink">
                     {request.message}
                 </p>
             )}
@@ -151,7 +151,7 @@ function RequestCard({
                 </div>
             )}
             {request.sentTo.length > 0 && (
-                <p className="text-muted-foreground text-xs">
+                <p className="text-ink-2 text-xs">
                     Sent to {request.sentTo.join(' and ')}
                 </p>
             )}

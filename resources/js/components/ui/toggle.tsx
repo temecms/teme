@@ -5,18 +5,18 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const toggleVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium hover:bg-muted hover:text-muted-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent data-[state=on]:text-accent-foreground [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none transition-[color,box-shadow] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 rounded-md text-small font-medium text-ink-2 hover:bg-surface-3 hover:text-ink disabled:cursor-not-allowed disabled:opacity-55 data-[state=on]:bg-accent-soft data-[state=on]:text-on-accent-soft [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-[background-color,color] duration-(--dur-1) ease-(--ease) aria-invalid:outline-2 aria-invalid:outline-danger",
   {
     variants: {
       variant: {
         default: "bg-transparent",
         outline:
-          "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
+          "border border-edge bg-transparent",
       },
       size: {
-        default: "h-9 px-2 min-w-9",
-        sm: "h-8 px-1.5 min-w-8",
-        lg: "h-10 px-2.5 min-w-10",
+        default: "h-(--ctl-h) min-w-(--ctl-h) px-2",
+        sm: "h-(--ctl-h-sm) min-w-(--ctl-h-sm) px-1.5",
+        lg: "h-(--ctl-h) min-w-(--ctl-h) px-3",
       },
     },
     defaultVariants: {

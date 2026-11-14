@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { navIcon } from '@/lib/nav-icons';
 import { savePreferences } from '@/lib/preferences';
 import type { AdminNavEntry } from '@/types';
+import { __ } from '@/lib/i18n';
 
 /** The most entries a person may pin (nav.pinned's limit). */
 const MAX_PINNED = 5;
@@ -106,7 +107,7 @@ export function PersonaliseMenuDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
                 <DialogHeader>
-                    <DialogTitle>Personalise menu</DialogTitle>
+                    <DialogTitle>{__('Customise menu')}</DialogTitle>
                     <DialogDescription>
                         Changes apply to your menu only. Pin up to {MAX_PINNED}{' '}
                         entries to the top. Hidden entries stay in search (Ctrl
@@ -116,7 +117,7 @@ export function PersonaliseMenuDialog({
 
                 {sections.map((section) => (
                     <fieldset key={section} className="grid gap-1">
-                        <legend className="text-muted-foreground mb-1 text-[11px] font-medium">
+                        <legend className="text-ink-2 mb-1 text-[11px] font-medium">
                             {headings[section]}
                         </legend>
                         <ul className="grid">
@@ -152,11 +153,11 @@ export function PersonaliseMenuDialog({
                                                 move(section, dragging, index);
                                             }
                                         }}
-                                        className="border-border flex items-center gap-2 border-b py-1 last:border-b-0"
+                                        className="border-line flex items-center gap-2 border-b py-1 last:border-b-0"
                                     >
                                         <GripVertical
                                             aria-hidden
-                                            className="text-muted-foreground size-4 cursor-grab"
+                                            className="text-ink-2 size-4 cursor-grab"
                                         />
                                         <Checkbox
                                             id={`show-${key}`}
@@ -250,7 +251,7 @@ export function PersonaliseMenuDialog({
 
                 <DialogFooter className="items-center">
                     {problem && (
-                        <p role="alert" className="text-destructive text-xs">
+                        <p role="alert" className="text-danger-ink text-xs">
                             {problem}
                         </p>
                     )}

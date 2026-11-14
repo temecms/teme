@@ -57,7 +57,7 @@ export function ImportRedirects({
                     </DialogDescription>
                 </DialogHeader>
 
-                <pre className="bg-muted overflow-x-auto rounded-md p-3 font-mono text-xs">
+                <pre className="bg-surface-2 overflow-x-auto rounded-md p-3 font-mono text-xs">
                     {SAMPLE}
                 </pre>
 
@@ -79,7 +79,7 @@ export function ImportRedirects({
                                 />
                                 <p
                                     id="redirects-file-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     Each line is checked as one added here would
                                     be. Lines that fail are left out, and you’re

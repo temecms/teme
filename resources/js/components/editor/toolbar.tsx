@@ -70,8 +70,8 @@ function ToolButton({
             aria-pressed={active}
             title={label}
             className={cn(
-                'hover:bg-accent focus-visible:ring-ring inline-flex size-[30px] shrink-0 items-center justify-center rounded-md outline-none focus-visible:ring-2 disabled:opacity-40 [&_svg]:size-4',
-                active && 'bg-muted ring-border ring-1 ring-inset',
+                'hover:bg-surface-3 focus-visible:ring-ring inline-flex size-[30px] shrink-0 items-center justify-center rounded-md outline-none focus-visible:ring-2 disabled:opacity-40 [&_svg]:size-4',
+                active && 'bg-surface-2 ring-line ring-1 ring-inset',
                 className,
             )}
             {...props}
@@ -87,7 +87,7 @@ function Divider() {
     return (
         <span
             aria-hidden
-            className="bg-border mx-1 h-5 w-px shrink-0 @max-[520px]:hidden"
+            className="bg-line mx-1 h-5 w-px shrink-0 @max-[520px]:hidden"
         />
     );
 }
@@ -462,7 +462,7 @@ export function Toolbar({
             ref={row}
             role="toolbar"
             aria-label="Formatting"
-            className="border-border bg-card @container sticky top-0 z-10 overflow-hidden border-b px-2 py-1"
+            className="border-line bg-surface @container sticky top-0 z-10 overflow-hidden border-b px-2 py-1"
         >
             <div
                 ref={inner}
@@ -515,7 +515,7 @@ export function Toolbar({
                     <DropdownMenuTrigger asChild>
                         <button
                             type="button"
-                            className="hover:bg-accent focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-1 rounded-md px-2 text-[13px] font-medium outline-none focus-visible:ring-2 [&_svg]:size-4"
+                            className="hover:bg-surface-3 focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-1 rounded-md px-2 text-[13px] font-medium outline-none focus-visible:ring-2 [&_svg]:size-4"
                         >
                             <Plus />
                             <span className="@max-[520px]:sr-only">Insert</span>
@@ -546,7 +546,7 @@ export function Toolbar({
                                     {entry.label}
                                 </span>
                                 {entry.description && (
-                                    <span className="text-muted-foreground text-xs">
+                                    <span className="text-ink-2 text-xs">
                                         {entry.description}
                                     </span>
                                 )}
@@ -568,7 +568,7 @@ export function Toolbar({
                                     <span className="font-medium">
                                         Horizontal rule
                                     </span>
-                                    <span className="text-muted-foreground text-xs">
+                                    <span className="text-ink-2 text-xs">
                                         A line across the column, between two
                                         parts of the text.
                                     </span>
@@ -576,7 +576,7 @@ export function Toolbar({
                             </>
                         )}
                         {entries.length === 0 && !showRule && (
-                            <p className="text-muted-foreground px-2 py-1.5 text-[13px]">
+                            <p className="text-ink-2 px-2 py-1.5 text-[13px]">
                                 Nothing matches.
                             </p>
                         )}
@@ -590,7 +590,7 @@ export function Toolbar({
                                 data-fold="text"
                                 aria-label="Text: alignment, highlight and more"
                                 title="Text: alignment, highlight and more"
-                                className="hover:bg-accent focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-0.5 rounded-md px-2 text-[13px] font-medium outline-none focus-visible:ring-2 [&_svg]:size-3.5"
+                                className="hover:bg-surface-3 focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-0.5 rounded-md px-2 text-[13px] font-medium outline-none focus-visible:ring-2 [&_svg]:size-3.5"
                             >
                                 Aa
                                 <ChevronDown />
@@ -608,7 +608,7 @@ export function Toolbar({
                                 type="button"
                                 aria-label="More"
                                 title="More"
-                                className="hover:bg-accent focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-1 rounded-md px-2 text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
+                                className="hover:bg-surface-3 focus-visible:ring-ring inline-flex h-[30px] shrink-0 items-center gap-1 rounded-md px-2 text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
                             >
                                 <MoreHorizontal />
                                 <span className="@max-[520px]:sr-only">

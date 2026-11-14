@@ -83,10 +83,7 @@ export function LinkPopover({
                             onKeyDown={keepTyping}
                             placeholder="Search by title or name"
                         />
-                        <p
-                            id="link-search-hint"
-                            className="text-muted-foreground text-xs"
-                        >
+                        <p id="link-search-hint" className="text-ink-2 text-xs">
                             A post, page or other item, a category or tag, an
                             author or a file. The link keeps working when its
                             address changes.
@@ -99,7 +96,7 @@ export function LinkPopover({
                                 >
                                     <h3
                                         id={`link-group-${index}`}
-                                        className="text-muted-foreground px-2 pt-2 pb-1 text-[12px] font-semibold"
+                                        className="text-ink-2 px-2 pt-2 pb-1 text-[12px] font-semibold"
                                     >
                                         {group.label}
                                     </h3>
@@ -111,11 +108,11 @@ export function LinkPopover({
                                                     onClick={() =>
                                                         apply(choice.href)
                                                     }
-                                                    className="hover:bg-accent focus-visible:ring-ring w-full rounded-sm px-2 py-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
+                                                    className="hover:bg-surface-3 focus-visible:ring-ring w-full rounded-sm px-2 py-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
                                                 >
                                                     {shownTitle(choice.title)}
                                                     {choice.note !== null && (
-                                                        <span className="text-muted-foreground">
+                                                        <span className="text-ink-2">
                                                             {' '}
                                                             · {choice.note}
                                                         </span>
@@ -171,7 +168,7 @@ export function LinkPopover({
                         </div>
                         <p
                             id="link-address-hint"
-                            className="text-muted-foreground text-xs"
+                            className="text-ink-2 text-xs"
                         >
                             An address on another site, mailto: or tel:, a page
                             on this site (/…) or a place on this page (#…).

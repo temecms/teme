@@ -33,15 +33,15 @@ export function AccountMenu() {
                     variant="ghost"
                     data-test="account-menu-button"
                     aria-label={`Account: ${auth.user.name}`}
-                    className="gap-2 px-1.5 max-md:size-11 max-md:px-0"
+                    className="gap-2 px-1 max-md:size-11 max-md:px-0"
                 >
-                    <Avatar className="size-[26px]">
+                    <Avatar className="size-8">
                         <AvatarImage src={auth.user.avatar} alt="" />
-                        <AvatarFallback className="bg-muted border-border border text-[11px] font-semibold">
+                        <AvatarFallback className="bg-accent-soft-2 text-on-accent-soft text-caption font-semibold">
                             {getInitials(auth.user.name)}
                         </AvatarFallback>
                     </Avatar>
-                    <span className="max-w-[160px] truncate max-md:hidden">
+                    <span className="text-small max-w-40 truncate max-md:hidden">
                         {auth.user.name}
                     </span>
                     <ChevronDown aria-hidden="true" className="max-md:hidden" />
@@ -52,7 +52,7 @@ export function AccountMenu() {
                 data-slot="dropdown-menu-content"
                 align="end"
                 sideOffset={4}
-                className="bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-(--shadow)"
+                className="bg-surface text-ink data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 shadow-float z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 overflow-x-hidden overflow-y-auto rounded-md border p-1"
             >
                 <UserMenuContent user={auth.user} />
             </DropdownMenuPrimitive.Content>

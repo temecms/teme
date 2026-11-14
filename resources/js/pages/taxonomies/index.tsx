@@ -141,7 +141,7 @@ export default function TaxonomiesIndex({
                     caption="Taxonomies"
                     rowProps={(row) =>
                         row.source === 'refused'
-                            ? { className: 'bg-destructive-muted' }
+                            ? { className: 'bg-danger-soft' }
                             : {}
                     }
                 />
@@ -159,24 +159,24 @@ function TaxonomyCell({ row, locked }: { row: TaxonomyRow; locked: boolean }) {
 
     return (
         <div className="flex min-w-0 items-start gap-3">
-            <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-md border">
+            <span className="bg-surface-2 flex size-8 shrink-0 items-center justify-center rounded-md border">
                 <Icon aria-hidden className="size-4" />
             </span>
             <div className="min-w-0">
                 <Link
                     href={show.url(row.key)}
-                    className="text-link font-medium hover:underline"
+                    className="text-accent-ink font-medium hover:underline"
                 >
                     {row.plural}
                 </Link>
-                <div className="text-muted-foreground flex flex-wrap items-center gap-2">
+                <div className="text-ink-2 flex flex-wrap items-center gap-2">
                     <code className="text-xs break-all">{row.key}</code>
                     <span className="sm:hidden">
                         <SourceBadge source={row.source} />
                     </span>
                 </div>
                 {row.source === 'refused' && row.reason !== null && (
-                    <p className="text-destructive mt-1 flex items-start gap-1 text-xs text-pretty">
+                    <p className="text-danger-ink mt-1 flex items-start gap-1 text-xs text-pretty">
                         <XCircle
                             aria-hidden
                             className="mt-0.5 size-3.5 shrink-0"
@@ -202,7 +202,7 @@ function TermsCell({ row }: { row: TaxonomyRow }) {
     return (
         <Link
             href={row.termsUrl}
-            className="text-link inline-flex min-h-6 min-w-6 items-center justify-end font-mono tabular-nums hover:underline"
+            className="text-accent-ink inline-flex min-h-6 min-w-6 items-center justify-end font-mono tabular-nums hover:underline"
         >
             {row.terms.toLocaleString()}
         </Link>

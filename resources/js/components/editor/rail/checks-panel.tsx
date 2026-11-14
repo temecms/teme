@@ -19,9 +19,9 @@ const NOWHERE_TO_GO: CheckId[] = ['listing', 'structured-data'];
 
 function StateIcon({ check }: { check: CoreCheck }) {
     return check.state === 'ok' ? (
-        <CheckCircle2 aria-hidden className="text-success size-4 shrink-0" />
+        <CheckCircle2 aria-hidden className="text-ok-ink size-4 shrink-0" />
     ) : (
-        <CircleAlert aria-hidden className="text-warning size-4 shrink-0" />
+        <CircleAlert aria-hidden className="text-warn-ink size-4 shrink-0" />
     );
 }
 
@@ -29,9 +29,9 @@ function Fact({ check }: { check: CoreCheck }) {
     return (
         <>
             {' '}
-            <span className="text-muted-foreground">{check.message}</span>
+            <span className="text-ink-2">{check.message}</span>
             {check.id === 'links' && check.badLinks.length > 0 && (
-                <ul className="text-muted-foreground mt-0.5 grid gap-0.5 pl-[22px] text-xs">
+                <ul className="text-ink-2 mt-0.5 grid gap-0.5 pl-[22px] text-xs">
                     {check.badLinks.map((link) => (
                         <li key={link.id}>{badLinkLine(link)}</li>
                     ))}
@@ -106,7 +106,7 @@ export function ChecksPanel({
                             <button
                                 type="button"
                                 onClick={() => onGoTo(check.id)}
-                                className="text-link focus-visible:ring-ring inline-flex min-h-6 items-center gap-1.5 rounded-sm text-left align-top underline-offset-2 outline-none hover:underline focus-visible:ring-2"
+                                className="text-accent-ink focus-visible:ring-ring inline-flex min-h-6 items-center gap-1.5 rounded-sm text-left align-top underline-offset-2 outline-none hover:underline focus-visible:ring-2"
                             >
                                 <StateIcon check={check} />
                                 <Label check={check} />
@@ -124,15 +124,15 @@ export function ChecksPanel({
             {onGoToSearch !== undefined && (
                 <div
                     data-test="rail-search-note"
-                    className="bg-muted mt-3 grid gap-1.5 rounded-md px-3 py-2.5 text-xs"
+                    className="bg-surface-2 mt-3 grid gap-1.5 rounded-md px-3 py-2.5 text-xs"
                 >
-                    <p className="text-muted-foreground">
+                    <p className="text-ink-2">
                         Search and social is under the {noun}.
                     </p>
                     <button
                         type="button"
                         onClick={onGoToSearch}
-                        className="text-link focus-visible:ring-ring min-h-6 justify-self-start rounded-sm underline outline-none focus-visible:ring-2"
+                        className="text-accent-ink focus-visible:ring-ring min-h-6 justify-self-start rounded-sm underline outline-none focus-visible:ring-2"
                     >
                         Go to Search and social
                     </button>

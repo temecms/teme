@@ -8,6 +8,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { navIcon } from '@/lib/nav-icons';
 import { cn } from '@/lib/utils';
 import {
@@ -308,7 +309,8 @@ export function CommandPalette() {
             }}
         >
             <DialogContent
-                className="top-[15%] max-h-[70vh] translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-[640px]"
+                size="md"
+                className="top-24 max-h-140 translate-y-0 gap-0 overflow-hidden p-0"
                 onKeyDown={keys}
             >
                 <DialogTitle className="sr-only">Command palette</DialogTitle>
@@ -316,8 +318,8 @@ export function CommandPalette() {
                     Search content, media, terms, people and settings, go to a
                     screen, or run a command. Use the arrow keys and Enter.
                 </DialogDescription>
-                <div className="border-border flex items-center gap-2 border-b pr-10 pl-3">
-                    <Search className="text-muted-foreground size-4 shrink-0" />
+                <div className="border-line flex h-15 items-center gap-3 border-b ps-5 pe-12">
+                    <Search className="text-ink-3 size-5 shrink-0" />
                     <input
                         autoFocus
                         role="combobox"
@@ -330,15 +332,15 @@ export function CommandPalette() {
                         placeholder="Search, go to, or do…"
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
-                        className="h-11 w-full bg-transparent text-[14px] outline-none"
+                        className="text-lead text-ink placeholder:text-ink-3 h-full w-full bg-transparent outline-none"
                     />
                 </div>
-                <div
+                <ScrollArea
                     id="palette-list"
                     ref={listRef}
                     role="listbox"
                     aria-label="Results"
-                    className="max-h-[calc(70vh-44px)] overflow-y-auto py-1"
+                    className="max-h-125 p-1"
                 >
                     {sections.map((section) => (
                         <div
@@ -346,7 +348,7 @@ export function CommandPalette() {
                             role="group"
                             aria-label={section.label}
                         >
-                            <p className="text-muted-foreground px-3 pt-2 pb-1 text-[11px] font-medium">
+                            <p className="text-caption text-ink-3 px-3 pt-3 pb-1 font-semibold uppercase">
                                 {section.label}{' '}
                                 <span className="tabular-nums">
                                     ({section.rows.length})
@@ -367,13 +369,14 @@ export function CommandPalette() {
                                         onMouseMove={() => setActive(position)}
                                         onClick={row.run}
                                         className={cn(
-                                            'mx-1 flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-[13px]',
-                                            position === active && 'bg-muted',
+                                            'text-body text-ink flex min-h-(--ctl-h) cursor-pointer items-center gap-3 rounded-md px-3 py-1',
+                                            position === active &&
+                                                'bg-surface-3',
                                         )}
                                     >
                                         <Icon
                                             aria-hidden="true"
-                                            className="text-muted-foreground size-4 shrink-0"
+                                            className="text-ink-2 size-5 shrink-0"
                                         />
                                         <span className="grid min-w-0 flex-1">
                                             <span
@@ -383,12 +386,12 @@ export function CommandPalette() {
                                                 {row.label}
                                             </span>
                                             {row.detail !== '' && (
-                                                <span className="text-muted-foreground truncate text-xs">
+                                                <span className="text-small text-ink-3 truncate">
                                                     {row.detail}
                                                 </span>
                                             )}
                                         </span>
-                                        <span className="text-muted-foreground shrink-0 text-[11px]">
+                                        <span className="text-small text-ink-3 shrink-0">
                                             {row.kind}
                                         </span>
                                     </div>
@@ -397,11 +400,11 @@ export function CommandPalette() {
                         </div>
                     ))}
                     {rows.length === 0 && (
-                        <p className="text-muted-foreground px-3 py-6 text-center text-[13px]">
+                        <p className="text-body text-ink-2 px-3 py-6 text-center">
                             {searching ? 'Searching…' : 'Nothing matches.'}
                         </p>
                     )}
-                </div>
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     );

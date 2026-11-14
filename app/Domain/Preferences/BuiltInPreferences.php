@@ -17,20 +17,6 @@ use App\Domain\Types\TaxonomyRegistry;
  */
 final class BuiltInPreferences
 {
-    /** The looks (I-198), value => name; `dark_chrome` is the default. */
-    public const array LOOKS = [
-        'dark_chrome' => 'Dark sidebar',
-        'standard' => 'Standard',
-        'quiet' => 'Quiet',
-    ];
-
-    /** What each look changes, one line each, for its card on the screen. */
-    public const array LOOK_DESCRIPTIONS = [
-        'dark_chrome' => 'A dark sidebar beside light content.',
-        'standard' => 'A white sidebar with a hairline beside it.',
-        'quiet' => 'One white surface, more room, and larger interface text.',
-    ];
-
     public static function register(PreferenceRegistry $registry): void
     {
         $registry->register(new PreferenceDefinition('editor.spellcheck', 'boolean', true, 'Check spelling', "The browser's spellcheck in the editor's title, excerpt and text."));
@@ -39,8 +25,6 @@ final class BuiltInPreferences
         $registry->register(new PreferenceDefinition('editor.focus_mode_default', 'boolean', false, 'Open in focus mode', 'Open the editor with everything but the writing hidden.'));
         $registry->register(new PreferenceDefinition('lists.per_page', 'select', 50, 'Rows per page', 'How many items the Posts, Pages and other lists show at a time.', options: [25 => '25', 50 => '50', 100 => '100']));
         $registry->register(new PreferenceDefinition('appearance.mode', 'select', 'system', 'Light or dark', 'Light, dark, or whatever your system is set to.', options: ['light' => 'Light', 'dark' => 'Dark', 'system' => 'Match the system']));
-        $registry->register(new PreferenceDefinition('appearance.look', 'select', 'dark_chrome', 'Look', 'How the admin is dressed. Only you see it.', options: self::LOOKS));
-        $registry->register(new PreferenceDefinition('appearance.high_contrast', 'boolean', false, 'High contrast', 'Black on white and white on black, with stronger borders, under any look.'));
         $registry->register(new PreferenceDefinition('dashboard.getting_started_hidden', 'boolean', false, 'Hide Getting started', 'The checklist a new site shows on Home. Turn this off to see it again.'));
 
         // One choice per kind of notice a person may turn off (I-691):

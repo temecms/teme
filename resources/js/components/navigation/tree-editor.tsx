@@ -294,7 +294,7 @@ export function TreeEditor({
                 return (
                     <li key={item.key} data-item-key={item.key}>
                         <div
-                            className="bg-card grid gap-2 rounded-md border p-3"
+                            className="bg-surface grid gap-2 rounded-md border p-3"
                             onKeyDown={(event: KeyboardEvent) => {
                                 const move = event.altKey
                                     ? KEYS[event.key]
@@ -332,11 +332,11 @@ export function TreeEditor({
                                         })
                                     }
                                 />
-                                <span className="text-muted-foreground min-w-0 truncate text-[13px]">
+                                <span className="text-ink-2 min-w-0 truncate text-[13px]">
                                     {item.target}
                                 </span>
                                 {warning && (
-                                    <span className="bg-warning-muted text-warning rounded px-1.5 py-0.5 text-[11px] font-medium">
+                                    <span className="bg-warn-soft text-warn-ink rounded px-1.5 py-0.5 text-[11px] font-medium">
                                         {warning}
                                     </span>
                                 )}
@@ -393,7 +393,7 @@ export function TreeEditor({
                             {error && (
                                 <p
                                     id={`${item.key}-error`}
-                                    className="text-destructive text-[13px]"
+                                    className="text-danger-ink text-[13px]"
                                 >
                                     {error}
                                 </p>

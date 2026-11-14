@@ -38,7 +38,7 @@ function characters(text: string): string {
 }
 
 const textareaClass =
-    'border-input bg-card focus-visible:ring-ring focus-visible:ring-offset-background field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
+    'border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
 
 /** A count under a field: in characters and about the pixels, a warning past the width. */
 function Count({
@@ -53,9 +53,7 @@ function Count({
     return (
         <p
             id={id}
-            className={
-                over ? 'text-warning text-xs' : 'text-muted-foreground text-xs'
-            }
+            className={over ? 'text-warn-ink text-xs' : 'text-ink-2 text-xs'}
         >
             {children}
         </p>
@@ -179,7 +177,7 @@ export function SearchPanel({
         <section
             aria-labelledby="editor-search-label"
             data-test="search-section"
-            className="border-border bg-card @container grid gap-4 rounded-lg border px-5 py-4"
+            className="border-line bg-surface @container grid gap-4 rounded-lg border px-5 py-4"
         >
             <div className="flex items-start gap-3">
                 <div className="grid flex-1 gap-1">
@@ -190,7 +188,7 @@ export function SearchPanel({
                     >
                         Search and social
                     </h2>
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-ink-2 text-xs">
                         How this {noun} appears in search results and when it’s
                         shared.
                     </p>
@@ -228,20 +226,20 @@ export function SearchPanel({
             />
             <div
                 data-test="search-check-line"
-                className="border-border flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-3"
+                className="border-line flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-3"
             >
                 <div className="flex min-w-0 flex-1 items-start gap-2 text-xs">
                     {line.warnings.length > 0 ? (
                         <CircleAlert
                             role="img"
                             aria-label="Warning"
-                            className="text-warning mt-px size-4 shrink-0"
+                            className="text-warn-ink mt-px size-4 shrink-0"
                         />
                     ) : (
                         <CheckCircle2
                             role="img"
                             aria-label="Passed"
-                            className="text-success mt-px size-4 shrink-0"
+                            className="text-ok-ink mt-px size-4 shrink-0"
                         />
                     )}
                     <p>
@@ -267,12 +265,12 @@ export function SearchPanel({
                         type="button"
                         data-test="search-checks-link"
                         onClick={onGoToChecks}
-                        className="text-link focus-visible:ring-ring min-h-6 rounded-sm text-xs underline outline-none focus-visible:ring-2"
+                        className="text-accent-ink focus-visible:ring-ring min-h-6 rounded-sm text-xs underline outline-none focus-visible:ring-2"
                     >
                         Every check is in the side panel.
                     </button>
                 ) : (
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-ink-2 text-xs">
                         Every check is in the side panel.
                     </p>
                 )}
@@ -281,7 +279,7 @@ export function SearchPanel({
             <div
                 id="editor-search-fields"
                 hidden={!open}
-                className="border-border grid gap-4 border-t pt-4"
+                className="border-line grid gap-4 border-t pt-4"
             >
                 <div className="grid grid-cols-[minmax(0,1fr)] gap-x-8 gap-y-5 @2xl:grid-cols-2">
                     <div className="grid content-start gap-3">
@@ -302,7 +300,7 @@ export function SearchPanel({
                                 />
                                 <p
                                     id="editor-seo-title-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     The title search engines show, exactly as
                                     you type it.{' '}
@@ -341,7 +339,7 @@ export function SearchPanel({
                                 />
                                 <p
                                     id="editor-seo-description-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     The summary search engines may show under
                                     the title.{' '}
@@ -383,7 +381,7 @@ export function SearchPanel({
                                 />
                                 <p
                                     id="editor-social-title-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     The title on the card when it’s shared.
                                     Leave empty to use the SEO title, or else
@@ -414,7 +412,7 @@ export function SearchPanel({
                                 />
                                 <p
                                     id="editor-social-description-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     Leave empty to use the meta description, or
                                     else the excerpt.
@@ -469,7 +467,7 @@ export function SearchPanel({
                                                   />
                                                   <p
                                                       id="editor-seo-noindex-hint"
-                                                      className="text-muted-foreground text-xs"
+                                                      className="text-ink-2 text-xs"
                                                   >
                                                       Asks search engines not to
                                                       list this {noun}.

@@ -3,14 +3,15 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// The Notice look (docs/architecture/design-system.md, section 4.22): the
+// icon sits at the start, the words in a column beside it.
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
+  "relative grid w-full gap-1 rounded-md px-5 py-4 text-body text-ink soft-edge has-[>svg]:ps-13 [&>svg]:absolute [&>svg]:start-5 [&>svg]:top-4 [&>svg]:size-5",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
-        destructive:
-          "text-destructive [&>svg]:text-current *:data-[slot=alert-description]:text-destructive/80",
+        default: "bg-info-soft [&>svg]:text-info-ink",
+        destructive: "bg-danger-soft [&>svg]:text-danger-ink",
       },
     },
     defaultVariants: {
@@ -39,7 +40,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="alert-title"
       className={cn(
-        "col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight",
+        "line-clamp-1 font-semibold",
         className
       )}
       {...props}
@@ -55,7 +56,7 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        "text-muted-foreground col-start-2 grid justify-items-start gap-1 text-sm [&_p]:leading-relaxed",
+        "grid justify-items-start gap-1 text-body text-ink",
         className
       )}
       {...props}

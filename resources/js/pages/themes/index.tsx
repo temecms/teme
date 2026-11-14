@@ -84,7 +84,7 @@ function FieldInput({
                     {field.label}
                 </label>
                 {hint && (
-                    <p id={hint} className="text-muted-foreground text-xs">
+                    <p id={hint} className="text-ink-2 text-xs">
                         {field.description}
                     </p>
                 )}
@@ -116,7 +116,7 @@ function FieldInput({
                 />
             )}
             {hint && (
-                <p id={hint} className="text-muted-foreground text-xs">
+                <p id={hint} className="text-ink-2 text-xs">
                     {field.description}
                 </p>
             )}
@@ -377,7 +377,7 @@ export default function Design(page: DesignPage) {
                 />
 
                 <p
-                    className="text-muted-foreground text-[13px]"
+                    className="text-ink-2 text-[13px]"
                     role="status"
                     aria-live="polite"
                 >
@@ -388,7 +388,7 @@ export default function Design(page: DesignPage) {
                 </p>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         The site’s name, tagline and brand colour stay when you
                         change theme.
                     </p>
@@ -468,14 +468,14 @@ export default function Design(page: DesignPage) {
                                 {chosen.name} settings
                             </h2>
                             {page.preview !== null && (
-                                <p className="text-muted-foreground text-[13px]">
+                                <p className="text-ink-2 text-[13px]">
                                     Visitors see these once you activate{' '}
                                     {page.preview.name}.
                                 </p>
                             )}
                         </div>
                         {themeGroup === null && (
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 {chosen.name} has no settings or menu places of
                                 its own.
                             </p>
@@ -552,7 +552,7 @@ export default function Design(page: DesignPage) {
                                     </Button>
                                 </PanelHeader>
                                 <PanelBody>
-                                    <p className="text-muted-foreground text-[13px]">
+                                    <p className="text-ink-2 text-[13px]">
                                         A menu you choose here shows once you
                                         publish, and replaces whatever Content ›
                                         Navigation sets for that place. Places
@@ -606,7 +606,7 @@ export default function Design(page: DesignPage) {
 
             {draft !== null && page.preview === null && (
                 <div
-                    className="border-border bg-background fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center gap-3 border-t px-6 py-3 text-[13px]"
+                    className="border-line bg-page fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center gap-3 border-t px-6 py-3 text-[13px]"
                     role="region"
                     aria-label="Unpublished design changes"
                 >

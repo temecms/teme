@@ -21,7 +21,7 @@ export type QuickEditTarget = Pick<
 >;
 
 const FIELD =
-    'border-input bg-background focus-visible:ring-ring rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
+    'border-edge bg-page focus-visible:ring-ring rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
 
 /**
  * Quick edit (C3; 1.8c′'s D9; v9's openCommentQuickEdit): a comment's name,
@@ -144,10 +144,7 @@ export function QuickEdit({
                             aria-invalid={form.errors.text ? true : undefined}
                             aria-describedby="qe-text-hint qe-text-error"
                         />
-                        <p
-                            id="qe-text-hint"
-                            className="text-muted-foreground text-[12px]"
-                        >
+                        <p id="qe-text-hint" className="text-ink-2 text-[12px]">
                             Plain text, as readers write it: a blank line starts
                             a paragraph, and web addresses become links. Up to
                             5,000 characters.

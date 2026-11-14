@@ -99,13 +99,10 @@ export default function Profile({
                                     defaultValue={bio}
                                     maxLength={1000}
                                     rows={4}
-                                    className="border-input bg-background focus-visible:ring-ring mt-1 block w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                                    className="border-edge bg-page focus-visible:ring-ring mt-1 block w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none"
                                 />
 
-                                <p
-                                    id="bio-hint"
-                                    className="text-muted-foreground text-sm"
-                                >
+                                <p id="bio-hint" className="text-ink-2 text-sm">
                                     Shown on your author page and under your
                                     posts.
                                 </p>
@@ -119,7 +116,7 @@ export default function Profile({
                             {mustVerifyEmail && !auth.user.emailVerified && (
                                 <div>
                                     <div className="-mt-4 flex flex-wrap items-center gap-3">
-                                        <p className="text-muted-foreground text-sm">
+                                        <p className="text-ink-2 text-sm">
                                             Your email address isn’t confirmed
                                             yet.
                                         </p>
@@ -135,7 +132,7 @@ export default function Profile({
                                     </div>
 
                                     {status === 'verification-link-sent' && (
-                                        <div className="text-success mt-2 text-sm font-medium">
+                                        <div className="text-ok-ink mt-2 text-sm font-medium">
                                             Sent. Check your email for the new
                                             link.
                                         </div>

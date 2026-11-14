@@ -31,7 +31,7 @@ export function BulkBar({
         <div
             role="region"
             aria-label="Bulk actions"
-            className="bg-muted border-input flex flex-wrap items-center gap-2 rounded border px-3 py-2"
+            className="bg-surface-2 border-edge flex flex-wrap items-center gap-2 rounded border px-3 py-2"
         >
             <span className="mr-2 text-[13px] font-semibold">
                 {selectedWords}

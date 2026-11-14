@@ -31,7 +31,7 @@ export default function AccountLayout({ children }: PropsWithChildren) {
             key={toUrl(item.href)}
             href={item.href}
             aria-current={isCurrentOrParentUrl(item.href) ? 'page' : undefined}
-            className="hover:bg-muted aria-[current=page]:bg-muted flex min-h-8 items-center rounded-md px-2 py-1 text-[13px] aria-[current=page]:font-medium"
+            className="hover:bg-surface-2 aria-[current=page]:bg-surface-2 flex min-h-8 items-center rounded-md px-2 py-1 text-[13px] aria-[current=page]:font-medium"
         >
             {item.title}
         </Link>
@@ -50,7 +50,7 @@ export default function AccountLayout({ children }: PropsWithChildren) {
                     className="grid content-start gap-0.5 lg:sticky lg:top-6"
                 >
                     {panels.map(link)}
-                    <hr className="border-border my-2" />
+                    <hr className="border-line my-2" />
                     {link(security)}
                 </nav>
 

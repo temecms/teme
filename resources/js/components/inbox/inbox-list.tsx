@@ -33,8 +33,8 @@ export function InboxList({
         <ul
             aria-label="Inbox items"
             className={cn(
-                'divide-border divide-y',
-                !inPanel && 'border-border rounded-md border',
+                'divide-line divide-y',
+                !inPanel && 'border-line rounded-md border',
             )}
         >
             {rows.map((row) => (
@@ -48,7 +48,7 @@ export function InboxList({
                         aria-hidden="true"
                         className={cn(
                             'mt-1.5 size-2 rounded-full',
-                            !row.read && 'bg-foreground',
+                            !row.read && 'bg-ink',
                         )}
                     />
                     <span className="font-medium">
@@ -72,11 +72,11 @@ export function InboxList({
                         )}
                     </span>
                     {row.text !== null && (
-                        <span className="text-muted-foreground col-start-2 text-xs">
+                        <span className="text-ink-2 col-start-2 text-xs">
                             {row.text}
                         </span>
                     )}
-                    <span className="text-muted-foreground col-start-2 text-xs">
+                    <span className="text-ink-2 col-start-2 text-xs">
                         {formatInZone(row.at, siteTimezone)}
                     </span>
                 </li>

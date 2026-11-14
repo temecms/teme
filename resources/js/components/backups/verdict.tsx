@@ -36,20 +36,20 @@ const LEVELS = {
     red: {
         Icon: CircleX,
         alt: 'Needs attention',
-        edge: 'border-l-destructive',
-        colour: 'text-destructive',
+        edge: 'border-l-danger',
+        colour: 'text-danger-ink',
     },
     amber: {
         Icon: TriangleAlert,
         alt: 'Needs a look',
-        edge: 'border-l-warning',
-        colour: 'text-warning',
+        edge: 'border-l-warn',
+        colour: 'text-warn-ink',
     },
     green: {
         Icon: CircleCheck,
         alt: 'All well',
-        edge: 'border-l-success',
-        colour: 'text-success',
+        edge: 'border-l-ok',
+        colour: 'text-ok-ink',
     },
 } as const;
 
@@ -70,7 +70,7 @@ function VerdictSentence({ verdict }: { verdict: VerdictLine }) {
                 </span>
             </p>
             {verdict.more.length > 0 && (
-                <ul className="text-muted-foreground space-y-1 pl-6 text-sm">
+                <ul className="text-ink-2 space-y-1 pl-6 text-sm">
                     {verdict.more.map((line) => (
                         <li key={line}>{line}</li>
                     ))}
@@ -116,7 +116,7 @@ export function Verdict({ page }: { page: BackupsPage }) {
             <section
                 aria-labelledby="backup-set-up-heading"
                 data-test="backup-verdict"
-                className="border-border space-y-3 rounded-md border p-4"
+                className="border-line space-y-3 rounded-md border p-4"
             >
                 <h2
                     id="backup-set-up-heading"
@@ -153,14 +153,14 @@ export function Verdict({ page }: { page: BackupsPage }) {
             <section
                 aria-label="Where setup stands"
                 data-test="backup-verdict"
-                className="border-destructive space-y-3 rounded-md border border-l-4 p-4"
+                className="border-danger space-y-3 rounded-md border border-l-4 p-4"
             >
                 <p className="font-medium">
                     <span className="sr-only">Needs attention. </span>
                     Backups aren’t set up yet: the recovery key shown for{' '}
                     {setup.placeName} wasn’t typed back.
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-ink-2 text-sm">
                     Nothing is backed up until it is.
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -206,7 +206,7 @@ export function Verdict({ page }: { page: BackupsPage }) {
             <section
                 aria-label="Where setup stands"
                 data-test="backup-verdict"
-                className="border-destructive space-y-3 rounded-md border border-l-4 p-4"
+                className="border-danger space-y-3 rounded-md border border-l-4 p-4"
             >
                 <p className="flex items-start gap-2 font-medium">
                     <Pause aria-hidden="true" className="mt-0.5 size-4" />
@@ -216,7 +216,7 @@ export function Verdict({ page }: { page: BackupsPage }) {
                         you say whether this server is now the site.
                     </span>
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-ink-2 text-sm">
                     The restored site’s places are the old site’s too, and two
                     sites must never back up into one place.
                 </p>
@@ -260,7 +260,7 @@ export function Verdict({ page }: { page: BackupsPage }) {
             id={BACKUP_STATE_ID}
             aria-label="The state of the backups"
             data-test="backup-verdict"
-            className={`border-border space-y-3 rounded-md border p-4 ${verdict ? `border-l-4 ${LEVELS[verdict.level].edge}` : ''}`}
+            className={`border-line space-y-3 rounded-md border p-4 ${verdict ? `border-l-4 ${LEVELS[verdict.level].edge}` : ''}`}
         >
             {verdict && <VerdictSentence verdict={verdict} />}
 

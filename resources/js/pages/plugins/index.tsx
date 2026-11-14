@@ -329,7 +329,7 @@ export default function Plugins({ plugins }: PluginsPage) {
                 {plugins.length === 0 ? (
                     <p
                         data-test="plugins-empty"
-                        className="text-muted-foreground text-[13px]"
+                        className="text-ink-2 text-[13px]"
                     >
                         {__(
                             'No plugins are installed. Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.',
@@ -340,7 +340,7 @@ export default function Plugins({ plugins }: PluginsPage) {
                         <div
                             role="tablist"
                             aria-label={__('Plugins')}
-                            className="border-border flex flex-wrap gap-x-5 border-b"
+                            className="border-line flex flex-wrap gap-x-5 border-b"
                             onKeyDown={onTabKey}
                         >
                             {TABS.map((item) => (
@@ -357,12 +357,12 @@ export default function Plugins({ plugins }: PluginsPage) {
                                     className={cn(
                                         '-mb-px inline-flex h-9 items-center gap-1.5 border-b-2 px-0.5 text-[13px]',
                                         tab === item.key
-                                            ? 'border-primary text-foreground font-semibold'
-                                            : 'text-muted-foreground hover:text-foreground border-transparent font-medium',
+                                            ? 'border-accent text-ink font-semibold'
+                                            : 'text-ink-2 hover:text-ink border-transparent font-medium',
                                     )}
                                 >
                                     {tabLabel(item.key)}
-                                    <span className="text-muted-foreground tabular-nums">
+                                    <span className="text-ink-2 tabular-nums">
                                         {plugins.filter(item.holds).length}
                                     </span>
                                 </button>
@@ -375,16 +375,16 @@ export default function Plugins({ plugins }: PluginsPage) {
                             aria-labelledby={`plugins-tab-${tab}`}
                         >
                             {shown.length === 0 ? (
-                                <p className="text-muted-foreground text-[13px]">
+                                <p className="text-ink-2 text-[13px]">
                                     {__('Nothing in this view')}
                                 </p>
                             ) : (
                                 <table
                                     data-test="plugins-table"
-                                    className="border-border w-full border-collapse text-left text-[13px] max-md:block"
+                                    className="border-line w-full border-collapse text-left text-[13px] max-md:block"
                                 >
                                     <thead className="max-md:sr-only">
-                                        <tr className="border-border text-muted-foreground border-b">
+                                        <tr className="border-line text-ink-2 border-b">
                                             <th
                                                 scope="col"
                                                 className="py-2 pr-4 font-medium"
@@ -410,7 +410,7 @@ export default function Plugins({ plugins }: PluginsPage) {
                                             <tr
                                                 key={plugin.name}
                                                 data-test={`plugin-${plugin.code === '' ? plugin.name : plugin.code}`}
-                                                className="border-border border-b align-top max-md:block max-md:py-3"
+                                                className="border-line border-b align-top max-md:block max-md:py-3"
                                             >
                                                 <td className="space-y-1 py-3 pr-4 max-md:block max-md:py-1">
                                                     <p className="flex flex-wrap items-baseline gap-2">
@@ -419,7 +419,7 @@ export default function Plugins({ plugins }: PluginsPage) {
                                                         </span>
                                                         {plugin.version !==
                                                             '' && (
-                                                            <span className="text-muted-foreground font-mono text-xs">
+                                                            <span className="text-ink-2 font-mono text-xs">
                                                                 {plugin.version}
                                                             </span>
                                                         )}
@@ -430,7 +430,7 @@ export default function Plugins({ plugins }: PluginsPage) {
                                                             {plugin.description}
                                                         </p>
                                                     )}
-                                                    <p className="text-muted-foreground font-mono text-xs break-all">
+                                                    <p className="text-ink-2 font-mono text-xs break-all">
                                                         {plugin.name}
                                                     </p>
                                                 </td>
@@ -446,7 +446,7 @@ export default function Plugins({ plugins }: PluginsPage) {
                                                     {plugin.reason !== '' && (
                                                         <p
                                                             data-test="plugin-reason"
-                                                            className="text-muted-foreground mt-1"
+                                                            className="text-ink-2 mt-1"
                                                         >
                                                             {plugin.reason}
                                                         </p>

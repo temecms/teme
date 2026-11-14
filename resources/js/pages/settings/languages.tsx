@@ -1,5 +1,5 @@
 import { Head, setLayoutProps } from '@inertiajs/react';
-import Heading from '@/components/heading';
+import { SettingsPage } from '@/components/patterns/settings-page';
 import { __ } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 
@@ -22,7 +22,7 @@ export default function LanguagesSettings() {
         <>
             <Head title={__('Languages')} />
 
-            <Heading level={1} title={__('Languages')} />
+            <SettingsPage title={__('Languages')} />
         </>
     );
 }

@@ -62,7 +62,7 @@ export function AttachmentDetails({ id, onEdit, version }: Props) {
     }, [id, version]);
 
     if (item === null) {
-        return <p className="text-muted-foreground p-4 text-sm">Loading…</p>;
+        return <p className="text-ink-2 p-4 text-sm">Loading…</p>;
     }
 
     const save = (field: AttachmentField, value: string) => {
@@ -93,14 +93,14 @@ export function AttachmentDetails({ id, onEdit, version }: Props) {
                     className="w-full rounded"
                 />
             ) : (
-                <span className="bg-muted text-muted-foreground flex aspect-square w-full items-center justify-center rounded text-xs">
+                <span className="bg-surface-2 text-ink-2 flex aspect-square w-full items-center justify-center rounded text-xs">
                     {MEDIA_KINDS[item.kind]}
                 </span>
             )}
 
             <AttachmentMeta item={item} />
 
-            <p className="text-muted-foreground text-xs">
+            <p className="text-ink-2 text-xs">
                 {item.uses} place{item.uses === 1 ? '' : 's'}
             </p>
 

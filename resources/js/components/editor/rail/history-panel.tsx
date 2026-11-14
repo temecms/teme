@@ -48,7 +48,7 @@ function Assistant({ assistant }: { assistant: RevisionAssistant }) {
         <Link
             href={aiActivity({ query: { row: assistant.row } }).url}
             aria-label={`${words}, in AI activity`}
-            className="text-link underline-offset-2 hover:underline"
+            className="text-accent-ink underline-offset-2 hover:underline"
         >
             {words}
         </Link>
@@ -72,7 +72,7 @@ function Meta({ row }: { row: RevisionRow }) {
     ];
 
     return (
-        <span className="text-muted-foreground">
+        <span className="text-ink-2">
             {parts
                 .filter((part) => part.node !== null)
                 .map((part, position) => (
@@ -129,7 +129,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
     return (
         <div className="grid gap-3 p-4">
             {problem && (
-                <p role="alert" className="text-destructive text-[13px]">
+                <p role="alert" className="text-danger-ink text-[13px]">
                     {problem}
                 </p>
             )}
@@ -137,7 +137,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                 {rows.map((row, index) => (
                     <li
                         key={row.id}
-                        className="border-border grid gap-0.5 border-b py-2 text-[13px] last:border-b-0"
+                        className="border-line grid gap-0.5 border-b py-2 text-[13px] last:border-b-0"
                     >
                         {/* Each row opens the comparison with the revision
                             before it; the first has nothing before it. */}
@@ -152,12 +152,12 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                                 })}
                             </time>
                             {row.isPublished && (
-                                <span className="text-success text-[11px] font-medium">
+                                <span className="text-ok-ink text-[11px] font-medium">
                                     Live
                                 </span>
                             )}
                             {row.isWorking && (
-                                <span className="text-muted-foreground text-[11px] font-medium">
+                                <span className="text-ink-2 text-[11px] font-medium">
                                     Current
                                 </span>
                             )}
@@ -172,7 +172,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                                         },
                                     }).url
                                 }
-                                className="text-link justify-self-start text-xs underline-offset-2 hover:underline"
+                                className="text-accent-ink justify-self-start text-xs underline-offset-2 hover:underline"
                             >
                                 Compare with the version before
                             </Link>
@@ -189,7 +189,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                 ))}
             </ol>
             {loading && (
-                <p aria-busy="true" className="text-muted-foreground text-xs">
+                <p aria-busy="true" className="text-ink-2 text-xs">
                     Loading…
                 </p>
             )}

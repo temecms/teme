@@ -32,7 +32,7 @@ type CountedType = TermsIndexPage['types'][number];
 
 /** A text area drawn as the admin's inputs are. */
 const AREA =
-    'border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
 
 /** Puts the cursor back in the add form's Name, ready for the next term. */
 const focusName = () => document.getElementById('term-add-name')?.focus();
@@ -169,10 +169,7 @@ function TermFields({
                     aria-invalid={errors.slug ? true : undefined}
                     aria-describedby={`${prefix}-slug-hint ${prefix}-slug-error`}
                 />
-                <p
-                    id={`${prefix}-slug-hint`}
-                    className="text-muted-foreground text-xs"
-                >
+                <p id={`${prefix}-slug-hint`} className="text-ink-2 text-xs">
                     {
                         'The last part of its address. Leave it empty to make one from the name.'
                     }
@@ -209,7 +206,7 @@ function TermFields({
                 />
                 <p
                     id={`${prefix}-description-hint`}
-                    className="text-muted-foreground text-xs"
+                    className="text-ink-2 text-xs"
                 >
                     {`Some themes show it on the ${singular}’s page, and search engines may show it in results.`}
                 </p>
@@ -269,7 +266,7 @@ export default function TermsIndex({
                             {row.depth > 0 && (
                                 <span
                                     aria-hidden="true"
-                                    className="text-muted-foreground font-normal"
+                                    className="text-ink-2 font-normal"
                                 >
                                     {'— '.repeat(row.depth)}
                                 </span>
@@ -333,9 +330,7 @@ export default function TermsIndex({
             owner: 'core',
             header: 'Address',
             cell: (row) => (
-                <span className="text-muted-foreground font-mono text-xs">
-                    {row.slug}
-                </span>
+                <span className="text-ink-2 font-mono text-xs">{row.slug}</span>
             ),
         },
         // One column for each listed type that uses the taxonomy (I-225).
@@ -349,7 +344,7 @@ export default function TermsIndex({
 
                 if (count === 0) {
                     return (
-                        <span className="text-muted-foreground font-mono tabular-nums">
+                        <span className="text-ink-2 font-mono tabular-nums">
                             0
                         </span>
                     );
@@ -543,7 +538,7 @@ export default function TermsIndex({
                                     {editingRow.address !== null && (
                                         <p
                                             data-test="term-page"
-                                            className="text-muted-foreground text-xs"
+                                            className="text-ink-2 text-xs"
                                         >
                                             {pageLine(
                                                 editingRow,

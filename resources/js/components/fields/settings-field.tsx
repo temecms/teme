@@ -32,10 +32,7 @@ export function SettingsField({
             : `values[${field.key}]`);
 
     const hint = (
-        <p
-            id={`field-${field.key}-hint`}
-            className="text-muted-foreground text-sm"
-        >
+        <p id={`field-${field.key}-hint`} className="text-ink-2 text-sm">
             {field.description}
         </p>
     );

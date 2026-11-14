@@ -54,7 +54,7 @@ export default function SetUp({ suggestedFolder }: SetUpPage) {
                                 />
                                 <p
                                     id="setup-label-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     Name it after who keeps it, such as Ada’s
                                     key. You can add more keys later.

@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { CommandPalette } from '@/components/palette/command-palette';
 import { setAppearanceSaving, syncAppearance } from '@/hooks/use-appearance';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
-import { applyLook } from '@/lib/preferences';
 import type { BreadcrumbItem } from '@/types';
 
 export default function AppLayout({
@@ -15,8 +14,6 @@ export default function AppLayout({
 }) {
     const { preferences } = usePage().props;
     const mode = preferences['appearance.mode'];
-    const look = preferences['appearance.look'];
-    const highContrast = preferences['appearance.high_contrast'];
 
     // Signed in: the light or dark switch saves the person's preference.
     useEffect(() => {
@@ -32,12 +29,6 @@ export default function AppLayout({
             syncAppearance(mode);
         }
     }, [mode]);
-
-    useEffect(() => {
-        if (look !== undefined) {
-            applyLook(look, highContrast === true);
-        }
-    }, [look, highContrast]);
 
     return (
         <AppLayoutTemplate breadcrumbs={breadcrumbs}>

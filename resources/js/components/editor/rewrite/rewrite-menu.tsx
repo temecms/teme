@@ -82,7 +82,7 @@ export function RewriteMenu({ editor }: { editor: Editor }) {
 
     return (
         <>
-            <span aria-hidden="true" className="bg-border mx-0.5 h-5 w-px" />
+            <span aria-hidden="true" className="bg-line mx-0.5 h-5 w-px" />
             <RewriteDropdown editor={editor} />
         </>
     );
@@ -120,7 +120,7 @@ function RewriteDropdown({ editor }: { editor: Editor }) {
                 <button
                     type="button"
                     data-test="rewrite-menu"
-                    className="hover:bg-accent focus-visible:ring-ring inline-flex h-[30px] items-center gap-1 rounded-md px-2 text-[13px] outline-none focus-visible:ring-2"
+                    className="hover:bg-surface-3 focus-visible:ring-ring inline-flex h-[30px] items-center gap-1 rounded-md px-2 text-[13px] outline-none focus-visible:ring-2"
                 >
                     <Sparkles aria-hidden="true" className="size-4" />
                     Rewrite
@@ -131,11 +131,11 @@ function RewriteDropdown({ editor }: { editor: Editor }) {
             <MenuContent
                 align="start"
                 sideOffset={4}
-                className="bg-popover text-popover-foreground z-50 min-w-[8rem] rounded-md border p-1 shadow-(--shadow)"
+                className="bg-surface text-ink shadow-float z-50 min-w-[8rem] rounded-md border p-1"
             >
                 <DropdownMenuLabel
                     data-test="rewrite-scope"
-                    className="text-muted-foreground text-xs font-normal"
+                    className="text-ink-2 text-xs font-normal"
                 >
                     {firstLine(refusal)}
                 </DropdownMenuLabel>

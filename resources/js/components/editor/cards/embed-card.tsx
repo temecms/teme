@@ -65,7 +65,7 @@ export function EmbedCard({
             }
         >
             {url === '' ? (
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     Paste the address of what to embed.
                 </p>
             ) : (
@@ -81,7 +81,7 @@ export function EmbedCard({
                         <p className="truncate text-[14px] font-semibold">
                             {attrs.title || url}
                         </p>
-                        <p className="text-muted-foreground truncate text-xs">
+                        <p className="text-ink-2 truncate text-xs">
                             {attrs.provider ?? hostOf(url)} ·{' '}
                             {framed ? 'framed on the site' : 'shown as a link'}
                         </p>
@@ -89,9 +89,7 @@ export function EmbedCard({
                 </div>
             )}
             {attrs.caption && (
-                <p className="text-muted-foreground mt-1.5 text-[13px]">
-                    {attrs.caption}
-                </p>
+                <p className="text-ink-2 mt-1.5 text-[13px]">{attrs.caption}</p>
             )}
         </CardFrame>
     );

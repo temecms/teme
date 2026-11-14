@@ -25,13 +25,13 @@ import { confirm } from '@/routes/two-factor';
 
 function GridScanIcon() {
     return (
-        <div className="border-border bg-card mb-3 rounded-full border p-0.5">
-            <div className="border-border bg-muted relative overflow-hidden rounded-full border p-2.5">
+        <div className="border-line bg-surface mb-3 rounded-full border p-0.5">
+            <div className="border-line bg-surface-2 relative overflow-hidden rounded-full border p-2.5">
                 <div className="absolute inset-0 grid grid-cols-5 opacity-50">
                     {Array.from({ length: 5 }, (_, i) => (
                         <div
                             key={`col-${i + 1}`}
-                            className="border-border border-r last:border-r-0"
+                            className="border-line border-r last:border-r-0"
                         />
                     ))}
                 </div>
@@ -39,11 +39,11 @@ function GridScanIcon() {
                     {Array.from({ length: 5 }, (_, i) => (
                         <div
                             key={`row-${i + 1}`}
-                            className="border-border border-b last:border-b-0"
+                            className="border-line border-b last:border-b-0"
                         />
                     ))}
                 </div>
-                <ScanLine className="text-foreground relative z-20 size-6" />
+                <ScanLine className="text-ink relative z-20 size-6" />
             </div>
         </div>
     );
@@ -73,11 +73,11 @@ function TwoFactorSetupStep({
             ) : (
                 <>
                     <div className="mx-auto flex max-w-md overflow-hidden">
-                        <div className="border-border mx-auto aspect-square w-64 rounded-lg border">
+                        <div className="border-line mx-auto aspect-square w-64 rounded-lg border">
                             <div className="z-10 flex h-full w-full items-center justify-center p-5">
                                 {qrCodeSvg ? (
                                     <div
-                                        className="aspect-square w-full rounded-lg bg-white p-2 [&_svg]:size-full"
+                                        className="bg-paper aspect-square w-full rounded-lg p-2 [&_svg]:size-full"
                                         dangerouslySetInnerHTML={{
                                             __html: qrCodeSvg,
                                         }}
@@ -102,16 +102,16 @@ function TwoFactorSetupStep({
                     </div>
 
                     <div className="relative flex w-full items-center justify-center">
-                        <div className="bg-border absolute inset-0 top-1/2 h-px w-full" />
-                        <span className="bg-card relative px-2 py-1">
+                        <div className="bg-line absolute inset-0 top-1/2 h-px w-full" />
+                        <span className="bg-surface relative px-2 py-1">
                             or type this setup key
                         </span>
                     </div>
 
                     <div className="flex w-full space-x-2">
-                        <div className="border-border flex w-full items-stretch overflow-hidden rounded-xl border">
+                        <div className="border-line flex w-full items-stretch overflow-hidden rounded-xl border">
                             {!manualSetupKey ? (
-                                <div className="bg-muted flex h-full w-full items-center justify-center p-3">
+                                <div className="bg-surface-2 flex h-full w-full items-center justify-center p-3">
                                     <Spinner />
                                 </div>
                             ) : (
@@ -120,11 +120,11 @@ function TwoFactorSetupStep({
                                         type="text"
                                         readOnly
                                         value={manualSetupKey}
-                                        className="bg-background text-foreground h-full w-full p-3 outline-none"
+                                        className="bg-page text-ink h-full w-full p-3 outline-none"
                                     />
                                     <button
                                         onClick={() => copy(manualSetupKey)}
-                                        className="border-border hover:bg-muted border-l px-3"
+                                        className="border-line hover:bg-surface-2 border-l px-3"
                                     >
                                         <IconComponent className="w-4" />
                                     </button>

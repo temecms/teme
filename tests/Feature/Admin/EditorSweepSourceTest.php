@@ -97,7 +97,7 @@ it('says the item\'s visibility under a select, offers the author as a select to
         ->toContain('id="editor-author"')
         ->toContain('Changing it changes the published ${noun} at once.')
         ->toContain("'1 revision'")
-        ->toContain('<dt className="text-muted-foreground">History</dt>')
+        ->toContain('<dt className="text-ink-2">History</dt>')
         ->not->toContain('<select')
         ->and(uiComponent('pages/content/edit.tsx'))
         ->toContain('ContentEditorController.author(session.id).url')

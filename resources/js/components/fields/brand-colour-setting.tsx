@@ -38,7 +38,7 @@ function Swatch({ colour }: { colour: string }) {
     return (
         <span
             aria-hidden="true"
-            className="border-border inline-block size-3 rounded-sm border"
+            className="border-line inline-block size-3 rounded-sm border"
             style={{ background: colour }}
         />
     );
@@ -122,7 +122,7 @@ export function BrandColourSetting({ brand }: { brand: BrandColourSection }) {
                                         onChange={(event) =>
                                             setText(event.target.value)
                                         }
-                                        className="border-input h-[34px] w-12 rounded border"
+                                        className="border-edge h-[34px] w-12 rounded border"
                                     />
                                     <label
                                         htmlFor="field-accent"
@@ -173,7 +173,7 @@ export function BrandColourSetting({ brand }: { brand: BrandColourSection }) {
                                 </div>
                                 <p
                                     id="brand-colour-readout"
-                                    className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]"
+                                    className="text-ink-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px]"
                                 >
                                     {text !== '' && typed === null ? (
                                         'Write the colour as # and six digits, such as the value the picker gives.'
@@ -208,7 +208,7 @@ export function BrandColourSetting({ brand }: { brand: BrandColourSection }) {
                                     )}
                                 </p>
                                 {problems.length > 0 && (
-                                    <ul className="text-destructive list-disc pl-5 text-[13px]">
+                                    <ul className="text-danger-ink list-disc pl-5 text-[13px]">
                                         {problems.map((problem) => (
                                             <li key={problem}>{problem}</li>
                                         ))}
@@ -219,7 +219,7 @@ export function BrandColourSetting({ brand }: { brand: BrandColourSection }) {
 
                             <SettingsPanelFooter>
                                 {locked ? (
-                                    <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                                    <p className="text-ink-2 flex items-center gap-2 text-sm">
                                         <Lock
                                             aria-hidden="true"
                                             className="size-4"

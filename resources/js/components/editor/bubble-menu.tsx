@@ -33,8 +33,8 @@ function MarkButton({
             aria-pressed={active}
             title={label}
             className={cn(
-                'hover:bg-accent focus-visible:ring-ring inline-flex size-[30px] items-center justify-center rounded-md outline-none focus-visible:ring-2 [&_svg]:size-4',
-                active && 'bg-muted ring-border ring-1 ring-inset',
+                'hover:bg-surface-3 focus-visible:ring-ring inline-flex size-[30px] items-center justify-center rounded-md outline-none focus-visible:ring-2 [&_svg]:size-4',
+                active && 'bg-surface-2 ring-line ring-1 ring-inset',
                 className,
             )}
             {...props}
@@ -85,7 +85,7 @@ export function BubbleMenu({
             <div
                 role="toolbar"
                 aria-label="Selection"
-                className="bg-popover border-border relative z-20 flex items-center gap-0.5 rounded-lg border p-1 shadow-(--shadow)"
+                className="bg-surface border-line shadow-float relative z-20 flex items-center gap-0.5 rounded-lg border p-1"
             >
                 <MarkButton
                     label="Bold"

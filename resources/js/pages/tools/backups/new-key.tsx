@@ -39,7 +39,7 @@ export default function NewKey() {
                                 />
                                 <p
                                     id="new-key-label-hint"
-                                    className="text-muted-foreground text-xs"
+                                    className="text-ink-2 text-xs"
                                 >
                                     Name it after who keeps it, such as Sam’s
                                     key.

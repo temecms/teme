@@ -359,7 +359,7 @@ export function AltTextSuggestion({
                     <Sparkles aria-hidden="true" />
                     {ALT_TEXT_WORDS.suggest}
                 </Button>
-                <span className="text-muted-foreground text-xs">
+                <span className="text-ink-2 text-xs">
                     The image is sent to {providerList(offer.sentTo)}.
                 </span>
             </div>
@@ -367,7 +367,7 @@ export function AltTextSuggestion({
                 <section
                     aria-labelledby={heading}
                     data-test="alt-text-card"
-                    className="bg-muted grid gap-2 rounded-md border p-3 text-sm"
+                    className="bg-surface-2 grid gap-2 rounded-md border p-3 text-sm"
                 >
                     <h3 id={heading} className="text-xs font-medium">
                         {ALT_TEXT_WORDS.heading}
@@ -402,7 +402,7 @@ export function AltTextSuggestion({
                         </div>
                     )}
                     {working && request.slow && (
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-ink-2 text-xs">
                             {ASSISTANT_WORDS.slow}
                         </p>
                     )}
@@ -416,7 +416,7 @@ export function AltTextSuggestion({
                         />
                     )}
                     {request.message !== null && (
-                        <p role="alert" className="text-destructive">
+                        <p role="alert" className="text-danger-ink">
                             {request.message}
                         </p>
                     )}
@@ -434,7 +434,7 @@ export function AltTextSuggestion({
                         </div>
                     )}
                     {request.sentTo.length > 0 && (
-                        <p className="text-muted-foreground text-xs">
+                        <p className="text-ink-2 text-xs">
                             Sent to {request.sentTo.join(' and ')}
                         </p>
                     )}

@@ -23,7 +23,7 @@ import type { FieldRow, FieldsPage, FieldsPageType } from '@/types';
 
 /** A row's action, drawn as a link under its name. */
 const LINK =
-    'text-link focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 text-xs hover:underline focus-visible:ring-2 focus-visible:outline-none';
+    'text-accent-ink focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 text-xs hover:underline focus-visible:ring-2 focus-visible:outline-none';
 
 /** How many items hold a value, as the removed list and the dialog say it. */
 function holdingPhrase(type: FieldsPageType, holding: number): string {
@@ -126,14 +126,14 @@ export default function TypeFields(page: FieldsPage) {
 
                 <Card>
                     {fields.length === 0 ? (
-                        <p className="text-muted-foreground p-4 text-sm">
+                        <p className="text-ink-2 p-4 text-sm">
                             No fields of your own yet. Add one, and the editor
                             shows it in Details at once.
                         </p>
                     ) : (
                         <table className="w-full text-[13px]">
                             <thead>
-                                <tr className="border-border border-b text-left">
+                                <tr className="border-line border-b text-left">
                                     <Th className="w-8">
                                         <span className="sr-only">Order</span>
                                     </Th>
@@ -186,7 +186,7 @@ export default function TypeFields(page: FieldsPage) {
                                             }
                                         }}
                                         className={cn(
-                                            'border-border border-b align-top last:border-b-0',
+                                            'border-line border-b align-top last:border-b-0',
                                             dragging === row.key &&
                                                 'opacity-50',
                                         )}
@@ -195,7 +195,7 @@ export default function TypeFields(page: FieldsPage) {
                                             {!locked && (
                                                 <span
                                                     title="Drag to reorder"
-                                                    className="text-muted-foreground inline-flex cursor-grab"
+                                                    className="text-ink-2 inline-flex cursor-grab"
                                                     data-test="field-grip"
                                                 >
                                                     <GripVertical
@@ -216,10 +216,10 @@ export default function TypeFields(page: FieldsPage) {
                                                     </Badge>
                                                 )}
                                             </div>
-                                            <div className="text-muted-foreground font-mono text-xs break-all">
+                                            <div className="text-ink-2 font-mono text-xs break-all">
                                                 {row.handle}
                                             </div>
-                                            <div className="text-muted-foreground text-xs sm:hidden">
+                                            <div className="text-ink-2 text-xs sm:hidden">
                                                 {typeLabel(page, row)}
                                                 {row.summary !== '' &&
                                                     ` · ${row.summary}`}
@@ -276,7 +276,7 @@ export default function TypeFields(page: FieldsPage) {
                                                         type="button"
                                                         className={cn(
                                                             LINK,
-                                                            'text-destructive',
+                                                            'text-danger-ink',
                                                         )}
                                                         onClick={() =>
                                                             setRemoving(row)
@@ -290,7 +290,7 @@ export default function TypeFields(page: FieldsPage) {
                                         <td className="hidden py-3 pr-3 sm:table-cell">
                                             {typeLabel(page, row)}
                                             {row.summary !== '' && (
-                                                <div className="text-muted-foreground text-xs">
+                                                <div className="text-ink-2 text-xs">
                                                     {row.summary}
                                                 </div>
                                             )}
@@ -318,7 +318,7 @@ export default function TypeFields(page: FieldsPage) {
                         />
                         <table className="w-full text-[13px]">
                             <thead>
-                                <tr className="border-border border-y text-left">
+                                <tr className="border-line border-y text-left">
                                     <Th className="pl-4">Field</Th>
                                     <Th className="hidden sm:table-cell">
                                         Values kept
@@ -333,20 +333,20 @@ export default function TypeFields(page: FieldsPage) {
                                     <tr
                                         key={row.key}
                                         data-test={`removed-row-${row.handle}`}
-                                        className="border-border border-b align-top last:border-b-0"
+                                        className="border-line border-b align-top last:border-b-0"
                                     >
                                         <td className="py-3 pr-3 pl-4">
                                             <div className="font-medium">
                                                 {row.label}
                                             </div>
-                                            <div className="text-muted-foreground font-mono text-xs break-all">
+                                            <div className="text-ink-2 font-mono text-xs break-all">
                                                 {row.handle} ·{' '}
                                                 {catalogueLabel(
                                                     page,
                                                     row.fieldType,
                                                 )}
                                             </div>
-                                            <div className="text-muted-foreground text-xs sm:hidden">
+                                            <div className="text-ink-2 text-xs sm:hidden">
                                                 {holdingPhrase(
                                                     type,
                                                     row.holding,
@@ -419,7 +419,7 @@ export default function TypeFields(page: FieldsPage) {
                             <Button
                                 type="button"
                                 variant="ghost"
-                                className="text-destructive"
+                                className="text-danger-ink"
                                 onClick={() => setRemoving(editing)}
                             >
                                 Remove field…
@@ -452,7 +452,7 @@ function catalogueLabel(page: FieldsPage, name: string): string {
 
 function Card({ children }: { children: ReactNode }) {
     return (
-        <section className="border-border bg-card overflow-hidden rounded-md border">
+        <section className="border-line bg-surface overflow-hidden rounded-md border">
             {children}
         </section>
     );
@@ -473,9 +473,7 @@ function CardHeading({
                 {icon}
                 {title}
             </h2>
-            <p className="text-muted-foreground text-[13px] text-pretty">
-                {line}
-            </p>
+            <p className="text-ink-2 text-[13px] text-pretty">{line}</p>
         </div>
     );
 }
@@ -491,7 +489,7 @@ function Th({
         <th
             scope="col"
             className={cn(
-                'text-muted-foreground py-2 pr-3 text-xs font-medium',
+                'text-ink-2 py-2 pr-3 text-xs font-medium',
                 className,
             )}
         >
@@ -520,10 +518,7 @@ function RowActions({
             {items.map((item, at) => (
                 <span key={at} className="inline-flex items-center gap-x-1">
                     {at > 0 && (
-                        <span
-                            aria-hidden="true"
-                            className="text-muted-foreground text-xs"
-                        >
+                        <span aria-hidden="true" className="text-ink-2 text-xs">
                             ·
                         </span>
                     )}
@@ -545,7 +540,7 @@ function FromTeme({ page }: { page: FieldsPage }) {
                         They come with the features ticked under{' '}
                         <Link
                             href={page.type.typeUrl}
-                            className="text-link underline underline-offset-2"
+                            className="text-accent-ink underline underline-offset-2"
                         >
                             In the editor
                         </Link>{' '}
@@ -557,7 +552,7 @@ function FromTeme({ page }: { page: FieldsPage }) {
             />
             <table className="w-full text-[13px]">
                 <thead>
-                    <tr className="border-border border-y text-left">
+                    <tr className="border-line border-y text-left">
                         <Th className="w-8 pl-3">
                             <span className="sr-only">Locked</span>
                         </Th>
@@ -575,12 +570,12 @@ function FromTeme({ page }: { page: FieldsPage }) {
                         return (
                             <tr
                                 key={row.name}
-                                className="border-border border-b align-top last:border-b-0"
+                                className="border-line border-b align-top last:border-b-0"
                             >
                                 <td className="w-8 py-3 pl-3">
                                     <Lock
                                         aria-hidden
-                                        className="text-muted-foreground size-4"
+                                        className="text-ink-2 size-4"
                                     />
                                 </td>
                                 <td className="min-w-0 py-3 pr-3">
@@ -590,16 +585,16 @@ function FromTeme({ page }: { page: FieldsPage }) {
                                         </span>
                                         <Badge variant="outline">Code</Badge>
                                     </div>
-                                    <div className="text-muted-foreground font-mono text-xs break-all">
+                                    <div className="text-ink-2 font-mono text-xs break-all">
                                         {row.handles}
                                     </div>
-                                    <div className="text-muted-foreground text-xs sm:hidden">
+                                    <div className="text-ink-2 text-xs sm:hidden">
                                         {row.fieldType} · {row.where}
                                     </div>
                                 </td>
                                 <td className="hidden py-3 pr-3 sm:table-cell">
                                     {row.fieldType}
-                                    <div className="text-muted-foreground text-xs">
+                                    <div className="text-ink-2 text-xs">
                                         {where}
                                     </div>
                                 </td>

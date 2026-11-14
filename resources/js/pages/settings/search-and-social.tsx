@@ -20,7 +20,7 @@ import type {
 } from '@/types';
 
 const textareaClass =
-    'border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
 
 /**
  * Settings › Search and social (I-874): the group's sections in their order,
@@ -80,7 +80,7 @@ export default function SearchAndSocialSettings({
                     <div
                         role="note"
                         data-test="seo-not-live"
-                        className="border-border flex gap-3 rounded-md border p-4 text-sm"
+                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
                     >
                         <Info
                             aria-hidden="true"
@@ -104,7 +104,7 @@ export default function SearchAndSocialSettings({
                         <dt className="font-medium">Sitemap</dt>
                         <dd>
                             {files.sitemap === null ? (
-                                <span className="text-muted-foreground">
+                                <span className="text-ink-2">
                                     Switched off while search engines are
                                     discouraged
                                 </span>
@@ -119,13 +119,13 @@ export default function SearchAndSocialSettings({
                         <dt className="font-medium">Feed</dt>
                         <dd>
                             <FileLink href={files.feed} />
-                            <span className="text-muted-foreground block">
+                            <span className="text-ink-2 block">
                                 Each category, tag and author has one too: its
                                 own address, then /feed/.
                             </span>
                         </dd>
                     </dl>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-ink-2 text-sm">
                         Teme writes all three from the settings below, so none
                         of them is a file to edit.
                     </p>
@@ -157,7 +157,7 @@ export default function SearchAndSocialSettings({
                                                 <div
                                                     role="note"
                                                     data-test="seo-titles-discouraged"
-                                                    className="border-border rounded-md border p-4 text-sm"
+                                                    className="border-line rounded-md border p-4 text-sm"
                                                 >
                                                     <p className="font-medium">
                                                         Search engines are asked
@@ -195,7 +195,7 @@ export default function SearchAndSocialSettings({
                                                 />
                                                 <p
                                                     id="field-title_separator-hint"
-                                                    className="text-muted-foreground text-sm"
+                                                    className="text-ink-2 text-sm"
                                                 >
                                                     Goes between the parts of
                                                     every title. Empty uses the
@@ -237,14 +237,14 @@ export default function SearchAndSocialSettings({
                                             </p>
 
                                             {section.note !== null && (
-                                                <p className="text-muted-foreground text-sm">
+                                                <p className="text-ink-2 text-sm">
                                                     {section.note}
                                                 </p>
                                             )}
                                             <div
                                                 role="group"
                                                 aria-label="Titles, and hiding from search engines, by kind of page"
-                                                className="border-border divide-border divide-y rounded-lg border"
+                                                className="border-line divide-line divide-y rounded-lg border"
                                             >
                                                 {titles.rows.map((row) => (
                                                     <TitleRow
@@ -294,7 +294,7 @@ export default function SearchAndSocialSettings({
                                     {section.key === 'site-verification' && (
                                         <>
                                             {section.note !== null && (
-                                                <p className="text-muted-foreground text-sm">
+                                                <p className="text-ink-2 text-sm">
                                                     {section.note} Scripts
                                                     belong in{' '}
                                                     {siteCodeUrl === null ? (
@@ -338,7 +338,7 @@ export default function SearchAndSocialSettings({
                                                     />
                                                     <p
                                                         id={`field-${field.key}-hint`}
-                                                        className="text-muted-foreground text-sm"
+                                                        className="text-ink-2 text-sm"
                                                     >
                                                         {field.description}
                                                     </p>
@@ -396,7 +396,7 @@ export default function SearchAndSocialSettings({
                                                         />
                                                         <p
                                                             id={`field-${field.key}-hint`}
-                                                            className="text-muted-foreground text-sm"
+                                                            className="text-ink-2 text-sm"
                                                         >
                                                             {field.description}
                                                         </p>
@@ -428,13 +428,13 @@ export default function SearchAndSocialSettings({
                                                     />
                                                 ),
                                             )}
-                                            <p className="text-muted-foreground text-sm">
+                                            <p className="text-ink-2 text-sm">
                                                 Teme’s list:{' '}
                                                 {robots.crawlers.join(', ')}.
                                             </p>
                                             <details
                                                 data-test="seo-robots-preview"
-                                                className="border-border rounded-md border"
+                                                className="border-line rounded-md border"
                                             >
                                                 <summary className="cursor-pointer px-4 py-2 text-sm font-medium">
                                                     What robots.txt says now
@@ -443,11 +443,11 @@ export default function SearchAndSocialSettings({
                                                     <pre className="font-mono text-xs break-all whitespace-pre-wrap">
                                                         {robots.text}
                                                     </pre>
-                                                    <p className="text-muted-foreground text-sm">
+                                                    <p className="text-ink-2 text-sm">
                                                         As last saved.
                                                     </p>
                                                     {discouraged && (
-                                                        <p className="text-muted-foreground text-sm">
+                                                        <p className="text-ink-2 text-sm">
                                                             It doesn’t change
                                                             while search engines
                                                             are discouraged: a
@@ -494,7 +494,7 @@ export default function SearchAndSocialSettings({
                                         section.key !== 'site-verification' &&
                                         section.key !==
                                             'titles-and-listing' && (
-                                            <p className="text-muted-foreground text-sm">
+                                            <p className="text-ink-2 text-sm">
                                                 {section.note}
                                             </p>
                                         )}
@@ -581,14 +581,14 @@ function TitleRow({
                 <p
                     id={`example-${row.template}`}
                     data-test="seo-row-example"
-                    className="text-muted-foreground text-xs break-words"
+                    className="text-ink-2 text-xs break-words"
                 >
                     Shows as: {fillTitle(template, row.tokens, separator)}
                 </p>
                 {row.pageTwo !== null && (
                     <p
                         data-test="seo-row-page-two"
-                        className="text-muted-foreground text-xs break-words"
+                        className="text-ink-2 text-xs break-words"
                     >
                         Page 2 shows as:{' '}
                         {fillTitle(template, row.pageTwo, separator)}
@@ -615,9 +615,7 @@ function TitleRow({
                     </div>
                 ) : (
                     row.note !== null && (
-                        <p className="text-muted-foreground text-xs">
-                            {row.note}
-                        </p>
+                        <p className="text-ink-2 text-xs">{row.note}</p>
                     )
                 )}
             </div>

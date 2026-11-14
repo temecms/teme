@@ -75,13 +75,13 @@ export function MediaControl({
                     id={`${idPrefix}-choose`}
                     type="button"
                     onClick={() => setChoosing(true)}
-                    className="border-input text-muted-foreground hover:bg-accent focus-visible:ring-ring flex h-24 items-center justify-center gap-2 rounded-md border border-dashed text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
+                    className="border-edge text-ink-2 hover:bg-surface-3 focus-visible:ring-ring flex h-24 items-center justify-center gap-2 rounded-md border border-dashed text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
                 >
                     <ImageIcon />
                     Choose an image
                 </button>
             ) : (
-                <div className="border-input bg-card grid gap-4 rounded-md border p-3 sm:grid-cols-[190px_minmax(0,1fr)]">
+                <div className="border-edge bg-surface grid gap-4 rounded-md border p-3 sm:grid-cols-[190px_minmax(0,1fr)]">
                     <figure className="m-0 grid content-start gap-1">
                         {item ? (
                             <img
@@ -96,17 +96,17 @@ export function MediaControl({
                         ) : loading.includes(featured.id) ? (
                             <div
                                 aria-busy="true"
-                                className="bg-muted aspect-[3/2] w-full animate-pulse rounded-sm"
+                                className="bg-surface-2 aspect-[3/2] w-full animate-pulse rounded-sm"
                             />
                         ) : (
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 This image is no longer in the library.
                             </p>
                         )}
                         {item && (item.credit || item.licence) && (
                             <figcaption
                                 data-test="featured-credit"
-                                className="text-muted-foreground text-[11px] leading-snug"
+                                className="text-ink-2 text-[11px] leading-snug"
                             >
                                 {[item.credit, item.licence]
                                     .filter((part) => part)
@@ -123,7 +123,7 @@ export function MediaControl({
                                 <span
                                     aria-hidden
                                     data-test="alt-missing"
-                                    className="bg-warning-muted text-warning rounded-sm px-1.5 py-0.5 text-[11px] font-medium"
+                                    className="bg-warn-soft text-warn-ink rounded-sm px-1.5 py-0.5 text-[11px] font-medium"
                                 >
                                     Missing
                                 </span>
@@ -140,11 +140,11 @@ export function MediaControl({
                                     alt: event.target.value,
                                 })
                             }
-                            className="border-input bg-card focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
+                            className="border-edge bg-surface focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
                         />
                         <p
                             id={`${idPrefix}-alt-hint`}
-                            className="text-muted-foreground text-xs"
+                            className="text-ink-2 text-xs"
                         >
                             {item?.alt
                                 ? `Leave empty to use the library’s: “${item.alt}”.`
@@ -181,7 +181,7 @@ export function MediaControl({
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                className="text-destructive"
+                                className="text-danger-ink"
                                 onClick={() => onChange(null)}
                             >
                                 Remove

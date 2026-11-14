@@ -72,13 +72,13 @@ export function SuggestMetadataNote({ state }: { state: Suggestion }) {
 
     return (
         <div className="grid gap-2">
-            <p className="text-muted-foreground text-xs">
+            <p className="text-ink-2 text-xs">
                 {Object.keys(proposals).length > 0
                     ? METADATA_WORDS.waiting
                     : METADATA_WORDS.hint}
             </p>
             {message !== null && (
-                <p role="alert" className="text-destructive text-xs">
+                <p role="alert" className="text-danger-ink text-xs">
                     {message}
                 </p>
             )}
@@ -115,9 +115,7 @@ export function SuggestMetadataPane({ ai }: { ai: EditorAi }) {
             <h3 id="assistant-metadata" className="text-xs font-medium">
                 Search and social
             </h3>
-            <p className="text-muted-foreground text-xs">
-                {METADATA_WORDS.paneHint}
-            </p>
+            <p className="text-ink-2 text-xs">{METADATA_WORDS.paneHint}</p>
             <div>
                 <Button
                     size="sm"

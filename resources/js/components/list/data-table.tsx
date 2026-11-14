@@ -43,7 +43,7 @@ function SortButton({
     return (
         <button
             type="button"
-            className="hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-1 rounded-sm font-medium focus-visible:ring-2 focus-visible:outline-none"
+            className="hover:text-ink focus-visible:ring-ring inline-flex items-center gap-1 rounded-sm font-medium focus-visible:ring-2 focus-visible:outline-none"
             onClick={() =>
                 onSort(
                     sort.key,
@@ -112,7 +112,7 @@ export function DataTable<Row>({
                                             : undefined
                                     }
                                     className={cn(
-                                        'bg-muted text-muted-foreground border-border h-9 border-b px-4 py-[9px] text-left text-[11px] leading-[18px] font-medium whitespace-nowrap *:align-middle',
+                                        'bg-surface-2 text-ink-2 border-line h-9 border-b px-4 py-[9px] text-left text-[11px] leading-[18px] font-medium whitespace-nowrap *:align-middle',
                                         column.className,
                                     )}
                                 >
@@ -146,7 +146,7 @@ export function DataTable<Row>({
                                         <td
                                             key={column.id}
                                             className={cn(
-                                                'border-border border-b px-4 py-3 align-top text-[13px] leading-5 *:align-top',
+                                                'border-line border-b px-4 py-3 align-top text-[13px] leading-5 *:align-top',
                                                 column.className,
                                             )}
                                         >

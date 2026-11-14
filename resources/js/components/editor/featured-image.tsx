@@ -32,7 +32,7 @@ export function FeaturedImage({
                 idPrefix="editor-featured"
                 chooseAction="Use as featured image"
             />
-            <p className="text-muted-foreground text-xs">{field.description}</p>
+            <p className="text-ink-2 text-xs">{field.description}</p>
         </section>
     );
 }

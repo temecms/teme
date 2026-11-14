@@ -322,7 +322,7 @@ export function MediaDrawer({
                     {item.trashed && (
                         <div
                             role="note"
-                            className="bg-muted grid gap-1 rounded-md border p-3 text-[13px]"
+                            className="bg-surface-2 grid gap-1 rounded-md border p-3 text-[13px]"
                         >
                             <p className="font-medium">
                                 In the trash since{' '}
@@ -331,7 +331,7 @@ export function MediaDrawer({
                                     : formatInZone(item.trashedAt, zone)}
                                 .
                             </p>
-                            <p className="text-muted-foreground">
+                            <p className="text-ink-2">
                                 Items that use it show nothing in its place
                                 until you restore it.
                             </p>
@@ -367,7 +367,7 @@ export function MediaDrawer({
                                 className="w-full rounded"
                             />
                             <span
-                                className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-black/50"
+                                className="border-on-photo bg-photo-scrim absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
                                 style={{
                                     left: `${focal[0]}%`,
                                     top: `${focal[1]}%`,
@@ -375,7 +375,7 @@ export function MediaDrawer({
                             />
                         </button>
                     ) : item.kind === 'image' ? (
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-ink-2 text-sm">
                             {item.processing === 'failed'
                                 ? 'Teme couldn’t make this image’s sizes.'
                                 : 'Preparing the preview…'}
@@ -418,7 +418,7 @@ export function MediaDrawer({
                                 }}
                             />
                             {item.kind === 'image' && (
-                                <p className="text-muted-foreground text-xs">
+                                <p className="text-ink-2 text-xs">
                                     Click the preview to set the focal point,
                                     which square crops keep in view.
                                 </p>
@@ -432,14 +432,14 @@ export function MediaDrawer({
                     >
                         <h3 className="text-sm font-medium">Uploaded for</h3>
                         {item.uploadedFor === null ? (
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-ink-2 text-sm">
                                 Not uploaded for any item.
                             </p>
                         ) : (
                             <>
                                 <p className="text-sm">
                                     {item.uploadedFor.title || 'Untitled'}{' '}
-                                    <span className="text-muted-foreground">
+                                    <span className="text-ink-2">
                                         — {uploadedForState(item.uploadedFor)}
                                     </span>
                                 </p>
@@ -460,7 +460,7 @@ export function MediaDrawer({
                     <section className="grid gap-2">
                         <h3 className="text-sm font-medium">Used in</h3>
                         {usages !== null && usages.rows.length === 0 ? (
-                            <p className="text-muted-foreground text-sm">
+                            <p className="text-ink-2 text-sm">
                                 Not used anywhere.
                             </p>
                         ) : (
@@ -468,7 +468,7 @@ export function MediaDrawer({
                                 {(usages?.rows ?? []).map((usage) => (
                                     <li key={usage.id}>
                                         {shownTitle(usage.title)}{' '}
-                                        <span className="text-muted-foreground">
+                                        <span className="text-ink-2">
                                             —{' '}
                                             {usage.published
                                                 ? 'live'

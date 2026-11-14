@@ -68,7 +68,7 @@ export default function Compare({
             <div className="grid grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 sm:px-6">
                 <Link
                     href={edit(contentId).url}
-                    className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 justify-self-start text-[13px]"
+                    className="text-ink-2 hover:text-ink inline-flex items-center gap-1.5 justify-self-start text-[13px]"
                 >
                     <ArrowLeft className="size-4" />
                     Back to the editor
@@ -113,7 +113,7 @@ export default function Compare({
                         Compare
                     </Button>
                 </form>
-                <div className="text-muted-foreground grid gap-3 text-[13px] lg:grid-cols-2 lg:gap-6">
+                <div className="text-ink-2 grid gap-3 text-[13px] lg:grid-cols-2 lg:gap-6">
                     {[
                         { side: 'Before', revision: from },
                         { side: 'After', revision: to },

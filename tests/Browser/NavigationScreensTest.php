@@ -53,7 +53,7 @@ it('passes axe on Navigation and on a menu\'s editor, every target 24 pixels or 
 
     $page->navigate("/admin/navigation/{$this->menu->id}")
         ->assertSee('https://example.org/')
-        ->assertSeeIn('[data-test="page-trail"]', 'Navigation')
+        ->assertSeeIn('[data-test="crumbs"] a', 'Navigation')
         ->assertNoAccessibilityIssues(3);
 
     $editor = cmSmallTargets($page);
@@ -72,7 +72,7 @@ it('creates a menu with Create menu, and opens its editor under the Navigation t
         ->assertSee('Menu created. Add its items, then choose where it shows.')
         ->assertPathBeginsWith('/admin/navigation/')
         ->assertScript("document.querySelector('h1')?.textContent", 'Footer links')
-        ->assertSeeIn('[data-test="page-trail"]', 'Navigation')
+        ->assertSeeIn('[data-test="crumbs"] a', 'Navigation')
         ->assertDontSee('← Navigation');
 
     expect(Navigation::query()->where('name', 'Footer links')->exists())->toBeTrue();

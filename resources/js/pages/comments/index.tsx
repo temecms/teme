@@ -314,7 +314,7 @@ export default function CommentsIndex(page: CommentsIndexPage) {
             cell: (row) => (
                 <div className="space-y-1">
                     {row.parent && (
-                        <p className="text-muted-foreground text-[12px]">
+                        <p className="text-ink-2 text-[12px]">
                             {row.parent.removed ||
                             row.parent.authorName === null
                                 ? 'In reply to a removed comment'
@@ -435,7 +435,7 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                             <button
                                 type="button"
                                 aria-label="Show comments on every item"
-                                className="hover:bg-accent focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+                                className="hover:bg-surface-3 focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
                                 onClick={() =>
                                     visit({
                                         view,
@@ -472,11 +472,11 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                         )}
                 </form>
 
-                <p id="cm-keys" className="text-muted-foreground text-[12px]">
+                <p id="cm-keys" className="text-ink-2 text-[12px]">
                     {'Keyboard: '}
                     {KEYS.map(([key, words], at) => (
                         <span key={key}>
-                            <kbd className="border-border rounded-sm border px-1 font-mono text-[11px]">
+                            <kbd className="border-line rounded-sm border px-1 font-mono text-[11px]">
                                 {key}
                             </kbd>
                             {words}

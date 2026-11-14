@@ -46,7 +46,7 @@ function Panel({
     return (
         <section
             aria-labelledby={id}
-            className={`rounded-md border p-4 ${warn ? 'border-warning' : 'border-border'}`}
+            className={`rounded-md border p-4 ${warn ? 'border-warn' : 'border-line'}`}
         >
             <h2 id={id} className="text-base font-medium">
                 {title}
@@ -57,7 +57,7 @@ function Panel({
 }
 
 function Code({ children }: { children: React.ReactNode }) {
-    return <code className="bg-muted rounded px-1 py-0.5">{children}</code>;
+    return <code className="bg-surface-2 rounded px-1 py-0.5">{children}</code>;
 }
 
 function Marks({ release }: { release: UpdateRelease }) {
@@ -241,7 +241,7 @@ export default function Updates({
 
                 <Panel id="updates-site" title="This site">
                     <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
-                        <dt className="text-muted-foreground">Version</dt>
+                        <dt className="text-ink-2">Version</dt>
                         <dd>
                             <strong className="font-medium">
                                 Teme {running.version}
@@ -253,19 +253,19 @@ export default function Updates({
                                 </>
                             )}
                             {!running.tagged && (
-                                <span className="text-muted-foreground block">
+                                <span className="text-ink-2 block">
                                     This build isn’t a release, so Teme doesn’t
                                     compare it with the releases.
                                 </span>
                             )}
                         </dd>
 
-                        <dt className="text-muted-foreground">Channel</dt>
+                        <dt className="text-ink-2">Channel</dt>
                         <dd>
                             {running.channel === 'prerelease'
                                 ? 'Gets: every release, pre-releases too'
                                 : 'Gets: releases only'}
-                            <span className="text-muted-foreground block">
+                            <span className="text-ink-2 block">
                                 {running.channelSet ? (
                                     <>
                                         Set by <Code>TEME_UPDATES_CHANNEL</Code>
@@ -281,7 +281,7 @@ export default function Updates({
                             </span>
                         </dd>
 
-                        <dt className="text-muted-foreground">Last deploy</dt>
+                        <dt className="text-ink-2">Last deploy</dt>
                         <dd>
                             {lastDeployed === undefined ? (
                                 <>
@@ -304,7 +304,7 @@ export default function Updates({
                                 compare it with the releases.
                             </p>
                             {newest !== null && (
-                                <p className="text-muted-foreground">
+                                <p className="text-ink-2">
                                     The newest release is Teme {newest.version},
                                     published {when(newest.publishedAt)}.
                                 </p>
@@ -314,7 +314,7 @@ export default function Updates({
                         <>
                             <p>No release has been found yet.</p>
                             {!check.enabled && (
-                                <p className="text-muted-foreground">
+                                <p className="text-ink-2">
                                     Update checks are off, so this list isn’t
                                     kept up to date.
                                 </p>
@@ -325,14 +325,14 @@ export default function Updates({
                             <p className="flex items-center gap-2">
                                 <CircleCheck
                                     aria-hidden="true"
-                                    className="text-success size-4 shrink-0"
+                                    className="text-ok-ink size-4 shrink-0"
                                 />
                                 <span>
                                     <span className="sr-only">All well. </span>
                                     This site runs the newest release it gets.
                                 </span>
                             </p>
-                            <p className="text-muted-foreground">
+                            <p className="text-ink-2">
                                 Teme {newest.version}, published{' '}
                                 {when(newest.publishedAt)}.
                             </p>
@@ -344,7 +344,7 @@ export default function Updates({
                                     <p className="flex items-start gap-2">
                                         <TriangleAlert
                                             aria-hidden="true"
-                                            className="text-warning mt-0.5 size-4 shrink-0"
+                                            className="text-warn-ink mt-0.5 size-4 shrink-0"
                                         />
                                         <span>
                                             This list is from{' '}
@@ -360,7 +360,7 @@ export default function Updates({
                             </p>
                             <p className="flex flex-wrap items-center gap-2">
                                 <Marks release={top} />
-                                <span className="text-muted-foreground">
+                                <span className="text-ink-2">
                                     Published {when(top.publishedAt)}
                                 </span>
                             </p>
@@ -399,13 +399,13 @@ export default function Updates({
                             )}
                             {older.length > 0 && (
                                 <div className="space-y-2">
-                                    <p className="text-muted-foreground">
+                                    <p className="text-ink-2">
                                         Also after yours
                                     </p>
                                     {older.map((release) => (
                                         <details
                                             key={release.version}
-                                            className="border-border rounded-md border p-3"
+                                            className="border-line rounded-md border p-3"
                                         >
                                             <summary className="cursor-pointer">
                                                 Teme {release.version} ·
@@ -441,7 +441,7 @@ export default function Updates({
                                 releases. It sends nothing about this site.
                             </p>
                             {check.checkedAt === null ? (
-                                <p className="text-muted-foreground">
+                                <p className="text-ink-2">
                                     Not checked yet. It runs within the hour, or
                                     now with{' '}
                                     <Code>php artisan teme:updates:check</Code>.
@@ -457,13 +457,13 @@ export default function Updates({
                                         </p>
                                     )}
                                     <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
-                                        <dt className="text-muted-foreground">
+                                        <dt className="text-ink-2">
                                             Last checked
                                         </dt>
                                         <dd>{when(check.checkedAt)}</dd>
                                         {check.succeededAt !== null && (
                                             <>
-                                                <dt className="text-muted-foreground">
+                                                <dt className="text-ink-2">
                                                     Last read the list
                                                 </dt>
                                                 <dd>
@@ -500,11 +500,9 @@ export default function Updates({
                 </Panel>
 
                 <Panel id="updates-deploys" title="Deploys">
-                    <p className="text-muted-foreground">
-                        The last ten, newest first.
-                    </p>
+                    <p className="text-ink-2">The last ten, newest first.</p>
                     {deploys.length === 0 ? (
-                        <p className="text-muted-foreground">
+                        <p className="text-ink-2">
                             No deploy recorded yet. Each{' '}
                             <Code>php artisan teme:deploy</Code> is recorded
                             from this release on.
@@ -523,9 +521,9 @@ export default function Updates({
                                           ? CircleX
                                           : TriangleAlert;
                                 const color = {
-                                    ok: 'text-success',
-                                    warn: 'text-warning',
-                                    bad: 'text-destructive',
+                                    ok: 'text-ok-ink',
+                                    warn: 'text-warn-ink',
+                                    bad: 'text-danger-ink',
                                 }[outcome.level];
                                 const ran = `${run.migrations} ${run.migrations === 1 ? 'migration' : 'migrations'} ran`;
                                 const sentence =
@@ -551,7 +549,7 @@ export default function Updates({
                                         <span className="block">
                                             {sentence}
                                         </span>
-                                        <span className="text-muted-foreground block">
+                                        <span className="text-ink-2 block">
                                             {when(run.finishedAt)} · took{' '}
                                             {duration(
                                                 run.startedAt,

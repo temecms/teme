@@ -26,7 +26,7 @@ export function PageHeader({
                     {badge}
                 </div>
                 {description && (
-                    <p className="text-muted-foreground max-w-[640px] text-[13px]">
+                    <p className="text-ink-2 max-w-[640px] text-[13px]">
                         {description}
                     </p>
                 )}

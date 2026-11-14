@@ -76,7 +76,7 @@ export default function Sftp({
                                     readOnly
                                     rows={4}
                                     value={publicKey}
-                                    className="border-input bg-background w-full rounded-md border px-3 py-2 font-mono text-xs break-all"
+                                    className="border-edge bg-page w-full rounded-md border px-3 py-2 font-mono text-xs break-all"
                                 />
                                 <Button
                                     type="button"
@@ -138,7 +138,7 @@ export default function Sftp({
                                     />
                                     <p
                                         id="sftp-recovery-key-hint"
-                                        className="text-muted-foreground text-xs"
+                                        className="text-ink-2 text-xs"
                                     >
                                         Teme locks the new place with it too,
                                         then forgets it. It’s a key you typed

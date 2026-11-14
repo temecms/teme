@@ -41,13 +41,13 @@ export function ImportSteps({ step }: { step: ImportStep }) {
                         aria-current={now ? 'step' : undefined}
                         className={
                             now
-                                ? 'text-foreground flex items-center gap-2 font-medium'
-                                : 'text-muted-foreground flex items-center gap-2'
+                                ? 'text-ink flex items-center gap-2 font-medium'
+                                : 'text-ink-2 flex items-center gap-2'
                         }
                     >
                         <span
                             aria-hidden="true"
-                            className="border-border inline-flex size-6 items-center justify-center rounded-full border tabular-nums"
+                            className="border-line inline-flex size-6 items-center justify-center rounded-full border tabular-nums"
                         >
                             {done ? <Check className="size-3.5" /> : index + 1}
                         </span>

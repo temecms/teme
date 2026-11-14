@@ -48,7 +48,7 @@ export function QuickDraft() {
                                     name="body"
                                     rows={4}
                                     maxLength={5000}
-                                    className="border-input bg-background focus-visible:ring-ring rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2"
+                                    className="border-edge bg-page focus-visible:ring-ring rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2"
                                 />
                                 <InputError message={errors.body} />
                             </div>

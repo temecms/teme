@@ -78,7 +78,7 @@ export function RowActionsMenu({
                     type="button"
                     aria-label={label}
                     data-action="more"
-                    className="text-link focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 hover:underline focus-visible:ring-2 focus-visible:outline-none"
+                    className="text-accent-ink focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 hover:underline focus-visible:ring-2 focus-visible:outline-none"
                 >
                     More
                 </button>

@@ -72,9 +72,7 @@ export function PairsSetting({
                         value=""
                         disabled={disabled}
                     />
-                    <p className="text-muted-foreground text-sm">
-                        {emptyLabel}
-                    </p>
+                    <p className="text-ink-2 text-sm">{emptyLabel}</p>
                 </>
             )}
             {rows.map((row, index) => (

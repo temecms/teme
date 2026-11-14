@@ -121,14 +121,14 @@ export function SearchPreviews({
             className="grid grid-cols-[minmax(0,1fr)] gap-5 @2xl:grid-cols-[minmax(0,632px)_minmax(0,280px)] @2xl:justify-start"
         >
             <div className="grid content-start gap-2">
-                <h3 className="text-muted-foreground text-[11px] font-medium">
+                <h3 className="text-ink-2 text-[11px] font-medium">
                     Search result
                 </h3>
                 {note !== null && (
                     <p
                         role="note"
                         data-test="serp-note"
-                        className="text-muted-foreground flex gap-1.5 text-xs"
+                        className="text-ink-2 flex gap-1.5 text-xs"
                     >
                         <Info aria-hidden className="mt-px size-3.5 shrink-0" />
                         <span>{note}</span>
@@ -136,14 +136,14 @@ export function SearchPreviews({
                 )}
                 <div
                     data-test="serp"
-                    className="border-border grid w-full gap-0.5 rounded-md border p-4 font-[Arial,Helvetica,sans-serif]"
+                    className="border-line grid w-full gap-0.5 rounded-md border p-4 font-[Arial,Helvetica,sans-serif]"
                 >
-                    <p className="text-muted-foreground truncate text-xs">
+                    <p className="text-ink-2 truncate text-xs">
                         {crumbs(address)}
                     </p>
                     <p
                         data-test="serp-title"
-                        className="text-link text-[20px] leading-snug"
+                        className="text-accent-ink text-[20px] leading-snug"
                     >
                         {fitWidth(search.title.text, 20, 580)}
                     </p>
@@ -153,20 +153,17 @@ export function SearchPreviews({
                             : fitWidth(search.description.text, 14, 920)}
                     </p>
                 </div>
-                <p
-                    data-test="description-from"
-                    className="text-muted-foreground text-xs"
-                >
+                <p data-test="description-from" className="text-ink-2 text-xs">
                     {descriptionSource(descriptionFrom)}
                 </p>
             </div>
             <div className="grid content-start gap-2">
-                <h3 className="text-muted-foreground text-[11px] font-medium">
+                <h3 className="text-ink-2 text-[11px] font-medium">
                     Social card
                 </h3>
                 <div
                     data-test="social-card"
-                    className="border-border grid grid-cols-[132px_minmax(0,1fr)] overflow-hidden rounded-md border"
+                    className="border-line grid grid-cols-[132px_minmax(0,1fr)] overflow-hidden rounded-md border"
                 >
                     {source !== null ? (
                         <img
@@ -177,31 +174,28 @@ export function SearchPreviews({
                     ) : waiting ? (
                         <div
                             aria-busy="true"
-                            className="bg-muted min-h-[72px] w-full animate-pulse"
+                            className="bg-surface-2 min-h-[72px] w-full animate-pulse"
                         />
                     ) : (
-                        <div className="border-border text-muted-foreground m-2 flex min-h-[56px] items-center justify-center rounded-sm border border-dashed text-xs">
+                        <div className="border-line text-ink-2 m-2 flex min-h-[56px] items-center justify-center rounded-sm border border-dashed text-xs">
                             No image
                         </div>
                     )}
                     <div className="grid content-start gap-0.5 px-3 py-2">
-                        <p className="text-muted-foreground text-[11px] uppercase">
+                        <p className="text-ink-2 text-[11px] uppercase">
                             {host}
                         </p>
                         <p className="line-clamp-2 text-xs font-semibold">
                             {card.title}
                         </p>
                         {description !== null && (
-                            <p className="text-muted-foreground line-clamp-2 text-[11px]">
+                            <p className="text-ink-2 line-clamp-2 text-[11px]">
                                 {description}
                             </p>
                         )}
                     </div>
                 </div>
-                <p
-                    data-test="social-from"
-                    className="text-muted-foreground text-xs"
-                >
+                <p data-test="social-from" className="text-ink-2 text-xs">
                     Made from {joined(made)}
                     {lacks.length > 0 ? `, with ${joined(lacks)}.` : '.'}
                 </p>

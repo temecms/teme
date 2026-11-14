@@ -10,8 +10,6 @@ export type Preferences = {
     'editor.focus_mode_default': boolean;
     'lists.per_page': number;
     'appearance.mode': 'light' | 'dark' | 'system';
-    'appearance.look': string;
-    'appearance.high_contrast': boolean;
     'dashboard.getting_started_hidden': boolean;
     /** Screen options: the columns each type's list shows, by column id. */
     [key: `lists.${string}.columns`]: string[];

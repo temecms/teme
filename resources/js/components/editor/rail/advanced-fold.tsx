@@ -61,7 +61,7 @@ function BoxRow({
                 id={id}
                 describedBy={`${id}-hint`}
             />
-            <p id={`${id}-hint`} className="text-muted-foreground text-xs">
+            <p id={`${id}-hint`} className="text-ink-2 text-xs">
                 {field.description}
             </p>
         </div>
@@ -170,7 +170,7 @@ export function AdvancedFold({
             : holds.charAt(0).toUpperCase() + holds.slice(1);
 
     return (
-        <Collapsible className="border-border rounded-md border">
+        <Collapsible className="border-line rounded-md border">
             <CollapsibleTrigger
                 id="editor-advanced"
                 className="group focus-visible:ring-ring flex min-h-10 w-full items-center gap-3 rounded-md px-3 text-left text-[13px] font-semibold outline-none focus-visible:ring-2"
@@ -178,7 +178,7 @@ export function AdvancedFold({
                 Advanced
                 <span
                     data-test="advanced-summary"
-                    className="text-muted-foreground flex-1 text-xs font-normal"
+                    className="text-ink-2 flex-1 text-xs font-normal"
                 >
                     {summary}
                 </span>
@@ -215,7 +215,7 @@ export function AdvancedFold({
                             />
                             <p
                                 id="editor-page-type-hint"
-                                className="text-muted-foreground text-xs"
+                                className="text-ink-2 text-xs"
                             >
                                 {pageType.description}
                             </p>
@@ -239,7 +239,7 @@ export function AdvancedFold({
                             />
                             <p
                                 id="editor-article-type-hint"
-                                className="text-muted-foreground text-xs"
+                                className="text-ink-2 text-xs"
                             >
                                 {articleType.description}
                             </p>
@@ -273,7 +273,7 @@ export function AdvancedFold({
                             />
                             <p
                                 id="editor-max-snippet-hint"
-                                className="text-muted-foreground text-xs"
+                                className="text-ink-2 text-xs"
                             >
                                 {maxSnippet.description}
                                 {noSnippet &&

@@ -160,14 +160,14 @@ export function TermTreePicker({
                     </li>
                 ))}
                 {rows.length === 0 && (
-                    <li className="text-muted-foreground py-1 text-[13px]">
+                    <li className="text-ink-2 py-1 text-[13px]">
                         {terms.length === 0 ? 'None yet.' : 'Nothing matches.'}
                     </li>
                 )}
             </ul>
             {canAdd &&
                 (adding ? (
-                    <div className="border-border grid gap-2 border-t pt-2">
+                    <div className="border-line grid gap-2 border-t pt-2">
                         <Label htmlFor={`${id}-name`}>Name</Label>
                         <Input
                             id={`${id}-name`}
@@ -188,10 +188,7 @@ export function TermTreePicker({
                             className="h-[30px] w-full"
                         />
                         {problem && (
-                            <p
-                                role="alert"
-                                className="text-destructive text-xs"
-                            >
+                            <p role="alert" className="text-danger-ink text-xs">
                                 {problem}
                             </p>
                         )}

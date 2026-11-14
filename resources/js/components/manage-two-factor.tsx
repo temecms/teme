@@ -50,7 +50,7 @@ export default function ManageTwoFactor(props: Props) {
             <Heading variant="small" title="Two-factor sign-in" />
             {twoFactorEnabled ? (
                 <div className="flex flex-col items-start justify-start space-y-4">
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-ink-2 text-sm">
                         When you sign in, you also type the code from the
                         authenticator app on your phone.
                     </p>
@@ -83,7 +83,7 @@ export default function ManageTwoFactor(props: Props) {
                 </div>
             ) : (
                 <div className="flex flex-col items-start justify-start space-y-4">
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-ink-2 text-sm">
                         Once it’s on, signing in also asks for a code from an
                         authenticator app on your phone.
                     </p>

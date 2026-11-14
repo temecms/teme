@@ -10,6 +10,7 @@ use App\Domain\Languages\AdminWords;
 use App\Domain\Navigation\Queries\AdminNavigation;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Queries\SettingsNavigation;
+use App\Domain\Status\StatusBanner;
 use App\Domain\Status\StatusChecks;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
@@ -71,6 +72,12 @@ final class HandleInertiaRequests extends Middleware
         $userId = $request->user()?->getAuthIdentifier();
         $nav = $this->adminNavigation->forUser($userId);
 
+        // Every status check's banner this person may act on, asked once a request (I-3397).
+        $banners = null;
+        $bannersFor = function () use ($request, &$banners): array {
+            return $banners ??= $request->user() === null ? [] : app(StatusChecks::class)->bannersFor($request->user());
+        };
+
         return [
             ...parent::share($request),
             'name' => $this->settings->string('general', 'site_title'),
@@ -82,9 +89,10 @@ final class HandleInertiaRequests extends Middleware
             // sidebar draws a Pinned group from these keys, looked up in nav.
             'navPinned' => $this->adminNavigation->pinnedFor($request->user(), $nav),
             'settingsNav' => $this->settingsNavigation->forUser($userId),
-            // The one banner this person should see at the top of every
-            // screen, such as a theme that can't be used (I-221), or null.
-            'statusBanner' => fn (): ?array => $request->user() === null ? null : app(StatusChecks::class)->forUser($request->user())?->toArray(),
+            // The one banner at the top of every screen, such as a theme that can't be used (I-221), or null.
+            'statusBanner' => fn (): ?array => ($bannersFor()[0] ?? null)?->toArray(),
+            // The top bar's site status: every banner, the most pressing first (I-3397).
+            'siteStatus' => fn (): array => array_map(fn (StatusBanner $banner): array => $banner->toArray(), $bannersFor()),
             // The header's jobs button and bell (I-104): only for someone
             // the verified routes behind both panels will answer.
             'headerCounts' => function () use ($request): ?array {

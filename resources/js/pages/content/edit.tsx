@@ -1287,7 +1287,7 @@ function Editor(page: ContentEditPage) {
                                     onChange={(event) =>
                                         setTitle(event.target.value)
                                     }
-                                    className="border-input bg-card focus-visible:ring-ring focus-visible:ring-offset-background field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 font-serif text-[28px] leading-tight font-semibold outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+                                    className="border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 font-serif text-[28px] leading-tight font-semibold outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
                                 />
                                 <InputError id="editor-title-error" />
                             </div>
@@ -1320,7 +1320,7 @@ function Editor(page: ContentEditPage) {
                                     />
                                     <p
                                         id="editor-excerpt-hint"
-                                        className="text-muted-foreground text-xs"
+                                        className="text-ink-2 text-xs"
                                     >
                                         {excerpt.description}
                                     </p>
@@ -1354,7 +1354,7 @@ function Editor(page: ContentEditPage) {
                                 </span>
                                 <div
                                     data-slot="editor-body"
-                                    className="border-input bg-card focus-within:ring-ring focus-within:ring-offset-background rounded-md border focus-within:ring-2 focus-within:ring-offset-1"
+                                    className="border-edge bg-surface focus-within:ring-ring focus-within:ring-offset-page rounded-md border focus-within:ring-2 focus-within:ring-offset-1"
                                 >
                                     <ProseEditor
                                         document={session.document}

@@ -2,13 +2,12 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { PageTrail } from '@/components/page-trail';
 import { StatusBanner } from '@/components/status-banner';
 import type { AppLayoutProps } from '@/types';
 
 /**
- * The column beside the sidebar: the header, the banner under it, then the
- * `main` landmark. The header is outside `main` so the skip link lands on the
+ * The column beside the sidebar: the top bar with the page's crumbs, the
+ * banner under it, then the `main` landmark. The header is outside `main` so the skip link lands on the
  * content, and the banner is a region of its own.
  */
 export default function AppSidebarLayout({
@@ -20,12 +19,11 @@ export default function AppSidebarLayout({
             <AppSidebar />
             <div
                 data-slot="app-column"
-                className="bg-background flex min-h-svh min-w-0 flex-1 flex-col"
+                className="bg-page flex min-h-svh min-w-0 flex-1 flex-col"
             >
-                <AppSidebarHeader />
+                <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 <StatusBanner />
                 <AppContent className="min-w-0 overflow-x-clip">
-                    <PageTrail breadcrumbs={breadcrumbs} />
                     {children}
                 </AppContent>
             </div>

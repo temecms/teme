@@ -81,7 +81,7 @@ const SHOW: [FieldShowValue, string][] = [
 
 /** A text area drawn as the admin's inputs are. */
 const AREA =
-    'border-input bg-background focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
 
 /** A choice row as the sheet keeps it: whether it was stored before, so its value stays. */
 type ChoiceRow = FieldChoice & { id: number; stored: boolean };
@@ -341,7 +341,7 @@ function FieldForm({
                                 <div className="grid gap-1.5">
                                     <p
                                         id="field-type-later"
-                                        className="text-muted-foreground text-xs font-medium"
+                                        className="text-ink-2 text-xs font-medium"
                                     >
                                         Coming in later updates
                                     </p>
@@ -467,7 +467,7 @@ function FieldForm({
                         <InputError message={errors.show} />
                     </div>
 
-                    <SheetFooter className="bg-card sticky bottom-0 mt-auto flex-row flex-wrap border-t">
+                    <SheetFooter className="bg-surface sticky bottom-0 mt-auto flex-row flex-wrap border-t">
                         <Button type="submit" disabled={processing}>
                             {editing === null ? 'Add field' : 'Save field'}
                         </Button>
@@ -490,7 +490,7 @@ function FieldForm({
 
 function Hint({ id, children }: { id?: string; children: ReactNode }) {
     return (
-        <p id={id} className="text-muted-foreground text-xs text-pretty">
+        <p id={id} className="text-ink-2 text-xs text-pretty">
             {children}
         </p>
     );
@@ -516,11 +516,9 @@ function TypeChoice({
     return (
         <label
             className={cn(
-                'border-border flex items-start gap-2.5 rounded-md border p-2.5 text-[13px]',
-                checked && 'border-primary bg-accent',
-                disabled
-                    ? 'text-muted-foreground cursor-not-allowed'
-                    : 'cursor-pointer',
+                'border-line flex items-start gap-2.5 rounded-md border p-2.5 text-[13px]',
+                checked && 'border-accent bg-surface-3',
+                disabled ? 'text-ink-2 cursor-not-allowed' : 'cursor-pointer',
             )}
         >
             <input
@@ -530,12 +528,12 @@ function TypeChoice({
                 checked={checked}
                 disabled={disabled}
                 onChange={onChange}
-                className="accent-primary mt-0.5 size-4 shrink-0"
+                className="accent-accent mt-0.5 size-4 shrink-0"
             />
             <Icon aria-hidden className="mt-0.5 size-4 shrink-0" />
             <span className="grid gap-0.5">
                 <span className="font-medium">{name}</span>
-                <span className="text-muted-foreground text-xs">{line}</span>
+                <span className="text-ink-2 text-xs">{line}</span>
             </span>
         </label>
     );
@@ -570,7 +568,7 @@ function Choices({
                 aria-labelledby="field-choices-label"
                 className="grid gap-1.5"
             >
-                <div className="text-muted-foreground grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem] gap-2 text-xs font-medium">
+                <div className="text-ink-2 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem] gap-2 text-xs font-medium">
                     <span id="field-choices-stored">Stored as</span>
                     <span id="field-choices-shown">Shown as</span>
                     <span />
@@ -584,7 +582,7 @@ function Choices({
                             name={`settings[choices][${at}][value]`}
                             value={choice.value}
                             readOnly={choice.stored}
-                            className="read-only:bg-muted font-mono"
+                            className="read-only:bg-surface-2 font-mono"
                             autoComplete="off"
                             spellCheck={false}
                             aria-labelledby="field-choices-stored"
@@ -761,8 +759,8 @@ function RadioRow({
         <label
             htmlFor={id}
             className={cn(
-                'border-border flex items-center gap-2.5 rounded-md border px-2.5 py-2 text-[13px] font-medium',
-                checked && 'border-primary bg-accent',
+                'border-line flex items-center gap-2.5 rounded-md border px-2.5 py-2 text-[13px] font-medium',
+                checked && 'border-accent bg-surface-3',
                 disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
             )}
         >
@@ -774,7 +772,7 @@ function RadioRow({
                 checked={checked}
                 disabled={disabled}
                 onChange={onChange}
-                className="accent-primary size-4 shrink-0"
+                className="accent-accent size-4 shrink-0"
             />
             {label}
         </label>

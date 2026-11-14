@@ -7,7 +7,12 @@ import type { useHeaderActivity } from '@/components/header/use-header-activity'
 import { JobProgress } from '@/components/jobs/job-progress';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { formatInZone } from '@/lib/zoned-time';
+
+/** The count drawn on the button's corner. */
+const COUNT =
+    'bg-ink text-page text-caption pointer-events-none absolute end-0 top-0 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 font-mono';
 
 /** A count as the badge shows it: "99+" from 100. */
 const shown = (n: number): string => (n >= 100 ? '99+' : String(n));
@@ -33,7 +38,7 @@ export function JobsButton({
     activity: ReturnType<typeof useHeaderActivity>;
 }) {
     const [open, setOpen] = useState(false);
-    const { counts, jobs, jobsFailed, loadJobs } = activity;
+    const { counts, jobs, loadJobs } = activity;
 
     if (counts === null || !counts.hasJobs) {
         return null;
@@ -46,13 +51,6 @@ export function JobsButton({
             loadJobs();
         }
     };
-
-    const act = (verb: 'retry' | 'cancel', id: string) =>
-        router.post(
-            MyJobsController[verb].url({ job: id }),
-            {},
-            { preserveScroll: true, onFinish: loadJobs },
-        );
 
     return (
         <HeaderPanel
@@ -67,7 +65,7 @@ export function JobsButton({
                     size="icon"
                     data-test="jobs-button"
                     aria-label={nameOf(counts.running, counts.failed)}
-                    className="relative max-md:size-11"
+                    className="relative"
                 >
                     {counts.running > 0 ? (
                         <LoaderCircle
@@ -78,17 +76,14 @@ export function JobsButton({
                         <ListChecks aria-hidden="true" />
                     )}
                     {counts.running > 0 && (
-                        <span
-                            aria-hidden="true"
-                            className="bg-foreground text-card absolute top-[3px] right-[2px] h-4 min-w-4 rounded-lg px-1 font-mono text-[10px] leading-4"
-                        >
+                        <span aria-hidden="true" className={COUNT}>
                             {shown(counts.running)}
                         </span>
                     )}
                     {counts.running === 0 && counts.failed > 0 && (
                         <span
                             aria-hidden="true"
-                            className="bg-destructive text-destructive-foreground absolute top-[3px] right-[2px] h-4 min-w-4 rounded-lg px-1 font-mono text-[10px] leading-4"
+                            className={cn(COUNT, 'bg-danger text-on-danger')}
                         >
                             {shown(counts.failed)}
                         </span>
@@ -106,45 +101,67 @@ export function JobsButton({
                 ) : undefined
             }
         >
+            <JobsPanelBody activity={activity} />
+        </HeaderPanel>
+    );
+}
+
+/**
+ * The person's latest jobs with Retry and Cancel: the jobs panel's content,
+ * also drawn in the small screens' status sheet.
+ */
+export function JobsPanelBody({
+    activity,
+}: {
+    activity: ReturnType<typeof useHeaderActivity>;
+}) {
+    const { jobs, jobsFailed, loadJobs } = activity;
+
+    const act = (verb: 'retry' | 'cancel', id: string) =>
+        router.post(
+            MyJobsController[verb].url({ job: id }),
+            {},
+            { preserveScroll: true, onFinish: loadJobs },
+        );
+
+    return (
+        <>
             {jobsFailed && (
-                <p
-                    role="status"
-                    className="text-muted-foreground p-3.5 text-[13px]"
-                >
+                <p role="status" className="text-ink-2 text-small px-4 py-3">
                     Your jobs couldn’t be loaded. Try again in a moment.
                 </p>
             )}
             {!jobsFailed && jobs === null && (
-                <div className="grid gap-2 p-3.5" role="status">
+                <div className="grid gap-2 px-4 py-3" role="status">
                     <Skeleton className="h-10 motion-safe:animate-pulse" />
                     <Skeleton className="h-10 motion-safe:animate-pulse" />
                 </div>
             )}
             {!jobsFailed && jobs !== null && jobs.rows.length === 0 && (
-                <div className="p-3.5 text-[13px]">
+                <div className="text-small px-4 py-3">
                     <p className="font-medium">No jobs yet</p>
-                    <p className="text-muted-foreground">
+                    <p className="text-ink-2">
                         Long tasks you start show their progress here.
                     </p>
                 </div>
             )}
             {!jobsFailed && jobs !== null && jobs.rows.length > 0 && (
-                <ul aria-label="Your jobs" className="divide-border divide-y">
+                <ul aria-label="Your jobs" className="divide-line divide-y">
                     {jobs.rows.map((row) => (
                         <li
                             key={row.id}
                             data-test="my-job"
-                            className="flex items-start justify-between gap-3 px-3.5 py-2.5 text-[13px]"
+                            className="text-small flex items-start justify-between gap-3 px-4 py-3"
                         >
                             <div className="grid min-w-0 gap-1">
                                 <span className="font-medium">{row.label}</span>
                                 <JobProgress job={row} />
-                                <span className="text-muted-foreground text-xs">
+                                <span className="text-ink-2 text-caption">
                                     {row.stateLabel}
                                     {row.message !== null &&
                                         ` · ${row.message}`}
                                 </span>
-                                <span className="text-muted-foreground text-xs">
+                                <span className="text-ink-2 text-caption">
                                     Started{' '}
                                     {formatInZone(
                                         row.startedAt,
@@ -178,6 +195,6 @@ export function JobsButton({
                     ))}
                 </ul>
             )}
-        </HeaderPanel>
+        </>
     );
 }

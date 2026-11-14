@@ -135,7 +135,7 @@ export function EditorShell({
                 {showRail && (
                     <aside
                         aria-label={railTitle}
-                        className="border-border bg-card relative sticky top-0 h-full min-h-0 overflow-y-auto overscroll-contain border-l"
+                        className="border-line bg-surface relative sticky top-0 h-full min-h-0 overflow-y-auto overscroll-contain border-l"
                     >
                         <div
                             role="separator"
@@ -164,7 +164,7 @@ export function EditorShell({
                                     storeWidth(next);
                                 }
                             }}
-                            className="hover:bg-border focus-visible:bg-ring absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize outline-none"
+                            className="hover:bg-line focus-visible:bg-ring absolute inset-y-0 -left-1 z-10 w-2 cursor-col-resize outline-none"
                         />
                         {rail}
                     </aside>

@@ -1,11 +1,12 @@
 import { Slot } from "@radix-ui/react-slot"
-import { ChevronRight, MoreHorizontal } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 import * as React from "react"
 
+import { __ } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
 function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
-  return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />
+  return <nav aria-label={__("Breadcrumb")} data-slot="breadcrumb" {...props} />
 }
 
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
@@ -13,7 +14,7 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
     <ol
       data-slot="breadcrumb-list"
       className={cn(
-        "text-muted-foreground flex flex-wrap items-center gap-1.5 text-sm break-words sm:gap-2.5",
+        "flex flex-wrap items-center gap-2 text-body font-medium break-words text-ink-2",
         className
       )}
       {...props}
@@ -25,7 +26,7 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
       data-slot="breadcrumb-item"
-      className={cn("inline-flex items-center gap-1.5", className)}
+      className={cn("inline-flex items-center gap-2", className)}
       {...props}
     />
   )
@@ -43,7 +44,7 @@ function BreadcrumbLink({
   return (
     <Comp
       data-slot="breadcrumb-link"
-      className={cn("hover:text-foreground transition-colors", className)}
+      className={cn("transition-[color] duration-(--dur-1) ease-(--ease) hover:text-ink", className)}
       {...props}
     />
   )
@@ -56,7 +57,7 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
       role="link"
       aria-disabled="true"
       aria-current="page"
-      className={cn("text-foreground font-normal", className)}
+      className={cn("font-semibold text-ink", className)}
       {...props}
     />
   )
@@ -72,10 +73,10 @@ function BreadcrumbSeparator({
       data-slot="breadcrumb-separator"
       role="presentation"
       aria-hidden="true"
-      className={cn("[&>svg]:size-3.5", className)}
+      className={cn("text-ink-3", className)}
       {...props}
     >
-      {children ?? <ChevronRight />}
+      {children ?? "/"}
     </li>
   )
 }
@@ -93,7 +94,7 @@ function BreadcrumbEllipsis({
       {...props}
     >
       <MoreHorizontal className="size-4" />
-      <span className="sr-only">More</span>
+      <span className="sr-only">{__("More")}</span>
     </span>
   )
 }

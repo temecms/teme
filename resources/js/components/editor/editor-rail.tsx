@@ -273,7 +273,7 @@ function ActionBar({
     );
 
     return (
-        <div className="border-border bg-background sticky top-0 z-10 grid gap-2 border-b px-4 py-3">
+        <div className="border-line bg-page sticky top-0 z-10 grid gap-2 border-b px-4 py-3">
             <div className="flex flex-wrap items-center gap-2">
                 {onPreview !== null && (
                     <Button
@@ -327,7 +327,7 @@ function ActionBar({
                                 query: { to: pending.revisionId },
                             }).url
                         }
-                        className="text-link underline-offset-2 hover:underline"
+                        className="text-accent-ink underline-offset-2 hover:underline"
                     >
                         Compare with the published version
                     </Link>
@@ -406,7 +406,7 @@ function ActionBar({
                         value={note}
                         onChange={(event) => setNote(event.target.value)}
                         onKeyDown={(event) => event.stopPropagation()}
-                        className="border-input bg-card focus-visible:ring-ring rounded-md border px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2"
+                        className="border-edge bg-surface focus-visible:ring-ring rounded-md border px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2"
                     />
                     <div className="flex gap-2">
                         <Button
@@ -429,7 +429,7 @@ function ActionBar({
             )}
 
             {review?.state === 'returned' && (
-                <div className="bg-warning-muted rounded-md px-2 py-1.5 text-xs">
+                <div className="bg-warn-soft rounded-md px-2 py-1.5 text-xs">
                     <p className="font-medium">Returned for changes</p>
                     <p className="whitespace-pre-line">{review.note}</p>
                 </div>
@@ -569,7 +569,7 @@ export function EditorRail({
     if (pane !== null) {
         return (
             <div className="flex min-h-full flex-col">
-                <div className="border-border flex h-12 items-center gap-2 border-b px-4">
+                <div className="border-line flex h-12 items-center gap-2 border-b px-4">
                     <h2 className="text-[13px] font-semibold">{pane.title}</h2>
                     <span className="flex-1" />
                     <Button
@@ -654,7 +654,7 @@ export function EditorRail({
                 noun={noun}
             />
             {session.can.delete && typeSegment !== null && (
-                <div className="border-border mt-auto border-t px-4 py-4">
+                <div className="border-line mt-auto border-t px-4 py-4">
                     <Form
                         {...ContentActionController.action.form({
                             type: typeSegment,
@@ -668,7 +668,7 @@ export function EditorRail({
                                     type="submit"
                                     variant="ghost"
                                     size="sm"
-                                    className="text-destructive"
+                                    className="text-danger-ink"
                                 >
                                     Move to trash
                                 </Button>

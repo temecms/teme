@@ -37,7 +37,7 @@ const KIND_LABELS: Record<TrackKind, string> = {
     chapters: 'Chapters',
 };
 
-const MUTED = 'text-muted-foreground mt-1.5 text-[13px]';
+const MUTED = 'text-ink-2 mt-1.5 text-[13px]';
 
 /**
  * A video card as it will play: the file with its poster and size, the
@@ -106,7 +106,7 @@ export function VideoCard({
                                     );
                                 }
                             }}
-                            className="bg-muted h-auto w-full rounded-sm"
+                            className="bg-surface-2 h-auto w-full rounded-sm"
                         />
                         {loop && (
                             <p className={MUTED}>
@@ -120,17 +120,17 @@ export function VideoCard({
                         )}
                     </figure>
                 ) : item ? (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         This file isn’t a video, so the site shows nothing here.
                         Replace it or remove the card.
                     </p>
                 ) : attrs.mediaId && loading.includes(attrs.mediaId) ? (
                     <div
                         aria-busy="true"
-                        className="bg-muted aspect-video w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 aspect-video w-full animate-pulse rounded-sm"
                     />
                 ) : (
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         {attrs.mediaId
                             ? 'This video is no longer in the library, so the site shows nothing here. Replace it or remove the card.'
                             : 'Choose a video from the library.'}
@@ -241,10 +241,7 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                         </Button>
                     )}
                 </div>
-                <p
-                    id={`${id}-poster-hint`}
-                    className="text-muted-foreground text-xs"
-                >
+                <p id={`${id}-poster-hint`} className="text-ink-2 text-xs">
                     The picture shown before it plays. Search engines list a
                     video only when it has one.
                 </p>
@@ -269,10 +266,7 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                         no controls
                     </Label>
                 </div>
-                <p
-                    id={`${id}-loop-hint`}
-                    className="text-muted-foreground text-xs"
-                >
+                <p id={`${id}-loop-hint`} className="text-ink-2 text-xs">
                     For a short clip without sound, used like a moving picture.
                 </p>
             </div>
@@ -288,10 +282,7 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                 >
                     Caption tracks
                 </span>
-                <p
-                    id={`${id}-tracks-hint`}
-                    className="text-muted-foreground text-xs"
-                >
+                <p id={`${id}-tracks-hint`} className="text-ink-2 text-xs">
                     WebVTT files (.vtt) from the library, so people who can’t
                     hear the video can read it.
                 </p>
@@ -320,12 +311,12 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                     Add a track
                 </Button>
                 {tracks.length >= MOST_TRACKS && (
-                    <p className="text-muted-foreground text-xs">
+                    <p className="text-ink-2 text-xs">
                         A video holds up to 8 tracks.
                     </p>
                 )}
                 {refusal && (
-                    <p role="alert" className="text-destructive text-xs">
+                    <p role="alert" className="text-danger-ink text-xs">
                         {refusal}
                     </p>
                 )}
@@ -394,7 +385,7 @@ function TrackRow({
 
     return (
         <div
-            className="border-border grid gap-2 rounded-md border p-2"
+            className="border-line grid gap-2 rounded-md border p-2"
             role="group"
             aria-label={name}
         >

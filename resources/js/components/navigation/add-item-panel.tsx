@@ -43,7 +43,7 @@ function Results({
         <div className="grid gap-4">
             {groups.map((group) => (
                 <section key={group.label} className="grid gap-1">
-                    <h3 className="text-muted-foreground text-[12px] font-semibold">
+                    <h3 className="text-ink-2 text-[12px] font-semibold">
                         {group.label}
                     </h3>
                     <ul className="grid">
@@ -51,7 +51,7 @@ function Results({
                             <li key={item.id}>
                                 <button
                                     type="button"
-                                    className="hover:bg-muted w-full rounded px-2 py-1.5 text-left text-[13px]"
+                                    className="hover:bg-surface-2 w-full rounded px-2 py-1.5 text-left text-[13px]"
                                     onClick={item.add}
                                 >
                                     {item.title}
@@ -287,7 +287,7 @@ export function AddItemPanel({
                     <div
                         role="tablist"
                         aria-label="What to add"
-                        className="border-border flex flex-wrap gap-x-5 border-b"
+                        className="border-line flex flex-wrap gap-x-5 border-b"
                         onKeyDown={onTabKey}
                     >
                         {tabs.map((item) => (
@@ -303,8 +303,8 @@ export function AddItemPanel({
                                 className={cn(
                                     '-mb-px inline-flex h-9 items-center border-b-2 px-0.5 text-[13px]',
                                     tab === item.key
-                                        ? 'border-primary text-foreground font-semibold'
-                                        : 'text-muted-foreground hover:text-foreground border-transparent font-medium',
+                                        ? 'border-accent text-ink font-semibold'
+                                        : 'text-ink-2 hover:text-ink border-transparent font-medium',
                                 )}
                             >
                                 {item.label}
@@ -319,7 +319,7 @@ export function AddItemPanel({
                             aria-labelledby="add-item-tab-home"
                             className="grid justify-items-start gap-3"
                         >
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 A link to the front page of the site. The label
                                 starts as “Home”.
                             </p>
@@ -340,7 +340,7 @@ export function AddItemPanel({
                                 addHeading();
                             }}
                         >
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 {HEADING_HINT}
                             </p>
                             <div className="grid gap-2">
@@ -387,7 +387,7 @@ export function AddItemPanel({
                                 aria-label="Find by title"
                             />
                             {contentGroups.length === 0 ? (
-                                <p className="text-muted-foreground text-[13px]">
+                                <p className="text-ink-2 text-[13px]">
                                     Nothing found.
                                 </p>
                             ) : (
@@ -413,7 +413,7 @@ export function AddItemPanel({
                             />
                             {termQuery.trim() !== '' &&
                                 (termGroups.length === 0 ? (
-                                    <p className="text-muted-foreground text-[13px]">
+                                    <p className="text-ink-2 text-[13px]">
                                         Nothing found.
                                     </p>
                                 ) : (

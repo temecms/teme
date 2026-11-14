@@ -86,11 +86,11 @@ export function saveWords(
 }
 
 const DOTS: Record<SaveKind, string> = {
-    saved: 'bg-success',
-    saving: 'bg-warning',
-    offline: 'bg-destructive',
-    stale: 'bg-destructive',
-    refused: 'bg-destructive',
+    saved: 'bg-ok',
+    saving: 'bg-warn',
+    offline: 'bg-danger',
+    stale: 'bg-danger',
+    refused: 'bg-danger',
 };
 
 /**
@@ -120,7 +120,7 @@ export function SaveState({
             data-state={words.kind}
             data-saved-at={savedAt ?? undefined}
             title={words.detail}
-            className="text-muted-foreground inline-flex items-center gap-1.5 text-[11px] whitespace-nowrap"
+            className="text-ink-2 inline-flex items-center gap-1.5 text-[11px] whitespace-nowrap"
         >
             <span
                 aria-hidden

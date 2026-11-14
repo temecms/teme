@@ -92,9 +92,7 @@ export default function NavigationIndex({ navigations }: NavigationIndexPage) {
             cell: (row) => (
                 <span
                     className={
-                        row.shownIn.length === 0
-                            ? 'text-muted-foreground'
-                            : undefined
+                        row.shownIn.length === 0 ? 'text-ink-2' : undefined
                     }
                 >
                     {shownIn(row)}

@@ -50,7 +50,7 @@ function Plan({
                         >
                             Your choices
                         </h2>
-                        <p className="text-muted-foreground text-[13px]">
+                        <p className="text-ink-2 text-[13px]">
                             Teme uses these for this import and for each
                             catch-up after it.
                         </p>

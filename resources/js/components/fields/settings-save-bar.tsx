@@ -27,7 +27,7 @@ export function SettingsSaveBar({
     return (
         <div
             data-test="save-bar"
-            className="bg-card sticky bottom-0 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border px-5 py-3 shadow-sm max-sm:px-4"
+            className="bg-surface sticky bottom-0 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border px-5 py-3 shadow-sm max-sm:px-4"
         >
             <Button type="submit" disabled={processing} data-test={testId}>
                 {label}
@@ -35,7 +35,7 @@ export function SettingsSaveBar({
             {note !== undefined && note !== '' && (
                 <p
                     data-test="save-bar-note"
-                    className="text-muted-foreground min-w-0 text-xs text-pretty"
+                    className="text-ink-2 min-w-0 text-xs text-pretty"
                 >
                     {note}
                 </p>

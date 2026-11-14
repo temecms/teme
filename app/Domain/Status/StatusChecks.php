@@ -7,9 +7,9 @@ namespace App\Domain\Status;
 use App\Models\User;
 
 /**
- * Every registered status check, with who added it, and the one banner a
- * person sees: the highest-priority banner among the checks they may act on
- * (I-221).
+ * Every registered status check, with who added it, every banner a person
+ * may act on, and the one they see first: the highest-priority banner among
+ * the checks they may act on (I-221).
  */
 final class StatusChecks
 {
@@ -53,11 +53,14 @@ final class StatusChecks
     }
 
     /**
-     * The banner this person should see, or null when there is none for them.
+     * Every banner this person may act on, the most pressing first; among
+     * equals, in the order the checks were registered.
+     *
+     * @return list<StatusBanner>
      */
-    public function forUser(User $user): ?StatusBanner
+    public function bannersFor(User $user): array
     {
-        $shown = null;
+        $banners = [];
 
         foreach ($this->checks as ['check' => $registered]) {
             $check = $registered instanceof StatusCheck ? $registered : app($registered);
@@ -69,11 +72,21 @@ final class StatusChecks
 
             $banner = $check->banner();
 
-            if ($banner !== null && ($shown === null || $banner->priority > $shown->priority)) {
-                $shown = $banner;
+            if ($banner !== null) {
+                $banners[] = $banner;
             }
         }
 
-        return $shown;
+        usort($banners, fn (StatusBanner $a, StatusBanner $b): int => $b->priority <=> $a->priority);
+
+        return $banners;
+    }
+
+    /**
+     * The banner this person should see, or null when there is none for them.
+     */
+    public function forUser(User $user): ?StatusBanner
+    {
+        return $this->bannersFor($user)[0] ?? null;
     }
 }

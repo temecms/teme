@@ -52,13 +52,13 @@ export function MediaSetting({ field, name, value, media, disabled }: Props) {
                     data-test="media-choose"
                     disabled={disabled}
                     onClick={() => setChoosing(true)}
-                    className="border-input text-muted-foreground hover:bg-accent focus-visible:ring-ring flex h-24 items-center justify-center gap-2 rounded-md border border-dashed text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
+                    className="border-edge text-ink-2 hover:bg-surface-3 focus-visible:ring-ring flex h-24 items-center justify-center gap-2 rounded-md border border-dashed text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
                 >
                     <ImageIcon />
                     Choose an image
                 </button>
             ) : (
-                <div className="border-input bg-card grid gap-3 rounded-md border p-3 sm:grid-cols-[160px_minmax(0,1fr)]">
+                <div className="border-edge bg-surface grid gap-3 rounded-md border p-3 sm:grid-cols-[160px_minmax(0,1fr)]">
                     {item ? (
                         <img
                             data-test="media-preview"
@@ -73,12 +73,12 @@ export function MediaSetting({ field, name, value, media, disabled }: Props) {
                     ) : loading.includes(chosen) ? (
                         <div
                             aria-busy="true"
-                            className="bg-muted aspect-[3/2] w-full animate-pulse rounded-sm"
+                            className="bg-surface-2 aspect-[3/2] w-full animate-pulse rounded-sm"
                         />
                     ) : (
                         <p
                             data-test="media-gone"
-                            className="text-muted-foreground text-[13px]"
+                            className="text-ink-2 text-[13px]"
                         >
                             This image is no longer in the library.
                         </p>

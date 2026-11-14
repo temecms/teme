@@ -49,7 +49,7 @@ export function duration(startedAt: string, finishedAt: string): string {
 }
 
 function Code({ children }: { children: React.ReactNode }) {
-    return <code className="bg-muted rounded px-1 py-0.5">{children}</code>;
+    return <code className="bg-surface-2 rounded px-1 py-0.5">{children}</code>;
 }
 
 /** Every step, in order, those the updater hasn't recorded yet as waiting. */
@@ -112,7 +112,7 @@ function StateIcon({ state }: { state: string }) {
             {state === 'done' ? (
                 <CircleCheck
                     aria-hidden="true"
-                    className={`${common} text-success`}
+                    className={`${common} text-ok-ink`}
                 />
             ) : state === 'started' ? (
                 <Loader2
@@ -122,18 +122,15 @@ function StateIcon({ state }: { state: string }) {
             ) : state === 'failed' ? (
                 <CircleX
                     aria-hidden="true"
-                    className={`${common} text-destructive`}
+                    className={`${common} text-danger-ink`}
                 />
             ) : state === 'switched-back' ? (
                 <Undo2
                     aria-hidden="true"
-                    className={`${common} text-warning`}
+                    className={`${common} text-warn-ink`}
                 />
             ) : (
-                <Circle
-                    aria-hidden="true"
-                    className={`${common} text-muted-foreground`}
-                />
+                <Circle aria-hidden="true" className={`${common} text-ink-2`} />
             )}
             <span className="sr-only">{label}. </span>
         </>
@@ -163,13 +160,13 @@ function Steps({
                                 {stepWords(step, update, deploy)}
                             </span>
                             {time !== null && (
-                                <span className="text-muted-foreground">
+                                <span className="text-ink-2">
                                     {' · '}
                                     {when(time)}
                                 </span>
                             )}
                             {step.detail !== null && step.state !== 'done' && (
-                                <span className="text-muted-foreground block">
+                                <span className="text-ink-2 block">
                                     {step.detail}
                                 </span>
                             )}
@@ -337,10 +334,7 @@ export function UpdateButton({
             testId="update-now"
             below={
                 reason !== null && (
-                    <p
-                        id="update-reason"
-                        className="text-muted-foreground text-xs"
-                    >
+                    <p id="update-reason" className="text-ink-2 text-xs">
                         {reason}
                     </p>
                 )
@@ -390,7 +384,7 @@ export function UpdateProgress({
             aria-labelledby="update-lead"
             data-test="update-block"
             data-status={update.status}
-            className="border-border space-y-3 rounded-md border p-4 text-[13px]"
+            className="border-line space-y-3 rounded-md border p-4 text-[13px]"
         >
             {update.status === 'requested' && (
                 <>
@@ -404,7 +398,7 @@ export function UpdateProgress({
                             : `${rolling ? 'Roll back' : 'Update'} to Teme ${update.to} requested by ${update.requestedBy} at ${when(update.requestedAt)}. The updater starts it within a minute.`}
                     </p>
                     {quiet && (
-                        <p className="text-muted-foreground">
+                        <p className="text-ink-2">
                             {updaterSeenAt === null
                                 ? 'No updater has looked for requests yet. Without one, update by hand: see How to update.'
                                 : `No updater has looked for requests since ${when(updaterSeenAt)}. Without one, update by hand: see How to update.`}
@@ -454,9 +448,7 @@ export function UpdateProgress({
                             aria-label={`${done.length} of 7 steps`}
                             className="w-full"
                         />
-                        <p className="text-muted-foreground">
-                            {done.length} of 7 steps
-                        </p>
+                        <p className="text-ink-2">{done.length} of 7 steps</p>
                     </div>
                     <Steps update={update} deploy={deploy} when={when} />
                 </>
@@ -481,7 +473,7 @@ export function UpdateProgress({
                         rollback !== null &&
                         (rollback.refusal === null ? (
                             <div className="space-y-2">
-                                <p className="text-muted-foreground">
+                                <p className="text-ink-2">
                                     Rolling back switches every part to{' '}
                                     {rollback.version} again. The database keeps{' '}
                                     {update.to}’s additions, which{' '}
@@ -496,9 +488,7 @@ export function UpdateProgress({
                                 />
                             </div>
                         ) : (
-                            <p className="text-muted-foreground">
-                                {rollback.refusal}
-                            </p>
+                            <p className="text-ink-2">{rollback.refusal}</p>
                         ))}
                 </>
             )}
@@ -514,7 +504,7 @@ export function UpdateProgress({
                         {finished}. {update.error ?? ''} So every part runs{' '}
                         {update.from} again.
                     </p>
-                    <p className="text-muted-foreground">
+                    <p className="text-ink-2">
                         The database keeps {update.to}’s additions, which{' '}
                         {update.from} runs beside. Nothing else needs doing.
                     </p>

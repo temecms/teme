@@ -58,13 +58,13 @@ function PagePicker({
                 placeholder="Search published pages"
             />
             {found.length > 0 && (
-                <ul className="border-border rounded border">
+                <ul className="border-line rounded border">
                     {found.slice(0, 8).map((target) => (
                         <li key={target.id}>
                             <button
                                 type="button"
                                 data-test="page-choice"
-                                className="hover:bg-muted w-full px-3 py-1.5 text-left text-[13px]"
+                                className="hover:bg-surface-2 w-full px-3 py-1.5 text-left text-[13px]"
                                 onClick={() => {
                                     onChange(target.id, target.title);
                                     setQuery('');
@@ -222,7 +222,7 @@ export function HomePageSetting({ home }: { home: HomePageSection }) {
                                     </fieldset>
 
                                     {clashes.length > 0 && (
-                                        <ul className="text-destructive list-disc pl-5 text-[13px]">
+                                        <ul className="text-danger-ink list-disc pl-5 text-[13px]">
                                             {clashes.map((clash) => (
                                                 <li key={clash}>{clash}</li>
                                             ))}
@@ -232,7 +232,7 @@ export function HomePageSetting({ home }: { home: HomePageSection }) {
 
                                 <SettingsPanelFooter>
                                     {locked ? (
-                                        <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                                        <p className="text-ink-2 flex items-center gap-2 text-sm">
                                             <Lock
                                                 aria-hidden="true"
                                                 className="size-4"

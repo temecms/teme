@@ -1,14 +1,20 @@
 import { Link, useHttp, usePage } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { PropsWithChildren } from 'react';
+import type { CSSProperties, PropsWithChildren } from 'react';
 import FindSettingsController from '@/actions/App/Http/Admin/Settings/FindSettingsController';
+import { Page } from '@/components/patterns/page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { SettingsFound } from '@/types';
 
 const NONE: SettingsFound = { screens: [], settings: [] };
+
+/** The side list beside the page from 1024px: up to 200 wide, the page taking the rest. */
+const COLUMNS = {
+    '--settings-cols': 'minmax(0, 200px) minmax(0, 1fr)',
+} as CSSProperties;
 
 /**
  * What Find a setting finds for what is typed, 150 ms after typing stops,
@@ -90,16 +96,16 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             <Link
                 href={href}
                 onClick={() => setQuery('')}
-                className="hover:bg-muted focus-visible:ring-ring grid gap-0.5 px-4 py-2 focus-visible:ring-2 focus-visible:outline-none"
+                className="hover:bg-surface-2 focus-visible:outline-ring grid gap-0.5 px-4 py-2 focus-visible:outline-2 focus-visible:-outline-offset-2"
             >
-                <span className="text-[13px] font-medium">{label}</span>
-                <span className="text-muted-foreground text-xs">{line}</span>
+                <span className="text-body font-medium">{label}</span>
+                <span className="text-small text-ink-2">{line}</span>
             </Link>
         </li>
     );
 
     return (
-        <div className="space-y-4 p-6 max-md:px-4">
+        <Page className="grid gap-4">
             <div
                 role="search"
                 aria-label="Settings search"
@@ -107,7 +113,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             >
                 <Search
                     aria-hidden="true"
-                    className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
+                    className="text-ink-3 pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
                 />
                 <label htmlFor="find-setting" className="sr-only">
                     Find a setting
@@ -120,7 +126,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                     placeholder="Find a setting, e.g. time zone"
                     aria-controls="settings-found"
                     autoComplete="off"
-                    className="pl-8"
+                    className="ps-10"
                     data-test="find-setting"
                 />
             </div>
@@ -129,12 +135,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 {term !== '' && (
                     <section
                         aria-labelledby="settings-found-heading"
-                        className="border-border max-w-3xl rounded-md border"
+                        className="bg-surface shadow-raised max-w-(--form-max) overflow-hidden rounded-lg"
                     >
-                        <div className="border-border flex items-center justify-between gap-3 border-b px-4 py-2">
+                        <div className="border-line flex items-center justify-between gap-3 border-b px-4 py-2">
                             <h2
                                 id="settings-found-heading"
-                                className="text-[13px] font-semibold"
+                                className="text-body font-semibold"
                             >
                                 {answered
                                     ? `${count === 1 ? '1 result' : `${count} results`} for “${term}”`
@@ -150,17 +156,17 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                             </Button>
                         </div>
                         {answered && count === 0 ? (
-                            <div className="space-y-1 px-4 py-6">
-                                <p className="text-[13px] font-semibold">
+                            <div className="grid gap-1 px-4 py-6">
+                                <p className="text-body font-semibold">
                                     No setting matches
                                 </p>
-                                <p className="text-muted-foreground text-[13px]">
+                                <p className="text-body text-ink-2">
                                     Try another word. The search reads every
                                     setting’s name and description.
                                 </p>
                             </div>
                         ) : (
-                            <ul className="divide-border divide-y">
+                            <ul className="divide-line divide-y">
                                 {answer.found.screens.map((found) =>
                                     result(
                                         `page.${found.key}`,
@@ -185,11 +191,13 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
             <div
                 hidden={term !== ''}
-                className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[200px_minmax(0,1fr)]"
+                className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-(--settings-cols)"
+                style={COLUMNS}
             >
+                {/* The row scrolls inside itself under 1024px, never the page. */}
                 <nav
                     aria-label="Settings"
-                    className="flex min-w-0 gap-0.5 overflow-x-auto max-lg:border-b max-lg:pb-1 lg:sticky lg:top-6 lg:grid lg:content-start lg:self-start"
+                    className="flex min-w-0 gap-1 overflow-x-auto max-lg:pb-1 lg:sticky lg:top-6 lg:grid lg:content-start lg:self-start"
                 >
                     {/* One group per heading: Site, and Plugin settings once a plugin adds a group. */}
                     {headings.map((heading, index) => (
@@ -197,12 +205,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                             key={heading}
                             role="group"
                             aria-labelledby={`settings-heading-${index}`}
-                            className="flex gap-0.5 lg:grid"
+                            className="flex gap-1 lg:grid"
                         >
                             <p
                                 id={`settings-heading-${index}`}
                                 data-test="settings-heading"
-                                className="text-muted-foreground px-2 pt-3 pb-1 text-[11px] font-medium max-lg:hidden"
+                                className="text-caption text-ink-3 px-3 pt-3 pb-1 font-semibold uppercase max-lg:hidden"
                             >
                                 {heading}
                             </p>
@@ -217,7 +225,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                                 ? 'page'
                                                 : undefined
                                         }
-                                        className="hover:bg-muted aria-[current=page]:bg-muted flex min-h-8 shrink-0 items-center rounded-md px-2 py-1 text-[13px] whitespace-nowrap aria-[current=page]:font-medium"
+                                        className="text-small text-ink-2 hover:bg-surface-3 hover:text-ink aria-[current=page]:bg-accent-soft aria-[current=page]:text-on-accent-soft focus-visible:outline-ring flex min-h-(--ctl-h-sm) shrink-0 items-center rounded-md px-3 font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:-outline-offset-2"
                                     >
                                         {item.label}
                                     </Link>
@@ -228,6 +236,6 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
                 <div className="min-w-0">{children}</div>
             </div>
-        </div>
+        </Page>
     );
 }

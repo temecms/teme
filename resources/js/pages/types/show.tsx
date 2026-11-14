@@ -177,7 +177,7 @@ function TypeForm({ page }: { page: TypePage }) {
                             <div className="grid gap-2">
                                 <p className="text-sm font-medium">Icon</p>
                                 <div className="flex items-center gap-2">
-                                    <span className="bg-muted flex size-8 items-center justify-center rounded-md border">
+                                    <span className="bg-surface-2 flex size-8 items-center justify-center rounded-md border">
                                         <Icon aria-hidden className="size-4" />
                                     </span>
                                     <Button
@@ -479,7 +479,7 @@ function ViewPanels({ page, items }: { page: TypePage; items: string }) {
                                 {' '}
                                 <Link
                                     href={page.listUrl}
-                                    className="text-link underline underline-offset-2"
+                                    className="text-accent-ink underline underline-offset-2"
                                 >
                                     Open {type.plural}
                                 </Link>
@@ -505,7 +505,7 @@ function ViewPanels({ page, items }: { page: TypePage; items: string }) {
                                 <code>{type.pattern}</code>{' '}
                                 <Link
                                     href={addresses.url()}
-                                    className="text-link underline underline-offset-2"
+                                    className="text-accent-ink underline underline-offset-2"
                                 >
                                     Change in Settings › Addresses
                                 </Link>
@@ -574,14 +574,14 @@ function DeletePanel({ page }: { page: TypePage }) {
                 <p className="flex flex-wrap gap-3">
                     <Link
                         href={page.listUrl}
-                        className="text-link hover:underline"
+                        className="text-accent-ink hover:underline"
                     >
                         Open {plural}
                     </Link>
                     {page.trashed > 0 && (
                         <Link
                             href={`${page.listUrl}?tab=trash`}
-                            className="text-link hover:underline"
+                            className="text-accent-ink hover:underline"
                         >
                             Open the trash
                         </Link>
@@ -637,7 +637,7 @@ function PatternLine({ page }: { page: TypePage }) {
                     )}
                     <Link
                         href={addresses.url()}
-                        className="text-link underline underline-offset-2"
+                        className="text-accent-ink underline underline-offset-2"
                     >
                         Change in Settings › Addresses
                     </Link>
@@ -667,7 +667,7 @@ function joined(names: string[]): string {
 function FieldsSummary({ fields }: { fields: TypePage['fields'] }) {
     if (fields.url === null) {
         return (
-            <p className="text-muted-foreground text-sm">
+            <p className="text-ink-2 text-sm">
                 Add fields once the type is saved.
             </p>
         );
@@ -812,7 +812,7 @@ function PermissionsTable({
                                     <span className="block">
                                         {action.label}
                                     </span>
-                                    <code className="text-muted-foreground font-mono text-xs break-all">
+                                    <code className="text-ink-2 font-mono text-xs break-all">
                                         {action.ability}
                                     </code>
                                 </th>
@@ -940,7 +940,7 @@ function CodeNote({ page }: { page: TypePage }) {
                     Their public address can still change:{' '}
                     <Link
                         href={addresses.url()}
-                        className="text-link underline underline-offset-2"
+                        className="text-accent-ink underline underline-offset-2"
                     >
                         Settings › Addresses
                     </Link>

@@ -217,7 +217,7 @@ export function BulkEditDialog({
                     {items.map((item) => (
                         <li
                             key={item.id}
-                            className="border-border bg-muted inline-flex items-center gap-1 rounded-full border py-0.5 pr-1 pl-3 text-[13px]"
+                            className="border-line bg-surface-2 inline-flex items-center gap-1 rounded-full border py-0.5 pr-1 pl-3 text-[13px]"
                         >
                             {shownTitle(item.title)}
                             <button
@@ -231,7 +231,7 @@ export function BulkEditDialog({
                                     )
                                 }
                                 aria-label={`Leave “${shownTitle(item.title)}” out of this edit`}
-                                className="hover:bg-accent rounded-full p-0.5 disabled:opacity-50"
+                                className="hover:bg-surface-3 rounded-full p-0.5 disabled:opacity-50"
                             >
                                 <X className="size-3.5" />
                             </button>
@@ -245,7 +245,7 @@ export function BulkEditDialog({
                             <legend className="mb-2 text-sm font-medium">
                                 {taxonomy.plural}
                             </legend>
-                            <ul className="border-border max-h-60 overflow-y-auto rounded border p-2">
+                            <ul className="border-line max-h-60 overflow-y-auto rounded border p-2">
                                 {inTreeOrder(
                                     page.termTrees[taxonomy.key] ?? [],
                                 ).map(({ term, depth }) => {
@@ -284,7 +284,7 @@ export function BulkEditDialog({
                                     );
                                 })}
                             </ul>
-                            <p className="text-muted-foreground text-xs">
+                            <p className="text-ink-2 text-xs">
                                 A dash means some of them have it. Click to add
                                 it to all, again to remove it from all, and
                                 again to leave each as it was.
@@ -307,7 +307,7 @@ export function BulkEditDialog({
                                         }))
                                     }
                                 />
-                                <p className="text-muted-foreground text-xs">
+                                <p className="text-ink-2 text-xs">
                                     Added to every item. The ones they have
                                     stay.
                                 </p>
@@ -371,7 +371,7 @@ export function BulkEditDialog({
                 </div>
 
                 <DialogFooter className="items-center">
-                    <p role="status" className="text-muted-foreground text-xs">
+                    <p role="status" className="text-ink-2 text-xs">
                         {working && `Updating ${sent} of ${items.length}…`}
                     </p>
                     <span className="flex-1" />

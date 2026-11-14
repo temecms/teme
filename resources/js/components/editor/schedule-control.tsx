@@ -100,14 +100,14 @@ export function ScheduleControl({
                 }
                 onChange={(event) => onChange(event.target.value)}
             />
-            <p id={`${id}-zone`} className="text-muted-foreground text-xs">
+            <p id={`${id}-zone`} className="text-ink-2 text-xs">
                 Times are in the site’s zone: {zoneName} ({siteTimezone}).
             </p>
             {error !== null && (
                 <p
                     id={`${id}-error`}
                     role="alert"
-                    className="text-destructive text-xs"
+                    className="text-danger-ink text-xs"
                 >
                     {error}
                 </p>

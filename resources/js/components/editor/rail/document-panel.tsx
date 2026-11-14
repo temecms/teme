@@ -75,7 +75,7 @@ export function WordCount({ editor }: { editor: Editor }) {
     });
 
     return (
-        <p className="text-muted-foreground border-border border-t px-5 py-2 text-[11px]">
+        <p className="text-ink-2 border-line border-t px-5 py-2 text-[11px]">
             {overview.words.toLocaleString()}{' '}
             {overview.words === 1 ? 'word' : 'words'} · {overview.minutes} min
             read
@@ -108,7 +108,7 @@ export function DocumentOverview({ editor }: { editor: Editor }) {
             <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-[13px]">
                 {counts.map(([label, value]) => (
                     <div key={label} className="contents">
-                        <dt className="text-muted-foreground">{label}</dt>
+                        <dt className="text-ink-2">{label}</dt>
                         <dd className="text-right tabular-nums">
                             {value.toLocaleString()}
                         </dd>
@@ -123,9 +123,7 @@ export function DocumentOverview({ editor }: { editor: Editor }) {
                     Outline
                 </h3>
                 {overview.headings.length === 0 ? (
-                    <p className="text-muted-foreground text-[13px]">
-                        No headings yet.
-                    </p>
+                    <p className="text-ink-2 text-[13px]">No headings yet.</p>
                 ) : (
                     <ul className="grid gap-0.5 text-[13px]">
                         {overview.headings.map((heading) => (
@@ -145,11 +143,11 @@ export function DocumentOverview({ editor }: { editor: Editor }) {
                                             .scrollIntoView()
                                             .run()
                                     }
-                                    className="hover:bg-accent focus-visible:ring-ring w-full rounded-sm px-1.5 py-1 text-left outline-none focus-visible:ring-2"
+                                    className="hover:bg-surface-3 focus-visible:ring-ring w-full rounded-sm px-1.5 py-1 text-left outline-none focus-visible:ring-2"
                                 >
                                     {heading.text || 'Untitled heading'}
                                     {heading.skipped && (
-                                        <span className="text-warning ml-1.5 text-[11px]">
+                                        <span className="text-warn-ink ml-1.5 text-[11px]">
                                             skips a level
                                         </span>
                                     )}

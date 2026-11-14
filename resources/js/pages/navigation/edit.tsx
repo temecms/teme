@@ -131,7 +131,7 @@ export default function NavigationEdit({
                             >
                                 Show in
                             </h2>
-                            <p className="text-muted-foreground text-[13px]">
+                            <p className="text-ink-2 text-[13px]">
                                 {`Where ${themeName ?? 'the site’s theme'} shows a menu. Each place shows one menu.`}
                             </p>
                         </div>
@@ -173,7 +173,7 @@ export default function NavigationEdit({
                         </h2>
                         <div className="flex items-center gap-2">
                             {dirty && (
-                                <span className="text-muted-foreground text-[13px]">
+                                <span className="text-ink-2 text-[13px]">
                                     Unsaved changes
                                 </span>
                             )}
@@ -224,7 +224,7 @@ export default function NavigationEdit({
                         />
                     )}
 
-                    <p className="text-muted-foreground text-[13px]">
+                    <p className="text-ink-2 text-[13px]">
                         Move an item with its buttons, or with Alt and the arrow
                         keys: up and down to reorder, right to put it under the
                         item above, left to bring it out. Menus go three levels

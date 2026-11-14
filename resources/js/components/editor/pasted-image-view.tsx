@@ -207,13 +207,13 @@ function PastedImageView({
             data-pasted-image=""
             contentEditable={false}
             className={cn(
-                'border-border bg-card my-4 rounded-md border border-dashed px-3 py-2.5',
+                'border-line bg-surface my-4 rounded-md border border-dashed px-3 py-2.5',
                 selected && 'ring-ring ring-2',
             )}
         >
             <p
                 id={`${id}-title`}
-                className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase"
+                className="text-ink-2 text-[11px] font-medium tracking-wide uppercase"
             >
                 Pasted image, not imported
             </p>
@@ -224,19 +224,16 @@ function PastedImageView({
                         : `${file} from ${site}`}
                 </p>
             )}
-            <p className="text-muted-foreground mt-1 text-[13px]">
+            <p className="text-ink-2 mt-1 text-[13px]">
                 {attrs.alt === null ? 'No alt text' : `Alt text: ${attrs.alt}`}
             </p>
             {attrs.caption !== null && (
-                <p className="text-muted-foreground text-[13px]">
+                <p className="text-ink-2 text-[13px]">
                     {`Caption: ${attrs.caption}`}
                 </p>
             )}
             {problem !== null && (
-                <p
-                    role="alert"
-                    className="text-muted-foreground mt-1 text-[13px]"
-                >
+                <p role="alert" className="text-ink-2 mt-1 text-[13px]">
                     {PROBLEM_WORDS[problem]}
                 </p>
             )}
@@ -245,7 +242,7 @@ function PastedImageView({
                 attrs.message !== null && (
                     <p
                         role="alert"
-                        className="text-destructive mt-1 text-[13px]"
+                        className="text-danger-ink mt-1 text-[13px]"
                     >
                         {attrs.message}
                     </p>
@@ -333,7 +330,7 @@ export function PastedImagesBar({ editor }: { editor: Editor }) {
             role="region"
             aria-label="Pasted images"
             data-test="pasted-images"
-            className="border-border bg-muted/40 flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-2.5 text-[13px]"
+            className="border-line bg-surface-2/40 flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-2.5 text-[13px]"
         >
             <p aria-live="polite" className="min-w-0 flex-1">
                 {count === 1

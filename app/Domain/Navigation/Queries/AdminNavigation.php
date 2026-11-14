@@ -45,7 +45,7 @@ final readonly class AdminNavigation
      * Hidden entries are still returned: the sidebar leaves them out, and
      * the palette does not.
      *
-     * @return list<array{key: string, label: string, icon: string, href: string, badge: int, section: string, hidden: bool, children: list<array{key: string, label: string, icon: string, href: string, badge: int}>, screens: list<array{key: string, label: string, icon: string, href: string}>}>
+     * @return list<array{key: string, label: string, icon: string, href: string, badge: int, soon?: true, section: string, hidden: bool, children: list<array{key: string, label: string, icon: string, href: string, badge: int, soon?: true}>, screens: list<array{key: string, label: string, icon: string, href: string}>}>
      */
     public function forUser(int|string|null $userId): array
     {
@@ -77,7 +77,10 @@ final readonly class AdminNavigation
 
             $screens = [];
 
-            if ($entry->hub !== null) {
+            if ($entry->soon) {
+                // Planned and not built: it has no address (I-3408).
+                $href = '';
+            } elseif ($entry->hub !== null) {
                 $hub = $this->registry->hubFor($entry->hub);
                 $href = $hub?->firstHrefFor($user);
                 $screens = $hub?->pagesFor($user) ?? [];
@@ -95,7 +98,7 @@ final readonly class AdminNavigation
 
         foreach ($visible as $key => ['entry' => $entry]) {
             /** @var BadgeProvider|null $provider */
-            $provider = $entry->badge === null ? null : app($entry->badge);
+            $provider = $entry->badge === null || $entry->soon ? null : app($entry->badge);
             $counts[$key] = $provider?->countFor($user) ?? 0;
         }
 
@@ -119,6 +122,7 @@ final readonly class AdminNavigation
                         'icon' => $child['entry']->icon,
                         'href' => $child['href'],
                         'badge' => $counts[$child['entry']->key],
+                        ...($child['entry']->soon ? ['soon' => true] : []),
                     ];
                     // A parent counts what waits in its children too (I-220).
                     $badge += $counts[$child['entry']->key];
@@ -131,6 +135,7 @@ final readonly class AdminNavigation
                 'icon' => $entry->icon,
                 'href' => $href,
                 'badge' => $badge,
+                ...($entry->soon ? ['soon' => true] : []),
                 'section' => $entry->section->value,
                 'hidden' => in_array($entry->key, $hidden, true),
                 'children' => $children,
@@ -164,7 +169,7 @@ final readonly class AdminNavigation
      * the menu they were given does not hold, such as an entry their role no
      * longer opens.
      *
-     * @param  list<array{key: string, children: list<array{key: string}>}>  $menu  what forUser() returned for them
+     * @param  list<array{key: string, soon?: true, children: list<array{key: string, soon?: true}>}>  $menu  what forUser() returned for them
      *
      * @return list<string>
      */
@@ -177,10 +182,15 @@ final readonly class AdminNavigation
         $open = [];
 
         foreach ($menu as $entry) {
-            $open[] = $entry['key'];
+            // A planned entry opens nothing, so it is never pinned (I-3408).
+            if (! ($entry['soon'] ?? false)) {
+                $open[] = $entry['key'];
+            }
 
             foreach ($entry['children'] as $child) {
-                $open[] = $child['key'];
+                if (! ($child['soon'] ?? false)) {
+                    $open[] = $child['key'];
+                }
             }
         }
 
