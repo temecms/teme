@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Support\Security\DeniedElevation;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Users\Operations\Input\InviteUserInput;
+use App\Domain\Users\Operations\InviteUser;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -283,4 +287,55 @@ it('closes an open menu when the window crosses 640', function (): void {
 
     $page->resize(1280, 900);
     cmWaitUntil($page, 'innerWidth === 1280 && document.querySelector(\'[role="menu"]\') === null && document.querySelector(\'[data-slot="sheet-content"]\') === null');
+});
+
+it('fills a phone\'s screen with the invite dialog, Send invitation in view', function (): void {
+    $this->actingAs($this->admin)->get(route('users.index'))->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 667), '/admin/users');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="people-invite"]\') !== null');
+    $page->click('[data-test="people-invite"]');
+    shellSettled($page, '[data-test="invite-dialog"]');
+
+    $box = poBox($page, '[data-test="invite-dialog"]');
+
+    expect([$box['top'], $box['left'], $box['width'], $box['bottom']])->toBe([0, 0, $box['vw'], $box['vh']]);
+
+    $page->assertScript('[...document.querySelectorAll(\'[data-test="invite-dialog"] button\')].some((button) => button.textContent.trim() === "Send invitation" && button.getBoundingClientRect().bottom <= document.querySelector(\'[data-test="invite-dialog"]\').getBoundingClientRect().bottom && button.getBoundingClientRect().bottom > 0)');
+});
+
+it('asks to revoke an invitation from the foot of a phone\'s screen', function (): void {
+    // Ivy is invited as the screen invites.
+    $this->withElevation();
+    app(InviteUser::class)->execute(new InviteUserInput(name: 'Ivy Invited', email: 'ivy@example.com', role: 'contributor', actorId: (string) $this->admin->id, deliver: false));
+    $this->app->instance(Elevation::class, new DeniedElevation);
+    $this->actingAs($this->admin)->get(route('users.index'))->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 667), '/admin/users?view=invited');
+    cmWaitUntil($page, 'document.querySelector(\'[aria-label="Actions for Ivy Invited"]\') !== null');
+    $page->click('[aria-label="Actions for Ivy Invited"] >> text="Revoke invitation"');
+    cmWaitUntil($page, 'document.querySelector(\'[role="dialog"]\')?.textContent.includes("Revoke the invitation to ivy@example.com?") === true');
+    shellSettled($page, '[data-slot="dialog-content"]');
+
+    $box = poBox($page, '[data-slot="dialog-content"]');
+
+    expect($box['bottom'])->toBe($box['vh'])
+        ->and($box['top'])->toBeGreaterThan(0);
+
+    $page->click('[role="dialog"] >> text="Cancel"');
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="dialog-content"]\') === null');
+
+    expect(User::query()->where('email', 'ivy@example.com')->exists())->toBeTrue();
+});
+
+it('fills a phone\'s screen with the status sheet at 600 pixels', function (): void {
+    $page = cmSignIn($this->admin)->resize(600, 800);
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="status-button"]\') !== null');
+
+    $page->click('[data-test="status-button"]');
+    shellSettled($page, '[data-test="status-sheet"]');
+
+    $box = poBox($page, '[data-test="status-sheet"]');
+
+    expect($box['width'])->toBe($box['vw']);
 });

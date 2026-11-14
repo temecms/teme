@@ -72,7 +72,6 @@ R1	js/components/list/filter-button.tsx	max-h-[85vh]
 R1	js/components/list/page-header.tsx	max-w-[640px]
 R1	js/components/list/page-header.tsx	tracking-[-0.015em]
 R1	js/components/media/media-modal.tsx	max-h-[85vh]
-R1	js/components/personalise-menu-dialog.tsx	max-h-[90vh]
 R1	js/components/seo/who-publishes.tsx	max-w-[320px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
@@ -1190,7 +1189,6 @@ R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/media-drawer.tsx	overflow-y-auto
 R8	js/components/media/media-modal.tsx	overflow-y-auto
 R8	js/components/media/media-modal.tsx	overflow-y-auto
-R8	js/components/personalise-menu-dialog.tsx	overflow-y-auto
 R8	js/components/term-tree-picker.tsx	overflow-y-auto
 R8	js/components/tools/ai-activity-details.tsx	overflow-y-auto
 R8	js/components/tools/import-redirects.tsx	overflow-x-auto

@@ -248,7 +248,6 @@ components/comments/quick-edit.tsx	Save changes
 components/comments/quick-edit.tsx	This comment has formatting, such as bold or a quote. If you change its text, it’s saved as plain text.
 components/comments/quick-edit.tsx	Website
 components/comments/quick-edit.tsx	https://example.com
-components/confirm-action.tsx	Cancel
 components/dashboard/dashboard-panel.tsx	See all
 components/dashboard/getting-started.tsx	Getting started
 components/dashboard/getting-started.tsx	Hide this
