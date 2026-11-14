@@ -13,6 +13,7 @@ beforeEach(function (): void {
     Route::middleware('web')->group(function (): void {
         Route::get('/admin/_sa-error/{code}', fn (int $code) => abort($code));
         Route::post('/admin/_sa-error/{code}', fn (int $code) => abort($code));
+        Route::get('/admin/_sa-refused', fn () => abort(403, request()->string('reason')->toString()));
         Route::get('/admin/_sa-maintenance', fn () => abort(503, '', ['Retry-After' => '60']));
         Route::post('/admin/_sa-maintenance', fn () => abort(503, '', ['Retry-After' => '60']));
     });
@@ -110,6 +111,19 @@ it('draws each error on the card with the site\'s mark and its own words', funct
     [500, 'Something went wrong on our side'],
     [503, 'Down for maintenance'],
 ]);
+
+it('says a refusal\'s own reason on the 403 page', function (): void {
+    $page = saPage((string) $this->get('/admin/_sa-refused?'.http_build_query(['reason' => 'You can’t edit this item.']))->assertForbidden()->getContent());
+
+    expect(trim((string) $page->query("//*[@class='sa-quiet']")->item(0)?->textContent))->toBe('You can’t edit this item.');
+});
+
+it('says the general words on the 403 page when the refusal gives only Laravel\'s own', function (): void {
+    $page = saPage((string) $this->get('/admin/_sa-refused?'.http_build_query(['reason' => 'This action is unauthorized.']))->assertForbidden()->getContent());
+
+    expect(trim((string) $page->query("//*[@class='sa-quiet']")->item(0)?->textContent))
+        ->toBe('Your account doesn’t have permission to do that. If you need it, ask an administrator of The Garden City Ledger to change your role.');
+});
 
 it('keeps Laravel\'s status and Retry-After, and refreshes a GET only', function (): void {
     $this->get('/admin/_sa-maintenance')
