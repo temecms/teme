@@ -65,10 +65,14 @@ it('changes Films while they have items, each control that can’t change saying
 
     expect($page->script('() => [document.querySelector("#type-public").disabled, document.querySelector("#type-single").disabled]'))->toBe([true, true])
         // A ticked control that can't change is still sent as it stands: a disabled input never is.
-        ->and($page->script('() => document.querySelectorAll(\'main form input[type="hidden"][name="public"][value="1"]\').length'))->toBe(1)
-        ->and($page->script('() => { const bar = document.querySelector("[data-test=\"save-bar\"]").getBoundingClientRect(); return bar.top >= 0 && bar.bottom <= window.innerHeight; }'))->toBeTrue();
+        ->and($page->script('() => document.querySelectorAll(\'main form input[type="hidden"][name="public"][value="1"]\').length'))->toBe(1);
 
-    $page->type('#type-plural', 'Movies')->click('[data-test="type-save"]');
+    $page->type('#type-plural', 'Movies');
+
+    // The bar shows once there is a change, inside the window.
+    expect($page->script('() => { const bar = document.querySelector("[data-test=\"save-bar\"]"); const box = bar.getBoundingClientRect(); return !bar.hidden && box.height > 0 && box.top >= 0 && box.bottom <= window.innerHeight; }'))->toBeTrue();
+
+    $page->click('[data-test="type-save"]');
     ($this->seen)($page, 'Saved Movies.');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === true');
 
