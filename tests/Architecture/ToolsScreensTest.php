@@ -33,6 +33,8 @@ function tsLines(string $baseline, int $column, string $prefix, array $paths): a
 
 dataset('tool screens', [
     'Import' => [['pages/tools/import/', 'components/import/']],
+    // The place form, pages/tools/backups/place.tsx, is another part's and is left as it is.
+    'Backups' => [['pages/tools/backups/index.tsx', 'pages/tools/backups/set-up.tsx', 'pages/tools/backups/sftp.tsx', 'pages/tools/backups/new-key.tsx', 'pages/tools/backups/recovery-key.tsx', 'components/backups/']],
 ]);
 
 it('leaves no design-system line on :dataset', function (array $paths): void {

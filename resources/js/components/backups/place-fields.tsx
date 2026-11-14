@@ -1,67 +1,39 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
+import { __ } from '@/lib/i18n';
 import type { BackupPlaceKind, PlaceFormValues } from '@/types/backups';
 
-const KINDS: { kind: BackupPlaceKind; name: string; line: string }[] = [
+/** The three kinds of place, their words looked up as they are drawn. */
+const kinds = (): { kind: BackupPlaceKind; name: string; line: string }[] => [
     {
         kind: 'folder',
-        name: 'A folder on this server',
-        line: 'Simplest, but a backup here goes if the server goes. Add a place off it afterwards.',
+        name: __('A folder on this server'),
+        line: __(
+            'Simplest, but a backup here goes if the server goes. Add a place off it afterwards.',
+        ),
     },
     {
         kind: 's3',
-        name: 'S3-compatible storage',
-        line: 'Amazon S3, Backblaze B2, Cloudflare R2, Wasabi and others.',
+        name: __('S3-compatible storage'),
+        line: __('Amazon S3, Backblaze B2, Cloudflare R2, Wasabi and others.'),
     },
     {
         kind: 'sftp',
-        name: 'An SFTP server',
-        line: 'A server you or someone you trust runs, reached over SSH.',
+        name: __('An SFTP server'),
+        line: __('A server you or someone you trust runs, reached over SSH.'),
     },
 ];
 
-const hint = 'text-ink-2 text-xs';
-
-/** A labelled field with its hint and its error tied to it. */
-function Field({
-    id,
-    label,
-    hintText,
-    error,
-    children,
-}: {
-    id: string;
-    label: React.ReactNode;
-    hintText?: string;
-    error?: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="grid gap-2">
-            {label}
-            {children}
-            {hintText && (
-                <p id={`${id}-hint`} className={hint}>
-                    {hintText}
-                </p>
-            )}
-            <InputError id={`${id}-error`} message={error} />
-        </div>
-    );
-}
-
-/** Which ids a field's hint and error go by, for aria-describedby. */
-const described = (id: string, hasHint: boolean) =>
-    hasHint ? `${id}-hint ${id}-error` : `${id}-error`;
-
 /**
- * A place's kind and the fields that kind needs (I-2401): three radio cards,
- * a folder first, then the name and the kind's own fields. The name offered
+ * A place's kind and the fields that kind needs (I-2401): three choices, a
+ * folder first, then the name and the kind's own fields. The name offered
  * follows the kind until the person types in it.
  */
 export function PlaceFields({
@@ -83,63 +55,59 @@ export function PlaceFields({
     const name =
         typedName ??
         values?.name ??
-        (kind === 'folder' ? 'This server' : 'Off-site storage');
-    const kindName = KINDS.find((option) => option.kind === kind)?.name;
+        (kind === 'folder' ? __('This server') : __('Off-site storage'));
+    const kindName = kinds().find((option) => option.kind === kind)?.name;
 
     const copyKey = async () => {
         try {
             await navigator.clipboard.writeText(values?.publicKey ?? '');
-            toast.success('Copied the public key.');
+            toast.success(__('Copied the public key.'));
         } catch {
             toast.error(
-                'The public key could not be copied. Select it and copy it by hand.',
+                __(
+                    'The public key could not be copied. Select it and copy it by hand.',
+                ),
             );
         }
     };
 
     return (
-        <div className="space-y-5">
+        <div className="grid gap-5">
             {changing ? (
-                <p className="text-sm font-medium">{kindName}</p>
+                <p className="text-body font-medium">{kindName}</p>
             ) : (
-                <fieldset className="space-y-3">
-                    <legend className="mb-2 text-sm font-medium">
-                        Where should backups be kept?
+                <fieldset className="grid gap-3">
+                    <legend className="text-body text-ink mb-2 font-semibold">
+                        {__('Where should backups be kept?')}
                     </legend>
-                    <div className="grid gap-3 sm:grid-cols-3">
-                        {KINDS.map((option) => (
-                            <label
+                    <RadioGroup
+                        name="kind"
+                        value={kind}
+                        onValueChange={(next) =>
+                            onKindChange(next as BackupPlaceKind)
+                        }
+                        aria-describedby="setup-kind-error"
+                        className="gap-3"
+                    >
+                        {kinds().map((option) => (
+                            <RadioGroupChoice
                                 key={option.kind}
-                                className="border-line has-checked:border-accent has-focus-visible:ring-ring flex min-h-11 cursor-pointer flex-col gap-1 rounded-md border p-3 has-checked:ring-1 has-focus-visible:ring-2"
-                            >
-                                <span className="flex items-center gap-2 text-sm font-medium">
-                                    <input
-                                        type="radio"
-                                        name="kind"
-                                        value={option.kind}
-                                        checked={kind === option.kind}
-                                        onChange={() =>
-                                            onKindChange(option.kind)
-                                        }
-                                        data-test={`setup-kind-${option.kind}`}
-                                        aria-describedby="setup-kind-error"
-                                    />
-                                    {option.name}
-                                </span>
-                                <span className="text-ink-2 text-xs">
-                                    {option.line}
-                                </span>
-                            </label>
+                                id={`setup-kind-${option.kind}`}
+                                value={option.kind}
+                                label={option.name}
+                                description={option.line}
+                                data-test={`setup-kind-${option.kind}`}
+                            />
                         ))}
-                    </div>
+                    </RadioGroup>
                     <InputError id="setup-kind-error" message={errors.kind} />
                 </fieldset>
             )}
 
             <Field
-                id="setup-name"
-                label={<Label htmlFor="setup-name">Name this place</Label>}
-                hintText="Shown on this screen and in alerts."
+                htmlFor="setup-name"
+                label={__('Name this place')}
+                help={__('Shown on this screen and in alerts.')}
                 error={errors.name}
             >
                 <Input
@@ -147,23 +115,24 @@ export function PlaceFields({
                     name="name"
                     value={name}
                     onChange={(event) => setTypedName(event.target.value)}
-                    aria-describedby={described('setup-name', true)}
                     autoComplete="off"
                 />
             </Field>
 
             {kind === 'folder' && (
                 <Field
-                    id="setup-path"
-                    label={<Label htmlFor="setup-path">Folder</Label>}
-                    hintText={`A full path on this server, outside the site’s own folders, such as ${suggestedFolder}.`}
+                    htmlFor="setup-path"
+                    label={__('Folder')}
+                    help={__(
+                        'A full path on this server, outside the site’s own folders, such as :folder.',
+                        { folder: suggestedFolder },
+                    )}
                     error={errors.path}
                 >
                     <Input
                         id="setup-path"
                         name="path"
                         defaultValue={values?.path ?? suggestedFolder}
-                        aria-describedby={described('setup-path', true)}
                         className="font-mono"
                         spellCheck={false}
                         autoComplete="off"
@@ -174,113 +143,91 @@ export function PlaceFields({
             {kind === 's3' && (
                 <>
                     <Field
-                        id="setup-endpoint"
-                        label={
-                            <Label htmlFor="setup-endpoint">
-                                Storage address
-                            </Label>
-                        }
-                        hintText="Starts https://, such as https://s3.eu-central-1.amazonaws.com."
+                        htmlFor="setup-endpoint"
+                        label={__('Storage address')}
+                        help={__(
+                            'Starts https://, such as https://s3.eu-central-1.amazonaws.com.',
+                        )}
                         error={errors.endpoint}
                     >
                         <Input
                             id="setup-endpoint"
                             name="endpoint"
                             defaultValue={values?.endpoint ?? ''}
-                            aria-describedby={described('setup-endpoint', true)}
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     <Field
-                        id="setup-bucket"
-                        label={<Label htmlFor="setup-bucket">Bucket</Label>}
+                        htmlFor="setup-bucket"
+                        label={__('Bucket')}
                         error={errors.bucket}
                     >
                         <Input
                             id="setup-bucket"
                             name="bucket"
                             defaultValue={values?.bucket ?? ''}
-                            aria-describedby={described('setup-bucket', false)}
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     <Field
-                        id="setup-folder"
-                        label={
-                            <Label htmlFor="setup-folder">
-                                Folder in the bucket
-                            </Label>
-                        }
-                        hintText="Optional."
+                        htmlFor="setup-folder"
+                        label={__('Folder in the bucket')}
+                        help={__('Optional.')}
                         error={errors.path}
                     >
                         <Input
                             id="setup-folder"
                             name="folder"
                             defaultValue={values?.folder ?? ''}
-                            aria-describedby={described('setup-folder', true)}
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     <Field
-                        id="setup-region"
-                        label={<Label htmlFor="setup-region">Region</Label>}
-                        hintText="Optional, such as eu-central-1."
+                        htmlFor="setup-region"
+                        label={__('Region')}
+                        help={__('Optional, such as eu-central-1.')}
                         error={errors.region}
                     >
                         <Input
                             id="setup-region"
                             name="region"
                             defaultValue={values?.region ?? ''}
-                            aria-describedby={described('setup-region', true)}
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     <Field
-                        id="setup-access-key-id"
-                        label={
-                            <Label htmlFor="setup-access-key-id">
-                                Access key ID
-                            </Label>
-                        }
+                        htmlFor="setup-access-key-id"
+                        label={__('Access key ID')}
                         error={errors.access_key_id}
                     >
                         <Input
                             id="setup-access-key-id"
                             name="access_key_id"
-                            aria-describedby={described(
-                                'setup-access-key-id',
-                                false,
-                            )}
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     <Field
-                        id="setup-secret-access-key"
-                        label={
-                            <Label htmlFor="setup-secret-access-key">
-                                Secret access key
-                            </Label>
-                        }
-                        hintText={
+                        htmlFor="setup-secret-access-key"
+                        label={__('Secret access key')}
+                        help={
                             changing
-                                ? 'Leave both empty to keep the keys Teme has.'
-                                : 'Use a key that can reach this bucket only. Teme keeps it encrypted and never shows it again.'
+                                ? __(
+                                      'Leave both empty to keep the keys Teme has.',
+                                  )
+                                : __(
+                                      'Use a key that can reach this bucket only. Teme keeps it encrypted and never shows it again.',
+                                  )
                         }
                         error={errors.secret_access_key}
                     >
                         <PasswordInput
                             id="setup-secret-access-key"
                             name="secret_access_key"
-                            aria-describedby={described(
-                                'setup-secret-access-key',
-                                true,
-                            )}
                             autoComplete="off"
                         />
                     </Field>
@@ -290,23 +237,24 @@ export function PlaceFields({
             {kind === 'sftp' && (
                 <>
                     <Field
-                        id="setup-host"
-                        label={<Label htmlFor="setup-host">Server</Label>}
-                        hintText="Its name or IP address, such as backup.example.com."
+                        htmlFor="setup-host"
+                        label={__('Server')}
+                        help={__(
+                            'Its name or IP address, such as backup.example.com.',
+                        )}
                         error={errors.host}
                     >
                         <Input
                             id="setup-host"
                             name="host"
                             defaultValue={values?.host ?? ''}
-                            aria-describedby={described('setup-host', true)}
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     <Field
-                        id="setup-port"
-                        label={<Label htmlFor="setup-port">Port</Label>}
+                        htmlFor="setup-port"
+                        label={__('Port')}
                         error={errors.port}
                     >
                         <Input
@@ -316,77 +264,63 @@ export function PlaceFields({
                             min={1}
                             max={65535}
                             defaultValue={values?.port ?? 22}
-                            aria-describedby={described('setup-port', false)}
                         />
                     </Field>
                     <Field
-                        id="setup-user"
-                        label={<Label htmlFor="setup-user">User</Label>}
-                        hintText="The user Teme signs in as."
+                        htmlFor="setup-user"
+                        label={__('User')}
+                        help={__('The user Teme signs in as.')}
                         error={errors.user}
                     >
                         <Input
                             id="setup-user"
                             name="user"
                             defaultValue={values?.user ?? ''}
-                            aria-describedby={described('setup-user', true)}
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     <Field
-                        id="setup-sftp-folder"
-                        label={
-                            <Label htmlFor="setup-sftp-folder">
-                                Folder on the server
-                            </Label>
-                        }
-                        hintText="Such as /srv/backups/teme."
+                        htmlFor="setup-sftp-folder"
+                        label={__('Folder on the server')}
+                        help={__('Such as /srv/backups/teme.')}
                         error={errors.path}
                     >
                         <Input
                             id="setup-sftp-folder"
                             name="folder"
                             defaultValue={values?.folder ?? ''}
-                            aria-describedby={described(
-                                'setup-sftp-folder',
-                                true,
-                            )}
                             className="font-mono"
                             spellCheck={false}
                             autoComplete="off"
                         />
                     </Field>
                     {values?.publicKey && (
-                        <Field
-                            id="setup-public-key"
-                            label={
-                                <Label htmlFor="setup-public-key">
-                                    Public key
-                                </Label>
-                            }
-                            hintText="This place’s public key. A new server needs it in authorized_keys."
-                        >
-                            <textarea
-                                id="setup-public-key"
-                                readOnly
-                                rows={4}
-                                value={values.publicKey}
-                                aria-describedby={described(
-                                    'setup-public-key',
-                                    true,
+                        <div className="grid justify-items-start gap-2">
+                            <Field
+                                htmlFor="setup-public-key"
+                                label={__('Public key')}
+                                help={__(
+                                    'This place’s public key. A new server needs it in authorized_keys.',
                                 )}
-                                className="border-edge bg-page w-full rounded-md border px-3 py-2 font-mono text-xs break-all"
-                            />
+                                className="w-full"
+                            >
+                                <Textarea
+                                    id="setup-public-key"
+                                    readOnly
+                                    rows={4}
+                                    value={values.publicKey}
+                                    className="text-small font-mono break-all"
+                                />
+                            </Field>
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="w-fit"
                                 onClick={() => void copyKey()}
                             >
-                                Copy
+                                {__('Copy')}
                             </Button>
-                        </Field>
+                        </div>
                     )}
                 </>
             )}

@@ -124,9 +124,9 @@ it('asks before anything that cannot be undone', function (string $file, string 
     'forgetting a site’s application password' => ['components/import/run-report.tsx', "confirmLabel={__('Forget this site')}"],
     'moving a file to the trash, from its drawer' => ['components/media-drawer.tsx', 'confirmLabel="Move to trash"'],
     'deleting a file permanently, from its drawer' => ['components/media-drawer.tsx', 'confirmLabel="Delete permanently"'],
-    'removing a place' => ['components/backups/places-list.tsx', 'confirmLabel={`Remove ${place.name}`}'],
-    'replacing a recovery key' => ['components/backups/key-actions.tsx', 'confirmLabel={`Replace ${label}`}'],
-    'removing a place to start again' => ['components/backups/verdict.tsx', 'confirmLabel={`Remove ${setup.placeName}`}'],
+    'removing a place' => ['components/backups/places-list.tsx', "confirmLabel={__('Remove :name', {"],
+    'replacing a recovery key' => ['components/backups/key-actions.tsx', "confirmLabel={__('Replace :label', { label })}"],
+    'removing a place to start again' => ['components/backups/verdict.tsx', "confirmLabel={__('Remove :name', {"],
 ]);
 
 it('asks before deleting permanently in bulk, in a dialog that names each item', function (): void {

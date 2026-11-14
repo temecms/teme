@@ -20,7 +20,7 @@ it('says to add a place off this server under the places’ heading, before the 
     $source = ($this->flat)('components/backups/places-list.tsx');
 
     expect(($this->at)($source, 'Add a place off this server'))
-        ->toBeGreaterThan(($this->at)($source, 'Where backups are kept </h2>'))
+        ->toBeGreaterThan(($this->at)($source, "Where backups are kept')} </h2>"))
         ->toBeLessThan(($this->at)($source, '<ul'));
 });
 
@@ -28,7 +28,7 @@ it('says how backups are checked under the checks’ heading, before the list', 
     $source = ($this->flat)('components/backups/checks-list.tsx');
 
     expect(($this->at)($source, 'Every backup is checked where it lands. A seventh'))
-        ->toBeGreaterThan(($this->at)($source, 'Latest checks </h2>'))
+        ->toBeGreaterThan(($this->at)($source, "Latest checks')} </h2>"))
         ->toBeLessThan(($this->at)($source, 'checks.length === 0'));
 });
 
@@ -36,7 +36,7 @@ it('warns that Teme keeps no copy of a recovery key under the keys’ heading, b
     $source = ($this->flat)('components/backups/keys-list.tsx');
 
     expect(($this->at)($source, 'Teme keeps no copy of a recovery key.'))
-        ->toBeGreaterThan(($this->at)($source, 'Recovery keys </h2>'))
+        ->toBeGreaterThan(($this->at)($source, "Recovery keys')} </h2>"))
         ->toBeLessThan(($this->at)($source, '<ul'));
 });
 
