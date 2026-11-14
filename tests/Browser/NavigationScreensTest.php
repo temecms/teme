@@ -82,10 +82,10 @@ it('saves a changed label with Save menu, and names the menu in the toast', func
     cmSignIn($this->editor)
         ->navigate("/admin/navigation/{$this->menu->id}")
         ->type('[aria-label="Label for Home"]', 'Start here')
-        ->assertSee('Unsaved changes')
+        ->assertSee('You have unsaved changes')
         ->press('Save menu')
         ->assertSee('Saved “Main”.')
-        ->assertDontSee('Unsaved changes');
+        ->assertDontSee('You have unsaved changes');
 
     expect(NavigationItem::query()->where('label', 'Start here')->exists())->toBeTrue();
 });
@@ -196,5 +196,103 @@ it('refuses to indent a heading to the third level, saying why', function (): vo
     cmWaitUntil($page, <<<'JS'
         document.querySelector('[aria-label="Move under the item above: Club"]')?.disabled === true
             && document.querySelector('[aria-label="Move under the item above: Club"]').title === 'A heading can’t go to the third level, where nothing can go under it.'
+        JS);
+});
+
+it('keeps each item on one line at 375 pixels, its moves in the item\'s menu', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), "/admin/navigation/{$this->menu->id}");
+
+    cmWaitUntil($page, "document.querySelectorAll('[data-item-key]').length > 0");
+
+    $sizes = $page->script(<<<'JS'
+        () => {
+            const rows = [...document.querySelectorAll('[data-item-key]')];
+            const visible = (element) => element !== null && element.getBoundingClientRect().width > 0;
+
+            return {
+                page: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+                rows: rows.length,
+                apart: rows.filter((row) => {
+                    const label = row.querySelector('input[data-control="label"]');
+                    const more = row.querySelector('[data-control="more"]');
+
+                    return label === null || more === null
+                        || Math.abs(label.getBoundingClientRect().top - more.getBoundingClientRect().top) >= 2;
+                }).length,
+                moves: [...document.querySelectorAll('[aria-label^="Move up:"]')].filter(visible).length,
+            };
+        }
+        JS);
+
+    $targets = cmSmallTargets($page);
+
+    expect($sizes['page'])->toBe(0)
+        ->and($sizes['rows'])->toBeGreaterThan(0)
+        ->and($sizes['apart'])->toBe(0)
+        ->and($sizes['moves'])->toBe(0)
+        ->and($targets['small'])->toBe([])
+        ->and($targets['checked'])->toBeGreaterThan(0);
+});
+
+it('moves an item down from its menu on a phone, focus back on its menu button', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), "/admin/navigation/{$this->menu->id}");
+
+    cmWaitUntil($page, 'document.querySelector(\'[aria-label="More actions for Home"]\') !== null');
+
+    $labels = "[...document.querySelectorAll('input[data-control=\"label\"]')].map((input) => input.value || input.placeholder).join('|')";
+    $before = $page->script("() => {$labels}");
+
+    $page->click('[aria-label="More actions for Home"]');
+
+    shellSettled($page, '[data-slot="dropdown-menu-content"]');
+
+    $page->click('[data-slot="dropdown-menu-content"] >> text="Move down"');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"dropdown-menu-content\"]') === null");
+    cmWaitUntil($page, "({$labels}) !== ".json_encode($before, JSON_THROW_ON_ERROR));
+    cmWaitUntil($page, 'document.activeElement?.getAttribute("aria-label") === "More actions for Home" && document.activeElement.dataset.control === "more"');
+
+    $page->assertVisible('[data-test="save-bar"]');
+});
+
+it('says in the menu why a move can\'t be made', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(375, 812), "/admin/navigation/{$this->menu->id}");
+
+    $page->press('Add item');
+
+    cmWaitUntil($page, "(() => { const sheet = document.querySelector('[data-slot=\"sheet-content\"]'); return sheet !== null && sheet.getAnimations().every((animation) => animation.playState !== 'running'); })()");
+
+    $page->click('#add-item-tab-heading')
+        ->type('#add-item-heading', 'Club')
+        ->press('Add heading');
+
+    cmWaitUntil($page, 'document.querySelector(\'[aria-label="More actions for Club"]\') !== null');
+
+    $page->click('[data-slot="sheet-content"] >> text="Close"');
+
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="sheet-content"]\') === null');
+
+    // Under Visit, after Harbour, as the wide screen's case does with its button.
+    $page->click('[aria-label="More actions for Club"]');
+
+    shellSettled($page, '[data-slot="dropdown-menu-content"]');
+
+    $page->click('[data-slot="dropdown-menu-content"] >> text="Move under the item above"');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"dropdown-menu-content\"]') === null");
+
+    $page->click('[aria-label="More actions for Club"]');
+
+    shellSettled($page, '[data-slot="dropdown-menu-content"]');
+
+    cmWaitUntil($page, <<<'JS'
+        (() => {
+            const item = [...document.querySelectorAll('[data-slot="dropdown-menu-content"] [role="menuitem"]')]
+                .find((element) => element.textContent.startsWith('Move under the item above'));
+
+            return item !== undefined
+                && item.getAttribute('aria-disabled') === 'true'
+                && item.textContent.includes('A heading can’t go to the third level, where nothing can go under it.');
+        })()
         JS);
 });

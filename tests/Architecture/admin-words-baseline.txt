@@ -1682,10 +1682,8 @@ pages/navigation/edit.tsx	Only the name changes. Themes that show this menu keep
 pages/navigation/edit.tsx	Rename
 pages/navigation/edit.tsx	Rename menu
 pages/navigation/edit.tsx	Rename the menu
-pages/navigation/edit.tsx	Save menu
 pages/navigation/edit.tsx	Show in
 pages/navigation/edit.tsx	This menu has no items yet
-pages/navigation/edit.tsx	Unsaved changes
 pages/navigation/edit.tsx	Where {} shows a menu. Each place shows one menu.
 pages/navigation/edit.tsx	{} (this menu)
 pages/navigation/edit.tsx	{} will show no menu until you choose another. This cannot be undone.

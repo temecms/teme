@@ -5,8 +5,8 @@ import InputError from '@/components/input-error';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
 import { RowLinks } from '@/components/list/row-links';
+import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,69 +102,60 @@ export default function NavigationIndex({ navigations }: NavigationIndexPage) {
     ];
 
     return (
-        <>
+        <ListPage
+            title="Navigation"
+            description="The menus visitors use to find their way around the site. Build a menu, then choose where the theme shows it."
+        >
             <Head title="Navigation" />
 
-            <div className="space-y-4 p-6">
-                <PageHeader
-                    title="Navigation"
-                    description="The menus visitors use to find their way around the site. Build a menu, then choose where the theme shows it."
-                />
-
-                <Form
-                    {...NavigationController.store.form()}
-                    resetOnSuccess
-                    className="flex flex-wrap items-end gap-3"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="new-menu">New menu</Label>
-                                <Input
-                                    id="new-menu"
-                                    aria-describedby="new-menu-error"
-                                    name="name"
-                                    placeholder="Main menu"
-                                    maxLength={120}
-                                    required
-                                />
-                            </div>
-                            <Button disabled={processing}>Create menu</Button>
-                            <InputError
-                                id="new-menu-error"
-                                message={errors.name}
+            <Form
+                {...NavigationController.store.form()}
+                resetOnSuccess
+                className="flex flex-wrap items-end gap-3"
+            >
+                {({ processing, errors }) => (
+                    <>
+                        <div className="grid gap-2">
+                            <Label htmlFor="new-menu">New menu</Label>
+                            <Input
+                                id="new-menu"
+                                aria-describedby="new-menu-error"
+                                name="name"
+                                placeholder="Main menu"
+                                maxLength={120}
+                                required
                             />
-                        </>
-                    )}
-                </Form>
+                        </div>
+                        <Button disabled={processing}>Create menu</Button>
+                        <InputError id="new-menu-error" message={errors.name} />
+                    </>
+                )}
+            </Form>
 
-                <DataTable
-                    columns={columns}
-                    rows={navigations}
-                    rowKey={(row) => row.id}
-                    caption="Menus"
-                    empty={
-                        <EmptyState
-                            kind="nothing-yet"
-                            title="No menus yet"
-                            description="A menu is a list of links to pages, posts, categories, the home page or any address."
-                            action={
-                                <Button
-                                    variant="outline"
-                                    type="button"
-                                    onClick={() =>
-                                        document
-                                            .getElementById('new-menu')
-                                            ?.focus()
-                                    }
-                                >
-                                    Create a menu
-                                </Button>
-                            }
-                        />
-                    }
-                />
-            </div>
-        </>
+            <DataTable
+                columns={columns}
+                rows={navigations}
+                rowKey={(row) => row.id}
+                caption="Menus"
+                empty={
+                    <EmptyState
+                        kind="nothing-yet"
+                        title="No menus yet"
+                        description="A menu is a list of links to pages, posts, categories, the home page or any address."
+                        action={
+                            <Button
+                                variant="neutral"
+                                type="button"
+                                onClick={() =>
+                                    document.getElementById('new-menu')?.focus()
+                                }
+                            >
+                                Create a menu
+                            </Button>
+                        }
+                    />
+                }
+            />
+        </ListPage>
     );
 }
