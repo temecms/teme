@@ -13,6 +13,7 @@ screens:
 sources:
   - resources/js/pages/account
   - resources/js/layouts/account
+  - resources/js/components/patterns/save-bar.tsx
   - resources/js/components/header
   - resources/js/pages/inbox
   - resources/js/components/inbox
