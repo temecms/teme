@@ -70,8 +70,6 @@ R1	js/components/seo/who-publishes.tsx	max-w-[320px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
-R1	js/components/tools/ai-activity-details.tsx	grid-cols-[8rem_1fr]
-R1	js/components/tools/ai-activity-details.tsx	sm:max-w-[480px]
 R1	js/components/ui/sidebar.tsx	after:w-[2px]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]
@@ -96,7 +94,6 @@ R1	js/pages/settings/site-code.tsx	max-w-[960px]
 R1	js/pages/settings/site-code.tsx	sm:max-w-[560px]
 R1	js/pages/terms/index.tsx	lg:grid-cols-[300px_minmax(0,1fr)]
 R1	js/pages/terms/index.tsx	sm:max-w-[480px]
-R1	js/pages/tools/ai-activity.tsx	grid-cols-[max-content_1fr]
 R10	js/components/app-content.tsx	outline-none
 R10	js/components/editor/editor-shell.tsx	outline-none
 R10	js/components/editor/rail/search-panel.tsx	outline-none
@@ -504,12 +501,6 @@ R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-xs
-R2	js/components/tools/ai-activity-details.tsx	text-[12px]
-R2	js/components/tools/ai-activity-details.tsx	text-[12px]
-R2	js/components/tools/ai-activity-details.tsx	text-[12px]
-R2	js/components/tools/ai-activity-details.tsx	text-[12px]
-R2	js/components/tools/ai-activity-details.tsx	text-[12px]
-R2	js/components/tools/ai-activity-details.tsx	text-[13px]
 R2	js/components/user-menu-content.tsx	text-sm
 R2	js/pages/comments/index.tsx	text-[11px]
 R2	js/pages/comments/index.tsx	text-[12px]
@@ -614,19 +605,6 @@ R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/terms/index.tsx	text-xs
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[12px]
-R2	js/pages/tools/ai-activity.tsx	text-[13px]
-R2	js/pages/tools/ai-activity.tsx	text-[13px]
-R2	js/pages/tools/ai-activity.tsx	text-base
-R2	js/pages/tools/ai-activity.tsx	text-sm
-R2	js/pages/tools/ai-activity.tsx	text-sm
 R2	js/pages/tools/jobs.tsx	text-[13px]
 R2	js/pages/tools/jobs.tsx	text-xs
 R3	js/components/comments/comment-details.tsx	mt-0.5
@@ -746,11 +724,6 @@ R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
-R3	js/pages/tools/ai-activity.tsx	gap-1.5
-R3	js/pages/tools/ai-activity.tsx	gap-1.5
-R3	js/pages/tools/ai-activity.tsx	gap-1.5
-R3	js/pages/tools/ai-activity.tsx	mt-0.5
-R3	js/pages/tools/ai-activity.tsx	mt-0.5
 R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
@@ -909,9 +882,6 @@ R7	js/pages/terms/index.tsx	frame:p-6
 R7	js/pages/terms/index.tsx	frame:sm:max-w-[480px]
 R7	js/pages/terms/index.tsx	root:div
 R7	js/pages/terms/index.tsx	root:Sheet
-R7	js/pages/tools/ai-activity.tsx	frame:p-6
-R7	js/pages/tools/ai-activity.tsx	root:AiActivityDetails
-R7	js/pages/tools/ai-activity.tsx	root:div
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
 R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
@@ -935,7 +905,6 @@ R8	js/components/media/media-modal.tsx	overflow-y-auto
 R8	js/components/media/media-modal.tsx	overflow-y-auto
 R8	js/components/personalise-menu-dialog.tsx	overflow-y-auto
 R8	js/components/term-tree-picker.tsx	overflow-y-auto
-R8	js/components/tools/ai-activity-details.tsx	overflow-y-auto
 R8	js/components/ui/popover.tsx	overflow-y-auto
 R8	js/components/ui/sidebar.tsx	overflow-auto
 R8	js/layouts/settings/layout.tsx	overflow-x-auto
@@ -959,4 +928,3 @@ R9	js/pages/settings/search-and-social.tsx	role="note"
 R9	js/pages/settings/search-and-social.tsx	role="note"
 R9	js/pages/settings/site-code.tsx	role="note"
 R9	js/pages/settings/site-code.tsx	role="note"
-R9	js/pages/tools/ai-activity.tsx	role="note"

@@ -926,32 +926,6 @@ components/themes/theme-regions.tsx	Theme no longer installed
 components/themes/theme-regions.tsx	declares no regions.
 components/themes/theme-regions.tsx	puts the site’s own content, such as a box after each article.
 components/themes/theme-regions.tsx	{} regions
-components/tools/ai-activity-details.tsx	A deleted image
-components/tools/ai-activity-details.tsx	A deleted item
-components/tools/ai-activity-details.tsx	A removed person
-components/tools/ai-activity-details.tsx	Alt text after
-components/tools/ai-activity-details.tsx	Alt text before
-components/tools/ai-activity-details.tsx	Cost
-components/tools/ai-activity-details.tsx	Model
-components/tools/ai-activity-details.tsx	No price is set for this model, so this request isn’t counted in the month’s spend.
-components/tools/ai-activity-details.tsx	None
-components/tools/ai-activity-details.tsx	None
-components/tools/ai-activity-details.tsx	On
-components/tools/ai-activity-details.tsx	Person
-components/tools/ai-activity-details.tsx	Prompt
-components/tools/ai-activity-details.tsx	Read from the cache
-components/tools/ai-activity-details.tsx	Result
-components/tools/ai-activity-details.tsx	Task
-components/tools/ai-activity-details.tsx	The image had none. To put that back, clear its alt text in Media.
-components/tools/ai-activity-details.tsx	Time taken
-components/tools/ai-activity-details.tsx	To put it back, copy it into the image’s alt text in Media.
-components/tools/ai-activity-details.tsx	Tokens received
-components/tools/ai-activity-details.tsx	Tokens sent
-components/tools/ai-activity-details.tsx	When
-components/tools/ai-activity-details.tsx	Written to the cache
-components/tools/ai-activity-details.tsx	{} request
-components/tools/ai-activity-details.tsx	{}, in the trash
-components/tools/ai-activity-details.tsx	{}, version {}
 components/types/builder-parts.tsx	Can’t be used
 components/types/builder-parts.tsx	Code
 components/types/builder-parts.tsx	Made here
@@ -1512,46 +1486,6 @@ pages/themes/index.tsx	The last change was not saved. Check the fields marked be
 pages/themes/index.tsx	The site’s name, tagline and brand colour stay when you change theme.
 pages/themes/index.tsx	Themes
 pages/themes/index.tsx	Themes
-pages/tools/ai-activity.tsx	1 request used a model with no price, so its cost is left out.
-pages/tools/ai-activity.tsx	A removed person
-pages/tools/ai-activity.tsx	AI activity
-pages/tools/ai-activity.tsx	AI activity
-pages/tools/ai-activity.tsx	AI activity
-pages/tools/ai-activity.tsx	AI is switched off on this server.
-pages/tools/ai-activity.tsx	AI is unavailable to everyone until the new month starts.
-pages/tools/ai-activity.tsx	Actions
-pages/tools/ai-activity.tsx	All tasks
-pages/tools/ai-activity.tsx	Any month
-pages/tools/ai-activity.tsx	Budget
-pages/tools/ai-activity.tsx	Change the budget
-pages/tools/ai-activity.tsx	Clear filters
-pages/tools/ai-activity.tsx	Cost is Teme’s own sum from each model’s price, in US dollars, so it can differ a little from an AI company’s invoice. Requests are removed after 12 months; the monthly totals stay.
-pages/tools/ai-activity.tsx	Details
-pages/tools/ai-activity.tsx	Details of the {} request on {}
-pages/tools/ai-activity.tsx	Every AI request, newest first. Teme keeps the figures, never the text sent or the answer; when AI’s alt text is used, it also keeps the image’s alt text from before and after. Requests are removed after 12 months.
-pages/tools/ai-activity.tsx	Everyone
-pages/tools/ai-activity.tsx	Filter
-pages/tools/ai-activity.tsx	Filter AI requests
-pages/tools/ai-activity.tsx	Month
-pages/tools/ai-activity.tsx	Months follow UTC, as the AI companies bill.
-pages/tools/ai-activity.tsx	No AI requests yet
-pages/tools/ai-activity.tsx	No requests match these filters
-pages/tools/ai-activity.tsx	Nobody can ask for a suggestion until the host switches it on again. The requests below stay.
-pages/tools/ai-activity.tsx	None
-pages/tools/ai-activity.tsx	None set
-pages/tools/ai-activity.tsx	Person
-pages/tools/ai-activity.tsx	Requests
-pages/tools/ai-activity.tsx	Requests are removed after 12 months.
-pages/tools/ai-activity.tsx	Set a budget
-pages/tools/ai-activity.tsx	Spent
-pages/tools/ai-activity.tsx	Task
-pages/tools/ai-activity.tsx	That request is gone.
-pages/tools/ai-activity.tsx	The budget is reached.
-pages/tools/ai-activity.tsx	This month: {}
-pages/tools/ai-activity.tsx	Tools
-pages/tools/ai-activity.tsx	When someone asks AI for a suggestion, the request appears here with what it cost.
-pages/tools/ai-activity.tsx	{} a month, {}
-pages/tools/ai-activity.tsx	{} requests used a model with no price, so their cost is left out.
 pages/tools/backups/place.tsx	Another place to keep backups, kept in step with the others.
 pages/tools/backups/place.tsx	Backups
 pages/tools/backups/place.tsx	Cancel

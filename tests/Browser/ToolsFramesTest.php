@@ -43,6 +43,7 @@ dataset('tool frames', [
     'Updates' => ['/admin/tools/updates', 'Updates'],
     'Redirects' => ['/admin/tools/redirects', 'Redirects'],
     '404 log' => ['/admin/tools/redirects/404', 'Redirects'],
+    'AI activity' => ['/admin/tools/ai-activity', 'AI activity'],
 ]);
 
 it('draws :dataset on one page pattern, one heading, nothing sideways and no small target at 375 pixels', function (string $url, string $title): void {

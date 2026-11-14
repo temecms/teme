@@ -37,6 +37,7 @@ dataset('tool screens', [
     'Backups' => [['pages/tools/backups/index.tsx', 'pages/tools/backups/set-up.tsx', 'pages/tools/backups/sftp.tsx', 'pages/tools/backups/new-key.tsx', 'pages/tools/backups/recovery-key.tsx', 'components/backups/']],
     'Page cache and Updates' => [['pages/tools/page-cache.tsx', 'pages/tools/updates.tsx', 'components/tools/update-progress.tsx']],
     'Redirects and the 404 log' => [['pages/tools/redirects.tsx', 'pages/tools/not-found.tsx', 'components/tools/redirect-form.tsx', 'components/tools/import-redirects.tsx', 'components/tools/redirects-head.tsx']],
+    'AI activity' => [['pages/tools/ai-activity.tsx', 'components/tools/ai-activity-details.tsx']],
 ]);
 
 it('leaves no design-system line on :dataset', function (array $paths): void {

@@ -123,6 +123,6 @@ it('explains the cost in the month summary, under Spent, not above the pager', f
     $source = ($this->flat)('pages/tools/ai-activity.tsx');
 
     expect(($this->at)($source, 'Cost is Teme’s own sum'))
-        ->toBeGreaterThan(($this->at)($source, 'Spent</dt>'))
+        ->toBeGreaterThan(($this->at)($source, "Spent')}</dt>"))
         ->toBeLessThan(($this->at)($source, 'export default function AiActivity'));
 });
