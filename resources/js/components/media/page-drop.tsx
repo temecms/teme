@@ -1,5 +1,6 @@
 import { Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { __ } from '@/lib/i18n';
 
 /** Whether a drag carries files, rather than text or a link. */
 function carriesFiles(event: DragEvent): boolean {
@@ -100,11 +101,11 @@ export function PageDrop({ onFiles }: { onFiles: (files: FileList) => void }) {
         <div
             data-test="page-drop"
             aria-hidden="true"
-            className="bg-page/90 border-accent pointer-events-none fixed inset-0 z-40 flex items-center justify-center border-2 border-dashed text-sm font-medium"
+            className="bg-page/90 border-accent text-body pointer-events-none fixed inset-0 z-(--z-overlay) flex items-center justify-center border-2 border-dashed font-medium"
         >
             <span className="flex items-center gap-2">
-                <Upload className="size-5" />
-                Drop files to upload
+                <Upload aria-hidden="true" className="size-5" />
+                {__('Drop files to upload')}
             </span>
         </div>
     );

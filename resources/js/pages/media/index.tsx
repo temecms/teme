@@ -1,17 +1,20 @@
 import { Head, router, usePoll } from '@inertiajs/react';
-import { Grid2x2, List, Upload } from 'lucide-react';
+import { Grid2x2, List, TriangleAlert, Upload } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { showToast } from '@/components/flash-toast';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
 import { Pager } from '@/components/list/pager';
-import { TabStrip } from '@/components/list/tab-strip';
+import { mediaKind } from '@/components/media/attachment-fields';
 import { MediaFilters } from '@/components/media/media-filters';
 import type { MediaFilterValues } from '@/components/media/media-filters';
-import { MediaGrid, Thumb, TILE_SIZES } from '@/components/media/media-grid';
-import { MEDIA_KINDS } from '@/components/media/attachment-fields';
+import {
+    MediaGrid,
+    Thumb,
+    TILE_SIZES,
+    tileOf,
+} from '@/components/media/media-grid';
 import { PageDrop } from '@/components/media/page-drop';
 import { UploadList } from '@/components/media/upload-list';
 import {
@@ -19,16 +22,20 @@ import {
     useMediaUploads,
 } from '@/components/media/use-media-uploads';
 import type { UploadedBatch } from '@/components/media/use-media-uploads';
-import { MediaDrawer } from '@/components/media-drawer';
-import { Badge } from '@/components/ui/badge';
+import { useWide } from '@/components/media/use-wide';
+import { MediaDetailPanel } from '@/components/media-drawer';
+import { DetailPage } from '@/components/patterns/detail-page';
+import { InPageNav } from '@/components/patterns/in-page-nav';
 import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
 import { Segmented, SegmentedItem } from '@/components/ui/segmented';
 import { SelectField } from '@/components/ui/select-field';
-import { __ } from '@/lib/i18n';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { TextButton } from '@/components/ui/text-button';
+import { __, __n } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import { index as mediaIndex } from '@/routes/media';
 import type { MediaIndexPage, MediaRow } from '@/types';
-
 /** The address's filter keys; Clear filters drops them and keeps the tab, the order and the layout. */
 const FILTER_KEYS = [
     'type',
@@ -75,11 +82,24 @@ function Nothing({ meaning }: { meaning: string }) {
     );
 }
 
+/** The file's tile, or its name in the list: where focus returns when its details close. */
+function focusFile(id: string): void {
+    window.requestAnimationFrame(() =>
+        (
+            tileOf(id) ??
+            document.querySelector<HTMLElement>(
+                `[data-media-name="${CSS.escape(id)}"]`,
+            )
+        )?.focus(),
+    );
+}
+
 export default function MediaIndex(page: MediaIndexPage) {
     const [selected, setSelected] = useState<string | null>(null);
     const [tileSize, setTileSize] = useState<TileSizeKey>(() =>
         typeof window === 'undefined' ? 'm' : storedTileSize(),
     );
+    const wide = useWide();
     const input = useRef<HTMLInputElement>(null);
     const filters = page.filters;
     const tab = filters.tab === 'trash' ? 'trash' : 'all';
@@ -168,7 +188,7 @@ export default function MediaIndex(page: MediaIndexPage) {
 
     const chooseFiles = () => input.current?.click();
 
-    // The drawer's link to every file uploaded for an item: the tab, the order and the layout kept, the other filters dropped (I-553).
+    // The panel's link to every file uploaded for an item: the tab, the order and the layout kept, the other filters dropped (I-553).
     const uploadedForHref = (itemId: string) =>
         mediaIndex({
             query: {
@@ -179,26 +199,66 @@ export default function MediaIndex(page: MediaIndexPage) {
             },
         }).url;
 
+    const close = () => {
+        const open = selected;
+        setSelected(null);
+
+        if (open !== null) {
+            focusFile(open);
+        }
+    };
+
+    const index =
+        selected === null
+            ? -1
+            : page.rows.findIndex((row) => row.id === selected);
+    const step = (by: number) => {
+        const next = page.rows[index + by];
+
+        return index === -1 || next === undefined
+            ? null
+            : () => setSelected(next.id);
+    };
+
+    const details =
+        selected === null ? null : (
+            <MediaDetailPanel
+                key={selected}
+                id={selected}
+                position={{
+                    current: index + 1,
+                    total: page.rows.length,
+                }}
+                onPrevious={step(-1)}
+                onNext={step(1)}
+                onClose={close}
+                onChanged={reload}
+                zone={page.siteTimezone}
+                uploadedForHref={uploadedForHref}
+                inSheet={!wide}
+            />
+        );
+
     // The list view's columns, on the sweep's shared table (I-200: plugins add theirs in phase 5).
     const columns: Column<MediaRow>[] = [
         {
             id: 'file',
             owner: 'core',
-            header: 'File',
+            header: __('File'),
             cell: (row) => (
                 <div className="flex items-start gap-3">
                     <span className="w-10 shrink-0">
                         <Thumb row={row} />
                     </span>
                     <span className="grid min-w-0">
-                        <button
-                            type="button"
-                            className="min-h-6 truncate text-left font-medium underline-offset-2 hover:underline"
+                        <TextButton
+                            data-media-name={row.id}
+                            className="text-ink truncate text-start"
                             onClick={() => setSelected(row.id)}
                         >
                             {row.title}
-                        </button>
-                        <span className="text-ink-2 truncate text-xs">
+                        </TextButton>
+                        <span className="text-ink-3 text-small truncate">
                             {row.filename}
                         </span>
                     </span>
@@ -208,11 +268,11 @@ export default function MediaIndex(page: MediaIndexPage) {
         {
             id: 'type',
             owner: 'core',
-            header: 'Type',
+            header: __('Type'),
             cell: (row) => (
                 <>
-                    {MEDIA_KINDS[row.kind]}
-                    <span className="text-ink-2 block text-xs">
+                    {mediaKind(row.kind)}
+                    <span className="text-ink-3 text-small block">
                         {row.extension.toUpperCase()}
                     </span>
                 </>
@@ -221,52 +281,71 @@ export default function MediaIndex(page: MediaIndexPage) {
         {
             id: 'alt',
             owner: 'core',
-            header: 'Alt text',
+            header: __('Alt text'),
             cell: (row) =>
                 row.kind !== 'image' ? (
-                    <Nothing meaning="Not needed" />
+                    <Nothing meaning={__('Not needed')} />
                 ) : row.alt ? (
                     <span className="line-clamp-2">{row.alt}</span>
                 ) : (
-                    <Badge variant="destructive">Missing</Badge>
+                    <span className="text-warn-ink text-small inline-flex items-center gap-1">
+                        <TriangleAlert
+                            aria-hidden="true"
+                            className="size-3.5"
+                        />
+                        {__('Missing')}
+                    </span>
                 ),
         },
         {
             id: 'credit',
             owner: 'core',
-            header: 'Credit',
+            header: __('Credit'),
             // Later (I-201): where the file came from, once plugin sources import into the library.
             cell: (row) =>
                 row.credit || row.licence ? (
                     <>
                         {row.credit}
                         {row.licence && (
-                            <span className="text-ink-2 block text-xs">
+                            <span className="text-ink-3 text-small block">
                                 {row.licence}
                             </span>
                         )}
                     </>
                 ) : (
-                    <Nothing meaning="None" />
+                    <Nothing meaning={__('None')} />
                 ),
         },
         {
             id: 'uses',
             owner: 'core',
-            header: 'Used in',
-            className: 'text-right tabular-nums',
-            cell: (row) => row.uses,
+            header: __('Used in'),
+            className: 'text-end tabular-nums',
+            cell: (row) =>
+                row.uses === 0 ? (
+                    row.uses
+                ) : (
+                    <TextButton
+                        aria-label={__n(
+                            'Used in :count place: show them|Used in :count places: show them',
+                            row.uses,
+                        )}
+                        onClick={() => setSelected(row.id)}
+                    >
+                        {row.uses}
+                    </TextButton>
+                ),
         },
         {
             id: 'uploaded',
             owner: 'core',
-            header: 'Uploaded',
+            header: __('Uploaded'),
             cell: (row) => (
                 <>
                     {row.uploaderName && (
                         <span className="block">{row.uploaderName}</span>
                     )}
-                    <span className="text-ink-2 text-xs">
+                    <span className="text-ink-3 text-small">
                         {formatInZone(row.createdAt, page.siteTimezone)}
                     </span>
                 </>
@@ -276,235 +355,266 @@ export default function MediaIndex(page: MediaIndexPage) {
 
     return (
         <>
-            <Head title="Media" />
-            <div className="flex flex-1 flex-col gap-4 p-6">
-                <PageHeader
-                    title="Media"
-                    description="Every file the site uses."
-                    action={
-                        <>
+            <Head title={__('Media')} />
+            <DetailPage
+                title={__('Media')}
+                description={__('Every file the site uses.')}
+                panelLabel={__('File details')}
+                actions={
+                    <>
+                        <Button
+                            type="button"
+                            data-test="media-upload"
+                            onClick={chooseFiles}
+                        >
+                            <Upload aria-hidden="true" />
+                            {__('Upload files')}
+                        </Button>
+                        <input
+                            ref={input}
+                            data-test="media-upload-input"
+                            type="file"
+                            multiple
+                            hidden
+                            onChange={(event) => {
+                                uploads.add(event.target.files);
+                                // So the same file can be chosen again.
+                                event.target.value = '';
+                            }}
+                        />
+                    </>
+                }
+                panel={
+                    wide
+                        ? (details ?? (
+                              <Panel className="px-5 py-4">
+                                  <p className="text-small text-ink-3">
+                                      {__('Select a file to see its details.')}
+                                  </p>
+                              </Panel>
+                          ))
+                        : null
+                }
+            >
+                <div className="grid gap-4">
+                    <UploadList uploads={uploads} />
+
+                    <InPageNav
+                        label={__('Views')}
+                        items={page.tabs.map((entry) => ({
+                            label: entry.label,
+                            count: entry.count,
+                            current: entry.key === tab,
+                            href: mediaIndex({
+                                query: {
+                                    ...filters,
+                                    after: undefined,
+                                    before: undefined,
+                                    tab:
+                                        entry.key === 'all'
+                                            ? undefined
+                                            : entry.key,
+                                },
+                            }).url,
+                        }))}
+                    />
+
+                    <MediaFilters
+                        idPrefix="media-filters"
+                        values={values}
+                        onChange={filter}
+                        months={page.months}
+                        chosenItem={page.uploadedFor}
+                    />
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        {anyFilter && (
                             <Button
                                 type="button"
-                                data-test="media-upload"
-                                onClick={chooseFiles}
+                                size="sm"
+                                variant="ghost"
+                                data-test="media-clear-filters"
+                                onClick={clear}
                             >
-                                <Upload aria-hidden="true" />
-                                Upload files
+                                {__('Clear filters')}
                             </Button>
-                            <input
-                                ref={input}
-                                data-test="media-upload-input"
-                                type="file"
-                                multiple
-                                hidden
-                                onChange={(event) => {
-                                    uploads.add(event.target.files);
-                                    // So the same file can be chosen again.
-                                    event.target.value = '';
-                                }}
+                        )}
+                        <span className="flex-1" />
+                        {/* The trash is always newest first, by when each file went there. */}
+                        {tab === 'all' && (
+                            <SelectField
+                                aria-label={__('Order')}
+                                value={
+                                    filters.direction === 'asc' ? 'asc' : 'desc'
+                                }
+                                onValueChange={(direction) =>
+                                    visit({
+                                        direction:
+                                            direction === 'asc'
+                                                ? 'asc'
+                                                : undefined,
+                                    })
+                                }
+                                options={[
+                                    {
+                                        value: 'desc',
+                                        label: __('Newest first'),
+                                    },
+                                    { value: 'asc', label: __('Oldest first') },
+                                ]}
                             />
-                        </>
-                    }
-                />
-
-                <UploadList uploads={uploads} />
-
-                <TabStrip
-                    label="Views"
-                    current={tab}
-                    preserveState
-                    tabs={page.tabs.map((entry) => ({
-                        key: entry.key,
-                        label: entry.label,
-                        count: entry.count,
-                        href: mediaIndex({
-                            query: {
-                                ...filters,
-                                after: undefined,
-                                before: undefined,
-                                tab:
-                                    entry.key === 'all' ? undefined : entry.key,
-                            },
-                        }),
-                    }))}
-                />
-
-                <MediaFilters
-                    idPrefix="media-filters"
-                    values={values}
-                    onChange={filter}
-                    months={page.months}
-                    chosenItem={page.uploadedFor}
-                />
-
-                <div className="flex flex-wrap items-center gap-2">
-                    {anyFilter && (
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            data-test="media-clear-filters"
-                            onClick={clear}
-                        >
-                            Clear filters
-                        </Button>
-                    )}
-                    <span className="flex-1" />
-                    {/* The trash is always newest first, by when each file went there. */}
-                    {tab === 'all' && (
-                        <SelectField
-                            aria-label="Order"
-                            value={filters.direction === 'asc' ? 'asc' : 'desc'}
-                            onValueChange={(direction) =>
+                        )}
+                        {view === 'grid' && (
+                            <Segmented
+                                aria-label={__('Tile size')}
+                                value={tileSize}
+                                onValueChange={(next) => {
+                                    const size = next as TileSizeKey;
+                                    setTileSize(size);
+                                    storeTileSize(size);
+                                }}
+                            >
+                                <SegmentedItem
+                                    value="s"
+                                    aria-label={__('Small tiles')}
+                                >
+                                    {__('S')}
+                                </SegmentedItem>
+                                <SegmentedItem
+                                    value="m"
+                                    aria-label={__('Medium tiles')}
+                                >
+                                    {__('M')}
+                                </SegmentedItem>
+                                <SegmentedItem
+                                    value="l"
+                                    aria-label={__('Large tiles')}
+                                >
+                                    {__('L')}
+                                </SegmentedItem>
+                            </Segmented>
+                        )}
+                        <Segmented
+                            aria-label={__('Layout')}
+                            value={view}
+                            onValueChange={(next) =>
                                 visit({
-                                    direction:
-                                        direction === 'asc' ? 'asc' : undefined,
+                                    view: next === 'list' ? 'list' : undefined,
                                 })
                             }
-                            options={[
-                                { value: 'desc', label: 'Newest first' },
-                                { value: 'asc', label: 'Oldest first' },
-                            ]}
-                        />
-                    )}
-                    {view === 'grid' && (
-                        <Segmented
-                            aria-label={__('Tile size')}
-                            value={tileSize}
-                            onValueChange={(next) => {
-                                const size = next as TileSizeKey;
-                                setTileSize(size);
-                                storeTileSize(size);
-                            }}
                         >
                             <SegmentedItem
-                                value="s"
-                                aria-label={__('Small tiles')}
+                                value="grid"
+                                data-test="media-layout-grid"
                             >
-                                {__('S')}
+                                <Grid2x2 aria-hidden="true" />
+                                {__('Grid')}
                             </SegmentedItem>
                             <SegmentedItem
-                                value="m"
-                                aria-label={__('Medium tiles')}
+                                value="list"
+                                data-test="media-layout-list"
                             >
-                                {__('M')}
-                            </SegmentedItem>
-                            <SegmentedItem
-                                value="l"
-                                aria-label={__('Large tiles')}
-                            >
-                                {__('L')}
+                                <List aria-hidden="true" />
+                                {__('List')}
                             </SegmentedItem>
                         </Segmented>
-                    )}
-                    <div
-                        role="group"
-                        aria-label="Layout"
-                        className="flex gap-1"
-                    >
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant={view === 'grid' ? 'secondary' : 'ghost'}
-                            aria-pressed={view === 'grid'}
-                            data-test="media-layout-grid"
-                            onClick={() => visit({ view: undefined })}
-                        >
-                            <Grid2x2 aria-hidden="true" />
-                            Grid
-                        </Button>
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant={view === 'list' ? 'secondary' : 'ghost'}
-                            aria-pressed={view === 'list'}
-                            data-test="media-layout-list"
-                            onClick={() => visit({ view: 'list' })}
-                        >
-                            <List aria-hidden="true" />
-                            List
-                        </Button>
                     </div>
-                </div>
 
-                {page.rows.length === 0 ? (
-                    page.filtered ? (
-                        <EmptyState
-                            kind="nothing-matches"
-                            title="Nothing matches these filters"
-                            clearHref={
-                                mediaIndex({
-                                    query: {
-                                        tab: filters.tab,
-                                        direction: filters.direction,
-                                        view: filters.view,
-                                    },
-                                }).url
+                    {page.rows.length === 0 ? (
+                        page.filtered ? (
+                            <EmptyState
+                                kind="nothing-matches"
+                                title={__('Nothing matches these filters')}
+                                clearHref={
+                                    mediaIndex({
+                                        query: {
+                                            tab: filters.tab,
+                                            direction: filters.direction,
+                                            view: filters.view,
+                                        },
+                                    }).url
+                                }
+                            />
+                        ) : tab === 'trash' ? (
+                            <EmptyState
+                                kind="nothing-yet"
+                                title={__('The trash is empty')}
+                                description={__(
+                                    'Files you move to the trash wait here. Restore one and every item that used it shows it again.',
+                                )}
+                            />
+                        ) : (
+                            <EmptyState
+                                kind="nothing-yet"
+                                title={__('No files yet')}
+                                description={__(
+                                    'Upload images, video, audio and documents, or drop them anywhere on this page.',
+                                )}
+                                action={
+                                    <Button type="button" onClick={chooseFiles}>
+                                        {__('Upload files')}
+                                    </Button>
+                                }
+                            />
+                        )
+                    ) : view === 'grid' ? (
+                        <MediaGrid
+                            rows={page.rows}
+                            size={TILE_SIZES[tileSize]}
+                            openId={selected}
+                            onAction={(id, action) =>
+                                (action === 'click' || action === 'enter') &&
+                                setSelected(id)
                             }
-                        />
-                    ) : tab === 'trash' ? (
-                        <EmptyState
-                            kind="nothing-yet"
-                            title="The trash is empty"
-                            description="Files you move to the trash wait here. Restore one and every item that used it shows it again."
+                            onEscape={selected === null ? undefined : close}
                         />
                     ) : (
-                        <EmptyState
-                            kind="nothing-yet"
-                            title="No files yet"
-                            description="Upload images, video, audio and documents, or drop them anywhere on this page."
-                            action={
-                                <Button type="button" onClick={chooseFiles}>
-                                    Upload files
-                                </Button>
-                            }
+                        <DataTable
+                            caption={__('Media')}
+                            rowKey={(row) => row.id}
+                            columns={columns}
+                            rows={page.rows}
                         />
-                    )
-                ) : view === 'grid' ? (
-                    <MediaGrid
-                        rows={page.rows}
-                        size={TILE_SIZES[tileSize]}
-                        openId={selected}
-                        onAction={(id, action) =>
-                            (action === 'click' || action === 'enter') &&
-                            setSelected(id)
+                    )}
+
+                    <Pager
+                        preserveState
+                        newer={
+                            page.newer
+                                ? mediaIndex({
+                                      query: { ...filters, before: page.newer },
+                                  }).url
+                                : null
+                        }
+                        older={
+                            page.older
+                                ? mediaIndex({
+                                      query: { ...filters, after: page.older },
+                                  }).url
+                                : null
                         }
                     />
-                ) : (
-                    <DataTable
-                        caption="Media"
-                        rowKey={(row) => row.id}
-                        columns={columns}
-                        rows={page.rows}
-                    />
-                )}
+                </div>
 
-                <Pager
-                    preserveState
-                    newer={
-                        page.newer
-                            ? mediaIndex({
-                                  query: { ...filters, before: page.newer },
-                              }).url
-                            : null
-                    }
-                    older={
-                        page.older
-                            ? mediaIndex({
-                                  query: { ...filters, after: page.older },
-                              }).url
-                            : null
-                    }
-                />
-            </div>
-            <MediaDrawer
-                id={selected}
-                onClose={() => setSelected(null)}
-                onChanged={reload}
-                zone={page.siteTimezone}
-                uploadedForHref={uploadedForHref}
-            />
-            <PageDrop onFiles={uploads.add} />
+                {/* Below 1024px the details are a sheet (docs/architecture/design-system.md, section 4.20). */}
+                <Sheet
+                    open={!wide && selected !== null}
+                    onOpenChange={(open) => !open && close()}
+                >
+                    <SheetContent
+                        side="right"
+                        aria-describedby={undefined}
+                        className="gap-0 p-0"
+                        onCloseAutoFocus={(event) => event.preventDefault()}
+                    >
+                        <SheetTitle className="sr-only">
+                            {__('File details')}
+                        </SheetTitle>
+                        {!wide && details}
+                    </SheetContent>
+                </Sheet>
+                <PageDrop onFiles={uploads.add} />
+            </DetailPage>
         </>
     );
 }

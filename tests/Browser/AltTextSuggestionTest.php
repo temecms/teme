@@ -37,8 +37,8 @@ beforeEach(function (): void {
     // Warm the library before the browser's first visit (I-638).
     $this->actingAs($this->author)->get('/admin/media')->assertOk();
 
-    // Opens the image's drawer and waits for the sheet to settle before anything clicks inside it.
-    $this->open = fn (mixed $page): mixed => shellSettled($page->click('[role="option"]')->waitForText('Suggest alt text'), '[data-slot="sheet-content"]');
+    // Opens the image's details beside the library and waits for them to settle before anything clicks inside them.
+    $this->open = fn (mixed $page): mixed => shellSettled($page->click('[role="option"]')->waitForText('Suggest alt text'), '[data-test="media-detail"]');
 
     // axe on the suggestion's own block, target sizes included: the drawer around it is swept with the rest of Media (I-440).
     $this->axe = fn (mixed $page): array => cmScriptArray($page, <<<'JS'
@@ -69,8 +69,8 @@ it('suggests alt text in the library’s drawer, shows it beside what the field 
         ->assertValue(($this->field)('alt'), 'Fishing boats moored at dawn.')
         ->assertValue(($this->field)('caption'), 'Typed, not saved');
 
-    // Use saved the alt text alone: the drawer's form was never submitted.
-    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => 'Fishing boats moored at dawn.', 'caption' => null])
+    // Use saved the alt text and left the caption alone: the caption holds what leaving its field saved.
+    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => 'Fishing boats moored at dawn.', 'caption' => 'Typed, not saved'])
         ->and(AiActivity::query()->sole()->outcome)->toBe(AiOutcome::Applied);
 })->with(['light', 'dark']);
 
@@ -108,7 +108,8 @@ it('says plainly when AI fails, and Discard leaves the alt text and the form as 
         ->assertValue(($this->field)('alt'), '')
         ->assertValue(($this->field)('caption'), 'Typed, not saved');
 
-    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => null, 'caption' => null])
+    // Discard wrote nothing: the caption holds what leaving its field saved.
+    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => null, 'caption' => 'Typed, not saved'])
         ->and(AiActivity::query()->pluck('outcome')->map(fn (AiOutcome $outcome): string => $outcome->value)->sort()->values()->all())->toBe(['discarded', 'refused']);
 });
 

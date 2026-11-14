@@ -1,22 +1,32 @@
 import { Link, useHttp } from '@inertiajs/react';
-import { Trash2 } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
 import { showToast } from '@/components/flash-toast';
 import InputError from '@/components/input-error';
 import {
-    AttachmentFields,
-    AttachmentMeta,
+    attachmentSize,
+    failedSentence,
+    MediaFields,
+    mediaKind,
+    savedSentence,
+    useMediaSaver,
 } from '@/components/media/attachment-fields';
+import { FocalPoint } from '@/components/media/focal-point';
 import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
+import { Panel } from '@/components/ui/panel';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-    Sheet,
-    SheetContent,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { __, __n } from '@/lib/i18n';
+import { shownTitle } from '@/lib/titles';
 import { uploadFile } from '@/lib/upload';
+import { cn } from '@/lib/utils';
 import { formatInZone } from '@/lib/zoned-time';
 import {
     action as mediaAction,
@@ -24,157 +34,210 @@ import {
     original as mediaOriginal,
     replace as replaceMedia,
     show as showMedia,
-    update as updateMedia,
     usages as mediaUsages,
 } from '@/routes/media';
 import type { MediaDetailsData, MediaUsage, UploadedFor } from '@/types';
-import { shownTitle } from '@/lib/titles';
-
-type Props = {
-    id: string | null;
-    onClose: () => void;
-    /** Hears every change made here: the fresh details, or null once the file is deleted. */
-    onChanged?: (details: MediaDetailsData | null) => void;
-    /** The site's time zone, which the drawer's dates are shown in. */
-    zone?: string;
-    /** Where "Show every file uploaded for" goes: only the Media screen gives one. */
-    uploadedForHref?: (itemId: string) => string;
-};
-
-type DetailsForm = {
-    title: string;
-    alt: string;
-    caption: string;
-    credit: string;
-    licence: string;
-    focal_x: number;
-    focal_y: number;
-};
 
 /** The first page of where a file is used, and the cursor to more. */
 type Usages = { rows: MediaUsage[]; older: string | null };
 
-const altHint =
-    'What the image shows, for people who can’t see it. Used wherever you place the image without alt text of its own. You choose whether it’s decorative where you place it.';
-
-/** Said when a request is refused for anything but a field's error. */
-const FAILED = 'That didn’t work, so nothing changed. Try again.';
-
-const RESTORED = 'Restored. Every item that uses it shows it again.';
-
-const UNTIL_RESTORED = 'nothing in its place until you restore it.';
+/** The panel's height, at most the view's, under the top bar (docs/architecture/design-system.md, section 4.36). */
+const PANEL_STYLE = {
+    '--media-panel-h': 'calc(100dvh - 92px)',
+    '--facts-cols': 'max-content minmax(0, 1fr)',
+} as CSSProperties;
 
 /** “A”, “A” and “B”, or “A”, “B” and “C”. */
 function quotedList(names: string[]): string {
-    const quoted = names.map((name) => `“${name}”`);
+    const quoted = names.map((name) => __('“:name”', { name }));
 
     return quoted.length <= 1
         ? (quoted[0] ?? '')
-        : `${quoted.slice(0, -1).join(', ')} and ${quoted[quoted.length - 1]}`;
+        : __(':list and :last', {
+              list: quoted.slice(0, -1).join(', '),
+              last: quoted[quoted.length - 1],
+          });
 }
 
 /** Where the item a file was uploaded for stands, in Used in's words. */
 function uploadedForState(item: UploadedFor): string {
     if (item.trashed) {
-        return 'in the trash';
+        return __('in the trash');
     }
 
-    return item.status === 'published' ? 'live' : item.status;
+    return item.status === 'published' ? __('live') : item.status;
+}
+
+/** What a person's picture becomes while the file is in the trash (I-3410): a count, never names. */
+function pictureSentence(pictureOf: number): string {
+    return __n(
+        '1 person uses it as their picture and shows the site’s default picture until you restore it.|:count people use it as their picture and show the site’s default picture until you restore it.',
+        pictureOf,
+    );
 }
 
 /**
  * What Move to trash says before it asks (I-166): nothing live, or the live
- * pages the file vanishes from, named from Used in's first page. Whether
- * anything live shows it comes from the file's own count, which every
- * reference moves.
+ * pages the file vanishes from, named from Used in's first page, and how
+ * many people use it as their picture. Whether anything live shows it comes
+ * from the file's own count, which every reference moves.
  */
-export function trashSentence(publishedUses: number, usages: Usages): string {
-    if (publishedUses === 0) {
-        return 'Nothing live uses this file.';
-    }
-
+export function trashSentence(
+    publishedUses: number,
+    usages: Usages,
+    pictureOf = 0,
+): string {
     const live = usages.rows
         .filter((usage) => usage.published)
-        .map((usage) => usage.title || 'Untitled');
+        .map((usage) => usage.title || __('Untitled'));
     const more = usages.older !== null;
+    let sentence: string;
 
-    if (live.length === 0) {
-        return `It appears on live items. They show ${UNTIL_RESTORED}`;
+    if (publishedUses === 0) {
+        sentence = __('Nothing live uses this file.');
+    } else if (live.length === 0) {
+        sentence = __(
+            'It appears on live items. They show nothing in its place until you restore it.',
+        );
+    } else if (live.length === 1 && !more) {
+        sentence = __(
+            'It appears on “:title”, which is live. That item shows nothing in its place until you restore it.',
+            { title: live[0] },
+        );
+    } else if (live.length <= 3 && !more) {
+        sentence = __(
+            'It appears on :count live items: :list. They show nothing in its place until you restore it.',
+            { count: live.length, list: quotedList(live) },
+        );
+    } else {
+        sentence = more
+            ? __(
+                  'It appears on :count or more live items, among them :list. They show nothing in its place until you restore it.',
+                  { count: live.length, list: quotedList(live.slice(0, 3)) },
+              )
+            : __(
+                  'It appears on :count live items, among them :list. They show nothing in its place until you restore it.',
+                  { count: live.length, list: quotedList(live.slice(0, 3)) },
+              );
     }
 
-    if (live.length === 1 && !more) {
-        return `It appears on “${live[0]}”, which is live. That item shows ${UNTIL_RESTORED}`;
-    }
-
-    if (live.length <= 3 && !more) {
-        return `It appears on ${live.length} live items: ${quotedList(live)}. They show ${UNTIL_RESTORED}`;
-    }
-
-    return `It appears on ${live.length}${more ? ' or more' : ''} live items, among them ${quotedList(live.slice(0, 3))}. They show ${UNTIL_RESTORED}`;
+    return pictureOf > 0
+        ? `${sentence} ${pictureSentence(pictureOf)}`
+        : sentence;
 }
 
-/** What Delete permanently says before it asks: the file, and how many items still refer to it. */
-export function deleteSentence(filename: string, usages: Usages): string {
-    const deleted = `This deletes “${filename}” and every size made from it.`;
+/** What Delete permanently says before it asks: the file, how many items still refer to it, and whose picture it is. */
+export function deleteSentence(
+    filename: string,
+    usages: Usages,
+    pictureOf = 0,
+): string {
+    const deleted = __(
+        'This deletes “:filename” and every size made from it.',
+        {
+            filename,
+        },
+    );
     const count = usages.rows.length;
     const more = usages.older !== null;
+    const pictures =
+        pictureOf > 0
+            ? ` ${__n('1 person loses their picture.|:count people lose their picture.', pictureOf)}`
+            : '';
 
     if (count === 0 && !more) {
-        return `${deleted} This can’t be undone.`;
+        return `${deleted}${pictures} ${__('This can’t be undone.')}`;
     }
 
-    const refer =
-        count === 1 && !more
-            ? '1 item still refers'
-            : `${count}${more ? ' or more' : ''} items still refer`;
+    const refer = more
+        ? __(
+              ':count or more items still refer to it and will show nothing in its place.',
+              { count },
+          )
+        : __n(
+              '1 item still refers to it and will show nothing in its place.|:count items still refer to it and will show nothing in its place.',
+              count,
+          );
 
-    return `${deleted} ${refer} to it and will show nothing in its place. This can’t be undone.`;
+    return `${deleted} ${refer}${pictures} ${__('This can’t be undone.')}`;
+}
+
+type Props = {
+    id: string;
+    /** Where the file stands among the rows on this page. */
+    position: { current: number; total: number };
+    /** Steps to the file before or after; null at either end. */
+    onPrevious: (() => void) | null;
+    onNext: (() => void) | null;
+    onClose: () => void;
+    /** Hears every change made here: the fresh details, or null once the file is deleted. */
+    onChanged?: (details: MediaDetailsData | null) => void;
+    /** The site's time zone, which the panel's dates are shown in. */
+    zone?: string;
+    /** Where "Show every file uploaded for" goes. */
+    uploadedForHref?: (itemId: string) => string;
+    /** Drawn inside the sheet below 1024px: not lifted off the page. */
+    inSheet?: boolean;
+};
+
+/** A labelled icon button with its tooltip, which names its key. */
+function HeadButton({
+    label,
+    tip,
+    onClick,
+    children,
+    test,
+}: {
+    label: string;
+    tip: string;
+    onClick: (() => void) | null;
+    children: ReactNode;
+    test: string;
+}) {
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={label}
+                    data-test={test}
+                    disabled={onClick === null}
+                    onClick={onClick ?? undefined}
+                >
+                    {children}
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>{tip}</TooltipContent>
+        </Tooltip>
+    );
 }
 
 /**
- * One file's drawer, from the Media screen or over the media modal: its
- * preview and focal point, its facts, its fields, what it was uploaded for,
- * where it is used and its
- * tools; and in the footer, apart, Move to trash (or Restore and Delete
- * permanently) and Save. The destructive actions ask first, naming what
- * they touch (I-166).
+ * One file's details beside the library (docs/architecture/design-system.md,
+ * section 4.36): where it stands with Previous and Next, its picture and
+ * focal point, its facts, its fields, saved as each is left, where it is
+ * used, and its actions. The destructive ones ask first, naming what they
+ * touch (I-166). Draw it keyed by the file's ID.
  */
-export function MediaDrawer({
+export function MediaDetailPanel({
     id,
+    position,
+    onPrevious,
+    onNext,
     onClose,
     onChanged,
     zone = 'UTC',
     uploadedForHref,
+    inSheet = false,
 }: Props) {
-    // useHttp's submit() resolves undefined on a 422 (errors land in its own
-    // `errors` state) rather than rejecting; other failures still throw.
-    const { submit, setData, errors: fieldErrors } = useHttp<DetailsForm>();
-    const formId = useId();
+    const { submit } = useHttp();
     const [item, setItem] = useState<MediaDetailsData | null>(null);
     const [usages, setUsages] = useState<Usages | null>(null);
-    const [focal, setFocal] = useState<[number, number]>([50, 50]);
-    const [fileError, setFileError] = useState<string | undefined>(undefined);
-
-    const accept = (details: MediaDetailsData) => {
-        setItem(details);
-        setFocal([details.focalX, details.focalY]);
-        setFileError(undefined);
-    };
-
-    // A change made here: shown, and told to whoever opened the drawer.
-    const changed = (details: MediaDetailsData) => {
-        accept(details);
-        onChanged?.(details);
-    };
 
     useEffect(() => {
         let cancelled = false;
-        setItem(null);
-        setUsages(null);
-
-        if (id === null) {
-            return;
-        }
 
         void (async () => {
             const details = (await submit(
@@ -185,7 +248,7 @@ export function MediaDrawer({
                 return;
             }
 
-            accept(details);
+            setItem(details);
             const found = (await submit(mediaUsages({ media: id }))) as Usages;
 
             if (!cancelled) {
@@ -200,6 +263,158 @@ export function MediaDrawer({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
+    // ← and → step while focus is in the panel and not in a field; Esc closes.
+    const keyDown = (event: KeyboardEvent<HTMLElement>) => {
+        const target = event.target as HTMLElement;
+
+        // A dialog drawn from here bubbles through React, not through the page.
+        if (!event.currentTarget.contains(target)) {
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            onClose();
+
+            return;
+        }
+
+        if (
+            target.closest(
+                'input, textarea, select, [contenteditable="true"], [role="application"]',
+            ) !== null
+        ) {
+            return;
+        }
+
+        if (event.key === 'ArrowLeft' && onPrevious !== null) {
+            event.preventDefault();
+            onPrevious();
+        } else if (event.key === 'ArrowRight' && onNext !== null) {
+            event.preventDefault();
+            onNext();
+        }
+    };
+
+    const head = (
+        <div
+            className={cn(
+                'flex items-center gap-1 ps-5 pt-3',
+                // The sheet's own close button sits at the end.
+                inSheet ? 'pe-12' : 'pe-3',
+            )}
+        >
+            <span className="text-small text-ink-3 me-auto tabular-nums">
+                {__(':current of :total', position)}
+            </span>
+            <HeadButton
+                label={__('Previous file')}
+                tip={__('Previous (←)')}
+                onClick={onPrevious}
+                test="media-detail-previous"
+            >
+                <ChevronLeft aria-hidden="true" className="rtl:-scale-x-100" />
+            </HeadButton>
+            <HeadButton
+                label={__('Next file')}
+                tip={__('Next (→)')}
+                onClick={onNext}
+                test="media-detail-next"
+            >
+                <ChevronRight aria-hidden="true" className="rtl:-scale-x-100" />
+            </HeadButton>
+            {!inSheet && (
+                <HeadButton
+                    label={__('Close the details')}
+                    tip={__('Close (Esc)')}
+                    onClick={onClose}
+                    test="media-detail-close"
+                >
+                    <X aria-hidden="true" />
+                </HeadButton>
+            )}
+        </div>
+    );
+
+    const Frame = inSheet ? 'div' : Panel;
+
+    return (
+        <Frame
+            data-test="media-detail"
+            className={cn(
+                'flex min-h-0 flex-col',
+                inSheet ? 'h-full' : 'shadow-raised rounded-lg',
+            )}
+            style={PANEL_STYLE}
+            onKeyDown={keyDown}
+        >
+            {head}
+            <ScrollArea
+                className={cn(
+                    'grid content-start gap-4 px-5 pt-2 pb-5',
+                    inSheet ? 'flex-1' : 'lg:max-h-(--media-panel-h)',
+                )}
+            >
+                {item === null ? (
+                    <p className="text-small text-ink-3" aria-busy="true">
+                        {__('Loading…')}
+                    </p>
+                ) : (
+                    <DetailBody
+                        key={item.id}
+                        item={item}
+                        usages={usages}
+                        zone={zone}
+                        uploadedForHref={uploadedForHref}
+                        onClose={onClose}
+                        onItem={(details) => {
+                            setItem(details);
+                            onChanged?.(details);
+                        }}
+                        onChanged={onChanged}
+                    />
+                )}
+            </ScrollArea>
+        </Frame>
+    );
+}
+
+/** The panel's body for one file: kept apart so its fields' saver is this file's alone. */
+function DetailBody({
+    item,
+    usages,
+    zone,
+    uploadedForHref,
+    onClose,
+    onItem,
+    onChanged,
+}: {
+    item: MediaDetailsData;
+    usages: Usages | null;
+    zone: string;
+    uploadedForHref?: (itemId: string) => string;
+    onClose: () => void;
+    /** A change to this file, shown here and told to the screen. */
+    onItem: (details: MediaDetailsData) => void;
+    onChanged?: (details: MediaDetailsData | null) => void;
+}) {
+    const { submit } = useHttp();
+    const [focal, setFocal] = useState<[number, number]>([
+        item.focalX,
+        item.focalY,
+    ]);
+    const [fileError, setFileError] = useState<string | undefined>(undefined);
+
+    // A save may finish after the panel has moved on: the screen still hears it.
+    const onSaved = useCallback(
+        (fresh: MediaDetailsData, focalMoved: boolean) => {
+            onItem(fresh);
+            showToast({ type: 'success', message: savedSentence(focalMoved) });
+        },
+        [onItem],
+    );
+    const saver = useMediaSaver(item, onSaved);
+
     const act = async (
         media: string,
         action: 'trash' | 'restore' | 'retry',
@@ -211,29 +426,34 @@ export function MediaDrawer({
                     | undefined) ?? null
             );
         } catch {
-            showToast({ type: 'error', message: FAILED });
+            showToast({ type: 'error', message: failedSentence() });
 
             return null;
         }
     };
 
-    // From the footer the drawer still shows the file; from a toast's Undo it has closed.
-    const restore = async (media: string) => {
+    // From the panel it still shows the file; from a toast's Undo it has closed.
+    const restore = async (media: string, shown: boolean) => {
         const details = await act(media, 'restore');
 
         if (details !== null) {
-            setItem((current) =>
-                current !== null && current.id === details.id
-                    ? details
-                    : current,
-            );
-            onChanged?.(details);
-            showToast({ type: 'success', message: RESTORED });
+            if (shown) {
+                onItem(details);
+            } else {
+                onChanged?.(details);
+            }
+
+            showToast({
+                type: 'success',
+                message: __(
+                    'Restored. Every item that uses it shows it again.',
+                ),
+            });
         }
     };
 
-    const trash = async (open: MediaDetailsData) => {
-        const details = await act(open.id, 'trash');
+    const trash = async () => {
+        const details = await act(item.id, 'trash');
 
         if (details === null) {
             return;
@@ -243,16 +463,19 @@ export function MediaDrawer({
         onClose();
         showToast({
             type: 'success',
-            message: `Moved “${open.title}” to the trash.`,
-            action: { label: 'Undo', onClick: () => void restore(open.id) },
+            message: __('Moved “:title” to the trash.', { title: item.title }),
+            action: {
+                label: __('Undo'),
+                onClick: () => void restore(item.id, false),
+            },
         });
     };
 
-    const destroy = async (open: MediaDetailsData) => {
+    const destroy = async () => {
         try {
-            await submit(destroyMedia({ media: open.id }));
+            await submit(destroyMedia({ media: item.id }));
         } catch {
-            showToast({ type: 'error', message: FAILED });
+            showToast({ type: 'error', message: failedSentence() });
 
             return;
         }
@@ -261,386 +484,325 @@ export function MediaDrawer({
         onClose();
         showToast({
             type: 'success',
-            message: `Deleted “${open.filename}” permanently.`,
+            message: __('Deleted “:filename” permanently.', {
+                filename: item.filename,
+            }),
         });
     };
 
-    const save = async (form: HTMLFormElement, open: MediaDetailsData) => {
-        const data = new FormData(form);
-        const field = (name: string) => (data.get(name) as string | null) ?? '';
-        const moved = focal[0] !== open.focalX || focal[1] !== open.focalY;
-        setData({
-            title: field('title'),
-            alt: field('alt'),
-            caption: field('caption'),
-            credit: field('credit'),
-            licence: field('licence'),
-            focal_x: focal[0],
-            focal_y: focal[1],
-        });
+    const replace = async (file: File) => {
+        const { status, body } = await uploadFile(
+            replaceMedia({ media: item.id }).url,
+            { file },
+            () => {},
+        );
 
-        try {
-            const saved = (await submit(updateMedia({ media: open.id }))) as
-                | MediaDetailsData
-                | undefined;
-
-            // Undefined on a field's error, which shows under its field.
-            if (saved === undefined) {
-                return;
-            }
-
-            onChanged?.(saved);
-            onClose();
-            showToast({
-                type: 'success',
-                message: moved
-                    ? 'Saved. Its sizes are being made again around the new focal point.'
-                    : 'Saved.',
-            });
-        } catch {
-            showToast({ type: 'error', message: FAILED });
+        if (status === 200) {
+            setFileError(undefined);
+            onItem(body as unknown as MediaDetailsData);
+        } else {
+            setFileError(
+                ((body.errors as Record<string, string[]>)?.file ?? [
+                    __('The file was refused.'),
+                ])[0],
+            );
         }
     };
 
-    if (item === null) {
-        return (
-            <Sheet
-                open={id !== null}
-                onOpenChange={(open) => !open && onClose()}
-            />
-        );
-    }
+    const size =
+        item.width !== null && item.height !== null
+            ? __(':width × :height · :size', {
+                  width: item.width,
+                  height: item.height,
+                  size: attachmentSize(item.sizeBytes),
+              })
+            : attachmentSize(item.sizeBytes);
 
     return (
-        <Sheet open={id !== null} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent className="flex w-full flex-col gap-0 p-0 sm:max-w-xl">
-                <SheetHeader className="border-b">
-                    <SheetTitle>{item.title}</SheetTitle>
-                </SheetHeader>
-
-                <div className="grid flex-1 content-start gap-4 overflow-y-auto p-4">
-                    {item.trashed && (
-                        <div
-                            role="note"
-                            className="bg-surface-2 grid gap-1 rounded-md border p-3 text-[13px]"
-                        >
-                            <p className="font-medium">
-                                In the trash since{' '}
-                                {item.trashedAt === null
-                                    ? '—'
-                                    : formatInZone(item.trashedAt, zone)}
-                                .
-                            </p>
-                            <p className="text-ink-2">
-                                Items that use it show nothing in its place
-                                until you restore it.
-                            </p>
-                        </div>
+        <>
+            {item.trashed && (
+                <Notice
+                    tone="warn"
+                    title={__('In the trash since :date.', {
+                        date:
+                            item.trashedAt === null
+                                ? '—'
+                                : formatInZone(item.trashedAt, zone),
+                    })}
+                >
+                    {__(
+                        'Items that use it show nothing in its place until you restore it.',
                     )}
+                </Notice>
+            )}
 
-                    {item.previewUrl ? (
-                        <button
-                            type="button"
-                            className="relative block w-full"
-                            disabled={!item.can.edit}
-                            aria-label="Set the focal point"
-                            onClick={(event) => {
-                                const box =
-                                    event.currentTarget.getBoundingClientRect();
-                                setFocal([
-                                    Math.round(
-                                        ((event.clientX - box.left) /
-                                            box.width) *
-                                            100,
-                                    ),
-                                    Math.round(
-                                        ((event.clientY - box.top) /
-                                            box.height) *
-                                            100,
-                                    ),
-                                ]);
-                            }}
+            {item.previewUrl && item.kind === 'image' ? (
+                <FocalPoint
+                    src={item.previewUrl}
+                    name={item.title}
+                    value={focal}
+                    disabled={!item.can.edit}
+                    onChange={(next) => {
+                        setFocal(next);
+                        saver.set('focal_x', next[0]);
+                        saver.set('focal_y', next[1]);
+                    }}
+                    onLeave={saver.saveNow}
+                />
+            ) : item.kind === 'image' ? (
+                <p className="text-small text-ink-2">
+                    {item.processing === 'failed'
+                        ? __('Teme couldn’t make this image’s sizes.')
+                        : __('Preparing the preview…')}
+                </p>
+            ) : (
+                item.fileUrl && (
+                    <Button asChild variant="neutral" size="sm">
+                        <a
+                            href={item.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="justify-self-start"
                         >
-                            <img
-                                src={item.previewUrl}
-                                alt={item.alt ?? ''}
-                                className="w-full rounded"
-                            />
-                            <span
-                                className="border-on-photo bg-photo-scrim absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-                                style={{
-                                    left: `${focal[0]}%`,
-                                    top: `${focal[1]}%`,
-                                }}
-                            />
-                        </button>
-                    ) : item.kind === 'image' ? (
-                        <p className="text-ink-2 text-sm">
-                            {item.processing === 'failed'
-                                ? 'Teme couldn’t make this image’s sizes.'
-                                : 'Preparing the preview…'}
-                        </p>
-                    ) : (
-                        item.fileUrl && (
-                            <a
-                                href={item.fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-sm underline"
-                            >
-                                Open the file
-                            </a>
-                        )
-                    )}
+                            {__('Open the file')}
+                        </a>
+                    </Button>
+                )
+            )}
 
-                    <AttachmentMeta item={item} />
+            <div className="grid gap-1">
+                <h2 className="text-body font-semibold wrap-anywhere">
+                    {item.title}
+                </h2>
+                <p className="text-small text-ink-3 wrap-anywhere">
+                    {item.filename}
+                </p>
+            </div>
 
-                    <form
-                        id={formId}
-                        className="grid gap-3"
-                        onSubmit={(event) => {
-                            event.preventDefault();
-                            void save(event.currentTarget, item);
-                        }}
-                    >
-                        <fieldset
-                            disabled={!item.can.edit}
-                            className="grid gap-3"
-                        >
-                            <AttachmentFields
-                                item={item}
-                                errors={fieldErrors}
-                                altHint={altHint}
-                                onAltTextUsed={(details) => {
-                                    // Not accept(): an unsaved focal point stays where it was clicked.
-                                    setItem(details);
-                                    onChanged?.(details);
-                                }}
-                            />
-                            {item.kind === 'image' && (
-                                <p className="text-ink-2 text-xs">
-                                    Click the preview to set the focal point,
-                                    which square crops keep in view.
-                                </p>
-                            )}
-                        </fieldset>
-                    </form>
-
-                    <section
-                        data-test="media-uploaded-for"
-                        className="grid gap-2"
-                    >
-                        <h3 className="text-sm font-medium">Uploaded for</h3>
+            <dl className="text-small grid grid-cols-(--facts-cols) gap-x-4 gap-y-1">
+                <dt className="text-ink-3">{__('Type')}</dt>
+                <dd>
+                    {mediaKind(item.kind)}
+                    {item.extension === ''
+                        ? ''
+                        : ` (${item.extension.toUpperCase()})`}
+                </dd>
+                <dt className="text-ink-3">{__('Size')}</dt>
+                <dd>{size}</dd>
+                <dt className="text-ink-3">{__('Uploaded')}</dt>
+                <dd>
+                    {item.uploaderName
+                        ? __(':name, :date', {
+                              name: item.uploaderName,
+                              date: formatInZone(item.createdAt, zone),
+                          })
+                        : formatInZone(item.createdAt, zone)}
+                </dd>
+                <div data-test="media-uploaded-for" className="contents">
+                    <dt className="text-ink-3">{__('Uploaded for')}</dt>
+                    <dd className="grid gap-1">
                         {item.uploadedFor === null ? (
-                            <p className="text-ink-2 text-sm">
-                                Not uploaded for any item.
-                            </p>
+                            <span className="text-ink-2">
+                                {__('Not uploaded for any item.')}
+                            </span>
                         ) : (
                             <>
-                                <p className="text-sm">
-                                    {item.uploadedFor.title || 'Untitled'}{' '}
+                                <span>
+                                    {item.uploadedFor.title || __('Untitled')}{' '}
                                     <span className="text-ink-2">
                                         — {uploadedForState(item.uploadedFor)}
                                     </span>
-                                </p>
+                                </span>
                                 {uploadedForHref && (
                                     <Link
                                         href={uploadedForHref(
                                             item.uploadedFor.id,
                                         )}
-                                        className="inline-flex min-h-6 items-center justify-self-start text-sm underline underline-offset-2"
+                                        className="text-accent-ink focus-visible:outline-ring inline-flex min-h-6 items-center justify-self-start underline underline-offset-2 outline-none focus-visible:outline-2"
                                     >
-                                        {`Show every file uploaded for “${item.uploadedFor.title || 'Untitled'}”`}
+                                        {__(
+                                            'Show every file uploaded for “:title”',
+                                            {
+                                                title:
+                                                    item.uploadedFor.title ||
+                                                    __('Untitled'),
+                                            },
+                                        )}
                                     </Link>
                                 )}
                             </>
                         )}
-                    </section>
+                    </dd>
+                </div>
+                {item.pictureOf > 0 && (
+                    <>
+                        <dt className="text-ink-3">{__('Picture of')}</dt>
+                        <dd data-test="media-picture-of">
+                            {__n(':count person|:count people', item.pictureOf)}
+                        </dd>
+                    </>
+                )}
+            </dl>
 
-                    <section className="grid gap-2">
-                        <h3 className="text-sm font-medium">Used in</h3>
-                        {usages !== null && usages.rows.length === 0 ? (
-                            <p className="text-ink-2 text-sm">
-                                Not used anywhere.
-                            </p>
-                        ) : (
-                            <ul className="text-sm">
-                                {(usages?.rows ?? []).map((usage) => (
-                                    <li key={usage.id}>
-                                        {shownTitle(usage.title)}{' '}
-                                        <span className="text-ink-2">
-                                            —{' '}
-                                            {usage.published
-                                                ? 'live'
-                                                : usage.status}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </section>
+            <fieldset disabled={!item.can.edit} className="grid gap-4">
+                <MediaFields
+                    item={item}
+                    saver={saver}
+                    disabled={!item.can.edit}
+                    onAltTextUsed={onItem}
+                />
+            </fieldset>
 
-                    <section className="flex flex-wrap gap-2">
-                        {item.kind === 'image' && (
-                            <Button asChild variant="outline" size="sm">
-                                <a href={mediaOriginal({ media: item.id }).url}>
-                                    Download original
-                                </a>
-                            </Button>
-                        )}
-                        {item.can.edit && !item.trashed && (
-                            <Button asChild variant="outline" size="sm">
-                                <label>
-                                    Replace…
-                                    <input
-                                        type="file"
-                                        hidden
-                                        onChange={async (event) => {
-                                            const file =
-                                                event.target.files?.[0];
+            <section className="grid gap-2">
+                <h3 className="text-small font-semibold">{__('Used in')}</h3>
+                {usages !== null && usages.rows.length === 0 ? (
+                    <p className="text-small text-ink-2">
+                        {__('Not used anywhere.')}
+                    </p>
+                ) : (
+                    <ul
+                        className="text-small grid gap-1"
+                        data-test="media-used-in"
+                    >
+                        {(usages?.rows ?? []).map((usage) => (
+                            <li key={usage.id}>
+                                {shownTitle(usage.title)}{' '}
+                                <span className="text-ink-2">
+                                    —{' '}
+                                    {usage.published
+                                        ? __('live')
+                                        : usage.status}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </section>
 
-                                            if (file) {
-                                                const { status, body } =
-                                                    await uploadFile(
-                                                        replaceMedia({
-                                                            media: item.id,
-                                                        }).url,
-                                                        { file },
-                                                        () => {},
-                                                    );
+            <section className="flex flex-wrap gap-2">
+                {item.kind === 'image' && (
+                    <Button asChild variant="neutral" size="sm">
+                        <a href={mediaOriginal({ media: item.id }).url}>
+                            {__('Download original')}
+                        </a>
+                    </Button>
+                )}
+                {item.can.edit && !item.trashed && (
+                    <Button asChild variant="neutral" size="sm">
+                        <label>
+                            {__('Replace…')}
+                            <input
+                                type="file"
+                                hidden
+                                onChange={(event) => {
+                                    const file = event.target.files?.[0];
 
-                                                if (status === 200) {
-                                                    changed(
-                                                        body as unknown as MediaDetailsData,
-                                                    );
-                                                } else {
-                                                    setFileError(
-                                                        ((
-                                                            body.errors as Record<
-                                                                string,
-                                                                string[]
-                                                            >
-                                                        )?.file ?? [
-                                                            'The file was refused.',
-                                                        ])[0],
-                                                    );
-                                                }
-                                            }
-                                        }}
-                                    />
-                                </label>
-                            </Button>
-                        )}
-                        {item.can.edit && item.processing === 'failed' && (
+                                    if (file) {
+                                        void replace(file);
+                                    }
+
+                                    event.target.value = '';
+                                }}
+                            />
+                        </label>
+                    </Button>
+                )}
+                {item.can.edit && item.processing === 'failed' && (
+                    <Button
+                        variant="neutral"
+                        size="sm"
+                        onClick={() =>
+                            void act(item.id, 'retry').then(
+                                (details) =>
+                                    details !== null && onItem(details),
+                            )
+                        }
+                    >
+                        {__('Try again')}
+                    </Button>
+                )}
+                {item.can.delete && !item.trashed && (
+                    <form
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            void trash();
+                        }}
+                    >
+                        <ConfirmAction
+                            confirmLabel={__('Move to trash')}
+                            title={__('Move “:title” to the trash?', {
+                                title: item.title,
+                            })}
+                            description={
+                                usages === null
+                                    ? ''
+                                    : trashSentence(
+                                          item.publishedUses,
+                                          usages,
+                                          item.pictureOf,
+                                      )
+                            }
+                        >
                             <Button
-                                variant="outline"
+                                type="submit"
                                 size="sm"
-                                onClick={() =>
-                                    void act(item.id, 'retry').then(
-                                        (details) =>
-                                            details !== null &&
-                                            changed(details),
-                                    )
+                                variant="danger-quiet"
+                                data-test="media-trash"
+                                disabled={usages === null}
+                            >
+                                <Trash2 aria-hidden="true" />
+                                {__('Move to trash')}
+                            </Button>
+                        </ConfirmAction>
+                    </form>
+                )}
+                {item.can.delete && item.trashed && (
+                    <>
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="neutral"
+                            data-test="media-restore"
+                            onClick={() => void restore(item.id, true)}
+                        >
+                            {__('Restore')}
+                        </Button>
+                        <form
+                            onSubmit={(event) => {
+                                event.preventDefault();
+                                void destroy();
+                            }}
+                        >
+                            <ConfirmAction
+                                confirmLabel={__('Delete permanently')}
+                                title={__('Delete “:title” permanently?', {
+                                    title: item.title,
+                                })}
+                                description={
+                                    usages === null
+                                        ? ''
+                                        : deleteSentence(
+                                              item.filename,
+                                              usages,
+                                              item.pictureOf,
+                                          )
                                 }
                             >
-                                Try again
-                            </Button>
-                        )}
-                    </section>
-                    <InputError message={fileError} />
-                </div>
-
-                <SheetFooter
-                    data-test="media-drawer-footer"
-                    className="flex-row flex-wrap items-center justify-between gap-2 border-t"
-                >
-                    <div className="flex flex-wrap gap-2">
-                        {item.can.delete && !item.trashed && (
-                            <form
-                                onSubmit={(event) => {
-                                    event.preventDefault();
-                                    void trash(item);
-                                }}
-                            >
-                                <ConfirmAction
-                                    confirmLabel="Move to trash"
-                                    title={`Move “${item.title}” to the trash?`}
-                                    description={
-                                        usages === null
-                                            ? ''
-                                            : trashSentence(
-                                                  item.publishedUses,
-                                                  usages,
-                                              )
-                                    }
-                                >
-                                    <Button
-                                        type="submit"
-                                        size="sm"
-                                        variant="destructive"
-                                        data-test="media-trash"
-                                        disabled={usages === null}
-                                    >
-                                        <Trash2 aria-hidden="true" />
-                                        Move to trash
-                                    </Button>
-                                </ConfirmAction>
-                            </form>
-                        )}
-                        {item.can.delete && item.trashed && (
-                            <>
                                 <Button
-                                    type="button"
+                                    type="submit"
                                     size="sm"
-                                    variant="outline"
-                                    data-test="media-restore"
-                                    onClick={() => void restore(item.id)}
+                                    variant="danger-quiet"
+                                    data-test="media-delete"
+                                    disabled={usages === null}
                                 >
-                                    Restore
+                                    {__('Delete permanently')}
                                 </Button>
-                                <form
-                                    onSubmit={(event) => {
-                                        event.preventDefault();
-                                        void destroy(item);
-                                    }}
-                                >
-                                    <ConfirmAction
-                                        confirmLabel="Delete permanently"
-                                        title={`Delete “${item.title}” permanently?`}
-                                        description={
-                                            usages === null
-                                                ? ''
-                                                : deleteSentence(
-                                                      item.filename,
-                                                      usages,
-                                                  )
-                                        }
-                                    >
-                                        <Button
-                                            type="submit"
-                                            size="sm"
-                                            variant="destructive"
-                                            data-test="media-delete"
-                                            disabled={usages === null}
-                                        >
-                                            Delete permanently
-                                        </Button>
-                                    </ConfirmAction>
-                                </form>
-                            </>
-                        )}
-                    </div>
-                    {item.can.edit && (
-                        <Button
-                            type="submit"
-                            form={formId}
-                            data-test="media-save"
-                        >
-                            Save
-                        </Button>
-                    )}
-                </SheetFooter>
-            </SheetContent>
-        </Sheet>
+                            </ConfirmAction>
+                        </form>
+                    </>
+                )}
+            </section>
+            <InputError message={fileError} />
+        </>
     );
 }

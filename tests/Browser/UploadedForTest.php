@@ -194,11 +194,11 @@ it('says in the media drawer what a file was uploaded for, and narrows the libra
     $page = cmSignIn($this->editor)->navigate('/admin/media');
     cmWaitUntil($page, "{$options}.length === 2");
     $page->click('[role="option"]:has-text("harbour")');
-    ufSettled($page, '[data-slot="sheet-content"]');
+    ufSettled($page, '[data-test="media-detail"]');
     cmWaitUntil($page, "{$line}?.innerText.includes('Uploaded for') === true && {$line}.innerText.includes('Harbour news — draft')");
 
     $page->click('[data-test="media-uploaded-for"] a');
-    cmWaitUntil($page, "new URL(location.href).searchParams.get('uploaded_for') === '{$this->draft->id}' && document.querySelector('[data-slot=\"sheet-content\"]') === null");
+    cmWaitUntil($page, "new URL(location.href).searchParams.get('uploaded_for') === '{$this->draft->id}' && document.querySelector('[data-test=\"media-detail\"]') === null");
     cmWaitUntil($page, "document.querySelector('[data-test=\"media-uploaded-for-chip\"]')?.innerText.includes('Uploaded for “Harbour news”') === true");
     cmWaitUntil($page, "{$options}.length === 1 && {$options}[0].innerText.includes('harbour')");
 
@@ -206,7 +206,7 @@ it('says in the media drawer what a file was uploaded for, and narrows the libra
     cmWaitUntil($page, "!new URL(location.href).searchParams.has('uploaded_for') && {$options}.length === 2");
 
     $page->click('[role="option"]:has-text("quay")');
-    ufSettled($page, '[data-slot="sheet-content"]');
+    ufSettled($page, '[data-test="media-detail"]');
     cmWaitUntil($page, "{$line}?.innerText.includes('Not uploaded for any item.') === true");
     $page->assertNotPresent('[data-test="media-uploaded-for"] a');
 });
@@ -220,9 +220,9 @@ it('passes axe on the library’s chip, the drawer’s line and the modal’s bo
     $chip = cmSmallTargets($page);
 
     $page->click('[role="option"]:has-text("harbour")');
-    ufSettled($page, '[data-slot="sheet-content"]');
-    // The overlay fades in too, and axe doesn't retry: it would read the colours mid-fade.
-    ufSettled($page, '[data-slot="sheet-overlay"]');
+    ufSettled($page, '[data-test="media-detail"]');
+    // The panel beside the library has no overlay to fade in; its own line is what axe reads.
+    ufSettled($page, '[data-test="media-detail"]');
     cmWaitUntil($page, "document.querySelector('[data-test=\"media-uploaded-for\"] a') !== null");
     $page->assertNoAccessibilityIssues(3);
     $drawer = cmSmallTargets($page);

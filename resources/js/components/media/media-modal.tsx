@@ -12,7 +12,6 @@ import {
     useMediaUploads,
 } from '@/components/media/use-media-uploads';
 import type { UploadedBatch } from '@/components/media/use-media-uploads';
-import { MediaDrawer } from '@/components/media-drawer';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -21,12 +20,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { picker as mediaPicker, show as showMedia } from '@/routes/media';
-import type {
-    MediaDetailsData,
-    MediaKind,
-    MediaMonth,
-    MediaRow,
-} from '@/types';
+import type { MediaKind, MediaMonth, MediaRow } from '@/types';
 
 type Props = {
     open: boolean;
@@ -69,12 +63,9 @@ export function MediaModal({
     const [rows, setRows] = useState<MediaRow[]>([]);
     const [older, setOlder] = useState<string | null>(null);
     const [months, setMonths] = useState<MediaMonth[]>([]);
-    const [zone, setZone] = useState('UTC');
     const [values, setValues] = useState<MediaFilterValues>(NO_FILTERS);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [focusedId, setFocusedId] = useState<string | null>(null);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [version, setVersion] = useState(0);
     const [uploaded, setUploaded] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);
     const input = useRef<HTMLInputElement>(null);
@@ -112,7 +103,6 @@ export function MediaModal({
             );
             setOlder(page.older);
             setMonths(page.months);
-            setZone(page.siteTimezone);
         },
         [submit, kindNames, values],
     );
@@ -218,21 +208,6 @@ export function MediaModal({
             rows.filter((row) => selectedIds.includes(row.id)),
         );
         onOpenChange(false);
-    };
-
-    // A change in the drawer opened over this window: the grid and the details read again,
-    // so the details never hold, or save back, what the drawer replaced.
-    const changed = (details: MediaDetailsData | null) => {
-        const gone =
-            details === null ? editingId : details.trashed ? details.id : null;
-        setVersion((current) => current + 1);
-        void load(null);
-
-        // Deleted, or moved to the trash: no longer something to choose.
-        if (gone !== null) {
-            setSelectedIds((current) => current.filter((id) => id !== gone));
-            setFocusedId((current) => (current === gone ? null : current));
-        }
     };
 
     const status =
@@ -407,9 +382,9 @@ export function MediaModal({
                             </p>
                         ) : (
                             <AttachmentDetails
+                                key={focusedId}
                                 id={focusedId}
-                                version={version}
-                                onEdit={setEditingId}
+                                onChanged={() => void load(null)}
                             />
                         )}
                     </section>
@@ -456,12 +431,6 @@ export function MediaModal({
                     </Button>
                 </div>
             </DialogContent>
-            <MediaDrawer
-                id={editingId}
-                onClose={() => setEditingId(null)}
-                onChanged={changed}
-                zone={zone}
-            />
         </Dialog>
     );
 }
