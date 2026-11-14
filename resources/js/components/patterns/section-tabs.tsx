@@ -77,7 +77,7 @@ export function SectionTabs({
         <nav
             aria-label={label}
             data-slot="section-tabs"
-            className="bg-page sticky top-0 z-(--z-sticky) mb-4 py-2"
+            className="bg-page sticky top-0 z-(--z-sticky) mb-4 py-2 max-sm:static"
         >
             <ScrollArea axis="x">
                 <ul className="flex flex-wrap gap-1">

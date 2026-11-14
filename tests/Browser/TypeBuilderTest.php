@@ -291,3 +291,21 @@ it('shows the save bar when only the icon changes, and Discard puts the icon bac
 
     expect($page->script('() => document.querySelector(\'input[name="icon"]\').value'))->toBe($savedIcon);
 });
+
+it('keeps the row of tabs from covering a section\'s top at 375 pixels', function (): void {
+    tbSite($this->admin);
+
+    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 812), '/admin/types/film');
+    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this type"]\') !== null');
+
+    // A section the page can scroll to its top: the last one sits at the page's foot.
+    $page->click('nav[aria-label="Sections of this type"] a[href="#type-section-site"]');
+
+    // Once the scroll has brought the section to the top of the window.
+    cmWaitUntil($page, '(() => { const top = document.querySelector("#type-section-site").getBoundingClientRect().top; return top >= 0 && top <= 80; })()');
+
+    expect($page->script(<<<'JS'
+        () => Math.round(document.querySelector('#type-section-site').getBoundingClientRect().top)
+            >= Math.round(document.querySelector('nav[aria-label="Sections of this type"]').getBoundingClientRect().bottom)
+        JS))->toBeTrue();
+});
