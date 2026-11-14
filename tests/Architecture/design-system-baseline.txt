@@ -65,8 +65,6 @@ R1	js/components/import/site-analysis.tsx	max-w-[640px]
 R1	js/components/import/site-analysis.tsx	max-w-[640px]
 R1	js/components/jobs/job-progress.tsx	min-w-[180px]
 R1	js/components/list/bulk-edit-dialog.tsx	max-h-[90vh]
-R1	js/components/list/data-table.tsx	leading-[18px]
-R1	js/components/list/data-table.tsx	py-[9px]
 R1	js/components/list/filter-button.tsx	[data-slot="popover-content"]
 R1	js/components/list/filter-button.tsx	max-h-[85vh]
 R1	js/components/list/page-header.tsx	max-w-[640px]
@@ -549,7 +547,6 @@ R2	js/components/import/site-analysis.tsx	text-sm
 R2	js/components/import/site-runs.tsx	text-base
 R2	js/components/input-error.tsx	text-sm
 R2	js/components/jobs/job-progress.tsx	text-xs
-R2	js/components/list/bulk-bar.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-sm
@@ -557,8 +554,6 @@ R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/confirm-items.tsx	text-[13px]
-R2	js/components/list/data-table.tsx	text-[11px]
-R2	js/components/list/data-table.tsx	text-[13px]
 R2	js/components/list/date-filter.tsx	text-[11px]
 R2	js/components/list/date-filter.tsx	text-[11px]
 R2	js/components/list/date-filter.tsx	text-[13px]
@@ -1002,7 +997,6 @@ R5	js/components/fields/home-page-setting.tsx	<input type="radio">
 R5	js/components/fields/home-page-setting.tsx	<input type="radio">
 R5	js/components/fields/media-setting.tsx	<button type="button">
 R5	js/components/list/bulk-edit-dialog.tsx	<button type="button">
-R5	js/components/list/data-table.tsx	<button type="button">
 R5	js/components/list/data-table.tsx	<table>
 R5	js/components/list/date-filter.tsx	<button type="button">
 R5	js/components/list/row-actions.tsx	<button type="button">
@@ -1060,10 +1054,8 @@ R6	js/components/fields/home-page-setting.tsx	rounded
 R6	js/components/fields/settings-save-bar.tsx	shadow-sm
 R6	js/components/fields/settings-save-bar.tsx	z-10
 R6	js/components/heading.tsx	tracking-tight
-R6	js/components/list/bulk-bar.tsx	rounded
 R6	js/components/list/bulk-edit-dialog.tsx	rounded
 R6	js/components/list/confirm-items.tsx	rounded
-R6	js/components/list/data-table.tsx	leading-5
 R6	js/components/media-drawer.tsx	rounded
 R6	js/components/media/attachment-details.tsx	rounded
 R6	js/components/media/attachment-details.tsx	rounded
@@ -1183,7 +1175,6 @@ R8	js/components/header/header-panel.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/confirm-items.tsx	overflow-y-auto
-R8	js/components/list/data-table.tsx	overflow-x-auto
 R8	js/components/list/date-filter.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
