@@ -112,6 +112,8 @@ import { InPageNav } from '@/components/patterns/in-page-nav';
 import { ListPage } from '@/components/patterns/list-page';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { __ } from '@/lib/i18n';
+import { openMediaPicker } from '@/components/media/media-picker';
+import type { MediaPickerCaller } from '@/components/media/media-picker';
 
 /** A colour token: its variable, the class that fills a ground with it, and the class of the words that sit on it, if any. */
 type Swatch = { token: string; ground: string; ink?: string };
@@ -304,6 +306,69 @@ function Section({
             </div>
             {children}
         </section>
+    );
+}
+
+/** Opens the media picker for each caller, and shows the IDs it hands back. */
+function MediaPickerDemo() {
+    const [chosen, setChosen] = useState<string[]>([]);
+    const callers: {
+        caller: MediaPickerCaller;
+        test: string;
+        label: string;
+        multi?: boolean;
+        action?: string;
+    }[] = [
+        { caller: 'insert', test: 'insert', label: __('Insert an image') },
+        { caller: 'replace', test: 'replace', label: __('Replace the image') },
+        {
+            caller: 'featured',
+            test: 'featured',
+            label: __('Choose the featured image'),
+        },
+        {
+            caller: 'gallery',
+            test: 'gallery',
+            label: __('Add images to the gallery'),
+            multi: true,
+        },
+        {
+            caller: 'choose',
+            test: 'choose',
+            label: __('Choose a poster'),
+            action: __('Use as poster'),
+        },
+    ];
+
+    return (
+        <div className="grid gap-3">
+            <div className="flex flex-wrap gap-2">
+                {callers.map((each) => (
+                    <Button
+                        key={each.test}
+                        type="button"
+                        variant="neutral"
+                        data-test={`catalogue-picker-${each.test}`}
+                        onClick={() =>
+                            openMediaPicker({
+                                caller: each.caller,
+                                multi: each.multi ?? false,
+                                action: each.action,
+                                onInsert: (ids) => setChosen(ids),
+                            })
+                        }
+                    >
+                        {each.label}
+                    </Button>
+                ))}
+            </div>
+            <p className="text-small text-ink-2">
+                {__('Chosen:')}{' '}
+                <output data-test="catalogue-picker-chosen">
+                    {chosen.join(',')}
+                </output>
+            </p>
+        </div>
     );
 }
 
@@ -1785,6 +1850,16 @@ export default function Catalogue() {
                     )}
                 >
                     <FreshPasswordDemo />
+                </Section>
+
+                <Section
+                    id="media-picker"
+                    title={__('Media picker')}
+                    description={__(
+                        'The one picker, as each screen opens it: the title and main button follow the caller.',
+                    )}
+                >
+                    <MediaPickerDemo />
                 </Section>
 
                 <Section

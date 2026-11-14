@@ -974,18 +974,6 @@ components/list/select-all-matching.tsx	Move all {} to the trash?
 components/list/select-all-matching.tsx	Restore all {}?
 components/list/select-all-matching.tsx	Select all {}
 components/list/select-all-matching.tsx	{} {} You can restore them from the trash.
-components/media/media-modal.tsx	Cancel
-components/media/media-modal.tsx	Clear
-components/media/media-modal.tsx	Clear filters
-components/media/media-modal.tsx	Drop files to upload
-components/media/media-modal.tsx	File details
-components/media/media-modal.tsx	Library
-components/media/media-modal.tsx	Nothing has been uploaded for this {} yet.
-components/media/media-modal.tsx	Nothing here yet. Upload files, or drop them here.
-components/media/media-modal.tsx	Nothing in the library matches these filters.
-components/media/media-modal.tsx	Select a file to see its details.
-components/media/media-modal.tsx	Show more
-components/media/media-modal.tsx	Upload files
 components/nav-main.tsx	Main
 components/navigation/add-item-panel.tsx	A link to the front page of the site. The label starts as “Home”.
 components/navigation/add-item-panel.tsx	Add
