@@ -79,7 +79,7 @@ it('is never stored, and gives way to the site as soon as an account exists', fu
     }
 });
 
-it('draws the approved picture: the address, the heading, a rule, then the owner’s card with its three parts, in that order', function (): void {
+it('draws the approved picture: the mark, the address, the heading, a rule, the owner’s notice with its three parts, then the foot line, in that order', function (): void {
     $html = (string) $this->get('/')->assertStatus(503)->getContent();
     $document = new DOMDocument;
     @$document->loadHTML($html);
@@ -90,14 +90,13 @@ it('draws the approved picture: the address, the heading, a rule, then the owner
     ));
 
     $main = $xpath->query('//main[@data-holding]')->item(0);
-    $card = $xpath->query('//main[@data-holding]/div[@class="hold-owner"]')->item(0);
+    $card = $xpath->query('//main[@data-holding]/div[@class="sa-notice"]')->item(0);
     $style = (string) $xpath->query('//style')->item(0)?->textContent;
 
     expect($main)->not->toBeNull()
-        ->and($children($main))->toBe(['p.hold-addr', 'h1', 'hr', 'div.hold-owner'])
+        ->and($children($main))->toBe(['div.sa-brand', 'p.hold-addr', 'h1', 'hr', 'div.sa-notice', 'p'])
         ->and($card)->not->toBeNull()
-        ->and($children($card))->toBe(['p.hold-owner-title', 'p', 'a'])
-        ->and($style)->toContain('max-width: 26rem')
-        ->and($style)->toContain('.hold-addr::before')
-        ->and($style)->toContain('border-radius: 8px');
+        ->and($children($card))->toBe(['p', 'p', 'a.sa-button'])
+        ->and($style)->toContain('width: min(420px, 100%)')
+        ->and($style)->toContain('@media (prefers-color-scheme: dark){:root{');
 });

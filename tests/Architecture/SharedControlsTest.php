@@ -27,7 +27,7 @@ it('gives no page its own select styling', function (string $page): void {
     expect(uiComponent($page))->not->toContain('selectClass')
         ->and(uiComponent($page))->not->toContain('<select')
         ->and(uiComponent($page))->toContain("from '@/components/ui/select-field'");
-})->with(['pages/content/index.tsx', 'pages/users/index.tsx', 'components/list/screen-options.tsx', 'components/list/bulk-edit-dialog.tsx', 'pages/themes/index.tsx']);
+})->with(['pages/content/index.tsx', 'components/people/invite-dialog.tsx', 'components/people/role-dialog.tsx', 'components/people/delete-dialog.tsx', 'components/list/screen-options.tsx', 'components/list/bulk-edit-dialog.tsx', 'pages/themes/index.tsx']);
 
 it('keeps the empty choice\'s sentinel inside the select field', function (): void {
     $field = uiComponent('components/ui/select-field.tsx');
@@ -44,9 +44,10 @@ it('keeps the empty choice\'s sentinel inside the select field', function (): vo
 });
 
 it('offers the two empty choices through the select field', function (string $page, string $label): void {
-    expect(uiComponent($page))->toContain("emptyLabel=\"{$label}\"");
+    // Written plain, or through __(), which Prettier may wrap.
+    expect((string) preg_replace('/\s+/', ' ', uiComponent($page)))->toMatch('/emptyLabel=(?:"'.preg_quote($label, '/')."\"|\\{__\\( ?'".preg_quote($label, '/')."',? ?\\)\\})/");
 })->with([
-    'reassigning a deleted person\'s content' => ['pages/users/index.tsx', 'No one — they wrote nothing'],
+    'reassigning a deleted person\'s content' => ['components/people/delete-dialog.tsx', 'No one — they wrote nothing'],
 ]);
 
 it('rounds a badge fully and fills no status with a solid colour', function (): void {

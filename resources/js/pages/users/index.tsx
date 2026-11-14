@@ -1,64 +1,30 @@
-import { Form, Head, Link } from '@inertiajs/react';
-import type { FormComponentRef } from '@inertiajs/core';
-import { Lock } from 'lucide-react';
-import { useRef, useState } from 'react';
-import UserController from '@/actions/App/Http/Admin/Users/UserController';
-import { ConfirmAction } from '@/components/confirm-action';
-import { post } from '@/components/editor/editor-http';
-import InputError from '@/components/input-error';
+import { Head } from '@inertiajs/react';
+import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
-import { RowLinks } from '@/components/list/row-links';
-import type { RowAction } from '@/components/list/row-actions';
-import { TabStrip } from '@/components/list/tab-strip';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { InPageNav } from '@/components/patterns/in-page-nav';
+import { ListPage } from '@/components/patterns/list-page';
+import { DeleteDialog } from '@/components/people/delete-dialog';
+import { InviteDialog } from '@/components/people/invite-dialog';
+import { PeopleCards } from '@/components/people/people-cards';
+import { PersonCell } from '@/components/people/person-cell';
+import { RoleDialog } from '@/components/people/role-dialog';
 import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import PasswordInput from '@/components/password-input';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { SelectField } from '@/components/ui/select-field';
-import { __ } from '@/lib/i18n';
-import { edit as editProfile } from '@/routes/profile';
-import { store as confirmPassword } from '@/routes/password/confirm';
+    accountActions,
+    accountMoreActions,
+    invitationActions,
+    invitationMoreActions,
+    MoreActions,
+} from '@/components/people/row-actions';
+import type { Managing } from '@/components/people/row-actions';
+import { Button } from '@/components/ui/button';
+import { StatusPill } from '@/components/ui/status-pill';
+import { useShellWidth } from '@/hooks/use-shell-width';
+import { __, __n } from '@/lib/i18n';
 import { index as usersIndex } from '@/routes/users';
-import type {
-    ReassignOption,
-    RoleOption,
-    UserRow,
-    UsersIndexPage,
-} from '@/types';
-
-const DESCRIPTION =
-    'Everyone who can sign in to this site. People you invite choose their own password.';
-const OWN_ROLE_REASON =
-    'You cannot change your own role. Ask another administrator.';
-const ROLE_HINT_PERSON =
-    'They’re signed out everywhere, so their next sign-in uses the new role.';
-const ROLE_HINT_INVITATION =
-    'They’ll have this role once they accept the invitation.';
-const REVOKE_DESCRIPTION =
-    'The link in their email stops working, and the account waiting for them is removed. You can invite them again.';
-const SENDING_MAY_ASK = 'Sending may ask for your password first.';
-const CHANGING_MAY_ASK = 'Changing a role may ask for your password first.';
-const DELETING_MAY_ASK = 'Deleting may ask for your password first.';
-
-/**
- * Which person a dialog is open for, and what for. The row itself is kept,
- * not its ID, so the dialog keeps its words while it closes, even after the
- * view's list no longer holds the person.
- */
-type Managing = { user: UserRow; task: 'role' | 'delete' };
+import type { RoleOption, UserRow, UsersIndexPage } from '@/types';
 
 /** A role's label, as the role choices name it; "—" for none. */
 function roleLabel(roles: RoleOption[], role: string | null): string {
@@ -70,488 +36,54 @@ function shortDate(at: string): string {
     return new Date(at).toLocaleDateString();
 }
 
-/** "7 days", or "1 day". */
-function daysWords(days: number): string {
-    return days === 1 ? '1 day' : `${days} days`;
+/** A person's state: active or suspended, and two-factor sign-in when on. */
+function AccountPills({ user }: { user: UserRow }) {
+    return (
+        <>
+            {user.status === 'suspended' ? (
+                <StatusPill tone="danger">{__('Suspended')}</StatusPill>
+            ) : (
+                <StatusPill tone="ok">{__('Active')}</StatusPill>
+            )}
+            {user.twoFactor && (
+                <StatusPill tone="neutral" flat>
+                    {__('Two-factor')}
+                </StatusPill>
+            )}
+        </>
+    );
+}
+
+/** An invitation's state: until when its link works, and what went wrong. */
+function InvitationPills({ user }: { user: UserRow }) {
+    return (
+        <>
+            {user.linkWorksUntil ? (
+                <span className="text-ink-2">
+                    {__('Works until :date', {
+                        date: shortDate(user.linkWorksUntil),
+                    })}
+                </span>
+            ) : (
+                <StatusPill tone="danger">{__('Expired')}</StatusPill>
+            )}
+            {user.invitationFailed && (
+                <StatusPill tone="danger">
+                    {__('Invitation email failed')}
+                </StatusPill>
+            )}
+            {user.status === 'suspended' && (
+                <StatusPill tone="danger">{__('Suspended')}</StatusPill>
+            )}
+        </>
+    );
 }
 
 /**
- * Your own row: nothing on it can change you, so the action people look for
- * is drawn locked, with the reason beside it and the way to your account.
- * It stays focusable, so a screen reader reaches the reason.
+ * People: everyone who can sign in, by view, with their pictures; cards on
+ * a phone; inviting, changing a role and deleting each in a dialog that
+ * asks for the password in place.
  */
-function OwnRowLock() {
-    return (
-        <div className="grid justify-items-end gap-1">
-            <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                aria-disabled="true"
-                aria-describedby="own-role-reason"
-                data-test="own-row-lock"
-                className="text-ink-2 -my-1 cursor-not-allowed"
-                onClick={(event) => event.preventDefault()}
-            >
-                <Lock aria-hidden="true" />
-                Change role…
-            </Button>
-            <p
-                id="own-role-reason"
-                className="text-ink-2 w-56 text-right text-xs"
-            >
-                {OWN_ROLE_REASON}
-            </p>
-            <Link
-                href={editProfile()}
-                className="inline-flex min-h-6 items-center text-xs underline-offset-2 hover:underline"
-            >
-                Manage yourself in Account
-            </Link>
-        </div>
-    );
-}
-
-/** A person's menu: their role, their access, and deleting them. */
-function accountActions(
-    user: UserRow,
-    manage: (managing: Managing) => void,
-): RowAction[] {
-    return [
-        {
-            id: 'role',
-            owner: 'core',
-            label: 'Change role…',
-            onSelect: () => manage({ user, task: 'role' }),
-        },
-        user.status === 'suspended'
-            ? {
-                  id: 'reactivate',
-                  owner: 'core',
-                  label: 'Reactivate',
-                  form: UserController.reactivate.form({ user: user.id }),
-              }
-            : {
-                  id: 'suspend',
-                  owner: 'core',
-                  label: 'Suspend',
-                  form: UserController.suspend.form({ user: user.id }),
-              },
-        {
-            id: 'delete',
-            owner: 'core',
-            label: 'Delete…',
-            destructive: true,
-            onSelect: () => manage({ user, task: 'delete' }),
-        },
-    ];
-}
-
-/** An invitation's menu: a new link, another role, or withdrawing it. */
-function invitationActions(
-    user: UserRow,
-    manage: (managing: Managing) => void,
-): RowAction[] {
-    return [
-        {
-            id: 'resend',
-            owner: 'core',
-            label: 'Send again',
-            form: UserController.resendInvitation.form({ user: user.id }),
-        },
-        {
-            id: 'role',
-            owner: 'core',
-            label: 'Change role…',
-            onSelect: () => manage({ user, task: 'role' }),
-        },
-        {
-            id: 'revoke',
-            owner: 'core',
-            label: 'Revoke invitation',
-            destructive: true,
-            form: UserController.revokeInvitation.form({ user: user.id }),
-            wrap: (button) => (
-                <ConfirmAction
-                    title={`Revoke the invitation to ${user.email}?`}
-                    description={REVOKE_DESCRIPTION}
-                    confirmLabel="Revoke invitation"
-                >
-                    {button}
-                </ConfirmAction>
-            ),
-        },
-    ];
-}
-
-function InviteDialog({
-    open,
-    onOpenChange,
-    roles,
-    days,
-}: {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    roles: RoleOption[];
-    days: number;
-}) {
-    const form = useRef<FormComponentRef | null>(null);
-    const [askPassword, setAskPassword] = useState(false);
-    const [password, setPassword] = useState('');
-    const [passwordError, setPasswordError] = useState('');
-    const [confirming, setConfirming] = useState(false);
-
-    // The password is asked for here, so the invitation is sent once it is
-    // given and what was typed stays; a page of its own would lose both.
-    const confirmThenSend = async () => {
-        setConfirming(true);
-        setPasswordError('');
-
-        try {
-            const reply = await post(confirmPassword.url(), { password });
-
-            if (reply.status === 422) {
-                const errors = reply.body.errors as
-                    | Record<string, string[]>
-                    | undefined;
-                setPasswordError(
-                    errors?.password?.[0] ??
-                        (reply.body.message as string | undefined) ??
-                        '',
-                );
-
-                return;
-            }
-
-            setAskPassword(false);
-            setPassword('');
-            form.current?.submit();
-        } finally {
-            setConfirming(false);
-        }
-    };
-
-    return (
-        <Dialog
-            open={open}
-            onOpenChange={(next) => {
-                if (!next) {
-                    setAskPassword(false);
-                    setPassword('');
-                    setPasswordError('');
-                }
-
-                onOpenChange(next);
-            }}
-        >
-            <DialogContent data-test="invite-dialog">
-                <DialogHeader>
-                    <DialogTitle>Invite someone</DialogTitle>
-                    <DialogDescription>
-                        {`They get an email with a link that works for ${daysWords(days)}, where they choose their own password. You can send it again or revoke it under Invited.`}
-                    </DialogDescription>
-                </DialogHeader>
-                <Form
-                    {...UserController.store.form()}
-                    ref={form}
-                    headers={{ 'X-Teme-Ask-In-Place': '1' }}
-                    onHttpException={(response) => {
-                        if (response.status === 423) {
-                            setAskPassword(true);
-
-                            return false;
-                        }
-                    }}
-                    resetOnSuccess
-                    onSuccess={() => onOpenChange(false)}
-                    className="grid gap-4"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="invite-name">Name</Label>
-                                <Input
-                                    id="invite-name"
-                                    aria-describedby="invite-name-error"
-                                    name="name"
-                                    required
-                                    autoComplete="off"
-                                />
-                                <InputError
-                                    id="invite-name-error"
-                                    message={errors.name}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="invite-email">
-                                    Email address
-                                </Label>
-                                <Input
-                                    id="invite-email"
-                                    aria-describedby="invite-email-error"
-                                    name="email"
-                                    type="email"
-                                    required
-                                    autoComplete="off"
-                                />
-                                <InputError
-                                    id="invite-email-error"
-                                    message={errors.email}
-                                />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="invite-role">Role</Label>
-                                {/* The least access unless chosen otherwise; the roles are listed most powerful first, as everywhere. */}
-                                <SelectField
-                                    id="invite-role"
-                                    aria-describedby="invite-role-error"
-                                    name="role"
-                                    defaultValue={
-                                        roles[roles.length - 1]?.value
-                                    }
-                                    options={roles}
-                                />
-                                <InputError
-                                    id="invite-role-error"
-                                    message={errors.role}
-                                />
-                            </div>
-                            <p className="text-ink-2 text-xs">
-                                {SENDING_MAY_ASK}
-                            </p>
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button type="button" variant="outline">
-                                        Cancel
-                                    </Button>
-                                </DialogClose>
-                                <Button type="submit" disabled={processing}>
-                                    Send invitation
-                                </Button>
-                            </DialogFooter>
-                        </>
-                    )}
-                </Form>
-                {askPassword && (
-                    <div className="border-line space-y-3 rounded-md border p-4">
-                        <p className="text-sm">
-                            Type your password to carry on. What you typed stays
-                            here.
-                        </p>
-                        <div className="grid gap-2">
-                            <Label htmlFor="invite-password">Password</Label>
-                            <PasswordInput
-                                id="invite-password"
-                                value={password}
-                                onChange={(event) =>
-                                    setPassword(event.target.value)
-                                }
-                                autoComplete="current-password"
-                                aria-describedby="invite-password-error"
-                            />
-                            <InputError
-                                id="invite-password-error"
-                                message={passwordError}
-                            />
-                        </div>
-                        <Button
-                            type="button"
-                            disabled={confirming}
-                            onClick={() => void confirmThenSend()}
-                            data-test="invite-password-confirm"
-                        >
-                            Confirm password
-                        </Button>
-                    </div>
-                )}
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function RoleDialog({
-    open,
-    person,
-    roles,
-    onClose,
-}: {
-    open: boolean;
-    person: UserRow | undefined;
-    roles: RoleOption[];
-    onClose: () => void;
-}) {
-    return (
-        <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-            <DialogContent data-test="role-dialog">
-                {person && (
-                    <>
-                        <DialogHeader>
-                            <DialogTitle>{`Change the role of ${person.name}`}</DialogTitle>
-                            <DialogDescription>
-                                {person.email}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <Form
-                            key={person.id}
-                            {...UserController.updateRole.form({
-                                user: person.id,
-                            })}
-                            onSuccess={onClose}
-                            className="grid gap-4"
-                        >
-                            {({ processing, errors }) => (
-                                <>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="change-role">
-                                            Role
-                                        </Label>
-                                        <SelectField
-                                            id="change-role"
-                                            aria-describedby="change-role-hint change-role-error"
-                                            name="role"
-                                            defaultValue={
-                                                person.role ?? undefined
-                                            }
-                                            options={roles}
-                                        />
-                                        <p
-                                            id="change-role-hint"
-                                            className="text-ink-2 text-xs"
-                                        >
-                                            {person.invitedAt === null
-                                                ? ROLE_HINT_PERSON
-                                                : ROLE_HINT_INVITATION}
-                                        </p>
-                                        <InputError
-                                            id="change-role-error"
-                                            message={errors.role ?? errors.user}
-                                        />
-                                    </div>
-                                    <p className="text-ink-2 text-xs">
-                                        {CHANGING_MAY_ASK}
-                                    </p>
-                                    <DialogFooter>
-                                        <DialogClose asChild>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </DialogClose>
-                                        <Button
-                                            type="submit"
-                                            disabled={processing}
-                                        >
-                                            Change role
-                                        </Button>
-                                    </DialogFooter>
-                                </>
-                            )}
-                        </Form>
-                    </>
-                )}
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-function DeleteDialog({
-    open,
-    person,
-    reassignOptions,
-    onClose,
-}: {
-    open: boolean;
-    person: UserRow | undefined;
-    reassignOptions: ReassignOption[];
-    onClose: () => void;
-}) {
-    return (
-        <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-            <DialogContent data-test="delete-dialog">
-                {person && (
-                    <>
-                        <DialogHeader>
-                            <DialogTitle>{`Delete ${person.name}`}</DialogTitle>
-                            <DialogDescription>
-                                {person.email}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <Form
-                            key={person.id}
-                            {...UserController.destroy.form({
-                                user: person.id,
-                            })}
-                            onSuccess={onClose}
-                            className="grid gap-4"
-                        >
-                            {({ processing, errors }) => (
-                                <>
-                                    <div className="grid gap-2">
-                                        <Label
-                                            htmlFor={`reassign-${person.id}`}
-                                        >
-                                            {__('Give their content to')}
-                                        </Label>
-                                        {/* Everyone with an account, from the server, whatever the view lists. */}
-                                        <SelectField
-                                            id={`reassign-${person.id}`}
-                                            aria-describedby={`reassign-${person.id}-hint reassign-${person.id}-error`}
-                                            name="reassign_to"
-                                            defaultValue=""
-                                            emptyLabel="No one — they wrote nothing"
-                                            options={reassignOptions.filter(
-                                                (option) =>
-                                                    option.value !== person.id,
-                                            )}
-                                        />
-                                        <p
-                                            id={`reassign-${person.id}-hint`}
-                                            className="text-ink-2 text-xs"
-                                        >
-                                            {__(
-                                                'Their name stays on what they wrote.',
-                                            )}
-                                        </p>
-                                        <InputError
-                                            id={`reassign-${person.id}-error`}
-                                            message={
-                                                errors.reassign_to ??
-                                                errors.user
-                                            }
-                                        />
-                                    </div>
-                                    <p className="text-ink-2 text-xs">
-                                        {DELETING_MAY_ASK}
-                                    </p>
-                                    <DialogFooter>
-                                        <DialogClose asChild>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </DialogClose>
-                                        <Button
-                                            type="submit"
-                                            variant="destructive"
-                                            disabled={processing}
-                                        >
-                                            {`Delete ${person.name}`}
-                                        </Button>
-                                    </DialogFooter>
-                                </>
-                            )}
-                        </Form>
-                    </>
-                )}
-            </DialogContent>
-        </Dialog>
-    );
-}
-
 export default function UsersIndex({
     view,
     tabs,
@@ -571,112 +103,137 @@ export default function UsersIndex({
         setOpen(true);
     };
     const close = () => setOpen(false);
+    const small = useShellWidth() === 'small';
+    const invited = view === 'invited';
     const tabLabel = tabs.find((tab) => tab.key === view)?.label ?? '';
     const inviteButton = (
         <Button type="button" onClick={() => setInviting(true)}>
-            Invite someone
+            {__('Invite someone')}
         </Button>
     );
+    const isYou = (user: UserRow) => user.id === currentUserId;
+    const lineActions = (user: UserRow) =>
+        invited ? invitationActions(user) : accountActions(user, manage);
+    // Your own row has no menu: each of its actions is refused for yourself.
+    const moreActions = (user: UserRow) =>
+        isYou(user)
+            ? []
+            : invited
+              ? invitationMoreActions(user, manage)
+              : accountMoreActions(user, manage);
+
+    const empty = (() => {
+        if (invited) {
+            return (
+                <EmptyState
+                    kind="nothing-yet"
+                    title={__('No pending invitations')}
+                    description={__(
+                        'People you invite get an email with a link that works for :days.',
+                        { days: __n(':count day|:count days', invitationDays) },
+                    )}
+                    action={inviteButton}
+                />
+            );
+        }
+
+        if (view === 'suspended') {
+            return (
+                <EmptyState
+                    kind="nothing-yet"
+                    title={__('Nobody is suspended')}
+                    description={__(
+                        'Someone you suspend can’t sign in, and everything they wrote stays as it is.',
+                    )}
+                />
+            );
+        }
+
+        return (
+            <EmptyState
+                kind="nothing-yet"
+                title={__('No :role yet', { role: tabLabel.toLowerCase() })}
+                description={__('Invite someone and give them this role.')}
+                action={inviteButton}
+            />
+        );
+    })();
+
+    const nameColumn: Column<UserRow> = {
+        id: 'name',
+        owner: 'core',
+        header: __('Name'),
+        cell: (user) => (
+            <PersonCell
+                user={user}
+                isYou={isYou(user)}
+                actions={lineActions(user)}
+            />
+        ),
+    };
+    const roleColumn: Column<UserRow> = {
+        id: 'role',
+        owner: 'core',
+        header: __('Role'),
+        cell: (user) => roleLabel(roles, user.role),
+    };
+    const moreColumn: Column<UserRow> = {
+        id: 'more',
+        owner: 'core',
+        header: <span className="sr-only">{__('More actions')}</span>,
+        label: __('More actions'),
+        cell: (user) => {
+            const items = moreActions(user);
+
+            return items.length > 0 ? (
+                <MoreActions user={user} items={items} />
+            ) : null;
+        },
+    };
 
     const accountColumns: Column<UserRow>[] = [
-        {
-            id: 'name',
-            owner: 'core',
-            header: 'Name',
-            cell: (user) => (
-                <>
-                    <div className="flex items-center gap-2 font-semibold">
-                        {user.name}
-                        {user.id === currentUserId && (
-                            <Badge variant="outline">You</Badge>
-                        )}
-                    </div>
-                    <div className="text-ink-2">{user.email}</div>
-                    {/* Each of your own row's actions is refused for yourself, so it has the lock, not links. */}
-                    {user.id === currentUserId ? (
-                        <OwnRowLock />
-                    ) : (
-                        <RowLinks
-                            label={`Actions for ${user.name}`}
-                            more={`More actions for ${user.name}`}
-                            items={accountActions(user, manage)}
-                        />
-                    )}
-                </>
-            ),
-        },
-        {
-            id: 'role',
-            owner: 'core',
-            header: 'Role',
-            cell: (user) => roleLabel(roles, user.role),
-        },
+        nameColumn,
+        roleColumn,
         {
             id: 'status',
             owner: 'core',
-            header: 'Status',
+            header: __('Status'),
             cell: (user) => (
                 <div className="flex flex-wrap gap-1">
-                    {user.status === 'suspended' ? (
-                        <Badge variant="destructive">Suspended</Badge>
-                    ) : (
-                        <Badge variant="outline">Active</Badge>
-                    )}
-                    {user.twoFactor && (
-                        <Badge variant="outline">Two-factor</Badge>
-                    )}
+                    <AccountPills user={user} />
                 </div>
             ),
         },
         {
             id: 'last-sign-in',
             owner: 'core',
-            header: 'Last sign-in',
+            header: __('Last sign-in'),
             cell: (user) => (
                 <span className="text-ink-2">
                     {user.lastSignInAt
                         ? new Date(user.lastSignInAt).toLocaleString()
-                        : 'Never'}
+                        : __('Never')}
                 </span>
             ),
         },
+        moreColumn,
     ];
 
     const invitationColumns: Column<UserRow>[] = [
-        {
-            id: 'name',
-            owner: 'core',
-            header: 'Name',
-            cell: (user) => (
-                <>
-                    <div className="font-semibold">{user.name}</div>
-                    <div className="text-ink-2">{user.email}</div>
-                    <RowLinks
-                        label={`Actions for ${user.name}`}
-                        more={`More actions for ${user.name}`}
-                        items={invitationActions(user, manage)}
-                    />
-                </>
-            ),
-        },
-        {
-            id: 'role',
-            owner: 'core',
-            header: 'Role',
-            cell: (user) => roleLabel(roles, user.role),
-        },
+        nameColumn,
+        roleColumn,
         {
             id: 'invited',
             owner: 'core',
-            header: 'Invited',
+            header: __('Invited'),
             cell: (user) => (
                 <span className="grid">
                     <span>
                         {user.invitedAt ? shortDate(user.invitedAt) : '—'}
                     </span>
                     {user.invitedBy && (
-                        <span className="text-ink-2 text-xs">
-                            {`by ${user.invitedBy}`}
+                        <span className="text-caption text-ink-2">
+                            {__('by :name', { name: user.invitedBy })}
                         </span>
                     )}
                 </span>
@@ -685,117 +242,108 @@ export default function UsersIndex({
         {
             id: 'link',
             owner: 'core',
-            header: 'Link',
+            header: __('Link'),
             cell: (user) => (
                 <div className="flex flex-wrap items-center gap-1">
-                    {user.linkWorksUntil ? (
-                        <span className="text-ink-2">
-                            {`Works until ${shortDate(user.linkWorksUntil)}`}
-                        </span>
-                    ) : (
-                        <Badge variant="destructive">Expired</Badge>
-                    )}
-                    {user.invitationFailed && (
-                        <Badge variant="destructive">
-                            Invitation email failed
-                        </Badge>
-                    )}
-                    {user.status === 'suspended' && (
-                        <Badge variant="destructive">Suspended</Badge>
-                    )}
+                    <InvitationPills user={user} />
                 </div>
             ),
         },
+        moreColumn,
     ];
+
+    const caption = invited ? __('Pending invitations') : __('People');
+    let list: ReactNode;
+
+    if (small) {
+        list = (
+            <PeopleCards
+                label={caption}
+                users={users}
+                currentUserId={currentUserId}
+                roleLabel={(user) => roleLabel(roles, user.role)}
+                pills={(user) =>
+                    invited ? (
+                        <InvitationPills user={user} />
+                    ) : (
+                        <AccountPills user={user} />
+                    )
+                }
+                lineActions={lineActions}
+                moreActions={moreActions}
+                empty={empty}
+            />
+        );
+    } else {
+        list = (
+            <DataTable
+                columns={invited ? invitationColumns : accountColumns}
+                rows={users}
+                rowKey={(user) => user.id}
+                caption={caption}
+                empty={empty}
+            />
+        );
+    }
 
     return (
         <>
-            <Head title="People" />
+            <Head title={__('People')} />
 
-            <div className="space-y-4 p-6">
-                <PageHeader
-                    title="People"
-                    description={DESCRIPTION}
-                    action={
-                        <Button
-                            type="button"
-                            data-test="people-invite"
-                            onClick={() => setInviting(true)}
-                        >
-                            Invite someone
-                        </Button>
-                    }
-                />
-
-                <TabStrip
-                    label="Views"
-                    current={view}
-                    tabs={tabs.map((tab) => ({
-                        ...tab,
+            <ListPage
+                title={__('People')}
+                description={__(
+                    'Everyone who can sign in to this site. People you invite choose their own password.',
+                )}
+                actions={
+                    <Button
+                        type="button"
+                        data-test="people-invite"
+                        onClick={() => setInviting(true)}
+                    >
+                        {__('Invite someone')}
+                    </Button>
+                }
+            >
+                <InPageNav
+                    label={__('Views')}
+                    items={tabs.map((tab) => ({
+                        label: tab.label,
+                        count: tab.count,
+                        current: tab.key === view,
                         href:
                             tab.key === 'all'
-                                ? usersIndex()
-                                : usersIndex({ query: { view: tab.key } }),
+                                ? usersIndex().url
+                                : usersIndex({ query: { view: tab.key } }).url,
                     }))}
                 />
 
-                {view === 'invited' ? (
-                    <DataTable
-                        columns={invitationColumns}
-                        rows={users}
-                        rowKey={(user) => user.id}
-                        caption="Pending invitations"
-                        empty={
-                            <EmptyState
-                                kind="nothing-yet"
-                                title="No pending invitations"
-                                action={inviteButton}
-                            />
-                        }
-                    />
-                ) : (
-                    <DataTable
-                        columns={accountColumns}
-                        rows={users}
-                        rowKey={(user) => user.id}
-                        caption="People"
-                        empty={
-                            <EmptyState
-                                kind="nothing-yet"
-                                title={
-                                    view === 'suspended'
-                                        ? 'Nobody is suspended'
-                                        : `No ${tabLabel.toLowerCase()} yet`
-                                }
-                                action={
-                                    view === 'suspended'
-                                        ? undefined
-                                        : inviteButton
-                                }
-                            />
-                        }
-                    />
-                )}
-            </div>
+                {list}
 
-            <InviteDialog
-                open={inviting}
-                onOpenChange={setInviting}
-                roles={roles}
-                days={invitationDays}
-            />
-            <RoleDialog
-                open={open && managing?.task === 'role'}
-                person={managing?.task === 'role' ? managing.user : undefined}
-                roles={roles}
-                onClose={close}
-            />
-            <DeleteDialog
-                open={open && managing?.task === 'delete'}
-                person={managing?.task === 'delete' ? managing.user : undefined}
-                reassignOptions={reassignOptions}
-                onClose={close}
-            />
+                {/* Each dialog draws in its own layer, so where it sits here changes nothing on the page. */}
+                <InviteDialog
+                    open={inviting}
+                    onOpenChange={setInviting}
+                    roles={roles}
+                    days={invitationDays}
+                />
+                <RoleDialog
+                    open={open && managing?.task === 'role'}
+                    person={
+                        managing?.task === 'role' ? managing.user : undefined
+                    }
+                    roles={roles}
+                    onClose={close}
+                />
+                <DeleteDialog
+                    open={open && managing?.task === 'delete'}
+                    person={
+                        managing?.task === 'delete' ? managing.user : undefined
+                    }
+                    reassignOptions={reassignOptions}
+                    onClose={close}
+                />
+            </ListPage>
         </>
     );
 }

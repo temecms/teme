@@ -14,6 +14,7 @@ use App\Domain\Plugins\Privacy\PluginConsentHolder;
 use App\Domain\Security\Privacy\SecurityLogHolder;
 use App\Domain\Settings\Privacy\SiteSettingsHolder;
 use App\Domain\Users\Privacy\AccountHolder;
+use App\Domain\Users\Privacy\PictureHolder;
 use App\Domain\Users\Privacy\SignInHolder;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
@@ -41,6 +42,7 @@ final class PersonalDataHolders
         AiActivityHolder::class,
         PluginConsentHolder::class,
         PeopleHolder::class,
+        PictureHolder::class,
         PrivacyRequestsHolder::class,
     ];
 

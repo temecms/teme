@@ -67,7 +67,7 @@ it('reads the command as Symfony does, an option before its name included', func
  * Follow-up G1's end-to-end test, its second form: on the Security page and
  * each two-factor set-up route no plugin starts, even one that breaks at
  * start, while the page beside them starts it; and an administrator whose
- * role needs two-factor, not yet set up, is sent to the Security page and
+ * role needs two-factor, not yet set up, is sent to the Two-factor sign-in page and
  * gets it (I-115).
  */
 it('starts no plugin on the pages an administrator needs to set up two-factor, and sends them there', function (string $path, bool $starts): void {
@@ -94,10 +94,11 @@ it('starts no plugin on the pages an administrator needs to set up two-factor, a
     test()->withElevation();
     app(UpdateSettings::class)->execute(new UpdateSettingsInput('security', ['two_factor_required_roles' => ['administrator']], [], [], 0, (string) $admin->id));
 
-    $this->actingAs($admin)->get('/admin/account/profile')->assertRedirect(route('security.edit'));
-    $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => now()->getTimestamp()])->get('/admin/account/security')->assertOk();
+    $this->actingAs($admin)->get('/admin/account/profile')->assertRedirect(route('two-factor.edit'));
+    $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => now()->getTimestamp()])->get('/admin/account/two-factor')->assertOk();
 })->with([
     'the Security page' => ['admin/account/security', false],
+    'the Two-factor sign-in page' => ['admin/account/two-factor', false],
     'turning two-factor on' => ['admin/user/two-factor-authentication', false],
     'confirming it' => ['admin/user/confirmed-two-factor-authentication', false],
     'its QR code' => ['admin/user/two-factor-qr-code', false],

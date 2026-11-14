@@ -7,6 +7,7 @@ namespace App\Http\Admin\Auth;
 use Closure;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Fortify;
@@ -19,6 +20,9 @@ use Laravel\Fortify\Fortify;
  */
 final class ThrottleSignIn
 {
+    /** The session key holding when sign-in opens again, for the sign-in page's countdown. */
+    public const string RETRY_AT = 'teme.sign_in_retry_at';
+
     public function __construct(private readonly SignInThrottle $throttle) {}
 
     public function handle(Request $request, Closure $next): mixed
@@ -31,6 +35,10 @@ final class ThrottleSignIn
                 event(new Lockout($request));
 
                 $seconds = RateLimiter::availableIn($limit['key']);
+
+                // The countdown on the sign-in page (docs/proposals/sign-in-pages.md): the moment the
+                // message's own number runs out, never more than the refusal already says.
+                $request->session()->flash(self::RETRY_AT, Date::now()->getTimestamp() + $seconds);
 
                 throw ValidationException::withMessages([
                     Fortify::username() => [__('auth.throttle', ['seconds' => $seconds, 'minutes' => (int) ceil($seconds / 60)])],

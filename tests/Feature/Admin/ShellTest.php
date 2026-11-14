@@ -161,24 +161,23 @@ it('says sign in on the sign-in screens, in plain words', function (): void {
     $flat = fn (string $path): string => (string) preg_replace('/\s+/', ' ', uiComponent($path));
 
     expect($flat('pages/auth/login.tsx'))
-        ->toContain("title: 'Sign in'")
-        ->toContain("description: 'Use your email address and password.'")
-        ->toContain('<Head title="Sign in" />')
+        ->toContain("title={__('Sign in')}")
+        ->toContain("lead={__('Use your email address and password.')}")
         ->toContain('data-test="login-button"')
         ->not->toContain('Log in')
-        ->and($flat('pages/auth/forgot-password.tsx'))->toContain('>Back to sign in</TextLink>')
+        ->and($flat('pages/auth/forgot-password.tsx'))->toContain("{__('Back to sign in')}")
         ->and($flat('pages/auth/verify-email.tsx'))
         ->toContain('Sign out')
         ->toContain('Sent. Check your email for the new link.')
         ->and($flat('pages/auth/confirm-password.tsx'))
-        ->toContain("title: 'Confirm password'")
+        ->toContain("title={__('Confirm password')}")
         ->toContain('Confirm your password to continue.');
 });
 
 it('frames the sign-in screens with the site\'s mark, one main and one h1', function (): void {
-    $layout = uiComponent('layouts/auth/auth-simple-layout.tsx');
+    $layout = uiComponent('components/patterns/auth-page.tsx');
 
-    expect($layout)->toContain('<SignInBrand name={brandName}')
+    expect($layout)->toContain('<SignInBrand')
         ->toContain('<main')
         ->toContain('<h1')
         ->not->toContain('AppLogoIcon');
@@ -234,17 +233,16 @@ it('frames Account with one h1, its line and a sub-navigation, and the pages no 
     'preferences' => 'preferences',
 ]);
 
-it('names the account frame\'s heading, line and links', function (): void {
+it('names the account frame\'s list and links', function (): void {
     expect(uiComponent('layouts/account/layout.tsx'))
-        ->toContain('PageHeader')
-        ->toContain('title="Account"')
-        ->toContain('Each panel saves on its own.')
-        ->toContain('aria-label="Account"')
-        ->toContain("title: 'Profile'")
-        ->toContain("title: 'Preferences'")
-        ->toContain("title: 'Notifications'")
-        ->toContain("title: 'Security'")
-        ->not->toContain('Your profile, sign-in and interface preferences');
+        ->toContain('<AccountNav />')
+        ->not->toContain('Your profile, sign-in and interface preferences')
+        ->and(uiComponent('layouts/account/account-nav.tsx'))
+        ->toContain("aria-label={__('Account')}")
+        ->toContain("title: __('Profile')")
+        ->toContain("title: __('Preferences')")
+        ->toContain("title: __('Notifications')")
+        ->toContain("title: __('Security')");
 });
 
 it('offers Appearance as a labelled select in Preferences', function (): void {

@@ -1,41 +1,38 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import { useRef } from 'react';
 import SecurityController from '@/actions/App/Http/Admin/Account/SecurityController';
-import Heading from '@/components/heading';
-import InputError from '@/components/input-error';
+import { FormPanel } from '@/components/patterns/form-page';
+import { SaveBar } from '@/components/patterns/save-bar';
+import { SettingsPage } from '@/components/patterns/settings-page';
 import PasswordInput from '@/components/password-input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/field';
+import { __ } from '@/lib/i18n';
 import { edit } from '@/routes/security';
-import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
-import ManageTwoFactor from '@/components/manage-two-factor';
 
-// oxfmt-ignore
 type Props = {
     passwordRules: string;
-}&
-    ManageTwoFactorProps;
+};
 
-export default function Security(props: Props) {
+/** Your account › Security: the password you sign in with. */
+export default function Security({ passwordRules }: Props) {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
+    setLayoutProps({
+        breadcrumbs: [{ title: __('Security'), href: edit() }],
+    });
+
     return (
         <>
-            <Head title="Security" />
+            <Head title={__('Security')} />
 
-            <div className="space-y-6">
-                <Heading
-                    variant="small"
-                    title="Update password"
-                    description="Use a long, random password."
-                />
-
+            <SettingsPage
+                title={__('Security')}
+                description={__('The password you sign in with.')}
+            >
                 <Form
                     {...SecurityController.update.form()}
-                    options={{
-                        preserveScroll: true,
-                    }}
+                    options={{ preserveScroll: true }}
                     resetOnError={[
                         'password',
                         'password_confirmation',
@@ -51,99 +48,71 @@ export default function Security(props: Props) {
                             currentPasswordInput.current?.focus();
                         }
                     }}
-                    className="space-y-6"
                 >
-                    {({ errors, processing }) => (
+                    {({ errors, processing, isDirty, reset }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="current_password">
-                                    Current password
-                                </Label>
-
-                                <PasswordInput
-                                    id="current_password"
-                                    aria-describedby="current_password-error"
-                                    ref={currentPasswordInput}
-                                    name="current_password"
-                                    className="mt-1 block w-full"
-                                    autoComplete="current-password"
-                                    placeholder="Current password"
-                                />
-
-                                <InputError
-                                    id="current_password-error"
-                                    message={errors.current_password}
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">New password</Label>
-
-                                <PasswordInput
-                                    id="password"
-                                    aria-describedby="password-error"
-                                    ref={passwordInput}
-                                    name="password"
-                                    className="mt-1 block w-full"
-                                    autoComplete="new-password"
-                                    placeholder="New password"
-                                    passwordrules={props.passwordRules}
-                                />
-
-                                <InputError
-                                    id="password-error"
-                                    message={errors.password}
-                                />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    Confirm password
-                                </Label>
-
-                                <PasswordInput
-                                    id="password_confirmation"
-                                    aria-describedby="password_confirmation-error"
-                                    name="password_confirmation"
-                                    className="mt-1 block w-full"
-                                    autoComplete="new-password"
-                                    placeholder="Confirm password"
-                                    passwordrules={props.passwordRules}
-                                />
-
-                                <InputError
-                                    id="password_confirmation-error"
-                                    message={errors.password_confirmation}
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    disabled={processing}
-                                    data-test="update-password-button"
+                            <FormPanel
+                                title={__('Update password')}
+                                description={__('Use a long, random password.')}
+                            >
+                                <Field
+                                    htmlFor="current_password"
+                                    label={__('Current password')}
+                                    error={errors.current_password}
                                 >
-                                    Save
-                                </Button>
-                            </div>
+                                    <PasswordInput
+                                        id="current_password"
+                                        ref={currentPasswordInput}
+                                        name="current_password"
+                                        autoComplete="current-password"
+                                        placeholder={__('Current password')}
+                                    />
+                                </Field>
+
+                                <Field
+                                    htmlFor="password"
+                                    label={__('New password')}
+                                    help={__(
+                                        'Updating it signs you out on your other devices.',
+                                    )}
+                                    error={errors.password}
+                                >
+                                    <PasswordInput
+                                        id="password"
+                                        ref={passwordInput}
+                                        name="password"
+                                        autoComplete="new-password"
+                                        placeholder={__('New password')}
+                                        passwordrules={passwordRules}
+                                    />
+                                </Field>
+
+                                <Field
+                                    htmlFor="password_confirmation"
+                                    label={__('Confirm password')}
+                                    error={errors.password_confirmation}
+                                >
+                                    <PasswordInput
+                                        id="password_confirmation"
+                                        name="password_confirmation"
+                                        autoComplete="new-password"
+                                        placeholder={__('Confirm password')}
+                                        passwordrules={passwordRules}
+                                    />
+                                </Field>
+                            </FormPanel>
+
+                            <SaveBar
+                                dirty={isDirty}
+                                processing={processing}
+                                onDiscard={() => reset()}
+                                what={__('your password')}
+                                testId="update-password-button"
+                            />
                         </>
                     )}
                 </Form>
-            </div>
-
-            <ManageTwoFactor
-                canManageTwoFactor={props.canManageTwoFactor}
-                requiresConfirmation={props.requiresConfirmation}
-                twoFactorEnabled={props.twoFactorEnabled}
-            />
+            </SettingsPage>
         </>
     );
 }
-
-Security.layout = {
-    breadcrumbs: [
-        {
-            title: 'Security',
-            href: edit(),
-        },
-    ],
-};

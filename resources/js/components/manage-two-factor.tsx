@@ -2,11 +2,12 @@ import { Form } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
-import Heading from '@/components/heading';
+import { FormPanel } from '@/components/patterns/form-page';
 import TwoFactorRecoveryCodes from '@/components/two-factor-recovery-codes';
 import TwoFactorSetupModal from '@/components/two-factor-setup-modal';
 import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/hooks/use-two-factor-auth';
+import { __ } from '@/lib/i18n';
 import { disable, enable } from '@/routes/two-factor';
 
 export type Props = {
@@ -15,6 +16,11 @@ export type Props = {
     twoFactorEnabled?: boolean;
 };
 
+/**
+ * Two-factor sign-in's one panel: whether it is on, turning it on with the
+ * setup dialog or off after asking, and the recovery codes. Fortify does
+ * the work (I-100).
+ */
 export default function ManageTwoFactor(props: Props) {
     const requiresConfirmation = props.requiresConfirmation ?? false;
     const twoFactorEnabled = props.twoFactorEnabled ?? false;
@@ -46,29 +52,37 @@ export default function ManageTwoFactor(props: Props) {
     }
 
     return (
-        <div className="space-y-6">
-            <Heading variant="small" title="Two-factor sign-in" />
-            {twoFactorEnabled ? (
-                <div className="flex flex-col items-start justify-start space-y-4">
-                    <p className="text-ink-2 text-sm">
-                        When you sign in, you also type the code from the
-                        authenticator app on your phone.
-                    </p>
+        <FormPanel title={__('Two-factor sign-in')}>
+            <p className="text-body text-ink-2">
+                {twoFactorEnabled
+                    ? __(
+                          'When you sign in, you also type the code from the authenticator app on your phone.',
+                      )
+                    : __(
+                          'Once it’s on, signing in also asks for a code from an authenticator app on your phone.',
+                      )}
+            </p>
 
-                    <div className="relative inline">
+            {twoFactorEnabled ? (
+                <>
+                    <div>
                         <Form {...disable.form()}>
                             {({ processing }) => (
                                 <ConfirmAction
-                                    title="Disable two-factor sign-in?"
-                                    description="Signing in will need only your password until you set it up again, with a new authenticator entry and new recovery codes."
-                                    confirmLabel="Disable two-factor sign-in"
+                                    title={__('Turn off two-factor sign-in?')}
+                                    description={__(
+                                        'Signing in will need only your password until you set it up again, with a new authenticator entry and new recovery codes.',
+                                    )}
+                                    confirmLabel={__(
+                                        'Turn off two-factor sign-in',
+                                    )}
                                 >
                                     <Button
-                                        variant="destructive"
+                                        variant="danger-quiet"
                                         type="submit"
                                         disabled={processing}
                                     >
-                                        Disable two-factor sign-in
+                                        {__('Turn off…')}
                                     </Button>
                                 </ConfirmAction>
                             )}
@@ -80,33 +94,26 @@ export default function ManageTwoFactor(props: Props) {
                         fetchRecoveryCodes={fetchRecoveryCodes}
                         errors={errors}
                     />
-                </div>
+                </>
             ) : (
-                <div className="flex flex-col items-start justify-start space-y-4">
-                    <p className="text-ink-2 text-sm">
-                        Once it’s on, signing in also asks for a code from an
-                        authenticator app on your phone.
-                    </p>
-
-                    <div>
-                        {hasSetupData ? (
-                            <Button onClick={() => setShowSetupModal(true)}>
-                                <ShieldCheck />
-                                Continue setup
-                            </Button>
-                        ) : (
-                            <Form
-                                {...enable.form()}
-                                onSuccess={() => setShowSetupModal(true)}
-                            >
-                                {({ processing }) => (
-                                    <Button type="submit" disabled={processing}>
-                                        Enable two-factor sign-in
-                                    </Button>
-                                )}
-                            </Form>
-                        )}
-                    </div>
+                <div>
+                    {hasSetupData ? (
+                        <Button onClick={() => setShowSetupModal(true)}>
+                            <ShieldCheck />
+                            {__('Continue setup')}
+                        </Button>
+                    ) : (
+                        <Form
+                            {...enable.form()}
+                            onSuccess={() => setShowSetupModal(true)}
+                        >
+                            {({ processing }) => (
+                                <Button type="submit" disabled={processing}>
+                                    {__('Turn on two-factor sign-in')}
+                                </Button>
+                            )}
+                        </Form>
+                    )}
                 </div>
             )}
 
@@ -121,6 +128,6 @@ export default function ManageTwoFactor(props: Props) {
                 fetchSetupData={fetchSetupData}
                 errors={errors}
             />
-        </div>
+        </FormPanel>
     );
 }

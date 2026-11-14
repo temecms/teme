@@ -28,6 +28,7 @@ use stdClass;
  * @property CarbonInterface|null $invited_at
  * @property CarbonInterface|null $suspended_at
  * @property array<string, mixed>|null $preferences
+ * @property string|null $picture_media_id
  */
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]

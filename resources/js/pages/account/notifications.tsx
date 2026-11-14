@@ -1,7 +1,9 @@
 import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
 import NotificationsController from '@/actions/App/Http/Admin/Account/NotificationsController';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { FormPanel } from '@/components/patterns/form-page';
+import { SaveBar } from '@/components/patterns/save-bar';
+import { SettingsPage } from '@/components/patterns/settings-page';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -50,164 +52,192 @@ export default function Notifications({ notices, inboxHref }: Props) {
         <>
             <Head title={__('Notifications')} />
 
-            <div className="space-y-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <Heading
-                        variant="small"
-                        title={__('Inbox')}
-                        description={__(
-                            'Results of background work you start, such as an import, arrive in your inbox. The bell at the top of every screen counts the ones you haven’t read. Each is kept for 90 days.',
-                        )}
-                    />
-                    <Button variant="outline" size="sm" asChild>
-                        <Link href={inboxHref}>{__('Open inbox')}</Link>
-                    </Button>
-                </div>
+            <SettingsPage title={__('Notifications')}>
+                <FormPanel
+                    title={__('Inbox')}
+                    description={__(
+                        'Results of background work you start, such as an import, arrive in your inbox. The bell at the top of every screen counts the ones you haven’t read. Each is kept for 90 days.',
+                    )}
+                >
+                    <div>
+                        <Button variant="neutral" size="sm" asChild>
+                            <Link href={inboxHref}>{__('Open inbox')}</Link>
+                        </Button>
+                    </div>
+                </FormPanel>
 
                 {notices.length === 0 ? (
-                    <p className="text-ink-2 text-sm">
-                        {__('There are no emails to choose here.')}
-                    </p>
+                    <FormPanel title={__('Email')}>
+                        <p className="text-body text-ink-2">
+                            {__('There are no emails to choose here.')}
+                        </p>
+                    </FormPanel>
                 ) : (
                     <Form
                         {...NotificationsController.update.form()}
                         options={{ preserveScroll: true }}
-                        className="border-line space-y-6 border-t pt-6"
+                        setDefaultsOnSuccess
                     >
-                        {({ processing, errors }) => (
+                        {({ processing, errors, isDirty, reset }) => (
                             <>
-                                <fieldset className="grid gap-3">
-                                    <legend className="mb-2 text-sm font-medium">
-                                        {__('Email')}
-                                    </legend>
-                                    <p
-                                        id="notifications-hint"
-                                        className="text-ink-2 text-sm"
+                                <FormPanel
+                                    title={__('Email')}
+                                    description={
+                                        <span id="notifications-hint">
+                                            {__(
+                                                'Here you turn these off for yourself. Some can also be turned off for everyone, in Settings.',
+                                            )}
+                                        </span>
+                                    }
+                                >
+                                    {/* A checkbox tells its hidden input with a click, not a change, so the form is told here and its save bar shows. */}
+                                    <fieldset
+                                        aria-describedby="notifications-hint"
+                                        className="grid gap-3"
+                                        onClick={(event) => {
+                                            if (
+                                                event.target instanceof
+                                                HTMLInputElement
+                                            ) {
+                                                event.currentTarget.dispatchEvent(
+                                                    new Event('change', {
+                                                        bubbles: true,
+                                                    }),
+                                                );
+                                            }
+                                        }}
                                     >
-                                        {__(
-                                            'Here you turn these off for yourself. Some can also be turned off for everyone, in Settings.',
-                                        )}
-                                    </p>
-                                    {notices.map((notice) => (
-                                        <div
-                                            key={notice.key}
-                                            className="grid gap-1"
-                                        >
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                {/* A disabled row sends nothing, so the person's choice is kept; the empty item stands for no channel. */}
-                                                {!notice.disabled && (
-                                                    <input
-                                                        type="hidden"
-                                                        name={`preferences[${notice.key}][]`}
-                                                        value=""
-                                                    />
-                                                )}
-                                                {notice.channels.length ===
-                                                1 ? (
-                                                    <>
-                                                        <Checkbox
-                                                            id={`pref-${notice.key}`}
+                                        <legend className="sr-only">
+                                            {__('Email')}
+                                        </legend>
+                                        {notices.map((notice) => (
+                                            <div
+                                                key={notice.key}
+                                                className="grid gap-1"
+                                            >
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    {/* A disabled row sends nothing, so the person's choice is kept; the empty item stands for no channel. */}
+                                                    {!notice.disabled && (
+                                                        <input
+                                                            type="hidden"
                                                             name={`preferences[${notice.key}][]`}
-                                                            value={
-                                                                notice
-                                                                    .channels[0]
-                                                                    .key
-                                                            }
-                                                            defaultChecked={
-                                                                notice
-                                                                    .channels[0]
-                                                                    .on
-                                                            }
-                                                            disabled={
-                                                                notice.disabled
-                                                            }
-                                                            aria-describedby={
-                                                                notice.disabled
-                                                                    ? `notifications-hint pref-${notice.key}-off`
-                                                                    : 'notifications-hint'
-                                                            }
+                                                            value=""
                                                         />
-                                                        <Label
-                                                            htmlFor={`pref-${notice.key}`}
-                                                        >
-                                                            {notice.label}
-                                                        </Label>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <span className="text-sm">
-                                                            {notice.label}
-                                                        </span>
-                                                        {notice.channels.map(
-                                                            (channel) => (
-                                                                <div
-                                                                    key={
-                                                                        channel.key
-                                                                    }
-                                                                    className="flex items-center gap-2"
-                                                                >
-                                                                    <Checkbox
-                                                                        id={`pref-${notice.key}-${channel.key}`}
-                                                                        name={`preferences[${notice.key}][]`}
-                                                                        value={
+                                                    )}
+                                                    {notice.channels.length ===
+                                                    1 ? (
+                                                        <>
+                                                            <Checkbox
+                                                                id={`pref-${notice.key}`}
+                                                                name={`preferences[${notice.key}][]`}
+                                                                value={
+                                                                    notice
+                                                                        .channels[0]
+                                                                        .key
+                                                                }
+                                                                defaultChecked={
+                                                                    notice
+                                                                        .channels[0]
+                                                                        .on
+                                                                }
+                                                                disabled={
+                                                                    notice.disabled
+                                                                }
+                                                                aria-describedby={
+                                                                    notice.disabled
+                                                                        ? `notifications-hint pref-${notice.key}-off`
+                                                                        : 'notifications-hint'
+                                                                }
+                                                            />
+                                                            <Label
+                                                                htmlFor={`pref-${notice.key}`}
+                                                                className="text-body text-ink"
+                                                            >
+                                                                {notice.label}
+                                                            </Label>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <span className="text-body">
+                                                                {notice.label}
+                                                            </span>
+                                                            {notice.channels.map(
+                                                                (channel) => (
+                                                                    <div
+                                                                        key={
                                                                             channel.key
                                                                         }
-                                                                        defaultChecked={
-                                                                            channel.on
-                                                                        }
-                                                                        disabled={
-                                                                            notice.disabled
-                                                                        }
-                                                                        aria-describedby={
-                                                                            notice.disabled
-                                                                                ? `notifications-hint pref-${notice.key}-off`
-                                                                                : 'notifications-hint'
-                                                                        }
-                                                                    />
-                                                                    <Label
-                                                                        htmlFor={`pref-${notice.key}-${channel.key}`}
+                                                                        className="flex items-center gap-2"
                                                                     >
-                                                                        {
-                                                                            channel.label
-                                                                        }
-                                                                    </Label>
-                                                                </div>
-                                                            ),
-                                                        )}
-                                                    </>
-                                                )}
+                                                                        <Checkbox
+                                                                            id={`pref-${notice.key}-${channel.key}`}
+                                                                            name={`preferences[${notice.key}][]`}
+                                                                            value={
+                                                                                channel.key
+                                                                            }
+                                                                            defaultChecked={
+                                                                                channel.on
+                                                                            }
+                                                                            disabled={
+                                                                                notice.disabled
+                                                                            }
+                                                                            aria-describedby={
+                                                                                notice.disabled
+                                                                                    ? `notifications-hint pref-${notice.key}-off`
+                                                                                    : 'notifications-hint'
+                                                                            }
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor={`pref-${notice.key}-${channel.key}`}
+                                                                            className="text-body text-ink"
+                                                                        >
+                                                                            {
+                                                                                channel.label
+                                                                            }
+                                                                        </Label>
+                                                                    </div>
+                                                                ),
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {notice.disabled &&
+                                                    notice.switchedOff !==
+                                                        null && (
+                                                        <p
+                                                            id={`pref-${notice.key}-off`}
+                                                            className="text-caption text-ink-3"
+                                                        >
+                                                            {notice.switchedOff}
+                                                        </p>
+                                                    )}
+                                                <InputError
+                                                    message={
+                                                        errors[
+                                                            `preferences.${notice.key}`
+                                                        ]
+                                                    }
+                                                />
                                             </div>
-                                            {notice.disabled &&
-                                                notice.switchedOff !== null && (
-                                                    <p
-                                                        id={`pref-${notice.key}-off`}
-                                                        className="text-ink-2 text-sm"
-                                                    >
-                                                        {notice.switchedOff}
-                                                    </p>
-                                                )}
-                                            <InputError
-                                                message={
-                                                    errors[
-                                                        `preferences.${notice.key}`
-                                                    ]
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                                </fieldset>
+                                        ))}
+                                    </fieldset>
+                                </FormPanel>
 
                                 {/* A form of disabled rows sends nothing to save. */}
                                 {notices.some((notice) => !notice.disabled) && (
-                                    <Button type="submit" disabled={processing}>
-                                        {__('Save notifications')}
-                                    </Button>
+                                    <SaveBar
+                                        dirty={isDirty}
+                                        processing={processing}
+                                        onDiscard={() => reset()}
+                                        saveLabel={__('Save notifications')}
+                                        what={__('your notifications')}
+                                    />
                                 )}
                             </>
                         )}
                     </Form>
                 )}
-            </div>
+            </SettingsPage>
         </>
     );
 }

@@ -45,11 +45,11 @@ it('sends a member of a required role to set up two-factor, and nowhere else', f
     usersRequireTwoFactorFor($this->admin, ['editor']);
     $editor = User::factory()->create()->assignRole('editor');
 
-    $this->actingAs($editor)->get('/admin')->assertRedirect(route('security.edit'));
-    $this->actingAs($editor)->get('/admin/account/profile')->assertRedirect(route('security.edit'));
+    $this->actingAs($editor)->get('/admin')->assertRedirect(route('two-factor.edit'));
+    $this->actingAs($editor)->get('/admin/account/profile')->assertRedirect(route('two-factor.edit'));
     $this->actingAs($editor)
         ->withSession(['auth.password_confirmed_at' => now()->getTimestamp()])
-        ->get('/admin/account/security')
+        ->get('/admin/account/two-factor')
         ->assertOk();
 });
 

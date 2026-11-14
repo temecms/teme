@@ -129,7 +129,8 @@ it('shows a result as a toast with a Dismiss, passing axe and the target size, i
 
     $page = cmSignIn($this->admin)
         ->navigate('/admin/account/preferences')
-        ->press('Save preferences')
+        // A choice on Preferences is saved the moment it is made.
+        ->click('[id="field-editor.smart_quotes"]')
         ->assertSee('Preferences saved.')
         ->assertVisible('[data-test="flash-toast"]')
         // Sonner keeps a toast while the pointer is over it; the run outlasts six seconds.
@@ -181,7 +182,7 @@ it('frames Account with one h1 and an Appearance select, passing axe and the tar
 
     $page = cmSignIn($this->admin)
         ->navigate('/admin/account/preferences')
-        ->assertSee('Each panel saves on its own.')
+        ->assertSee('Each choice is saved as you make it.')
         ->assertSee('Appearance')
         ->assertNoAccessibilityIssues(3);
 
