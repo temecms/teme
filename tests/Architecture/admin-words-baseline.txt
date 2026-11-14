@@ -1976,10 +1976,6 @@ pages/tools/import/show.tsx	Import
 pages/tools/import/show.tsx	Teme uses these for this import and for each catch-up after it.
 pages/tools/import/show.tsx	Tools
 pages/tools/import/show.tsx	Your choices
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Utilities for looking after the site.
 pages/tools/jobs.tsx	Actions
 pages/tools/jobs.tsx	Cancel
 pages/tools/jobs.tsx	Cancel {}
