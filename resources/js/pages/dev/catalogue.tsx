@@ -421,11 +421,6 @@ function PatternFrame({
     );
 }
 
-/**
- * The design system's catalogue (docs/architecture/design-system.md,
- * section 9.3): the tokens and every shared part in the states a still page
- * can hold. Only a local site and the tests can open it.
- */
 /** The Combobox in every state: one choice, several, an empty list, a search under way, disabled and in error. */
 function ComboboxDemo() {
     const authors: ComboboxOption[] = [
@@ -591,6 +586,11 @@ function ComboboxDemo() {
     );
 }
 
+/**
+ * The design system's catalogue (docs/architecture/design-system.md,
+ * section 9.3): the tokens and every shared part in the states a still page
+ * can hold. Only a local site and the tests can open it.
+ */
 export default function Catalogue() {
     const uses: Record<string, string> = {
         'text-caption': __('Help under a field, badges, group headings'),

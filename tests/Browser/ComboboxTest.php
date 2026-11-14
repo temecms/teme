@@ -9,6 +9,7 @@ use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(RefreshDatabase::class);
 
@@ -416,4 +417,37 @@ it('describes a single-choice button with its chosen name, beside the field\'s o
     $page->assertScript($description('catalogue-combobox-single')." === 'Grace Hopper'")
         // Nothing chosen: only the field's error describes it.
         ->assertScript($description('catalogue-combobox-error')." === 'Choose who owns this page.'");
+});
+
+it('unticks a chosen tag with Enter', function (): void {
+    $page = cbCatalogue($this->admin);
+    cbOpen($page, 'catalogue-combobox-multi');
+    cmWaitUntil($page, cbLabels().".startsWith('Ferries,Tides')");
+
+    cbPress($page, 'ArrowDown');
+    cbPress($page, 'Enter');
+
+    cmWaitUntil($page, "document.querySelector('[role=\"option\"]').getAttribute('aria-checked') === 'false'");
+    $page->assertScript("document.querySelector('[data-slot=\"popover-content\"]') !== null")
+        ->assertScript(cbHidden('tags[]')." === 'tag-5'");
+});
+
+it('shows the server\'s refusal under the field when Create is refused, and adds nothing', function (): void {
+    $item = lifecycleDraft($this->admin, 'Ferry notes');
+
+    $page = cbEditorAtTags($this->admin, $item);
+
+    cbType($page, 'Lighthouse keepers');
+    shellSettled($page, '[data-slot="popover-content"]');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"combobox-searching\"]') === null && ".cbLabels()." === 'Create “Lighthouse keepers”'");
+
+    // Between the offer and the choice, the person loses the right to manage terms.
+    $this->admin->syncRoles(['author']);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    cbPress($page, 'Enter');
+    cmWaitUntil($page, "document.querySelector('[role=\"alert\"]')?.textContent === 'This action is unauthorized.'");
+
+    $page->assertScript("document.querySelectorAll('[data-slot=\"combobox-chosen\"] [data-slot=\"status-pill\"]').length === 0");
+    expect(DB::table('terms')->where('name', 'Lighthouse keepers')->exists())->toBeFalse();
 });

@@ -82,7 +82,7 @@ final class ContentListController extends Controller
                 'segment' => $taxonomy->segment,
                 'hierarchical' => $taxonomy->hierarchical,
                 // As CreateTerm and its route decide, so the picker never offers what would be refused.
-                'canCreate' => $viewer->can('terms.manage') && $viewer->can($taxonomy->ability),
+                'canCreate' => (bool) $viewer?->can('terms.manage') && $viewer->can($taxonomy->ability),
             ], $typeTaxonomies),
             'labels' => ['singular' => $contentType->singular, 'plural' => $contentType->plural],
             'canAdd' => ! $contentType->single || $singleItem === null,
