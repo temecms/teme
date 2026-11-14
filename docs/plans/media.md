@@ -433,3 +433,70 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: Task 0's findings and the stack; commits with "Done to Task N" lines; each test seen red (task, file, case, the failure's first line); each plant and its red line; the design-system and admin-words counts before and after; every B-?? (draft) with its options and choice; any STOP; how to try it (on a local site: /admin/media, arrows and Enter, a field left; /admin/_catalogue#media-picker for each caller). -->
+
+### Task 0
+
+- Ran in a fresh checkout; the cloud setup finished (started 2026-11-14T20:55:05Z, finished 21:06:29Z). `origin/main` head: `4b8cc3b`.
+- Both commits found once each: `e7f2af7` (the design system and the admin's new frame) and `772e0dd` (the combobox on Downshift).
+- Every Step 2 line matched by its text: `DetailPage`, `InPageNav`, the `xl` dialog line, the eight `ui/` files, no `ui/media-tile.tsx`; the `ComboboxSourceTest` line; no `openMediaPicker`; the ten `MediaModal` callers exactly; `media-drawer` imported by `pages/media/index.tsx` and `components/media/media-modal.tsx` only; `focal_x` once, no `picture_media_id` in `MediaDetails`, `whereNull('media.deleted_at')` once in `PersonPictures`; the `AccessibilityTest` needles as listed; neither new test file existed; 8 Pest helpers; `mediaJpeg` once.
+- Owned baseline lines: design system 63, admin words 105. Counts at the base: `AdminWordsTest` 2350; `dsCounts()` R1 114, R2 661, R3 149, R5 82, R6 41, R7 89, R8 34, R9 23 (the rest unchanged).
+- Files proving refused operations write nothing (tests/Feature/Media): CaptionFilesTest, DownloadImageTest, FeaturedImageQuickEditTest, FileDownloaderTest, ImportMediaTest, MediaDetailsTest, MediaLicenceTest, MediaProcessingTest, MediaSourceTest, MediaTrashTest, MediaUploadedForTest, MediaUsageRebuildTest, ShareImagesTest, UploadMediaTest, UploadsForItemTest.
+- PHP 8.4.27, Node v24.22.1, PostgreSQL answered on 5433, `DesignSystemTest` and `AdminWordsTest` green.
+- Stack (locks): laravel/framework v13.39.0, inertiajs/inertia-laravel v3.5.2, laravel/fortify v1.41.0, laravel/wayfinder v0.1.23, pestphp/pest v5.3.4, pestphp/pest-plugin-browser v5.1.2, larastan v3.13.2, pint v1.32.1; react 19.3.1, @inertiajs/react 3.9.1, tailwindcss 4.3.3, typescript 7.0.2, vite 8.3.5, @tiptap/core 3.32.0.
+
+### Commits
+
+- `b98213a` feat(media): the details count whose picture a file is (I-3410). Done to Task 1 at `b98213a`, the quick check green.
+- `8255277` feat(media): tiles in three sizes with their facts, moved by the arrow keys. Done to Task 2 at `8255277`, the quick check green.
+- `453a47e` feat(media): the library on the detail page, with a panel that saves as you go (I-3400). Done to Task 3 at `453a47e`, the quick check green.
+- `35ad374` feat(media): one picker for every screen, opened by openMediaPicker (I-3400). Done to Task 4 at `35ad374`, the quick check green.
+
+### Tests seen red
+
+- Task 1, `MediaDetailsTest`, "counts the people who use an image as their picture…": "Failed asserting that null is identical to 2."
+- Task 2, `MediaLibraryTest`, all four cases: timeouts waiting on the tile-size `Segmented`, the facts and the focused tile (the old grid had none of them).
+- Task 3, `MediaLibraryTest`, the eight panel cases: timeouts waiting on `[data-test="media-detail"]`.
+- Task 4, `MediaPickerDialogTest`, all nine runs: timeouts waiting on `[data-test="catalogue-picker-featured"]`.
+
+### Plants
+
+- Task 2: the columns set to `1fr`: "draws tiles at three sizes…" red.
+- Task 3: the save reading values captured when it was asked stayed green, because the saver reads a ref when the save runs (B-07); substituted by overwriting the values ref with the server's copy plus the one field: "saves a field when it is left… a second field's save keeps the first" red (caption null). The focal point's `onBlur` removed: the focal case red (timeout).
+- Task 4: `key={opened.key}` removed: "replaces its options when opened again from another caller" red (the tray and status kept the first caller's choice). The tray drawn in `rows` order: "keeps a gallery in the order chosen…" red.
+
+### Counts
+
+- Design-system baseline: 1228 lines before, 1165 after (63 owned lines gone, 0 left). `dsCounts()`: R1 114→113, R2 661→623, R3 149→148, R5 82→76, R6 41→32, R7 89→85, R8 34→31, R9 23→22.
+- Admin-words baseline: 2350 before, 2245 after (105 owned lines gone, 0 left).
+- `git diff --stat origin/main` over `components/ui`, `components/patterns`, `resources/css`, `components/list`, `components/editor`, `package.json`, `composer.json`: nothing.
+
+### Decisions
+
+- **B-01 (draft).** The base `composer check` total was not measured: my in-progress Task 2 edits already broke the type check when it ran, and a clean re-run holds the database for about 30 minutes. Options: stash and re-run, or rely on Task 0's checks. Chose the latter; Task 0's lines all matched. `8255277`.
+- **B-02 (draft).** The arrow-key case ran at 1280 wide, where five tiles fit one row and ↓ has nowhere to go. Options: seed more files, or narrow the window. Chose 700 pixels wide (two rows). `8255277`.
+- **B-03 (draft).** `MediaModal` drew the details drawer over its own dialog; once the drawer became the panel, it no longer compiled. Options: keep a drawer copy, or move `MediaModal` to `AttachmentDetails` in Task 3. Chose the latter (D3's "no second panel over the picker"), and replaced its `MediaScreenTest` case in Task 3 as the plan's table says. `453a47e`.
+- **B-04 (draft).** `UploadedForTest` and `AltTextSuggestionTest` waited on `sheet-content`, not in the plan's table. Changed the selector to `media-detail` only; what they prove is the same. `AltTextSuggestionTest`'s caption expectation changed from null to "Typed, not saved", because fields now save when left (D8). **For the maintainer to confirm.** `453a47e`.
+- **B-05 (draft).** The panel's heading: `FullPassTest` reads the file's title in the panel, and the fields hold it only as input values. Chose a heading with the title, the filename beneath. `453a47e`.
+- **B-06 (draft).** The Grid / List `Segmented` needs a label: "Layout". Used in with 0 shows a plain number, not a button. In the sheet the panel's own close is hidden (the sheet has its X). `453a47e`.
+- **B-07 (draft).** The plant for D8 could not go red as written (see Plants); substituted. `453a47e`.
+- **B-08 (draft).** Module-level word lists (`MEDIA_KINDS`, `MEDIA_TYPES`, alt-text words) became functions, since `__()` must not run at module load; `AttachmentMeta` folded into the panel. The trash `Notice` uses tone `warn`. A filter chip's remove is a `ui/button` `icon-xs`. `453a47e`.
+- **B-09 (draft).** D2's code passes no `onInsert` to the dialog; the host passes one that calls the caller's `onInsert` and then closes. `35ad374`.
+- **B-10 (draft).** D2's `useState` initializer (`const first = waiting; waiting = null; return first…`) is folded by the build's minifier into reading `waiting` after it is cleared, so the first open drew nothing. Rewritten to build the state before clearing `waiting`. `35ad374`.
+- **B-11 (draft).** D1 says focus returns by Radix's own return; Radix returns focus only to a `DialogTrigger`, and the picker has none, so focus fell to the body. The dialog remembers what had focus when it opened and focuses it in `onCloseAutoFocus`. `35ad374`.
+- **B-12 (draft).** D2 checks for the host with `querySelector('[data-media-picker-host]')`, which the design-system scanner flags (R1, a bracket value). Checked through `dataset` on the body's children instead; same meaning, no new baseline line. `35ad374`.
+- **B-13 (draft).** The gallery's main button with nothing chosen reads "Add image" (`__n` with `max(n, 1)`); the tray's remove target is 24px drawing a 20px circle; an upload batch switches to the Library tab; `UploadList` shows on both tabs. `35ad374`.
+- **B-14 (draft).** The catalogue has five buttons: insert, replace, featured, gallery, and `choose` with `action` "Use as poster" (`data-test="catalogue-picker-choose"`), since `choose` takes its words from `action`. `35ad374`.
+- **B-15 (draft).** "Fills the screen at 375 pixels": `html` keeps the scrollbar's room (`scrollbar-gutter: stable`), so a fixed box is 365 wide in the test browser. The test compares the dialog with a fixed box over the whole screen, not `innerWidth`. `35ad374`.
+
+### Full check
+
+`composer check` once, at `35ad374`: Pint, PHPStan, types, lint and themes green; Architecture 105 passed (1227 assertions); Unit and Feature 10490 passed, 2 skipped, **1 failed** (53854 assertions, 1485 s). Browser files, one at a time after `npm run build`: MediaPickerDialogTest 9, MediaLibraryTest 12, MediaScreenTest 11, UploadedForTest 5, AltTextSuggestionTest 5, ImportImagesTest 5, FullPassTest `--filter=media` 3, DetailsSectionTest 7, SearchSectionTest 14, SettingControlsTest 2, AudioVideoCardsTest 3, AccountPagesTest 18, DesignCatalogueTest 18, all passed.
+
+### STOP
+
+**STOPPED, for one point: the editors' Media guide.** `tests/Feature/Guides/Editors/EditorPagesTest`, "names only what…", fails for `docs/guides/editors/media.md`: its bold **Licence** and **Save** are no longer said by its sources, because the field is now "License" (I-3439) and the fields save when left (D8), so the panel has no Save button. The guide is not in this plan's Owns, so it stays unchanged. The fix, for the maintainer or the docs part: in "To describe a file", "a drawer" → "a panel beside the library", **Licence** → **License**, and "Choose **Save**." → "Each field is saved when you leave it, and the page says **Saved.**"; "The drawer" → "The panel" twice. Everything else in this part is built.
+
+### How to try it
+
+On a local site: `/admin/media` — pick a tile size, move with the arrows, Enter opens the details beside the library, change a field and leave it ("Saved."). `/admin/_catalogue#media-picker` — open the picker from each caller, choose with the keyboard or a double-click, tick a gallery in order and remove one from the tray, upload on the Upload tab.
+
