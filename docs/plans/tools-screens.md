@@ -373,3 +373,4 @@ Stop, write why under Records, commit and push, then stop, when:
 - Done to Task 1 at `890afa7`, the quick check green.
 - Done to Task 2 at `f295084`, the quick check green.
 
+- Done to Task 3 at `65cfc11`, the quick check green; `ToolsFramesTest`, `ToolsScreensTest`, `UpdatesScreenTest` and `UpdaterScreenTest` green in the browser.
