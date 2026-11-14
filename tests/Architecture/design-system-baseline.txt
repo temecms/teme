@@ -49,8 +49,6 @@ R1	js/components/editor/toolbar.tsx	h-[30px]
 R1	js/components/editor/toolbar.tsx	h-[30px]
 R1	js/components/editor/toolbar.tsx	h-[30px]
 R1	js/components/editor/toolbar.tsx	size-[30px]
-R1	js/components/fields/brand-colour-setting.tsx	h-[34px]
-R1	js/components/fields/brand-colour-setting.tsx	h-[34px]
 R1	js/components/fields/field-control.tsx	max-w-[360px]
 R1	js/components/fields/hours-setting.tsx	sm:grid-cols-[7rem_8rem_8rem_auto_1fr]
 R1	js/components/fields/media-setting.tsx	sm:grid-cols-[160px_minmax(0,1fr)]
@@ -108,7 +106,6 @@ R1	js/pages/navigation/edit.tsx	sm:max-w-[480px]
 R1	js/pages/settings/addresses.tsx	max-w-[960px]
 R1	js/pages/settings/ai.tsx	max-w-[960px]
 R1	js/pages/settings/discussion.tsx	max-w-[960px]
-R1	js/pages/settings/group.tsx	max-w-[960px]
 R1	js/pages/settings/search-and-social.tsx	max-w-[960px]
 R1	js/pages/settings/search-and-social.tsx	md:grid-cols-[170px_minmax(0,1fr)]
 R1	js/pages/settings/search-and-social.tsx	sm:grid-cols-[120px_minmax(0,1fr)]
@@ -165,9 +162,6 @@ R14	js/components/ui/sidebar.tsx	transition-all
 R14	js/pages/auth/forgot-password.tsx	animate-spin
 R15	js/components/editor/editor-shell.tsx	style: gridTemplateColumns
 R15	js/components/editor/rail/document-panel.tsx	style: paddingLeft
-R15	js/components/fields/brand-colour-setting.tsx	style: background
-R15	js/components/fields/brand-colour-setting.tsx	style: background
-R15	js/components/fields/brand-colour-setting.tsx	style: color
 R15	js/components/list/bulk-edit-dialog.tsx	style: paddingLeft
 R15	js/components/list/filter-button.tsx	style: paddingLeft
 R15	js/components/term-tree-picker.tsx	style: paddingLeft
@@ -489,30 +483,16 @@ R2	js/components/editor/toolbar.tsx	text-[13px]
 R2	js/components/editor/toolbar.tsx	text-[13px]
 R2	js/components/editor/toolbar.tsx	text-xs
 R2	js/components/editor/toolbar.tsx	text-xs
-R2	js/components/fields/brand-colour-setting.tsx	text-[13px]
-R2	js/components/fields/brand-colour-setting.tsx	text-[13px]
-R2	js/components/fields/brand-colour-setting.tsx	text-[13px]
-R2	js/components/fields/brand-colour-setting.tsx	text-sm
 R2	js/components/fields/field-control.tsx	text-[13px]
 R2	js/components/fields/field-control.tsx	text-sm
 R2	js/components/fields/field-control.tsx	text-sm
 R2	js/components/fields/field-control.tsx	text-xs
-R2	js/components/fields/home-page-setting.tsx	text-[13px]
-R2	js/components/fields/home-page-setting.tsx	text-[13px]
-R2	js/components/fields/home-page-setting.tsx	text-[13px]
-R2	js/components/fields/home-page-setting.tsx	text-[13px]
-R2	js/components/fields/home-page-setting.tsx	text-[13px]
-R2	js/components/fields/home-page-setting.tsx	text-sm
-R2	js/components/fields/home-page-setting.tsx	text-sm
 R2	js/components/fields/hours-setting.tsx	text-sm
 R2	js/components/fields/hours-setting.tsx	text-xs
 R2	js/components/fields/hours-setting.tsx	text-xs
 R2	js/components/fields/media-setting.tsx	text-[13px]
 R2	js/components/fields/media-setting.tsx	text-[13px]
 R2	js/components/fields/pairs-setting.tsx	text-sm
-R2	js/components/fields/settings-field.tsx	text-sm
-R2	js/components/fields/settings-panel.tsx	text-[13px]
-R2	js/components/fields/settings-panel.tsx	text-[15px]
 R2	js/components/fields/settings-save-bar.tsx	text-xs
 R2	js/components/heading.tsx	text-[22px]
 R2	js/components/heading.tsx	text-base
@@ -836,10 +816,6 @@ R2	js/pages/settings/discussion.tsx	text-sm
 R2	js/pages/settings/discussion.tsx	text-sm
 R2	js/pages/settings/discussion.tsx	text-sm
 R2	js/pages/settings/discussion.tsx	text-xs
-R2	js/pages/settings/group.tsx	text-[13px]
-R2	js/pages/settings/group.tsx	text-[13px]
-R2	js/pages/settings/group.tsx	text-[13px]
-R2	js/pages/settings/group.tsx	text-sm
 R2	js/pages/settings/search-and-social.tsx	text-sm
 R2	js/pages/settings/search-and-social.tsx	text-sm
 R2	js/pages/settings/search-and-social.tsx	text-sm
@@ -1077,9 +1053,6 @@ R3	js/components/editor/share-panel.tsx	gap-1.5
 R3	js/components/editor/slash-menu.tsx	py-1.5
 R3	js/components/editor/status-chip.tsx	py-0.5
 R3	js/components/editor/toolbar.tsx	py-1.5
-R3	js/components/fields/home-page-setting.tsx	py-1.5
-R3	js/components/fields/settings-field.tsx	mt-0.5
-R3	js/components/fields/settings-panel.tsx	py-3.5
 R3	js/components/header/header-panel.tsx	max-md:top-14
 R3	js/components/heading.tsx	mb-0.5
 R3	js/components/heading.tsx	space-y-0.5
@@ -1219,8 +1192,6 @@ R5	js/components/fields/field-control.tsx	<select>
 R5	js/components/fields/field-control.tsx	<textarea>
 R5	js/components/fields/field-control.tsx	<textarea>
 R5	js/components/fields/home-page-setting.tsx	<button type="button">
-R5	js/components/fields/home-page-setting.tsx	<input type="radio">
-R5	js/components/fields/home-page-setting.tsx	<input type="radio">
 R5	js/components/fields/media-setting.tsx	<button type="button">
 R5	js/components/list/bulk-edit-dialog.tsx	<button type="button">
 R5	js/components/list/data-table.tsx	<button type="button">
@@ -1296,9 +1267,6 @@ R6	js/components/editor/rewrite/rewrite-menu.tsx	z-50
 R6	js/components/editor/slash-menu.tsx	z-50
 R6	js/components/editor/status-chip.tsx	leading-4
 R6	js/components/editor/toolbar.tsx	z-10
-R6	js/components/fields/brand-colour-setting.tsx	rounded
-R6	js/components/fields/brand-colour-setting.tsx	rounded
-R6	js/components/fields/home-page-setting.tsx	rounded
 R6	js/components/fields/settings-save-bar.tsx	shadow-sm
 R6	js/components/fields/settings-save-bar.tsx	z-10
 R6	js/components/heading.tsx	tracking-tight
@@ -1395,8 +1363,6 @@ R7	js/pages/settings/ai.tsx	frame:max-w-[960px]
 R7	js/pages/settings/ai.tsx	root:div
 R7	js/pages/settings/discussion.tsx	frame:max-w-[960px]
 R7	js/pages/settings/discussion.tsx	root:div
-R7	js/pages/settings/group.tsx	frame:max-w-[960px]
-R7	js/pages/settings/group.tsx	root:div
 R7	js/pages/settings/search-and-social.tsx	frame:max-w-[960px]
 R7	js/pages/settings/search-and-social.tsx	root:div
 R7	js/pages/settings/site-code.tsx	frame:max-w-[960px]

@@ -743,7 +743,6 @@ components/fields/brand-colour-setting.tsx	Brand colour
 components/fields/brand-colour-setting.tsx	Only someone who may change the site’s design can change the brand colour.
 components/fields/brand-colour-setting.tsx	Pick the brand colour
 components/fields/brand-colour-setting.tsx	Sample button
-components/fields/brand-colour-setting.tsx	Save brand colour
 components/fields/brand-colour-setting.tsx	The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme.
 components/fields/brand-colour-setting.tsx	The theme sets no colour of its own.
 components/fields/brand-colour-setting.tsx	The theme’s own colour is used in each of its colour schemes.
@@ -763,10 +762,8 @@ components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page shows
 components/fields/home-page-setting.tsx	Only someone who may change the site’s addresses can change the home page.
-components/fields/home-page-setting.tsx	Save home page
 components/fields/home-page-setting.tsx	Search published pages
 components/fields/home-page-setting.tsx	What visitors see at the site’s own address.
-components/fields/home-page-setting.tsx	Your latest
 components/fields/home-page-setting.tsx	{} page
 components/fields/hours-setting.tsx	Add a second opening
 components/fields/hours-setting.tsx	Closed
@@ -1770,7 +1767,6 @@ pages/settings/discussion.tsx	Only administrators can switch comments on or off.
 pages/settings/discussion.tsx	Save discussion settings
 pages/settings/discussion.tsx	Save the comments switch
 pages/settings/discussion.tsx	Saves this switch only.
-pages/settings/group.tsx	Save {} settings
 pages/settings/group.tsx	The default is {}.
 pages/settings/group.tsx	{} settings
 pages/settings/group.tsx	{}’s own number is {}.
