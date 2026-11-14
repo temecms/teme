@@ -97,9 +97,8 @@ area/deploy:
 
 type/documentation:
   - changed-files:
-      - any-glob-to-all-files:
-          - docs/**
-          - '*.md'
+      # One glob must match every changed file, so the two are joined.
+      - any-glob-to-all-files: '{docs/**,**/*.md}'
 
 area/tests:
   - changed-files:
