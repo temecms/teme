@@ -439,3 +439,18 @@ On a post with tags: Tab to the Tags button, type part of a tag's name, ↓ and 
 - Searchable lists now work the same way everywhere, starting with the tag picker, and can be used by keyboard alone.
 - A new tag can be created from the tag picker by typing its name, for people allowed to create tags.
 
+
+### Follow-up W1-3 (the review's fixes)
+
+The review accepted the part, B-1's lock flag included. The container had restarted, so the setup script ran again first (`2026-11-14T19:17:31Z ran in /home/user/teme as root`).
+
+Commits, each pushed:
+- `48e2048` fix(admin): Enter never ticks a result from an earlier search. The reducer gets the search's loading state, and the "one result, Enter chooses it" rule waits for the answer. The tag picker counts as loading from the keystroke on, not only once its effect runs. Seen red: "ticks nothing when Enter is pressed while a new search is still loading" (`Failed asserting that false is identical to true`, Harbour was ticked).
+- `dad9c7b` fix(admin): Backspace on a closed several-choice button removes nothing. A `stateReducer` on `useMultipleSelection` returns the state unchanged for `DropdownKeyDownBackspace`. Seen red: "removes nothing when Backspace is pressed on the closed button, and Backspace on a focused tag still removes it" (`Failed asserting that false is identical to true`, a tag was gone).
+- `3d49093` fix(admin): a single-choice combobox's button describes its chosen value. The shown value has an id, added to the button's `aria-describedby` after the caller's own (help, error). Only for a single choice with something chosen and no `triggerLabel`. Seen red: "describes a single-choice button with its chosen name, beside the field's own description".
+- `6adc9f4` test(admin): a refused Create and unticking with Enter, and two small tidies. The catalogue's docblock is back on `Catalogue`, above which `ComboboxDemo` now sits. The content list's `canCreate` reads the viewer null-safely. Two new cases: "shows the server's refusal under the field when Create is refused, and adds nothing" (the person loses `terms.manage` between the offer and the choice; the route answers "This action is unauthorized.") and "unticks a chosen tag with Enter". Both passed at once, since the behaviour was already there. Each went red with its behaviour planted away: `serverMessage()` bypassed, and the untick branch disabled. The plants were removed.
+
+Decision:
+- **B-?? (draft) 14: `$viewer?->can(...)` only on the first call.** The review asked for `$viewer?->can(...)` as the rest of the method has. With `?->` on both calls, PHPStan reports "Using nullsafe method call on non-nullable type" on the second, because after `&&` it knows the viewer is there. Options: `?->` on both (PHPStan fails); `$viewer !== null && …`; `?->` on the first and `->` on the second. Chose the last: it reads as the review asks and passes PHPStan. Commit `6adc9f4`.
+
+Checks: Pint, PHPStan, types and lint clean. Architecture 103 passed. `tests/Feature/Admin` 808 passed. After `npm run build`, one file at a time: `ComboboxTest` 21 passed, `CategoriesAndTagsTest` 7, `DesignCatalogueTest` 18.
