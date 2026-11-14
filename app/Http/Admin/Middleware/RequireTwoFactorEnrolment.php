@@ -42,6 +42,6 @@ final class RequireTwoFactorEnrolment
 
         Inertia::flash('toast', ['type' => 'info', 'message' => __('Your role requires two-factor authentication. Set it up to continue.')]);
 
-        return to_route('security.edit');
+        return to_route('two-factor.edit');
     }
 }
