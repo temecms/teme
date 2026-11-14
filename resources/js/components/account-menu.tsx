@@ -12,7 +12,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { __ } from '@/lib/i18n';
 
-// Later (I-1393): the person's role beside their name, once the shared user carries it.
+// Later (I-1393): draw the person's role beside their name; the shared user carries it now.
 /**
  * The account menu at the header's right edge: the person's initials, their
  * name (hidden under 768px) and a chevron. It opens the menu the sidebar's

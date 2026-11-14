@@ -76,7 +76,7 @@ export function PicturePanel() {
                         </Button>
                     </div>
                     <p className="text-caption text-ink-3">{help}</p>
-                    <InputError message={errors.media} />
+                    <InputError role="alert" message={errors.media} />
                 </div>
             </div>
             {mayChoose && verified && (
