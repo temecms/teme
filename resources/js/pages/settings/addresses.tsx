@@ -1,13 +1,15 @@
-import { Form, Head, Link, useHttp } from '@inertiajs/react';
+import { Head, Link, setLayoutProps, useHttp } from '@inertiajs/react';
 import { Fragment, useEffect, useState } from 'react';
 import AddressesController from '@/actions/App/Http/Admin/Settings/AddressesController';
+import { SettingsForm } from '@/components/fields/settings-form';
 import { SettingsPanel } from '@/components/fields/settings-panel';
-import { SettingsSaveBar } from '@/components/fields/settings-save-bar';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { SettingsPage } from '@/components/patterns/settings-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Notice } from '@/components/ui/notice';
+import { __ } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 
 type AddressType = {
@@ -88,6 +90,15 @@ export default function Addresses(page: AddressesPage) {
     } | null>(null);
     const { submit } = useHttp();
 
+    setLayoutProps({
+        breadcrumbs: [
+            {
+                title: __('Addresses'),
+                href: showSettings({ group: 'addresses' }),
+            },
+        ],
+    });
+
     // After a save that moves addresses, ask every 2 s until it is done.
     useEffect(() => {
         if (progress === null || !progress.running) {
@@ -111,38 +122,47 @@ export default function Addresses(page: AddressesPage) {
         <>
             <Head title="Addresses settings" />
 
-            <div className="grid max-w-[960px] gap-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <Heading
-                        level={1}
-                        title="Addresses"
-                        description="The public addresses of every public type, taxonomy and author."
-                    />
-                    <Button variant="outline" asChild>
+            <SettingsPage
+                title="Addresses"
+                description="The public addresses of every public type, taxonomy and author."
+                actions={
+                    <Button variant="neutral" asChild>
                         <Link href={showSettings({ group: 'reading' })}>
                             Choose the home page
                         </Link>
                     </Button>
-                </div>
+                }
+            >
+                {progress !== null && (
+                    <p role="status" className="text-small text-ink-2 mb-4">
+                        {progress.running
+                            ? __('Updating addresses: :done of :total', {
+                                  done: progress.done.toLocaleString(),
+                                  total: progress.total.toLocaleString(),
+                              })
+                            : 'Every address is up to date.'}
+                    </p>
+                )}
 
-                <p className="text-ink-2 text-[13px]">
-                    Old addresses keep working: visitors and search engines are
-                    sent to the new one.
-                </p>
+                <Notice tone="info" className="mb-4">
+                    <p>
+                        Old addresses keep working: visitors and search engines
+                        are sent to the new one.
+                    </p>
+                    <p>
+                        The home page and the posts page are chosen in Reading.
+                    </p>
+                </Notice>
 
-                <p className="text-ink-2 text-[13px]">
-                    The home page and the posts page are chosen in Reading.
-                </p>
-
-                <Form
-                    {...AddressesController.update.form()}
-                    options={{ preserveScroll: true }}
+                <SettingsForm
+                    action={AddressesController.update.form()}
+                    saveLabel={__('Save address settings')}
+                    what={__(':page settings', { page: __('Addresses') })}
                     onSuccess={() =>
                         setProgress({ done: 0, total: 0, running: true })
                     }
-                    className="grid gap-6"
                 >
-                    {({ processing, errors }) => {
+                    {({ errors }) => {
                         const clashes = Object.entries(errors)
                             .filter(([key]) => key.startsWith('addresses'))
                             .map(([, message]) => message);
@@ -150,19 +170,17 @@ export default function Addresses(page: AddressesPage) {
                         return (
                             <>
                                 {clashes.length > 0 && (
-                                    <div
+                                    <Notice
+                                        tone="danger"
                                         role="alert"
-                                        className="bg-danger-soft text-danger-ink grid gap-1 rounded-md px-3 py-2 text-[13px]"
+                                        title="These would share an address:"
                                     >
-                                        <p className="font-medium">
-                                            These would share an address:
-                                        </p>
                                         <ul className="list-disc pl-5">
                                             {clashes.map((clash) => (
                                                 <li key={clash}>{clash}</li>
                                             ))}
                                         </ul>
-                                    </div>
+                                    </Notice>
                                 )}
 
                                 {archive && (
@@ -172,7 +190,7 @@ export default function Addresses(page: AddressesPage) {
                                         {PRESETS.map((preset) => (
                                             <label
                                                 key={preset.pattern}
-                                                className="flex items-center gap-2 text-[13px]"
+                                                className="text-small flex items-center gap-2"
                                             >
                                                 <input
                                                     type="radio"
@@ -202,7 +220,7 @@ export default function Addresses(page: AddressesPage) {
                                                 </code>
                                             </label>
                                         ))}
-                                        <label className="flex items-center gap-2 text-[13px]">
+                                        <label className="text-small flex items-center gap-2">
                                             <input
                                                 type="radio"
                                                 name="preset"
@@ -248,7 +266,7 @@ export default function Addresses(page: AddressesPage) {
                                             </div>
                                         )}
                                         {page.example && (
-                                            <p className="text-ink-2 text-[13px]">
+                                            <p className="text-ink-2 text-small">
                                                 Your newest{' '}
                                                 {archive.singular.toLowerCase()}{' '}
                                                 would be at{' '}
@@ -320,13 +338,13 @@ export default function Addresses(page: AddressesPage) {
                                                             />
                                                             <p
                                                                 id={`archive-${type.key}-hint`}
-                                                                className="text-ink-2 text-xs"
+                                                                className="text-caption text-ink-3"
                                                             >
                                                                 {`At ${typeArchive.address}. Its feed is at ${typeArchive.feed}.`}
                                                             </p>
                                                             {typeArchive.holder !==
                                                                 null && (
-                                                                <p className="text-warn-ink text-xs">
+                                                                <p className="text-caption text-warn-ink">
                                                                     {`${typeArchive.address} shows ${typeArchive.holder} instead, because it had the address first. Give the archive page another address, or move ${typeArchive.holder}.`}
                                                                 </p>
                                                             )}
@@ -372,7 +390,7 @@ export default function Addresses(page: AddressesPage) {
                                             />
                                             {(bases[taxonomy.key] ?? '') ===
                                                 '' && (
-                                                <p className="text-ink-2 text-xs">
+                                                <p className="text-caption text-ink-3">
                                                     {taxonomy.plural} will share
                                                     the root with other
                                                     addresses.
@@ -401,36 +419,11 @@ export default function Addresses(page: AddressesPage) {
                                         />
                                     </div>
                                 </SettingsPanel>
-
-                                <SettingsSaveBar
-                                    label="Save address settings"
-                                    processing={processing}
-                                >
-                                    {progress !== null &&
-                                        (progress.running ? (
-                                            <p
-                                                role="status"
-                                                className="text-ink-2 text-[13px]"
-                                            >
-                                                Updating addresses:{' '}
-                                                {progress.done.toLocaleString()}{' '}
-                                                of{' '}
-                                                {progress.total.toLocaleString()}
-                                            </p>
-                                        ) : (
-                                            <p
-                                                role="status"
-                                                className="text-ink-2 text-[13px]"
-                                            >
-                                                Every address is up to date.
-                                            </p>
-                                        ))}
-                                </SettingsSaveBar>
                             </>
                         );
                     }}
-                </Form>
-            </div>
+                </SettingsForm>
+            </SettingsPage>
         </>
     );
 }

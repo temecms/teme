@@ -1731,15 +1731,12 @@ pages/settings/addresses.tsx	Numeric
 pages/settings/addresses.tsx	Old addresses keep working: visitors and search engines are sent to the new one.
 pages/settings/addresses.tsx	Other addresses
 pages/settings/addresses.tsx	Post name
-pages/settings/addresses.tsx	Save address settings
 pages/settings/addresses.tsx	The home page and the posts page are chosen in Reading.
 pages/settings/addresses.tsx	The public addresses of every public type, taxonomy and author.
 pages/settings/addresses.tsx	These would share an address:
-pages/settings/addresses.tsx	Updating addresses:
 pages/settings/addresses.tsx	Your newest
 pages/settings/addresses.tsx	address
 pages/settings/addresses.tsx	base
-pages/settings/addresses.tsx	of
 pages/settings/addresses.tsx	will share the root with other addresses.
 pages/settings/addresses.tsx	would be at
 pages/settings/addresses.tsx	{} address
@@ -1780,7 +1777,6 @@ pages/settings/search-and-social.tsx	It doesn’t change while search engines ar
 pages/settings/search-and-social.tsx	No verification tags.
 pages/settings/search-and-social.tsx	Open the 404 log
 pages/settings/search-and-social.tsx	Page 2 shows as:
-pages/settings/search-and-social.tsx	Save search and social settings
 pages/settings/search-and-social.tsx	Scripts belong in
 pages/settings/search-and-social.tsx	Search and social
 pages/settings/search-and-social.tsx	Search and social settings

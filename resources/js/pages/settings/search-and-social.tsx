@@ -1,31 +1,39 @@
-import { Form, Head } from '@inertiajs/react';
-import { Info } from 'lucide-react';
+import { Head, setLayoutProps } from '@inertiajs/react';
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 import SearchAndSocialController from '@/actions/App/Http/Admin/Settings/SearchAndSocialController';
 import { PairsSetting } from '@/components/fields/pairs-setting';
 import { SettingsField } from '@/components/fields/settings-field';
+import { SettingsForm } from '@/components/fields/settings-form';
 import { SettingsPanel } from '@/components/fields/settings-panel';
-import { SettingsSaveBar } from '@/components/fields/settings-save-bar';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { SettingsPage } from '@/components/patterns/settings-page';
 import { WhoPublishesSection } from '@/components/seo/who-publishes';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Notice } from '@/components/ui/notice';
+import { __ } from '@/lib/i18n';
 import { fillTitle } from '@/lib/title-template';
+import { show as showSettings } from '@/routes/settings';
 import type {
     FieldDefinition,
     SearchAndSocialPage,
     SearchAndSocialRow,
 } from '@/types';
 
+/** The files list's two columns from 640px: the name, then its address. */
+const FILE_COLUMNS = {
+    '--files-cols': '120px minmax(0, 1fr)',
+} as CSSProperties;
+
 const textareaClass =
-    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-small focus-visible:ring-2 focus-visible:outline-none';
 
 /**
  * Settings › Search and social (I-874): the group's sections in their order,
  * core's drawn as their settings ask, any other on the generic controls, and
- * one Save.
+ * the page's one save bar.
  */
 export default function SearchAndSocialSettings({
     description,
@@ -59,6 +67,14 @@ export default function SearchAndSocialSettings({
     );
     const shownSeparator =
         separator.trim() === '' ? titles.separator : separator.trim();
+    setLayoutProps({
+        breadcrumbs: [
+            {
+                title: __('Search and social'),
+                href: showSettings({ group: 'seo' }),
+            },
+        ],
+    });
     const allFields = new Map<string, FieldDefinition>(
         sections.flatMap((section) =>
             section.fields.map((field) => [field.key, field] as const),
@@ -69,23 +85,13 @@ export default function SearchAndSocialSettings({
         <>
             <Head title="Search and social settings" />
 
-            <div className="grid max-w-[960px] gap-6">
-                <Heading
-                    level={1}
-                    title="Search and social"
-                    description={description}
-                />
-
+            <SettingsPage title="Search and social" description={description}>
                 {!live && (
-                    <div
-                        role="note"
+                    <Notice
+                        tone="info"
                         data-test="seo-not-live"
-                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
+                        className="mb-4"
                     >
-                        <Info
-                            aria-hidden="true"
-                            className="mt-0.5 size-4 shrink-0"
-                        />
                         <p>
                             <span className="font-medium">
                                 This copy isn’t the live site.
@@ -93,14 +99,18 @@ export default function SearchAndSocialSettings({
                             It asks search engines to stay away, whatever these
                             settings say. The live site follows them.
                         </p>
-                    </div>
+                    </Notice>
                 )}
 
                 <SettingsPanel
                     as="section"
                     title="What search engines and feed readers fetch"
+                    className="mb-4"
                 >
-                    <dl className="grid gap-2 text-sm sm:grid-cols-[120px_minmax(0,1fr)]">
+                    <dl
+                        className="text-body grid gap-2 sm:grid-cols-(--files-cols)"
+                        style={FILE_COLUMNS}
+                    >
                         <dt className="font-medium">Sitemap</dt>
                         <dd>
                             {files.sitemap === null ? (
@@ -125,25 +135,30 @@ export default function SearchAndSocialSettings({
                             </span>
                         </dd>
                     </dl>
-                    <p className="text-ink-2 text-sm">
+                    <p className="text-small text-ink-2">
                         Teme writes all three from the settings below, so none
                         of them is a file to edit.
                     </p>
                 </SettingsPanel>
 
-                <Form
-                    {...SearchAndSocialController.update.form()}
-                    options={{ preserveScroll: true }}
-                    className="space-y-6"
+                <SettingsForm
+                    action={SearchAndSocialController.update.form()}
+                    saveLabel={__('Save search and social settings')}
+                    what={__(':page settings', {
+                        page: __('Search and social'),
+                    })}
                 >
-                    {({ processing, errors }) => (
+                    {({ errors }) => (
                         <>
                             <input
                                 type="hidden"
                                 name="expected_version"
                                 value={version}
                             />
-                            <InputError message={errors.expected_version} />
+                            <InputError
+                                id="expected-version-error"
+                                message={errors.expected_version}
+                            />
 
                             {sections.map((section) => (
                                 <SettingsPanel
@@ -154,10 +169,9 @@ export default function SearchAndSocialSettings({
                                     {section.key === 'titles-and-listing' && (
                                         <>
                                             {discouraged && (
-                                                <div
-                                                    role="note"
+                                                <Notice
+                                                    tone="warn"
                                                     data-test="seo-titles-discouraged"
-                                                    className="border-line rounded-md border p-4 text-sm"
                                                 >
                                                     <p className="font-medium">
                                                         Search engines are asked
@@ -169,7 +183,7 @@ export default function SearchAndSocialSettings({
                                                         engines not to list it,
                                                         whatever these rows say.
                                                     </p>
-                                                </div>
+                                                </Notice>
                                             )}
 
                                             <div className="grid gap-2">
@@ -195,7 +209,7 @@ export default function SearchAndSocialSettings({
                                                 />
                                                 <p
                                                     id="field-title_separator-hint"
-                                                    className="text-ink-2 text-sm"
+                                                    className="text-small text-ink-2"
                                                 >
                                                     Goes between the parts of
                                                     every title. Empty uses the
@@ -213,7 +227,7 @@ export default function SearchAndSocialSettings({
                                                 />
                                             </div>
 
-                                            <p className="text-sm">
+                                            <p className="text-small">
                                                 Titles are made from templates.
                                                 Tokens:{' '}
                                                 {titles.tokens.map(
@@ -237,7 +251,7 @@ export default function SearchAndSocialSettings({
                                             </p>
 
                                             {section.note !== null && (
-                                                <p className="text-ink-2 text-sm">
+                                                <p className="text-small text-ink-2">
                                                     {section.note}
                                                 </p>
                                             )}
@@ -294,7 +308,7 @@ export default function SearchAndSocialSettings({
                                     {section.key === 'site-verification' && (
                                         <>
                                             {section.note !== null && (
-                                                <p className="text-ink-2 text-sm">
+                                                <p className="text-small text-ink-2">
                                                     {section.note} Scripts
                                                     belong in{' '}
                                                     {siteCodeUrl === null ? (
@@ -338,7 +352,7 @@ export default function SearchAndSocialSettings({
                                                     />
                                                     <p
                                                         id={`field-${field.key}-hint`}
-                                                        className="text-ink-2 text-sm"
+                                                        className="text-small text-ink-2"
                                                     >
                                                         {field.description}
                                                     </p>
@@ -396,7 +410,7 @@ export default function SearchAndSocialSettings({
                                                         />
                                                         <p
                                                             id={`field-${field.key}-hint`}
-                                                            className="text-ink-2 text-sm"
+                                                            className="text-small text-ink-2"
                                                         >
                                                             {field.description}
                                                         </p>
@@ -428,7 +442,7 @@ export default function SearchAndSocialSettings({
                                                     />
                                                 ),
                                             )}
-                                            <p className="text-ink-2 text-sm">
+                                            <p className="text-small text-ink-2">
                                                 Teme’s list:{' '}
                                                 {robots.crawlers.join(', ')}.
                                             </p>
@@ -436,18 +450,18 @@ export default function SearchAndSocialSettings({
                                                 data-test="seo-robots-preview"
                                                 className="border-line rounded-md border"
                                             >
-                                                <summary className="cursor-pointer px-4 py-2 text-sm font-medium">
+                                                <summary className="text-small cursor-pointer px-4 py-2 font-medium">
                                                     What robots.txt says now
                                                 </summary>
                                                 <div className="grid gap-2 px-4 pb-4">
-                                                    <pre className="font-mono text-xs break-all whitespace-pre-wrap">
+                                                    <pre className="text-caption font-mono break-all whitespace-pre-wrap">
                                                         {robots.text}
                                                     </pre>
-                                                    <p className="text-ink-2 text-sm">
+                                                    <p className="text-small text-ink-2">
                                                         As last saved.
                                                     </p>
                                                     {discouraged && (
-                                                        <p className="text-ink-2 text-sm">
+                                                        <p className="text-small text-ink-2">
                                                             It doesn’t change
                                                             while search engines
                                                             are discouraged: a
@@ -494,14 +508,14 @@ export default function SearchAndSocialSettings({
                                         section.key !== 'site-verification' &&
                                         section.key !==
                                             'titles-and-listing' && (
-                                            <p className="text-ink-2 text-sm">
+                                            <p className="text-small text-ink-2">
                                                 {section.note}
                                             </p>
                                         )}
 
                                     {section.key === 'not-found-log' &&
                                         notFoundLogUrl !== null && (
-                                            <p className="text-sm">
+                                            <p className="text-small">
                                                 <a
                                                     href={notFoundLogUrl}
                                                     className="underline underline-offset-2"
@@ -512,16 +526,10 @@ export default function SearchAndSocialSettings({
                                         )}
                                 </SettingsPanel>
                             ))}
-
-                            <SettingsSaveBar
-                                label="Save search and social settings"
-                                processing={processing}
-                                testId="settings-save"
-                            />
                         </>
                     )}
-                </Form>
-            </div>
+                </SettingsForm>
+            </SettingsPage>
         </>
     );
 }
@@ -532,7 +540,7 @@ function FileLink({ href }: { href: string }) {
             href={href}
             target="_blank"
             rel="noopener"
-            className="inline-flex min-h-6 items-center font-mono text-sm break-all underline underline-offset-2"
+            className="text-small inline-flex min-h-6 items-center font-mono break-all underline underline-offset-2"
         >
             {href}
         </a>
@@ -581,14 +589,14 @@ function TitleRow({
                 <p
                     id={`example-${row.template}`}
                     data-test="seo-row-example"
-                    className="text-ink-2 text-xs break-words"
+                    className="text-caption text-ink-3 break-words"
                 >
                     Shows as: {fillTitle(template, row.tokens, separator)}
                 </p>
                 {row.pageTwo !== null && (
                     <p
                         data-test="seo-row-page-two"
-                        className="text-ink-2 text-xs break-words"
+                        className="text-caption text-ink-3 break-words"
                     >
                         Page 2 shows as:{' '}
                         {fillTitle(template, row.pageTwo, separator)}
@@ -599,7 +607,7 @@ function TitleRow({
                     message={error}
                 />
                 {row.hide !== null ? (
-                    <div className="flex min-h-6 items-center gap-2 pt-1 text-sm">
+                    <div className="text-small flex min-h-6 items-center gap-2 pt-1">
                         <input
                             type="hidden"
                             name={`values[${row.hide}]`}
@@ -615,7 +623,7 @@ function TitleRow({
                     </div>
                 ) : (
                     row.note !== null && (
-                        <p className="text-ink-2 text-xs">{row.note}</p>
+                        <p className="text-caption text-ink-3">{row.note}</p>
                     )
                 )}
             </div>

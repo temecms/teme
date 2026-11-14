@@ -119,7 +119,7 @@ export function HoursSetting({ field, name, value, disabled }: Props) {
         >
             <div
                 aria-hidden="true"
-                className={`${GRID} text-ink-2 hidden text-xs sm:grid`}
+                className={`${GRID} text-ink-2 text-caption hidden sm:grid`}
             >
                 <span>Day</span>
                 <span>Opens</span>
@@ -140,7 +140,7 @@ export function HoursSetting({ field, name, value, disabled }: Props) {
                         {hours.hours.map((opening, index) => (
                             <div key={index} className={GRID}>
                                 {index === 0 ? (
-                                    <span className="col-span-2 self-center text-sm font-medium sm:col-span-1">
+                                    <span className="text-small col-span-2 self-center font-medium sm:col-span-1">
                                         {label}
                                     </span>
                                 ) : (
@@ -153,7 +153,7 @@ export function HoursSetting({ field, name, value, disabled }: Props) {
                                     <div key={part} className="grid gap-1">
                                         <span
                                             aria-hidden="true"
-                                            className="text-ink-2 text-xs sm:sr-only"
+                                            className="text-caption text-ink-3 sm:sr-only"
                                         >
                                             {part === 'opens'
                                                 ? 'Opens'
