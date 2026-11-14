@@ -43,7 +43,7 @@ it('gives every list screen exactly one h1', function (string $name, array $para
     'users' => ['users.index', [], 'users/index'],
 ]);
 
-it('shows each row\'s status after its title, not in a column of its own', function (): void {
+it('shows each row\'s status on a pill in its Status column, no longer after its title', function (): void {
     lifecycleDraft($this->admin, 'Drafted');
     $this->travel(1)->minutes();
     listsPublish(lifecycleDraft($this->admin, 'Published'), $this->admin);
@@ -56,9 +56,10 @@ it('shows each row\'s status after its title, not in a column of its own', funct
             ->where('rows.1.title', 'Drafted')
             ->where('rows.1.status', 'draft'));
 
-    // A source scan: the state follows the title (docs/architecture/admin-design.md).
-    expect(uiComponent('pages/content/index.tsx'))->not->toMatch("/id:\s*'status'/")
-        ->toContain('statusSuffix(row)');
+    // A source scan: the state is a pill in its own column (docs/proposals/content-lists.md).
+    expect(uiComponent('pages/content/index.tsx'))->toMatch("/id:\s*'status'/")
+        ->toContain('<StatusCell')
+        ->not->toContain('statusSuffix(row)');
 });
 
 it('offers a way back on every pager', function (string $name, array $parameters, string $component): void {
@@ -86,8 +87,8 @@ it('offers a way back on every pager', function (string $name, array $parameters
         ->and(array_column($back['rows'], 'id'))->toBe(array_column($first['rows'], 'id'))
         ->and($back['paging'])->toBe($first['paging']);
 
-    // A source scan: the page draws the shared Pager.
-    expect(uiComponent("pages/{$component}.tsx"))->toContain('<Pager');
+    // A source scan: the page draws the shared pager.
+    expect(uiComponent("pages/{$component}.tsx"))->toMatch('/<(?:NumberedPager|Pager)\b/');
 })->with([
     'posts' => ['content.index', ['type' => 'posts'], 'content/index'],
     'categories' => ['terms.index', ['taxonomy' => 'categories'], 'terms/index'],

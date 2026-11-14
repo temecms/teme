@@ -1,11 +1,11 @@
 import { Form, Link } from '@inertiajs/react';
+import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
-    DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
@@ -15,6 +15,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { __ } from '@/lib/i18n';
 import type { RowAction } from './row-actions';
 import { orderRowMenu } from './row-menu-order';
@@ -35,6 +36,12 @@ export function RowMenu({
     title: string;
 }) {
     const [open, setOpen] = useState(false);
+    // The button's name as a tooltip, never over its own open menu.
+    const [tip, setTip] = useState(false);
+    // The main landmark, found once the page is drawn: it is not yet there while the rows first render.
+    const [container, setContainer] = useState<HTMLElement | null>(null);
+
+    useEffect(() => setContainer(document.querySelector('main')), []);
     const handOff = useRef(false);
     const label = __('More actions for :title', { title });
     const { core, plugins, destructive } = orderRowMenu(items);
@@ -44,7 +51,7 @@ export function RowMenu({
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
-            <Tooltip>
+            <Tooltip open={tip && !open} onOpenChange={setTip}>
                 <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
                         <Button
@@ -60,33 +67,41 @@ export function RowMenu({
                 </TooltipTrigger>
                 <TooltipContent>{label}</TooltipContent>
             </Tooltip>
-            <DropdownMenuContent
-                side="bottom"
-                align="end"
-                onCloseAutoFocus={(event) => {
-                    // An action that puts focus somewhere of its own keeps it there.
-                    if (handOff.current) {
-                        handOff.current = false;
-                        event.preventDefault();
-                    }
-                }}
-            >
-                {groups.map((group, at) => (
-                    <Fragment key={group[0].id}>
-                        {at > 0 && <DropdownMenuSeparator />}
-                        {group.map((item) => (
-                            <MenuItem
-                                key={item.id}
-                                item={item}
-                                onHandOff={() => {
-                                    handOff.current = true;
-                                }}
-                                onDone={() => setOpen(false)}
-                            />
+            {/* Drawn inside the main landmark, not at the end of the page, so the open menu stays in it, as the account menu stays in the banner. */}
+            <DropdownMenuPrimitive.Portal container={container}>
+                <DropdownMenuPrimitive.Content
+                    data-slot="dropdown-menu-content"
+                    side="bottom"
+                    align="end"
+                    sideOffset={4}
+                    className="bg-surface text-ink shadow-float motion-safe:data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-97 motion-safe:data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-97 z-(--z-float) flex max-h-(--radix-dropdown-menu-content-available-height) max-w-85 min-w-55 flex-col overflow-hidden rounded-lg duration-(--dur-2) ease-(--ease)"
+                    onCloseAutoFocus={(event) => {
+                        // An action that puts focus somewhere of its own keeps it there.
+                        if (handOff.current) {
+                            handOff.current = false;
+                            event.preventDefault();
+                        }
+                    }}
+                >
+                    <ScrollArea className="p-1">
+                        {groups.map((group, at) => (
+                            <Fragment key={group[0].id}>
+                                {at > 0 && <DropdownMenuSeparator />}
+                                {group.map((item) => (
+                                    <MenuItem
+                                        key={item.id}
+                                        item={item}
+                                        onHandOff={() => {
+                                            handOff.current = true;
+                                        }}
+                                        onDone={() => setOpen(false)}
+                                    />
+                                ))}
+                            </Fragment>
                         ))}
-                    </Fragment>
-                ))}
-            </DropdownMenuContent>
+                    </ScrollArea>
+                </DropdownMenuPrimitive.Content>
+            </DropdownMenuPrimitive.Portal>
         </DropdownMenu>
     );
 }

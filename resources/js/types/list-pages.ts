@@ -28,7 +28,7 @@ export type CardLayout = {
     /** A column drawn full width under the title, such as a comment's text. */
     body?: string;
     /** The title column and the tick column. */
-    title: string;
+    titleColumn: string;
     select?: string;
     /** The column whose cell is the "…" menu, drawn at the card's top right. */
     menu?: string;

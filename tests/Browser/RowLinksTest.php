@@ -54,22 +54,20 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))->assertOk();
 });
 
-it('draws a row\'s links under its title, unseen until the pointer is over the row, in a line that keeps its space (I-3130)', function (): void {
+it('draws a row\'s line under its title, shown without hovering, in a line that keeps its space (I-3398)', function (): void {
     $page = ($this->drawn)(cmSignIn($this->editor)->navigate('/admin/posts'));
 
     $before = $page->script("(() => { const line = document.querySelector('[aria-label=\"Actions for Market day\"]'); const title = line.closest('td').querySelector('[data-test=\"row-title\"]'); return { row: Math.round(line.closest('tr').getBoundingClientRect().height), under: title.getBoundingClientRect().bottom <= line.getBoundingClientRect().top + 1, group: line.getAttribute('role') }; })()");
 
-    expect(($this->opacity)($page, 'Market day'))->toBe('0')
+    expect(($this->opacity)($page, 'Market day'))->toBe('1')
         ->and($before['under'])->toBeTrue()
         ->and($before['group'])->toBe('group')
-        ->and(($this->line)($page, 'Market day'))->toBe('edit|quick-edit|preview|trash|more');
+        ->and(($this->line)($page, 'Market day'))->toBe('edit|quick-edit|preview');
 
-    $page->hover('tr:has([aria-label="Actions for Market day"]) td:last-child');
-
-    cmWaitUntil($page, "getComputedStyle(document.querySelector('[aria-label=\"Actions for Market day\"]')).opacity === '1'");
+    $page->hover('tr:has([aria-label="Actions for Market day"]) td:nth-child(3)');
 
     expect($page->script("Math.round(document.querySelector('[aria-label=\"Actions for Market day\"]').closest('tr').getBoundingClientRect().height)"))->toBe($before['row'])
-        ->and(($this->opacity)($page, 'Harbour news'))->toBe('0');
+        ->and(($this->opacity)($page, 'Harbour news'))->toBe('1');
 });
 
 it('shows the links when the keyboard reaches them, Tab going from the title to Edit', function (): void {
@@ -87,10 +85,10 @@ it('offers View at a live post\'s address and Preview for a draft, each in a new
         ->assertAttribute('[aria-label="Actions for Harbour news"] [data-action="view"]', 'target', '_blank')
         ->assertAttribute('[aria-label="Actions for Market day"] [data-action="preview"]', 'href', route('content.preview', ['content' => $this->market->id], false))
         ->assertAttribute('[aria-label="Actions for Market day"] [data-action="preview"]', 'target', '_blank')
-        ->assertScript("document.querySelector('[aria-label=\"Actions for Harbour news\"] [data-action=\"view\"]').textContent.trim()", 'View, opens in a new tab');
+        ->assertScript("document.querySelector('[aria-label=\"Actions for Harbour news\"] [data-action=\"view\"]').textContent.trim()", 'View: Harbour news, opens in a new tab');
 });
 
-it('keeps Publish under More, a menu that opens below its button without moving the page or leaving it', function (): void {
+it('keeps Publish, then Trash, under More, a menu that opens below its button without moving the page or leaving it', function (): void {
     $page = ($this->drawn)(cmNavigate(cmSignIn($this->editor), '/admin/posts'));
     $where = "(() => ({ width: document.documentElement.clientWidth, address: location.pathname + location.search, columns: [...document.querySelectorAll('thead th')].map((cell) => Math.round(cell.getBoundingClientRect().width)).join(',') }))()";
     $before = ($this->still)($page, $where);
@@ -98,7 +96,7 @@ it('keeps Publish under More, a menu that opens below its button without moving 
     $page->click('[aria-label="More actions for Market day"]');
 
     cmWaitUntil($page, "document.querySelector('[role=\"menu\"]') !== null && document.querySelector('[role=\"menu\"]').getAnimations().length === 0")
-        ->assertScript("[...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim()).join('|')", 'Publish')
+        ->assertScript("[...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim()).join('|')", 'Publish|Trash')
         ->assertScript("document.querySelector('[role=\"menu\"]').getBoundingClientRect().top >= document.querySelector('[aria-label=\"More actions for Market day\"]').getBoundingClientRect().bottom");
 
     expect(($this->still)($page, $where))->toBe($before);
@@ -132,17 +130,21 @@ it('keeps the page still while a row\'s confirmation is open, the scrollbar\'s r
     $where = "(() => ({ width: document.documentElement.clientWidth, columns: [...document.querySelectorAll('thead th')].map((cell) => Math.round(cell.getBoundingClientRect().width)).join(',') }))()";
     $before = ($this->still)($page, $where);
 
-    $page->click('[aria-label="Actions for Notice 1"] [data-action="delete"]');
+    $page->click('[aria-label="More actions for Notice 1"]');
+    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0");
+    $page->click('[role="menu"] [data-action="delete"]');
 
     shellSettled($page, '[role="dialog"]');
 
     expect(($this->still)($page, $where))->toBe($before);
 });
 
-it('moves a post to the trash from its Trash link at once', function (): void {
+it('moves a post to the trash from its menu at once', function (): void {
     $page = ($this->drawn)(cmSignIn($this->editor)->navigate('/admin/posts'));
 
-    $page->click('[aria-label="Actions for Market day"] [data-action="trash"]');
+    $page->click('[aria-label="More actions for Market day"]');
+    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0");
+    $page->click('[role="menu"] [data-action="trash"]');
 
     cmWaitUntil($page, "![...document.querySelectorAll('[data-test=\"row-title\"]')].some((title) => title.textContent.trim() === 'Market day')");
 
@@ -173,7 +175,7 @@ it('always shows the links on a touch screen', function (): void {
         ->and(($this->opacity)($page, 'Harbour news'))->toBe('1');
 });
 
-it('gives the other lists that share the row layer the same links, up to four on the line', function (string $path, string $label, string $line, string $more): void {
+it('gives the other lists that share the row layer the same links, up to four on the line, the rest in its menu', function (string $path, string $label, string $line, string $menu, string $more): void {
     $item = cmItem($this->editor, 'Ferry fares');
     cmNext($item, 'pending', attributes: ['author_name' => 'Ada Guest']);
     taxonomyTerm('category', 'Transport');
@@ -184,21 +186,20 @@ it('gives the other lists that share the row layer the same links, up to four on
         ->assertScript("[...document.querySelectorAll('[aria-label=\"{$label}\"] [data-action]')].map((action) => action.dataset.action).join('|')", $line);
 
     if ($more !== '') {
-        $page->click("[aria-label=\"{$label}\"] [data-action=\"more\"]");
+        $page->click($menu);
 
         cmWaitUntil($page, "document.querySelector('[role=\"menu\"]') !== null")
             ->assertScript("[...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim()).join('|')", $more);
     }
 })->with([
-    'a waiting comment' => ['/admin/comments', 'Actions for the comment by Ada Guest', 'approved|reply|quick-edit|trash|more', 'Details|Mark as spam'],
-    'a category' => ['/admin/categories', 'Actions for Transport', 'edit|delete', ''],
+    'a waiting comment' => ['/admin/comments', 'Actions for the comment by Ada Guest', 'approved|reply|quick-edit|trash|more', '[aria-label="Actions for the comment by Ada Guest"] [data-action="more"]', 'Details|Mark as spam'],
+    'a category' => ['/admin/categories', 'Actions for Transport', 'edit|delete', '', ''],
 ]);
 
-it('passes axe with a row\'s links shown, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
+it('passes axe with every row\'s line shown, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
 
-    $page = ($this->drawn)(cmSignIn($this->editor)->navigate('/admin/posts'))
-        ->hover('tr:has([aria-label="Actions for Market day"]) td:last-child');
+    $page = ($this->drawn)(cmSignIn($this->editor)->navigate('/admin/posts'));
 
     cmWaitUntil($page, "getComputedStyle(document.querySelector('[aria-label=\"Actions for Market day\"]')).opacity === '1'")
         ->assertScript("[...document.querySelectorAll('[aria-label=\"Actions for Market day\"] [data-action]')].every((action) => action.getBoundingClientRect().height >= 24)")

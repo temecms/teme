@@ -46,8 +46,8 @@ beforeEach(function (): void {
     $this->ferry = lifecycleDraft($this->editor, 'Ferry fares');
     $this->travelBack();
 
-    // The filter line's buttons as they read, "Label: value".
-    $this->buttons = fn (mixed $page): string => $page->script("[...document.querySelectorAll('[data-test=\"list-filters\"] button[data-test^=\"filter-\"]')].map((button) => button.innerText.trim()).join('|')");
+    // The filter line's filters as they read, "Label: value": a Combobox by its label and its button, the Date filter by its button.
+    $this->buttons = fn (mixed $page): string => $page->script("[...document.querySelectorAll('[data-test=\"list-filters\"] [data-test^=\"filter-\"]')].map((filter) => filter.matches('button') ? filter.innerText.trim() : filter.querySelector('label').textContent.trim() + ': ' + filter.querySelector('[data-slot=\"combobox-trigger\"]').textContent.trim()).join('|')");
 
     // The rows' titles, top to bottom.
     $this->titles = fn (mixed $page): string => $page->script("[...document.querySelectorAll('[data-test=\"row-title\"]')].map((title) => title.textContent.trim()).join('|')");
@@ -59,27 +59,28 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))->assertOk();
 });
 
-it('puts Screen options and Add new on the title line, and every filter in one labelled line, with no Filter button (I-3129)', function (): void {
+it('puts Add new in the page header and Columns at the end of the filter line, every filter in that one labelled line, with no Filter button (I-3129)', function (): void {
     $page = cmSignIn($this->editor)->navigate('/admin/posts');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"list-filters\"]') !== null")
-        ->assertScript("(() => { const header = document.querySelector('h1').closest('header'); return header.contains(document.querySelector('[data-test=\"screen-options\"]')) && header.contains(document.querySelector('[data-test=\"add-new\"]')); })()")
+        ->assertScript("document.querySelector('h1').closest('header').contains(document.querySelector('[data-test=\"add-new\"]'))")
+        ->assertScript("document.querySelector('[data-test=\"list-filters\"]').lastElementChild.contains(document.querySelector('[data-test=\"columns\"]'))")
         ->assertScript("[...document.querySelectorAll('button')].some((button) => button.textContent.trim() === 'Filter')", false)
         ->assertScript("document.querySelectorAll('input[type=\"month\"], input[type=\"date\"]').length", 0)
         ->assertScript("document.querySelector('[data-test=\"clear-filters\"]') === null");
 
-    expect(($this->buttons)($page))->toBe('Author: All|Category: All|Date: All dates');
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Tag: All tags|Date: All dates');
 });
 
 it('applies a category the moment it is chosen, names it on its button, and clears it with Clear filters (#120)', function (): void {
     $page = cmSignIn($this->editor)
         ->navigate('/admin/posts')
-        ->click('[data-test="filter-category"]')
-        ->click('[data-test="filter-category-panel"] >> text="Roads"');
+        ->click('[data-test="filter-category"] [data-slot="combobox-trigger"]')
+        ->click('[data-slot="combobox-item"] >> text="Roads"');
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('category') === '{$this->roads->id}' && document.querySelector('[data-test=\"clear-filters\"]') !== null");
 
-    expect(($this->buttons)($page))->toBe('Author: All|Category: Roads|Date: All dates')
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: Roads|Tag: All tags|Date: All dates')
         ->and(($this->titles)($page))->toBe('Market day');
 
     $page->click('[data-test="clear-filters"]');
@@ -92,12 +93,12 @@ it('applies a category the moment it is chosen, names it on its button, and clea
 it('applies an author at once, keeping the category in force', function (): void {
     $page = cmSignIn($this->editor)
         ->navigate("/admin/posts?category={$this->transport->id}")
-        ->click('[data-test="filter-author"]')
-        ->click('[data-test="filter-author-panel"] >> text="Eve Editor"');
+        ->click('[data-test="filter-author"] [data-slot="combobox-trigger"]')
+        ->click('[data-slot="combobox-item"] >> text="Eve Editor"');
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('author') === '{$this->editor->id}' && new URLSearchParams(window.location.search).get('category') === '{$this->transport->id}'");
 
-    expect(($this->buttons)($page))->toBe('Author: Eve Editor|Category: Transport|Date: All dates')
+    expect(($this->buttons)($page))->toBe('Author: Eve Editor|Category: Transport|Tag: All tags|Date: All dates')
         ->and(($this->titles)($page))->toBe('Harbour news');
 });
 
@@ -115,7 +116,7 @@ it('lists the months that hold posts, newest first with their counts, and filter
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('month') === '2026-10' && document.querySelectorAll('[data-test=\"row-title\"]').length === 2");
 
-    expect(($this->buttons)($page))->toBe('Author: All|Category: All|Date: October 2026')
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Tag: All tags|Date: October 2026')
         ->and(($this->titles)($page))->toBe('Ferry fares|Market day');
 });
 
@@ -147,7 +148,7 @@ it('chooses an exact range with labelled From and To, goes back to the months, a
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('from') === '2026-09-01' && new URLSearchParams(window.location.search).get('to') === '2026-09-30' && document.querySelectorAll('[data-test=\"row-title\"]').length === 1");
 
-    expect(($this->buttons)($page))->toBe('Author: All|Category: All|Date: 1–30 Sep 2026')
+    expect(($this->buttons)($page))->toBe('Author: All authors|Category: All categories|Tag: All tags|Date: 1–30 Sep 2026')
         ->and(($this->titles)($page))->toBe('Harbour news');
 });
 
@@ -169,28 +170,28 @@ it('searches on Enter, and searches the text at once when In text is chosen with
     expect(($this->titles)($page))->toBe('Harbour news');
 });
 
-it('opens Screen options as a popover under its button, not a modal, its first field taking focus, and Escape closes it, back on the button (I-3135)', function (): void {
+it('opens Columns as a popover under its button, not a modal, its first field taking focus, and Escape closes it, back on the button (I-3135)', function (): void {
     $page = cmSignIn($this->editor)->navigate('/admin/posts');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"screen-options\"]') !== null");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"columns\"]') !== null");
     $width = $page->script('document.documentElement.clientWidth');
-    $page->click('[data-test="screen-options"]');
+    $page->click('[data-test="columns"]');
 
     // The popover is portalled: it is found by its own hook, never inside the button's parent.
-    cmWaitUntil($page, "document.querySelector('[data-test=\"screen-options-panel\"]') !== null && document.querySelector('[data-test=\"screen-options-panel\"]').contains(document.activeElement)")
-        ->assertScript("(() => { const panel = document.querySelector('[data-test=\"screen-options-panel\"]'); return panel.getAttribute('aria-modal') === null && getComputedStyle(document.body).pointerEvents !== 'none' && panel.getAttribute('aria-label') === 'Screen options'; })()")
-        ->assertScript('document.activeElement.id', 'column-featured')
-        ->assertAttribute('[data-test="screen-options"]', 'aria-expanded', 'true')
-        ->assertAttribute('[data-test="screen-options"]', 'data-state', 'open')
-        ->assertScript("(() => { const panel = document.querySelector('[data-test=\"screen-options-panel\"]').getBoundingClientRect(); return panel.top >= document.querySelector('[data-test=\"screen-options\"]').getBoundingClientRect().bottom && panel.right <= window.innerWidth; })()")
-        ->assertScript("[...document.querySelectorAll('[data-test=\"screen-options-panel\"] [id^=\"column-\"]')].map((box) => box.id).join('|')", 'column-featured|column-author|column-taxonomy-category|column-taxonomy-tag|column-comments|column-date')
+    cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') !== null && document.querySelector('[data-test=\"column-chooser\"]').contains(document.activeElement)")
+        ->assertScript("(() => { const panel = document.querySelector('[data-test=\"column-chooser\"]'); return panel.getAttribute('aria-modal') === null && getComputedStyle(document.body).pointerEvents !== 'none' && panel.getAttribute('aria-label') === 'Columns'; })()")
+        ->assertScript('document.activeElement.id', 'column-author')
+        ->assertAttribute('[data-test="columns"]', 'aria-expanded', 'true')
+        ->assertAttribute('[data-test="columns"]', 'data-state', 'open')
+        ->assertScript("(() => { const panel = document.querySelector('[data-test=\"column-chooser\"]').getBoundingClientRect(); return panel.top >= document.querySelector('[data-test=\"columns\"]').getBoundingClientRect().bottom && panel.right <= window.innerWidth; })()")
+        ->assertScript("[...document.querySelectorAll('[data-test=\"column-chooser\"] [role=\"checkbox\"][id^=\"column-\"]')].map((box) => box.id).join('|')", 'column-title|column-author|column-taxonomy-category|column-taxonomy-tag|column-comments|column-date|column-thumbnails')
         ->assertScript('document.documentElement.clientWidth', $width)
         ->keys('#column-author', 'Escape');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"screen-options-panel\"]') === null && document.activeElement === document.querySelector('[data-test=\"screen-options\"]')");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') === null && document.activeElement === document.querySelector('[data-test=\"columns\"]')");
 });
 
-it('shows the Featured image column once Screen options turns it on: a small thumbnail, or a mark of the same size (I-3120)', function (): void {
+it('shows each title\'s thumbnail once Columns turns Thumbnails on: a small thumbnail, or a mark of the same size (I-3120)', function (): void {
     $image = mediaUpload($this->editor, mediaJpeg(800, 600), 'quay.jpg');
     docSave($this->ferry, $this->editor, docWith(docText('Fares rise in November.')), [
         BuiltInFields::FEATURED_IMAGE => ['id' => $image->id, 'alt' => '', 'decorative' => false],
@@ -201,9 +202,9 @@ it('shows the Featured image column once Screen options turns it on: a small thu
     cmWaitUntil($page, "document.querySelectorAll('[data-test=\"row-title\"]').length === 3")
         ->assertScript("document.querySelector('[data-test=\"featured-thumb\"], [data-test=\"featured-none\"]') === null");
 
-    $page->click('[data-test="screen-options"]')
-        ->click('#column-featured')
-        ->click('[data-test="screen-options-panel"] >> text="Apply"');
+    $page->click('[data-test="columns"]')
+        ->click('#column-thumbnails')
+        ->click('[data-test="column-chooser"] >> text="Apply"');
 
     cmWaitUntil($page, "document.querySelectorAll('[data-test=\"featured-thumb\"]').length === 1 && document.querySelectorAll('[data-test=\"featured-none\"]').length === 2")
         ->assertScript("(() => { const thumb = document.querySelector('[data-test=\"featured-thumb\"]'); const box = thumb.getBoundingClientRect(); const none = document.querySelector('[data-test=\"featured-none\"]').getBoundingClientRect(); return thumb.getAttribute('alt') === '' && thumb.getAttribute('loading') === 'lazy' && Math.round(box.width) === 48 && Math.round(box.height) === 32 && Math.round(none.width) === 48 && Math.round(none.height) === 32; })()")
@@ -214,33 +215,38 @@ it('shows the Featured image column once Screen options turns it on: a small thu
 });
 
 it('closes an open filter when another opens or the pointer presses outside, so only one is ever open', function (): void {
-    $page = cmSignIn($this->editor)->navigate('/admin/posts')->click('[data-test="filter-author"]');
+    $page = cmSignIn($this->editor)->navigate('/admin/posts')->click('[data-test="filter-author"] [data-slot="combobox-trigger"]');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-author-panel\"]') !== null");
-    $page->click('[data-test="filter-category"]');
-    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-author-panel\"]') === null && document.querySelector('[data-test=\"filter-category-panel\"]') !== null");
+    // Each filter's list is the one popover open, named by the search field inside it.
+    $open = "[...document.querySelectorAll('[data-slot=\"popover-content\"] input')].map((field) => field.getAttribute('placeholder')).join('|')";
+    cmWaitUntil($page, "{$open} === 'Search author'");
+    $page->click('[data-test="filter-category"] [data-slot="combobox-trigger"]');
+    cmWaitUntil($page, "{$open} === 'Search category'");
     $page->click('[data-test="list-search"]');
-    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-category-panel\"]') === null");
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"popover-content\"]') === null");
 });
 
-it('turns the filters into a sideways chip line on a phone, each chip opening a sheet, with no sideways scroll on the page', function (): void {
+it('folds the filters into Filters (n) on a phone, each filter there opening its own list, with no sideways scroll on the page', function (): void {
     $page = cmSignIn($this->editor)->resize(390, 844)->navigate('/admin/posts?from=2026-09-01&to=2026-10-31');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-chips\"]') !== null")
-        ->assertScript("(() => { const line = document.querySelector('[data-test=\"filter-chips\"]'); return getComputedStyle(line).overflowX === 'auto' && line.scrollWidth > line.clientWidth; })()")
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filters-sheet\"]') !== null")
+        ->assertScript("document.querySelector('[data-test=\"filters-sheet\"]').textContent.trim()", 'Filters (1)')
         ->assertScript('document.documentElement.scrollWidth <= window.innerWidth')
-        ->assertScript("document.querySelector('[data-test=\"add-new\"]').textContent.trim()", 'Add new')
-        ->click('[data-test="filter-date"]');
+        ->assertScript("document.querySelector('[data-test=\"add-new\"]').textContent.trim().startsWith('Add new')")
+        ->click('[data-test="filters-sheet"]');
 
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"sheet-content\"] [data-test=\"date-month\"]') !== null");
-    cmWaitUntil($page, "[...document.querySelectorAll('[data-slot=\"sheet-content\"], [data-slot=\"sheet-overlay\"]')].every((element) => element.getAnimations().length === 0)");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filters-panel\"] [data-test=\"filter-date\"]') !== null && document.querySelector('[data-test=\"filters-panel\"]').getAnimations().length === 0");
+    $page->click('[data-test="filters-panel"] [data-test="filter-date"]');
 
-    $page->click('[data-slot="sheet-content"] [data-month="2026-10"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-date-panel\"] [data-test=\"date-month\"]') !== null");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-date-panel\"]').closest('[data-slot=\"sheet-content\"]').getAnimations().length === 0");
+
+    $page->click('[data-test="filter-date-panel"] [data-month="2026-10"]');
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('month') === '2026-10' && new URLSearchParams(window.location.search).get('from') === null");
 });
 
-it('passes axe with the Date list open and with Screen options open, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
+it('passes axe with the Date list open and with Columns open, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->editor)->navigate('/admin/posts')->click('[data-test="filter-date"]');
@@ -251,9 +257,9 @@ it('passes axe with the Date list open and with Screen options open, every targe
     $page->assertNoAccessibilityIssues(3);
     $date = cmSmallTargets($page);
 
-    $page->keys('[data-test="date-all"]', 'Escape')->click('[data-test="screen-options"]');
+    $page->keys('[data-test="date-all"]', 'Escape')->click('[data-test="columns"]');
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"screen-options-panel\"]') !== null && document.querySelector('[data-test=\"filter-date-panel\"]') === null");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') !== null && document.querySelector('[data-test=\"filter-date-panel\"]') === null");
     shellSettled($page, '[data-slot="popover-content"]');
     $page->assertNoAccessibilityIssues(3);
     $screen = cmSmallTargets($page);

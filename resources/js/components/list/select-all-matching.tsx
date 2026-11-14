@@ -64,7 +64,8 @@ export function SelectAllMatching({
     selectedCount: number;
     onChoose: () => void;
 }) {
-    const morePages = page.older !== null || page.newer !== null;
+    const morePages =
+        page.paging.last > 1 || page.paging.more || page.paging.number === null;
 
     if (editableCount === 0 || selectedCount !== editableCount || !morePages) {
         return null;

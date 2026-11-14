@@ -37,7 +37,7 @@ export function ListCards<Row>({
     const byId = new Map(columns.map((column) => [column.id, column]));
     const select =
         layout.select !== undefined ? byId.get(layout.select) : undefined;
-    const title = byId.get(layout.title);
+    const title = byId.get(layout.titleColumn);
     const menu = layout.menu !== undefined ? byId.get(layout.menu) : undefined;
     const body = layout.body !== undefined ? byId.get(layout.body) : undefined;
     const facts = layout.facts.flatMap((id) => {

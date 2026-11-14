@@ -258,7 +258,7 @@ export function DataTable<Row>({
             ) : (
                 <ScrollArea axis="x" ref={scroller}>
                     <table
-                        className="w-full min-w-max border-separate border-spacing-0"
+                        className="w-full border-separate border-spacing-0"
                         aria-describedby={describedBy}
                     >
                         <caption className="sr-only">{caption}</caption>

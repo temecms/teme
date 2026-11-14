@@ -956,15 +956,6 @@ components/list/pager.tsx	Pages
 components/list/row-actions.tsx	, opens in a new tab
 components/list/row-actions.tsx	More
 components/list/row-links.tsx	, opens in a new tab
-components/list/screen-options.tsx	Apply
-components/list/screen-options.tsx	Columns
-components/list/screen-options.tsx	Couldn't save. Try again in a moment.
-components/list/screen-options.tsx	Rows per page
-components/list/screen-options.tsx	Saved to your preferences
-components/list/screen-options.tsx	Screen options
-components/list/screen-options.tsx	Screen options
-components/list/screen-options.tsx	Screen options
-components/list/screen-options.tsx	What this list shows for you. Other people keep their own choices.
 components/list/select-all-matching.tsx	All their revisions go with them. This can’t be undone. It runs in the background, one {} at a time, and any you may not change are skipped.
 components/list/select-all-matching.tsx	Cancel
 components/list/select-all-matching.tsx	Delete all {} permanently?
@@ -1422,84 +1413,6 @@ pages/content/edit.tsx	Title
 pages/content/edit.tsx	Toggle focus mode
 pages/content/edit.tsx	Untitled
 pages/content/edit.tsx	Untitled
-pages/content/index.tsx	. Select them and try again.
-pages/content/index.tsx	; {} not changed
-pages/content/index.tsx	Actions for {}
-pages/content/index.tsx	Add new
-pages/content/index.tsx	Add new
-pages/content/index.tsx	Add new {}
-pages/content/index.tsx	Address
-pages/content/index.tsx	All authors
-pages/content/index.tsx	All their revisions go with them. This can’t be undone.
-pages/content/index.tsx	All {}
-pages/content/index.tsx	Alt text for this
-pages/content/index.tsx	Approve
-pages/content/index.tsx	Author
-pages/content/index.tsx	Author
-pages/content/index.tsx	Cancel
-pages/content/index.tsx	Change…
-pages/content/index.tsx	Changing a published address takes effect at once, and the old one stops working.
-pages/content/index.tsx	Choose…
-pages/content/index.tsx	Clear filters
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete {} {} permanently?
-pages/content/index.tsx	Delete “{}” permanently?
-pages/content/index.tsx	Delete “{}” permanently?
-pages/content/index.tsx	Discussion
-pages/content/index.tsx	Edit
-pages/content/index.tsx	Edit…
-pages/content/index.tsx	Everything of this kind on the site. A filtered list shows no total.
-pages/content/index.tsx	Failed
-pages/content/index.tsx	Featured image
-pages/content/index.tsx	Featured image
-pages/content/index.tsx	Featured image
-pages/content/index.tsx	Held
-pages/content/index.tsx	In text
-pages/content/index.tsx	In titles
-pages/content/index.tsx	Last modified
-pages/content/index.tsx	Leave empty to use the image's own
-pages/content/index.tsx	Move to trash
-pages/content/index.tsx	No featured image
-pages/content/index.tsx	No {} here yet
-pages/content/index.tsx	No {} match these filters
-pages/content/index.tsx	None
-pages/content/index.tsx	Preview
-pages/content/index.tsx	Published
-pages/content/index.tsx	Published
-pages/content/index.tsx	Published text only
-pages/content/index.tsx	Quick edit
-pages/content/index.tsx	Quick edit
-pages/content/index.tsx	Remove
-pages/content/index.tsx	Remove the filter: {}
-pages/content/index.tsx	Remove the filter: {}
-pages/content/index.tsx	Restore
-pages/content/index.tsx	Save
-pages/content/index.tsx	Search in
-pages/content/index.tsx	Search text
-pages/content/index.tsx	Search text
-pages/content/index.tsx	Search titles
-pages/content/index.tsx	Search titles
-pages/content/index.tsx	Select all on this page
-pages/content/index.tsx	Select {}
-pages/content/index.tsx	Skipped:
-pages/content/index.tsx	Something went wrong, so these weren’t changed:
-pages/content/index.tsx	Status
-pages/content/index.tsx	Submitted
-pages/content/index.tsx	The trash is empty
-pages/content/index.tsx	Title
-pages/content/index.tsx	View
-pages/content/index.tsx	Whoever publishes it sets this.
-pages/content/index.tsx	a removed account
-pages/content/index.tsx	by
-pages/content/index.tsx	changed;
-pages/content/index.tsx	changed;
-pages/content/index.tsx	skipped
-pages/content/index.tsx	skipped:
-pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
-pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
 pages/dashboard.tsx	Home
 pages/dashboard.tsx	Home
 pages/dashboard.tsx	Home

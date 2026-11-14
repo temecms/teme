@@ -1,6 +1,6 @@
 import { Form, Head, Link, router, useHttp, usePage } from '@inertiajs/react';
-import { CircleAlert, Image as ImageIcon, X } from 'lucide-react';
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import BulkContentController from '@/actions/App/Http/Admin/Contents/BulkContentController';
 import BulkMatchingController from '@/actions/App/Http/Admin/Contents/BulkMatchingController';
 import ContentActionController from '@/actions/App/Http/Admin/Contents/ContentActionController';
@@ -12,29 +12,36 @@ import InputError from '@/components/input-error';
 import { BulkBar } from '@/components/list/bulk-bar';
 import { BulkEditDialog } from '@/components/list/bulk-edit-dialog';
 import type { BulkEditReport } from '@/components/list/bulk-edit-dialog';
+import { ColumnChooser } from '@/components/list/column-chooser';
 import { ConfirmItems } from '@/components/list/confirm-items';
 import { DataTable } from '@/components/list/data-table';
-import { DateFilter } from '@/components/list/date-filter';
-import { FilterButton } from '@/components/list/filter-button';
 import type { Column, SortDirection } from '@/components/list/data-table';
+import { DateFilter } from '@/components/list/date-filter';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
-import { Pager } from '@/components/list/pager';
-import { RowLinks } from '@/components/list/row-links';
-import { ScreenOptions } from '@/components/list/screen-options';
+import {
+    ChoiceFilter,
+    FilterRow,
+    TermSearchFilter,
+} from '@/components/list/filter-row';
+import { NumberedPager } from '@/components/list/numbered-pager';
+import type { RowAction } from '@/components/list/row-actions';
+import { RowLine } from '@/components/list/row-line';
+import { RowMenu } from '@/components/list/row-menu';
 import {
     ConfirmMatching,
     SelectAllMatching,
 } from '@/components/list/select-all-matching';
 import type { MatchingAction } from '@/components/list/select-all-matching';
-import type { RowAction } from '@/components/list/row-actions';
-import { TabStrip } from '@/components/list/tab-strip';
+import { TitleCell } from '@/components/list/title-cell';
 import { MediaModal } from '@/components/media/media-modal';
+import { InPageNav } from '@/components/patterns/in-page-nav';
+import { ListPage } from '@/components/patterns/list-page';
 import { TermPicker } from '@/components/term-picker';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Notice } from '@/components/ui/notice';
 import { SelectField } from '@/components/ui/select-field';
 import {
     Sheet,
@@ -43,9 +50,16 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { StatusPill } from '@/components/ui/status-pill';
+import { TermChips } from '@/components/ui/term-chips';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { choiceOf, DISCUSSION_CHOICES } from '@/lib/discussion';
 import type { Discussion } from '@/lib/discussion';
+import { __ } from '@/lib/i18n';
 import { inTreeOrder } from '@/lib/term-tree';
 import { shownTitle } from '@/lib/titles';
 import { formatInZone } from '@/lib/zoned-time';
@@ -62,6 +76,7 @@ import type {
     MediaDetailsData,
     TermChip,
 } from '@/types';
+import type { CardLayout } from '@/types/list-pages';
 
 function QuickEdit({
     row,
@@ -108,7 +123,7 @@ function QuickEdit({
                         value={row.workingRevisionId ?? ''}
                     />
                     <div className="grid gap-2">
-                        <Label htmlFor={`title-${row.id}`}>Title</Label>
+                        <Label htmlFor={`title-${row.id}`}>{__('Title')}</Label>
                         <Input
                             id={`title-${row.id}`}
                             aria-describedby={`title-${row.id}-error`}
@@ -122,7 +137,9 @@ function QuickEdit({
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor={`slug-${row.id}`}>Address</Label>
+                        <Label htmlFor={`slug-${row.id}`}>
+                            {__('Address')}
+                        </Label>
                         <Input
                             id={`slug-${row.id}`}
                             aria-describedby={`slug-${row.id}-error`}
@@ -130,9 +147,10 @@ function QuickEdit({
                             defaultValue={row.slug}
                         />
                         {row.status === 'published' && (
-                            <p className="text-ink-2 text-xs">
-                                Changing a published address takes effect at
-                                once, and the old one stops working.
+                            <p className="text-ink-2 text-caption">
+                                {__(
+                                    'Changing a published address takes effect at once, and the old one stops working.',
+                                )}
                             </p>
                         )}
                         <InputError
@@ -142,7 +160,9 @@ function QuickEdit({
                     </div>
                     {page.can.changeAuthor && (
                         <div className="grid gap-2">
-                            <Label htmlFor={`author-${row.id}`}>Author</Label>
+                            <Label htmlFor={`author-${row.id}`}>
+                                {__('Author')}
+                            </Label>
                             <SelectField
                                 id={`author-${row.id}`}
                                 name="author_id"
@@ -158,7 +178,9 @@ function QuickEdit({
                     )}
                     {row.status === 'published' && (
                         <div className="grid gap-2">
-                            <Label htmlFor={`date-${row.id}`}>Published</Label>
+                            <Label htmlFor={`date-${row.id}`}>
+                                {__('Published')}
+                            </Label>
                             <Input
                                 id={`date-${row.id}`}
                                 aria-describedby={`date-${row.id}-error`}
@@ -177,7 +199,7 @@ function QuickEdit({
                     {row.discussion !== null && (
                         <div className="grid gap-2">
                             <Label htmlFor={`discussion-${row.id}`}>
-                                Discussion
+                                {__('Discussion')}
                             </Label>
                             <SelectField
                                 id={`discussion-${row.id}`}
@@ -202,11 +224,11 @@ function QuickEdit({
                             />
                             <p
                                 id={`discussion-${row.id}-meaning`}
-                                className="text-ink-2 text-xs"
+                                className="text-ink-2 text-caption"
                             >
                                 {choiceOf(discussion).meaning}
                                 {!row.discussion.canSet &&
-                                    ' Whoever publishes it sets this.'}
+                                    ` ${__('Whoever publishes it sets this.')}`}
                             </p>
                             <InputError
                                 id={`discussion-${row.id}-error`}
@@ -232,8 +254,8 @@ function QuickEdit({
                         />
                     ))}
                     <div className="grid gap-2">
-                        <span className="text-sm font-medium">
-                            Featured image
+                        <span className="text-small font-medium">
+                            {__('Featured image')}
                         </span>
                         <input
                             type="hidden"
@@ -245,10 +267,12 @@ function QuickEdit({
                                 <img
                                     src={image.thumbUrl}
                                     alt=""
-                                    className="size-16 rounded object-cover"
+                                    className="size-16 rounded-md object-cover"
                                 />
                             ) : (
-                                <span className="text-ink-2 text-sm">None</span>
+                                <span className="text-ink-2 text-small">
+                                    {__('None')}
+                                </span>
                             )}
                             <Button
                                 type="button"
@@ -257,7 +281,7 @@ function QuickEdit({
                                 aria-describedby={`image-${row.id}-error`}
                                 onClick={() => setPicking(true)}
                             >
-                                {image ? 'Change…' : 'Choose…'}
+                                {image ? __('Change…') : __('Choose…')}
                             </Button>
                             {image && (
                                 <Button
@@ -266,24 +290,26 @@ function QuickEdit({
                                     size="sm"
                                     onClick={() => setImage(null)}
                                 >
-                                    Remove
+                                    {__('Remove')}
                                 </Button>
                             )}
                         </div>
                         {image && (
-                            <div className="grid gap-2">
-                                <div className="grid gap-1">
-                                    <Label htmlFor={`alt-${row.id}`}>
-                                        Alt text for this{' '}
-                                        {page.labels.singular.toLowerCase()}
-                                    </Label>
-                                    <Input
-                                        id={`alt-${row.id}`}
-                                        name="featured_image_alt"
-                                        defaultValue={image.alt ?? ''}
-                                        placeholder="Leave empty to use the image's own"
-                                    />
-                                </div>
+                            <div className="grid gap-1">
+                                <Label htmlFor={`alt-${row.id}`}>
+                                    {__('Alt text for this :singular', {
+                                        singular:
+                                            page.labels.singular.toLowerCase(),
+                                    })}
+                                </Label>
+                                <Input
+                                    id={`alt-${row.id}`}
+                                    name="featured_image_alt"
+                                    defaultValue={image.alt ?? ''}
+                                    placeholder={__(
+                                        "Leave empty to use the image's own",
+                                    )}
+                                />
                             </div>
                         )}
                         <InputError
@@ -296,7 +322,7 @@ function QuickEdit({
                             open={picking}
                             onOpenChange={setPicking}
                             kinds={['image']}
-                            action="Set featured image"
+                            action={__('Set featured image')}
                             onChoose={([id]) => {
                                 if (!id) {
                                     return;
@@ -329,10 +355,10 @@ function QuickEdit({
                             disabled={processing}
                             aria-describedby={`quick-edit-${row.id}-error`}
                         >
-                            Save
+                            {__('Save')}
                         </Button>
                         <Button type="button" variant="ghost" onClick={onClose}>
-                            Cancel
+                            {__('Cancel')}
                         </Button>
                         <InputError
                             id={`quick-edit-${row.id}-error`}
@@ -346,52 +372,147 @@ function QuickEdit({
 }
 
 /** A row's title for a sentence: "Untitled" when it has none. */
-const titleOf = (row: ContentRow): string => row.title.trim() || 'Untitled';
-
-/** The words after a title for each state that isn't live. */
-const STATUS_SUFFIX: Record<'draft' | 'review' | 'scheduled', string> = {
-    draft: 'Draft',
-    review: 'In review',
-    scheduled: 'Scheduled',
-};
+const titleOf = (row: ContentRow): string => row.title.trim() || __('Untitled');
 
 /**
- * A row's state after its title: none for a live item, which its date's
- * line says, unless an update waits for review; none in the trash, which
- * its tab says.
+ * A row's state as a word on its pill, in the Status column
+ * (docs/proposals/content-lists.md): in the
+ * trash, a schedule that cannot run, a review, or its status, and Private
+ * for a live item only some may read.
  */
-function statusSuffix(row: ContentRow): string | null {
+function StatusCell({ row, inTrash }: { row: ContentRow; inTrash: boolean }) {
     // Later (I-1451): Sticky, Home page and Posts page, as WordPress lists them.
-    if (row.trashed) {
-        return null;
+    if (inTrash || row.trashed) {
+        return <StatusPill tone="neutral">{__('In Trash')}</StatusPill>;
+    }
+
+    if (row.status === 'scheduled' && row.scheduleIssue !== null) {
+        return (
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <StatusPill tone="warn" tabIndex={0}>
+                        {__('Schedule held')}
+                    </StatusPill>
+                </TooltipTrigger>
+                <TooltipContent>{scheduleReason(row)}</TooltipContent>
+            </Tooltip>
+        );
     }
 
     if (row.status === 'published') {
-        const who =
-            row.visibility === 'private'
-                ? 'Private'
-                : row.visibility === 'protected'
-                  ? 'Password protected'
-                  : null;
-
-        if (who === null) {
-            return row.review !== null ? 'Update in review' : null;
+        // A live item's update waiting for review says so first; then who may read it (I-1700).
+        if (row.review !== null) {
+            return (
+                <StatusPill tone="info">{__('Update in review')}</StatusPill>
+            );
         }
 
-        return row.review !== null ? `${who}, update in review` : who;
+        if (row.visibility === 'private') {
+            return <StatusPill tone="neutral">{__('Private')}</StatusPill>;
+        }
+
+        if (row.visibility === 'protected') {
+            return (
+                <StatusPill tone="neutral">
+                    {__('Password protected')}
+                </StatusPill>
+            );
+        }
+
+        return <StatusPill tone="ok">{__('Published')}</StatusPill>;
     }
 
-    return STATUS_SUFFIX[row.status];
+    if (row.status === 'scheduled') {
+        return <StatusPill tone="info">{__('Scheduled')}</StatusPill>;
+    }
+
+    if (row.status === 'review') {
+        return <StatusPill tone="info">{__('In review')}</StatusPill>;
+    }
+
+    return <StatusPill tone="neutral">{__('Draft')}</StatusPill>;
 }
 
-/** What a row can do, from its state and what the viewer may do. */
-function rowActions(
+/** Why a scheduled item cannot publish as things stand, in today's words. */
+const scheduleReason = (row: ContentRow): string =>
+    row.scheduleIssue === 'failed' ? __('Failed') : __('Held');
+
+/**
+ * What goes on a row's line (I-3398): Edit, Quick edit, and View for a live
+ * item or Preview for anything else; in the trash, Restore. Each in a new
+ * tab when it leaves the admin.
+ */
+function lineActions(
     row: ContentRow,
     page: ContentIndexPage,
     quickEdit: () => void,
 ): RowAction[] {
+    if (row.trashed) {
+        return [
+            {
+                id: 'restore',
+                owner: 'core',
+                label: __('Restore'),
+                form: ContentActionController.action.form({
+                    type: page.type,
+                    content: row.id,
+                    action: 'restore',
+                }),
+            },
+        ];
+    }
+
+    const look: RowAction =
+        row.viewUrl !== null
+            ? {
+                  id: 'view',
+                  owner: 'core',
+                  label: __('View'),
+                  href: row.viewUrl,
+                  newTab: true,
+              }
+            : {
+                  id: 'preview',
+                  owner: 'core',
+                  label: __('Preview'),
+                  href: contentPreview(row.id).url,
+                  newTab: true,
+              };
+
+    // Other people's unpublished work is listed, and only looked at (I-409).
+    if (!row.canEdit) {
+        return [look];
+    }
+
+    return [
+        {
+            id: 'edit',
+            owner: 'core',
+            label: __('Edit'),
+            href: contentEdit(row.id).url,
+        },
+        {
+            id: 'quick-edit',
+            owner: 'core',
+            label: __('Quick edit'),
+            onSelect: quickEdit,
+        },
+        look,
+    ];
+}
+
+/**
+ * What goes in a row's "…" menu (I-3398): at most one state action, then
+ * plugins' actions (none yet: I-200), then Trash; in the trash, Delete
+ * permanently, which asks first. A row the person may not edit has none.
+ */
+function menuActions(row: ContentRow, page: ContentIndexPage): RowAction[] {
+    if (!row.canEdit) {
+        return [];
+    }
+
     const action = (
-        name: 'trash' | 'restore' | 'publish' | 'unpublish',
+        name: 'trash' | 'publish' | 'unpublish',
         label: string,
         destructive = false,
     ): RowAction => ({
@@ -408,11 +529,10 @@ function rowActions(
 
     if (row.trashed) {
         return [
-            action('restore', 'Restore'),
             {
                 id: 'delete',
                 owner: 'core',
-                label: 'Delete permanently',
+                label: __('Delete permanently'),
                 destructive: true,
                 form: ContentActionController.destroy.form({
                     type: page.type,
@@ -420,9 +540,14 @@ function rowActions(
                 }),
                 wrap: (button) => (
                     <ConfirmAction
-                        title={`Delete “${titleOf(row)}” permanently?`}
-                        description={`“${titleOf(row)}” and all its revisions are deleted. This can’t be undone.`}
-                        confirmLabel="Delete permanently"
+                        title={__('Delete “:title” permanently?', {
+                            title: titleOf(row),
+                        })}
+                        description={__(
+                            '“:title” and all its revisions are deleted. This can’t be undone.',
+                            { title: titleOf(row) },
+                        )}
+                        confirmLabel={__('Delete permanently')}
                     >
                         {button}
                     </ConfirmAction>
@@ -431,94 +556,74 @@ function rowActions(
         ];
     }
 
-    return [
-        {
-            id: 'edit',
-            owner: 'core',
-            label: 'Edit',
-            href: contentEdit(row.id).url,
-        },
-        {
-            id: 'quick-edit',
-            owner: 'core',
-            label: 'Quick edit',
-            onSelect: quickEdit,
-        },
-        // A live item opens at its address; anything else shows its latest
-        // saved version, through the theme. Each in a new tab.
-        row.viewUrl !== null
-            ? {
-                  id: 'view',
+    // Publishing around a pending review would skip the review the writer
+    // asked for: whoever may decide is offered Approve in its place, and
+    // anyone else neither.
+    const state: RowAction[] = row.review?.canDecide
+        ? [
+              {
+                  id: 'approve',
                   owner: 'core',
-                  label: 'View',
-                  href: row.viewUrl,
-                  newTab: true,
-              }
-            : {
-                  id: 'preview',
-                  owner: 'core',
-                  label: 'Preview',
-                  href: contentPreview(row.id).url,
-                  newTab: true,
+                  label: __('Approve'),
+                  form: ReviewController.approve.form(row.id),
+                  fields: { review_id: row.review.id },
               },
-        // Publishing around a pending review would skip the review the writer
-        // asked for: whoever may decide is offered Approve in its place, and
-        // anyone else neither.
-        ...(row.review?.canDecide
-            ? [
-                  {
-                      id: 'approve',
-                      owner: 'core',
-                      label: 'Approve',
-                      form: ReviewController.approve.form(row.id),
-                      fields: { review_id: row.review.id },
-                  },
-              ]
-            : []),
-        ...(page.can.publish &&
-        row.status !== 'published' &&
-        row.review === null
-            ? [action('publish', 'Publish')]
-            : []),
-        ...(page.can.publish && row.status === 'published'
-            ? [action('unpublish', 'Revert to draft')]
-            : []),
-        action('trash', 'Trash', true),
-    ];
+          ]
+        : page.can.publish && row.status !== 'published' && row.review === null
+          ? [action('publish', __('Publish'))]
+          : page.can.publish && row.status === 'published'
+            ? [action('unpublish', __('Revert to draft'))]
+            : [];
+
+    return [...state, action('trash', __('Trash'), true)];
 }
 
 /**
- * When the row happened, or will. A scheduled item says when it publishes,
- * on the site's clock with the zone named, and whether its schedule failed
- * or is held; an item in review says who submitted it and when.
+ * When the row happened, or will, and a second line saying which date it
+ * is. A scheduled item says when it publishes, on the site's clock with the
+ * zone named, and why its schedule cannot run when it cannot; an item in
+ * review says who submitted it and when.
  */
 function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
     if (row.status === 'scheduled' && row.scheduledFor !== null) {
         return (
             <span className="grid">
-                <span className="text-ink-2">
+                <span>
                     {formatInZone(row.scheduledFor, page.siteTimezone)} (
                     {page.siteTimezone})
                 </span>
-                {row.scheduleIssue === 'failed' && (
-                    <span className="text-danger-ink text-xs">Failed</span>
-                )}
-                {row.scheduleIssue === 'held' && (
-                    <span className="text-warn-ink text-xs">Held</span>
-                )}
+                <span
+                    className={
+                        row.scheduleIssue === 'failed'
+                            ? 'text-small text-danger-ink'
+                            : row.scheduleIssue === 'held'
+                              ? 'text-small text-warn-ink'
+                              : 'text-small text-ink-3'
+                    }
+                >
+                    {row.scheduleIssue === null
+                        ? __('Scheduled')
+                        : scheduleReason(row)}
+                </span>
             </span>
         );
     }
 
     if (row.review !== null) {
         return (
-            <span className="text-ink-2 grid">
+            <span className="grid">
                 <span>
-                    Submitted{' '}
-                    {formatInZone(row.review.submittedAt, page.siteTimezone)}
+                    {__('Submitted :date', {
+                        date: formatInZone(
+                            row.review.submittedAt,
+                            page.siteTimezone,
+                        ),
+                    })}
                 </span>
-                <span className="text-xs">
-                    by {row.review.submittedBy ?? 'a removed account'}
+                <span className="text-small text-ink-3">
+                    {__('by :name', {
+                        name: row.review.submittedBy ?? __('a removed account'),
+                    })}
                 </span>
             </span>
         );
@@ -530,20 +635,24 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
 
     return (
         <span className="grid">
-            <span className="text-ink-2">
+            <span>
                 {new Date(
                     live ? (row.publishedAt ?? row.updatedAt) : row.updatedAt,
                 ).toLocaleDateString()}
             </span>
-            <span className="text-ink-2 text-xs">
-                {live ? 'Published' : 'Last modified'}
+            <span className="text-small text-ink-3">
+                {live ? __('Published') : __('Last modified')}
             </span>
         </span>
     );
 }
 
-/** The columns Screen options never offers: they carry the row itself. */
-const FIXED_COLUMNS = ['select', 'title'];
+/** Each optional column's declared width (docs/architecture/design-system.md, section 4.26). */
+const WIDTHS: Record<string, number> = {
+    author: 128,
+    comments: 116,
+    date: 116,
+};
 
 export default function ContentIndex(page: ContentIndexPage) {
     const { preferences, contentTypes } = usePage().props;
@@ -552,7 +661,11 @@ export default function ContentIndex(page: ContentIndexPage) {
         contentTypes.find((type) => type.segment === page.type)?.key ??
         page.type;
     const shownColumns = preferences[`lists.${typeKey}.columns`];
+    const perPage = preferences['lists.per_page'];
     const [selected, setSelected] = useState<string[]>([]);
+    // The row ticked last, for Shift+click to tick the rows between.
+    const lastTicked = useRef<string | null>(null);
+    const shiftHeld = useRef(false);
     // Every match of the list, not only the page's rows (I-143).
     const [allMatching, setAllMatching] = useState(false);
     const [confirming, setConfirming] = useState<MatchingAction | null>(null);
@@ -561,6 +674,8 @@ export default function ContentIndex(page: ContentIndexPage) {
         page.filters.in === 'body' ? 'body' : 'title',
     );
     const [editing, setEditing] = useState<string | null>(null);
+    // What opened Quick edit, to take the focus back to when it closes.
+    const opener = useRef<HTMLElement | null>(null);
     const [bulkEditing, setBulkEditing] = useState(false);
     // Bulk Edit sets no flash: its report is the dialog's own, added up
     // from its batches.
@@ -568,14 +683,8 @@ export default function ContentIndex(page: ContentIndexPage) {
     const [deleting, setDeleting] = useState(false);
     const [bulkBusy, setBulkBusy] = useState(false);
     const [bulkError, setBulkError] = useState<string | null>(null);
-    // The one open header panel, so opening one closes any other (I-3135).
-    const [openPanel, setOpenPanel] = useState<string | null>(null);
+    const [dateOpen, setDateOpen] = useState(false);
     const searchRef = useRef<HTMLInputElement>(null);
-    const isMobile = useIsMobile();
-    const panelOpen = (name: string) => (open: boolean) =>
-        setOpenPanel((current) =>
-            open ? name : current === name ? null : current,
-        );
 
     // Any new rows (a visit, a reload) go back to the page's own selection.
     useEffect(() => setAllMatching(false), [page.rows]);
@@ -607,6 +716,8 @@ export default function ContentIndex(page: ContentIndexPage) {
         sortable
             ? { key, direction: page.sort === key ? page.direction : null }
             : undefined;
+    const authorSortable =
+        activeTab !== 'mine' && page.filters.author === undefined;
     const titles = Object.fromEntries(
         page.rows.map((row) => [row.id, row.title]),
     );
@@ -681,15 +792,13 @@ export default function ContentIndex(page: ContentIndexPage) {
         Object.entries(page.filters).filter(
             ([, value]) => value !== undefined && value !== '',
         ),
-    );
-    // Each nesting taxonomy gets a select; flat ones, such as tags, can
-    // number in thousands, so they wait for a searchable control.
+    ) as Record<string, string>;
+    // Each nesting taxonomy's filter lists its tree; a flat one, such as
+    // tags, can number in thousands, so its filter asks the server (I-1452).
     const nesting = useMemo(
         () => page.typeTaxonomies.filter((taxonomy) => taxonomy.hierarchical),
         [page.typeTaxonomies],
     );
-    // A flat taxonomy, such as tags, has no select (I-1452): a filter by one
-    // of its terms, as a count on its screen opens, is kept and named.
     const flat = useMemo(
         () => page.typeTaxonomies.filter((taxonomy) => !taxonomy.hierarchical),
         [page.typeTaxonomies],
@@ -697,21 +806,49 @@ export default function ContentIndex(page: ContentIndexPage) {
     const treeOptions = useMemo(
         () =>
             Object.fromEntries(
-                nesting.map((taxonomy) => [
-                    taxonomy.key,
-                    inTreeOrder(page.termTrees[taxonomy.key] ?? []).map(
-                        ({ term, depth }) => ({
-                            value: term.id,
-                            label: term.name,
-                            depth,
+                nesting.map((taxonomy) => {
+                    const terms = page.termTrees[taxonomy.key] ?? [];
+                    const names = new Map(
+                        terms.map((term) => [term.id, term.name]),
+                    );
+                    const parents = new Map(
+                        terms.map((term) => [term.id, term.parentId]),
+                    );
+                    // The names above a term, the top first.
+                    const pathOf = (id: string): string[] => {
+                        const path: string[] = [];
+                        let at = parents.get(id) ?? null;
+
+                        while (at !== null && path.length < 32) {
+                            path.unshift(names.get(at) ?? '');
+                            at = parents.get(at) ?? null;
+                        }
+
+                        return path;
+                    };
+
+                    return [
+                        taxonomy.key,
+                        inTreeOrder(terms).map(({ term }) => {
+                            const above = pathOf(term.id);
+
+                            return {
+                                value: term.id,
+                                label: term.name,
+                                description:
+                                    above.length > 0
+                                        ? [...above, term.name].join(' › ')
+                                        : undefined,
+                                keywords: above,
+                            };
                         }),
-                    ),
-                ]),
+                    ];
+                }),
             ),
         [nesting, page.termTrees],
     );
-    // Every filter choice is a link to the list with the others kept: the
-    // cursor dropped, order kept, and the tab always written (I-3129).
+    // Every filter is a visit to the list with the others kept: the page
+    // dropped, order kept, and the tab always written (I-3129).
     const hrefFor = (patch: Record<string, string | null>) => {
         const query: Record<string, string> = { ...keep, tab: activeTab };
 
@@ -725,6 +862,8 @@ export default function ContentIndex(page: ContentIndexPage) {
 
         return contentIndex({ type: page.type }, { query }).url;
     };
+    const filterTo = (patch: Record<string, string | null>) =>
+        router.visit(hrefFor(patch), { preserveScroll: true });
     const searchTo = (inValue: string) => {
         const words = searchRef.current?.value.trim() ?? '';
 
@@ -745,6 +884,14 @@ export default function ContentIndex(page: ContentIndexPage) {
     const narrowed =
         narrowedBesideDate ||
         ['month', 'from', 'to'].some((key) => page.filters[key] !== undefined);
+    // How many filters are on, for Filters (n) on a phone: the search is beside them.
+    const activeFilters =
+        ['author', ...page.typeTaxonomies.map((taxonomy) => taxonomy.key)]
+            .map((key) => page.filters[key])
+            .filter((value) => value !== undefined).length +
+        (['month', 'from', 'to'].some((key) => page.filters[key] !== undefined)
+            ? 1
+            : 0);
     const clearHref = contentIndex(
         { type: page.type },
         {
@@ -782,269 +929,714 @@ export default function ContentIndex(page: ContentIndexPage) {
     // article whose update waits.
     const reviewFilter =
         page.filters.review === 'pending'
-            ? 'Has a pending review'
+            ? __('Has a pending review')
             : page.filters.review === 'submitted'
-              ? 'Submitted by you'
+              ? __('Submitted by you')
               : undefined;
-    const termChips = flat.flatMap((taxonomy) => {
-        if (page.filters[taxonomy.key] === undefined) {
-            return [];
-        }
-
-        const label = `${taxonomy.singular}: ${page.chosenTerms[taxonomy.key] ?? 'not found'}`;
-
-        return [
-            {
-                key: taxonomy.key,
-                label,
-                href: contentIndex(
-                    { type: page.type },
-                    {
-                        query: Object.fromEntries(
-                            Object.entries(keep).filter(
-                                ([key]) => key !== taxonomy.key,
-                            ),
-                        ),
-                    },
-                ).url,
-            },
-        ];
-    });
     const emptyKind = page.filtered ? 'nothing-matches' : 'nothing-yet';
 
     // Other people's unpublished work is listed by title and never acted on
     // (I-409): only the rows this person may edit can be selected.
     const editable = page.rows.filter((row) => row.canEdit);
+    const tick = (row: ContentRow, checked: boolean) => {
+        setAllMatching(false);
+        const from = page.rows.findIndex(
+            (each) => each.id === lastTicked.current,
+        );
+        const to = page.rows.findIndex((each) => each.id === row.id);
+        // Shift+click ticks or unticks every row the person may edit between this one and the last.
+        const range =
+            shiftHeld.current && from !== -1
+                ? page.rows
+                      .slice(Math.min(from, to), Math.max(from, to) + 1)
+                      .filter((each) => each.canEdit)
+                      .map((each) => each.id)
+                : [row.id];
 
-    const allColumns: Column<ContentRow>[] = [
-        {
-            id: 'select',
-            owner: 'core',
-            className: 'w-10 pr-0',
-            header: (
+        setSelected((current) =>
+            checked
+                ? [...new Set([...current, ...range])]
+                : current.filter((id) => !range.includes(id)),
+        );
+        lastTicked.current = row.id;
+        shiftHeld.current = false;
+    };
+    const thumbnails =
+        Array.isArray(shownColumns) && shownColumns.includes('featured');
+
+    const select: Column<ContentRow> = {
+        id: 'select',
+        owner: 'core',
+        width: 48,
+        className: 'pe-0',
+        header: (
+            <Checkbox
+                aria-label={__('Select all on this page')}
+                disabled={editable.length === 0}
+                checked={
+                    editable.length > 0 &&
+                    editable.every((row) => selected.includes(row.id))
+                }
+                onCheckedChange={(checked) => {
+                    setAllMatching(false);
+                    setSelected(checked ? editable.map((row) => row.id) : []);
+                }}
+            />
+        ),
+        cell: (row) =>
+            row.canEdit && (
                 <Checkbox
-                    aria-label="Select all on this page"
-                    disabled={editable.length === 0}
-                    checked={
-                        editable.length > 0 &&
-                        editable.every((row) => selected.includes(row.id))
-                    }
-                    onCheckedChange={(checked) => {
-                        setAllMatching(false);
-                        setSelected(
-                            checked ? editable.map((row) => row.id) : [],
-                        );
+                    aria-label={__('Select :title', {
+                        title: shownTitle(row.title),
+                    })}
+                    className="mt-0.5"
+                    checked={selected.includes(row.id)}
+                    onClick={(event) => {
+                        shiftHeld.current = event.shiftKey;
                     }}
+                    onCheckedChange={(checked) => tick(row, checked === true)}
                 />
             ),
-            cell: (row) =>
-                row.canEdit && (
-                    <Checkbox
-                        aria-label={`Select ${shownTitle(row.title)}`}
-                        checked={selected.includes(row.id)}
-                        onCheckedChange={(checked) => {
-                            setAllMatching(false);
-                            setSelected(
-                                checked
-                                    ? [...selected, row.id]
-                                    : selected.filter((id) => id !== row.id),
-                            );
-                        }}
+    };
+    const titleColumn: Column<ContentRow> = {
+        id: 'title',
+        owner: 'core',
+        header: __('Title'),
+        sort: sortBy('title'),
+        minWidth: 320,
+        className: 'whitespace-normal max-sm:min-w-60',
+        // A trashed item has no editor (it answers 404), and someone else's
+        // the person may not edit answers 403, so either title stays plain.
+        cell: (row) => (
+            <TitleCell
+                title={shownTitle(row.title)}
+                href={
+                    row.trashed || !row.canEdit ? null : contentEdit(row.id).url
+                }
+                thumbnail={
+                    thumbnails
+                        ? (row.featuredImage?.thumbUrl ?? null)
+                        : undefined
+                }
+                line={
+                    <RowLine
+                        title={shownTitle(row.title)}
+                        items={lineActions(row, page, () => {
+                            opener.current =
+                                document.activeElement as HTMLElement | null;
+                            setEditing(row.id);
+                        })}
                     />
-                ),
-        },
-        {
-            id: 'featured',
-            owner: 'core',
-            label: 'Featured image',
-            className: 'w-[72px] pr-0',
-            header: (
-                <>
-                    <ImageIcon aria-hidden className="size-4" />
-                    <span className="sr-only">Featured image</span>
-                </>
-            ),
-            cell: (row) =>
-                row.featuredImage?.thumbUrl ? (
-                    <img
-                        data-test="featured-thumb"
-                        src={row.featuredImage.thumbUrl}
-                        alt=""
-                        loading="lazy"
-                        className="h-8 w-12 rounded-sm object-cover"
-                    />
-                ) : (
-                    <span
-                        data-test="featured-none"
-                        className="border-edge text-ink-2 grid h-8 w-12 place-items-center rounded-sm border border-dashed"
-                    >
-                        <ImageIcon aria-hidden className="size-3.5" />
-                        <span className="sr-only">No featured image</span>
-                    </span>
-                ),
-        },
-        {
-            id: 'title',
-            owner: 'core',
-            header: 'Title',
-            sort: sortBy('title'),
-            className: 'min-w-40',
-            // A trashed item has no editor (it answers 404), and someone
-            // else's the person may not edit answers 403, so either title
-            // stays plain text.
-            cell: (row) => {
-                const suffix = statusSuffix(row);
-
-                return (
-                    <>
-                        {row.trashed || !row.canEdit ? (
-                            <span
-                                data-test="row-title"
-                                className="font-semibold"
-                            >
-                                {shownTitle(row.title)}
-                            </span>
-                        ) : (
-                            <Link
-                                href={contentEdit(row.id).url}
-                                data-test="row-title"
-                                className="font-semibold hover:underline"
-                            >
-                                {shownTitle(row.title)}
-                            </Link>
-                        )}
-                        {suffix !== null && (
-                            <span
-                                data-test="status-suffix"
-                                className="text-ink-2"
-                            >
-                                {` — ${suffix}`}
-                            </span>
-                        )}
-                        {/* Not an empty line: a row the person may not edit has none. */}
-                        {row.canEdit && (
-                            <RowLinks
-                                label={`Actions for ${shownTitle(row.title)}`}
-                                more={`More actions for ${shownTitle(row.title)}`}
-                                items={rowActions(row, page, () =>
-                                    setEditing(row.id),
-                                )}
-                            />
-                        )}
-                    </>
-                );
-            },
-        },
+                }
+            />
+        ),
+    };
+    const status: Column<ContentRow> = {
+        id: 'status',
+        owner: 'core',
+        header: __('Status'),
+        width: 120,
+        cell: (row) => <StatusCell row={row} inTrash={inTrash} />,
+    };
+    const optional: (Column<ContentRow> & { label: string })[] = [
         {
             id: 'author',
             owner: 'core',
-            header: 'Author',
-            sort:
-                activeTab === 'mine' || page.filters.author !== undefined
-                    ? undefined
-                    : sortBy('author'),
-            cell: (row) => row.authorName ?? '—',
+            header: __('Author'),
+            label: __('Author'),
+            width: WIDTHS.author,
+            sort: authorSortable ? sortBy('author') : undefined,
+            cell: (row) => (
+                <span className="block truncate">{row.authorName ?? '—'}</span>
+            ),
         },
-        ...page.typeTaxonomies.map((taxonomy): Column<ContentRow> => ({
-            id: `taxonomy-${taxonomy.key}`,
-            owner: 'core',
-            header: taxonomy.plural,
-            cell: (row) => {
-                const terms = row.terms[taxonomy.key] ?? [];
-
-                if (terms.length === 0) {
-                    return '—';
-                }
-
-                if (!taxonomy.hierarchical) {
-                    return terms.map((term) => term.name).join(', ');
-                }
-
-                return terms.map((term, at) => (
-                    <Fragment key={term.id}>
-                        {at > 0 && ', '}
-                        <Link
-                            href={
-                                contentIndex(
-                                    { type: page.type },
-                                    {
-                                        query: {
-                                            ...keep,
-                                            [taxonomy.key]: term.id,
-                                        },
-                                    },
-                                ).url
-                            }
-                            className="inline-flex min-h-6 min-w-6 items-center hover:underline"
-                        >
-                            {term.name}
-                        </Link>
-                    </Fragment>
-                ));
-            },
-        })),
+        ...page.typeTaxonomies.map(
+            (taxonomy): Column<ContentRow> & { label: string } => ({
+                id: `taxonomy-${taxonomy.key}`,
+                owner: 'core',
+                header: taxonomy.plural,
+                label: taxonomy.plural,
+                width: taxonomy.hierarchical ? 146 : 168,
+                cell: (row) => (
+                    <TermChips
+                        terms={row.terms[taxonomy.key] ?? []}
+                        noun={{
+                            one: taxonomy.singular.toLowerCase(),
+                            many: taxonomy.plural.toLowerCase(),
+                        }}
+                        emptyLabel={__('No :plural', {
+                            plural: taxonomy.plural.toLowerCase(),
+                        })}
+                    />
+                ),
+            }),
+        ),
         ...(page.takesComments
             ? [
                   {
                       id: 'comments',
                       owner: 'core',
-                      header: 'Comments',
-                      className: 'text-right',
-                      cell: (row) => (
+                      header: __('Comments'),
+                      label: __('Comments'),
+                      width: WIDTHS.comments,
+                      className: 'text-end tabular-nums',
+                      cell: (row: ContentRow) => (
                           <CommentsCell itemId={row.id} counts={row.comments} />
                       ),
-                  } satisfies Column<ContentRow>,
+                  },
               ]
             : []),
         {
             id: 'date',
             owner: 'core',
-            header: 'Date',
+            header: __('Date'),
+            label: __('Date'),
+            width: WIDTHS.date,
             sort: sortBy(dateSort),
             cell: (row) => <DateCell row={row} page={page} />,
         },
     ];
-    // The person's Screen options choose which columns show, never where:
-    // the table keeps its own order. Without a declaration, every column.
-    // Featured image is offered and never on until someone turns it on (I-3120).
-    const isShown = (id: string) =>
-        id === 'featured'
-            ? Array.isArray(shownColumns) && shownColumns.includes(id)
-            : !Array.isArray(shownColumns) || shownColumns.includes(id);
-    const optionalColumns = allColumns.filter(
-        (column) => !FIXED_COLUMNS.includes(column.id),
-    );
-    const columns = allColumns.filter(
-        (column) => FIXED_COLUMNS.includes(column.id) || isShown(column.id),
-    );
+    const menu: Column<ContentRow> = {
+        id: 'menu',
+        owner: 'core',
+        width: 56,
+        className: 'px-2',
+        header: <span className="sr-only">{__('Actions')}</span>,
+        cell: (row) => {
+            const items = menuActions(row, page);
+
+            return (
+                items.length > 0 && (
+                    <RowMenu title={shownTitle(row.title)} items={items} />
+                )
+            );
+        },
+    };
+    // The person's order, then any column the preference does not name, in
+    // the table's own; without a preference, every column but the thumbnails (I-3120).
+    const named = Array.isArray(shownColumns) ? shownColumns : null;
+    const ordered = [
+        ...(named ?? [])
+            .map((id) => optional.find((column) => column.id === id))
+            .filter((column) => column !== undefined),
+        ...optional.filter((column) => !(named ?? []).includes(column.id)),
+    ];
+    const isShown = (id: string) => named === null || named.includes(id);
+    const columns: Column<ContentRow>[] = [
+        select,
+        titleColumn,
+        status,
+        ...ordered.filter((column) => isShown(column.id)),
+        menu,
+    ];
+    const cards: CardLayout = {
+        titleColumn: 'title',
+        select: 'select',
+        menu: 'menu',
+        facts: ['status', 'date', 'author'],
+        selectLabel: __('Select all :count :plural shown', {
+            count: editable.length,
+            plural,
+        }),
+        sort: sortable
+            ? {
+                  options: [
+                      { key: 'updated', label: __('Last modified') },
+                      ...(dateSort !== 'updated'
+                          ? [{ key: dateSort, label: __('Date') }]
+                          : []),
+                      { key: 'title', label: __('Title') },
+                      ...(authorSortable
+                          ? [{ key: 'author', label: __('Author') }]
+                          : []),
+                  ],
+                  current: page.sort,
+                  direction: page.direction,
+              }
+            : undefined,
+    };
+    const selectedKeys = new Set<string | number>(selected);
 
     return (
-        <>
+        <ListPage
+            title={title}
+            description={__('Everything of this kind on the site.')}
+            actions={
+                page.canAdd && (
+                    <Form
+                        {...ContentListController.store.form({
+                            type: page.type,
+                        })}
+                    >
+                        {({ processing }) => (
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                data-test="add-new"
+                                disabled={processing}
+                            >
+                                {__('Add new :singular', { singular })}
+                            </Button>
+                        )}
+                    </Form>
+                )
+            }
+        >
             <Head title={title} />
 
-            <div className="space-y-4 p-6">
-                <PageHeader
-                    title={title}
-                    description="Everything of this kind on the site. A filtered list shows no total."
-                    action={
-                        <>
-                            <ScreenOptions
-                                list={typeKey}
-                                columns={optionalColumns.map((column) => ({
-                                    id: column.id,
-                                    // Every optional column is headed by plain text or has a label.
-                                    label:
-                                        column.label ??
-                                        (typeof column.header === 'string'
-                                            ? column.header
-                                            : column.id),
-                                    shown: isShown(column.id),
-                                }))}
-                                perPage={preferences['lists.per_page']}
-                                open={openPanel === 'screen-options'}
-                                onOpenChange={panelOpen('screen-options')}
+            <InPageNav
+                label={__('Status')}
+                items={page.tabs.map((tab) => ({
+                    label: tab.label,
+                    count: tab.count,
+                    current: tab.key === activeTab,
+                    href: contentIndex(
+                        { type: page.type },
+                        { query: { tab: tab.key } },
+                    ).url,
+                }))}
+            />
+
+            {page.scheduleWarning.length > 0 && (
+                <Notice tone="warn" role="status">
+                    {page.scheduleWarning.map((line) => (
+                        <p key={line}>{line}</p>
+                    ))}
+                </Notice>
+            )}
+
+            <FilterRow
+                active={activeFilters}
+                search={
+                    <form
+                        role="search"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            searchTo(searchIn);
+                        }}
+                        className="flex w-full items-center gap-2 sm:w-auto"
+                    >
+                        <Input
+                            ref={searchRef}
+                            data-test="list-search"
+                            name="search"
+                            defaultValue={page.filters.search ?? ''}
+                            placeholder={
+                                searchIn === 'body'
+                                    ? __('Search text')
+                                    : __('Search titles')
+                            }
+                            aria-label={
+                                searchIn === 'body'
+                                    ? __('Search text')
+                                    : __('Search titles')
+                            }
+                            className="min-w-0 flex-1 sm:w-70 sm:flex-none"
+                        />
+                        <SelectField
+                            name="in"
+                            value={searchIn}
+                            onValueChange={(next) => {
+                                setSearchIn(next);
+
+                                // Typed words search at once in the place chosen; else it goes with the next search.
+                                if ((searchRef.current?.value ?? '') !== '') {
+                                    searchTo(next);
+                                }
+                            }}
+                            aria-label={__('Search in')}
+                            aria-describedby="search-in-hint"
+                            options={[
+                                { value: 'title', label: __('In titles') },
+                                { value: 'body', label: __('In text') },
+                            ]}
+                            className="w-32 shrink-0"
+                        />
+                        {searchIn === 'body' && (
+                            <span
+                                id="search-in-hint"
+                                className="text-ink-3 text-small"
+                            >
+                                {__('Published text only')}
+                            </span>
+                        )}
+                    </form>
+                }
+                filters={
+                    <>
+                        <ChoiceFilter
+                            testId="filter-author"
+                            label={__('Author')}
+                            allLabel={__('All authors')}
+                            options={page.authors.map((author) => ({
+                                value: String(author.value),
+                                label: author.label,
+                            }))}
+                            value={page.filters.author}
+                            onChange={(value) => filterTo({ author: value })}
+                        />
+                        {nesting.map((taxonomy) => (
+                            <ChoiceFilter
+                                key={taxonomy.key}
+                                testId={`filter-${taxonomy.key}`}
+                                label={taxonomy.singular}
+                                allLabel={__('All :plural', {
+                                    plural: taxonomy.plural.toLowerCase(),
+                                })}
+                                options={treeOptions[taxonomy.key] ?? []}
+                                value={page.filters[taxonomy.key]}
+                                onChange={(value) =>
+                                    filterTo({ [taxonomy.key]: value })
+                                }
                             />
-                            {page.canAdd && (
+                        ))}
+                        {flat.map((taxonomy) => (
+                            <TermSearchFilter
+                                key={taxonomy.key}
+                                testId={`filter-${taxonomy.key}`}
+                                taxonomy={taxonomy.key}
+                                label={taxonomy.singular}
+                                allLabel={__('All :plural', {
+                                    plural: taxonomy.plural.toLowerCase(),
+                                })}
+                                value={page.filters[taxonomy.key]}
+                                valueName={page.chosenTerms[taxonomy.key]}
+                                onChange={(value) =>
+                                    filterTo({ [taxonomy.key]: value })
+                                }
+                            />
+                        ))}
+                        <DateFilter
+                            dates={page.dates}
+                            filters={page.filters}
+                            tabCount={
+                                narrowed || page.dates.months[0]?.count === null
+                                    ? null
+                                    : scopeCount
+                            }
+                            hrefFor={hrefFor}
+                            open={dateOpen}
+                            onOpenChange={setDateOpen}
+                        />
+                    </>
+                }
+                clear={
+                    <Button asChild variant="ghost" className="shrink-0">
+                        <Link href={clearHref} data-test="clear-filters">
+                            {__('Clear filters')}
+                        </Link>
+                    </Button>
+                }
+                end={
+                    <ColumnChooser
+                        list={typeKey}
+                        columns={ordered.map((column) => ({
+                            id: column.id,
+                            label: column.label,
+                            width: column.width,
+                        }))}
+                        shown={ordered
+                            .filter((column) => isShown(column.id))
+                            .map((column) => column.id)}
+                        thumbnails={thumbnails}
+                        perPage={perPage}
+                    />
+                }
+            />
+
+            {reviewFilter !== undefined && (
+                <div className="flex flex-wrap items-center gap-1">
+                    <StatusPill tone="neutral" flat>
+                        {reviewFilter}
+                    </StatusPill>
+                    {/* Its own 24-pixel button: the pill's built-in remove is smaller than a target may be (I-3398). */}
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label={__('Remove the filter: :filter', {
+                            filter: reviewFilter,
+                        })}
+                        onClick={() => filterTo({ review: null })}
+                    >
+                        <X aria-hidden="true" />
+                    </Button>
+                </div>
+            )}
+
+            {editReport && (
+                <Notice
+                    tone={editReport.notSent.length > 0 ? 'warn' : 'info'}
+                    role="status"
+                    title={__(':done changed; :skipped skipped', {
+                        done: editReport.done,
+                        skipped: editReport.skipped.length,
+                    })}
+                >
+                    {editReport.notSent.length > 0 && (
+                        <p>
+                            {__(':count not changed', {
+                                count: editReport.notSent.length,
+                            })}
+                        </p>
+                    )}
+                    {editReport.changed.length > 0 && (
+                        <ul className="list-disc ps-5">
+                            {editReport.changed.map((line) => (
+                                <li key={line.id}>
+                                    {shownTitle(line.title)}: {line.summary}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                    {editReport.skipped.length > 0 && (
+                        <>
+                            <p className="font-medium">{__('Skipped:')}</p>
+                            <ul className="list-disc ps-5">
+                                {editReport.skipped.map((skip) => (
+                                    <li key={skip.id}>
+                                        {shownTitle(skip.title)} — {skip.reason}
+                                    </li>
+                                ))}
+                            </ul>
+                        </>
+                    )}
+                    {editReport.notSent.length > 0 && (
+                        <p className="text-danger-ink">
+                            {__(
+                                'Something went wrong, so these weren’t changed: :titles. Select them and try again.',
+                                {
+                                    titles: editReport.notSent
+                                        .map((item) => shownTitle(item.title))
+                                        .join(', '),
+                                },
+                            )}
+                        </p>
+                    )}
+                </Notice>
+            )}
+
+            {page.bulk && page.bulk.skipped.length > 0 && (
+                <Notice
+                    tone="info"
+                    role="status"
+                    title={__(':done changed; :skipped skipped:', {
+                        done: page.bulk.done,
+                        skipped: page.bulk.skipped.length,
+                    })}
+                >
+                    <ul className="list-disc ps-5">
+                        {page.bulk.skipped.map((skip) => (
+                            <li key={skip.id}>
+                                {shownTitle(skip.title)} — {skip.reason}
+                            </li>
+                        ))}
+                    </ul>
+                </Notice>
+            )}
+
+            {selected.length > 0 && (
+                <BulkBar
+                    count={
+                        allMatching && !page.filtered
+                            ? scopeCount
+                            : selected.length
+                    }
+                    noun={{ one: singular, many: plural }}
+                    selectedLabel={
+                        allMatching && page.filtered
+                            ? __('All matching :plural selected', { plural })
+                            : undefined
+                    }
+                    onClear={() => {
+                        setAllMatching(false);
+                        setSelected([]);
+                    }}
+                >
+                    {inTrash ? (
+                        <>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="neutral"
+                                className="bg-surface"
+                                disabled={bulkBusy}
+                                aria-describedby="bulk-error"
+                                onClick={() =>
+                                    allMatching
+                                        ? setConfirming('restore')
+                                        : bulk('restore')
+                                }
+                            >
+                                {__('Restore')}
+                            </Button>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="danger"
+                                disabled={bulkBusy}
+                                aria-describedby="bulk-error"
+                                onClick={() =>
+                                    allMatching
+                                        ? setConfirming('delete')
+                                        : setDeleting(true)
+                                }
+                            >
+                                {__('Delete permanently')}
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            {!allMatching && (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="neutral"
+                                    className="bg-surface"
+                                    onClick={() => setBulkEditing(true)}
+                                >
+                                    {__('Edit…')}
+                                </Button>
+                            )}
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="neutral"
+                                className="bg-surface text-danger-ink"
+                                disabled={bulkBusy}
+                                aria-describedby="bulk-error"
+                                onClick={() =>
+                                    allMatching
+                                        ? setConfirming('trash')
+                                        : bulk('trash')
+                                }
+                            >
+                                {__('Move to trash')}
+                            </Button>
+                        </>
+                    )}
+                    {!allMatching && (
+                        <SelectAllMatching
+                            page={page}
+                            editableCount={editable.length}
+                            selectedCount={selected.length}
+                            onChoose={() => setAllMatching(true)}
+                        />
+                    )}
+                    <InputError
+                        id="bulk-error"
+                        message={bulkError ?? undefined}
+                    />
+                </BulkBar>
+            )}
+
+            <ConfirmItems
+                open={deleting}
+                onOpenChange={setDeleting}
+                title={
+                    chosenTitles.length === 1
+                        ? __('Delete “:title” permanently?', {
+                              title: chosenTitles[0],
+                          })
+                        : __('Delete :count :plural permanently?', {
+                              count: chosenTitles.length.toLocaleString(),
+                              plural,
+                          })
+                }
+                description={
+                    chosenTitles.length === 1
+                        ? __(
+                              '“:title” and all its revisions are deleted. This can’t be undone.',
+                              { title: chosenTitles[0] },
+                          )
+                        : __(
+                              'All their revisions go with them. This can’t be undone.',
+                          )
+                }
+                items={chosenTitles}
+                listLabel={__(':plural to delete', {
+                    plural: page.labels.plural,
+                })}
+                confirmLabel={__('Delete permanently')}
+                processing={bulkBusy}
+                onConfirm={() => bulk('delete')}
+            />
+
+            <ConfirmMatching
+                action={confirming}
+                page={page}
+                processing={bulkBusy}
+                onOpenChange={(open) => !open && setConfirming(null)}
+                onConfirm={() =>
+                    confirming !== null && startMatching(confirming)
+                }
+            />
+
+            {bulkEditing && (
+                <BulkEditDialog
+                    page={page}
+                    rows={page.rows.filter((row) => selected.includes(row.id))}
+                    onClose={() => setBulkEditing(false)}
+                    onFinished={(report) => {
+                        setBulkEditing(false);
+                        setSelected([]);
+                        setEditReport(report);
+                        router.reload();
+                    }}
+                />
+            )}
+
+            <DataTable
+                columns={columns}
+                rows={page.rows}
+                rowKey={(row) => row.id}
+                caption={title}
+                onSort={sort}
+                selectedKeys={selectedKeys}
+                pinned={{ start: ['select', 'title'], end: ['menu'] }}
+                cards={cards}
+                wideNote={__('More columns: scroll sideways')}
+                footer={
+                    <NumberedPager
+                        pages={page.paging}
+                        perPage={perPage}
+                        href={(query) =>
+                            contentIndex(
+                                { type: page.type },
+                                {
+                                    query: {
+                                        ...keep,
+                                        tab: activeTab,
+                                        ...query,
+                                    },
+                                },
+                            ).url
+                        }
+                    />
+                }
+                empty={
+                    <EmptyState
+                        kind={emptyKind}
+                        title={
+                            page.filtered
+                                ? __('No :plural match these filters', {
+                                      plural: title.toLowerCase(),
+                                  })
+                                : activeTab === 'trash'
+                                  ? __('The trash is empty')
+                                  : __('No :plural here yet', {
+                                        plural: title.toLowerCase(),
+                                    })
+                        }
+                        clearHref={
+                            contentIndex(
+                                { type: page.type },
+                                { query: { tab: activeTab } },
+                            ).url
+                        }
+                        action={
+                            activeTab !== 'trash' &&
+                            page.canAdd && (
                                 <Form
                                     {...ContentListController.store.form({
                                         type: page.type,
@@ -1052,550 +1644,37 @@ export default function ContentIndex(page: ContentIndexPage) {
                                 >
                                     {({ processing }) => (
                                         <Button
-                                            type="submit"
-                                            data-test="add-new"
+                                            variant="neutral"
+                                            data-test="add-new-empty"
                                             disabled={processing}
                                         >
-                                            {isMobile
-                                                ? 'Add new'
-                                                : `Add new ${singular}`}
+                                            {__('Add new :singular', {
+                                                singular,
+                                            })}
                                         </Button>
                                     )}
                                 </Form>
-                            )}
-                        </>
-                    }
-                />
-
-                <TabStrip
-                    label="Status"
-                    current={activeTab}
-                    tabs={page.tabs.map((tab) => ({
-                        key: tab.key,
-                        label: tab.label,
-                        count: tab.count,
-                        href: contentIndex(
-                            { type: page.type },
-                            { query: { tab: tab.key } },
-                        ),
-                    }))}
-                />
-
-                <div data-test="list-filters" className="min-w-0">
-                    <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <form
-                            role="search"
-                            onSubmit={(event) => {
-                                event.preventDefault();
-                                searchTo(searchIn);
-                            }}
-                            className={
-                                isMobile
-                                    ? 'flex w-full items-center gap-2'
-                                    : 'flex items-center gap-2'
-                            }
-                        >
-                            <Input
-                                ref={searchRef}
-                                data-test="list-search"
-                                name="search"
-                                defaultValue={page.filters.search ?? ''}
-                                placeholder={
-                                    searchIn === 'body'
-                                        ? 'Search text'
-                                        : 'Search titles'
-                                }
-                                aria-label={
-                                    searchIn === 'body'
-                                        ? 'Search text'
-                                        : 'Search titles'
-                                }
-                                className="h-8 min-w-0 flex-1 sm:w-72 sm:flex-none"
-                            />
-                            <SelectField
-                                name="in"
-                                value={searchIn}
-                                onValueChange={(next) => {
-                                    setSearchIn(next);
-
-                                    // Typed words search at once in the place chosen; else it goes with the next search.
-                                    if (
-                                        (searchRef.current?.value ?? '') !== ''
-                                    ) {
-                                        searchTo(next);
-                                    }
-                                }}
-                                aria-label="Search in"
-                                aria-describedby="search-in-hint"
-                                options={[
-                                    { value: 'title', label: 'In titles' },
-                                    { value: 'body', label: 'In text' },
-                                ]}
-                            />
-                            {searchIn === 'body' && (
-                                <span
-                                    id="search-in-hint"
-                                    className="text-ink-2 text-xs"
-                                >
-                                    Published text only
-                                </span>
-                            )}
-                        </form>
-                        <div
-                            data-test={isMobile ? 'filter-chips' : undefined}
-                            className={
-                                isMobile
-                                    ? 'flex w-full min-w-0 gap-2 overflow-x-auto pb-1'
-                                    : 'flex flex-wrap items-center gap-2'
-                            }
-                        >
-                            <FilterButton
-                                name="author"
-                                label="Author"
-                                value={
-                                    page.authors.find(
-                                        (author) =>
-                                            String(author.value) ===
-                                            page.filters.author,
-                                    )?.label ?? 'All'
-                                }
-                                active={page.filters.author !== undefined}
-                                open={openPanel === 'author'}
-                                onOpenChange={panelOpen('author')}
-                                choices={[
-                                    {
-                                        key: 'all',
-                                        label: 'All authors',
-                                        href: hrefFor({ author: null }),
-                                        current:
-                                            page.filters.author === undefined,
-                                    },
-                                    ...page.authors.map((author) => ({
-                                        key: String(author.value),
-                                        label: author.label,
-                                        href: hrefFor({
-                                            author: String(author.value),
-                                        }),
-                                        current:
-                                            page.filters.author ===
-                                            String(author.value),
-                                    })),
-                                ]}
-                            />
-                            {/* Later (I-1452): a searchable filter for any taxonomy, flat ones too, once the shared combobox exists. */}
-                            {nesting.map((taxonomy) => (
-                                <FilterButton
-                                    key={taxonomy.key}
-                                    name={taxonomy.key}
-                                    label={taxonomy.singular}
-                                    value={
-                                        page.filters[taxonomy.key] === undefined
-                                            ? 'All'
-                                            : (treeOptions[taxonomy.key]?.find(
-                                                  (option) =>
-                                                      option.value ===
-                                                      page.filters[
-                                                          taxonomy.key
-                                                      ],
-                                              )?.label ?? 'All')
-                                    }
-                                    active={
-                                        page.filters[taxonomy.key] !== undefined
-                                    }
-                                    open={openPanel === taxonomy.key}
-                                    onOpenChange={panelOpen(taxonomy.key)}
-                                    choices={[
-                                        {
-                                            key: 'all',
-                                            label: `All ${taxonomy.plural.toLowerCase()}`,
-                                            href: hrefFor({
-                                                [taxonomy.key]: null,
-                                            }),
-                                            current:
-                                                page.filters[taxonomy.key] ===
-                                                undefined,
-                                        },
-                                        ...(
-                                            treeOptions[taxonomy.key] ?? []
-                                        ).map((option) => ({
-                                            key: option.value,
-                                            label: option.label,
-                                            depth: option.depth,
-                                            href: hrefFor({
-                                                [taxonomy.key]: option.value,
-                                            }),
-                                            current:
-                                                page.filters[taxonomy.key] ===
-                                                option.value,
-                                        })),
-                                    ]}
-                                />
-                            ))}
-                            <DateFilter
-                                dates={page.dates}
-                                filters={page.filters}
-                                tabCount={
-                                    narrowed ||
-                                    page.dates.months[0]?.count === null
-                                        ? null
-                                        : scopeCount
-                                }
-                                hrefFor={hrefFor}
-                                open={openPanel === 'date'}
-                                onOpenChange={panelOpen('date')}
-                            />
-                            {narrowed && (
-                                <Button
-                                    asChild
-                                    variant="ghost"
-                                    className="h-8 shrink-0"
-                                >
-                                    <Link
-                                        href={clearHref}
-                                        data-test="clear-filters"
-                                    >
-                                        Clear filters
-                                    </Link>
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {(reviewFilter !== undefined || termChips.length > 0) && (
-                    <div className="flex flex-wrap gap-2">
-                        {reviewFilter !== undefined && (
-                            <span className="border-line bg-surface-2 inline-flex items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-3 text-[13px]">
-                                {reviewFilter}
-                                <Link
-                                    href={
-                                        contentIndex(
-                                            { type: page.type },
-                                            {
-                                                query: Object.fromEntries(
-                                                    Object.entries(keep).filter(
-                                                        ([key]) =>
-                                                            key !== 'review',
-                                                    ),
-                                                ),
-                                            },
-                                        ).url
-                                    }
-                                    aria-label={`Remove the filter: ${reviewFilter}`}
-                                    className="hover:bg-surface-3 inline-flex size-6 items-center justify-center rounded-full"
-                                >
-                                    <X className="size-3.5" />
-                                </Link>
-                            </span>
-                        )}
-                        {termChips.map((chip) => (
-                            <span
-                                key={chip.key}
-                                data-test="filter-chip"
-                                className="border-line bg-surface-2 inline-flex items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-3 text-[13px]"
-                            >
-                                {chip.label}
-                                <Link
-                                    href={chip.href}
-                                    aria-label={`Remove the filter: ${chip.label}`}
-                                    className="hover:bg-surface-3 inline-flex size-6 items-center justify-center rounded-full"
-                                >
-                                    <X className="size-3.5" />
-                                </Link>
-                            </span>
-                        ))}
-                    </div>
-                )}
-
-                {page.scheduleWarning.length > 0 && (
-                    <div
-                        role="status"
-                        className="bg-warn-soft text-warn-ink grid gap-1 rounded-md px-3 py-2 text-[13px]"
-                    >
-                        {page.scheduleWarning.map((line) => (
-                            <p key={line} className="flex items-start gap-2">
-                                <CircleAlert className="mt-0.5 size-4 shrink-0" />
-                                {line}
-                            </p>
-                        ))}
-                    </div>
-                )}
-
-                {editReport && (
-                    <div
-                        role="status"
-                        className="border-line grid gap-2 border-y py-3 text-[13px]"
-                    >
-                        <p className="font-medium">
-                            {editReport.done} changed;{' '}
-                            {editReport.skipped.length} skipped
-                            {editReport.notSent.length > 0 &&
-                                `; ${editReport.notSent.length} not changed`}
-                        </p>
-                        {editReport.changed.length > 0 && (
-                            <ul className="list-disc pl-5">
-                                {editReport.changed.map((line) => (
-                                    <li key={line.id}>
-                                        {shownTitle(line.title)}: {line.summary}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        {editReport.skipped.length > 0 && (
-                            <>
-                                <p className="font-medium">Skipped:</p>
-                                <ul className="list-disc pl-5">
-                                    {editReport.skipped.map((skip) => (
-                                        <li key={skip.id}>
-                                            {shownTitle(skip.title)} —{' '}
-                                            {skip.reason}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </>
-                        )}
-                        {editReport.notSent.length > 0 && (
-                            <p className="text-danger-ink">
-                                Something went wrong, so these weren’t changed:{' '}
-                                {editReport.notSent
-                                    .map((item) => shownTitle(item.title))
-                                    .join(', ')}
-                                . Select them and try again.
-                            </p>
-                        )}
-                    </div>
-                )}
-
-                {page.bulk && page.bulk.skipped.length > 0 && (
-                    <div
-                        role="status"
-                        className="border-line border-y py-3 text-[13px]"
-                    >
-                        <p className="font-medium">
-                            {page.bulk.done} changed; {page.bulk.skipped.length}{' '}
-                            skipped:
-                        </p>
-                        <ul className="list-disc pl-5">
-                            {page.bulk.skipped.map((skip) => (
-                                <li key={skip.id}>
-                                    {shownTitle(skip.title)} — {skip.reason}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                {selected.length > 0 && (
-                    <BulkBar
-                        count={
-                            allMatching && !page.filtered
-                                ? scopeCount
-                                : selected.length
+                            )
                         }
-                        noun={{ one: singular, many: plural }}
-                        selectedLabel={
-                            allMatching && page.filtered
-                                ? `All matching ${plural} selected`
-                                : undefined
-                        }
-                        onClear={() => {
-                            setAllMatching(false);
-                            setSelected([]);
-                        }}
-                    >
-                        {inTrash ? (
-                            <>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={bulkBusy}
-                                    aria-describedby="bulk-error"
-                                    onClick={() =>
-                                        allMatching
-                                            ? setConfirming('restore')
-                                            : bulk('restore')
-                                    }
-                                >
-                                    Restore
-                                </Button>
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="destructive"
-                                    disabled={bulkBusy}
-                                    aria-describedby="bulk-error"
-                                    onClick={() =>
-                                        allMatching
-                                            ? setConfirming('delete')
-                                            : setDeleting(true)
-                                    }
-                                >
-                                    Delete permanently
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                {!allMatching && (
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setBulkEditing(true)}
-                                    >
-                                        Edit…
-                                    </Button>
-                                )}
-                                <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="destructive"
-                                    disabled={bulkBusy}
-                                    aria-describedby="bulk-error"
-                                    onClick={() =>
-                                        allMatching
-                                            ? setConfirming('trash')
-                                            : bulk('trash')
-                                    }
-                                >
-                                    Move to trash
-                                </Button>
-                            </>
-                        )}
-                        {!allMatching && (
-                            <SelectAllMatching
-                                page={page}
-                                editableCount={editable.length}
-                                selectedCount={selected.length}
-                                onChoose={() => setAllMatching(true)}
-                            />
-                        )}
-                        <InputError
-                            id="bulk-error"
-                            message={bulkError ?? undefined}
-                        />
-                    </BulkBar>
-                )}
-
-                <ConfirmItems
-                    open={deleting}
-                    onOpenChange={setDeleting}
-                    title={
-                        chosenTitles.length === 1
-                            ? `Delete “${chosenTitles[0]}” permanently?`
-                            : `Delete ${chosenTitles.length.toLocaleString()} ${plural} permanently?`
-                    }
-                    description={
-                        chosenTitles.length === 1
-                            ? `“${chosenTitles[0]}” and all its revisions are deleted. This can’t be undone.`
-                            : 'All their revisions go with them. This can’t be undone.'
-                    }
-                    items={chosenTitles}
-                    listLabel={`${page.labels.plural} to delete`}
-                    confirmLabel="Delete permanently"
-                    processing={bulkBusy}
-                    onConfirm={() => bulk('delete')}
-                />
-
-                <ConfirmMatching
-                    action={confirming}
-                    page={page}
-                    processing={bulkBusy}
-                    onOpenChange={(open) => !open && setConfirming(null)}
-                    onConfirm={() =>
-                        confirming !== null && startMatching(confirming)
-                    }
-                />
-
-                {bulkEditing && (
-                    <BulkEditDialog
-                        page={page}
-                        rows={page.rows.filter((row) =>
-                            selected.includes(row.id),
-                        )}
-                        onClose={() => setBulkEditing(false)}
-                        onFinished={(report) => {
-                            setBulkEditing(false);
-                            setSelected([]);
-                            setEditReport(report);
-                            router.reload();
-                        }}
                     />
-                )}
-
-                <DataTable
-                    columns={columns}
-                    rows={page.rows}
-                    rowKey={(row) => row.id}
-                    caption={title}
-                    onSort={sort}
-                    empty={
-                        <EmptyState
-                            kind={emptyKind}
-                            title={
-                                page.filtered
-                                    ? `No ${title.toLowerCase()} match these filters`
-                                    : activeTab === 'trash'
-                                      ? 'The trash is empty'
-                                      : `No ${title.toLowerCase()} here yet`
-                            }
-                            clearHref={
-                                contentIndex(
-                                    { type: page.type },
-                                    { query: { tab: activeTab } },
-                                ).url
-                            }
-                            action={
-                                activeTab !== 'trash' &&
-                                page.canAdd && (
-                                    <Form
-                                        {...ContentListController.store.form({
-                                            type: page.type,
-                                        })}
-                                    >
-                                        {({ processing }) => (
-                                            <Button
-                                                variant="outline"
-                                                data-test="add-new-empty"
-                                                disabled={processing}
-                                            >
-                                                Add new {singular}
-                                            </Button>
-                                        )}
-                                    </Form>
-                                )
-                            }
-                        />
-                    }
-                />
-
-                <Pager
-                    newer={
-                        page.newer
-                            ? contentIndex(
-                                  { type: page.type },
-                                  { query: { ...keep, before: page.newer } },
-                              ).url
-                            : null
-                    }
-                    older={
-                        page.older
-                            ? contentIndex(
-                                  { type: page.type },
-                                  { query: { ...keep, after: page.older } },
-                              ).url
-                            : null
-                    }
-                />
-            </div>
+                }
+            />
 
             <Sheet
                 open={editingRow !== undefined}
                 onOpenChange={(open) => !open && setEditing(null)}
             >
-                <SheetContent className="w-full overflow-y-auto sm:max-w-[480px]">
+                <SheetContent
+                    className="w-full sm:max-w-120"
+                    onCloseAutoFocus={(event) => {
+                        if (opener.current?.isConnected) {
+                            event.preventDefault();
+                            opener.current.focus();
+                        }
+                    }}
+                >
                     <SheetHeader>
-                        <SheetTitle>Quick edit</SheetTitle>
+                        <SheetTitle>{__('Quick edit')}</SheetTitle>
                         <SheetDescription>
                             {shownTitle(editingRow?.title)}
                         </SheetDescription>
@@ -1609,6 +1688,6 @@ export default function ContentIndex(page: ContentIndexPage) {
                     )}
                 </SheetContent>
             </Sheet>
-        </>
+        </ListPage>
     );
 }

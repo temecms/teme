@@ -40,3 +40,10 @@ it('draws row actions with no hover rule', function (): void {
     expect($line)->not->toContain('opacity-0')
         ->and($line)->not->toContain('group-hover');
 });
+
+it('pages these lists only through the numbered pager', function (string $page): void {
+    $source = uiComponent($page);
+
+    expect($source)->toContain("from '@/components/list/numbered-pager'")
+        ->and($source)->not->toContain("from '@/components/list/pager'");
+})->with(['pages/content/index.tsx']);

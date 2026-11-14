@@ -27,7 +27,7 @@ it('gives no page its own select styling', function (string $page): void {
     expect(uiComponent($page))->not->toContain('selectClass')
         ->and(uiComponent($page))->not->toContain('<select')
         ->and(uiComponent($page))->toContain("from '@/components/ui/select-field'");
-})->with(['pages/content/index.tsx', 'components/people/invite-dialog.tsx', 'components/people/role-dialog.tsx', 'components/people/delete-dialog.tsx', 'components/list/screen-options.tsx', 'components/list/bulk-edit-dialog.tsx', 'components/themes/design-field.tsx']);
+})->with(['pages/content/index.tsx', 'components/people/invite-dialog.tsx', 'components/people/role-dialog.tsx', 'components/people/delete-dialog.tsx', 'components/list/column-chooser.tsx', 'components/list/bulk-edit-dialog.tsx', 'components/themes/design-field.tsx']);
 
 it('keeps the empty choice\'s sentinel inside the select field', function (): void {
     $field = uiComponent('components/ui/select-field.tsx');
