@@ -90,7 +90,12 @@ export function temeExtensions(
     return [
         // Heading levels 2 to 4: the article's h1 is its title, a separate field.
         // StarterKit 3 already includes Underline.
-        StarterKit.configure({ heading: { levels: [2, 3, 4] }, link: false }),
+        StarterKit.configure({
+            heading: { levels: [2, 3, 4] },
+            link: false,
+            // Where a dragged block lands: a 3px line in the accent.
+            dropcursor: { width: 3, color: 'var(--accent)' },
+        }),
         Highlight,
         Subscript,
         Superscript,

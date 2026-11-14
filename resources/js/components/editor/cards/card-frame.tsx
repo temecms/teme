@@ -1,11 +1,5 @@
 import { NodeViewWrapper } from '@tiptap/react';
-import {
-    AlertTriangle,
-    GripVertical,
-    Pencil,
-    Replace,
-    Trash2,
-} from 'lucide-react';
+import { AlertTriangle, Pencil, Replace, Trash2 } from 'lucide-react';
 import { useId, useState } from 'react';
 import type { ComponentProps, ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
@@ -71,15 +65,6 @@ export function CardFrame({
             contentEditable={false}
         >
             <div className="flex flex-wrap items-center gap-1 px-2 pt-1.5">
-                <span
-                    data-drag-handle
-                    draggable
-                    aria-hidden
-                    title="Drag to move"
-                    className="text-ink-2 cursor-grab [&_svg]:size-4"
-                >
-                    <GripVertical />
-                </span>
                 <span className="text-ink-2 text-[11px] font-medium tracking-wide uppercase">
                     {label}
                 </span>

@@ -1,8 +1,11 @@
+import { Extension } from '@tiptap/core';
 import { useEditor } from '@tiptap/react';
 import type { Editor, JSONContent } from '@tiptap/react';
 import { useEffect, useRef, useState } from 'react';
 import { ulid } from '@/lib/ulid';
 import type { CardManifestEntry, EditorDocument, EmbedProvider } from '@/types';
+import { currentBlock, duplicateBlock, moveBlock } from './block-actions';
+import { FOCUS_GRIP } from './block-handle';
 import { withBlockIds } from './block-ids';
 import { cleanPastedHtml, embedFromPastedText } from './paste';
 import { PastedImageWithView } from './pasted-image-view';
@@ -20,6 +23,54 @@ function withBlock(document: EditorDocument): JSONContent {
         ? (document as JSONContent)
         : { ...document, content: [{ type: 'paragraph' }] };
 }
+
+/**
+ * The block keys: Alt Shift ↑ and ↓ move the current block, Mod D
+ * duplicates it, and Tab outside a list, a table or code reaches the
+ * block's handle (the handle shows Shift Tab the way back).
+ */
+const BlockKeys = Extension.create({
+    name: 'temeBlockKeys',
+
+    addKeyboardShortcuts() {
+        const block = () => currentBlock(this.editor);
+
+        return {
+            'Alt-Shift-ArrowUp': () => {
+                const at = block();
+
+                return at !== null && moveBlock(this.editor, at, -1);
+            },
+            'Alt-Shift-ArrowDown': () => {
+                const at = block();
+
+                return at !== null && moveBlock(this.editor, at, 1);
+            },
+            'Mod-d': () => {
+                const at = block();
+
+                return at !== null && duplicateBlock(this.editor, at);
+            },
+            Tab: () => {
+                const { editor } = this;
+
+                if (
+                    editor.isActive('listItem') ||
+                    editor.isActive('taskItem') ||
+                    editor.isActive('table') ||
+                    editor.isActive('codeBlock')
+                ) {
+                    return false;
+                }
+
+                // True when the handle took focus.
+                return !editor.view.dom.dispatchEvent(
+                    new Event(FOCUS_GRIP, { cancelable: true }),
+                );
+            },
+        };
+    },
+});
 
 /**
  * The editor for one article's body: Teme's extensions, the stored document,
@@ -75,13 +126,14 @@ export function useTemeEditor({
         extensions: [
             ...temeExtensions(cards, { smartQuotes }),
             PastedImageWithView,
+            BlockKeys,
         ],
         content: opened,
         immediatelyRender: false,
         shouldRerenderOnTransaction: false,
         editorProps: {
             attributes: {
-                class: 'teme-prose min-h-60 px-5 py-4 outline-none',
+                class: 'teme-prose min-h-60 px-8 py-4 outline-none',
                 'aria-labelledby': 'editor-body-label',
                 'aria-multiline': 'true',
                 role: 'textbox',

@@ -1,8 +1,10 @@
 import type { Editor } from '@tiptap/core';
 import { EditorContent } from '@tiptap/react';
 import type { JSONContent } from '@tiptap/react';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import type { CardManifestEntry, EditorDocument } from '@/types';
+import type { TopBlock } from './block-actions';
+import { BlockHandles } from './block-handle';
 import { BubbleMenu } from './bubble-menu';
 import { useCardEnvironment } from './cards/card-environment';
 import { PastedImagesBar } from './pasted-image-view';
@@ -87,12 +89,31 @@ export function ProseEditor({
         [editor, contentType, status, permissions],
     );
 
+    // "+" adds an empty line below the block, the caret in it.
+    const addBelow = useCallback(
+        (block: TopBlock) => {
+            if (editor === null) {
+                return;
+            }
+
+            const after = block.pos + block.node.nodeSize;
+
+            editor
+                .chain()
+                .insertContentAt(after, { type: 'paragraph' })
+                .setTextSelection(after + 1)
+                .focus()
+                .run();
+        },
+        [editor],
+    );
+
     if (editor === null || context === null) {
         return <div className="min-h-60" aria-busy="true" />;
     }
 
     return (
-        <div className="grid grid-cols-[minmax(0,1fr)]">
+        <div className="grid grid-cols-1">
             <Toolbar
                 editor={editor}
                 cards={menuCards ?? cards}
@@ -100,7 +121,10 @@ export function ProseEditor({
                 siteUrl={siteUrl}
             />
             <PastedImagesBar editor={editor} />
-            <EditorContent editor={editor} />
+            <div className="relative">
+                <EditorContent editor={editor} />
+                <BlockHandles editor={editor} cards={cards} onAdd={addBelow} />
+            </div>
             <BubbleMenu editor={editor} siteUrl={siteUrl} />
             <SlashMenu
                 editor={editor}

@@ -83,7 +83,7 @@ export function WordCount({ editor }: { editor: Editor }) {
     return (
         <dl
             data-test="body-counts"
-            className="text-ink-3 text-small mt-8 flex flex-wrap gap-x-6 gap-y-1 px-4 py-4 md:px-16"
+            className="text-ink-3 text-small mt-8 flex flex-wrap gap-x-6 gap-y-1 px-8 py-4"
         >
             {counts.map(([label, value]) => (
                 <div key={label} className="flex gap-2">

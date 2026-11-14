@@ -286,7 +286,6 @@ components/editor/cards/callout-card.tsx	Needs text
 components/editor/cards/callout-card.tsx	Tone
 components/editor/cards/callout-card.tsx	What the reader should not miss
 components/editor/cards/card-frame.tsx	Close settings
-components/editor/cards/card-frame.tsx	Drag to move
 components/editor/cards/card-frame.tsx	Edit
 components/editor/cards/card-frame.tsx	Edit
 components/editor/cards/card-frame.tsx	Remove {}
@@ -331,7 +330,6 @@ components/editor/cards/imported-content-card.tsx	Convert to paragraphs
 components/editor/cards/imported-content-card.tsx	Convert to paragraphs gives you text to edit and loses the layout. Keep as it is leaves it as readers see it. Delete takes it out of the text. Each can be undone.
 components/editor/cards/imported-content-card.tsx	Delete
 components/editor/cards/imported-content-card.tsx	Delete imported content
-components/editor/cards/imported-content-card.tsx	Drag to move
 components/editor/cards/imported-content-card.tsx	Imported content
 components/editor/cards/imported-content-card.tsx	Imported content card
 components/editor/cards/imported-content-card.tsx	It holds what readers saw on the old site, cleaned, and can’t be edited here. Convert it to paragraphs to edit its words, keep it as it is, or delete it.
