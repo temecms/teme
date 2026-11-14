@@ -108,7 +108,7 @@ it('says a wrong code is wrong, under its field, and stays on the setup page', f
     expect($page->script('() => document.querySelector("#code").getAttribute("aria-invalid")'))->toBe('true')
         ->and($page->script('() => document.querySelector("#code").getAttribute("aria-describedby").split(" ").includes("code-error")'))->toBeTrue()
         ->and($page->script('() => document.querySelector("#site_title").hasAttribute("aria-invalid")'))->toBeFalse()
-        ->and($page->script('() => document.querySelector("#code-hint code")?.textContent'))->toBe('php artisan teme:setup-code');
+        ->and($page->script('() => document.querySelector("#code-help code")?.textContent'))->toBe('php artisan teme:setup-code');
 
     $page->assertPathIs('/admin/setup')
         ->assertSeeIn('#code-error', 'That setup code isn’t right. Copy it from the deploy log, or run php artisan teme:setup-code on the server.');

@@ -13,7 +13,6 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AccountLayout from '@/layouts/account/layout';
 import AppLayout from '@/layouts/app-layout';
-import AuthLayout from '@/layouts/auth-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { installHistoryGuard } from '@/lib/history-guard';
 import { setWords } from '@/lib/i18n';
@@ -28,7 +27,8 @@ void createInertiaApp({
     layout: (name) => {
         switch (true) {
             case name.startsWith('auth/'):
-                return AuthLayout;
+                // AuthPage is each sign-in page's own frame.
+                return null;
             case name.startsWith('account/'):
                 return [AppLayout, AccountLayout];
             case name.startsWith('settings/'):

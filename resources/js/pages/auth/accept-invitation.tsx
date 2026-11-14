@@ -1,11 +1,11 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import InvitationController from '@/actions/App/Http/Admin/Auth/InvitationController';
-import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import { AuthPage } from '@/components/patterns/auth-page';
 import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import { __ } from '@/lib/i18n';
 
 type Props = {
     token: string;
@@ -19,90 +19,72 @@ export default function AcceptInvitation({
     passwordRules,
 }: Props) {
     return (
-        <>
-            <Head title="Choose your password" />
-
+        <AuthPage
+            title={__('Choose your password')}
+            lead={__('Choose a password to finish setting up your account.')}
+        >
             <Form
                 {...InvitationController.store.form()}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
+                className="grid gap-5"
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
+                    <>
+                        <Field
+                            htmlFor="email"
+                            label={__('Email')}
+                            error={errors.email}
+                        >
                             <Input
                                 id="email"
-                                aria-describedby="email-error"
                                 type="email"
                                 name="email"
                                 autoComplete="email"
                                 value={email}
-                                className="mt-1 block w-full"
                                 readOnly
                             />
-                            <InputError
-                                id="email-error"
-                                message={errors.email}
-                                className="mt-2"
-                            />
-                        </div>
+                        </Field>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                        <Field
+                            htmlFor="password"
+                            label={__('Password')}
+                            error={errors.password}
+                        >
                             <PasswordInput
                                 id="password"
-                                aria-describedby="password-error"
                                 name="password"
                                 autoComplete="new-password"
-                                className="mt-1 block w-full"
                                 autoFocus
-                                placeholder="Password"
                                 passwordrules={passwordRules}
                             />
-                            <InputError
-                                id="password-error"
-                                message={errors.password}
-                            />
-                        </div>
+                        </Field>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
-                                Confirm password
-                            </Label>
+                        <Field
+                            htmlFor="password_confirmation"
+                            label={__('Confirm password')}
+                            error={errors.password_confirmation}
+                        >
                             <PasswordInput
                                 id="password_confirmation"
-                                aria-describedby="password_confirmation-error"
                                 name="password_confirmation"
                                 autoComplete="new-password"
-                                className="mt-1 block w-full"
-                                placeholder="Confirm password"
                                 passwordrules={passwordRules}
                             />
-                            <InputError
-                                id="password_confirmation-error"
-                                message={errors.password_confirmation}
-                                className="mt-2"
-                            />
-                        </div>
+                        </Field>
 
                         <Button
                             type="submit"
-                            className="mt-4 w-full"
-                            disabled={processing}
+                            variant="primary"
+                            className="w-full"
+                            loading={processing}
                             data-test="accept-invitation-button"
                         >
-                            {processing && <Spinner />}
-                            Set password
+                            {__('Set password')}
                         </Button>
-                    </div>
+                    </>
                 )}
             </Form>
-        </>
+        </AuthPage>
     );
 }
-
-AcceptInvitation.layout = {
-    title: 'Welcome',
-    description: 'Choose a password to finish setting up your account.',
-};

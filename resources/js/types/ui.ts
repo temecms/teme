@@ -14,12 +14,3 @@ export type FlashToast = {
     /** Where the toast offers to go next, such as the redirect form after trashing (I-856). */
     link?: { label: string; href: string };
 };
-
-export type AuthLayoutProps = {
-    children?: ReactNode;
-    name?: string;
-    title?: string;
-    description?: string;
-    /** Shown in place of the site's name in the brand block, on the setup page. */
-    brandName?: string;
-};
