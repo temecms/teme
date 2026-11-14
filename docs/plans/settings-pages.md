@@ -821,3 +821,29 @@ The plan's 1–6 stand. Also: (7) remove the stale AI note (B-06); (8) Discussio
 ### How to try it
 
 Sign in as an administrator, open **Settings › General**, change the title: the bar appears; **Discard** puts it back, leaving asks first. Change the brand colour and save once. On **Discussion**, flip the switch (it acts at once), then change a rule and see the switch held. On **AI**, save a change and confirm your password in place. At 375 wide, open **Settings groups**.
+
+### Follow-up W2-2 (the review's fixes)
+
+**Commits.**
+
+| Item | Commit | Message |
+|---|---|---|
+| 1 | `36fa371` | fix(settings): Discard puts back what was typed on Addresses and Search and social |
+| 2 | `6855994` | fix(settings): drop the AI page's note that saving sends you back |
+| 3 | `ebd0418` | fix(settings): Find a setting clears its mark, the comments switch names any refusal, and a Reading refusal writes nothing |
+
+**Tests seen red.**
+
+| Item | File | Case | First line of the failure |
+|---|---|---|---|
+| 1 | `SettingsSaveBarTest` | puts a typed base back on Discard on Addresses, and a later Save leaves it as it was | "Timeout 5000ms exceeded", waiting for `#base-tag` to read "tag" with the bar hidden after Discard |
+| 1 | `SettingsSaveBarTest` | puts a typed separator back on Discard on Search and social, and a later Save leaves it as it was | "Timeout 5000ms exceeded", waiting for the separator to read its first value with the bar hidden after Discard |
+| 2 | `AdminWordsTest` | finds no word on a screen outside the catalogue (after removing the note's baseline line and lowering the count to 2539) | "Words outside the catalogue…": `pages/settings/ai.tsx` Saving may ask for your password… |
+
+Item 1: each page's typed state and its sections moved into a component drawn inside `SettingsForm`'s children (`AddressSections`, `SearchAndSocialSections`), so Discard's remount draws them again from props. No `onDiscard` was needed.
+
+Words: 2540 → 2539. Design check counts unchanged.
+
+- **B-?? (draft) 14: item 3's tests.** Found: `SaveSettingsPageTest`'s new Reading refusal case (someone with `settings.general.manage` but not `settings.addresses.manage` sends `front_shows`: 403, Reading and Addresses unchanged) passes before any change, because `SaveSettingsPage` already checks every part first; it was added as asked and recorded as never red. A browser case for the stale mark (Find a setting twice on one page) also passed before the change: the field's `blur` already unmarks it on every path a person can take, so the cleanup's `unmark()` is a guard; options were (a) keep a case that cannot be seen red, (b) leave it out. Chose (b). The comments switch's other refusals (validation of `values.comments`) cannot be reached from the page, so that change has no browser case. `ebd0418`.
+
+**Checks.** Pint, PHPStan, types, `vp check`, Architecture 101 passed. After `npm run build`: SettingsSaveBarTest 8, SettingsPlacementsTest 10, AiSettingsScreenTest 5, DiscussionSettingsTest 3, MenuAndSettingsTest 16, SearchAndSocialSettingsTest 5, SettingsPanelsTest 18: all passed. SaveSettingsPageTest 9 passed. `DocumentShellTest`'s `URLPattern` failure is the container's Node 22 (the review's note); nothing to do.
