@@ -160,7 +160,6 @@ R14	js/components/two-factor-recovery-codes.tsx	duration-300
 R14	js/components/two-factor-recovery-codes.tsx	transition-all
 R14	js/components/ui/sidebar.tsx	ease-linear
 R14	js/components/ui/sidebar.tsx	transition-all
-R14	js/pages/auth/forgot-password.tsx	animate-spin
 R15	js/components/editor/editor-shell.tsx	style: gridTemplateColumns
 R15	js/components/editor/rail/document-panel.tsx	style: paddingLeft
 R15	js/components/fields/brand-colour-setting.tsx	style: background
@@ -755,10 +754,6 @@ R2	js/pages/account/profile.tsx	text-sm
 R2	js/pages/account/profile.tsx	text-sm
 R2	js/pages/account/profile.tsx	text-sm
 R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/auth/forgot-password.tsx	text-sm
-R2	js/pages/auth/forgot-password.tsx	text-sm
-R2	js/pages/auth/verify-email.tsx	text-sm
-R2	js/pages/auth/verify-email.tsx	text-sm
 R2	js/pages/comments/index.tsx	text-[11px]
 R2	js/pages/comments/index.tsx	text-[12px]
 R2	js/pages/comments/index.tsx	text-[12px]
@@ -1320,12 +1315,6 @@ R7	js/pages/account/preferences.tsx	root:div
 R7	js/pages/account/profile.tsx	root:div
 R7	js/pages/account/security.tsx	root:div
 R7	js/pages/account/security.tsx	root:ManageTwoFactor
-R7	js/pages/auth/accept-invitation.tsx	root:Form
-R7	js/pages/auth/confirm-password.tsx	root:Form
-R7	js/pages/auth/forgot-password.tsx	root:div
-R7	js/pages/auth/reset-password.tsx	root:Form
-R7	js/pages/auth/two-factor-challenge.tsx	root:div
-R7	js/pages/auth/verify-email.tsx	root:Form
 R7	js/pages/comments/index.tsx	frame:p-6
 R7	js/pages/comments/index.tsx	root:CommentDetailsDrawer
 R7	js/pages/comments/index.tsx	root:DeleteComments

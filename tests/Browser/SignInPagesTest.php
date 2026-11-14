@@ -140,3 +140,43 @@ it('passes axe on sign-in in both schemes, at 1280 and 320 pixels, every target 
     ['light', 320, 640],
     ['dark', 320, 640],
 ]);
+
+/** The page a dataset row names, reached the way a person reaches it, in the scheme and size given. */
+function spReach(string $which, string $scheme, int $width, int $height): mixed
+{
+    $through = function (User $person, string $scheme): mixed {
+        $page = spVisit('/admin/login', $scheme);
+
+        return $page->type('email', $person->email)
+            ->type('password', 'password')
+            ->click('[data-test="login-button"]');
+    };
+
+    $page = match ($which) {
+        'forgot password' => spVisit('/admin/forgot-password', $scheme),
+        'reset password' => spVisit(route('password.reset', ['token' => 'a-token', 'email' => test()->editor->email], false), $scheme),
+        'accept an invitation' => spVisit(route('invitation.show', ['token' => 'a-token', 'email' => 'new@example.com'], false), $scheme),
+        'two-factor' => $through(User::factory()->withTwoFactor()->create()->assignRole('editor'), $scheme)->assertPathIs('/admin/two-factor-challenge'),
+        'verify email' => cmNavigate($through(User::factory()->unverified()->create()->assignRole('editor'), $scheme), route('verification.notice', [], false)),
+        'confirm password' => cmNavigate($through(test()->editor, $scheme)->assertPathIs('/admin'), route('password.confirm', [], false)),
+    };
+
+    $page->resize($width, $height);
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="auth-card"] h1\') !== null');
+
+    return $page;
+}
+
+it('draws every sign-in page on the one card, with no sideways scroll at 320 pixels and no axe violation in either scheme', function (string $which): void {
+    foreach ([['light', 1280, 900], ['dark', 1280, 900], ['light', 320, 640], ['dark', 320, 640]] as [$scheme, $width, $height]) {
+        $page = spReach($which, $scheme, $width, $height);
+        $targets = cmSmallTargets($page);
+
+        expect($page->script('() => document.querySelectorAll(\'[data-slot="auth-card"]\').length'))->toBe(1, "{$which}, {$scheme}, {$width}")
+            ->and($page->script('() => document.querySelectorAll("h1").length === 1 && document.querySelector(\'[data-slot="auth-card"]\').contains(document.querySelector("h1"))'))->toBeTrue("{$which}, {$scheme}, {$width}")
+            ->and(spNoSidewaysScroll($page))->toBeTrue("{$which}, {$scheme}, {$width}")
+            ->and(cmAxeViolations($page))->toBe([], "{$which}, {$scheme}, {$width}")
+            ->and($targets['small'])->toBe([], "{$which}, {$scheme}, {$width}")
+            ->and($targets['checked'])->toBeGreaterThan(0);
+    }
+})->with(['forgot password', 'reset password', 'accept an invitation', 'two-factor', 'verify email', 'confirm password']);

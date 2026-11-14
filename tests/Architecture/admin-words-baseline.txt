@@ -1418,52 +1418,6 @@ pages/account/security.tsx	Security
 pages/account/security.tsx	Security
 pages/account/security.tsx	Update password
 pages/account/security.tsx	Use a long, random password.
-pages/auth/accept-invitation.tsx	Choose a password to finish setting up your account.
-pages/auth/accept-invitation.tsx	Choose your password
-pages/auth/accept-invitation.tsx	Confirm password
-pages/auth/accept-invitation.tsx	Confirm password
-pages/auth/accept-invitation.tsx	Email
-pages/auth/accept-invitation.tsx	Password
-pages/auth/accept-invitation.tsx	Password
-pages/auth/accept-invitation.tsx	Set password
-pages/auth/accept-invitation.tsx	Welcome
-pages/auth/confirm-password.tsx	Confirm password
-pages/auth/confirm-password.tsx	Confirm password
-pages/auth/confirm-password.tsx	Confirm password
-pages/auth/confirm-password.tsx	Confirm your password to continue.
-pages/auth/confirm-password.tsx	Password
-pages/auth/confirm-password.tsx	Password
-pages/auth/forgot-password.tsx	Back to sign in
-pages/auth/forgot-password.tsx	Email address
-pages/auth/forgot-password.tsx	Email password reset link
-pages/auth/forgot-password.tsx	Enter your email to receive a password reset link
-pages/auth/forgot-password.tsx	Forgot password
-pages/auth/forgot-password.tsx	Forgot password
-pages/auth/forgot-password.tsx	email@example.com
-pages/auth/reset-password.tsx	Choose a new password.
-pages/auth/reset-password.tsx	Confirm password
-pages/auth/reset-password.tsx	Confirm password
-pages/auth/reset-password.tsx	Email
-pages/auth/reset-password.tsx	Password
-pages/auth/reset-password.tsx	Password
-pages/auth/reset-password.tsx	Reset password
-pages/auth/reset-password.tsx	Reset password
-pages/auth/reset-password.tsx	Reset password
-pages/auth/two-factor-challenge.tsx	Authentication code
-pages/auth/two-factor-challenge.tsx	Authentication code
-pages/auth/two-factor-challenge.tsx	Continue
-pages/auth/two-factor-challenge.tsx	Enter recovery code
-pages/auth/two-factor-challenge.tsx	Recovery code
-pages/auth/two-factor-challenge.tsx	Recovery code
-pages/auth/two-factor-challenge.tsx	Two-factor sign-in
-pages/auth/two-factor-challenge.tsx	Type one of your recovery codes.
-pages/auth/two-factor-challenge.tsx	Type the 6-digit code your authenticator app shows.
-pages/auth/verify-email.tsx	Click the link we emailed you to confirm your address.
-pages/auth/verify-email.tsx	Email verification
-pages/auth/verify-email.tsx	Email verification
-pages/auth/verify-email.tsx	Resend verification email
-pages/auth/verify-email.tsx	Sent. Check your email for the new link.
-pages/auth/verify-email.tsx	Sign out
 pages/comments/index.tsx	Actions for the comment by {}
 pages/comments/index.tsx	Approve
 pages/comments/index.tsx	Approve

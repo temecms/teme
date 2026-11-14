@@ -165,12 +165,12 @@ it('says sign in on the sign-in screens, in plain words', function (): void {
         ->toContain("lead={__('Use your email address and password.')}")
         ->toContain('data-test="login-button"')
         ->not->toContain('Log in')
-        ->and($flat('pages/auth/forgot-password.tsx'))->toContain('>Back to sign in</TextLink>')
+        ->and($flat('pages/auth/forgot-password.tsx'))->toContain("{__('Back to sign in')}")
         ->and($flat('pages/auth/verify-email.tsx'))
         ->toContain('Sign out')
         ->toContain('Sent. Check your email for the new link.')
         ->and($flat('pages/auth/confirm-password.tsx'))
-        ->toContain("title: 'Confirm password'")
+        ->toContain("title={__('Confirm password')}")
         ->toContain('Confirm your password to continue.');
 });
 
