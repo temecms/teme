@@ -24,8 +24,8 @@ final readonly class SafeMode
         'admin/login', 'admin/logout', 'admin/two-factor-challenge', 'admin/forgot-password', 'admin/reset-password', 'admin/reset-password/*',
         'admin/user/confirm-password', 'admin/user/confirmed-password-status',
         'admin/email/verify', 'admin/email/verify/*', 'admin/email/verification-notification',
-        // A site may send an administrator who hasn't set up two-factor to the Security page before any other admin page (I-115).
-        'admin/account/security', 'admin/user/two-factor-authentication', 'admin/user/confirmed-two-factor-authentication',
+        // A site may send an administrator who hasn't set up two-factor to the Two-factor sign-in page before any other admin page (I-115).
+        'admin/account/security', 'admin/account/two-factor', 'admin/user/two-factor-authentication', 'admin/user/confirmed-two-factor-authentication',
         'admin/user/two-factor-qr-code', 'admin/user/two-factor-recovery-codes', 'admin/user/two-factor-secret-key',
         'admin/plugins', 'admin/plugins/*', 'admin/tools/updates', 'admin/tools/updates/*',
         // Laravel's health check.

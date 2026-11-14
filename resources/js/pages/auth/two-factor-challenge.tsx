@@ -1,8 +1,9 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { useMemo, useState } from 'react';
-import InputError from '@/components/input-error';
+import { AuthPage } from '@/components/patterns/auth-page';
 import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
     InputOTP,
@@ -10,6 +11,7 @@ import {
     InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
+import { __ } from '@/lib/i18n';
 import { store } from '@/routes/two-factor/login';
 
 export default function TwoFactorChallenge() {
@@ -23,23 +25,20 @@ export default function TwoFactorChallenge() {
     }>(() => {
         if (showRecoveryInput) {
             return {
-                title: 'Recovery code',
-                description: 'Type one of your recovery codes.',
-                toggleText: 'Use your authenticator app instead',
+                title: __('Recovery code'),
+                description: __('Type one of your recovery codes.'),
+                toggleText: __('Use your authenticator app instead'),
             };
         }
 
         return {
-            title: 'Authentication code',
-            description: 'Type the 6-digit code your authenticator app shows.',
-            toggleText: 'Use a recovery code instead',
+            title: __('Authentication code'),
+            description: __(
+                'Type the 6-digit code your authenticator app shows.',
+            ),
+            toggleText: __('Use a recovery code instead'),
         };
     }, [showRecoveryInput]);
-
-    setLayoutProps({
-        title: authConfigContent.title,
-        description: authConfigContent.description,
-    });
 
     const toggleRecoveryMode = (clearErrors: () => void): void => {
         setShowRecoveryInput(!showRecoveryInput);
@@ -48,88 +47,88 @@ export default function TwoFactorChallenge() {
     };
 
     return (
-        <>
-            <Head title="Two-factor sign-in" />
+        <AuthPage
+            tabTitle={__('Two-factor sign-in')}
+            title={authConfigContent.title}
+            lead={authConfigContent.description}
+        >
+            <Form
+                {...store.form()}
+                className="grid gap-5"
+                resetOnError
+                resetOnSuccess={!showRecoveryInput}
+            >
+                {({ errors, processing, clearErrors }) => (
+                    <>
+                        {showRecoveryInput ? (
+                            <Field
+                                htmlFor="recovery-code"
+                                label={__('Recovery code')}
+                                error={errors.recovery_code}
+                            >
+                                <Input
+                                    id="recovery-code"
+                                    name="recovery_code"
+                                    type="text"
+                                    autoComplete="one-time-code"
+                                    autoFocus={showRecoveryInput}
+                                    required
+                                />
+                            </Field>
+                        ) : (
+                            <Field
+                                htmlFor="code"
+                                label={__('Authentication code')}
+                                error={errors.code}
+                            >
+                                <InputOTP
+                                    id="code"
+                                    name="code"
+                                    maxLength={OTP_MAX_LENGTH}
+                                    value={code}
+                                    onChange={(value) => setCode(value)}
+                                    disabled={processing}
+                                    pattern={REGEXP_ONLY_DIGITS}
+                                    autoFocus
+                                >
+                                    <InputOTPGroup>
+                                        {Array.from(
+                                            { length: OTP_MAX_LENGTH },
+                                            (_, index) => (
+                                                <InputOTPSlot
+                                                    key={index}
+                                                    index={index}
+                                                    className="max-sm:size-10"
+                                                />
+                                            ),
+                                        )}
+                                    </InputOTPGroup>
+                                </InputOTP>
+                            </Field>
+                        )}
 
-            <div className="space-y-6">
-                <Form
-                    {...store.form()}
-                    className="space-y-4"
-                    resetOnError
-                    resetOnSuccess={!showRecoveryInput}
-                >
-                    {({ errors, processing, clearErrors }) => (
-                        <>
-                            {showRecoveryInput ? (
-                                <>
-                                    <Input
-                                        name="recovery_code"
-                                        aria-label="Recovery code"
-                                        aria-describedby="recovery-code-error"
-                                        type="text"
-                                        placeholder="Enter recovery code"
-                                        autoFocus={showRecoveryInput}
-                                        required
-                                    />
-                                    <InputError
-                                        id="recovery-code-error"
-                                        message={errors.recovery_code}
-                                    />
-                                </>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center space-y-3 text-center">
-                                    <div className="flex w-full items-center justify-center">
-                                        <InputOTP
-                                            name="code"
-                                            aria-label="Authentication code"
-                                            aria-describedby="code-error"
-                                            maxLength={OTP_MAX_LENGTH}
-                                            value={code}
-                                            onChange={(value) => setCode(value)}
-                                            disabled={processing}
-                                            pattern={REGEXP_ONLY_DIGITS}
-                                            autoFocus
-                                        >
-                                            <InputOTPGroup>
-                                                {Array.from(
-                                                    { length: OTP_MAX_LENGTH },
-                                                    (_, index) => (
-                                                        <InputOTPSlot
-                                                            key={index}
-                                                            index={index}
-                                                        />
-                                                    ),
-                                                )}
-                                            </InputOTPGroup>
-                                        </InputOTP>
-                                    </div>
-                                    <InputError
-                                        id="code-error"
-                                        message={errors.code}
-                                    />
-                                </div>
-                            )}
-
+                        <div className="grid gap-3">
                             <Button
                                 type="submit"
+                                variant="primary"
                                 className="w-full"
-                                disabled={processing}
+                                loading={processing}
                             >
-                                Continue
+                                {__('Continue')}
                             </Button>
 
                             <Button
                                 type="button"
-                                variant="outline"
+                                variant="neutral"
                                 className="w-full"
                                 onClick={() => toggleRecoveryMode(clearErrors)}
                             >
                                 {authConfigContent.toggleText}
                             </Button>
-                        </>
-                    )}
-                </Form>
-            </div>
-        </>
+                        </div>
+                    </>
+                )}
+            </Form>
+        </AuthPage>
     );
 }

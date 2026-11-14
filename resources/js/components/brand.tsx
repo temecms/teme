@@ -5,15 +5,15 @@ import { dashboard, home } from '@/routes';
 
 // Later (I-1390): an uploaded site icon takes the letter's place.
 /**
- * The site's mark: one letter on a square. In the sidebar it is the site's
- * initial in the serif on the accent (docs/architecture/design-system.md,
- * section 4.32); the sign-in screens keep theirs.
+ * The site's mark: its initial in the serif on the accent, one square, in
+ * the sidebar and at the head of the sign-in card
+ * (docs/architecture/design-system.md, section 4.32).
  */
 export function BrandMark({
-    tone,
     className,
 }: {
-    tone: 'sidebar' | 'screen';
+    /** Where it is drawn; the sidebar's square is the only one. */
+    tone: 'sidebar';
     className?: string;
 }) {
     const { mark } = useBrand();
@@ -23,10 +23,7 @@ export function BrandMark({
             aria-hidden="true"
             data-test="brand-mark"
             className={cn(
-                'flex shrink-0 items-center justify-center leading-none font-semibold',
-                tone === 'sidebar'
-                    ? 'bg-accent text-on-accent text-lead size-9 rounded-md font-serif'
-                    : 'bg-ink text-page size-10 rounded-md text-lg',
+                'bg-accent text-on-accent text-lead flex size-9 shrink-0 items-center justify-center rounded-md font-serif leading-none font-semibold',
                 className,
             )}
         >
@@ -64,23 +61,39 @@ export function SidebarBrand() {
 }
 
 /**
- * The sign-in screens' head: the same mark, larger, over the title. `name`
- * replaces the site's name where the site has none yet, the setup page.
+ * The sign-in card's head: the site's mark, its name and the line under it,
+ * a link to the site. Teme's own mark and name stand in where the site has
+ * no name yet: the setup page, or a site whose title is empty.
  */
-export function SignInBrand({ name }: { name?: string } = {}) {
+export function SignInBrand({ teme = false }: { teme?: boolean } = {}) {
     const brand = useBrand();
+    const asTeme = teme || brand.name.trim() === '';
 
     return (
         <Link
             href={home()}
             data-test="sign-in-brand"
-            className="focus-visible:ring-ring flex flex-col items-center gap-1.5 rounded-md outline-none focus-visible:ring-2"
+            className="focus-visible:outline-ring flex items-center gap-3 justify-self-start rounded-md outline-none focus-visible:outline-2 focus-visible:outline-offset-2"
         >
-            <BrandMark tone="screen" />
-            <span className="text-[15px] font-semibold">
-                {name ?? brand.name}
+            {asTeme ? (
+                <img
+                    src="/teme/icon.svg"
+                    alt=""
+                    width={36}
+                    height={36}
+                    className="size-9 shrink-0"
+                />
+            ) : (
+                <BrandMark tone="sidebar" />
+            )}
+            <span className="grid min-w-0 text-start">
+                <span className="text-body text-ink font-semibold">
+                    {asTeme ? brand.product : brand.name}
+                </span>
+                <span className="text-caption text-ink-3">
+                    {brandLine(brand)}
+                </span>
             </span>
-            <span className="text-ink-2 text-[11px]">{brandLine(brand)}</span>
         </Link>
     );
 }

@@ -1,54 +1,49 @@
-import { Form, Head } from '@inertiajs/react';
-import InputError from '@/components/input-error';
+import { Form } from '@inertiajs/react';
 import PasswordInput from '@/components/password-input';
+import { AuthPage } from '@/components/patterns/auth-page';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import { Field } from '@/components/ui/field';
+import { __ } from '@/lib/i18n';
 import { store } from '@/routes/password/confirm';
 
 export default function ConfirmPassword() {
     return (
-        <>
-            <Head title="Confirm password" />
-
-            <Form {...store.form()} resetOnSuccess={['password']}>
+        <AuthPage
+            title={__('Confirm password')}
+            lead={__('Confirm your password to continue.')}
+        >
+            <Form
+                {...store.form()}
+                resetOnSuccess={['password']}
+                className="grid gap-5"
+            >
                 {({ processing, errors }) => (
-                    <div className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                    <>
+                        <Field
+                            htmlFor="password"
+                            label={__('Password')}
+                            error={errors.password}
+                        >
                             <PasswordInput
                                 id="password"
-                                aria-describedby="password-error"
                                 name="password"
-                                placeholder="Password"
                                 autoComplete="current-password"
                                 autoFocus
                             />
+                        </Field>
 
-                            <InputError
-                                id="password-error"
-                                message={errors.password}
-                            />
-                        </div>
-
-                        <div className="flex items-center">
-                            <Button
-                                className="w-full"
-                                disabled={processing}
-                                data-test="confirm-password-button"
-                            >
-                                {processing && <Spinner />}
-                                Confirm password
-                            </Button>
-                        </div>
-                    </div>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            className="w-full"
+                            loading={processing}
+                            data-test="confirm-password-button"
+                        >
+                            {__('Confirm password')}
+                        </Button>
+                    </>
                 )}
             </Form>
-        </>
+        </AuthPage>
     );
 }
-
-ConfirmPassword.layout = {
-    title: 'Confirm password',
-    description: 'Confirm your password to continue.',
-};

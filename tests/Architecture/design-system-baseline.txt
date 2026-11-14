@@ -72,7 +72,6 @@ R1	js/components/list/filter-button.tsx	max-h-[85vh]
 R1	js/components/list/page-header.tsx	max-w-[640px]
 R1	js/components/list/page-header.tsx	tracking-[-0.015em]
 R1	js/components/media/media-modal.tsx	max-h-[85vh]
-R1	js/components/password-input.tsx	focus-visible:ring-[3px]
 R1	js/components/personalise-menu-dialog.tsx	max-h-[90vh]
 R1	js/components/seo/who-publishes.tsx	max-w-[320px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
@@ -87,8 +86,6 @@ R1	js/components/ui/sidebar.tsx	group-data-[collapsible=icon]:w-[calc(var(--side
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]
 R1	js/components/ui/sidebar.tsx	group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]
 R1	js/components/ui/sidebar.tsx	peer-data-[variant=inset]:min-h-[calc(100svh-(--spacing(4)))]
-R1	js/layouts/account/layout.tsx	lg:grid-cols-[200px_minmax(0,1fr)]
-R1	js/layouts/auth/auth-simple-layout.tsx	tracking-[-0.015em]
 R1	js/pages/content/compare.tsx	h-[34px]
 R1	js/pages/content/compare.tsx	h-[34px]
 R1	js/pages/content/edit.tsx	min-h-[34px]
@@ -122,7 +119,6 @@ R10	js/components/editor/use-teme-editor.ts	outline-none
 R10	js/components/list/date-filter.tsx	outline-none
 R10	js/components/list/filter-button.tsx	outline-none
 R10	js/components/palette/command-palette.tsx	outline-none
-R10	js/components/two-factor-setup-modal.tsx	outline-none
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
@@ -130,8 +126,6 @@ R10	js/components/ui/dropdown-menu.tsx	outline-hidden
 R10	js/components/ui/input.tsx	outline-none
 R10	js/components/ui/popover.tsx	outline-none
 R10	js/components/ui/select.tsx	outline-hidden
-R14	js/components/account-menu.tsx	data-[state=closed]:animate-out
-R14	js/components/account-menu.tsx	data-[state=open]:animate-in
 R14	js/components/editor/cards/audio-card.tsx	animate-pulse
 R14	js/components/editor/cards/gallery-card.tsx	animate-pulse
 R14	js/components/editor/cards/image-card.tsx	animate-pulse
@@ -143,12 +137,8 @@ R14	js/components/fields/media-setting.tsx	animate-pulse
 R14	js/components/text-link.tsx	duration-300
 R14	js/components/text-link.tsx	ease-out
 R14	js/components/tools/update-progress.tsx	animate-spin
-R14	js/components/two-factor-recovery-codes.tsx	animate-pulse
-R14	js/components/two-factor-recovery-codes.tsx	duration-300
-R14	js/components/two-factor-recovery-codes.tsx	transition-all
 R14	js/components/ui/sidebar.tsx	ease-linear
 R14	js/components/ui/sidebar.tsx	transition-all
-R14	js/pages/auth/forgot-password.tsx	animate-spin
 R15	js/components/editor/editor-shell.tsx	style: gridTemplateColumns
 R15	js/components/editor/rail/document-panel.tsx	style: paddingLeft
 R15	js/components/fields/brand-colour-setting.tsx	style: background
@@ -157,7 +147,6 @@ R15	js/components/fields/brand-colour-setting.tsx	style: color
 R15	js/components/list/bulk-edit-dialog.tsx	style: paddingLeft
 R15	js/components/list/filter-button.tsx	style: paddingLeft
 R15	js/components/term-tree-picker.tsx	style: paddingLeft
-R15	js/components/two-factor-setup-modal.tsx	style: filter
 R2	css/app.css	.teme-prose { font-size: 16px }
 R2	css/app.css	.teme-prose code { font-size: 0.875em }
 R2	css/app.css	.teme-prose h2 { font-size: 1.5em }
@@ -241,9 +230,6 @@ R2	js/components/backups/verdict.tsx	text-sm
 R2	js/components/backups/verdict.tsx	text-sm
 R2	js/components/backups/verdict.tsx	text-sm
 R2	js/components/backups/verdict.tsx	text-sm
-R2	js/components/brand.tsx	text-[11px]
-R2	js/components/brand.tsx	text-[15px]
-R2	js/components/brand.tsx	text-lg
 R2	js/components/comments/comment-details.tsx	text-[12px]
 R2	js/components/comments/comment-details.tsx	text-[12px]
 R2	js/components/comments/comment-details.tsx	text-[13px]
@@ -588,8 +574,6 @@ R2	js/components/list/screen-options.tsx	text-xs
 R2	js/components/list/screen-options.tsx	text-xs
 R2	js/components/list/tab-strip.tsx	text-[11px]
 R2	js/components/list/tab-strip.tsx	text-[13px]
-R2	js/components/manage-two-factor.tsx	text-sm
-R2	js/components/manage-two-factor.tsx	text-sm
 R2	js/components/media-drawer.tsx	text-[13px]
 R2	js/components/media-drawer.tsx	text-sm
 R2	js/components/media-drawer.tsx	text-sm
@@ -646,9 +630,6 @@ R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
 R2	js/components/seo/who-publishes.tsx	text-sm
-R2	js/components/term-picker.tsx	text-sm
-R2	js/components/term-picker.tsx	text-sm
-R2	js/components/term-picker.tsx	text-xs
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-xs
@@ -677,35 +658,7 @@ R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-base
 R2	js/components/tools/update-progress.tsx	text-xs
-R2	js/components/two-factor-recovery-codes.tsx	text-sm
-R2	js/components/two-factor-recovery-codes.tsx	text-xs
-R2	js/components/user-info.tsx	text-sm
-R2	js/components/user-info.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
-R2	js/layouts/account/layout.tsx	text-[13px]
-R2	js/layouts/auth/auth-simple-layout.tsx	text-[11px]
-R2	js/layouts/auth/auth-simple-layout.tsx	text-[13px]
-R2	js/layouts/auth/auth-simple-layout.tsx	text-[22px]
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/notifications.tsx	text-sm
-R2	js/pages/account/preferences.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/account/profile.tsx	text-sm
-R2	js/pages/auth/forgot-password.tsx	text-sm
-R2	js/pages/auth/forgot-password.tsx	text-sm
-R2	js/pages/auth/login.tsx	text-[13px]
-R2	js/pages/auth/login.tsx	text-sm
-R2	js/pages/auth/login.tsx	text-sm
-R2	js/pages/auth/set-up.tsx	text-[12px]
-R2	js/pages/auth/set-up.tsx	text-[13px]
-R2	js/pages/auth/set-up.tsx	text-sm
-R2	js/pages/auth/verify-email.tsx	text-sm
-R2	js/pages/auth/verify-email.tsx	text-sm
 R2	js/pages/comments/index.tsx	text-[11px]
 R2	js/pages/comments/index.tsx	text-[12px]
 R2	js/pages/comments/index.tsx	text-[12px]
@@ -855,22 +808,12 @@ R2	js/pages/tools/redirects.tsx	text-sm
 R2	js/pages/tools/updates.tsx	text-[13px]
 R2	js/pages/tools/updates.tsx	text-[13px]
 R2	js/pages/tools/updates.tsx	text-base
-R2	js/pages/users/index.tsx	text-sm
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
-R2	js/pages/users/index.tsx	text-xs
 R3	js/components/backups/checks-list.tsx	gap-1.5
 R3	js/components/backups/checks-list.tsx	gap-1.5
 R3	js/components/backups/places-list.tsx	gap-1.5
 R3	js/components/backups/places-list.tsx	gap-1.5
 R3	js/components/backups/verdict.tsx	mt-0.5
 R3	js/components/backups/verdict.tsx	mt-0.5
-R3	js/components/brand.tsx	gap-1.5
 R3	js/components/comments/comment-details.tsx	mt-0.5
 R3	js/components/comments/comment-details.tsx	space-y-1.5
 R3	js/components/comments/commenter.tsx	gap-1.5
@@ -972,21 +915,15 @@ R3	js/components/media/media-grid.tsx	p-0.5
 R3	js/components/plugins/consent-dialog.tsx	gap-1.5
 R3	js/components/plugins/consent-dialog.tsx	px-1.5
 R3	js/components/seo/who-publishes.tsx	mt-0.5
-R3	js/components/term-picker.tsx	py-0.5
 R3	js/components/tools/redirect-form.tsx	py-1.5
 R3	js/components/tools/update-progress.tsx	mt-0.5
 R3	js/components/tools/update-progress.tsx	py-0.5
-R3	js/components/two-factor-setup-modal.tsx	p-0.5
-R3	js/components/two-factor-setup-modal.tsx	p-2.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=default]/menu-button:top-1.5
 R3	js/components/ui/sidebar.tsx	peer-data-[size=lg]/menu-button:top-2.5
 R3	js/components/ui/sidebar.tsx	top-1.5
 R3	js/components/ui/sidebar.tsx	top-3.5
 R3	js/components/ui/toggle.tsx	px-1.5
 R3	js/components/user-menu-content.tsx	py-1.5
-R3	js/layouts/auth/auth-simple-layout.tsx	gap-1.5
-R3	js/pages/auth/login.tsx	gap-2.5
-R3	js/pages/auth/login.tsx	mt-0.5
 R3	js/pages/content/compare.tsx	gap-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
@@ -1078,17 +1015,10 @@ R5	js/components/media/attachment-fields.tsx	<textarea>
 R5	js/components/media/media-filters.tsx	<button type="button">
 R5	js/components/media/media-grid.tsx	<button type="button">
 R5	js/components/palette/command-palette.tsx	<input>
-R5	js/components/password-input.tsx	<button type="button">
 R5	js/components/seo/who-publishes.tsx	<select>
-R5	js/components/term-picker.tsx	<button type="button">
-R5	js/components/term-picker.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<button type="button">
 R5	js/components/tools/redirect-form.tsx	<input type="radio">
 R5	js/components/tools/redirect-form.tsx	<select>
-R5	js/components/two-factor-setup-modal.tsx	<button>
-R5	js/components/two-factor-setup-modal.tsx	<input type="text">
-R5	js/pages/account/profile.tsx	<textarea>
-R5	js/pages/auth/set-up.tsx	<select>
 R5	js/pages/comments/index.tsx	<button type="button">
 R5	js/pages/content/edit.tsx	<textarea>
 R5	js/pages/media/index.tsx	<button type="button">
@@ -1109,7 +1039,6 @@ R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/show.tsx	<table>
-R6	js/components/account-menu.tsx	z-50
 R6	js/components/app-shell.tsx	z-50
 R6	js/components/backups/key-sheet.tsx	tracking-wider
 R6	js/components/backups/schedule-form.tsx	leading-9
@@ -1145,30 +1074,12 @@ R6	js/components/media/media-grid.tsx	rounded
 R6	js/components/media/media-modal.tsx	z-10
 R6	js/components/media/page-drop.tsx	z-40
 R6	js/components/plugins/consent-dialog.tsx	leading-4
-R6	js/components/term-picker.tsx	rounded
-R6	js/components/term-picker.tsx	rounded
 R6	js/components/tools/redirect-form.tsx	rounded
 R6	js/components/tools/update-progress.tsx	rounded
-R6	js/components/two-factor-recovery-codes.tsx	rounded
-R6	js/components/two-factor-setup-modal.tsx	z-10
-R6	js/components/two-factor-setup-modal.tsx	z-20
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
 R6	js/pages/content/index.tsx	rounded
 R6	js/pages/tools/updates.tsx	rounded
-R7	js/pages/account/notifications.tsx	root:div
-R7	js/pages/account/preferences.tsx	root:div
-R7	js/pages/account/profile.tsx	root:div
-R7	js/pages/account/security.tsx	root:div
-R7	js/pages/account/security.tsx	root:ManageTwoFactor
-R7	js/pages/auth/accept-invitation.tsx	root:Form
-R7	js/pages/auth/confirm-password.tsx	root:Form
-R7	js/pages/auth/forgot-password.tsx	root:div
-R7	js/pages/auth/login.tsx	root:Form
-R7	js/pages/auth/reset-password.tsx	root:Form
-R7	js/pages/auth/set-up.tsx	root:Form
-R7	js/pages/auth/two-factor-challenge.tsx	root:div
-R7	js/pages/auth/verify-email.tsx	root:Form
 R7	js/pages/comments/index.tsx	frame:p-6
 R7	js/pages/comments/index.tsx	root:CommentDetailsDrawer
 R7	js/pages/comments/index.tsx	root:DeleteComments
@@ -1258,13 +1169,7 @@ R7	js/pages/tools/redirects.tsx	root:RedirectForm
 R7	js/pages/tools/updates.tsx	frame:max-w-3xl
 R7	js/pages/tools/updates.tsx	frame:p-6
 R7	js/pages/tools/updates.tsx	root:div
-R7	js/pages/users/index.tsx	frame:p-6
-R7	js/pages/users/index.tsx	root:DeleteDialog
-R7	js/pages/users/index.tsx	root:div
-R7	js/pages/users/index.tsx	root:InviteDialog
-R7	js/pages/users/index.tsx	root:RoleDialog
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
-R8	js/components/account-menu.tsx	overflow-y-auto
 R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
 R8	js/components/editor/cards/button-card.tsx	overflow-y-auto

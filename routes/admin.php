@@ -8,9 +8,11 @@ use App\Domain\Themes\ManifestValidator;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TypeAccess;
 use App\Http\Admin\Account\NotificationsController;
+use App\Http\Admin\Account\PictureController;
 use App\Http\Admin\Account\PreferencesController;
 use App\Http\Admin\Account\ProfileController;
 use App\Http\Admin\Account\SecurityController;
+use App\Http\Admin\Account\TwoFactorController;
 use App\Http\Admin\AdminScreenController;
 use App\Http\Admin\Ai\AiRequestController;
 use App\Http\Admin\Auth\FirstRunController;
@@ -131,6 +133,9 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::get('account/security', [SecurityController::class, 'edit'])
             ->middleware(RequirePassword::class)
             ->name('security.edit');
+        Route::get('account/two-factor', [TwoFactorController::class, 'edit'])
+            ->middleware(RequirePassword::class)
+            ->name('two-factor.edit');
 
         Route::put('account/password', [SecurityController::class, 'update'])
             ->middleware('throttle:6,1')
@@ -140,6 +145,8 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::patch('account/preferences', [PreferencesController::class, 'update'])->name('preferences.update');
         Route::get('account/notifications', [NotificationsController::class, 'edit'])->name('notifications.edit');
         Route::patch('account/notifications', [NotificationsController::class, 'update'])->name('notifications.update');
+        Route::put('account/picture', [PictureController::class, 'update'])->name('profile.picture.update');
+        Route::delete('account/picture', [PictureController::class, 'destroy'])->name('profile.picture.destroy');
 
         Route::redirect('settings', '/admin/settings/general');
 
@@ -310,6 +317,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::post('{user}/invitation', [UserController::class, 'resendInvitation'])->whereNumber('user')->name('invitation.store');
             Route::delete('{user}/invitation', [UserController::class, 'revokeInvitation'])->whereNumber('user')->name('invitation.destroy');
             Route::delete('{user}', [UserController::class, 'destroy'])->whereNumber('user')->name('destroy');
+            Route::delete('{user}/picture', [UserController::class, 'removePicture'])->whereNumber('user')->name('picture.destroy');
         });
 
         // Whoever looks after any item's comments (1.8c's D18); each comment

@@ -6,37 +6,24 @@ namespace App\Http\Admin\Account;
 
 use App\Domain\Users\Operations\ChangePassword;
 use App\Domain\Users\Operations\Input\ChangePasswordInput;
-use App\Domain\Users\Queries\AccountSecurityStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Fortify\Features;
 
 /**
- * The Security page: changing your password and setting up two-factor sign-in.
- * A password change goes to the `ChangePassword` Operation; two-factor is
- * Fortify's own.
+ * The Security page: changing your password, through the `ChangePassword`
+ * Operation. Two-factor sign-in has its own page (TwoFactorController).
  */
 final class SecurityController extends Controller
 {
-    public function edit(TwoFactorAuthenticationRequest $request, AccountSecurityStatus $status): Response
+    public function edit(): Response
     {
-        $props = [
-            'canManageTwoFactor' => Features::canManageTwoFactorAuthentication(),
+        return Inertia::render('account/security', [
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
-        ];
-
-        if (Features::canManageTwoFactorAuthentication()) {
-            $request->ensureStateIsValid();
-
-            $props['twoFactorEnabled'] = $status->for((int) $request->user()?->getAuthIdentifier())['twoFactorEnabled'];
-            $props['requiresConfirmation'] = Features::optionEnabled(Features::twoFactorAuthentication(), 'confirm');
-        }
-
-        return Inertia::render('account/security', $props);
+        ]);
     }
 
     public function update(Request $request, ChangePassword $changePassword): RedirectResponse

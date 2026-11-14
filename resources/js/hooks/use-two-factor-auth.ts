@@ -1,5 +1,6 @@
 import { useHttp } from '@inertiajs/react';
 import { useCallback, useState } from 'react';
+import { __ } from '@/lib/i18n';
 import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
 
 export type UseTwoFactorAuthReturn = {
@@ -57,7 +58,7 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
         } catch {
             setErrors((prev) => [
                 ...prev,
-                'The QR code couldn’t be loaded. Try again in a moment.',
+                __('The QR code couldn’t be loaded. Try again in a moment.'),
             ]);
             setQrCodeSvg(null);
         }
@@ -73,7 +74,7 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
         } catch {
             setErrors((prev) => [
                 ...prev,
-                'The setup key couldn’t be loaded. Try again in a moment.',
+                __('The setup key couldn’t be loaded. Try again in a moment.'),
             ]);
             setManualSetupKey(null);
         }
@@ -87,7 +88,9 @@ export const useTwoFactorAuth = (): UseTwoFactorAuthReturn => {
         } catch {
             setErrors((prev) => [
                 ...prev,
-                'Your recovery codes couldn’t be loaded. Try again in a moment.',
+                __(
+                    'Your recovery codes couldn’t be loaded. Try again in a moment.',
+                ),
             ]);
             setRecoveryCodesList([]);
         }

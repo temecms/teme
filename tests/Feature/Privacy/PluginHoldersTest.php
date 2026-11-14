@@ -22,6 +22,7 @@ use App\Domain\Settings\Privacy\SiteSettingsHolder;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Domain\Users\Privacy\AccountHolder;
+use App\Domain\Users\Privacy\PictureHolder;
 use App\Domain\Users\Privacy\SignInHolder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,7 +53,7 @@ beforeEach(function (): void {
         ->on(CollectPersonalDataHolders::class, fn (): array => [$this->plugin]);
 });
 
-it('lists core’s ten holders in their order, then a plugin’s', function (): void {
+it('lists core’s eleven holders in their order, then a plugin’s', function (): void {
     expect(array_map(fn (PersonalDataHolder $holder): string => $holder::class, app(PersonalDataHolders::class)->all()))->toBe([
         CommentsHolder::class,
         AccountHolder::class,
@@ -63,11 +64,12 @@ it('lists core’s ten holders in their order, then a plugin’s', function (): 
         AiActivityHolder::class,
         PluginConsentHolder::class,
         PeopleHolder::class,
+        PictureHolder::class,
         PrivacyRequestsHolder::class,
         RecordingHolder::class,
     ])
         ->and(array_keys(app(PersonalDataHolders::class)->byKey()))->toBe([
-            'comments', 'account', 'sign-in', 'security-log', 'site-settings', 'inbox', 'ai-activity', 'plugin-consent', 'people', 'privacy-requests', 'maps.places',
+            'comments', 'account', 'sign-in', 'security-log', 'site-settings', 'inbox', 'ai-activity', 'plugin-consent', 'people', 'picture', 'privacy-requests', 'maps.places',
         ]);
 });
 

@@ -1,15 +1,16 @@
-import { Form, Head } from '@inertiajs/react';
-import { Info } from 'lucide-react';
-import InputError from '@/components/input-error';
+import { Form, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import FirstRunController from '@/actions/App/Http/Admin/Auth/FirstRunController';
+import { SignInPaused } from '@/components/auth/sign-in-paused';
 import PasswordInput from '@/components/password-input';
-import TextLink from '@/components/text-link';
+import { AuthPage } from '@/components/patterns/auth-page';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Field, FieldInline } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
+import { Notice } from '@/components/ui/notice';
+import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
-import FirstRunController from '@/actions/App/Http/Admin/Auth/FirstRunController';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 
@@ -18,6 +19,8 @@ type Props = {
     canResetPassword: boolean;
     canRemember: boolean;
     firstRun?: boolean;
+    /** Seconds until sign-in opens again after too many tries; null when it is open. */
+    retryAfter: number | null;
 };
 
 export default function Login({
@@ -25,117 +28,117 @@ export default function Login({
     canResetPassword,
     canRemember,
     firstRun,
+    retryAfter,
 }: Props) {
+    const [waiting, setWaiting] = useState(retryAfter !== null);
+    const [shownWait, setShownWait] = useState(retryAfter);
+
+    // A new refusal, or none: the button follows the wait the page was given.
+    if (shownWait !== retryAfter) {
+        setShownWait(retryAfter);
+        setWaiting(retryAfter !== null);
+    }
+
     return (
-        <>
-            <Head title="Sign in" />
-            {status && (
-                <div className="text-ok-ink mb-4 text-center text-sm font-medium">
-                    {' '}
-                    {status}{' '}
-                </div>
-            )}
-
-            {firstRun && (
-                <div
-                    data-test="first-run-notice"
-                    className="border-line bg-surface-2 mb-2 flex gap-2.5 rounded-md border px-4 py-3 text-[13px]"
-                >
-                    <Info
-                        aria-hidden="true"
-                        className="text-ink-2 mt-0.5 size-4 shrink-0"
-                    />
-                    <div>
-                        <p>{__('This site has no accounts yet.')}</p>
-                        <TextLink
-                            href={FirstRunController.show()}
-                            className="mt-1 inline-block font-medium"
+        <AuthPage
+            title={__('Sign in')}
+            lead={__('Use your email address and password.')}
+            notices={
+                <>
+                    {status && <Notice tone="ok">{status}</Notice>}
+                    {firstRun && (
+                        <Notice
+                            tone="info"
+                            data-test="first-run-notice"
+                            action={
+                                <TextButton asChild>
+                                    <Link href={FirstRunController.show()}>
+                                        {__('Set up the site')}
+                                    </Link>
+                                </TextButton>
+                            }
                         >
-                            {__('Set up the site')}
-                        </TextLink>
-                    </div>
-                </div>
-            )}
-
+                            {__('This site has no accounts yet.')}
+                        </Notice>
+                    )}
+                    {retryAfter !== null && (
+                        <SignInPaused
+                            key={retryAfter}
+                            seconds={retryAfter}
+                            onDone={() => setWaiting(false)}
+                        />
+                    )}
+                </>
+            }
+            links={
+                canResetPassword && (
+                    <TextButton asChild className="min-h-(--ctl-h)">
+                        <Link href={request()}>
+                            {__('Forgot your password?')}
+                        </Link>
+                    </TextButton>
+                )
+            }
+        >
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
-                className="flex flex-col gap-6"
+                className="grid gap-5"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    aria-describedby="email-error"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError
-                                    id="email-error"
-                                    message={errors.email}
-                                />
-                            </div>
+                        <Field
+                            htmlFor="email"
+                            label={__('Email address')}
+                            error={
+                                retryAfter === null ? errors.email : undefined
+                            }
+                        >
+                            <Input
+                                id="email"
+                                type="email"
+                                name="email"
+                                required
+                                autoFocus
+                                autoComplete="email"
+                            />
+                        </Field>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                        >
-                                            Forgot your password?
-                                        </TextLink>
-                                    )}
-                                </div>
-                                <PasswordInput
-                                    id="password"
-                                    aria-describedby="password-error"
-                                    name="password"
-                                    required
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
-                                <InputError
-                                    id="password-error"
-                                    message={errors.password}
-                                />
-                            </div>
+                        <Field
+                            htmlFor="password"
+                            label={__('Password')}
+                            error={errors.password}
+                        >
+                            <PasswordInput
+                                id="password"
+                                name="password"
+                                required
+                                autoComplete="current-password"
+                            />
+                        </Field>
 
-                            {canRemember && (
-                                <div className="flex items-center space-x-3">
-                                    <Checkbox id="remember" name="remember" />
-                                    <Label htmlFor="remember">
-                                        Remember me
-                                    </Label>
-                                </div>
-                            )}
-
-                            <Button
-                                type="submit"
-                                className="mt-4 w-full"
-                                disabled={processing}
-                                data-test="login-button"
+                        {canRemember && (
+                            <FieldInline
+                                htmlFor="remember"
+                                label={__('Remember me')}
                             >
-                                {processing && <Spinner />}
-                                Sign in
-                            </Button>
-                        </div>
+                                <Checkbox id="remember" name="remember" />
+                            </FieldInline>
+                        )}
+
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            className="w-full"
+                            loading={processing}
+                            disabled={waiting}
+                            data-test="login-button"
+                        >
+                            {__('Sign in')}
+                        </Button>
                     </>
                 )}
             </Form>
-        </>
+        </AuthPage>
     );
 }
-
-Login.layout = {
-    title: 'Sign in',
-    description: 'Use your email address and password.',
-};

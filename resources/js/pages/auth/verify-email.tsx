@@ -1,44 +1,42 @@
-// Components
-import { Form, Head } from '@inertiajs/react';
-import TextLink from '@/components/text-link';
+import { Form, Link } from '@inertiajs/react';
+import { AuthPage } from '@/components/patterns/auth-page';
 import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
+import { Notice } from '@/components/ui/notice';
+import { TextButton } from '@/components/ui/text-button';
+import { __ } from '@/lib/i18n';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 
 export default function VerifyEmail({ status }: { status?: string }) {
     return (
-        <>
-            <Head title="Email verification" />
-
-            {status === 'verification-link-sent' && (
-                <div className="text-ok-ink mb-4 text-center text-sm font-medium">
-                    Sent. Check your email for the new link.
-                </div>
-            )}
-
-            <Form {...send.form()} className="space-y-6 text-center">
+        <AuthPage
+            title={__('Email verification')}
+            lead={__('Click the link we emailed you to confirm your address.')}
+            notices={
+                status === 'verification-link-sent' && (
+                    <Notice tone="ok">
+                        {__('Sent. Check your email for the new link.')}
+                    </Notice>
+                )
+            }
+            links={
+                <TextButton asChild className="min-h-(--ctl-h)">
+                    <Link href={logout()}>{__('Sign out')}</Link>
+                </TextButton>
+            }
+        >
+            <Form {...send.form()} className="grid">
                 {({ processing }) => (
-                    <>
-                        <Button disabled={processing} variant="secondary">
-                            {processing && <Spinner />}
-                            Resend verification email
-                        </Button>
-
-                        <TextLink
-                            href={logout()}
-                            className="mx-auto block text-sm"
-                        >
-                            Sign out
-                        </TextLink>
-                    </>
+                    <Button
+                        type="submit"
+                        variant="neutral"
+                        className="w-full"
+                        loading={processing}
+                    >
+                        {__('Resend verification email')}
+                    </Button>
                 )}
             </Form>
-        </>
+        </AuthPage>
     );
 }
-
-VerifyEmail.layout = {
-    title: 'Email verification',
-    description: 'Click the link we emailed you to confirm your address.',
-};

@@ -12,6 +12,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { IconTile } from '@/components/ui/icon-tile';
+import { Input } from '@/components/ui/input';
 import {
     InputOTP,
     InputOTPGroup,
@@ -21,33 +23,9 @@ import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
+import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import { confirm } from '@/routes/two-factor';
-
-function GridScanIcon() {
-    return (
-        <div className="border-line bg-surface mb-3 rounded-full border p-0.5">
-            <div className="border-line bg-surface-2 relative overflow-hidden rounded-full border p-2.5">
-                <div className="absolute inset-0 grid grid-cols-5 opacity-50">
-                    {Array.from({ length: 5 }, (_, i) => (
-                        <div
-                            key={`col-${i + 1}`}
-                            className="border-line border-r last:border-r-0"
-                        />
-                    ))}
-                </div>
-                <div className="absolute inset-0 grid grid-rows-5 opacity-50">
-                    {Array.from({ length: 5 }, (_, i) => (
-                        <div
-                            key={`row-${i + 1}`}
-                            className="border-line border-b last:border-b-0"
-                        />
-                    ))}
-                </div>
-                <ScanLine className="text-ink relative z-20 size-6" />
-            </div>
-        </div>
-    );
-}
 
 function TwoFactorSetupStep({
     qrCodeSvg,
@@ -74,18 +52,16 @@ function TwoFactorSetupStep({
                 <>
                     <div className="mx-auto flex max-w-md overflow-hidden">
                         <div className="border-line mx-auto aspect-square w-64 rounded-lg border">
-                            <div className="z-10 flex h-full w-full items-center justify-center p-5">
+                            <div className="flex h-full w-full items-center justify-center p-5">
                                 {qrCodeSvg ? (
                                     <div
-                                        className="bg-paper aspect-square w-full rounded-lg p-2 [&_svg]:size-full"
+                                        className={cn(
+                                            'bg-paper aspect-square w-full rounded-lg p-2 [&_svg]:size-full',
+                                            resolvedAppearance === 'dark' &&
+                                                'brightness-150 invert',
+                                        )}
                                         dangerouslySetInnerHTML={{
                                             __html: qrCodeSvg,
-                                        }}
-                                        style={{
-                                            filter:
-                                                resolvedAppearance === 'dark'
-                                                    ? 'invert(1) brightness(1.5)'
-                                                    : undefined,
                                         }}
                                     />
                                 ) : (
@@ -95,7 +71,7 @@ function TwoFactorSetupStep({
                         </div>
                     </div>
 
-                    <div className="flex w-full space-x-5">
+                    <div className="flex w-full">
                         <Button className="w-full" onClick={onNextStep}>
                             {buttonText}
                         </Button>
@@ -104,33 +80,34 @@ function TwoFactorSetupStep({
                     <div className="relative flex w-full items-center justify-center">
                         <div className="bg-line absolute inset-0 top-1/2 h-px w-full" />
                         <span className="bg-surface relative px-2 py-1">
-                            or type this setup key
+                            {__('or type this setup key')}
                         </span>
                     </div>
 
-                    <div className="flex w-full space-x-2">
-                        <div className="border-line flex w-full items-stretch overflow-hidden rounded-xl border">
-                            {!manualSetupKey ? (
-                                <div className="bg-surface-2 flex h-full w-full items-center justify-center p-3">
-                                    <Spinner />
-                                </div>
-                            ) : (
-                                <>
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value={manualSetupKey}
-                                        className="bg-page text-ink h-full w-full p-3 outline-none"
-                                    />
-                                    <button
-                                        onClick={() => copy(manualSetupKey)}
-                                        className="border-line hover:bg-surface-2 border-l px-3"
-                                    >
-                                        <IconComponent className="w-4" />
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                    <div className="flex w-full gap-2">
+                        {!manualSetupKey ? (
+                            <div className="bg-surface-2 flex w-full items-center justify-center rounded-md p-3">
+                                <Spinner />
+                            </div>
+                        ) : (
+                            <>
+                                <Input
+                                    readOnly
+                                    value={manualSetupKey}
+                                    aria-label={__('Setup key')}
+                                    className="font-mono"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="neutral"
+                                    size="icon"
+                                    aria-label={__('Copy the setup key')}
+                                    onClick={() => copy(manualSetupKey)}
+                                >
+                                    <IconComponent aria-hidden="true" />
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </>
             )}
@@ -176,7 +153,7 @@ function TwoFactorVerificationStep({
                         <div className="flex w-full flex-col items-center space-y-3 py-2">
                             <InputOTP
                                 id="otp"
-                                aria-label="Authentication code"
+                                aria-label={__('Authentication code')}
                                 aria-describedby="otp-error"
                                 name="code"
                                 maxLength={OTP_MAX_LENGTH}
@@ -205,15 +182,15 @@ function TwoFactorVerificationStep({
                             />
                         </div>
 
-                        <div className="flex w-full space-x-5">
+                        <div className="flex w-full gap-3">
                             <Button
                                 type="button"
-                                variant="outline"
+                                variant="neutral"
                                 className="flex-1"
                                 onClick={onBack}
                                 disabled={processing}
                             >
-                                Back
+                                {__('Back')}
                             </Button>
                             <Button
                                 type="submit"
@@ -222,7 +199,7 @@ function TwoFactorVerificationStep({
                                     processing || code.length < OTP_MAX_LENGTH
                                 }
                             >
-                                Confirm
+                                {__('Confirm')}
                             </Button>
                         </div>
                     </div>
@@ -265,27 +242,30 @@ export default function TwoFactorSetupModal({
     }>(() => {
         if (twoFactorEnabled) {
             return {
-                title: 'Two-factor sign-in is on',
-                description:
+                title: __('Two-factor sign-in is on'),
+                description: __(
                     'Scan the QR code, or type the setup key, in your authenticator app.',
-                buttonText: 'Close',
+                ),
+                buttonText: __('Close'),
             };
         }
 
         if (showVerificationStep) {
             return {
-                title: 'Verify authentication code',
-                description:
+                title: __('Verify authentication code'),
+                description: __(
                     'Enter the 6-digit code from your authenticator app',
-                buttonText: 'Continue',
+                ),
+                buttonText: __('Continue'),
             };
         }
 
         return {
-            title: 'Enable two-factor sign-in',
-            description:
+            title: __('Turn on two-factor sign-in'),
+            description: __(
                 'Scan the QR code, or type the setup key, in your authenticator app.',
-            buttonText: 'Continue',
+            ),
+            buttonText: __('Continue'),
         };
     }, [twoFactorEnabled, showVerificationStep]);
 
@@ -327,9 +307,9 @@ export default function TwoFactorSetupModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent size="sm">
                 <DialogHeader className="flex items-center justify-center">
-                    <GridScanIcon />
+                    <IconTile icon={ScanLine} size="lg" className="mb-3" />
                     <DialogTitle>{modalConfig.title}</DialogTitle>
                     <DialogDescription className="text-center">
                         {modalConfig.description}

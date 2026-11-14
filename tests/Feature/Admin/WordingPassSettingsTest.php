@@ -61,12 +61,18 @@ it('says where one item’s code goes in Site code’s description, not at its f
 
 it('says where the bio shows in a hint under the box, not in its label', function (): void {
     $source = ($this->flat)('pages/account/profile.tsx');
+    $field = ($this->flat)('components/ui/field.tsx');
+    $bio = ($this->at)($source, '<Field htmlFor="bio"');
 
-    expect(($this->at)($source, 'Shown on your author page and under your posts.'))
-        ->toBeGreaterThan(($this->at)($source, 'id="bio"'))
-        ->toBeLessThan(($this->at)($source, 'id="bio-error"'))
-        ->and($source)->toContain('aria-describedby="bio-hint bio-error"')
-        ->not->toContain('Bio — shown');
+    // The words are the bio Field's help, never its label; Field draws the help after the box and before the error, both tied to the box.
+    expect(($this->at)($source, "help={__( 'Shown on your author page and under your posts.', )}", $bio))
+        ->toBeGreaterThan(($this->at)($source, "label={__('Bio')}", $bio))
+        ->toBeLessThan(($this->at)($source, 'id="bio"', $bio))
+        ->and(($this->at)($field, '<FieldHelp id={id} help={help} />'))
+        ->toBeGreaterThan(($this->at)($field, '{tie(children, id, help, error)}'))
+        ->toBeLessThan(($this->at)($field, '<FieldError id={id} error={error}'))
+        ->and($field)->toContain('const ids = [help ? `${id}-help` : null, error ? `${id}-error` : null]')
+        ->and($source)->not->toContain('Bio — shown');
 });
 
 it('offers Resend confirmation email as a button, not a link inside a sentence', function (): void {
@@ -98,12 +104,12 @@ it('warns what regenerating does beside the Regenerate codes button', function (
 it('says why the reader is on the sign-in screen above the form', function (): void {
     $source = ($this->flat)('pages/auth/login.tsx');
 
-    expect(($this->at)($source, '{status && ('))->toBeLessThan(($this->at)($source, '<Form'));
+    expect(($this->at)($source, 'notices='))->toBeLessThan(($this->at)($source, '<Form'));
 });
 
 it('offers Back to sign in on its own, not inside a sentence', function (): void {
     expect(($this->flat)('pages/auth/forgot-password.tsx'))
-        ->toContain('<TextLink href={login()}>Back to sign in</TextLink>')
+        ->toContain("<TextButton asChild className=\"min-h-(--ctl-h)\"> <Link href={login()}>{__('Back to sign in')}</Link> </TextButton>")
         ->not->toContain('Or, return to');
 });
 
@@ -111,6 +117,6 @@ it('offers the other way to sign in as a button of its own under Continue', func
     $source = ($this->flat)('pages/auth/two-factor-challenge.tsx');
     $continue = ($this->at)($source, 'Continue');
 
-    expect(($this->at)($source, 'variant="outline"', $continue))->toBeLessThan(($this->at)($source, '{authConfigContent.toggleText}', $continue))
+    expect(($this->at)($source, 'variant="neutral"', $continue))->toBeLessThan(($this->at)($source, '{authConfigContent.toggleText}', $continue))
         ->and($source)->not->toContain('or you can');
 });
