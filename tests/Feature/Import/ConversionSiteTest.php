@@ -67,3 +67,24 @@ it('leaves a not-yet-imported target on another host for the second pass', funct
     expect($conversion->pendingLinks)->toBe(['/later-story/'])
         ->and($conversion->document['content'][0]['content'][0]['marks'][0]['attrs']['href'])->toBe('/later-story/');
 });
+
+it('leaves a sibling host outside when only another address is listed', function (): void {
+    $site = new ConversionSite('https://example.com', otherHosts: ['stage.example.com']);
+    $conversion = app(BlockConverter::class)->convert([
+        WordPressContent::classic(
+            '<p><a href="https://dev.example.com/draft/">Draft</a></p>'
+            .'<p><img src="https://dev.example.com/wp-content/uploads/2026/01/a.jpg" alt="A"></p>'
+        ),
+    ], $site, new KnownMedia, new KnownTargets);
+
+    $href = $conversion->document['content'][0]['content'][0]['marks'][0]['attrs']['href'] ?? null;
+    $src = $conversion->document['content'][1]['attrs']['src']
+        ?? $conversion->document['content'][1]['content'][0]['marks'][0]['attrs']['href']
+        ?? $conversion->document['content'][1]['attrs']['mediaId']
+        ?? null;
+    $said = array_column(WordPressContent::said($conversion), 0);
+
+    expect($href)->toBe('https://dev.example.com/draft/')
+        ->and($src)->toBe('https://dev.example.com/wp-content/uploads/2026/01/a.jpg')
+        ->and($said)->not->toContain('links.other-host', 'images.other-host');
+});
