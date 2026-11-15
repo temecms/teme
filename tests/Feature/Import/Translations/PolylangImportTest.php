@@ -156,10 +156,13 @@ it('copies the site title, the tagline and the title templates in each language,
 
 it('stops before writing anything when Polylang set each page\'s language from its content', function (): void {
     $this->site->with('languages', PolylangSite::languages(['options' => ['force_lang' => 0]]));
+    $settings = fn (): array => SettingsGroupRecord::query()->orderBy('group_key')->get()->map(fn (SettingsGroupRecord $group): array => $group->only(['group_key', 'overrides', 'translations', 'version']))->all();
+    $before = $settings();
 
     $run = $this->site->import($this->source);
 
     expect($run->state)->toBe(ImportRunState::Stopped)
+        ->and($settings())->toBe($before)
         ->and($run->stop_reason)->toBe('languages-from-content')
         ->and(Content::query()->count())->toBe(0)
         ->and(app(SiteLanguages::class)->others())->toBe([]);

@@ -11,7 +11,6 @@ use App\Domain\Import\Operations\Input\ClearRunMessagesInput;
 use App\Domain\Import\Operations\Input\ImportSiteLanguagesInput;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
-use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
@@ -61,10 +60,6 @@ final readonly class LanguagesStep implements StepPhase
 
         if (! $languages->active) {
             return StepResult::done();
-        }
-
-        if ($languages->mode() === PolylangLanguages::FROM_CONTENT) {
-            throw ImportStopped::because('languages-from-content', __('Polylang on the old site set each page’s language from its content, so its addresses don’t say which language they are in, and Teme can’t give each one its address. Set Polylang’s URL modifications to “The language is set from the directory name”, then start the import again.'));
         }
 
         $messages = [];
