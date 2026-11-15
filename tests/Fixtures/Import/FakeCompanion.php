@@ -28,8 +28,8 @@ final class FakeCompanion
 
     public const string PASSWORD = 'abcd EFGH 1234 ijkl MNOP 5678';
 
-    /** The keys the companion never sends, whatever is asked (WordPressNames::NEVER_SENT). */
-    private const array NEVER_SENT = ['user_pass', 'session_tokens', '_application_passwords', 'wp_user_roles'];
+    /** The keys the companion never sends, whatever is asked and in any case, on a site whose table prefix is wp_ (WordPressNames::NEVER_SENT). */
+    private const array NEVER_SENT = ['user_pass', 'session_tokens', '_application_passwords', 'mailserver_pass', 'wp_user_roles', 'wp_capabilities'];
 
     /** Each list route's page size and its largest, as the plugin's own Paging::read() calls give them. */
     private const array LIMITS = [
@@ -268,7 +268,7 @@ final class FakeCompanion
             return Http::response(['code' => 'rest_invalid_param', 'message' => 'Invalid parameter(s): kind', 'data' => ['status' => 400]], 400);
         }
 
-        if (array_intersect($asked, self::NEVER_SENT) !== []) {
+        if (array_intersect(array_map(strtolower(...), $asked), self::NEVER_SENT) !== []) {
             return Http::response(['code' => 'teme_never_sent', 'message' => 'Teme never asks for that.', 'data' => ['status' => 400]], 400);
         }
 

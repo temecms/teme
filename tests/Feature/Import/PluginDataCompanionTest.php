@@ -58,6 +58,10 @@ it('refuses a never-sent key, whatever is asked', function (array $query): void 
     'an option' => [['kind' => 'options', 'names' => 'importer_mode,wp_user_roles']],
     'a person’s meta' => [['kind' => 'usermeta', 'keys' => 'user_pass', 'after_id' => 0, 'limit' => 500]],
     'a post’s meta' => [['kind' => 'posts', 'type' => 'ap_actor', 'meta' => '_application_passwords', 'after_id' => 0, 'limit' => 200]],
+    'a name in capitals' => [['kind' => 'usermeta', 'keys' => 'User_Pass', 'after_id' => 0, 'limit' => 500]],
+    'the roles option in capitals' => [['kind' => 'options', 'names' => 'WP_USER_ROLES']],
+    'the mail server’s password' => [['kind' => 'options', 'names' => 'mailserver_pass']],
+    'a person’s capabilities' => [['kind' => 'usermeta', 'keys' => 'wp_capabilities', 'after_id' => 0, 'limit' => 500]],
 ]);
 
 it('isn’t there on a companion of API 1', function (): void {

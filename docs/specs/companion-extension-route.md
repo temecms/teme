@@ -28,7 +28,7 @@ A keyset page is the envelope the other list routes use: `{ "api": 2, "items": [
 
 ## What the companion refuses and decodes
 
-- **Never sent, whatever is asked:** `user_pass`, `session_tokens`, `_application_passwords` and `wp_user_roles`. A request naming one is refused with `400` and the code `teme_never_sent`, and nothing is read. Teme's manifest validator refuses them first.
+- **Never sent, whatever is asked:** `user_pass`, `session_tokens`, `_application_passwords`, `mailserver_pass`, the roles option `$wpdb->prefix . 'user_roles'` and each person's `$wpdb->get_blog_prefix() . 'capabilities'`. Names are compared case-insensitively (`strtolower()` on both sides), so `User_Pass` or `WP_USER_ROLES` is refused too. A request naming one is refused with `400` and the code `teme_never_sent`, and nothing is read. Teme's manifest validator refuses them first, case-insensitively, and since it can't know the site's table prefix, it refuses any name ending in `user_roles` or `capabilities`.
 - **No serialized PHP crosses** (rule 4). Each value goes through `maybe_unserialize()` with objects not allowed, then JSON. A value that held a PHP object anywhere is sent as `null`, and its name is listed in `objects` (the option's name, or the meta key, once per record). Teme reports it in the run.
 - **Through WordPress's own functions**, never a table read directly: `get_option()`, `WP_Query` with `get_post_meta()`, `get_user_meta()`, `get_term_meta()`. A plugin's own tables are not read in this version.
 - Unknown `kind`: `400` with `rest_invalid_param`.

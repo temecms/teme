@@ -514,7 +514,7 @@ final readonly class ManifestValidator
 
             if (! is_string($name) || preg_match(WordPressNames::PATTERN, $name) !== 1) {
                 $errors[] = "{$where} \"{$this->show($name)}\" isn’t the shape of a WordPress option or meta key.";
-            } elseif (in_array($name, WordPressNames::NEVER_SENT, true)) {
+            } elseif (WordPressNames::neverSent($name)) {
                 $errors[] = "{$where} names {$name}, which Teme never brings across from WordPress.";
             }
         }

@@ -21,9 +21,33 @@ final readonly class WordPressNames
     /** The most names one plugin declares in all. */
     public const int MOST = 50;
 
-    /** Never sent, whatever a plugin declares; the companion refuses them too. */
-    public const array NEVER_SENT = ['user_pass', 'session_tokens', '_application_passwords', 'wp_user_roles'];
+    /** Never sent, whatever a plugin declares, in any case; the companion refuses them too. */
+    public const array NEVER_SENT = ['user_pass', 'session_tokens', '_application_passwords', 'mailserver_pass'];
+
+    /** Never sent after any table prefix, such as wp_user_roles and wp_2_capabilities: core's roles and each person's. */
+    public const array NEVER_SENT_AFTER_PREFIX = ['user_roles', 'capabilities'];
 
     /** The keys `imports` may hold. */
     public const array KEYS = ['importer', 'options', 'postTypes', 'userMeta', 'termMeta'];
+
+    /**
+     * Whether Teme never brings this name across, whatever its case: a
+     * never-sent name, or one that ends in a never-sent name after a prefix.
+     */
+    public static function neverSent(string $name): bool
+    {
+        $name = strtolower($name);
+
+        if (in_array($name, self::NEVER_SENT, true)) {
+            return true;
+        }
+
+        foreach (self::NEVER_SENT_AFTER_PREFIX as $ending) {
+            if (str_ends_with($name, $ending)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
