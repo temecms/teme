@@ -275,3 +275,28 @@ it('cancels nothing when disable is refused', function (): void {
     expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Waiting)
         ->and(PluginRecord::query()->where('name', 'tests/jobs')->value('state'))->toBe(PluginRecord::ENABLED);
 });
+
+it('runs nothing after CancelJob ended the tracked job', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = ($this->jobs)()->queue('quiet-write', ['line' => 'should not write']);
+    app(CancelJob::class)->execute(new \App\Domain\Jobs\Operations\Input\CancelJobInput($id, null));
+
+    ($this->run)('quiet-write', $id);
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Cancelled)
+        ->and(DB::table('jobs_lines')->count())->toBe(0);
+});
+
+it('runs nothing when the job was cancelled by disable then the plugin was enabled again', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = ($this->jobs)()->queue('quiet-write', ['line' => 'should not write']);
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/jobs', null));
+    ($this->enable)();
+
+    ($this->run)('quiet-write', $id);
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Cancelled)
+        ->and(DB::table('jobs_lines')->count())->toBe(0);
+});

@@ -70,6 +70,12 @@ final class RunPluginJob implements ShouldQueue
     ): void {
         $this->actor->bind();
 
+        $tracked = TrackedJob::query()->find($this->trackedJobId);
+
+        if ($tracked === null || $tracked->state->ended()) {
+            return;
+        }
+
         $record = PluginRecord::query()->where('code', $this->pluginCode)->first();
         $plugin = $record === null ? null : $registry->find($record->name);
         $manifest = $plugin?->manifest;
@@ -81,10 +87,8 @@ final class RunPluginJob implements ShouldQueue
             || $manifest === null
             || ! $granted
             || $safeMode->active()) {
-            $tracked = TrackedJob::query()->find($this->trackedJobId);
-
             // DisablePlugin may already have cancelled waiting runs after commit.
-            if ($tracked !== null && ! $tracked->state->ended()) {
+            if (! $tracked->state->ended()) {
                 $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
             }
 
@@ -110,10 +114,9 @@ final class RunPluginJob implements ShouldQueue
             return;
         }
 
-        $row = TrackedJob::query()->findOrFail($this->trackedJobId);
         $context = new PluginJobContext(
             $this->trackedJobId,
-            $row->payload,
+            $tracked->payload,
             max(1, $this->attempts()),
             $record->name,
             $this->actor,

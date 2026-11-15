@@ -11,6 +11,8 @@
     "hosts": ["api.example.com"],
     "jobs": [
         { "key": "write-line", "label": "Write a line", "tries": 2, "backoff": [1, 2] },
+        { "key": "quiet-write", "label": "Quiet write", "tries": 1, "backoff": [1] },
+        { "key": "progress-write", "label": "Progress write", "tries": 1, "backoff": [1] },
         { "key": "long-call", "label": "Long outbound call", "long": true, "tries": 1, "backoff": [1] },
         { "key": "throw", "label": "Throw once", "tries": 2, "backoff": [1] }
     ],

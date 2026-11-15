@@ -31,6 +31,8 @@ final class JobsPlugin implements Plugin, PluginHasJobs
     {
         return [
             'write-line' => new WriteLineHandler,
+            'quiet-write' => new QuietWriteHandler,
+            'progress-write' => new ProgressWriteHandler,
             'long-call' => new LongCallHandler($this->http),
             'throw' => new ThrowHandler,
         ];
