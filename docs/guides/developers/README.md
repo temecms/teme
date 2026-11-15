@@ -18,7 +18,8 @@ It does not cover running a server or writing content. Those have their own guid
 2. [The manifest](concepts/manifest.md) and [Hooks](concepts/hooks.md).
 3. [Operations](concepts/operations.md), [Code standards for plugins and themes](start/code-standards.md), then [Testing a plugin or theme](testing.md).
 4. For a plugin, [Plugin settings and secrets](plugins/settings.md). For a theme, [Regions, site code and featured posts](themes/regions.md).
-5. [For agents](for-agents.md) if you are building with an agent.
+5. [Rules for plugins and themes](rules/plugins-and-themes.md) before you publish one.
+6. [For agents](for-agents.md) if you are building with an agent.
 
 ## Pages that land with later work
 

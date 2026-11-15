@@ -12,6 +12,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Testing a plugin or theme](testing.md): How to test a plugin or theme with Pest and Teme’s fixture helpers.
 - [Plugin settings and secrets](plugins/settings.md): How a plugin declares its settings screen in the manifest, reads its values, keeps API keys as secrets, and adds a Tools link.
 - [Regions, site code and featured posts](themes/regions.md): How a theme sets aside regions for the site's own content, where an administrator's own HTML goes, and how to draw pinned posts on the latest posts page.
+- [Rules for plugins and themes](rules/plugins-and-themes.md): The rules every plugin and theme lives by, both the ones Teme enforces and the ones authors must keep because Teme cannot check them.
 - [For agents](for-agents.md): How agents should read this handbook and llms.txt, choose a plugin's capabilities, and write an AGENTS.md for it.
 - [Plugins writing content](plugins/content-write.md): How a plugin will create and change content through Operations.
 - [Jobs and schedules](plugins/jobs.md): How a plugin will declare queue jobs and schedules in its manifest.
