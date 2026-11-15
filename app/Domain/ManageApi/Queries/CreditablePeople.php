@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Queries;
 
+use App\Domain\Users\Queries\AuthorOptions;
 use App\Models\User;
 
 /**
  * The people an item may be credited to, as the management API lists them:
- * the editor's author choices, everyone active who may write content.
+ * the editor's author choices (AuthorOptions), with each person's slug.
  */
-final class CreditablePeople
+final readonly class CreditablePeople
 {
+    public function __construct(private AuthorOptions $authors) {}
+
     /**
      * Returns each person's ID, name and slug, by name, at most 500.
      *
@@ -19,8 +22,7 @@ final class CreditablePeople
      */
     public function all(): array
     {
-        return User::permission('content.create')
-            ->whereNull('suspended_at')
+        return $this->authors->people()
             ->orderBy('name')
             ->orderBy('id')
             ->limit(500)
@@ -35,6 +37,6 @@ final class CreditablePeople
      */
     public function has(int $id): bool
     {
-        return User::permission('content.create')->whereNull('suspended_at')->whereKey($id)->exists();
+        return $this->authors->people()->whereKey($id)->exists();
     }
 }
