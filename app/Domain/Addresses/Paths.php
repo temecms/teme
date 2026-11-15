@@ -117,9 +117,10 @@ final class Paths
      * Why this target may not have this address, in words that name what
      * holds it: the site itself, another target's current address, or a
      * type's archive page. Null when it is free, or held only as someone's
-     * history.
+     * history. $language is a target's not written yet, as `language`
+     * will store it; a written target's own is read from its row.
      */
-    public static function conflict(string $path, string $type, string $id): ?string
+    public static function conflict(string $path, string $type, string $id, ?string $language = null): ?string
     {
         $shown = $path === '' ? '/' : '/'.$path.'/';
         $segments = explode('/', $path);
@@ -127,9 +128,9 @@ final class Paths
 
         // A language's own target under its prefix: what follows the prefix
         // is checked as the default language's address would be (I-3360).
-        $language = app(SiteLanguages::class)->byPrefix($first);
+        $prefixed = app(SiteLanguages::class)->byPrefix($first);
 
-        if ($language !== null && self::languageOf($type, $id) === $language) {
+        if ($prefixed !== null && (self::languageOf($type, $id) ?? $language) === $prefixed) {
             $first = $segments[1] ?? null;
         }
 

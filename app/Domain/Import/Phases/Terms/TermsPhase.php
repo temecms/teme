@@ -15,6 +15,8 @@ use App\Domain\Import\Phases\ListPhase;
 use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Translations\ImportedLanguages;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Taxonomy\Operations\ImportTerm;
 use App\Domain\Taxonomy\Operations\Input\ImportTermInput;
@@ -82,6 +84,15 @@ final readonly class TermsPhase implements ListPhase
             return ImportResult::skipped(new ImportMessage('term.deleted-here', 'It was imported before and has since been deleted in Teme, so it wasn’t imported again.'));
         }
 
+        // A new term is made in its language, its slug kept exactly, suffix and all (I-3446).
+        $language = $termId === null
+            ? app(ImportedLanguages::class)->stored($context->sourceId, $item['language'] ?? null, app(SiteLanguages::class)->translatesTaxonomy($taxonomy->key))
+            : Term::query()->whereKey($termId)->value('language');
+
+        if ($language === false) {
+            return ImportResult::skipped(new ImportMessage('term.language-missing', __('Its language on the old site isn’t one of this site’s, so it wasn’t imported. The Languages step of the report says why.')));
+        }
+
         $name = mb_substr(WordPressText::decoded($item['name'] ?? ''), 0, 200);
         $from = (string) ($item['slug'] ?? '');
         ['slug' => $slug, 'kept' => $kept] = WordPressSlugs::fromWordPress($from);
@@ -93,6 +104,7 @@ final readonly class TermsPhase implements ListPhase
         $holder = Term::query()
             ->where('taxonomy', $taxonomy->key)
             ->where('slug', $slug)
+            ->where(fn ($query) => $language === null ? $query->whereNull('language') : $query->where('language', $language))
             ->when($termId !== null, fn ($query) => $query->whereKeyNot($termId))
             ->value('id');
 
@@ -104,7 +116,7 @@ final readonly class TermsPhase implements ListPhase
                 throw ImportStopped::because('address-clash', "Teme already has a {$singular} whose address ends in {$slug}, and “{$name}” from WordPress needs it too, so the import stopped. Change one of the two addresses, then carry on the import.");
             }
 
-            $slug = TermSlugs::unique($taxonomy->key, $slug, $termId);
+            $slug = TermSlugs::unique($taxonomy->key, $slug, $termId, $language);
             $kept = false;
         }
 
@@ -125,6 +137,7 @@ final readonly class TermsPhase implements ListPhase
             parentId: $parentId,
             termId: $termId,
             actorId: $context->actorId(),
+            language: $language,
         ));
 
         $result = $saved['created'] ? ImportResult::created('term', $saved['termId']) : ImportResult::updated('term', $saved['termId']);

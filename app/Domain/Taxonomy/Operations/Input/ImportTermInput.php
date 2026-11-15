@@ -9,8 +9,9 @@ use Teme\Contracts\Operations\OperationInput;
 /**
  * What `ImportTerm` needs to bring one WordPress category or tag in: its
  * taxonomy, name, slug, description and parent, the Teme ID of the term an
- * earlier run made when updating it (null to create), and who is importing
- * (null for the operator).
+ * earlier run made when updating it (null to create), who is importing
+ * (null for the operator), and the language a new term is made in, as
+ * `language` stores it (null for the default; I-3446).
  */
 final readonly class ImportTermInput implements OperationInput
 {
@@ -22,6 +23,7 @@ final readonly class ImportTermInput implements OperationInput
         public ?string $parentId,
         public ?string $termId,
         public ?string $actorId,
+        public ?string $language = null,
     ) {}
 
     public function actorId(): ?string
