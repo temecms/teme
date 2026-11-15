@@ -80,6 +80,17 @@ final class QueueActivity extends BaseOperation
         app(SentActivities::class)->announce($result->activities);
     }
 
+    /**
+     * The scheme, host and any port of an actor's address, so an object
+     * lives on the sending actor's host whatever host the editor used.
+     */
+    private static function origin(string $uri): string
+    {
+        $parts = parse_url($uri);
+
+        return ($parts['scheme'] ?? 'https').'://'.($parts['host'] ?? '').(isset($parts['port']) ? ':'.$parts['port'] : '');
+    }
+
     private function published(Content $item): QueuedActivities
     {
         $objects = app(ObjectDocuments::class);
@@ -99,7 +110,7 @@ final class QueueActivity extends BaseOperation
 
         if ($object === null) {
             $object = FediverseObject::query()->create([
-                'uri' => rtrim(url('/'), '/').'/'.ActivityPub::PREFIX.'/objects/'.strtolower((string) Str::ulid()),
+                'uri' => self::origin($sender->uri).'/'.ActivityPub::PREFIX.'/objects/'.strtolower((string) Str::ulid()),
                 'kind' => FediverseObject::POST,
                 'content_id' => $item->id,
             ]);

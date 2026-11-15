@@ -33,6 +33,7 @@ use Illuminate\Contracts\Queue\Job;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Content\ContentTrashed;
@@ -227,4 +228,20 @@ it('refuses a forged token for the site’s own work, writing nothing', function
 
 it('issues the site’s own work only to core’s content listener', function (): void {
     expect(fn () => SiteWork::issue())->toThrow(LogicException::class);
+});
+
+it('addresses a new object on the sending actor’s host, not the host the editor used', function (): void {
+    URL::forceRootUrl('https://editor-host.example');
+
+    try {
+        $item = addrPublished($this->author, 'Harbour news');
+    } finally {
+        URL::forceRootUrl(null);
+    }
+
+    $sender = parse_url($this->blog->uri);
+    $object = FediverseObject::query()->where('content_id', $item->id)->sole();
+
+    expect($object->uri)->toStartWith($sender['scheme'].'://'.$sender['host'].'/ap/objects/')
+        ->and($object->uri)->not->toContain('editor-host.example');
 });
