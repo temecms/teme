@@ -11,7 +11,6 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use RuntimeException;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Media\MediaWriter;
 use Tests\Fixtures\Plugins\Lists\FakeResolver;
