@@ -9,6 +9,8 @@ use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Import\Phases\ImportContext;
+use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\PluginData\PluginDataGoneStep;
 use App\Domain\Import\PluginData\PluginDataPhase;
 use App\Domain\Import\PluginData\PluginOptionsStep;
@@ -21,6 +23,7 @@ use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -206,6 +209,16 @@ it('hands a serialized value over decoded, and an object as null, reported', fun
     expect(pdReceived()['post:3']['meta'])->toBe(['_importer_inbox' => [null], '_importer_following' => [['@bob']]])
         ->and(pdCodes($run))->toBe(['plugin-data.object'])
         ->and(pdWords($run, 'plugin-data.object'))->toBe('WordPress kept a PHP object in _importer_inbox, which Teme can’t read, so Importer was given nothing there.');
+});
+
+it('reports objects only under the names the plugin declared, whatever the companion lists', function (): void {
+    $context = new ImportContext('run', $this->source->id, ImportRunKind::Full, JobActor::operator(), null, 0, []);
+    $item = ['id' => 3, 'title' => 'Ada', 'meta' => ['_importer_inbox' => [null]], 'objects' => ['_importer_inbox', '_secret', 'importer_mode']];
+
+    $result = app(PluginDataPhase::class)->import(new SourceRef('plugin', 'importer:post:ap_actor:3'), $item, $context, null);
+
+    expect($result->messages)->toHaveCount(1)
+        ->and($result->messages[0]->context['names'])->toBe(['_importer_inbox']);
 });
 
 it('reports a companion too old for plugin data, skips it, and finishes the run', function (): void {

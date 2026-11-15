@@ -102,7 +102,13 @@ final readonly class PluginDataPhase implements ListPhase
             default => $this->map->temeId($context->sourceId, $ref) === null ? ImportResult::created(PluginDataLists::TYPE, $code) : ImportResult::updated(PluginDataLists::TYPE, $code),
         };
 
-        $objects = is_array($item['objects'] ?? null) ? array_values(array_filter($item['objects'], is_string(...))) : [];
+        // Only names the plugin declared for this list, as PluginOptionsStep keeps.
+        $declared = match ($kind) {
+            WordPressRecord::POST => $import->imports['postTypes'][(string) $type] ?? [],
+            WordPressRecord::USER => $import->imports['userMeta'],
+            default => $import->imports['termMeta'],
+        };
+        $objects = is_array($item['objects'] ?? null) ? array_values(array_intersect(array_filter($item['objects'], is_string(...)), $declared)) : [];
 
         return $objects === [] ? $result : $result->withWarning(PluginRecordMessages::objects($import, $objects));
     }
