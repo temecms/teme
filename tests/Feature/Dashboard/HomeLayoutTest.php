@@ -114,6 +114,22 @@ it('keeps the rest of Home when one panel\'s query fails', function (): void {
     $this->actingAs($this->author)->get('/admin')->assertOk();
 });
 
+it('gives a plugin\'s panel Small when it declares no size', function (): void {
+    app(DashboardRegistry::class)->register(new DashboardPanel(
+        'plugin_visits',
+        'Visits',
+        700,
+        HomeLayoutEmptyQuery::class,
+        ['create'],
+        owner: 'tests/hello',
+        kind: 'rows',
+    ));
+
+    $entry = collect(app(Dashboard::class)->forUser($this->author)['catalogue'])->firstWhere('key', 'plugin_visits');
+
+    expect($entry['size'])->toBe('small');
+});
+
 it('names a plugin\'s panel\'s plugin and keeps it out of core\'s section', function (): void {
     app(DashboardRegistry::class)->register(new DashboardPanel(
         'plugin_visits',

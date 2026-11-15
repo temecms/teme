@@ -23,8 +23,11 @@ final class DashboardRegistry
             throw new InvalidArgumentException("Dashboard panel [{$panel->key}] is already registered.");
         }
 
-        if (! in_array($panel->size, DashboardPanel::SIZES, true)) {
-            throw new InvalidArgumentException("Dashboard panel [{$panel->key}] has an unknown size [{$panel->size}].");
+        // Settled 2: plugins' panels are Small unless they declare a size; core's default Medium.
+        $size = $panel->size ?? ($panel->owner === 'core' ? 'medium' : 'small');
+
+        if (! in_array($size, DashboardPanel::SIZES, true)) {
+            throw new InvalidArgumentException("Dashboard panel [{$panel->key}] has an unknown size [{$size}].");
         }
 
         if (! in_array($panel->kind, DashboardPanel::KINDS, true)) {
@@ -37,7 +40,21 @@ final class DashboardRegistry
             }
         }
 
-        $this->panels[$panel->key] = $panel;
+        $this->panels[$panel->key] = $panel->size === $size
+            ? $panel
+            : new DashboardPanel(
+                $panel->key,
+                $panel->label,
+                $panel->order,
+                $panel->query,
+                $panel->actions,
+                $panel->seeAllTab,
+                $panel->seeAllMine,
+                $panel->owner,
+                $panel->seeAllQuery,
+                $size,
+                $panel->kind,
+            );
     }
 
     /**

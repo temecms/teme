@@ -22,7 +22,7 @@ final readonly class DashboardPanel
      * @param  string|null  $seeAllTab  the main type's list tab See all opens, or none
      * @param  array<string, string>  $seeAllQuery  list filters See all adds to the tab, such as review=pending
      * @param  bool  $seeAllMine  whether See all narrows the list to the viewer's own items
-     * @param  string  $size  how wide it is drawn until the person changes it; one of self::SIZES
+     * @param  string|null  $size  how wide it is drawn until the person changes it; one of self::SIZES, or null so the registry picks Medium for core and Small for a plugin (Settled 2)
      * @param  string  $kind  what it draws: up to five rows from its query, or the quick draft form; one of self::KINDS
      */
     public function __construct(
@@ -35,7 +35,7 @@ final readonly class DashboardPanel
         public bool $seeAllMine = false,
         public string $owner = 'core',
         public array $seeAllQuery = [],
-        public string $size = 'medium',
+        public ?string $size = null,
         public string $kind = 'rows',
     ) {}
 }
