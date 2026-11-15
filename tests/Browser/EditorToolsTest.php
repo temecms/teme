@@ -54,6 +54,20 @@ beforeEach(function (): void {
     $this->etlSections = "document.querySelector('aside [data-test=\"editor-preview\"]') !== null";
     $this->etlFocused = "(document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent ?? '')";
 
+    // The bar's tools in order, by their names, Tools last; and Tools' rows by their names.
+    $this->etlBar = "Array.from(document.querySelectorAll('header [data-slot=\"editor-tools\"] button'), (button) => button.getAttribute('aria-label') ?? button.textContent.trim().split(' ')[0])";
+    $this->etlRows = "Array.from(document.querySelectorAll('[data-slot=\"tool-row\"] [data-slot=\"tool-name\"]'), (button) => button.textContent.trim())";
+    $this->etlTools = 'header [data-test="editor-tools"]';
+
+    // Opens Tools and waits for its search to take focus.
+    $this->etlOpenTools = function (mixed $page): void {
+        $page->click($this->etlTools);
+        cmWaitUntil($page, "document.activeElement?.getAttribute('type') === 'search' && document.activeElement.closest('[role=\"dialog\"]') !== null");
+    };
+
+    // Waits until a pin's save is in: the list is busy while it is on its way.
+    $this->etlPinSaved = fn (mixed $page): mixed => cmWaitUntil($page, "document.querySelector('[data-slot=\"tool-row\"]')?.closest('[aria-busy]')?.getAttribute('aria-busy') === 'false'");
+
     // Warm the screen before the browser's first visit (I-638).
     $this->actingAs($this->editor)->get($this->edit)->assertOk();
 });
@@ -114,3 +128,67 @@ it('keeps the Publish section open and the action bar in view while the rail scr
 
     $page->assertScript("(() => { const bar = document.querySelector('{$this->etlRail} [data-test=\"editor-preview\"]').closest('[data-slot=\"action-bar\"]'); const area = document.querySelector('{$this->etlRail} [data-slot=\"scroll-area\"]'); return Math.abs(bar.getBoundingClientRect().top - area.getBoundingClientRect().top) < 2; })()");
 });
+
+it('shows Outline and History, then Assistant and Share pinned, then Tools', function (): void {
+    aiReady();
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    cmWaitUntil($page, "{$this->etlBar}.join() === 'Outline,History,Assistant,Share,Tools'");
+});
+
+it('unpins Share from Tools and it stays unpinned on the next visit', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    ($this->etlOpenTools)($page);
+
+    $page->click('button[aria-label="Unpin Share"]');
+    cmWaitUntil($page, "document.querySelector('button[aria-label=\"Pin Share to the bar\"]')?.getAttribute('aria-pressed') === 'false' && !{$this->etlBar}.includes('Share')");
+    ($this->etlPinSaved)($page);
+
+    $page = cmEditorSettled(cmNavigate($page, $this->edit));
+    cmWaitUntil($page, "{$this->etlBar}.join() === 'Outline,History,Tools'");
+
+    expect($this->editor->refresh()->preferences['editor.pinned_tools'] ?? null)->toBe(['assistant']);
+});
+
+it('pins Share again from Tools and it returns to the bar, after Assistant', function (): void {
+    aiReady();
+    lscrPrefer($this->editor, ['editor.pinned_tools' => ['assistant']]);
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    cmWaitUntil($page, "{$this->etlBar}.join() === 'Outline,History,Assistant,Tools'");
+    ($this->etlOpenTools)($page);
+
+    $page->click('button[aria-label="Pin Share to the bar"]');
+    cmWaitUntil($page, "{$this->etlBar}.join() === 'Outline,History,Assistant,Share,Tools'");
+    ($this->etlPinSaved)($page);
+
+    expect($this->editor->refresh()->preferences['editor.pinned_tools'] ?? null)->toBe(['assistant', 'share']);
+});
+
+it('finds a tool by typing in Tools, and opens it with Enter', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    ($this->etlOpenTools)($page);
+
+    $page->page()->locator(':focus')->type('hist');
+    cmWaitUntil($page, "{$this->etlRows}.join() === 'History'");
+    $page->page()->locator(':focus')->press('Enter');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"tool-row\"]') === null && document.activeElement?.tagName === 'H2' && document.activeElement.textContent === 'History' && document.activeElement.closest('{$this->etlHead}') !== null");
+});
+
+it('opens every tool from the command palette too', function (): void {
+    aiReady();
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $page->click('[data-test="palette-button"]');
+    $page->type('[placeholder="Search, go to, or do…"]', 'Open');
+    cmWaitUntil($page, "(() => { const shown = Array.from(document.querySelectorAll('[role=\"option\"]'), (option) => option.textContent.toLowerCase()).join(' '); return ['outline', 'history', 'share', 'assistant'].every((name) => shown.includes(name)); })()");
+});
+
+it('passes axe with Tools open, light and dark', function (string $scheme): void {
+    lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    ($this->etlOpenTools)($page);
+
+    expect(cmAxeViolations($page))->toBe([])
+        ->and(cmSmallTargets($page)['small'])->toBe([]);
+})->with(['light', 'dark']);

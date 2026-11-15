@@ -1,89 +1,68 @@
 import { Link } from '@inertiajs/react';
 import {
     ArrowLeft,
-    EllipsisVertical,
-    FileText,
     History,
+    ListTree,
     Maximize2,
     Minimize2,
     PanelRight,
     Share2,
     Sparkles,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { __ } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
+import { __ } from '@/lib/i18n';
+import { FIXED_TOOLS, PINNABLE_TOOLS, usePins } from './tools/editor-tools';
+import type { EditorTool } from './tools/editor-tools';
+import { ToolsLauncher } from './tools/tools-launcher';
 
-/** A panel the top bar can open in the rail (I-234). */
-export type EditorPanel = {
-    id: string;
-    owner: string;
-    label: string;
-    icon: typeof FileText;
-    /** False while the part that fills it is not built: nothing is drawn for it. */
-    available: boolean;
-};
-
-const PINNED_KEY = 'teme.editor.unpinnedPanels';
-
-// Later (I-234): plugin panels pinned per person, from their manifests.
-export const CORE_PANELS: EditorPanel[] = [
-    {
-        id: 'overview',
-        owner: 'core',
-        label: 'Document overview',
-        icon: FileText,
-        available: true,
-    },
-    {
-        id: 'history',
-        owner: 'core',
-        label: 'History',
-        icon: History,
-        available: true,
-    },
-    // Shown only when the editor's ai prop offers a task (I-321).
-    {
-        id: 'assistant',
-        owner: 'core',
-        label: 'Assistant',
-        icon: Sparkles,
-        available: true,
-    },
-    // Preview links, for anyone who may edit the item; never a theme region's (I-1316).
-    {
-        id: 'share',
-        owner: 'core',
-        label: 'Share',
-        icon: Share2,
-        available: true,
-    },
-];
-
-function storedUnpinned(): string[] {
-    try {
-        return JSON.parse(
-            window.localStorage.getItem(PINNED_KEY) ?? '[]',
-        ) as string[];
-    } catch {
-        return [];
-    }
+/** Teme's own tools, before the ones this item does not offer are left out. */
+function coreTools(): EditorTool[] {
+    return [
+        {
+            id: 'outline',
+            owner: 'core',
+            label: __('Outline'),
+            icon: ListTree,
+            size: 'pane',
+            available: true,
+        },
+        {
+            id: 'history',
+            owner: 'core',
+            label: __('History'),
+            icon: History,
+            size: 'pane',
+            available: true,
+        },
+        // Shown only when the editor's ai prop offers a task (I-321).
+        {
+            id: 'assistant',
+            owner: 'core',
+            label: __('Assistant'),
+            icon: Sparkles,
+            size: 'pane',
+            available: true,
+        },
+        // Preview links, for anyone who may edit the item; never a theme region's (I-1316).
+        {
+            id: 'share',
+            owner: 'core',
+            label: __('Share'),
+            icon: Share2,
+            size: 'pane',
+            available: true,
+        },
+    ];
 }
 
 /**
- * The editor's 48px top bar: the way back, the save state and who else is
- * here on the left; on the right the panel icons, a menu listing every panel
- * with Pin and Unpin, the rail's toggle and Focus. Each icon opens its pane
- * in the rail, one at a time.
+ * The editor's top bar: the way back, the save state and who else is here
+ * on the left; on the right Outline and History, the tools this person
+ * pinned, Tools with every tool (docs/architecture/design-system.md, 4.39),
+ * the rail's toggle and Focus. Each tool opens its pane in the rail, one at
+ * a time.
  */
 export function EditorHeader({
     backHref,
@@ -117,34 +96,36 @@ export function EditorHeader({
     /** Whether the editor's ai prop offers a task, so the assistant shows (I-321). */
     assistant?: boolean;
 }) {
-    const [unpinned, setUnpinned] = useState<string[]>([]);
-
-    useEffect(() => setUnpinned(storedUnpinned()), []);
-
-    const panels = CORE_PANELS.filter((panel) =>
-        panel.id === 'assistant'
+    const { pins, saving, refused, toggle } = usePins();
+    const tools = coreTools().filter((tool) =>
+        tool.id === 'assistant'
             ? assistant
-            : panel.id === 'share'
+            : tool.id === 'share'
               ? canShare
-              : panel.available,
+              : true,
     );
-
-    const togglePin = (id: string) => {
-        const next = unpinned.includes(id)
-            ? unpinned.filter((panel) => panel !== id)
-            : [...unpinned, id];
-        setUnpinned(next);
-
-        try {
-            window.localStorage.setItem(PINNED_KEY, JSON.stringify(next));
-        } catch {
-            // A private window: the choice lasts for this page only.
-        }
-    };
+    const icon = (tool: EditorTool) => (
+        <Button
+            key={tool.id}
+            variant="ghost"
+            size="icon"
+            aria-label={tool.label}
+            aria-pressed={activePane === tool.id}
+            title={tool.label}
+            onClick={() => onTogglePane(tool.id)}
+            className="aria-pressed:bg-surface-2"
+        >
+            <tool.icon />
+        </Button>
+    );
+    const fixed = tools.filter((tool) => FIXED_TOOLS.includes(tool.id));
+    const pinned = pins
+        .map((id) => tools.find((tool) => tool.id === id))
+        .filter((tool): tool is EditorTool => tool !== undefined);
 
     return (
         // Below 640px the header keeps to its essentials so nothing is pushed off
-        // the screen: pinned panels stay in the ⋮ menu, and Focus is its icon.
+        // the screen: the tools stay in Tools, and Focus is its icon.
         <header className="border-line bg-chrome flex h-(--top-h) min-w-0 shrink-0 items-center gap-2 border-b px-3 sm:gap-3 sm:px-4">
             <Link
                 href={backHref}
@@ -157,56 +138,32 @@ export function EditorHeader({
             {saveState}
             {presence}
             <span className="flex-1" />
-            {panels
-                .filter((panel) => !unpinned.includes(panel.id))
-                .map((panel) => (
-                    <Button
-                        key={panel.id}
-                        variant="ghost"
-                        size="icon"
-                        aria-label={__(panel.label)}
-                        aria-pressed={activePane === panel.id}
-                        title={__(panel.label)}
-                        onClick={() => onTogglePane(panel.id)}
-                        className="aria-pressed:bg-surface-2 max-sm:hidden"
-                    >
-                        <panel.icon />
-                    </Button>
-                ))}
-            {panels.length > 0 && (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={__('All panels')}
-                        >
-                            <EllipsisVertical />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>{__('Panels')}</DropdownMenuLabel>
-                        {panels.map((panel) => (
-                            <DropdownMenuItem
-                                key={panel.id}
-                                onSelect={() => onTogglePane(panel.id)}
-                            >
-                                {__(panel.label)}
-                            </DropdownMenuItem>
-                        ))}
-                        <DropdownMenuSeparator />
-                        {panels.map((panel) => (
-                            <DropdownMenuItem
-                                key={`pin-${panel.id}`}
-                                onSelect={() => togglePin(panel.id)}
-                            >
-                                {unpinned.includes(panel.id) ? 'Pin' : 'Unpin'}{' '}
-                                {__(panel.label)}
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            )}
+            {/* Below 640px only Tools stays: every tool is in it. */}
+            <div data-slot="editor-tools" className="flex items-center gap-1">
+                <div className="flex items-center gap-1 max-sm:hidden">
+                    {fixed.map(icon)}
+                    {pinned.length > 0 && (
+                        <Separator
+                            orientation="vertical"
+                            className="mx-1 h-5"
+                        />
+                    )}
+                    {pinned.map(icon)}
+                </div>
+                <ToolsLauncher
+                    tools={tools}
+                    pins={pins}
+                    pinnable={PINNABLE_TOOLS}
+                    saving={saving}
+                    refused={refused}
+                    onOpen={(id) => {
+                        if (activePane !== id) {
+                            onTogglePane(id);
+                        }
+                    }}
+                    onTogglePin={toggle}
+                />
+            </div>
             <Button
                 variant="ghost"
                 size="icon"

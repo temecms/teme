@@ -309,12 +309,6 @@ components/editor/cards/video-card.tsx	WebVTT files (.vtt) from the library, so 
 components/editor/diff-view.tsx	After
 components/editor/diff-view.tsx	Before
 components/editor/diff-view.tsx	Both versions are empty.
-components/editor/editor-header.tsx	Assistant
-components/editor/editor-header.tsx	Document overview
-components/editor/editor-header.tsx	History
-components/editor/editor-header.tsx	Pin
-components/editor/editor-header.tsx	Share
-components/editor/editor-header.tsx	Unpin
 components/editor/editor-rail.tsx	, opens in a new tab
 components/editor/editor-rail.tsx	Approve
 components/editor/editor-rail.tsx	Approve and schedule
@@ -1242,7 +1236,6 @@ pages/content/compare.tsx	Compare: {}
 pages/content/compare.tsx	Restore the {} version
 pages/content/compare.tsx	What changed between two revisions. Nothing here changes the article.
 pages/content/edit.tsx	Assistant
-pages/content/edit.tsx	Document overview
 pages/content/edit.tsx	Every saved version
 pages/content/edit.tsx	Hide or show everything but the writing
 pages/content/edit.tsx	History

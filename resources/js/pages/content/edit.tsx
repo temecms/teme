@@ -1066,13 +1066,37 @@ export default function ContentEdit(page: ContentEditPage) {
             .catch(failed);
     };
 
+    // A tool, by its id, from the top bar, Tools or the palette.
+    const openTool = (id: string) => {
+        if (id === 'history') {
+            openHistory();
+        } else if (id === 'assistant') {
+            openAssistant();
+        } else if (id === 'share') {
+            openShare();
+        } else if (id === 'outline' && editor !== null) {
+            // Asked for by name, so the rail opens with it, even where it is a sheet.
+            setRailOpen(true);
+            openPane({
+                id,
+                owner: 'core',
+                title: __('Outline'),
+                render: () => <DocumentOverview editor={editor} />,
+            });
+        }
+    };
+
     // The palette's editor commands, registered while the editor is open.
-    // They reach the latest openHistory through a ref, so the list is made
+    // They reach the latest openTool through a ref, so the list is made
     // once and the palette is not told of a change on every keystroke.
-    const openHistoryRef = useRef(openHistory);
+    const openToolRef = useRef(openTool);
+    const canShareRef = useRef(false);
+    const hasAssistantRef = useRef(false);
 
     useEffect(() => {
-        openHistoryRef.current = openHistory;
+        openToolRef.current = openTool;
+        canShareRef.current = session.can.edit && themeRegion === null;
+        hasAssistantRef.current = ai !== null;
     });
 
     const paletteCommands = useMemo<PaletteCommand[]>(
@@ -1086,7 +1110,42 @@ export default function ContentEdit(page: ContentEditPage) {
                 order: 200,
                 keywords: ['revisions', 'versions', 'compare', 'restore'],
                 when: (context) => context.contentId !== null,
-                run: () => openHistoryRef.current(),
+                run: () => openToolRef.current('history'),
+            },
+            {
+                id: 'editor.outline',
+                owner: 'core',
+                label: __('Open the outline'),
+                description: __('The headings and blocks, to move around'),
+                group: 'Do',
+                order: 201,
+                keywords: ['outline', 'overview', 'headings', 'blocks'],
+                when: (context) => context.contentId !== null,
+                run: () => openToolRef.current('outline'),
+            },
+            {
+                id: 'editor.share',
+                owner: 'core',
+                label: __('Open Share'),
+                description: __('Preview links for people without an account'),
+                group: 'Do',
+                order: 202,
+                keywords: ['share', 'preview', 'link'],
+                when: (context) =>
+                    context.contentId !== null && canShareRef.current,
+                run: () => openToolRef.current('share'),
+            },
+            {
+                id: 'editor.assistant',
+                owner: 'core',
+                label: __('Open the assistant'),
+                description: __('Ask for a shorter version, a title and more'),
+                group: 'Do',
+                order: 203,
+                keywords: ['assistant', 'ai', 'write'],
+                when: (context) =>
+                    context.contentId !== null && hasAssistantRef.current,
+                run: () => openToolRef.current('assistant'),
             },
             {
                 id: 'editor.focus',
@@ -1171,24 +1230,8 @@ export default function ContentEdit(page: ContentEditPage) {
                         onTogglePane={(id) => {
                             if (pane?.id === id) {
                                 closePane(id);
-                            } else if (id === 'history') {
-                                openHistory();
-                            } else if (id === 'assistant') {
-                                openAssistant();
-                            } else if (id === 'share') {
-                                openShare();
-                            } else if (id === 'overview' && editor !== null) {
-                                // Asked for by name, so the rail opens with it,
-                                // even where it is a sheet.
-                                setRailOpen(true);
-                                openPane({
-                                    id,
-                                    owner: 'core',
-                                    title: 'Document overview',
-                                    render: () => (
-                                        <DocumentOverview editor={editor} />
-                                    ),
-                                });
+                            } else {
+                                openTool(id);
                             }
                         }}
                         railOpen={railOpen}

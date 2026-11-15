@@ -8,6 +8,8 @@ export type Preferences = {
     'editor.smart_quotes': boolean;
     'editor.rail_width': number;
     'editor.focus_mode_default': boolean;
+    /** The tools pinned to the editor's bar, in order (DS 4.39). */
+    'editor.pinned_tools': string[];
     'lists.per_page': number;
     'appearance.mode': 'light' | 'dark' | 'system';
     'dashboard.getting_started_hidden': boolean;
