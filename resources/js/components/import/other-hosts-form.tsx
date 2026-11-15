@@ -32,16 +32,14 @@ export function OtherHostsForm({
     const suggestedHosts = suggested.map((row) => row.host);
     const [ticked, setTicked] = useState<string[]>(() =>
         (remembered ?? []).filter(
-            (host) =>
-                !listed.includes(host) && suggestedHosts.includes(host),
+            (host) => !listed.includes(host) && suggestedHosts.includes(host),
         ),
     );
     const [manual, setManual] = useState(
         () =>
             (remembered ?? []).find(
                 (host) =>
-                    !listed.includes(host) &&
-                    !suggestedHosts.includes(host),
+                    !listed.includes(host) && !suggestedHosts.includes(host),
             ) ?? '',
     );
 
