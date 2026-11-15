@@ -362,7 +362,8 @@ export default function TermsIndex({
                             </span>
                             {row.parentName !== null && (
                                 <span className="sr-only">
-                                    {__(', under :parent', {
+                                    {', '}
+                                    {__('under :parent', {
                                         parent: row.parentName,
                                     })}
                                 </span>
@@ -421,7 +422,8 @@ export default function TermsIndex({
                     >
                         {count.toLocaleString()}
                         <span className="sr-only">
-                            {__(' :items in :name', {
+                            {' '}
+                            {__(':items in :name', {
                                 items: (count === 1
                                     ? type.singular
                                     : type.plural

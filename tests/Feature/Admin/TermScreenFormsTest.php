@@ -83,12 +83,12 @@ it('indents each row under its parent, says so to screen readers, and links each
         ->toContain("'— '.repeat(row.depth)")
         ->toContain('aria-hidden="true"')
         ->toContain('data-test="term-name"')
-        ->toContain("__(', under :parent'")
+        ->toContain("__('under :parent'")
         ->toContain('data-test="term-count"')
         ->toMatch('/\[declared\.key\]:\s*row\.id/')
         ->toContain('min-h-6')
         ->toContain('min-w-6')
-        ->toContain("__(' :items in :name'")
+        ->toContain("__(':items in :name'")
         ->toContain('count === 0');
 });
 
