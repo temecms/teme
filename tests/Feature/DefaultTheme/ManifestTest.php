@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 use App\Domain\Design\Contrast;
 use App\Domain\Themes\ThemeRegistry;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+
+uses(RefreshDatabase::class);
 
 it('is a usable theme with every setting study Q lists', function (): void {
     $theme = app(ThemeRegistry::class)->find('default');
@@ -32,6 +37,10 @@ it('ships colours that pass contrast in both schemes', function (): void {
 
 it('builds its assets, and teme:theme:check passes within the budgets', function (): void {
     expect(file_exists(base_path('themes/default/public/build/manifest.json')))->toBeTrue();
+
+    // A published item, so the checker draws a single page as well as the home page.
+    $this->seed(RoleSeeder::class);
+    addrPublished(User::factory()->create()->assignRole('editor'), 'Hello World');
 
     Artisan::call('teme:theme:check', ['code' => 'default', '--json' => true]);
     $report = json_decode(Artisan::output(), true, 512, JSON_THROW_ON_ERROR);

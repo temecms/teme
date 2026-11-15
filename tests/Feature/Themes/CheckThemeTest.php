@@ -6,6 +6,7 @@ use App\Domain\Themes\ActiveTheme;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -78,5 +79,13 @@ it('draws the checked theme and not the active one, and gives the site its own b
 it('warns that no single page was checked when nothing is published', function (): void {
     $this->artisan('teme:theme:check', ['code' => 'good'])
         ->expectsOutputToContain('no item is published')
+        ->assertSuccessful();
+});
+
+it('warns instead of failing when the database cannot be read', function (): void {
+    DB::connection()->beforeExecuting(fn () => throw new RuntimeException('no database'));
+
+    $this->artisan('teme:theme:check', ['code' => 'good'])
+        ->expectsOutputToContain('the site\'s database could not be read')
         ->assertSuccessful();
 });
