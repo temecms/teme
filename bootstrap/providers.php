@@ -14,6 +14,7 @@ use App\Providers\ContentServiceProvider;
 use App\Providers\CrawlersServiceProvider;
 use App\Providers\DashboardServiceProvider;
 use App\Providers\DeploymentServiceProvider;
+use App\Providers\FediverseServiceProvider;
 use App\Providers\FeedsServiceProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\HeadServiceProvider;
@@ -93,4 +94,5 @@ return [
     ImportServiceProvider::class,
     UpdatesServiceProvider::class,
     PluginServiceProvider::class,
+    FediverseServiceProvider::class,
 ];
