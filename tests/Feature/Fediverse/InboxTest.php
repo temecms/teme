@@ -128,6 +128,14 @@ it('removes the follower on Undo of the Follow', function (): void {
     expect(Follower::query()->count())->toBe(0);
 });
 
+it('keeps the follower on Undo of a Follow of an account that isn’t this site’s', function (): void {
+    Inbox::post('/ap/inbox', Inbox::follow(url('/ap/blog')))->assertStatus(202);
+
+    Inbox::post('/ap/inbox', ['id' => Inbox::ALICE.'#undo/2', 'type' => 'Undo', 'actor' => Inbox::ALICE, 'object' => Inbox::follow('https://other.example/users/x', id: Inbox::ALICE.'#follows/9')])->assertStatus(202);
+
+    expect(Follower::query()->count())->toBe(1);
+});
+
 it('marks a remote account gone and drops its follows when it deletes itself', function (): void {
     Inbox::post('/ap/inbox', Inbox::follow(url('/ap/blog')))->assertStatus(202);
 

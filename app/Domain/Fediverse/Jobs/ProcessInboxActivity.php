@@ -90,7 +90,12 @@ final class ProcessInboxActivity implements ShouldQueue
 
         $local = app(FediverseDocuments::class)->actorAt(self::id($object['object'] ?? null) ?? '');
 
-        app(RemoveFollower::class)->execute(new RemoveFollowerInput($sender->actorUri, $local?->id, sender: $sender));
+        // A Follow of an account that isn't this site's ends none of its follows.
+        if ($local === null) {
+            return;
+        }
+
+        app(RemoveFollower::class)->execute(new RemoveFollowerInput($sender->actorUri, $local->id, sender: $sender));
     }
 
     private function delete(VerifiedSender $sender): void
