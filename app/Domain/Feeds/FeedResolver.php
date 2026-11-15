@@ -10,6 +10,7 @@ use App\Domain\Addresses\TypeArchives;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\People\Credit;
 use App\Domain\People\Queries\People;
+use App\Domain\Site\ListingViews;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Types\ContentTypeRegistry;
 
@@ -17,7 +18,8 @@ use App\Domain\Types\ContentTypeRegistry;
  * Says what a path ending in a feed name means (I-299). An address
  * that exists is never a feed's, so a page called "rss" is a page; a
  * comment feed is gone; a term's, an author's or a type's archive page's
- * old address leads to its current feed; any other spelling of a feed leads to the canonical one;
+ * old address leads to its current feed; under a shown language's prefix,
+ * each feed is that language's (I-3360); any other spelling of a feed leads to the canonical one;
  * and everything else is the public site's to answer, so redirects and the
  * 404 log still apply. It reads only.
  */
@@ -35,8 +37,10 @@ final class FeedResolver
             return FeedAnswer::other();
         }
 
+        $languages = app(SiteLanguages::class);
+
         // Under a hidden language's prefix every feed address is answered as a made-up one there, whatever row it finds (I-3360).
-        if (app(SiteLanguages::class)->isHiddenPath($feed->base)) {
+        if ($languages->isHiddenPath($feed->base)) {
             return FeedAnswer::other();
         }
 
@@ -45,18 +49,33 @@ final class FeedResolver
             return FeedAnswer::other();
         }
 
-        if ($feed->base === '') {
-            return $this->settle($rawPath, $feed, FeedSubject::site());
+        // Under a shown language's prefix, the feeds of that language: its site's, its terms', and its authors' and archive pages' after the prefix.
+        [$first, $rest] = explode('/', $feed->base, 2) + [1 => ''];
+        $language = $languages->byPrefix($first);
+        $prefix = $language === null ? '' : $first;
+        $base = $language === null ? $feed->base : $rest;
+
+        if ($base === '') {
+            return $this->settle($rawPath, $feed, FeedSubject::site($language, $prefix));
         }
 
         // No address starts with a first segment the router answers itself (Paths::RESERVED), so such a base finds no row below.
         $row = Paths::find($feed->base);
 
+        // An author's or an archive page's address is the same in every language: found after the prefix, never a term's or an item's there.
+        if ($row === null && $language !== null) {
+            $row = Paths::find($base);
+
+            if ($row !== null && in_array($row->target_type, ['content', 'term'], true)) {
+                return FeedAnswer::other();
+            }
+        }
+
         // A type's archive page's feed, before an old address there (I-3304).
-        $archive = $row === null || ! $row->is_current ? TypeArchives::at($feed->base) : null;
+        $archive = $row === null || ! $row->is_current ? TypeArchives::at($base) : null;
 
         if ($archive !== null) {
-            return $this->settle($rawPath, $feed, $this->typeSubject($archive, $feed->base));
+            return $this->settle($rawPath, $feed, $this->typeSubject($archive, ListingViews::prefixed($language, $base), $language));
         }
 
         if ($row === null) {
@@ -70,7 +89,13 @@ final class FeedResolver
         }
 
         $current = $row->is_current ? $row->path : ($row->target_type === TypeArchives::TARGET ? TypeArchives::path((string) $row->target_id) : Paths::current($row->target_type, $row->target_id));
-        $subject = $current === null ? null : $this->subject($row->target_type, $row->target_id, $current);
+
+        // A term's path carries its own language's prefix; any other's is found after it.
+        if ($current !== null && $row->target_type !== 'term') {
+            $current = ListingViews::prefixed($language, (string) $current);
+        }
+
+        $subject = $current === null ? null : $this->subject($row->target_type, $row->target_id, $current, $language);
 
         if ($subject === null) {
             return FeedAnswer::other();
@@ -94,7 +119,7 @@ final class FeedResolver
             : FeedAnswer::redirect($canonical);
     }
 
-    private function subject(string $type, string $id, string $path): ?FeedSubject
+    private function subject(string $type, string $id, string $path, ?string $language): ?FeedSubject
     {
         // Each kind of Paths::KINDS with a feed below; any other has none here, never someone's.
         if (! Paths::known($type, $id)) {
@@ -102,14 +127,14 @@ final class FeedResolver
         }
 
         if ($type === TypeArchives::TARGET) {
-            return $this->typeSubject($id, $path);
+            return $this->typeSubject($id, $path, $language);
         }
 
         if ($type === 'term') {
             $term = Term::query()->find($id);
 
-            // A term in another language has no feed while the reading side is parked (I-3372): none, hidden or shown.
-            return $term === null || $term->language !== null ? null : new FeedSubject(FeedSubject::TERM, (string) $term->name, $path, self::text($term->description), (string) $term->taxonomy, (string) $term->id, null);
+            // A term's feed is in its own language, a shown one (I-3360).
+            return $term === null || ! app(SiteLanguages::class)->isShown($term->language) ? null : new FeedSubject(FeedSubject::TERM, (string) $term->name, $path, self::text($term->description), (string) $term->taxonomy, (string) $term->id, null, null, $term->language);
         }
 
         // An account by the ID its row holds (Paths::account()), or a person with no account by theirs.
@@ -121,15 +146,15 @@ final class FeedResolver
         };
         $shown = $credit === null ? null : (app(People::class)->shown([$credit])[$credit->key()] ?? null);
 
-        return $shown === null ? null : new FeedSubject(FeedSubject::AUTHOR, $shown->name, $path, $shown->bio, null, null, $credit);
+        return $shown === null ? null : new FeedSubject(FeedSubject::AUTHOR, $shown->name, $path, $shown->bio, null, null, $credit, null, $language);
     }
 
     /**
      * A type's archive page's feed: its plural names the channel, and its key chooses the items.
      */
-    private function typeSubject(string $type, string $path): FeedSubject
+    private function typeSubject(string $type, string $path, ?string $language): FeedSubject
     {
-        return new FeedSubject(FeedSubject::TYPE, app(ContentTypeRegistry::class)->get($type)->plural, $path, null, null, null, null, $type);
+        return new FeedSubject(FeedSubject::TYPE, app(ContentTypeRegistry::class)->get($type)->plural, $path, null, null, null, null, $type, $language);
     }
 
     private static function text(mixed $value): ?string

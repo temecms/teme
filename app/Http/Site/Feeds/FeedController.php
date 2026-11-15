@@ -10,6 +10,8 @@ use App\Domain\Feeds\FeedBuilder;
 use App\Domain\Feeds\FeedFormat;
 use App\Domain\Feeds\FeedResolver;
 use App\Domain\Feeds\FeedSubject;
+use App\Domain\Languages\PageLanguage;
+use App\Domain\Languages\SiteLanguages;
 use App\Http\Controllers\Controller;
 use App\Http\Site\PublicController;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +33,8 @@ final class FeedController extends Controller
         private readonly FeedBuilder $builder,
         private readonly FeedFormat $format,
         private readonly PublicController $public,
+        private readonly PageLanguage $languages,
+        private readonly SiteLanguages $siteLanguages,
     ) {}
 
     public function __invoke(Request $request): BaseResponse
@@ -47,6 +51,8 @@ final class FeedController extends Controller
 
     private function feed(FeedSubject $subject): BaseResponse
     {
+        // The feed's words and dates in its own language (I-3360).
+        $this->languages->use($this->siteLanguages->of($subject->language));
         $feed = $this->builder->build($subject);
 
         return new Response($this->format->render($feed), 200, ['Content-Type' => $this->format->contentType(), 'X-Robots-Tag' => $feed->robots]);

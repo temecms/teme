@@ -10,14 +10,14 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\CardMedia;
 use App\Domain\Cards\References;
 use App\Domain\Fields\BuiltInFields;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\People\Credits;
 use App\Domain\Seo\WholeSite;
-use App\Domain\Site\SiteLanguage;
 use Carbon\CarbonImmutable;
 use Teme\Contracts\Settings\SettingsReader;
 
 /**
- * Builds a Feed from a subject (I-299): the channel from the site's settings and the subject, the items from their published revisions, and records for the page cache everything the feed shows. Reads only.
+ * Builds a Feed from a subject (I-299): the channel from the site's settings and the subject, in the subject's language (I-3360), the items from their published revisions, and records for the page cache everything the feed shows. Reads only.
  */
 final class FeedBuilder
 {
@@ -30,7 +30,7 @@ final class FeedBuilder
         private FeedImages $images,
         private CardMedia $media,
         private SettingsReader $settings,
-        private SiteLanguage $language,
+        private SiteLanguages $languages,
     ) {}
 
     /**
@@ -119,10 +119,10 @@ final class FeedBuilder
 
         return new Feed(
             $subject->kind === FeedSubject::SITE ? $site : "{$subject->name} – {$site}",
-            $subject->kind === FeedSubject::SITE ? $this->urls->origin().'/' : $this->urls->origin().Addresses::toUrl($subject->path),
+            $subject->path === '' ? $this->urls->origin().'/' : $this->urls->origin().Addresses::toUrl($subject->path),
             $this->urls->origin().(new FeedPath($subject->path, true))->url(),
             (string) $description,
-            $this->language->tag(),
+            $this->languages->of($subject->language),
             $updated,
             $items,
             WholeSite::discouraged() ? 'noindex, nofollow' : 'noindex, follow',
