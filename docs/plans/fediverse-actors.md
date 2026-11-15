@@ -62,6 +62,94 @@
 
 **Quick check:** `php artisan test --compact tests/Feature/Fediverse tests/Unit/Fediverse` and `vendor/bin/phpstan analyse app/Domain/Fediverse`.
 
-## Records
+## Records (the builder's)
 
-(The builder fills this.)
+### Setup and base
+
+- Setup: `/tmp/teme-cloud-setup.log` "2026-11-15T15:23:35Z ran in /home/user/teme as root … 15:34:25Z finished"; `pwd` /home/user/teme. PHP 8.4.27, PostgreSQL on 5433 and Valkey on 6380 answering after `scripts/cloud-setup.sh`.
+- Waited for `origin/plugins/public-routes` until its records commit (`e77fc23 docs(plans): Plugin public routes' records`). Branch `fediverse/actors` = that commit merged with `origin/main` (`bdc98d8`): merge `0d92fda`, no conflict.
+- The full `composer check` was not run on the base (about 30 minutes in this container); part E's records give its base totals: Unit+Feature **10630** passed, **2** skipped. Architecture on the merged base: **139** passed (1309 assertions).
+
+### T0
+
+- Read E's merged code (`PublicRouteRegistry`, `RouteDispatcher`, `DeclaredRouteController`, `MatchDeclaredRoutes`, `PageKey`), `PublicAddresses`, `EncryptedColumn`/`EncryptedValues`/`ReencryptSecrets`, `Modules` (no `managedBy` yet, as the plan says), `Paths::SITE_ROUTES`, both static configs.
+- Mastodon's window, from docs.joinmastodon.org/spec/security: "Use the `Date:` header to check that the signed request was made within the past 12 hours." Built as D2 says: within 12 hours of now, either way.
+
+### Tests seen red
+
+- T1: 7 failed, `relation "fediverse_actors" does not exist`.
+- T2: 11 failed, `Interface "App\Domain\Fediverse\Signatures\KeyOwners" not found`; then "refuses a request whose date is outside the window" stayed red (the Signer used `gmdate()`, not the test clock), fixed to `now()`.
+- T3: 10 failed, `RemoteFetcher` missing.
+- T4: 10 failed, 2 passed (the two 404 cases): `Expected response status code [200] but received 404` (nothing registered). Then the imported-actor cases: `url('/?author=3')` drops the slash before the query (a fault in my test; `Requests::url()` keeps it).
+- T5: every `InboxTest` case `… but received 404` (no inbox route). `InboxOperationsTest` was written after its Operations: seen red by planting `return;` at the top of each `authorize()` (3 failed), then restored.
+- T6: 3 failed (neither condition nor the guide's paragraph there).
+- T8: 4 failed, `Target class [ForgetRemoteActor] does not exist`.
+
+### Commits
+
+- `feat(fediverse): add the fediverse tables and models` (first commit, pushed at once)
+- `feat(fediverse): sign and verify draft-cavage requests`
+- `feat(fediverse): fetch remote documents behind the public-address check`
+- `feat(fediverse): answer actors, WebFinger and NodeInfo at their addresses`
+- `feat(fediverse): take follows, undos and deletes at the inboxes`
+- `feat(fediverse): serve no stored page to fediverse requests`
+- `feat(fediverse): forget a remote account and prune unneeded ones`
+- `fix(fediverse): answer a stored page with no query and let the people table drop`
+- `docs(plans): fediverse actors' records` (this one)
+
+### Checks
+
+- Full `composer check`, first run: 2 failed, 2 skipped, 10694 passed. `BenchmarkSmokeTest` (a cache hit made one query: `SiteActors::exist()` asked the table while the site had no account) and `People/ReleaseBeforeTest` (B-21). Both fixed in the `fix(fediverse)` commit.
+- Full `composer check`, final: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1316 assertions); Unit+Feature **10696** passed, **2** skipped (55255 assertions).
+- No Browser suite: this part has no Browser test and changes no screen.
+- Baselines: `admin-words-baseline.txt` 876 lines and `design-system-baseline.txt` 222 lines before and after; no line added, no count raised.
+
+### STOP
+
+- **RFC 9421 verification is not built.** `gapple/structured-fields` **2.3.4** does not exist: Packagist's newest is v2.3.3 (2026-06-12), and `composer require gapple/structured-fields:2.3.4` finds no such version. Another version would be a dependency the plan doesn't name, so `composer.json` and `composer.lock` are untouched. Draft-cavage is verified as D2 says (Mastodon's default). Needs: the maintainers' word on a version that exists (v2.3.3?), then `Verifier` gains the `Signature-Input`/`Content-Digest` branch.
+
+### Left for a follow-up (not a STOP)
+
+- **T7, the switch and settings page**, waits for the maintainers' approval of its drawing, as the task said: `SwitchFediverse`, `ChangeFediverseSettings`, `EnableAuthorActor`, `DisableAuthorActor`, `BlockHost`, `UnblockHost`, the `modules.fediverse` setting with `managedBy`, `FediverseSettingsController` and `settings/fediverse.tsx`. Until then the fediverse is off (paused, B-16), and nothing makes the blog and application actors or their keys.
+- Prune has no schedule or console command (`routes/console.php` isn't in Owns). Pruning sent activities after 90 days (P3) is not in T8 and is left with F2's deliveries.
+
+### Decisions (B-?? drafts)
+
+- **B-01 (draft):** fediverse_blocked_hosts.created_by: plan says ulid, users.id is bigint -> foreignId users nullOnDelete.
+- **B-02 (draft):** EncryptedValues (app/Domain/Security) outside Owns: one line added, as the plan's "registered as an EncryptedColumn" requires. Label "Fediverse accounts’ private keys", row "fediverse account".
+- **B-03 (draft):** Verifier rebuilds (request-target)'s query from PublicRequest::query (E's contract carries no raw query string): a query encoded differently by the sender would fail. Inboxes carry none.
+- **B-04 (draft):** The key's owner comes through a KeyOwners seam (interface) so the T2 tests count fetches; the real one fetches through RemoteFetcher (T3). Unknown algorithm refused; hs2019 read as rsa-sha256.
+- **B-05 (draft):** FediverseServiceProvider added to bootstrap/providers.php (one line, shared): core's registry entries need a provider's boot, and the KeyOwners binding.
+- **B-06 (draft):** Keys fetched during an inbox request are kept in the cache store (24 h), never written from the HTTP layer; ProcessInboxActivity records the account through RecordRemoteActor. A key's actor document must name the key back (keyId → owner → owner's publicKey.id).
+- **B-07 (draft) — conflict with part E's tests:** core's /?author=N + activity Accept entry, always registered, beat the inbound fixture's /?author=0 entry, and E's PublicRoutesTest ("reaches the actor handler", "lets a core-owned entry win") and DeclaredRouteCacheTest went red. Options: change E's tests (another part's, and their meaning) / register the home-page entries only once the site has a fediverse account. Chose the second (SiteActors::exist(), cached, forgotten after the commit that adds or removes an account): E's tests keep their meaning, and a site with no account keeps /?author=N exactly as before. Path entries (/ap/, /wp-json/activitypub/1.0/, webfinger, nodeinfo) are always registered.
+- **B-08 (draft):** Browser redirects (D4): /?author=N and /?p=N with N ≥ 1 only, so /?author=0 (the WordPress plugin's blog actor) stays the home page in a browser, as T4 asks; an address the site has no actor or item for goes to the home page (301).
+- **B-09 (draft):** Actor types: blog "Group" (as the WordPress plugin's blog actor), author "Person", application "Application". Object documents (/ap/objects/…, /?p=N) are F2's: F1 answers a deleted object's Tombstone and 404 otherwise (signpost Later (I-058)).
+- **B-10 (draft):** E's dispatcher sends "Cache-Control: no-store, private" for every non-cacheable entry and drops headers outside PublicResponse::HEADER_ALLOW_LIST, so D4's "Vary: Accept" isn't sent. Not changed (E's contract); no-store makes it moot for caches.
+- **B-11 (draft):** Paths::SITE_ROUTES gains ap and wp-json; docs/architecture/addresses.md still lists the old five (not mine to edit).
+- **B-12 (draft):** The inboxes are Laravel POST routes registered by FediverseServiceProvider (public group), not declared routes: E's dispatcher answers 413 before any check of ours, its declared-routes limiter allows at most 60 POSTs a minute per address before D8's 403 could run, and it drops Retry-After. Handlers can't keep D8's order (403 → 413 → 429 → 401 → 503) through it. InboxGate (domain) does D8 in order; InboxController only translates.
+- **B-13 (draft):** "Runs as the system actor": JobActor can't carry the operator from a job queued by a web request (I-392), so the inbox-driven Operations (RecordRemoteActor, AcceptFollow, RemoveFollower) authorize a null actor only with a VerifiedSender that is the account concerned; RemoveFollower also lets settings.fediverse.manage remove one (for the settings page). A person actor is refused by the inbox-driven ones.
+- **B-14 (draft):** settings.fediverse.manage needs a permission migration (2027_07_15_100100_add_fediverse_permission.php) and one RoleSeeder line, as every earlier permission did; the plan names neither file.
+- **B-15 (draft):** "queues an Accept": AcceptFollow writes the Accept activity and a queued fediverse_deliveries row; sending it is F2's DeliverActivity (signpost Later (I-058)).
+- **B-16 (draft):** The switch (modules.fediverse) is registered by T7. Until then FediverseSwitch::on() reads it if registered, else off (paused): the inboxes answer 503. Tests register it with Tests\Fixtures\Fediverse\Inbox::switch().
+- **B-17 (draft):** Blocked servers match the host or any domain above it (sub.blocked.example is blocked by blocked.example). The claimed host is the Signature keyId's, read before verifying; the verified actor's host is checked again after. A verified body that isn't an activity (no id or type) answers 400.
+- **B-18 (draft):** No config/teme.php fediverse block: the limits are constants on InboxGate/FediverseDocuments/RemoteFetcher/Verifier (the proposal's values); F2 may add deliver_outside_production there.
+- **B-19 (draft):** The cases are in tests/Feature/Fediverse/StaticRulesTest.php, not tests/Feature/Cache/StaticSettingsTest.php (not in Owns). nginx: the old map now yields $teme_static_page and a new map on $http_accept yields $teme_static_file ("/.teme-none" for activity/ld+json), so the site template and StaticSettingsTest's lines stay as they are. Caddy: one `not header_regexp Accept (?i)(activity\+json|ld\+json)`. Neither server was run here (no nginx or Caddy in the container); `teme:cache:check-static` on a real server is the check.
+- **B-20 (draft):** Forget deletes the fediverse_remote_actors row (its follows cascade, its objects keep their addresses with remote_actor_id null) and clears the replies' author_name, author_url and author_email; purges each item whose replies changed, after commit. Prune: fetched_at older than 30 days, no follow, no reply object. Both: settings.fediverse.manage or the operator. No schedule or console command for prune (routes/console.php isn't in Owns): left open.
+- **B-21 (draft):** ReleaseBeforeTest (outside Owns) now drops people with CASCADE, which removes only later tables' foreign keys to it (the release before had none); what it proves is unchanged. The other option was no foreign key on fediverse_actors.person_id, against the plan's schema.
+
+No contract the plan names changed: E's `Teme\Contracts\Routes` is used as it is. No I-?? ideas drafted.
+
+### Changelog lines for the maintainer
+
+```
+### Added
+- Fediverse foundations: the site's blog, authors and application can be fediverse accounts, found by WebFinger and NodeInfo, with outbox, followers count and following documents at /ap/ addresses, and an imported WordPress plugin account's old addresses kept.
+- Inboxes take Follow, Undo and an account's Delete, verified by draft-cavage HTTP signatures, refusing blocked servers, oversized bodies and floods; a Follow is kept and its Accept queued.
+- Remote documents are fetched over https only, with every address checked public and pinned.
+- nginx and Caddy serve no stored page to a request asking for activity+json or ld+json; the Cloudflare guide adds the matching rule.
+- settings.fediverse.manage for administrators; forgetting a remote account and pruning unneeded ones.
+```
+
+### Try it
+
+`php artisan test --compact tests/Feature/Fediverse` and `tests/Unit/Fediverse`. By hand, after making a blog actor (`Tests\Fixtures\Fediverse\Actors::blog()` in tinker, until T7): `curl -H 'Accept: application/activity+json' https://<site>/ap/blog`, `curl 'https://<site>/.well-known/webfinger?resource=acct:blog@<host>'`, `curl https://<site>/nodeinfo/2.1`. The inbox answers 503 until T7 registers the switch.
