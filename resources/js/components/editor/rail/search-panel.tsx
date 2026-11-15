@@ -93,6 +93,14 @@ function tabName(tab: string): string {
 }
 
 /** Where a search check's warning leads in the box: its tab and its field. */
+/** The tab each AI proposal waits on, under its field. */
+const PROPOSAL_TABS: Record<string, string> = {
+    seo_title: 'search',
+    meta_description: 'search',
+    social_title: 'social',
+    social_description: 'social',
+};
+
 const FIXES: Partial<Record<CheckId, { tab: string; field: string }>> = {
     description: { tab: 'search', field: 'editor-seo-description' },
     'title-width': { tab: 'search', field: 'editor-seo-title' },
@@ -185,6 +193,13 @@ export function SearchPanel({
     // Proposals for the section's fields open it, so none waits out of sight (I-3124).
     const waitingHere = Object.keys(suggestion.proposals).some(
         (handle) => handle !== 'excerpt',
+    );
+
+    // A tab not shown that holds a proposal is marked, so none waits unseen there (I-3124).
+    const waitingOn = new Set(
+        Object.keys(suggestion.proposals).map(
+            (handle) => PROPOSAL_TABS[handle],
+        ),
     );
 
     useEffect(() => {
@@ -403,11 +418,32 @@ export function SearchPanel({
                                         ? 'editor-advanced'
                                         : undefined
                                 }
+                                aria-describedby={
+                                    each !== tab && waitingOn.has(each)
+                                        ? `editor-tab-${each}-waiting`
+                                        : undefined
+                                }
                             >
                                 {tabName(each)}
+                                {each !== tab && waitingOn.has(each) && (
+                                    <span
+                                        aria-hidden
+                                        data-test="tab-proposal"
+                                        className="bg-accent size-2 rounded-full"
+                                    />
+                                )}
                             </TabsTrigger>
                         ))}
                     </TabsList>
+                    {TABS.map((each) => (
+                        <span
+                            key={each}
+                            id={`editor-tab-${each}-waiting`}
+                            hidden
+                        >
+                            {__('proposal waiting')}
+                        </span>
+                    ))}
                     <TabsContent
                         value="search"
                         forceMount

@@ -167,3 +167,33 @@ it('passes axe open on each tab, light and dark, at 1280 and 375', function (str
             ->and(cmSmallTargets($page)['small'])->toBe([]);
     }
 })->with(['light', 'dark'])->with([1280, 375]);
+
+it('marks a tab whose fields hold a proposal while another tab is shown, so none waits unseen (I-3124)', function (): void {
+    $author = User::factory()->create(['name' => 'Ada Author'])->assignRole('author');
+    $item = docSave(
+        lifecycleDraft($author, 'Ferry fares rise'),
+        $author,
+        docWith(docText('Fares rise by 15% from 1 October.')),
+    )->refresh();
+    mdReady()->answer(mdAnswer());
+    $edit = "/admin/content/{$item->id}/edit";
+    $this->actingAs($author)->get($edit)->assertOk();
+
+    // A tab's mark, and the description a screen reader hears with its name.
+    $mark = fn (string $name): string => "(() => { const tab = Array.from(document.querySelectorAll('[data-test=\"search-section\"] [role=\"tab\"]')).find((each) => each.textContent.includes(".json_encode($name, JSON_THROW_ON_ERROR).")); return { mark: tab.querySelector('[data-test=\"tab-proposal\"]') !== null && tab.querySelector('[data-test=\"tab-proposal\"]').offsetParent !== null, said: (document.getElementById(tab.getAttribute('aria-describedby') ?? '')?.textContent ?? '') === 'proposal waiting' }; })()";
+
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($author), $edit)));
+    $page->click('[data-test="metadata-suggest"]');
+    cmWaitUntil($page, "document.querySelector('[data-ai-proposal=\"seo_title\"]') !== null");
+
+    // On Search, its own proposals are in view, and Social marks the two waiting there.
+    expect($page->script($mark('Social')))->toBe(['mark' => true, 'said' => true])
+        ->and($page->script($mark('Search')))->toBe(['mark' => false, 'said' => false]);
+
+    // On Social, Search marks its two, and Social's mark goes.
+    ($this->sbxTab)($page, 'Social');
+
+    expect($page->script($mark('Search')))->toBe(['mark' => true, 'said' => true])
+        ->and($page->script($mark('Social')))->toBe(['mark' => false, 'said' => false])
+        ->and($page->script($mark('Schema')))->toBe(['mark' => false, 'said' => false]);
+});
