@@ -3,11 +3,14 @@
 declare(strict_types=1);
 
 use App\Domain\Contents\Models\Content;
+use App\Domain\Contents\Operations\Input\TranslateContentInput;
+use App\Domain\Contents\Operations\TranslateContent;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Tests\Fixtures\Languages\Languages;
 
 uses(RefreshDatabase::class);
 
@@ -176,3 +179,65 @@ it('draws the review chip\'s remove button 24 pixels square, as the term chip\'s
     expect($targets['small'])->toBe([])
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
+
+/**
+ * The site in English, French and Spanish (docs/proposals/multilingual-screens.md, 4), with Harbour news in French too.
+ */
+function clMultilingual(User $editor, Content $harbour): void
+{
+    siteSetLanguage(User::factory()->create()->assignRole('administrator'), 'en-GB');
+    Languages::set(['fr', 'es']);
+    app(TranslateContent::class)->execute(new TranslateContentInput($harbour->id, 'fr', (string) $editor->id));
+}
+
+/** A script for one row's marks, each its tag and state, joined by commas. */
+function clMarks(string $title): string
+{
+    return "[...document.querySelector('[aria-label=\"Actions for {$title}\"]').closest('tr').querySelectorAll('[data-test=\"language-marks\"] li')].map((mark) => mark.dataset.language + ':' + mark.dataset.state).join(',')";
+}
+
+it('marks each row\'s versions under its title, one per site language in the site\'s order, and widens nothing', function (): void {
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/posts');
+    cmWaitUntil($page, "document.querySelector('table tbody tr') !== null");
+    $width = "document.querySelector('table').getBoundingClientRect().width";
+    $before = cmAnswer($page, "() => {$width}", 'table width');
+
+    clMultilingual($this->editor, $this->harbour);
+    cmNavigate($page, '/admin/posts');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"language-marks\"]') !== null");
+
+    $page->assertScript(clMarks('Market day'), 'en-GB:there,fr:missing,es:missing')
+        ->assertScript(clMarks('Harbour news'), 'en-GB:there,fr:there,es:missing')
+        // Not a column by default: the table is as wide as before at 1440.
+        ->assertScript("[...document.querySelectorAll('thead th')].every((cell) => cell.textContent.trim() !== 'Languages')")
+        ->assertScript('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
+        ->assertScript("{$width} <= {$before} + 1");
+    cmNoJavaScriptErrors($page);
+});
+
+it('lists the posts missing a version in French from the Language filter', function (): void {
+    clMultilingual($this->editor, $this->harbour);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/posts');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"filter-language\"]') !== null");
+    $page->click('[data-test="filter-language"] [data-slot="combobox-trigger"]')
+        ->click('[data-slot="combobox-item"] >> text="Missing a version in French"');
+
+    cmWaitUntil($page, "new URLSearchParams(window.location.search).get('language') === 'missing:fr'");
+    cmWaitUntil($page, "document.querySelector('table').innerText.includes('Market day') && !document.querySelector('table').innerText.includes('Harbour news')");
+});
+
+it('turns the Languages column on and off in the column chooser', function (): void {
+    clMultilingual($this->editor, $this->harbour);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1440, 900), '/admin/posts');
+    $headings = "[...document.querySelectorAll('thead th')].map((cell) => cell.textContent.trim())";
+
+    foreach ([true, false] as $on) {
+        $page->click('[data-test="columns"]');
+        cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') !== null");
+        $page->click('[data-test="column-chooser"] label:has-text("Languages")');
+        $page->click('[data-test="column-chooser"] button:has-text("Apply")');
+        cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') === null && {$headings}.includes('Languages') === ".($on ? 'true' : 'false'));
+    }
+});
