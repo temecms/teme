@@ -41,13 +41,13 @@ final class WordPressMenus
     private const string FREEFORM = 'core/freeform';
 
     /** A label or an address holding an email address, which a message never repeats. */
+    public const string EMAIL = '/[^\s@]+@[^\s@]+\.[^\s@]+/';
+
     /** The address of Polylang's language switcher. */
     public const string SWITCHER = '#pll_switcher';
 
     /** Polylang's switcher options Teme's switcher has, each true or false. */
     private const array SWITCHER_OPTIONS = ['dropdown', 'show_names', 'hide_current'];
-
-    public const string EMAIL = '/[^\s@]+@[^\s@]+\.[^\s@]+/';
 
     /** How many block names a message lists. */
     private const int LISTED = 8;
