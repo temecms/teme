@@ -150,6 +150,11 @@ final readonly class PluginDataGoneStep implements StepPhase
         $kind = PluginDataLists::kindOf($list);
         $noun = self::NOUNS[$kind];
 
-        return new ImportMessage('plugin-data.gone', "WordPress no longer has the {$noun} {$id} whose data {$import->label} brought across. Nothing was changed: {$import->label} keeps what it has.", ['plugin' => $import->code, 'kind' => $kind, 'wordpress_id' => $id]);
+        // A person's or term's list holds only those with the declared meta, so the meta is what's gone, not them.
+        $what = $kind === WordPressRecord::POST
+            ? "the {$noun} {$id} whose data {$import->label} brought across"
+            : "the data {$import->label} declared for the {$noun} {$id}";
+
+        return new ImportMessage('plugin-data.gone', "WordPress no longer has {$what}. Nothing was changed: {$import->label} keeps what it has.", ['plugin' => $import->code, 'kind' => $kind, 'wordpress_id' => $id]);
     }
 }

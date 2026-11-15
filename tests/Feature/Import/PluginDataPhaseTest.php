@@ -261,6 +261,23 @@ it('lists, on a catch-up, a record WordPress no longer has, and changes nothing'
         ->and(array_keys(pdReceived()))->toContain('post:8');
 });
 
+it('says, on a catch-up, that a person no longer has the data the plugin declared', function (): void {
+    pdRun($this->source);
+    $this->companion->wordpress(
+        options: ['importer_mode' => 'a:1:{s:4:"open";b:1;}'],
+        posts: [
+            ['id' => 3, 'type' => 'ap_actor', 'title' => 'Ada', 'meta' => ['_importer_inbox' => ['https://example.com/ada/inbox']]],
+            ['id' => 8, 'type' => 'ap_actor', 'title' => 'Grace', 'meta' => ['_importer_inbox' => ['https://example.com/grace/inbox']]],
+        ],
+        users: [1 => ['nickname' => ['ada']], 2 => ['nickname' => ['grace']]],
+    );
+
+    $run = pdRun($this->source, ImportRunKind::CatchUp);
+
+    expect(pdCodes($run))->toContain('plugin-data.gone')
+        ->and(pdWords($run, 'plugin-data.gone'))->toBe('WordPress no longer has the data Importer declared for the person 1. Nothing was changed: Importer keeps what it has.');
+});
+
 it('gives each plugin a row in the run’s report with what it brought, skipped and failed', function (): void {
     pdWordPress($this->companion, [
         ['id' => 3, 'type' => 'ap_actor', 'title' => 'Ada', 'meta' => []],
