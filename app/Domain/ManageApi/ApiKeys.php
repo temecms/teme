@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class ApiKeys
 {
-    /** Every secret starts with this, so a leaked one is easy to recognise. */
+    /** Every secret starts with this, so a leaked one is easy to recognize. */
     public const string PREFIX = 'teme_';
 
     /** How many random base62 characters follow the prefix. */

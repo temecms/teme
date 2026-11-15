@@ -14,7 +14,7 @@ use App\Domain\Import\Phases\ImportMessage;
  * (rule 7) by the import's converter, run with no import: one classic
  * chunk, an old site no address belongs to and no media known, so links
  * and images are kept as given (docs/proposals/management-api.md, P1).
- * CreateDraft's normaliser then stores a link to this site by ID (rule 9).
+ * CreateDraft's DocumentNormaliser then stores a link to this site by ID (rule 9).
  */
 final readonly class HtmlBodies
 {
