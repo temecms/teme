@@ -87,6 +87,28 @@ it('unwraps a dead wrapper’s words and the shortcodes nested in it, whatever p
         ]);
 });
 
+it('unwraps tagDiv’s tdm_ and tdc_ families as it does td_ rows, and keeps [State] and [mg] as text', function (): void {
+    $conversion = WordPressContent::convert([WordPressContent::classic(
+        '<p>[tdm_block_column_title title_text="Hi"][/tdm_block_column_title]</p>'
+        ."\n<p>[tdc_zone][vc_row][vc_column_text]Inside[/vc_column_text][/vc_row][/tdc_zone]</p>\n"
+        .'<p>[tdm_block_ad][tdc_css]</p>'
+        ."\n<p>See [State] and [mg] here.</p>\n",
+    )]);
+    wpAccepted($conversion->document);
+
+    expect(array_map(fn (array $node): array => wpWithoutIds($node), $conversion->document['content']))->toBe(array_map(fn (array $node): array => wpWithoutIds($node), [
+        WordPressContent::p('Inside'),
+        WordPressContent::p('See [State] and [mg] here.'),
+    ]))->and(array_map(fn (array $one): array => [$one[0], $one[2]['name']], WordPressContent::said($conversion)))->toContain(
+        ['shortcode.unwrapped', 'tdm_block_column_title'],
+        ['shortcode.unwrapped', 'tdc_zone'],
+        ['shortcode.unwrapped', 'vc_row'],
+        ['shortcode.unwrapped', 'vc_column_text'],
+        ['shortcode.removed', 'tdm_block_ad'],
+        ['shortcode.removed', 'tdc_css'],
+    );
+});
+
 it('pairs shortcodes of one name as HTML pairs elements, and keeps a stray closing tag of an unknown name as text', function (): void {
     [$words, $said] = ($this->line)('[box]Outer [box]inner[/box] end[/box] [/box] [/gone]');
 
