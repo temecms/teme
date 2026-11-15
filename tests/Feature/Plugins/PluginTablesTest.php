@@ -630,13 +630,17 @@ it('removes recorded tables when the plugin’s code is gone', function (): void
     expect(app(PluginRegistry::class)->find('tests/tables'))->toBeNull()
         ->and(PluginRecord::query()->sole()->state)->toBe('enabled');
 
+    $beforeTables = DB::table('pg_tables')->where('schemaname', DB::raw('current_schema()'))->orderBy('tablename')->pluck('tablename')->all();
+
     $dropped = app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+    $afterTables = DB::table('pg_tables')->where('schemaname', DB::raw('current_schema()'))->orderBy('tablename')->pluck('tablename')->all();
 
     expect($dropped)->toEqualCanonicalizing(['tables_links', 'tables_clicks'])
         ->and(Schema::hasTable('tables_links'))->toBeFalse()
         ->and(Schema::hasTable('tables_clicks'))->toBeFalse()
         ->and(PluginRecord::query()->sole()->migrations)->toBe([])
-        ->and(Schema::hasTable('users'))->toBeTrue();
+        ->and($afterTables)->toBe(array_values(array_diff($beforeTables, ['tables_clicks', 'tables_links'])));
 });
 
 it('writes nothing when someone without plugins.manage tries to remove plugin data', function (?string $role): void {
@@ -645,6 +649,7 @@ it('writes nothing when someone without plugins.manage tries to remove plugin da
     app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
 
     $before = PluginRecord::query()->sole()->migrations;
+    $events = DB::table('security_events')->where('type', 'plugin.data_removed')->count();
     $actorId = $role === null ? null : (string) User::factory()->create()->assignRole($role)->id;
     $role === null && app()->instance(Elevation::class, new DeniedElevation);
 
@@ -652,8 +657,28 @@ it('writes nothing when someone without plugins.manage tries to remove plugin da
         ->toThrow(AuthorizationException::class);
 
     expect(Schema::hasTable('tables_links'))->toBeTrue()
-        ->and(PluginRecord::query()->sole()->migrations)->toBe($before);
+        ->and(PluginRecord::query()->sole()->migrations)->toBe($before)
+        ->and(DB::table('security_events')->where('type', 'plugin.data_removed')->count())->toBe($events);
 })->with(['editor', 'author', 'nobody at the shell' => null]);
+
+it('refuses RemovePluginData when a recorded table lacks the plugin’s prefix', function (): void {
+    PluginFixtures::use('tables');
+    ($this->enable)();
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+
+    $record = PluginRecord::query()->sole();
+    $migrations = $record->migrations;
+    $first = array_key_first($migrations);
+    $migrations[$first]['tables'][] = 'users';
+    $record->fill(['migrations' => $migrations])->save();
+
+    expect(fn () => app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null)))
+        ->toThrow(ValidationException::class, 'doesn’t start with its prefix');
+
+    expect(Schema::hasTable('tables_links'))->toBeTrue()
+        ->and(Schema::hasTable('users'))->toBeTrue()
+        ->and(PluginRecord::query()->sole()->migrations)->not->toBe([]);
+});
 
 it('creates the tables again when the plugin is enabled after its data was removed', function (): void {
     PluginFixtures::use('tables');

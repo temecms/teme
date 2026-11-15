@@ -68,7 +68,39 @@ function readPending(): Pending | null {
     try {
         const raw = sessionStorage.getItem(PENDING_KEY);
 
-        return raw === null ? null : (JSON.parse(raw) as Pending);
+        if (raw === null) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw) as {
+            kind?: string;
+            code?: string;
+            post?: PluginEnablePost;
+            at?: number;
+        };
+
+        if (typeof parsed.code !== 'string' || typeof parsed.at !== 'number') {
+            return null;
+        }
+
+        if (parsed.kind === 'migrate' || parsed.kind === 'remove-data') {
+            return { kind: parsed.kind, code: parsed.code, at: parsed.at };
+        }
+
+        // A saved sign-in marker with no kind is enable when it has a post.
+        if (
+            (parsed.kind === 'enable' || parsed.kind === undefined) &&
+            parsed.post !== undefined
+        ) {
+            return {
+                kind: 'enable',
+                code: parsed.code,
+                post: parsed.post,
+                at: parsed.at,
+            };
+        }
+
+        return null;
     } catch {
         return null;
     }

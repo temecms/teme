@@ -81,6 +81,15 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
 
         // Only tables that still exist: a recorded name that is gone never blocks removal (T3).
         $tables = $this->migrations->existingOwnedTables($record->migrations);
+        $prefix = str_replace('-', '_', $record->code).'_';
+
+        foreach ($tables as $table) {
+            if (! str_starts_with($table, $prefix)) {
+                throw ValidationException::withMessages([
+                    'plugin' => ["The table {$table} doesn’t start with its prefix \"{$prefix}\"."],
+                ]);
+            }
+        }
 
         if ($tables !== []) {
             $grammar = DB::connection()->getQueryGrammar();
