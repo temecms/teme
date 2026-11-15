@@ -8,6 +8,7 @@ use App\Domain\ManageApi\ApiItemRequest;
 use App\Domain\ManageApi\ApiItems;
 use App\Domain\ManageApi\HtmlBodies;
 use App\Domain\ManageApi\ManageApiProblem;
+use DateTimeImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -51,7 +52,7 @@ final class ItemsController
 
         if (! is_string($status) || ! in_array($status, ApiItems::STATUSES, true)) {
             $refused['status'] = __('status must be draft, published or scheduled.');
-        } elseif (ApiItems::needsDate($status) && (! is_string($publishAt) || strtotime($publishAt) === false)) {
+        } elseif (ApiItems::needsDate($status) && ! self::isDateWithOffset($publishAt)) {
             $refused['publish_at'] = __('publish_at must be a date and time with its offset, such as 2026-11-10T09:30:00Z.');
         }
 
@@ -107,5 +108,22 @@ final class ItemsController
         $answer = $items->create(ManageRequest::caller($request), $item, $document);
 
         return ManageAnswer::data($notes === [] ? $answer['data'] : [...$answer['data'], 'notes' => $notes], $answer['status']);
+    }
+
+    /**
+     * Whether the value is a date and time with its offset, as publish_at's
+     * message asks: 2026-11-10T09:30:00Z or 2026-11-10T09:30:00+02:00, and a
+     * day that exists.
+     */
+    private static function isDateWithOffset(mixed $value): bool
+    {
+        if (! is_string($value)) {
+            return false;
+        }
+
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:sP', $value);
+        $problems = DateTimeImmutable::getLastErrors();
+
+        return $parsed !== false && ($problems === false || ($problems['warning_count'] === 0 && $problems['error_count'] === 0));
     }
 }
