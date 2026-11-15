@@ -15,8 +15,9 @@ interface PluginContributions
      * nothing; returns why it can't, or [].
      *
      * @param  array<string, mixed>  $contributes
+     * @param  list<mixed>  $jobs  the manifest's top-level jobs list (I-3445)
      *
      * @return list<string>
      */
-    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin): array;
+    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = []): array;
 }

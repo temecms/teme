@@ -42,8 +42,15 @@ final readonly class PluginHttp implements OutboundHttp
      */
     private const array SECURE_CONNECTION_ERRORS = [35, 51, 53, 54, 58, 59, 60, 64, 66, 77, 80, 82, 83, 90, 91];
 
-    /** @param  list<string>  $hosts  the hosts this plugin's consent covers */
-    public function __construct(private array $hosts, private HostResolver $resolver) {}
+    /**
+     * @param  list<string>  $hosts  the hosts this plugin's consent covers
+     * @param  int  $mostSeconds  the upper limit for each call: 10 normally, 300 inside a long job (I-3445)
+     */
+    public function __construct(
+        private array $hosts,
+        private HostResolver $resolver,
+        private int $mostSeconds = self::MOST_SECONDS,
+    ) {}
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
@@ -71,7 +78,7 @@ final readonly class PluginHttp implements OutboundHttp
         $host = $this->allowedHost($uri);
         $body = $json === null ? null : self::jsonBody($json, $host);
         $address = $this->publicAddress($host);
-        $seconds = max(1, min($timeoutSeconds, self::MOST_SECONDS));
+        $seconds = max(1, min($timeoutSeconds, $this->mostSeconds));
 
         $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0, ARRAY_FILTER_USE_KEY))
             ->setHandler(new CurlHandler)

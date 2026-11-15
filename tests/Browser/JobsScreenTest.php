@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -10,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Tests\Fixtures\Jobs\JobsFixtures;
 use Tests\Fixtures\Jobs\RecordingJobKind;
+use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -64,3 +70,37 @@ it('retries a failed job and cancels a running one from Tools › Jobs', functio
     expect(DB::table('tracked_jobs')->where('id', $this->failed)->value('state'))->toBe('waiting')
         ->and(DB::table('tracked_jobs')->where('id', $this->running)->value('state'))->toBe('cancelled');
 });
+
+it('draws a plugin mark beside a plugin-owned job, and passes axe in light and dark', function (string $scheme): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+    PluginFixtures::use('jobs');
+    PluginFixtures::installed(['tests/jobs' => 'jobs']);
+    $plugin = app(PluginRegistry::class)->find('tests/jobs');
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/jobs',
+        $plugin?->manifest?->version() ?? '1.0.0',
+        $plugin?->manifest?->capabilities() ?? [],
+        $plugin?->manifest?->hosts() ?? [],
+        $plugin?->manifest?->hooks() ?? [],
+        null,
+    ));
+    JobsFixtures::job([
+        'kind' => 'plugin-job',
+        'owner' => 'jobs',
+        'label' => 'Write a line',
+        'state' => 'waiting',
+        'total' => null,
+        'done' => 0,
+        'message' => null,
+        'created_at' => now()->addMinute(),
+    ]);
+
+    lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
+
+    cmSignIn($this->admin)
+        ->navigate('/admin/tools/jobs')
+        ->assertSee('Write a line')
+        ->assertSee('Jobs')
+        ->assertPresent('[data-slot="plugin-mark"]')
+        ->assertNoAccessibilityIssues(3);
+})->with(['light', 'dark']);

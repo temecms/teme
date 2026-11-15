@@ -107,7 +107,8 @@ final readonly class PluginLoader
         try {
             $instance = $this->build($plugin, $record);
             $instance->register($hooks);
-            $problems = $this->contributions->add($plugin->name, $plugin->code, $manifest->label(), $manifest->version(), $manifest->contributes(), $instance);
+            $jobs = $manifest->raw()['jobs'] ?? [];
+            $problems = $this->contributions->add($plugin->name, $plugin->code, $manifest->label(), $manifest->version(), $manifest->contributes(), $instance, is_array($jobs) ? array_values($jobs) : []);
 
             if ($problems !== []) {
                 throw new PluginRefused($problems[0]);
@@ -126,10 +127,20 @@ final readonly class PluginLoader
     }
 
     /**
+     * Builds the plugin with its doors, without registering it — for a job
+     * run that needs the same doors as boot, optionally with a longer
+     * outbound ceiling (I-3445).
+     */
+    public function instance(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null): Plugin
+    {
+        return $this->build($plugin, $record, $httpSeconds);
+    }
+
+    /**
      * The plugin, built with what Teme gives it for each type its
      * constructor asks for, never through the container.
      */
-    private function build(FoundPlugin $plugin, PluginRecord $record): Plugin
+    private function build(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null): Plugin
     {
         /** @var Manifest $manifest */
         $manifest = $plugin->manifest;
@@ -137,7 +148,7 @@ final readonly class PluginLoader
         $this->autoload($plugin, $class);
 
         $reflection = new ReflectionClass($class);
-        $services = $this->services->for($plugin->name, $plugin->code, $record->consent['capabilities'] ?? [], Consent::hosts($record->consent, $manifest));
+        $services = $this->services->for($plugin->name, $plugin->code, $record->consent['capabilities'] ?? [], Consent::hosts($record->consent, $manifest), $httpSeconds);
         $arguments = [];
 
         foreach ($reflection->getConstructor()?->getParameters() ?? [] as $parameter) {

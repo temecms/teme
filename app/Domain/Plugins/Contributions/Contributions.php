@@ -7,6 +7,7 @@ namespace App\Domain\Plugins\Contributions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
+use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck as PluginCheck;
 
@@ -34,9 +35,15 @@ final readonly class Contributions implements PluginContributions
      *
      * @return list<string>
      */
-    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin): array
+    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = []): array
     {
         $errors = $this->validator->errors($contributes, $version);
+
+        if ($errors !== []) {
+            return $errors;
+        }
+
+        array_push($errors, ...$this->jobHandlers($jobs, $plugin));
 
         if ($errors !== []) {
             return $errors;
@@ -75,5 +82,45 @@ final readonly class Contributions implements PluginContributions
         }
 
         return [];
+    }
+
+    /**
+     * Declared job keys must match the plugin's handlers, and the other way
+     * round (I-3445).
+     *
+     * @param  list<mixed>  $jobs
+     *
+     * @return list<string>
+     */
+    private function jobHandlers(array $jobs, object $plugin): array
+    {
+        if ($jobs === [] && ! ($plugin instanceof PluginHasJobs)) {
+            return [];
+        }
+
+        $declared = [];
+
+        foreach ($jobs as $entry) {
+            if (is_array($entry) && is_string($entry['key'] ?? null)) {
+                $declared[$entry['key']] = true;
+            }
+        }
+
+        $handlers = $plugin instanceof PluginHasJobs ? array_keys($plugin->jobs()) : [];
+        $errors = [];
+
+        foreach (array_keys($declared) as $key) {
+            if (! in_array($key, $handlers, true)) {
+                $errors[] = "It declares job \"{$key}\" but has no handler for it.";
+            }
+        }
+
+        foreach ($handlers as $key) {
+            if (! isset($declared[$key])) {
+                $errors[] = "It has a handler for \"{$key}\", which isn’t declared.";
+            }
+        }
+
+        return $errors;
     }
 }

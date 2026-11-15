@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Domain\Jobs\Queries\TrackedJobList;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
@@ -11,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Fixtures\Jobs\JobsFixtures;
 use Tests\Fixtures\Jobs\RecordingJobKind;
+use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -129,4 +135,36 @@ it('can page Tools › Jobs and find its failed jobs through their own indexes',
 
     expect($page)->toContain('tracked_jobs_created_index')->not->toContain('Seq Scan on tracked_jobs')->not->toContain('Sort')
         ->and($failed)->toContain('tracked_jobs_failed_index')->not->toContain('Seq Scan on tracked_jobs');
+});
+
+it('names the plugin beside a plugin-owned job', function (): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+    PluginFixtures::use('jobs');
+    PluginFixtures::installed(['tests/jobs' => 'jobs']);
+    $plugin = app(PluginRegistry::class)->find('tests/jobs');
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/jobs',
+        $plugin?->manifest?->version() ?? '1.0.0',
+        $plugin?->manifest?->capabilities() ?? [],
+        $plugin?->manifest?->hosts() ?? [],
+        $plugin?->manifest?->hooks() ?? [],
+        null,
+    ));
+
+    $id = JobsFixtures::job([
+        'kind' => 'plugin-job',
+        'owner' => 'jobs',
+        'label' => 'Write a line',
+        'state' => 'waiting',
+        'total' => null,
+        'done' => 0,
+        'message' => null,
+    ]);
+
+    $this->actingAs($this->admin)->get('/admin/tools/jobs')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('tools/jobs')
+            ->where('rows.0.id', $id)
+            ->where('rows.0.plugin', 'Jobs')
+            ->where('rows.0.owner', 'jobs'));
 });
