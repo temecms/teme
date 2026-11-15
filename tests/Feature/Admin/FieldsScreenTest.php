@@ -86,7 +86,9 @@ it('shows Posts’ page too, with the built-ins as Teme’s', function (): void 
             ->where('fromTeme.3.name', 'Template')
             ->where('fromTeme.4.name', 'Pin to the top of the latest posts')
             ->where('fromTeme.4.where', 'On the list, not in the editor')
-            ->has('fromTeme', 5));
+            ->where('fromTeme.5.name', 'No inserted content')
+            ->where('fromTeme.5.handles', 'insertions_off')
+            ->has('fromTeme', 6));
 });
 
 it('lists a stored field that can’t be read in its own group, saying why (#324)', function (): void {

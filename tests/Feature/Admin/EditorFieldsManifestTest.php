@@ -38,7 +38,7 @@ beforeEach(function (): void {
 
 it('gives the editor each field’s control and settings beside what it had', function (): void {
     $response = $this->actingAs($this->editor)->get("/admin/content/{$this->post->id}/edit")
-        ->assertInertia(fn (Assert $page) => $page->component('content/edit')->has('fields', 17));
+        ->assertInertia(fn (Assert $page) => $page->component('content/edit')->has('fields', 18));
     // By handle, never by position: later parts may add fields.
     $fields = collect($response->inertiaProps('fields'))->keyBy('handle');
 
@@ -59,11 +59,11 @@ it('lists a field placed in Details for its own type only', function (): void {
     $post = collect($this->actingAs($this->editor)->get("/admin/content/{$this->post->id}/edit")->inertiaProps('fields'))->keyBy('handle');
     $pageFields = collect($this->actingAs($this->editor)->get("/admin/content/{$page->id}/edit")->inertiaProps('fields'))->keyBy('handle');
 
-    expect($post)->toHaveCount(18)
+    expect($post)->toHaveCount(19)
         ->and($post['running_time']['place'])->toBe('details')
         ->and($post['running_time']['component'])->toBe('number')
         ->and($post['running_time']['settings'])->toBe([])
-        ->and($pageFields)->toHaveCount(16)
+        ->and($pageFields)->toHaveCount(17)
         ->and($pageFields->has('running_time'))->toBeFalse();
 });
 

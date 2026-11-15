@@ -52,8 +52,8 @@ it('puts stored fields on Posts after the built-ins', function (): void {
 
     $after = fbHandles('post');
 
-    expect($before)->toHaveCount(17)
-        ->and(array_slice($after, 0, 17))->toBe($before)
+    expect($before)->toHaveCount(18)
+        ->and(array_slice($after, 0, 18))->toBe($before)
         ->and(last($after))->toBe('subtitle');
 });
 
