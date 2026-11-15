@@ -104,3 +104,19 @@ it('reads English where a language ships no words', function (): void {
     expect(headValue(dtDom($html), '/html/@lang'))->toBe('nl')
         ->and($html)->toContain('Leave a comment')->toContain('Post comment');
 });
+
+it('forgets the last theme\'s words once another theme is active, in the same process', function (): void {
+    File::copyDirectory(base_path('tests/Fixtures/themes/good'), $this->scratch.'/themes/good');
+    twWords($this->scratch.'/themes/good/lang', 'fr', ['Skip to content' => 'Passer au contenu']);
+    config(['teme.theme_paths' => [$this->scratch.'/themes/good']]);
+    $admin = User::factory()->create()->assignRole('administrator');
+    siteSetLanguage($admin, 'fr');
+    themeActivate('good');
+
+    expect((string) addrGet('/nothing-here/')->assertNotFound()->getContent())->toContain('Passer au contenu');
+
+    themeActivate('default');
+
+    expect((string) addrGet('/nothing-here/')->assertNotFound()->getContent())->toContain('Aller au contenu')->not->toContain('Passer au contenu')
+        ->and(app('translator')->getLoader()->paths())->not->toContain($this->scratch.'/themes/good/lang');
+});
