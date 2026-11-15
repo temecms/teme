@@ -51,7 +51,8 @@ final readonly class PluginImports
                 continue;
             }
 
-            $declared = $plugin->manifest->imports();
+            // Only the names both declared now and agreed to (I-349).
+            $declared = ['importer' => $plugin->manifest->imports()['importer'], ...Consent::imports($record->consent, $plugin->manifest)];
 
             if ($declared['options'] === [] && $declared['postTypes'] === [] && $declared['userMeta'] === [] && $declared['termMeta'] === []) {
                 continue;
