@@ -96,24 +96,45 @@ it('names only commands that exist, with options they take', function (GuideFile
 
 it('names only classes and hooks that exist in the code', function (GuideFile $page): void {
     $problems = [];
-    $hooks = DeveloperGuide::hookBasenames();
+    $known = array_values(array_unique([
+        ...DeveloperGuide::hookBasenames(),
+        ...DeveloperGuide::contractBasenames(),
+    ]));
 
     foreach (DeveloperGuide::codeNames($page) as $name) {
         if (str_contains($name, '\\')) {
-            if (! class_exists($name) && ! interface_exists($name)) {
-                $problems[] = "{$name} isn't a class or interface.";
+            if (! class_exists($name) && ! interface_exists($name) && ! enum_exists($name)) {
+                $problems[] = "{$name} isn't a class, interface or enum.";
             }
 
             continue;
         }
 
-        if (! in_array($name, $hooks, true)) {
-            $problems[] = "{$name} isn't a known hook.";
+        if (! in_array($name, $known, true)) {
+            $problems[] = "{$name} isn't a known hook or contracts class.";
         }
     }
 
     expect($problems)->toBe([]);
 })->with(DeveloperGuide::allPages());
+
+it('names only schema keys on the manifest page', function (): void {
+    $page = DeveloperGuide::page('concepts/manifest.md');
+    $keys = DeveloperGuide::schemaKeys();
+    $problems = [];
+
+    foreach ($page->codeSpans() as $span) {
+        if (preg_match('/^[a-z][a-zA-Z0-9]*$/', $span) !== 1) {
+            continue;
+        }
+
+        if (! in_array($span, $keys, true)) {
+            $problems[] = "{$span} isn't a plugin or theme manifest key.";
+        }
+    }
+
+    expect($problems)->toBe([]);
+});
 
 it('keeps every long code block in the file its first line names', function (GuideFile $page): void {
     $problems = [];

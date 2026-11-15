@@ -138,13 +138,14 @@ final class DeveloperGuide
     }
 
     /**
-     * Hook short names and fully-qualified class names named in backticks.
+     * Hook short names, contracts basenames, and fully-qualified class names
+     * named in backticks. Every PascalCase span is collected so a made-up
+     * name fails the check instead of being ignored.
      *
      * @return list<string>
      */
     public static function codeNames(GuideFile $page): array
     {
-        $hooks = self::hookBasenames();
         $names = [];
 
         foreach ($page->codeSpans() as $span) {
@@ -154,12 +155,95 @@ final class DeveloperGuide
                 continue;
             }
 
-            if (in_array($span, $hooks, true)) {
+            if (preg_match('/^[A-Z][A-Za-z]+$/', $span) === 1) {
                 $names[] = $span;
             }
         }
 
         return array_values(array_unique($names));
+    }
+
+    /**
+     * Every class, interface and enum basename under teme-contracts.
+     *
+     * @return list<string>
+     */
+    public static function contractBasenames(): array
+    {
+        $root = GuideFile::root().'/packages/teme-contracts/src';
+        $found = [];
+
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $relative = substr($file->getPathname(), strlen($root) + 1, -4);
+            $class = 'Teme\\Contracts\\'.str_replace(['/', '\\'], '\\', $relative);
+
+            if (! class_exists($class) && ! interface_exists($class) && ! enum_exists($class)) {
+                continue;
+            }
+
+            $found[] = class_basename($class);
+        }
+
+        return array_values(array_unique($found));
+    }
+
+    /**
+     * Property names from both plugin and theme manifest schemas.
+     *
+     * @return list<string>
+     */
+    public static function schemaKeys(): array
+    {
+        $keys = [];
+
+        foreach (['teme-plugin.schema.json', 'teme-theme.schema.json'] as $file) {
+            $schema = json_decode((string) file_get_contents(GuideFile::root().'/packages/teme-contracts/schema/'.$file), true, flags: JSON_THROW_ON_ERROR);
+            array_push($keys, ...self::schemaPropertyNames($schema));
+        }
+
+        return array_values(array_unique($keys));
+    }
+
+    /**
+     * @param  array<string, mixed>  $node
+     *
+     * @return list<string>
+     */
+    private static function schemaPropertyNames(array $node): array
+    {
+        $keys = [];
+
+        if (isset($node['properties']) && is_array($node['properties'])) {
+            foreach ($node['properties'] as $name => $child) {
+                $keys[] = (string) $name;
+
+                if (is_array($child)) {
+                    array_push($keys, ...self::schemaPropertyNames($child));
+                }
+            }
+        }
+
+        foreach (['items', 'additionalProperties', 'oneOf', 'anyOf', 'allOf', 'then', 'else', 'if'] as $branch) {
+            if (! isset($node[$branch])) {
+                continue;
+            }
+
+            if (is_array($node[$branch]) && array_is_list($node[$branch])) {
+                foreach ($node[$branch] as $child) {
+                    if (is_array($child)) {
+                        array_push($keys, ...self::schemaPropertyNames($child));
+                    }
+                }
+            } elseif (is_array($node[$branch])) {
+                array_push($keys, ...self::schemaPropertyNames($node[$branch]));
+            }
+        }
+
+        return $keys;
     }
 
     /**
