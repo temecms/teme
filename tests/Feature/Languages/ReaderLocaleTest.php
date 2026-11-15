@@ -1,0 +1,76 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Contents\Models\Content;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Testing\TestResponse;
+use Tests\Fixtures\Contents\Visibilities;
+use Tests\Fixtures\Languages\LanguageSite;
+
+uses(RefreshDatabase::class);
+
+/*
+ * The core addresses that answer for an item outside its own page speak the
+ * item's language (I-3360): a comment's refusal, the password form's and the
+ * reply page. A stand-in French file holds the words, so the test reads only
+ * what it names.
+ */
+
+beforeEach(function (): void {
+    $this->freezeSecond();
+    $this->seed(RoleSeeder::class);
+    $this->words = sys_get_temp_dir().'/reader-locale-'.bin2hex(random_bytes(4));
+    File::ensureDirectoryExists($this->words);
+    File::put($this->words.'/fr.json', (string) json_encode([
+        'Enter your name.' => 'Saisissez votre nom.',
+        'Shorten your comment to 5,000 characters or fewer. It has :count.' => 'Raccourcissez votre commentaire à 5 000 caractères au plus. Il en compte :count.',
+        'That isn’t the password. Check it and try again.' => 'Ce n’est pas le mot de passe. Vérifiez-le et réessayez.',
+        'Reply to :name' => 'Répondre à :name',
+    ], JSON_UNESCAPED_UNICODE));
+    // Read after core's own lang/, so the stand-in's words win over the shipped French.
+    app('translator')->addPath($this->words);
+    $this->site = LanguageSite::build();
+    RateLimiter::clear('unlock:203.0.113.9');
+});
+
+afterEach(function (): void {
+    File::deleteDirectory($this->words);
+});
+
+it('refuses a comment on a French post in French, its numbers written the French way', function (): void {
+    $post = Content::query()->findOrFail($this->site->postFr);
+
+    $missing = (string) cmPost($post, ['name' => ''])->assertStatus(422)->getContent();
+    $long = (string) cmPost($post, ['text' => str_repeat('a', 5001)])->assertStatus(422)->getContent();
+
+    expect($missing)->toContain('Saisissez votre nom.')->not->toContain('Enter your name.')
+        ->and($long)->toContain("Il en compte 5\u{202F}001.");
+});
+
+it('refuses a comment on an English post in English', function (): void {
+    $post = Content::query()->findOrFail($this->site->post);
+
+    expect((string) cmPost($post, ['name' => ''])->assertStatus(422)->getContent())->toContain('Enter your name.')->not->toContain('Saisissez');
+});
+
+it('answers a wrong password for a French item in French', function (): void {
+    $item = Visibilities::change(Content::query()->findOrFail($this->site->postFr), 'protected', $this->site->editor, 'Harbour 2024');
+    $request = Request::create('/_teme/unlock', 'POST', ['path' => '/fr/bonjour/', 'password' => 'wrong'], server: ['REMOTE_ADDR' => '203.0.113.9']);
+    $response = TestResponse::fromBaseResponse(app(Kernel::class)->handle($request), $request)->assertStatus(422);
+
+    expect($item->id)->toBe($this->site->postFr)
+        ->and((string) $response->getContent())->toContain('Ce n’est pas le mot de passe. Vérifiez-le et réessayez.')
+        ->and(headValue(dtDom((string) $response->getContent()), '/html/@lang'))->toBe('fr');
+});
+
+it('draws the reply page for a comment on a French post in French', function (): void {
+    $comment = cmRow(Content::query()->findOrFail($this->site->postFr));
+
+    $this->get("/_teme/comment/{$comment}/reply")->assertOk()->assertSee('Répondre à', false);
+});

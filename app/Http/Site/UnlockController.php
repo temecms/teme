@@ -6,6 +6,7 @@ namespace App\Http\Site;
 
 use App\Domain\Addresses\PublicRequestPath;
 use App\Domain\Contents\ReaderPasswords;
+use App\Domain\Site\ItemLanguage;
 use App\Domain\Site\PathResolver;
 use App\Domain\Site\ReaderKeys;
 use App\Domain\Site\ViewModels\ProtectedView;
@@ -52,6 +53,8 @@ final class UnlockController extends Controller
             return self::private(new RedirectResponse(self::here($path, false), 303));
         }
 
+        // Answered in the item's own language (I-3360).
+        ItemLanguage::use((string) $answer['item']);
         $bucket = self::bucket((string) $request->ip());
         $wait = max(RateLimiter::availableIn('unlock:'.$bucket), RateLimiter::availableIn('unlock-hour:'.$bucket));
 

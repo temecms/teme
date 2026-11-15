@@ -8,6 +8,7 @@ use App\Domain\Cache\SignedInMarker;
 use App\Domain\Comments\Operations\Input\SubmitCommentInput;
 use App\Domain\Comments\Operations\SubmitComment;
 use App\Domain\Site\CommentViews;
+use App\Domain\Site\ItemLanguage;
 use App\Domain\Site\RespondViews;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -40,6 +41,9 @@ final class CommentController extends Controller
         if ($target === null) {
             return $answer->refused(null, __('This page takes no comments.'), 422);
         }
+
+        // Answered in the item's own language (I-3360).
+        ItemLanguage::use($target->id);
 
         // A bot's: answered as held, and nothing reaches SubmitComment or its rate limit (D8, I-578).
         if ($post->honeypot !== '') {
