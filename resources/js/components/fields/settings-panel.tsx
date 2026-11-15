@@ -20,9 +20,9 @@ type Props = {
     children: ReactNode;
 };
 
-const headClass = 'grid gap-0.5 border-b px-5 py-3.5 max-sm:px-4';
+const headClass = 'grid gap-1 px-6 pt-6 max-sm:px-4 max-sm:pt-4';
 
-/** The panel's body, 20px apart; for a form that holds a body and a footer. */
+/** The panel's body, its fields 20px apart; for a form that holds a body and a footer. */
 export function SettingsPanelBody({
     className,
     children,
@@ -31,7 +31,7 @@ export function SettingsPanelBody({
     children: ReactNode;
 }) {
     return (
-        <div className={cn('grid gap-5 p-5 max-sm:px-4', className)}>
+        <div className={cn('grid gap-5 p-6 max-sm:p-4', className)}>
             {children}
         </div>
     );
@@ -42,7 +42,7 @@ export function SettingsPanelFooter({ children }: { children: ReactNode }) {
     return (
         <div
             data-test="panel-save"
-            className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t px-5 py-3 max-sm:px-4"
+            className="border-line flex flex-wrap items-center gap-x-3 gap-y-2 border-t px-6 py-3 max-sm:px-4"
         >
             {children}
         </div>
@@ -50,8 +50,9 @@ export function SettingsPanelFooter({ children }: { children: ReactNode }) {
 }
 
 /**
- * A titled panel of a Settings page: a header, a body of fields 20px apart,
- * and a footer only where the panel saves on its own (I-3128).
+ * A titled panel of a Settings page, drawn as a form panel
+ * (docs/architecture/design-system.md, 4.12): a header, a body of fields
+ * 20px apart, and a footer only where the panel saves on its own.
  */
 export function SettingsPanel({
     title,
@@ -70,7 +71,7 @@ export function SettingsPanel({
         <>
             <h2
                 id={headingId}
-                className="text-[15px] leading-snug font-semibold"
+                className="text-lead text-ink font-semibold text-balance"
             >
                 {title}
             </h2>
@@ -78,7 +79,7 @@ export function SettingsPanel({
                 <p
                     id={lineId}
                     data-test="settings-panel-description"
-                    className="text-ink-2 text-[13px]"
+                    className="text-body text-ink-2 text-pretty"
                 >
                     {description}
                 </p>
@@ -96,7 +97,7 @@ export function SettingsPanel({
     const common = {
         id,
         'data-test': 'settings-panel',
-        className: cn('border-line bg-surface min-w-0 border', className),
+        className: cn('bg-surface shadow-raised min-w-0 rounded-lg', className),
     };
 
     if (as === 'section') {

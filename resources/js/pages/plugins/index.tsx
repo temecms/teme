@@ -1,29 +1,16 @@
-import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
-import { MoreHorizontal } from 'lucide-react';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { Plug } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { KeyboardEvent } from 'react';
 import PluginsController from '@/actions/App/Http/Admin/PluginsController';
-import { PageHeader } from '@/components/list/page-header';
+import { ListPage } from '@/components/patterns/list-page';
 import { ConsentDialog } from '@/components/plugins/consent-dialog';
 import { DetailsDialog } from '@/components/plugins/details-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { PluginRow } from '@/components/plugins/plugin-row';
+import { Panel } from '@/components/ui/panel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { __ } from '@/lib/i18n';
-import { cn } from '@/lib/utils';
 import { index as pluginsIndex } from '@/routes/plugins';
-import { show as showSettings } from '@/routes/settings';
-import type {
-    PluginEnablePost,
-    PluginRowPage,
-    PluginsPage,
-    PluginState,
-} from '@/types';
+import type { PluginEnablePost, PluginRowPage, PluginsPage } from '@/types';
 
 type Tab = 'all' | 'enabled' | 'disabled' | 'attention';
 
@@ -65,22 +52,6 @@ function tabLabel(key: Tab): string {
     }
 }
 
-/** How each state's badge is tinted. The word is always there, so colour is never alone. */
-const BADGES: Record<
-    PluginState,
-    'success' | 'secondary' | 'outline' | 'destructive'
-> = {
-    enabled: 'success',
-    not_enabled: 'secondary',
-    disabled: 'secondary',
-    disabled_on_server: 'secondary',
-    waiting: 'outline',
-    some_parts_stopped: 'outline',
-    stopped_by_teme: 'destructive',
-    cant_be_used: 'destructive',
-    code_gone: 'destructive',
-};
-
 /** Where an enable request waits while the person types their password on Fortify's screen. */
 const PENDING_KEY = 'teme.plugins.pending';
 
@@ -119,108 +90,6 @@ function removePending(): void {
     }
 }
 
-/** The one button a row offers: Enable, Review access for its version, or Disable. */
-function RowAction({
-    plugin,
-    onAsk,
-    onDisable,
-}: {
-    plugin: PluginRowPage;
-    onAsk: (plugin: PluginRowPage, opener: HTMLElement) => void;
-    onDisable: (plugin: PluginRowPage) => void;
-}) {
-    if (plugin.action === 'disable') {
-        return (
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                data-test="plugin-disable"
-                onClick={() => onDisable(plugin)}
-            >
-                {__('Disable')}
-                <span className="sr-only"> {plugin.label}</span>
-            </Button>
-        );
-    }
-
-    if (plugin.action === null) {
-        return null;
-    }
-
-    return (
-        <Button
-            type="button"
-            size="sm"
-            variant={plugin.action === 'review' ? 'outline' : 'default'}
-            data-test="plugin-enable"
-            onClick={(event) => onAsk(plugin, event.currentTarget)}
-        >
-            {plugin.action === 'review'
-                ? __('Review access for :version', {
-                      version: plugin.version,
-                  })
-                : __('Enable')}
-            {plugin.action === 'enable' && (
-                <span className="sr-only"> {plugin.label}</span>
-            )}
-        </Button>
-    );
-}
-
-/** The ⋯ menu: Details and access, and Settings for a plugin that has them. */
-function RowMenu({
-    plugin,
-    onDetails,
-}: {
-    plugin: PluginRowPage;
-    onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
-}) {
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    data-plugin-menu={plugin.name}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    aria-label={__('Actions for :name', { name: plugin.label })}
-                    data-test="plugin-menu"
-                >
-                    <MoreHorizontal aria-hidden="true" className="size-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                    data-test="plugin-details"
-                    onSelect={() =>
-                        onDetails(
-                            plugin,
-                            document.querySelector<HTMLElement>(
-                                `[data-plugin-menu="${plugin.name}"]`,
-                            ),
-                        )
-                    }
-                >
-                    {__('Details and access')}
-                </DropdownMenuItem>
-                {plugin.hasSettings && (
-                    <DropdownMenuItem asChild>
-                        <Link
-                            href={showSettings({
-                                group: `plugin.${plugin.code}`,
-                            })}
-                            data-test="plugin-settings"
-                        >
-                            {__('Settings')}
-                        </Link>
-                    </DropdownMenuItem>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
-}
-
 /**
  * Site › Plugins: every plugin with its state and why, enabled through a
  * consent dialog and disabled with one click. Enabling posts plainly; without
@@ -245,8 +114,6 @@ export default function Plugins({ plugins }: PluginsPage) {
             opener.focus();
         }
     }, [asking, details, opener]);
-
-    const shown = plugins.filter(TABS.find((t) => t.key === tab)!.holds);
 
     // Back from the password screen: the request is made again, once.
     useEffect(() => {
@@ -300,203 +167,104 @@ export default function Plugins({ plugins }: PluginsPage) {
         router.post(PluginsController.disable.url({ code: plugin.code }), {});
     };
 
-    const onTabKey = (event: KeyboardEvent<HTMLDivElement>) => {
-        const index = TABS.findIndex((t) => t.key === tab);
-        const move = { ArrowRight: 1, ArrowLeft: -1 }[event.key];
+    const onAsk = (row: PluginRowPage, button: HTMLElement) => {
+        setOpener(button);
+        setAsking(row);
+    };
 
-        if (move === undefined) {
-            return;
-        }
-
-        event.preventDefault();
-        const next = TABS[(index + move + TABS.length) % TABS.length];
-        setTab(next.key);
-        document.getElementById(`plugins-tab-${next.key}`)?.focus();
+    const onDetails = (row: PluginRowPage, button: HTMLElement | null) => {
+        setOpener(button);
+        setDetails(row);
     };
 
     return (
         <>
             <Head title={__('Plugins')} />
 
-            <div className="max-w-5xl space-y-6 p-6">
-                <PageHeader
-                    title={__('Plugins')}
-                    description={__(
-                        'Plugins are Composer packages, added to the site’s build by whoever runs the server. Plugins don’t run on this page, so you can always disable one here.',
-                    )}
-                />
-
+            <ListPage
+                title={__('Plugins')}
+                description={__(
+                    'Plugins are Composer packages, added to the site’s build by whoever runs the server. Plugins don’t run on this page, so you can always disable one here.',
+                )}
+            >
                 {plugins.length === 0 ? (
-                    <p
+                    <Panel
                         data-test="plugins-empty"
-                        className="text-ink-2 text-[13px]"
+                        className="grid justify-items-center gap-3 px-6 py-12 text-center"
                     >
-                        {__(
-                            'No plugins are installed. Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.',
-                        )}
-                    </p>
+                        <Plug
+                            aria-hidden="true"
+                            className="text-ink-3 size-8"
+                        />
+                        <p className="text-lead text-ink font-semibold">
+                            {__('No plugins are installed')}
+                        </p>
+                        <p className="text-body text-ink-2">
+                            {__(
+                                'Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.',
+                            )}
+                        </p>
+                    </Panel>
                 ) : (
-                    <>
-                        <div
-                            role="tablist"
+                    <Tabs
+                        value={tab}
+                        onValueChange={(value) => setTab(value as Tab)}
+                    >
+                        <TabsList
                             aria-label={__('Plugins')}
-                            className="border-line flex flex-wrap gap-x-5 border-b"
-                            onKeyDown={onTabKey}
+                            className="flex-wrap"
                         >
                             {TABS.map((item) => (
-                                <button
+                                <TabsTrigger
                                     key={item.key}
-                                    id={`plugins-tab-${item.key}`}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={tab === item.key}
-                                    aria-controls="plugins-panel"
-                                    tabIndex={tab === item.key ? 0 : -1}
+                                    value={item.key}
+                                    count={plugins.filter(item.holds).length}
                                     data-test={`plugins-tab-${item.key}`}
-                                    onClick={() => setTab(item.key)}
-                                    className={cn(
-                                        '-mb-px inline-flex h-9 items-center gap-1.5 border-b-2 px-0.5 text-[13px]',
-                                        tab === item.key
-                                            ? 'border-accent text-ink font-semibold'
-                                            : 'text-ink-2 hover:text-ink border-transparent font-medium',
-                                    )}
                                 >
                                     {tabLabel(item.key)}
-                                    <span className="text-ink-2 tabular-nums">
-                                        {plugins.filter(item.holds).length}
-                                    </span>
-                                </button>
+                                </TabsTrigger>
                             ))}
-                        </div>
+                        </TabsList>
+                        {TABS.map((item) => {
+                            const shown = plugins.filter(item.holds);
 
-                        <div
-                            id="plugins-panel"
-                            role="tabpanel"
-                            aria-labelledby={`plugins-tab-${tab}`}
-                        >
-                            {shown.length === 0 ? (
-                                <p className="text-ink-2 text-[13px]">
-                                    {__('Nothing in this view')}
-                                </p>
-                            ) : (
-                                <table
-                                    data-test="plugins-table"
-                                    className="border-line w-full border-collapse text-left text-[13px] max-md:block"
-                                >
-                                    <thead className="max-md:sr-only">
-                                        <tr className="border-line text-ink-2 border-b">
-                                            <th
-                                                scope="col"
-                                                className="py-2 pr-4 font-medium"
-                                            >
-                                                {__('Plugin')}
-                                            </th>
-                                            <th
-                                                scope="col"
-                                                className="py-2 pr-4 font-medium"
-                                            >
-                                                {__('State')}
-                                            </th>
-                                            <th
-                                                scope="col"
-                                                className="py-2 font-medium"
-                                            >
-                                                {__('Actions')}
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="max-md:block">
-                                        {shown.map((plugin) => (
-                                            <tr
-                                                key={plugin.name}
-                                                data-test={`plugin-${plugin.code === '' ? plugin.name : plugin.code}`}
-                                                className="border-line border-b align-top max-md:block max-md:py-3"
-                                            >
-                                                <td className="space-y-1 py-3 pr-4 max-md:block max-md:py-1">
-                                                    <p className="flex flex-wrap items-baseline gap-2">
-                                                        <span className="font-semibold">
-                                                            {plugin.label}
-                                                        </span>
-                                                        {plugin.version !==
-                                                            '' && (
-                                                            <span className="text-ink-2 font-mono text-xs">
-                                                                {plugin.version}
-                                                            </span>
-                                                        )}
-                                                    </p>
-                                                    {plugin.description !==
-                                                        '' && (
-                                                        <p>
-                                                            {plugin.description}
-                                                        </p>
-                                                    )}
-                                                    <p className="text-ink-2 font-mono text-xs break-all">
-                                                        {plugin.name}
-                                                    </p>
-                                                </td>
-                                                <td className="space-y-1 py-3 pr-4 max-md:block max-md:py-1">
-                                                    <Badge
-                                                        variant={
-                                                            BADGES[plugin.state]
-                                                        }
-                                                        data-test="plugin-state"
-                                                    >
-                                                        {plugin.badge}
-                                                    </Badge>
-                                                    {plugin.reason !== '' && (
-                                                        <p
-                                                            data-test="plugin-reason"
-                                                            className="text-ink-2 mt-1"
-                                                        >
-                                                            {plugin.reason}
-                                                        </p>
-                                                    )}
-                                                </td>
-                                                <td className="py-3 max-md:block max-md:py-1">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <RowAction
-                                                            plugin={plugin}
-                                                            onAsk={(
-                                                                row,
-                                                                button,
-                                                            ) => {
-                                                                setOpener(
-                                                                    button,
-                                                                );
-                                                                setAsking(row);
-                                                            }}
-                                                            onDisable={disable}
-                                                        />
-                                                        <RowMenu
-                                                            plugin={plugin}
-                                                            onDetails={(
-                                                                row,
-                                                                button,
-                                                            ) => {
-                                                                setOpener(
-                                                                    button,
-                                                                );
-                                                                setDetails(row);
-                                                            }}
-                                                        />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </>
+                            return (
+                                <TabsContent key={item.key} value={item.key}>
+                                    <Panel className="p-1">
+                                        {shown.length === 0 ? (
+                                            <p className="text-ink-3 px-3 py-3">
+                                                {__('Nothing in this view')}
+                                            </p>
+                                        ) : (
+                                            <ul data-test="plugins-list">
+                                                {shown.map((plugin) => (
+                                                    <PluginRow
+                                                        key={plugin.name}
+                                                        plugin={plugin}
+                                                        onAsk={onAsk}
+                                                        onDisable={disable}
+                                                        onDetails={onDetails}
+                                                    />
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </Panel>
+                                </TabsContent>
+                            );
+                        })}
+                    </Tabs>
                 )}
-            </div>
 
-            <ConsentDialog
-                plugin={asking}
-                onClose={() => setAsking(null)}
-                onConfirm={enable}
-            />
-            <DetailsDialog plugin={details} onClose={() => setDetails(null)} />
+                <ConsentDialog
+                    plugin={asking}
+                    onClose={() => setAsking(null)}
+                    onConfirm={enable}
+                />
+                <DetailsDialog
+                    plugin={details}
+                    onClose={() => setDetails(null)}
+                />
+            </ListPage>
         </>
     );
 }

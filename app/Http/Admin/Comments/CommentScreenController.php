@@ -13,6 +13,7 @@ use App\Domain\Comments\Queries\CommentListRequest;
 use App\Domain\Comments\Queries\EmptyingRequest;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
+use App\Domain\Support\Queries\ListPages;
 use App\Http\Controllers\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -76,7 +77,7 @@ final class CommentScreenController extends Controller
         $perPage = (int) PreferencesFor::user($request->user())['lists.per_page'];
         $page = null;
 
-        // One read serves rows, newer and older, and none when only the
+        // One read serves the rows and the pages, and none when only the
         // drawer is asked for again (D13).
         $read = function () use (&$page, $list, $request, $viewer, $view, $item, $search, $perPage): array {
             return $page ??= $list->page(new CommentListRequest(
@@ -87,6 +88,7 @@ final class CommentScreenController extends Controller
                 after: $this->optional($request, 'after'),
                 before: $this->optional($request, 'before'),
                 perPage: $perPage,
+                page: ListPages::requested($request->query('page')),
             ));
         };
 
@@ -107,8 +109,7 @@ final class CommentScreenController extends Controller
             'view' => $view,
             'views' => fn (): array => $list->counts($viewer, $item['id'] ?? null),
             'rows' => fn (): array => $read()['rows'],
-            'newer' => fn (): ?string => $read()['newer'],
-            'older' => fn (): ?string => $read()['older'],
+            'paging' => fn (): array => $read()['paging'],
             'filters' => $filters,
             'item' => $item === null ? null : ['id' => $item['id'], 'title' => $item['title']],
             'own' => ! $everyItem,

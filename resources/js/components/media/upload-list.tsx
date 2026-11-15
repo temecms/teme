@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { __ } from '@/lib/i18n';
 import type { useMediaUploads } from '@/components/media/use-media-uploads';
 
 /**
@@ -15,7 +17,7 @@ export function UploadList({
         <ul
             data-test="media-uploads"
             aria-live="polite"
-            className="grid gap-2 text-sm empty:hidden"
+            className="text-small grid gap-2 empty:hidden"
         >
             {uploads.entries.map((entry) => (
                 <li key={entry.key} className="grid gap-1">
@@ -25,10 +27,10 @@ export function UploadList({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
+                                variant="neutral"
                                 onClick={() => uploads.retry(entry)}
                             >
-                                Retry
+                                {__('Retry')}
                             </Button>
                         )}
                         {entry.state === 'duplicate' && (
@@ -36,31 +38,32 @@ export function UploadList({
                                 <Button
                                     type="button"
                                     size="sm"
-                                    variant="outline"
+                                    variant="neutral"
                                     onClick={() =>
                                         uploads.chooseExisting(entry)
                                     }
                                 >
-                                    Use the existing one
+                                    {__('Use the existing one')}
                                 </Button>
                                 <Button
                                     type="button"
                                     size="sm"
-                                    variant="outline"
+                                    variant="neutral"
                                     onClick={() => uploads.uploadAnyway(entry)}
                                 >
-                                    Upload anyway
+                                    {__('Upload anyway')}
                                 </Button>
                             </span>
                         )}
                     </div>
                     {(entry.state === 'waiting' ||
                         entry.state === 'sending') && (
-                        <progress
-                            className="h-1 w-full"
+                        <Progress
                             value={entry.progress}
                             max={1}
-                            aria-label={`Uploading ${entry.file.name}`}
+                            label={__('Uploading :name', {
+                                name: entry.file.name,
+                            })}
                         />
                     )}
                     {entry.state === 'failed' && (
@@ -68,7 +71,9 @@ export function UploadList({
                     )}
                     {entry.state === 'duplicate' && (
                         <p className="text-ink-2">
-                            Already in the library as “{entry.duplicateTitle}”.
+                            {__('Already in the library as “:title”.', {
+                                title: entry.duplicateTitle ?? '',
+                            })}
                         </p>
                     )}
                 </li>

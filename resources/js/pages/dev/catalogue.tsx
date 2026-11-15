@@ -1,8 +1,11 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
+    ArchiveIcon,
     ChevronDownIcon,
+    CopyIcon,
     ChevronRightIcon,
     InfoIcon,
+    MoreHorizontalIcon,
     OctagonAlertIcon,
     PencilIcon,
     PlusIcon,
@@ -102,16 +105,29 @@ import { EmptyState } from '@/components/list/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Notice } from '@/components/ui/notice';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
 import { SaveBar } from '@/components/patterns/save-bar';
 import { DetailPage } from '@/components/patterns/detail-page';
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { HubCard, HubPage } from '@/components/patterns/hub-page';
 import { InPageNav } from '@/components/patterns/in-page-nav';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
+import {
+    ResponsiveMenu,
+    ResponsiveMenuContent,
+    ResponsiveMenuItem,
+    ResponsiveMenuLabel,
+    ResponsiveMenuSeparator,
+    ResponsiveMenuTrigger,
+} from '@/components/patterns/responsive-menu';
+import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { ListPage } from '@/components/patterns/list-page';
+import { PluginAreaPage } from '@/components/patterns/plugin-area-page';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { __ } from '@/lib/i18n';
+import { openMediaPicker } from '@/components/media/media-picker';
+import type { MediaPickerCaller } from '@/components/media/media-picker';
 
 /** A colour token: its variable, the class that fills a ground with it, and the class of the words that sit on it, if any. */
 type Swatch = { token: string; ground: string; ink?: string };
@@ -307,6 +323,75 @@ function Section({
     );
 }
 
+/** Opens the media picker for each caller, and shows the IDs it hands back. */
+function MediaPickerDemo() {
+    const [chosen, setChosen] = useState<string[]>([]);
+    const [closed, setClosed] = useState(0);
+    const callers: {
+        caller: MediaPickerCaller;
+        test: string;
+        label: string;
+        multi?: boolean;
+        action?: string;
+    }[] = [
+        { caller: 'insert', test: 'insert', label: __('Insert an image') },
+        { caller: 'replace', test: 'replace', label: __('Replace the image') },
+        {
+            caller: 'featured',
+            test: 'featured',
+            label: __('Choose the featured image'),
+        },
+        {
+            caller: 'gallery',
+            test: 'gallery',
+            label: __('Add images to the gallery'),
+            multi: true,
+        },
+        {
+            caller: 'choose',
+            test: 'choose',
+            label: __('Choose a poster'),
+            action: __('Use as poster'),
+        },
+    ];
+
+    return (
+        <div className="grid gap-3">
+            <div className="flex flex-wrap gap-2">
+                {callers.map((each) => (
+                    <Button
+                        key={each.test}
+                        type="button"
+                        variant="neutral"
+                        data-test={`catalogue-picker-${each.test}`}
+                        onClick={() =>
+                            openMediaPicker({
+                                caller: each.caller,
+                                multi: each.multi ?? false,
+                                action: each.action,
+                                onInsert: (ids) => setChosen(ids),
+                                onClose: () => setClosed((count) => count + 1),
+                            })
+                        }
+                    >
+                        {each.label}
+                    </Button>
+                ))}
+            </div>
+            <p className="text-small text-ink-2">
+                {__('Chosen:')}{' '}
+                <output data-test="catalogue-picker-chosen">
+                    {chosen.join(',')}
+                </output>
+            </p>
+            <p className="text-small text-ink-2">
+                {__('Closed without a choice:')}{' '}
+                <output data-test="catalogue-picker-closed">{closed}</output>
+            </p>
+        </div>
+    );
+}
+
 /** The loading and failed states: a skeleton mounted on request, and a failure with Try again. */
 function StatesDemo() {
     const [loading, setLoading] = useState(false);
@@ -335,6 +420,80 @@ function StatesDemo() {
                 onRetry={() => setLoading(true)}
             />
         </div>
+    );
+}
+
+/** A page of the sample plugin's area that throws once asked to, as a plugin's page can. */
+function FailingAreaPage({ name, fail }: { name: string; fail: boolean }) {
+    if (fail) {
+        throw new Error(`The sample page ${name} failed.`);
+    }
+
+    return (
+        <p data-test="plugin-area-body" className="text-body text-ink-2">
+            {__('This is the :page page.', { page: name })}
+        </p>
+    );
+}
+
+/** A plugin's own area, its current page read from the address, with a page that can be made to fail. */
+function PluginAreaDemo() {
+    const { url } = usePage();
+    const [failing, setFailing] = useState(false);
+
+    // Fails once: by the time Try again is pressed, the page draws again.
+    useEffect(() => {
+        if (failing) {
+            setFailing(false);
+        }
+    }, [failing]);
+    const area =
+        new URLSearchParams(url.split('?')[1]?.split('#')[0] ?? '').get(
+            'area',
+        ) ?? 'overview';
+    const pages = [
+        { key: 'overview', label: __('Overview') },
+        { key: 'link-report', label: __('Link report') },
+        { key: 'orphaned-posts', label: __('Orphaned posts') },
+        { key: 'broken-links', label: __('Broken links'), count: 12 },
+        { key: 'settings', label: __('Settings') },
+        { key: 'exports', label: __('Exports') },
+        { key: 'logs', label: __('Logs') },
+    ].map(({ key, ...page }) => ({
+        ...page,
+        href: `?area=${key}#plugin-area`,
+        current: key === area,
+    }));
+    const current = pages.find((page) => page.current) ?? pages[0];
+
+    return (
+        <PluginAreaPage
+            titleAs="div"
+            plugin={{ name: __('Link checker') }}
+            title={__('Link checker')}
+            description={__(
+                'Finds links on the site that lead nowhere, and posts nothing links to.',
+            )}
+            actions={
+                <Button type="button" variant="neutral">
+                    {__('Check now')}
+                </Button>
+            }
+            pages={pages}
+        >
+            <div className="grid justify-items-start gap-3">
+                <FailingAreaPage name={current.label} fail={failing} />
+                <Button
+                    type="button"
+                    variant="neutral"
+                    size="sm"
+                    data-test="plugin-area-break"
+                    onClick={() => setFailing(true)}
+                >
+                    {__('Make this page fail')}
+                </Button>
+            </div>
+        </PluginAreaPage>
     );
 }
 
@@ -582,6 +741,177 @@ function ComboboxDemo() {
                     searchPlaceholder={__('Search people')}
                 />
             </Field>
+        </div>
+    );
+}
+
+/** The phone overlays: a dialog with a long body, a confirmation from the foot and a side sheet, each through its pattern. */
+function PhoneOverlaysDemo() {
+    const fields = [
+        __('Title'),
+        __('Subtitle'),
+        __('Address'),
+        __('Author'),
+        __('Category'),
+        __('Tags'),
+        __('Summary'),
+        __('Image description'),
+        __('Search title'),
+        __('Search description'),
+        __('Social title'),
+        __('Social description'),
+    ];
+
+    const [chosen, setChosen] = useState<string | null>(null);
+    const items = [
+        { name: __('Edit'), icon: PencilIcon },
+        { name: __('Duplicate'), icon: CopyIcon },
+        { name: __('Archive'), icon: ArchiveIcon, disabled: true },
+    ];
+
+    return (
+        <div className="grid justify-items-start gap-3">
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="neutral"
+                        data-test="catalogue-overlay-dialog"
+                    >
+                        {__('Edit the details')}
+                    </Button>
+                </DialogTrigger>
+                <ResponsiveDialogContent
+                    size="md"
+                    data-test="catalogue-overlay-dialog-content"
+                >
+                    <DialogHeader>
+                        <DialogTitle>{__('Edit the details')}</DialogTitle>
+                        <DialogDescription>
+                            {__('Only you see these changes.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {fields.map((label, index) => (
+                        <Field
+                            key={label}
+                            htmlFor={`catalogue-overlay-field-${index}`}
+                            label={label}
+                        >
+                            <Input id={`catalogue-overlay-field-${index}`} />
+                        </Field>
+                    ))}
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="neutral">{__('Cancel')}</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button
+                                variant="primary"
+                                data-test="catalogue-overlay-dialog-save"
+                            >
+                                {__('Save')}
+                            </Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </ResponsiveDialogContent>
+            </Dialog>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="neutral"
+                        data-test="catalogue-overlay-confirm"
+                    >
+                        {__('Delete this draft?')}
+                    </Button>
+                </DialogTrigger>
+                <ResponsiveDialogContent
+                    phone="foot"
+                    data-test="catalogue-overlay-confirm-content"
+                >
+                    <DialogHeader>
+                        <DialogTitle>{__('Delete this draft?')}</DialogTitle>
+                        <DialogDescription>
+                            {__('It is gone for good.')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button
+                                variant="neutral"
+                                data-test="catalogue-overlay-confirm-cancel"
+                            >
+                                {__('Cancel')}
+                            </Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                            <Button variant="danger">{__('Delete')}</Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </ResponsiveDialogContent>
+            </Dialog>
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button
+                        variant="neutral"
+                        data-test="catalogue-overlay-sheet"
+                    >
+                        {__('Details')}
+                    </Button>
+                </SheetTrigger>
+                <ResponsiveSheetContent
+                    side="right"
+                    data-test="catalogue-overlay-sheet-content"
+                >
+                    <SheetHeader>
+                        <SheetTitle>{__('Details')}</SheetTitle>
+                        <SheetDescription>
+                            {__('A page, published.')}
+                        </SheetDescription>
+                    </SheetHeader>
+                    <p className="text-ink-2 px-6">
+                        {__('Changes apply on the next visit.')}
+                    </p>
+                </ResponsiveSheetContent>
+            </Sheet>
+            <ResponsiveMenu>
+                <ResponsiveMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        data-test="catalogue-overlay-menu"
+                        aria-label={__('More actions for :name', {
+                            name: __('Sample post'),
+                        })}
+                    >
+                        <MoreHorizontalIcon />
+                    </Button>
+                </ResponsiveMenuTrigger>
+                <ResponsiveMenuContent title={__('More actions')} align="start">
+                    <ResponsiveMenuLabel>
+                        {__('Sample post')}
+                    </ResponsiveMenuLabel>
+                    {items.map((item) => (
+                        <ResponsiveMenuItem
+                            key={item.name}
+                            disabled={item.disabled}
+                            onSelect={() => setChosen(item.name)}
+                        >
+                            <item.icon />
+                            {item.name}
+                        </ResponsiveMenuItem>
+                    ))}
+                    <ResponsiveMenuSeparator />
+                    <ResponsiveMenuItem
+                        variant="destructive"
+                        onSelect={() => setChosen(__('Move to trash'))}
+                    >
+                        <Trash2Icon />
+                        {__('Move to trash')}
+                    </ResponsiveMenuItem>
+                </ResponsiveMenuContent>
+            </ResponsiveMenu>
+            <p data-test="catalogue-overlay-menu-chosen" className="text-ink-2">
+                {chosen ?? '—'}
+            </p>
         </div>
     );
 }
@@ -1632,6 +1962,16 @@ export default function Catalogue() {
                 </Section>
 
                 <Section
+                    id="plugin-area"
+                    title={__('A plugin’s own area')}
+                    description={__(
+                        'The plugin’s icon and mark at the head, its pages under it, and one sentence when a page fails.',
+                    )}
+                >
+                    <PluginAreaDemo />
+                </Section>
+
+                <Section
                     id="icon-tile"
                     title={__('Icon tiles')}
                     description={__('Small, medium and large.')}
@@ -1788,6 +2128,16 @@ export default function Catalogue() {
                 </Section>
 
                 <Section
+                    id="media-picker"
+                    title={__('Media picker')}
+                    description={__(
+                        'The one picker, as each screen opens it: the title and main button follow the caller.',
+                    )}
+                >
+                    <MediaPickerDemo />
+                </Section>
+
+                <Section
                     id="patterns"
                     title={__('Page patterns')}
                     description={__(
@@ -1914,6 +2264,16 @@ export default function Catalogue() {
                             </p>
                         </DetailPage>
                     </PatternFrame>
+                </Section>
+
+                <Section
+                    id="phone-overlays"
+                    title={__('Phone overlays')}
+                    description={__(
+                        'Below 640 pixels: a dialog fills the screen, a confirmation and a menu open from its foot, and a side sheet fills it.',
+                    )}
+                >
+                    <PhoneOverlaysDemo />
                 </Section>
             </div>
         </>

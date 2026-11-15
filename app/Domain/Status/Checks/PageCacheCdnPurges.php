@@ -25,6 +25,11 @@ final readonly class PageCacheCdnPurges implements StatusCheck
         return 'settings.general.manage';
     }
 
+    public function label(): string
+    {
+        return __('Page cache');
+    }
+
     public function banner(): ?StatusBanner
     {
         if (! is_array(Cache::get(CdnPurges::FAILED_KEY))) {

@@ -43,11 +43,16 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))->assertOk();
 });
 
-it('writes each row\'s state after its title, and shows every tab with its count, Scheduled at zero', function (): void {
-    cmSignIn($this->editor)
+it('writes each row\'s state on a pill in its Status column, and shows every tab with its count, Scheduled at zero', function (): void {
+    $page = cmSignIn($this->editor)
         ->navigate('/admin/posts')
-        ->assertScript("[...document.querySelectorAll('[data-test=\"status-suffix\"]')].map((element) => element.textContent.trim()).sort().join('|')", '— Draft|— In review')
-        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Status\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Mine3|Published1|Private0|Drafts1|In review1|Scheduled0|Trash2');
+        ->assertScript("[...document.querySelectorAll('tbody [data-slot=\"status-pill\"]')].map((element) => element.textContent.trim()).sort().join('|')", 'Draft|In review|Published')
+        // The first five tabs show; the rest are under More.
+        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Status\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'All3|Mine3|Published1|Private0|Drafts1')
+        ->click('nav[aria-label="Status"] button:has-text("More")');
+
+    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0")
+        ->assertScript("[...document.querySelectorAll('[role=\"menu\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'In review1|Scheduled0|Trash2');
 });
 
 it('opens the latest saved version from a row\'s Preview, in a new tab', function (): void {
@@ -57,18 +62,18 @@ it('opens the latest saved version from a row\'s Preview, in a new tab', functio
     $page = cmSignIn($this->editor)
         ->navigate('/admin/posts')
         ->assertAttribute('[aria-label="Actions for Market day"] [data-action="preview"]', 'href', $preview)
-        ->assertScript("document.querySelector('[aria-label=\"Actions for Market day\"] [data-action=\"preview\"]').textContent.trim()", 'Preview, opens in a new tab');
+        ->assertScript("document.querySelector('[aria-label=\"Actions for Market day\"] [data-action=\"preview\"]').textContent.trim()", 'Preview: Market day, opens in a new tab');
 
     $page->navigate($preview)
         ->assertSee('Preview of the latest saved version')
         ->assertSee('Stalls open at nine.');
 });
 
-it('filters by a category and its children from the Category filter, and from a category in the column', function (): void {
+it('filters by a category and its children from the Category filter, and shows each row\'s categories in the column', function (): void {
     $page = cmSignIn($this->editor)
         ->navigate('/admin/posts')
-        ->click('[data-test="filter-category"]')
-        ->click('[data-test="filter-category-panel"] >> text="Roads"');
+        ->click('[data-test="filter-category"] [data-slot="combobox-trigger"]')
+        ->click('[data-slot="combobox-item"] >> text="Roads"');
 
     cmWaitUntil($page, "new URLSearchParams(window.location.search).get('category') === '{$this->roads->id}'");
 
@@ -78,11 +83,7 @@ it('filters by a category and its children from the Category filter, and from a 
         ->assertScript("document.querySelector('table').innerText.includes('Ferry fares')", false);
 
     $page->navigate('/admin/posts')
-        ->click('table >> text="Transport"')
-        ->assertScript("new URLSearchParams(window.location.search).get('category')", $this->transport->id)
-        ->assertScript("document.querySelector('table').innerText.includes('Market day')", true)
-        ->assertScript("document.querySelector('table').innerText.includes('Harbour news')", true)
-        ->assertScript("document.querySelector('table').innerText.includes('Ferry fares')", false);
+        ->assertScript("[...document.querySelector('[aria-label=\"Actions for Harbour news\"]').closest('tr').querySelectorAll('[data-slot=\"term-chip\"], [data-test=\"term-chips-more\"]')].map((chip) => chip.getAttribute('aria-label') ?? chip.textContent.trim()).join('|').includes('Roads') && document.querySelector('[aria-label=\"Actions for Harbour news\"]').closest('tr').innerText.includes('Transport')", true);
 });
 
 it('moves two posts to the trash from the bulk bar, and says how many', function (): void {
@@ -167,8 +168,8 @@ it('draws the review chip\'s remove button 24 pixels square, as the term chip\'s
 
     $page = cmSignIn($this->editor)->navigate('/admin/posts?review=pending');
 
-    cmWaitUntil($page, "document.querySelector('a[aria-label=\"Remove the filter: Has a pending review\"]') !== null")
-        ->assertScript("(() => { const box = document.querySelector('a[aria-label=\"Remove the filter: Has a pending review\"]').getBoundingClientRect(); return Math.min(box.width, box.height) >= 24; })()", true);
+    cmWaitUntil($page, "document.querySelector('[aria-label=\"Remove the filter: Has a pending review\"]') !== null")
+        ->assertScript("(() => { const box = document.querySelector('[aria-label=\"Remove the filter: Has a pending review\"]').getBoundingClientRect(); return Math.min(box.width, box.height) >= 24; })()", true);
 
     $targets = cmSmallTargets($page);
 

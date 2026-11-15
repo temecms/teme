@@ -39,6 +39,11 @@ final readonly class ApiAddressTaken implements StatusCheck
         return 'settings.addresses.manage';
     }
 
+    public function label(): string
+    {
+        return __('Management API');
+    }
+
     public function banner(): ?StatusBanner
     {
         return $this->current() ?? $this->setting() ?? $this->beneath();

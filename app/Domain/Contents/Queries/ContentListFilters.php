@@ -83,9 +83,9 @@ final readonly class ContentListFilters
 
     /**
      * The request the list answers: these values, for this viewer, at this
-     * page size and between these cursors.
+     * page size, on this page or between these cursors.
      */
-    public function request(ContentType $type, int $viewerId, int $perPage, ?string $after = null, ?string $before = null, bool $withComments = false): ContentListRequest
+    public function request(ContentType $type, int $viewerId, int $perPage, ?string $after = null, ?string $before = null, bool $withComments = false, int $page = 1): ContentListRequest
     {
         $terms = [];
 
@@ -113,6 +113,7 @@ final readonly class ContentListFilters
             endsBefore: $this->bounds[1],
             withComments: $withComments,
             language: $this->values['language'] ?? null,
+            page: $page,
         );
     }
 

@@ -162,6 +162,8 @@ final class CompanionClient implements SourceReader
         throw match (true) {
             $status >= 300 && $status < 400 => SourceRefused::moved($response->header('Location') ?: null),
             $status === 401 => SourceRefused::credentials(),
+            // A firewall or Cloudflare's bot check answers before WordPress does: a page of its own, no WordPress code.
+            $status === 403 && ($code === null || $response->header('cf-mitigated') !== '') => SourceRefused::blocked(),
             $status === 403 && $code === 'teme_https_required' => SourceRefused::httpsOnly(),
             $status === 403 => SourceRefused::notAdministrator(),
             $status === 404 => SourceRefused::notCompanion(),

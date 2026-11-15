@@ -398,6 +398,15 @@
 }
 /* @end-tokens */
 
+/* A switch between light and dark swaps every color at once: while
+   applyTheme() holds this class, no element fades between the two schemes. */
+.scheme-switching,
+.scheme-switching *,
+.scheme-switching *::before,
+.scheme-switching *::after {
+    transition: none !important;
+}
+
 /* Elevation as classes (2.5). */
 @utility shadow-raised {
     box-shadow: var(--shadow-raised);

@@ -1,12 +1,13 @@
 import { usePage } from '@inertiajs/react';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { ChevronDown } from 'lucide-react';
+import {
+    ResponsiveMenu,
+    ResponsiveMenuContent,
+    ResponsiveMenuTrigger,
+} from '@/components/patterns/responsive-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
@@ -27,9 +28,9 @@ export function AccountMenu() {
     }
 
     return (
-        // Not modal, so the rest of the page is not hidden from screen readers while it is open.
-        <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
+        // From 640px up not modal, so the rest of the page is not hidden from screen readers while it is open; on a phone it is a modal sheet like every other.
+        <ResponsiveMenu modal={false}>
+            <ResponsiveMenuTrigger asChild>
                 <Button
                     type="button"
                     variant="ghost"
@@ -51,18 +52,23 @@ export function AccountMenu() {
                     </span>
                     <ChevronDown aria-hidden="true" className="max-md:hidden" />
                 </Button>
-            </DropdownMenuTrigger>
-            {/* Drawn in the header, not moved to the end of the page, so the open menu stays inside the banner landmark. */}
-            <DropdownMenuPrimitive.Content
-                data-slot="dropdown-menu-content"
-                align="end"
-                sideOffset={4}
-                className="bg-surface text-ink motion-safe:data-[state=open]:animate-in motion-safe:data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 shadow-float z-(--z-float) flex max-h-(--radix-dropdown-menu-content-available-height) min-w-56 flex-col overflow-hidden rounded-md border"
+            </ResponsiveMenuTrigger>
+            <ResponsiveMenuContent
+                title={__('Account')}
+                renderDesktop={(children) => (
+                    // Drawn in the header, not moved to the end of the page, so the open menu stays inside the banner landmark.
+                    <DropdownMenuPrimitive.Content
+                        data-slot="dropdown-menu-content"
+                        align="end"
+                        sideOffset={4}
+                        className="bg-surface text-ink motion-safe:data-[state=open]:animate-in motion-safe:data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 shadow-float z-(--z-float) flex max-h-(--radix-dropdown-menu-content-available-height) min-w-56 flex-col overflow-hidden rounded-md border"
+                    >
+                        <ScrollArea className="p-1">{children}</ScrollArea>
+                    </DropdownMenuPrimitive.Content>
+                )}
             >
-                <ScrollArea className="p-1">
-                    <UserMenuContent user={auth.user} />
-                </ScrollArea>
-            </DropdownMenuPrimitive.Content>
-        </DropdownMenu>
+                <UserMenuContent user={auth.user} />
+            </ResponsiveMenuContent>
+        </ResponsiveMenu>
     );
 }

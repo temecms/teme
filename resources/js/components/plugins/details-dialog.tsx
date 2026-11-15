@@ -5,6 +5,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { PluginIcon } from '@/components/ui/plugin-icon';
 import { __ } from '@/lib/i18n';
 import type { PluginRowPage } from '@/types';
 
@@ -31,12 +32,17 @@ export function DetailsDialog({
                     onCloseAutoFocus={(event) => event.preventDefault()}
                 >
                     <DialogHeader>
-                        <DialogTitle>
-                            {plugin.label} {plugin.version}
-                        </DialogTitle>
-                        <DialogDescription className="font-mono text-xs">
-                            {plugin.name}
-                        </DialogDescription>
+                        <div className="flex items-center gap-4">
+                            <PluginIcon size={56} name={plugin.label} />
+                            <div className="grid min-w-0 gap-1">
+                                <DialogTitle>
+                                    {plugin.label} {plugin.version}
+                                </DialogTitle>
+                                <DialogDescription className="text-caption font-mono">
+                                    {plugin.name}
+                                </DialogDescription>
+                            </div>
+                        </div>
                     </DialogHeader>
 
                     {plugin.agreed.length > 0 && (
@@ -46,11 +52,11 @@ export function DetailsDialog({
                         >
                             <h3
                                 id="details-access"
-                                className="text-[13px] font-semibold"
+                                className="text-small font-semibold"
                             >
                                 {__('Access you agreed to')}
                             </h3>
-                            <ul className="list-disc pl-5 text-[13px]">
+                            <ul className="text-small list-disc pl-5">
                                 {plugin.agreed.map((line) => (
                                     <li key={line.words}>{line.words}</li>
                                 ))}
@@ -65,11 +71,11 @@ export function DetailsDialog({
                         >
                             <h3
                                 id="details-adds"
-                                className="text-[13px] font-semibold"
+                                className="text-small font-semibold"
                             >
                                 {__('What it adds to the admin')}
                             </h3>
-                            <ul className="list-disc pl-5 text-[13px]">
+                            <ul className="text-small list-disc pl-5">
                                 {plugin.adds.map((label) => (
                                     <li key={label}>{label}</li>
                                 ))}
@@ -84,11 +90,11 @@ export function DetailsDialog({
                         >
                             <h3
                                 id="details-hooks"
-                                className="text-[13px] font-semibold"
+                                className="text-small font-semibold"
                             >
                                 {__('It listens for')}
                             </h3>
-                            <ul className="list-disc pl-5 text-[13px]">
+                            <ul className="text-small list-disc pl-5">
                                 {plugin.listensFor.map((words) => (
                                     <li key={words}>{words}</li>
                                 ))}

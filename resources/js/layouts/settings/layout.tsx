@@ -1,5 +1,5 @@
 import { Link, useHttp, usePage } from '@inertiajs/react';
-import { Search } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { CSSProperties, PropsWithChildren } from 'react';
 import FindSettingsController from '@/actions/App/Http/Admin/Settings/FindSettingsController';
@@ -7,6 +7,7 @@ import { Page } from '@/components/patterns/page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { __ } from '@/lib/i18n';
 import type { SettingsFound } from '@/types';
 
 const NONE: SettingsFound = { screens: [], settings: [] };
@@ -67,6 +68,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const { settingsNav } = page.props;
     const { currentUrl } = useCurrentUrl();
     const [query, setQuery] = useState('');
+    const [groupsOpen, setGroupsOpen] = useState(false);
     const { answer } = useFindSettings(query);
     const term = query.trim();
     const answered = answer.term === term;
@@ -77,7 +79,10 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const within = (href: string): boolean =>
         currentUrl === href || currentUrl.startsWith(`${href}/`);
 
-    // A result lands on its field (#field-{key}): focused, and in view.
+    const current = settingsNav.find((item) => within(item.href));
+
+    // A result lands on its field (#field-{key}): focused, in view, and
+    // marked until the person types in it or leaves it.
     useEffect(() => {
         const id = decodeURIComponent(window.location.hash.slice(1));
 
@@ -86,9 +91,25 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         }
 
         const field = document.getElementById(id);
+        let wrapper = field?.parentElement ?? null;
 
+        while (wrapper !== null && wrapper.dataset.slot !== 'settings-field') {
+            wrapper = wrapper.parentElement;
+        }
+
+        const unmark = () => wrapper?.removeAttribute('data-found');
+
+        wrapper?.setAttribute('data-found', '');
         field?.focus({ preventScroll: true });
         field?.scrollIntoView({ block: 'center' });
+        field?.addEventListener('input', unmark, { once: true });
+        field?.addEventListener('blur', unmark, { once: true });
+
+        return () => {
+            unmark();
+            field?.removeEventListener('input', unmark);
+            field?.removeEventListener('blur', unmark);
+        };
     }, [page.url]);
 
     const result = (key: string, href: string, label: string, line: string) => (
@@ -194,45 +215,69 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-(--settings-cols)"
                 style={COLUMNS}
             >
-                {/* The row scrolls inside itself under 1024px, never the page. */}
-                <nav
-                    aria-label="Settings"
-                    className="flex min-w-0 gap-1 overflow-x-auto max-lg:pb-1 lg:sticky lg:top-6 lg:grid lg:content-start lg:self-start"
-                >
-                    {/* One group per heading: Site, and Plugin settings once a plugin adds a group. */}
-                    {headings.map((heading, index) => (
-                        <div
-                            key={heading}
-                            role="group"
-                            aria-labelledby={`settings-heading-${index}`}
-                            className="flex gap-1 lg:grid"
-                        >
-                            <p
-                                id={`settings-heading-${index}`}
-                                data-test="settings-heading"
-                                className="text-caption text-ink-3 px-3 pt-3 pb-1 font-semibold uppercase max-lg:hidden"
+                <div className="grid min-w-0 content-start gap-2 lg:sticky lg:top-6 lg:self-start">
+                    {/* Under 1024px the list opens from one button, in place. */}
+                    <Button
+                        type="button"
+                        variant="neutral"
+                        aria-expanded={groupsOpen}
+                        aria-controls="settings-groups"
+                        data-test="settings-groups-button"
+                        onClick={() => setGroupsOpen((open) => !open)}
+                        className="bg-surface shadow-raised w-full justify-between lg:hidden"
+                    >
+                        <span className="flex min-w-0 items-center gap-2">
+                            <span className="text-ink-3">
+                                {__('Settings groups')}
+                            </span>
+                            <span className="truncate">{current?.label}</span>
+                        </span>
+                        <ChevronDown
+                            aria-hidden="true"
+                            className={`size-4 transition-transform duration-(--dur-2) ease-(--ease) ${groupsOpen ? 'rotate-180' : ''}`}
+                        />
+                    </Button>
+                    <nav
+                        id="settings-groups"
+                        aria-label="Settings"
+                        className={`max-lg:bg-surface max-lg:shadow-raised grid min-w-0 content-start gap-1 max-lg:rounded-lg max-lg:p-2 ${groupsOpen ? '' : 'max-lg:hidden'}`}
+                    >
+                        {/* One group per heading: Site, and Plugin settings once a plugin adds a group. */}
+                        {headings.map((heading, index) => (
+                            <div
+                                key={heading}
+                                role="group"
+                                aria-labelledby={`settings-heading-${index}`}
+                                className="grid gap-1"
                             >
-                                {heading}
-                            </p>
-                            {settingsNav
-                                .filter((item) => item.heading === heading)
-                                .map((item) => (
-                                    <Link
-                                        key={item.key}
-                                        href={item.href}
-                                        aria-current={
-                                            within(item.href)
-                                                ? 'page'
-                                                : undefined
-                                        }
-                                        className="text-small text-ink-2 hover:bg-surface-3 hover:text-ink aria-[current=page]:bg-accent-soft aria-[current=page]:text-on-accent-soft focus-visible:outline-ring flex min-h-(--ctl-h-sm) shrink-0 items-center rounded-md px-3 font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:-outline-offset-2"
-                                    >
-                                        {item.label}
-                                    </Link>
-                                ))}
-                        </div>
-                    ))}
-                </nav>
+                                <p
+                                    id={`settings-heading-${index}`}
+                                    data-test="settings-heading"
+                                    className="text-caption text-ink-3 px-3 pt-3 pb-1 font-semibold uppercase"
+                                >
+                                    {heading}
+                                </p>
+                                {settingsNav
+                                    .filter((item) => item.heading === heading)
+                                    .map((item) => (
+                                        <Link
+                                            key={item.key}
+                                            href={item.href}
+                                            onClick={() => setGroupsOpen(false)}
+                                            aria-current={
+                                                within(item.href)
+                                                    ? 'page'
+                                                    : undefined
+                                            }
+                                            className="text-small text-ink-2 hover:bg-surface-3 hover:text-ink aria-[current=page]:bg-accent-soft aria-[current=page]:text-on-accent-soft focus-visible:outline-ring flex min-h-(--ctl-h-sm) shrink-0 items-center rounded-md px-3 font-medium focus-visible:outline-2 focus-visible:-outline-offset-2"
+                                        >
+                                            {item.label}
+                                        </Link>
+                                    ))}
+                            </div>
+                        ))}
+                    </nav>
+                </div>
 
                 <div className="min-w-0">{children}</div>
             </div>

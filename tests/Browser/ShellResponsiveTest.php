@@ -98,6 +98,35 @@ it('shows the site status in the top bar, the theme that cannot be used as a pro
         ->assertNoAccessibilityIssues(3);
 })->with(['light', 'dark']);
 
+it('turns dark at once when a person who chose the dark scheme signs in, with no color fading in', function (): void {
+    lscrPrefer($this->admin, ['appearance.mode' => 'dark']);
+
+    $page = visit('/admin/login');
+    // The sign-in page stays light (signed out, no cookie); the switch comes with the move to the admin.
+    // Counts the color transitions running as the dark class arrives, and two frames on, once any
+    // hold on them is lifted: an axe check could catch either half-way.
+    $page->script(<<<'JS'
+        () => {
+            const fades = () => document.getAnimations().filter((animation) => animation instanceof CSSTransition).length;
+            window.__schemeFades = null;
+            new MutationObserver(() => {
+                if (window.__schemeFades === null && document.documentElement.classList.contains('dark')) {
+                    const now = fades();
+                    requestAnimationFrame(() => requestAnimationFrame(() => { window.__schemeFades = [now, fades()]; }));
+                }
+            }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        }
+        JS);
+
+    $page->type('email', $this->admin->email)
+        ->type('password', 'password')
+        ->click('[data-test="login-button"]')
+        ->assertPathIs('/admin');
+    cmWaitUntil($page, 'window.__schemeFades !== null');
+
+    $page->assertScript('window.__schemeFades.join()', '0,0');
+});
+
 it('keeps a section folded at full width drawn as icons on the rail, and Tab never lands on a hidden fold heading', function (): void {
     $page = cmSignIn($this->admin)->resize(1280, 900);
     $group = 'document.querySelector(\'[aria-label="Show or hide Content"]\').closest(\'[data-slot="sidebar-group"]\')';

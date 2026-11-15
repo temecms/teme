@@ -26,6 +26,11 @@ final readonly class ThemeUsable implements StatusCheck
         return 'settings.design.manage';
     }
 
+    public function label(): string
+    {
+        return __('Theme');
+    }
+
     public function banner(): ?StatusBanner
     {
         $chosen = $this->active->chosen();

@@ -17,6 +17,11 @@ interface StatusCheck
     public function ability(): string;
 
     /**
+     * What the check is about, in a few words, as the site status row's label.
+     */
+    public function label(): string;
+
+    /**
      * The banner while the problem lasts, or null when all is well.
      */
     public function banner(): ?StatusBanner;

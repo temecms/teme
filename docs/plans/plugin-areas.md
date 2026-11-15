@@ -389,3 +389,89 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: commits; each test seen red (task, file, case, the failure's first line); the design-system and admin-words counts before and after; differences from the plan as B-?? (draft); changelog lines; any STOP. -->
+
+### Setup and preconditions
+
+- Setup: `scripts/cloud-setup.sh` ran in the repository root and finished (its log: started 2026-11-14T20:55:10Z, finished 21:06:28Z). PHP 8.4.27, PostgreSQL 18.7 on 5433, Valkey on 6380.
+- Task 0: `origin/main` at `4b8cc3b`, which contains `651bf431`. Every precondition line matched by its text: the shared components and patterns exist and the two new files did not; R7 accepts `PluginAreaPage`; the manifest's `contributes.admin` enum is `["tools"]`, `"icon"` appears once, `StatusNotice` has no label; `StatusCheck` had no `label()`; `implements StatusCheck` in `app/` is the 15 core checks and `PluginStatusCheck`, in `tests/` `OwnersTest`, `PluginStatusChecksTest`, `SiteStatusTest` (plus the contract's own `StatusCheck` in three fixtures, which this part does not touch); 29 design-system lines for the Plugins screen (R2 17, R3 4, R5 2, R6 1, R7 5), none for `pages/tools/index.tsx`, 4 admin-words lines for it. No other `ui/*` branch on the remote touched this part's files.
+- Stack from the locks: Laravel 13.39.0, Inertia Laravel 3.5.2, `@inertiajs/react` 3.9.1, React 19.3.1, TypeScript 7.0.2, Tailwind 4.3.3, Vite 8.3.5, Pest 5.3.4 with `pestphp/pest-plugin-browser` 5.1.2.
+- The full `composer check` was not run before the first task: the brief asks for the quick check per task and one full check at the end.
+
+### Commits
+
+- `9ce00b3` feat(admin): the plugins screen with plugin icons and status pills (I-3405) — Task 1.
+- `f338a6f` feat(admin): every site status row says what it is about — Task 2.
+- `0b3cb5b` feat(admin): plugins' tools and settings pages carry their plugin's mark — Task 3.
+- `aa3b81d` feat(admin): the page pattern for a plugin's own area, with its error boundary (I-3401) — Task 4.
+- Done to Task 4 at `aa3b81d`, the quick check green.
+
+### Tests seen red (run against `origin/main`'s code, the new tests in place)
+
+- Task 1, `tests/Browser/Plugins/PluginsScreenTest.php`: "filters by tab …" — `Failed asserting that false is identical to true` (no `plugins-list`); "shows each plugin's icon …" — `Failed asserting that two arrays are identical` (no icon); "gives each state its pill and tone" — the same (no `data-tone`); "shows the plugin's icon at 56 pixels in both dialogs" — `false is identical to true`; "moves between the views with the arrow keys" — `false is identical to true` (the Disabled tab was not selected and focused after two ArrowRight presses). "stacks each row at 375 and 320 pixels …" was **green at the base**: the old table already stacked on a phone; it is kept as a guard for the new rows. "shows the empty state" stays green by design (it reads the two halves of the old sentence).
+- Task 2, `tests/Feature/Status/StatusRowLabelsTest.php`: "gives every core status check a label" — `Call to undefined method App\Domain\Status\Checks\ApiAddressTaken::label()`; "shares a core banner …" and "labels a plugin's banner …" — `Property [siteStatus.0.label] does not exist.`; "keeps the most pressing first" — `ErrorException` (undefined property `label`). `tests/Browser/Plugins/SiteStatusLabelsTest.php`, all four datasets — `Timeout 5000ms exceeded` waiting for `site-status-label`.
+- Task 3, `tests/Feature/Plugins/PluginEntriesMarkedTest.php`: "names the plugin on each of its Tools links …" — `Unknown named parameter $plugin`; "names the plugin on its settings page …" and "carries the plugin's name into the menu's Tools screens" — `Failed asserting that null is identical to 'Example Sync'.` "shows a plugin's entries to no one without plugins.manage" was green at the base, as a guard should be. `tests/Browser/Plugins/ToolLinksTest.php`, all three cases — `Unknown named parameter $plugin`.
+- Task 4, `tests/Browser/Plugins/PluginAreaPageTest.php`, all eight — `Timeout 5000ms exceeded` waiting for `#plugin-area`.
+- The plant (Task 4 Step 2): with the boundary's `key` removed, "clears a failure when another page of the area opens" stayed **green**. See B-?? (draft) 6.
+
+### Counts
+
+| Baseline | Before | After |
+|---|---|---|
+| Design system R2 | 661 | 644 |
+| Design system R3 | 149 | 145 |
+| Design system R5 | 82 | 80 |
+| Design system R6 | 41 | 40 |
+| Design system R7 | 89 | 84 |
+| Admin words | 2350 | 2346 |
+
+No line was added and no number raised. No design-system line names `js/pages/plugins/`, `js/components/plugins/`, `js/components/patterns/plugin-area-page` or `js/pages/tools/index` (0).
+
+### Gate
+
+- Full `composer check` at `aa3b81d`: Pint, PHPStan, types, lint, the Architecture suite (105 passed, 1227 assertions) and the feature suite (10498 passed, 2 skipped, 53925 assertions). Green.
+- Browser files, after `npm run build`, one at a time: `Plugins/PluginsScreenTest` 13 passed; `Plugins/SiteStatusLabelsTest` 4 passed; `Plugins/ToolLinksTest` 3 passed; `Plugins/PluginAreaPageTest` 8 passed; `DesignCatalogueTest` 18 passed; `ShellTest` 17 passed; `ShellResponsiveTest` 10 passed. The rest of the Browser suite was not run here.
+- `git diff --stat origin/main -- packages resources/js/components/ui resources/css composer.json package.json`: nothing.
+
+### Decisions (B-?? drafts)
+
+1. **B-?? (draft) The hub screens' shape in `NavHub`.** PHPStan refused `isset($screen['plugin'])` in `AdminNavigation`'s screens map, because `NavHub::pagesFor()`'s `@return` shape has no `plugin` key. Options: add `plugin?: string` to that one docblock line in `app/Domain/Navigation/NavHub.php` (not in the Owns list, but in `app/Domain/Navigation`, which Task 0 showed no other part touches); a cast or an ignore (forbidden); reading the key another way (the same error). Chose the docblock line, the honest type. `0b3cb5b`.
+2. **B-?? (draft) The site status panel's first focus.** Opening the panel (and the phone's status sheet) focuses its first stop; on a plugin's row that is `PluginMark iconOnly`, whose tooltip then opens, and axe reports `region` for the tooltip's popper outside every landmark. Options: a non-focusable plug as in the menu (but P8 names `PluginMark iconOnly`, and the test reads its `data-slot`); changing `header-panel.tsx` or `status-sheet.tsx` (not this part's); letting the tooltip close before the axe run. Chose the last, in `SiteStatusLabelsTest`: the active element is blurred, the test waits for the tooltip to go, runs axe, and then proves the panel is still open with both rows. Left open for the maintainers: whether the panel should focus its heading rather than the first stop. `f338a6f`.
+3. **B-?? (draft) Where the menu's plug is checked.** The menu opens a hub's screens only on one of the hub's pages, and `/admin/tools` itself is not one, so the plan's "on `/admin/tools` the sub-entry's link …" finds no sub-entry. Options: open Tools › Jobs (`/admin/tools/jobs`); change `nav-main.tsx` to open the hub's screens on the hub's own page (more than `SubEntry`). Chose Tools › Jobs. `0b3cb5b`.
+4. **B-?? (draft) Registering the plugin in the feature tests.** `PluginEntriesMarkedTest` and `StatusRowLabelsTest` register the plugin through `Contributions::add()` (as `ContributionsTest` does) rather than enabling the `contributor` fixture. Options: the fixture with discovery and an enabled record; `Contributions::add()`. Chose the latter: it is the path that passes the plugin's label, with no discovery to set up, and it proves the same thing. The browser `ToolLinksTest`'s existing link gains `plugin: 'Example Sync'`, so the new case can find it under From plugins; the existing case's meaning is unchanged. `f338a6f`, `0b3cb5b`.
+5. **B-?? (draft) The row's layout.** P3 describes a grid `auto | minmax(0,1fr) | auto | auto`; written as arbitrary columns it is an R1 offence (the scanner allows only `minmax(0,1fr)` and `minmax(0,1fr)_auto`). Options: an arbitrary grid (a new baseline line, a STOP); a CSS variable as the hub does (a pattern's device); flex. Chose flex: the icon, the text (`flex-1`), the pill and the actions on one line from 768 up; under 768 it wraps, the pill and the actions each across the width, indented by the icon and gap (`ps-12`) so they line up under the text. `9ce00b3`.
+6. **B-?? (draft) The boundary's key plant stayed green.** An Inertia visit to another page of the catalogue's area remounts the whole page component (state is not preserved by default), so a failure clears whether or not the boundary is keyed. Options: keep the key as P11 writes it (it matters when a plugin's pages preserve state, as an in-page tab switch would); make the catalogue's links preserve state (`InPageNav` is not this part's); drop the case. Chose to keep the key and the case, and record that the case does not prove the key. `aa3b81d`.
+7. **B-?? (draft) The catalogue's failing page.** A page made to fail by state would throw again after Try again, so Try again could never bring it back. The sample sets its "fail" flag back once the boundary has caught the failure (an effect after the commit), so the next render — Try again, or another page — draws the body. `aa3b81d`.
+8. **B-?? (draft) Small choices.** The Tools hub's breadcrumb moved from the module-level `ToolsIndex.layout` into `setLayoutProps()` while drawing, as the Plugins page does, because `__()` may not run where a module loads. `nav-main.tsx` changed one import line (`Plug`) besides `SubEntry`. The failure panel's `ErrorState` gets `pt-5`, since it sits in a panel with no header. The catalogue's sample words beyond the plan's list: "This is the :page page.", "Check now", "Finds links on the site that lead nowhere, and posts nothing links to.", the section's title "A plugin’s own area" and its line. The row's action button is `neutral` for Enable too, as P3 says (it was the accent before). `9ce00b3`, `0b3cb5b`, `aa3b81d`.
+
+No STOP. No contract the plan names changed: `packages/teme-contracts` is untouched; `App\Domain\Status\StatusCheck` gained `label()` as P7 says.
+
+### Missing sockets (for the maintainers to file)
+
+- A plugin's own picture: an `icon` field in the manifest, and an install step that sanitizes or rasterizes an SVG and serves it from core (I-3405).
+- A plugin's own area as a real screen: a manifest surface for admin pages, and the way a plugin ships its own interface code (I-212).
+- A plugin's top-level menu entry: a menu surface with its section, order, badge and the site-wide cap (I-216, I-220).
+- A plugin's own label on a status row, for a plugin with several checks, and a row action other than "open its settings".
+- And, not a socket: bulk actions on plugins.
+
+### Left open
+
+- B-?? 2: whether the site status panel should open with focus on its heading, so a plugin's mark doesn't show its tooltip at once.
+- B-?? 6: a test that proves the boundary's key needs a plugin page that keeps its state between pages.
+
+### Changelog line (at the release)
+
+"The Plugins screen shows each plugin's icon and state at a glance, and what plugins add to the admin is marked as theirs. Every row of the site status panel now says what it is about."
+
+### Follow-up X5-2
+
+The review accepted the part; three fixes, one commit each, pushed after each.
+
+- `ff8f51a` test(admin): the plugins views move by arrow keys on the focused tab. The case clicks the All tab, waits for it to hold focus, then presses ArrowRight on `:focus` twice, checking after each press that focus and `aria-selected` moved to the next tab (Enabled, then Disabled). **Seen red:** with the arrow handling removed (each `TabsTrigger` given `onKeyDown={(event) => event.preventDefault()}`, so Radix's roving focus never runs), the case failed at the wait after the first press (`PluginsScreenTest.php:277`, `Timeout 5000ms exceeded`); the handling was put back and the case passed. Under the same plant the old case failed as well, but only because its second press landed on a tab it had focused itself; its first press proved nothing.
+- `0085676` style(admin): SaveBarDemo's docblock is back above `function SaveBarDemo`; the plugin area demo had been inserted between them.
+- `6de13b4` test(plugins): `PluginEntriesMarkedTest` reads `$screens['general']` with no fallback.
+- Checks: the quick check green (Pint, PHPStan, types, lint, the Architecture suite 105 passed, `PluginEntriesMarkedTest` 4 passed); after `npm run build`, `Plugins/PluginsScreenTest` 13 passed and `DesignCatalogueTest` 18 passed.
+
+### How to try it
+
+On a local site with a plugin installed: Site › Plugins (each plugin's initials, its state as a pill, the views with ← and →, the 56px icon in Details and access and in the consent dialog); Tools (a plugin's links under From plugins with its mark; on Tools › Jobs, the menu's plug after a plugin's page); the site status button in the top bar (each row starts with its label, a plugin's with its plug); `/admin/_catalogue#plugin-area` (the area's head, seven pages with Exports and Logs under More, "Make this page fail" and Try again).
+

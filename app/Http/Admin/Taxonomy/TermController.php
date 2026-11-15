@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Taxonomy;
 
+use App\Domain\Support\Queries\ListPages;
 use App\Domain\Taxonomy\Operations\CreateTerm;
 use App\Domain\Taxonomy\Operations\DeleteTerm;
 use App\Domain\Taxonomy\Operations\Input\DeleteTermInput;
@@ -40,9 +41,10 @@ final class TermController extends Controller
         // A nesting taxonomy's whole tree: its pages of branches are cut from
         // it, and its Parent choices are drawn from it.
         $tree = $declared->hierarchical ? $picker->tree($declared->key) : [];
+        $number = ListPages::requested($request->query('page'));
         $page = $declared->hierarchical && $search === ''
-            ? $terms->branches($declared->key, $tree, $after, $before)
-            : $terms->page($declared->key, $after, $search, $before);
+            ? $terms->branches($declared->key, $tree, $after, $before, $number)
+            : $terms->page($declared->key, $after, $search, $before, $number);
 
         return Inertia::render('terms/index', [
             'taxonomy' => $taxonomy,
@@ -56,8 +58,7 @@ final class TermController extends Controller
             'tabs' => $screen->tabs($declared->key, $request->user()),
             'types' => $screen->countedTypes($declared->key),
             'rows' => $page['rows'],
-            'newer' => $page['newer'],
-            'older' => $page['older'],
+            'paging' => $page['paging'],
             'search' => $search,
             'tree' => $tree,
         ]);

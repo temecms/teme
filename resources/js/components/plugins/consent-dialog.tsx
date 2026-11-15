@@ -8,6 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { PluginIcon } from '@/components/ui/plugin-icon';
 import { __ } from '@/lib/i18n';
 import type { PluginRowPage } from '@/types';
 
@@ -50,31 +51,41 @@ export function ConsentDialog({
                     onCloseAutoFocus={(event) => event.preventDefault()}
                 >
                     <DialogHeader>
-                        <DialogTitle>
-                            {plugin.state === 'waiting'
-                                ? __(':name :version asks for more access', {
-                                      name: plugin.label,
-                                      version: plugin.version,
-                                  })
-                                : __('Enable :name :version?', {
-                                      name: plugin.label,
-                                      version: plugin.version,
-                                  })}
-                        </DialogTitle>
-                        <DialogDescription>
-                            <strong>{__('Plugins are trusted code.')}</strong>{' '}
-                            {__(
-                                ':name runs inside Teme with the same access to the server as Teme itself.',
-                                { name: plugin.label },
-                            )}{' '}
-                            {__(
-                                'Teme holds it to the list below wherever it hands out services, but it cannot stop a plugin that means harm. Enable plugins only from people you trust.',
-                            )}
-                        </DialogDescription>
+                        <div className="flex items-center gap-4">
+                            <PluginIcon size={56} name={plugin.label} />
+                            <div className="grid min-w-0 gap-1">
+                                <DialogTitle>
+                                    {plugin.state === 'waiting'
+                                        ? __(
+                                              ':name :version asks for more access',
+                                              {
+                                                  name: plugin.label,
+                                                  version: plugin.version,
+                                              },
+                                          )
+                                        : __('Enable :name :version?', {
+                                              name: plugin.label,
+                                              version: plugin.version,
+                                          })}
+                                </DialogTitle>
+                                <DialogDescription>
+                                    <strong>
+                                        {__('Plugins are trusted code.')}
+                                    </strong>{' '}
+                                    {__(
+                                        ':name runs inside Teme with the same access to the server as Teme itself.',
+                                        { name: plugin.label },
+                                    )}{' '}
+                                    {__(
+                                        'Teme holds it to the list below wherever it hands out services, but it cannot stop a plugin that means harm. Enable plugins only from people you trust.',
+                                    )}
+                                </DialogDescription>
+                            </div>
+                        </div>
                     </DialogHeader>
 
                     {plugin.agreedBefore && plugin.asksMore && (
-                        <p className="text-[13px]">
+                        <p className="text-small">
                             {__(
                                 'You agreed to what version :agreed asks. Version :version adds the items marked NEW. Until you agree, :name stays disabled.',
                                 {
@@ -93,13 +104,13 @@ export function ConsentDialog({
                         >
                             <h3
                                 id="consent-asks"
-                                className="text-[13px] font-semibold"
+                                className="text-small font-semibold"
                             >
                                 {__('It asks to')}
                             </h3>
                             <ul
                                 data-test="consent-asks"
-                                className="grid gap-1.5 text-[13px]"
+                                className="text-small grid gap-2"
                             >
                                 {plugin.asks.map((line) => (
                                     <li
@@ -108,7 +119,7 @@ export function ConsentDialog({
                                     >
                                         <span>{line.words}</span>
                                         {line.new && (
-                                            <span className="bg-accent text-on-accent rounded-sm px-1.5 text-[11px] leading-4 font-semibold">
+                                            <span className="bg-accent text-on-accent text-caption rounded-sm px-2 font-semibold">
                                                 {__('NEW')}
                                             </span>
                                         )}

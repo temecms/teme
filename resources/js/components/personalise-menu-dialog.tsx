@@ -1,11 +1,11 @@
 import { router } from '@inertiajs/react';
 import { ChevronDown, ChevronUp, GripVertical, Pin } from 'lucide-react';
 import { useState } from 'react';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
-    DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
@@ -105,13 +105,14 @@ export function PersonaliseMenuDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+            <ResponsiveDialogContent className="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle>{__('Customise menu')}</DialogTitle>
                     <DialogDescription>
-                        Changes apply to your menu only. Pin up to {MAX_PINNED}{' '}
-                        entries to the top. Hidden entries stay in search (Ctrl
-                        K).
+                        {__(
+                            'Changes apply to your menu only. Pin up to :count entries to the top. Hidden entries stay in search (Ctrl K).',
+                            { count: MAX_PINNED },
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -182,7 +183,9 @@ export function PersonaliseMenuDialog({
                                                     );
                                                 }
                                             }}
-                                            aria-label={`Show ${entry.label}`}
+                                            aria-label={__('Show :label', {
+                                                label: entry.label,
+                                            })}
                                         />
                                         <Label
                                             htmlFor={`show-${key}`}
@@ -195,7 +198,9 @@ export function PersonaliseMenuDialog({
                                             type="button"
                                             variant="ghost"
                                             size="sm"
-                                            aria-label={`Move ${entry.label} up`}
+                                            aria-label={__('Move :label up', {
+                                                label: entry.label,
+                                            })}
                                             disabled={index === 0}
                                             onClick={() =>
                                                 move(section, key, index - 1)
@@ -207,7 +212,9 @@ export function PersonaliseMenuDialog({
                                             type="button"
                                             variant="ghost"
                                             size="sm"
-                                            aria-label={`Move ${entry.label} down`}
+                                            aria-label={__('Move :label down', {
+                                                label: entry.label,
+                                            })}
                                             disabled={
                                                 index ===
                                                 order[section].length - 1
@@ -240,7 +247,9 @@ export function PersonaliseMenuDialog({
                                             }
                                         >
                                             <Pin />
-                                            {isPinned ? 'Pinned' : 'Pin'}
+                                            {isPinned
+                                                ? __('Pinned')
+                                                : __('Pin')}
                                         </Button>
                                     </li>
                                 );
@@ -267,7 +276,7 @@ export function PersonaliseMenuDialog({
                             })
                         }
                     >
-                        Reset to default
+                        {__('Reset to default')}
                     </Button>
                     <span className="flex-1" />
                     <Button
@@ -287,10 +296,10 @@ export function PersonaliseMenuDialog({
                             })
                         }
                     >
-                        Save
+                        {__('Save')}
                     </Button>
                 </DialogFooter>
-            </DialogContent>
+            </ResponsiveDialogContent>
         </Dialog>
     );
 }

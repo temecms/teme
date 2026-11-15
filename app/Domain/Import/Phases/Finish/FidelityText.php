@@ -12,13 +12,28 @@ use Dom\Text;
 /**
  * The words a reader reads in a piece of HTML (I-337), the same way for
  * WordPress's rendered page and Teme's: what scripts, styles, players and
- * forms hold left out, a break at every block, and each word lower case,
+ * forms hold and what Teme drops on purpose left out, a break at every block, and each word lower case,
  * its quotes straight and its edges free of punctuation.
  */
 final class FidelityText
 {
     /** Elements whose text no reader reads as the article's. */
     public const array SKIPPED = ['script', 'style', 'noscript', 'template', 'svg', 'iframe', 'object', 'embed', 'audio', 'video', 'form', 'button', 'select', 'textarea'];
+
+    /**
+     * Parts of WordPress's page that Teme drops on purpose, so their words are
+     * never counted as lost: tables of contents, which repeat the headings
+     * (Dropped::CONTENTS_LISTS, and the boxes contents plugins insert),
+     * listings of other posts (core's dynamic blocks), and Jetpack's sharing
+     * and related-posts boxes. Teme's theme draws its own, or none.
+     */
+    public const array NOT_ARTICLE = [
+        '.wp-block-yoast-seo-table-of-contents', '.wp-block-rank-math-toc-block', '.rank-math-toc-block', '.wp-block-simpletoc-toc',
+        '.ez-toc-container', '#ez-toc-container', '#toc_container', '.lwptoc',
+        '.wp-block-latest-posts', '.wp-block-latest-comments', '.wp-block-archives', '.wp-block-categories', '.wp-block-tag-cloud',
+        '.wp-block-rss', '.wp-block-search', '.wp-block-page-list', '.wp-block-query',
+        '.sharedaddy', '.jp-relatedposts',
+    ];
 
     /** Elements that end a run of text. */
     public const array BLOCKS = [
@@ -78,7 +93,7 @@ final class FidelityText
                 continue;
             }
 
-            if (! $child instanceof Element || in_array(strtolower($child->localName), self::SKIPPED, true)) {
+            if (! $child instanceof Element || in_array(strtolower($child->localName), self::SKIPPED, true) || $child->matches(implode(', ', self::NOT_ARTICLE))) {
                 continue;
             }
 

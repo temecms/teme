@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
 
+use App\Domain\Addresses\Operations\Input\ChangeAddressesInput;
+use App\Domain\Design\Operations\Input\ChangeBrandColourInput;
 use App\Domain\Settings\Exceptions\StaleSettingsException;
+use App\Domain\Settings\Operations\Input\SaveSettingsPageInput;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
-use App\Domain\Settings\Operations\UpdateSettings;
+use App\Domain\Settings\Operations\SaveSettingsPage;
 use App\Domain\Settings\Queries\SettingsForm;
 use App\Domain\Settings\Queries\SettingsPageSections;
 use App\Domain\Settings\Queries\SettingsPanels;
@@ -20,7 +23,7 @@ use Inertia\Response;
 
 /**
  * The Settings pages. It shows a settings group from its declaration, on the
- * page that draws it, and hands saves to the `UpdateSettings` Operation; it
+ * page that draws it, and hands saves to the `SaveSettingsPage` Operation; it
  * changes nothing itself.
  */
 final class SettingsController extends Controller
@@ -70,7 +73,7 @@ final class SettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request, string $group, UpdateSettings $updateSettings): RedirectResponse
+    public function update(Request $request, string $group, SaveSettingsPage $save): RedirectResponse
     {
         /** @var array<string, mixed> $values */
         $values = (array) $request->input('values', []);
@@ -83,14 +86,19 @@ final class SettingsController extends Controller
             $secrets[(string) $key] = null;
         }
 
+        $actorId = (string) $request->user()?->getAuthIdentifier();
+        $page = SettingsPlacement::pageShowing($group);
+
         try {
-            $updateSettings->execute(new UpdateSettingsInput(
-                group: $group,
-                values: $values,
-                reset: $reset,
-                secrets: $secrets,
-                expectedVersion: $request->integer('expected_version'),
-                actorId: (string) $request->user()?->getAuthIdentifier(),
+            $result = $save->execute(new SaveSettingsPageInput(
+                group: new UpdateSettingsInput(group: $group, values: $values, reset: $reset, secrets: $secrets, expectedVersion: $request->integer('expected_version'), actorId: $actorId),
+                // Sent only when changed: saving the colour also drops one drafted in Design.
+                brandColour: $page === 'general' && $request->has('accent')
+                    ? new ChangeBrandColourInput(colour: $request->string('accent')->toString(), expectedVersion: $request->integer('accent_version'), actorId: $actorId)
+                    : null,
+                homePage: $page === 'reading' && $request->has('front_shows')
+                    ? new ChangeAddressesInput(patterns: [], bases: [], authorBase: null, frontShows: $request->string('front_shows')->toString(), frontPageId: $request->string('front_page_id')->toString(), postsPageId: $request->string('posts_page_id')->toString(), actorId: $actorId)
+                    : null,
             ));
         } catch (StaleSettingsException) {
             throw ValidationException::withMessages([
@@ -98,8 +106,10 @@ final class SettingsController extends Controller
             ]);
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Settings saved.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => $result['recompute']
+            ? __('Settings saved. Moving every address in the background.')
+            : __('Settings saved.')]);
 
-        return to_route('settings.show', ['group' => SettingsPlacement::pageShowing($group)]);
+        return to_route('settings.show', ['group' => $page]);
     }
 }

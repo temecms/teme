@@ -22,10 +22,10 @@ final readonly class ToolsHub implements NavHub
     /**
      * Returns the tools this person may open, in the hub's order, then the
      * plugins' links by label, each with its key, label, icon, description,
-     * address (relative, or a plugin's outside one) and whether it leads to
-     * another site.
+     * address (relative, or a plugin's outside one), whether it leads to
+     * another site and, for a plugin's link, the plugin's label.
      *
-     * @return list<array{key: string, label: string, icon: string, description: string, href: string, external: bool}>
+     * @return list<array{key: string, label: string, icon: string, description: string, href: string, external: bool, plugin?: string}>
      */
     public function pagesFor(User $user): array
     {
@@ -61,6 +61,7 @@ final readonly class ToolsHub implements NavHub
                 'description' => $link->description,
                 'href' => $external ? $link->to : route('settings.show', ['group' => "plugin.{$link->code}"], false),
                 'external' => $external,
+                ...($link->plugin !== '' ? ['plugin' => $link->plugin] : []),
             ];
         }
 
