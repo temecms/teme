@@ -211,6 +211,29 @@ it('saves a suggested other address of this site, and passes axe at 1280 and 375
         ->and($narrow['small'])->toBe([]);
 })->with(['light', 'dark']);
 
+it('unticks a saved other address and keeps the rest', function (): void {
+    $source = importSource($this->admin);
+    $source->forceFill(['other_hosts' => ['stage.old.example', 'cdn.old.example']])->save();
+    $this->fake->items('analyze', tiReport());
+
+    $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source->id}");
+    tiWaitUntil($page, tiPresent('[data-test="import-other-host-listed-stage.old.example"]'));
+    $page->click('[data-test="import-other-host-listed-stage.old.example"]')
+        ->click('[data-test="import-other-hosts-save"]');
+
+    tiWaitUntil($page, tiPresent('#password'));
+    $page->type('#password', 'password')
+        ->click('[data-test="confirm-password-button"]');
+
+    tiWaitUntil($page, tiPresent('[data-test="import-other-hosts-save"]'));
+    $page->click('[data-test="import-other-hosts-save"]');
+
+    tiWaitUntil($page, 'document.querySelector('.json_encode('[data-test="import-other-hosts-listed"]').') !== null && !document.querySelector('.json_encode('[data-test="import-other-host-listed-stage.old.example"]').')');
+    $page->assertSeeIn('[data-test="import-other-hosts-listed"]', 'cdn.old.example');
+
+    expect(ImportSource::query()->findOrFail($source->id)->other_hosts)->toBe(['cdn.old.example']);
+});
+
 it('forgets a site after asking, and says to revoke its password in WordPress (I-1708)', function (): void {
     ['source' => $source] = ImportRecords::finishedImport($this->admin->id);
 

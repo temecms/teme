@@ -51,6 +51,22 @@ it('clears other hosts when the list is empty', function (): void {
     expect($this->source->fresh()->other_hosts)->toBe([]);
 });
 
+it('drops a listed host when the next save omits it', function (): void {
+    scElevated(fn () => app(SetImportSourceHosts::class)->execute(new SetImportSourceHostsInput(
+        $this->source->id,
+        ['stage.example.com', 'cdn.example.com'],
+        (string) $this->admin->id,
+    )));
+
+    scElevated(fn () => app(SetImportSourceHosts::class)->execute(new SetImportSourceHostsInput(
+        $this->source->id,
+        ['cdn.example.com'],
+        (string) $this->admin->id,
+    )));
+
+    expect($this->source->fresh()->other_hosts)->toBe(['cdn.example.com']);
+});
+
 it('refuses each invalid host by its sentence', function (array $hosts, string $words): void {
     $act = fn () => scElevated(fn () => app(SetImportSourceHosts::class)->execute(new SetImportSourceHostsInput(
         $this->source->id,

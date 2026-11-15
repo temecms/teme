@@ -1,22 +1,23 @@
-import { Form } from '@inertiajs/react';
-import { useState } from 'react';
-import ImportSourceController from '@/actions/App/Http/Admin/Tools/Import/ImportSourceController';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Field, FieldInline } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
-import { __, __n } from '@/lib/i18n';
+import { Form } from "@inertiajs/react";
+import { useState } from "react";
+import ImportSourceController from "@/actions/App/Http/Admin/Tools/Import/ImportSourceController";
+import InputError from "@/components/input-error";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldInline } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
+import { __, __n } from "@/lib/i18n";
 
 /** A group of choices: its legend, a line on what it is for, and its error. */
-const LEGEND = 'text-body text-ink font-semibold';
-const GROUP = 'grid gap-4';
+const LEGEND = "text-body text-ink font-semibold";
+const GROUP = "grid gap-4";
 
 /**
- * Other old addresses of this site: listed hosts, suggestions from the
- * companion’s analysis as ticks with link counts, and a field to add one
- * by hand. Save asks for the person’s password.
+ * Other old addresses of this site: listed hosts as ticks the person can
+ * clear, suggestions from the companion’s analysis, and a field to add one
+ * by hand. Save asks for the person’s password and sends only what is
+ * still ticked plus a typed host.
  */
 export function OtherHostsForm({
     siteId,
@@ -30,6 +31,11 @@ export function OtherHostsForm({
     remembered?: string[] | null;
 }) {
     const suggestedHosts = suggested.map((row) => row.host);
+    const [kept, setKept] = useState<string[]>(() =>
+        remembered === null
+            ? [...listed]
+            : listed.filter((host) => remembered.includes(host)),
+    );
     const [ticked, setTicked] = useState<string[]>(() =>
         (remembered ?? []).filter(
             (host) => !listed.includes(host) && suggestedHosts.includes(host),
@@ -40,13 +46,13 @@ export function OtherHostsForm({
             (remembered ?? []).find(
                 (host) =>
                     !listed.includes(host) && !suggestedHosts.includes(host),
-            ) ?? '',
+            ) ?? "",
     );
 
     const hosts = [
-        ...listed,
-        ...ticked.filter((host) => !listed.includes(host)),
-        ...(manual.trim() !== '' ? [manual.trim()] : []),
+        ...kept,
+        ...ticked.filter((host) => !kept.includes(host)),
+        ...(manual.trim() !== "" ? [manual.trim()] : []),
     ];
 
     return (
@@ -56,7 +62,7 @@ export function OtherHostsForm({
         >
             <PanelHeader>
                 <h2 id="import-other-hosts" className="text-lead font-semibold">
-                    {__('Other addresses of this site')}
+                    {__("Other addresses of this site")}
                 </h2>
             </PanelHeader>
             <PanelBody>
@@ -79,66 +85,38 @@ export function OtherHostsForm({
                             <div className="grid gap-3">
                                 <p className="text-body text-ink-2">
                                     {__(
-                                        'Links and images on these hosts convert like ones on the home address. Tick a suggestion, or type another host the site once used.',
+                                        "Links and images on these hosts convert like ones on the home address. Untick a saved address to drop it, tick a suggestion, or type another host the site once used.",
                                     )}
                                 </p>
-
-                                {listed.length > 0 && (
-                                    <ul
-                                        className="text-body grid gap-1"
-                                        data-test="import-other-hosts-listed"
-                                    >
-                                        {listed.map((host) => (
-                                            <li key={host}>{host}</li>
-                                        ))}
-                                    </ul>
-                                )}
                             </div>
 
-                            {suggested.length > 0 && (
+                            {listed.length > 0 && (
                                 <fieldset
                                     className={GROUP}
                                     aria-describedby="import-other-hosts-error"
+                                    data-test="import-other-hosts-listed"
                                 >
                                     <legend className={LEGEND}>
-                                        {__('Suggested from this site’s links')}
+                                        {__("Saved addresses")}
                                     </legend>
-                                    {suggested.map((row, index) => (
+                                    {listed.map((host, index) => (
                                         <FieldInline
-                                            key={row.host}
-                                            htmlFor={`import-other-host-${index}`}
-                                            label={__(':host (:links)', {
-                                                host: row.host,
-                                                links: __n(
-                                                    ':count link|:count links',
-                                                    row.links,
-                                                    {
-                                                        count: row.links.toLocaleString(),
-                                                    },
-                                                ),
-                                            })}
+                                            key={host}
+                                            htmlFor={`import-other-host-listed-${index}`}
+                                            label={host}
                                         >
                                             <Checkbox
-                                                id={`import-other-host-${index}`}
-                                                data-test={`import-other-host-${row.host}`}
-                                                checked={
-                                                    listed.includes(row.host) ||
-                                                    ticked.includes(row.host)
-                                                }
-                                                disabled={listed.includes(
-                                                    row.host,
-                                                )}
+                                                id={`import-other-host-listed-${index}`}
+                                                data-test={`import-other-host-listed-${host}`}
+                                                checked={kept.includes(host)}
                                                 onCheckedChange={(checked) =>
-                                                    setTicked((current) =>
+                                                    setKept((current) =>
                                                         checked === true
-                                                            ? [
-                                                                  ...current,
-                                                                  row.host,
-                                                              ]
+                                                            ? [...current, host]
                                                             : current.filter(
-                                                                  (host) =>
-                                                                      host !==
-                                                                      row.host,
+                                                                  (row) =>
+                                                                      row !==
+                                                                      host,
                                                               ),
                                                     )
                                                 }
@@ -148,9 +126,66 @@ export function OtherHostsForm({
                                 </fieldset>
                             )}
 
+                            {suggested.filter(
+                                (row) => !listed.includes(row.host),
+                            ).length > 0 && (
+                                <fieldset
+                                    className={GROUP}
+                                    aria-describedby="import-other-hosts-error"
+                                >
+                                    <legend className={LEGEND}>
+                                        {__("Suggested from this site’s links")}
+                                    </legend>
+                                    {suggested
+                                        .filter(
+                                            (row) => !listed.includes(row.host),
+                                        )
+                                        .map((row, index) => (
+                                            <FieldInline
+                                                key={row.host}
+                                                htmlFor={`import-other-host-${index}`}
+                                                label={__(":host (:links)", {
+                                                    host: row.host,
+                                                    links: __n(
+                                                        ":count link|:count links",
+                                                        row.links,
+                                                        {
+                                                            count: row.links.toLocaleString(),
+                                                        },
+                                                    ),
+                                                })}
+                                            >
+                                                <Checkbox
+                                                    id={`import-other-host-${index}`}
+                                                    data-test={`import-other-host-${row.host}`}
+                                                    checked={ticked.includes(
+                                                        row.host,
+                                                    )}
+                                                    onCheckedChange={(
+                                                        checked,
+                                                    ) =>
+                                                        setTicked((current) =>
+                                                            checked === true
+                                                                ? [
+                                                                      ...current,
+                                                                      row.host,
+                                                                  ]
+                                                                : current.filter(
+                                                                      (host) =>
+                                                                          host !==
+                                                                          row.host,
+                                                                  ),
+                                                        )
+                                                    }
+                                                />
+                                            </FieldInline>
+                                        ))}
+                                </fieldset>
+                            )}
+
                             <Field
                                 htmlFor="import-other-host-manual"
-                                label={__('Add a host')}
+                                label={__("Add a host")}
                                 error={errors.hosts}
                             >
                                 <Input
@@ -160,15 +195,10 @@ export function OtherHostsForm({
                                     onChange={(event) =>
                                         setManual(event.target.value)
                                     }
-                                    placeholder={__('stage.example.com')}
+                                    placeholder={__("stage.example.com")}
                                     autoComplete="off"
                                 />
                             </Field>
-
-                            <InputError
-                                id="import-other-hosts-error"
-                                message={errors.hosts}
-                            />
 
                             <div className="grid justify-items-start gap-2">
                                 <Button
@@ -176,10 +206,10 @@ export function OtherHostsForm({
                                     data-test="import-other-hosts-save"
                                     disabled={processing}
                                 >
-                                    {__('Save')}
+                                    {__("Save")}
                                 </Button>
                                 <p className="text-small text-ink-2">
-                                    {__('Teme asks for your password first.')}
+                                    {__("Teme asks for your password first.")}
                                 </p>
                             </div>
                         </>
