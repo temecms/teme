@@ -10,6 +10,7 @@ use App\Domain\Media\Operations\Input\UploadMediaInput;
 use App\Domain\Media\Operations\UpdateMediaDetails;
 use App\Domain\Media\Operations\UploadMedia;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Http\AnswerTooLarge;
@@ -39,11 +40,19 @@ final readonly class PluginMediaWriter implements MediaWriter
     {
         ActingPerson::require($actingPersonId);
 
+        if ($alt !== null && mb_strlen($alt) > 1000) {
+            throw new WriteRefused(__('Alt text may be at most 1000 characters.'));
+        }
+
+        if ($title !== null && mb_strlen($title) > 255) {
+            throw new WriteRefused(__('A title may be at most 255 characters.'));
+        }
+
         $http = new PluginHttp($this->hosts, $this->resolver);
         $temp = tempnam(sys_get_temp_dir(), 'teme-plugin-media-');
 
         if ($temp === false) {
-            throw new WriteRefused('Teme couldn’t make a temporary file for a download.');
+            throw new WriteRefused(__('Teme couldn’t make a temporary file for a download.'));
         }
 
         try {
@@ -66,36 +75,40 @@ final readonly class PluginMediaWriter implements MediaWriter
             }
 
             if (file_put_contents($temp, $answer->body) === false) {
-                throw new WriteRefused('Teme couldn’t save the downloaded file.');
+                throw new WriteRefused(__('Teme couldn’t save the downloaded file.'));
             }
 
             $name = $this->filename($url, $title);
 
             try {
-                $media = app(UploadMedia::class)->execute(new UploadMediaInput(
-                    path: $temp,
-                    originalFilename: $name,
-                    actorId: $actingPersonId,
-                    allowDuplicate: true,
-                    sourceUrl: $url,
-                ));
+                $media = DB::transaction(function () use ($temp, $name, $actingPersonId, $url, $alt, $title) {
+                    $media = app(UploadMedia::class)->execute(new UploadMediaInput(
+                        path: $temp,
+                        originalFilename: $name,
+                        actorId: $actingPersonId,
+                        allowDuplicate: true,
+                        sourceUrl: $url,
+                    ));
+
+                    if ($alt !== null || $title !== null) {
+                        app(UpdateMediaDetails::class)->execute(new UpdateMediaDetailsInput(
+                            mediaId: (string) $media->id,
+                            actorId: $actingPersonId,
+                            title: $title ?? (string) $media->title,
+                            alt: $alt,
+                            caption: $media->caption,
+                            credit: $media->credit,
+                            focalX: $media->focal_x,
+                            focalY: $media->focal_y,
+                            licence: $media->licence,
+                        ));
+                        $media->refresh();
+                    }
+
+                    return $media;
+                });
             } catch (Throwable $failure) {
                 $this->refuse($failure);
-            }
-
-            if ($alt !== null || $title !== null) {
-                app(UpdateMediaDetails::class)->execute(new UpdateMediaDetailsInput(
-                    mediaId: (string) $media->id,
-                    actorId: $actingPersonId,
-                    title: $title ?? (string) $media->title,
-                    alt: $alt,
-                    caption: $media->caption,
-                    credit: $media->credit,
-                    focalX: $media->focal_x,
-                    focalY: $media->focal_y,
-                    licence: $media->licence,
-                ));
-                $media->refresh();
             }
 
             return Payloads::media($media);

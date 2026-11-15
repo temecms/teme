@@ -121,6 +121,18 @@ it('refuses when no person is named and writes nothing', function (): void {
     Http::assertNothingSent();
 });
 
+it('refuses alt text over 1000 characters before fetching, and writes nothing', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    Http::fake(['https://cdn.example.com/harbour.jpg' => Http::response(($this->jpeg)(), 200)]);
+    $before = Media::query()->count();
+
+    expect(fn () => ($this->door)()->fromAddress('https://cdn.example.com/harbour.jpg', (string) $editor->id, alt: str_repeat('a', 1001)))
+        ->toThrow(WriteRefused::class)
+        ->and(Media::query()->count())->toBe($before);
+    Http::assertNothingSent();
+});
+
 it('refuses when a contributor’s request asks to act for an administrator, and writes nothing', function (): void {
     $contributor = User::factory()->create()->assignRole('contributor');
     $admin = User::factory()->create()->assignRole('administrator');
