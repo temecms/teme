@@ -151,11 +151,12 @@ final readonly class FediverseDocuments
     }
 
     /**
-     * The site's host, as WebFinger names its accounts.
+     * The site's host, as WebFinger names its accounts: APP_URL's, as the
+     * page cache's, never whatever Host a request names.
      */
     public static function host(): string
     {
-        return strtolower((string) parse_url(url('/'), PHP_URL_HOST));
+        return strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
     }
 
     /**

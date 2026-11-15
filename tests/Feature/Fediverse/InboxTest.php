@@ -6,14 +6,18 @@ use App\Domain\Fediverse\Jobs\ProcessInboxActivity;
 use App\Domain\Fediverse\Models\Activity;
 use App\Domain\Fediverse\Models\BlockedHost;
 use App\Domain\Fediverse\Models\Delivery;
+use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\Follower;
 use App\Domain\Fediverse\Models\RemoteActor;
+use App\Domain\Fediverse\Signatures\Signer;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\Fixtures\Fediverse\Actors;
 use Tests\Fixtures\Fediverse\Inbox;
+use Tests\Fixtures\Fediverse\Requests;
+use Tests\Fixtures\Fediverse\Rfc9421;
 
 uses(RefreshDatabase::class);
 
@@ -70,6 +74,18 @@ it('refuses a bad signature with 401 and no detail', function (): void {
 
     expect($response->getContent())->toBe('');
     Queue::assertNothingPushed();
+});
+
+it('refuses with 401 a request signed for another server, replayed here', function (): void {
+    $body = json_encode(Inbox::follow(url('/ap/blog')), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+    $alice = new FediverseActor(['uri' => Inbox::ALICE, 'private_key' => Actors::keys('remote')['private']]);
+    $signed = app(Signer::class)->sign('POST', 'https://other.example/ap/inbox', [], $body, $alice);
+    $rfc9421 = Rfc9421::sign('POST', 'https://other.example/ap/inbox', ['host' => 'other.example'], $body, Inbox::ALICE.'#main-key');
+
+    Requests::post('/ap/inbox', $body, [...$signed, 'Host' => 'other.example'])->assertStatus(401);
+    Requests::post('/ap/inbox', $body, [...$rfc9421, 'Host' => 'other.example'])->assertStatus(401);
+
+    expect(Follower::query()->count())->toBe(0);
 });
 
 it('answers 503 with Retry-After while the fediverse is paused', function (): void {

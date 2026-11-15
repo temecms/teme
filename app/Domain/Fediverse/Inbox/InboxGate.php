@@ -8,6 +8,7 @@ use App\Domain\Fediverse\BlockedHosts;
 use App\Domain\Fediverse\FediverseSwitch;
 use App\Domain\Fediverse\Jobs\ProcessInboxActivity;
 use App\Domain\Fediverse\Models\FediverseActor;
+use App\Domain\Fediverse\Queries\FediverseDocuments;
 use App\Domain\Fediverse\Signatures\SignatureRefused;
 use App\Domain\Fediverse\Signatures\Verifier;
 use Illuminate\Support\Facades\Cache;
@@ -61,6 +62,12 @@ final readonly class InboxGate
 
         if (! $this->withinLimits($request->clientAddress, $claimed)) {
             return new InboxAnswer(429, ['Retry-After' => '60']);
+        }
+
+        // Signed for this site only: a request signed for another server
+        // isn't replayed here, whatever Host the web server passes on.
+        if (! self::addressedHere($request)) {
+            return new InboxAnswer(401);
         }
 
         try {
@@ -123,6 +130,17 @@ final readonly class InboxGate
         $host = parse_url($match[1], PHP_URL_HOST);
 
         return is_string($host) && $host !== '' ? strtolower($host) : null;
+    }
+
+    /**
+     * Whether the request's Host, without its port, is this site's.
+     */
+    private static function addressedHere(PublicRequest $request): bool
+    {
+        $host = (string) (array_change_key_case($request->headers, CASE_LOWER)['host'] ?? '');
+        $host = strtolower((string) preg_replace('/:\d+$/', '', trim($host)));
+
+        return $host !== '' && $host === FediverseDocuments::host();
     }
 
     private function withinLimits(string $address, ?string $host): bool
