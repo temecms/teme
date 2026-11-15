@@ -52,3 +52,9 @@ it('says Teme can\'t import TranslatePress\'s or MultilingualPress\'s translatio
     expect($stays->keys()->filter(fn (string $key): bool => str_starts_with($key, 'languages.'))->values()->all())->toBe(['languages.other.translatepress-multilingual', 'languages.other.multilingualpress'])
         ->and($stays['languages.other.translatepress-multilingual'])->toMatchArray(['label' => 'TranslatePress', 'wordpressKey' => 'translatepress-multilingual', 'count' => 3]);
 });
+
+it('says the default language\'s addresses lose their first part when Polylang showed it', function (): void {
+    $this->site->with('languages', PolylangSite::languages(['options' => ['force_lang' => 1, 'hide_default' => false]]));
+
+    expect(lnKeys($this->source->id))->toBe(['languages.default-prefixed']);
+});
