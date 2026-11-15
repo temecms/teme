@@ -33,7 +33,7 @@ final readonly class ManifestValidator
     private const string CODE = '/^'.ThemeManifestValidator::CODE_PATTERN.'$/';
 
     /** The capabilities docs/architecture/plugins.md names that have no door yet. */
-    private const array LATER = ['content.write', 'media.write', 'people.read', 'mail.send', 'routes.public', 'site.output', 'ai'];
+    private const array LATER = ['people.read', 'mail.send', 'routes.public', 'site.output', 'ai'];
 
     public function __construct(
         private CodeScan $scan,

@@ -73,6 +73,12 @@ it('refuses a capability Teme doesn’t offer plugins yet, and one that doesn’
         ->toContain('content.delete isn’t something a plugin can ask for.');
 });
 
+it('accepts content.write and media.write', function (): void {
+    $errors = ($this->errors)([...PluginFixtures::manifest('hello'), 'capabilities' => ['content.read', 'content.write', 'media.write']]);
+
+    expect($errors)->toBe([]);
+});
+
 it('refuses a hook that isn’t one, and one whose capability the plugin doesn’t ask for', function (): void {
     $errors = ($this->errors)([...PluginFixtures::manifest('hello'), 'capabilities' => [], 'hooks' => ['ContentPublished', 'PostSaved']]);
 

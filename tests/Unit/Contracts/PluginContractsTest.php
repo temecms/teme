@@ -68,8 +68,14 @@ it('gives every new contract its @since and nothing from a framework', function 
     RequestFailed::class,
 ]);
 
-it('names the three capabilities a plugin can ask for in the first release', function (): void {
-    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http']);
+it('names the five capabilities a plugin can ask for in the first release', function (): void {
+    expect(array_column(Capability::cases(), 'value'))->toBe([
+        'content.read',
+        'content.write',
+        'media.read',
+        'media.write',
+        'http',
+    ]);
 });
 
 it('decodes an answer’s JSON, and refuses JSON that isn’t', function (): void {
