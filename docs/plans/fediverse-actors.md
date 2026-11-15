@@ -47,6 +47,7 @@
 **D7. Operations** (each with a refusal test that writes nothing): `SwitchFediverse`, `ChangeFediverseSettings`, `EnableAuthorActor`, `DisableAuthorActor`, `AcceptFollow`, `RemoveFollower`, `RecordRemoteActor`, `ForgetRemoteActor`, `BlockHost`, `UnblockHost`, `PruneFediverse`. Permission: `settings.fediverse.manage` (new, administrators), except inbox-driven ones, which run as the system actor from `ProcessInboxActivity`.
 
 **D8. Inbox.** `POST` to any actor inbox or the shared inbox: blocked host → 403 before anything else; body over 256 KB → 413; rate limit (120/min per address and per host) → 429; signature (D2) → 401; switch off → 503 `Retry-After: 3600`; else the activity id is de-duplicated (7 days in the cache store), the job `ProcessInboxActivity` is queued and 202 is answered. The job handles Follow (→ `AcceptFollow`, then F2's sender sends Accept), Undo of a Follow (→ `RemoveFollower`), Delete of an actor (→ mark gone, remove follows). Create/Update/Delete of a reply is F2's; everything else is handed to F2's plugin dispatch (stubbed in F1 as "ignored").
+  *Changed by the maintainers in Follow-up R7 (B-36):* blocked host → 403; Content-Length, then the body read, over 256 KB → 413; 120/min per address → 429; Host not this site's → 401; signature → 401; the verified sender's server blocked → 403; 120/min per verified server → 429; switch off → 503; an activity id not on the signer's server → 400; else de-duplicated, queued, 202.
 
 ## Tasks (tests first; each test seen red for the reason given)
 
@@ -99,7 +100,8 @@
 - `docs(plans): fediverse actors' records`
 - Merge of `origin/plugins/public-routes` (R5: `c70cdb8`, `1c4280b`, `8d8e2aa`, `42b11b9`)
 - `feat(fediverse): add Settings › Fediverse with its switch` (T7)
-- `docs(plans): fediverse actors' records, with T7` (this one)
+- `docs(plans): fediverse actors' records, with T7`
+- Follow-up R6 and R7: listed under their own headings below.
 
 ### Checks
 
@@ -107,6 +109,7 @@
 - Full `composer check`, final: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1316 assertions); Unit+Feature **10696** passed, **2** skipped (55255 assertions).
 - Full `composer check` after Follow-up R6: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1324 assertions); Unit+Feature **10755** passed, **2** skipped (55548 assertions).
 - Full `composer check` after the R5 merge and T7: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1324 assertions); Unit+Feature **10739** passed, **2** skipped (55511 assertions).
+- Full `composer check` after Follow-up R7: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1324 assertions); Unit+Feature **10765** passed, **2** skipped (55688 assertions).
 - Browser: `tests/Browser/FediverseSettingsTest.php` alone, after `npm run build`: 6 passed (53 assertions).
 - Baselines: `admin-words-baseline.txt` 876 lines and `design-system-baseline.txt` 222 lines before and after; no line added, no count raised.
 
@@ -174,12 +177,34 @@ The maintainers corrected the version on 2026-11-15: `gapple/structured-fields` 
 - **B-32 (draft):** `@target-uri` and `@scheme` are built with `https`: E's `PublicRequest` carries no scheme, and other servers reach the fediverse only over https. A site served over plain http (local only) would refuse RFC 9421 signatures; draft-cavage is unaffected. The query is rebuilt from `PublicRequest::query`, as B-03.
 - **B-33 (draft):** `teme:fediverse:prune` (`app/Console/Commands/PruneFediverseAccounts.php`) runs `PruneFediverse` as the operator, as `teme:inbox:prune` does, and `routes/console.php` gains one line, `->daily()`, after the other daily prune entries. PruneFediverse is final, so the test proves the command calls it by its effect: a stale account removed with no person acting, which only the operator may do.
 
+### Follow-up R7
+
+A review of the part, six findings, with the maintainers' decisions on 3, 4 and 6. One test or more for each, each seen red before its fix:
+
+- **Finding 1**, an Undo of an unknown actor ended all the sender's follows. `InboxTest` "keeps the follower on Undo of a Follow of an account that isn't this site's": `Failed asserting that 0 is identical to 1.` Fixed in `ProcessInboxActivity::undo()`, which returns when the Follow's object isn't one of the site's accounts.
+- **Finding 2**, the inboxes didn't check the signed host. `InboxTest` "refuses with 401 a request signed for another server, replayed here" (draft-cavage and RFC 9421, signed for other.example): `Expected response status code [401] but received 202`. It stayed red after the first fix because `url()` follows the request's Host; it went green once the site's host came from APP_URL (B-34).
+- **Finding 3**, the stored key wasn't the verified one, and the key's, inbox's and shared inbox's hosts weren't checked. `InboxOperationsTest` "keeps the key the sender signed with, not the document's first": `Failed asserting that two strings are identical.`; `InboxOperationsTest` "refuses a remote account whose key, inbox or shared inbox is on another server, writing nothing", key, inbox and shared inbox, all three red (no ValidationException thrown); `RemoteFetcherTest` "refuses a key kept on another server than its actor's, even when the actor names it": `Failed asserting that an instance of class KeyOwner is null.` (B-35).
+- **Finding 4**, the per-server limit was counted before the signature. `InboxTest` "counts a server's limit only after its signature verifies, so forged requests naming it don't lock it out" (120 forged requests from many addresses, then a real one): `Expected response status code [202] but received 429.` (B-36).
+- **Finding 5**, an activity's id wasn't tied to its sender. `InboxTest` "refuses with 400 an activity whose id is on another server than its signer's, queuing nothing": `Expected response status code [400] but received 202.` (B-37).
+- **Finding 6**, the 256 KB limit ran after PHP had read the body. `InboxTest` "refuses with 413 a Content-Length over 256 KB, before the body is read": `Expected response status code [413] but received 202.` A first version with a Content-Length of 10 MB passed before the fix, because Laravel's own ValidatePostSize answers 413 above PHP's post_max_size (8 MB here); the test uses 300000 bytes, the gap between the two limits (B-38).
+- Commits: `fix(fediverse): end no follow on an Undo of another server's actor`; `fix(fediverse): refuse an inbox request signed for another host`; `fix(fediverse): keep the verified key and require a remote account's key and inboxes on its own server`; `fix(fediverse): limit a server only once verified, tie an activity to its signer's host, and refuse an oversized Content-Length unread` (findings 4 to 6 in one commit: they change the same lines of `InboxGate::receive` and its docblock, so split commits would each leave the D8 order half-written); `docs(plans): fediverse actors's records, follow-up R7` (this one). No merge, as R7 asked.
+- Check: see the R7 line under Checks.
+- **B-34 (draft):** `InboxGate` answers 401, before reading the signature, unless the request's Host (port dropped, lower-cased) is the site's. `FediverseDocuments::host()` reads APP_URL (`config('app.url')`), as the page cache does, not `url('/')`, which follows the request's Host and so would always agree with it.
+- **B-35 (draft):** `RemoteActorDocument::attributes()` takes the key id the sender signed with and keeps that key, not the document's first; it refuses, with a validation error, a document whose key id, inbox or sharedInbox host isn't the actor's own host (the docblock's claim, kept). `FetchedKeyOwners::keyIn()` refuses a key id on another host than the actor document's id, so a verification never trusts such a key.
+- **B-36 (draft) — D8 changed by the maintainers:** the per-address limit stays before the signature; the per-server limit is counted only once the signature verifies, by the verified sender's host, not the claimed keyId's. Forged requests naming a server no longer use up its 120 a minute.
+- **B-37 (draft):** after the body parses, an activity whose `id` host isn't the verified sender's host is refused with 400, before the de-duplication, so another server can't take an id first and have the real one dropped as already seen.
+- **B-38 (draft):** `InboxController` reads no body when Content-Length is over 256 KB, and otherwise reads at most one byte past the limit from the stream; `InboxGate` answers 413 by the declared Content-Length first, then by what was read (a chunked body declares none). The blocked server's 403 still comes first.
+- **Later items, skipped as the rules require:**
+  - B-26's table component: a table under `resources/js/components/ui/**` is forbidden to this part, so the page keeps its ARIA tables.
+  - B-11's `docs/architecture/addresses.md` entries for `ap` and `wp-json`: `docs/architecture/*.md` is not to be written by this part. For the maintainer: add `ap` and `wp-json` to the reserved first segments listed there.
+  - B-10's `Vary: Accept`: dropped by part E's `PublicResponse::HEADER_ALLOW_LIST`, which is E's file and outside Owns. For part E: allow `Vary` through, and D4's header then reaches the response with no change here.
+
 ### Changelog lines for the maintainer
 
 ```
 ### Added
 - Fediverse foundations: the site's blog, authors and application can be fediverse accounts, found by WebFinger and NodeInfo, with outbox, followers count and following documents at /ap/ addresses, and an imported WordPress plugin account's old addresses kept.
-- Inboxes take Follow, Undo and an account's Delete, verified by draft-cavage or RFC 9421 HTTP signatures, refusing blocked servers, oversized bodies and floods; a Follow is kept and its Accept queued.
+- Inboxes take Follow, Undo and an account's Delete, verified by draft-cavage or RFC 9421 HTTP signatures and addressed to this site, refusing blocked servers, oversized bodies, floods and activities whose id is on another server than their signer's; a Follow is kept and its Accept queued.
 - Remote documents are fetched over https only, with every address checked public and pinned.
 - nginx and Caddy serve no stored page to a request asking for activity+json or ld+json; the Cloudflare guide adds the matching rule.
 - settings.fediverse.manage for administrators; forgetting a remote account, and `teme:fediverse:prune`, run daily, removing remote accounts unseen for 30 days that follow nothing and wrote no reply.
