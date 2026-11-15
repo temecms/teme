@@ -21,4 +21,4 @@ Five fresh site reports (2026-11-15) were read against the import. Most of what 
 
 ## Not in this part
 
-Polylang import (its own part), importing custom types (after v1: the plugin that needs them stays on WordPress for now), and a rewrite of links that point at a *different* site of the same owner (those are other sites and stay outside links).
+Polylang import (its own part), importing custom types (after v1: the plugin that needs them stays on WordPress for now), and a rewrite of links that point at a *different* site (those stay outside links).
