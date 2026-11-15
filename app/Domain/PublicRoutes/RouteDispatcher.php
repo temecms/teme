@@ -8,6 +8,7 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Plugins\Faults\SpooledFaults;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\PluginRegistry;
+use Closure;
 use Composer\Autoload\ClassLoader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -20,8 +21,8 @@ use Throwable;
 
 /**
  * Runs a declared route's handler: builds the plain request, enforces the
- * body cap and POST verifier, catches throws into a 500 with a spool entry,
- * and maps the plain response to Symfony's.
+ * body cap and POST verifier, records a throw against its owner and answers
+ * with the site's error page, and maps the plain response to Symfony's.
  */
 final class RouteDispatcher
 {
@@ -36,27 +37,35 @@ final class RouteDispatcher
         private readonly PluginRegistry $plugins,
     ) {}
 
-    public function dispatch(DeclaredRoute $route, Request $request): SymfonyResponse
+    /**
+     * The entry's answer to this request. A handler that throws is recorded
+     * against its owner and answered by $failed, the site's own error page,
+     * with nothing of the plugin's shown (docs/architecture/plugins.md).
+     *
+     * @param  Closure(): SymfonyResponse  $failed
+     */
+    public function dispatch(DeclaredRoute $route, Request $request, Closure $failed): SymfonyResponse
     {
         if ($route->owner !== DeclaredRoute::OWNER_CORE) {
             $this->autoloadPlugin($route->owner);
         }
 
-        $rawBody = $request->getContent();
+        $posted = $request->isMethod('POST');
 
-        // A form POST in tests (and some stacks) fills the request bag without
-        // leaving a body string; rebuild one so field: verifiers can read it.
-        if ($rawBody === '' && $request->isMethod('POST') && $request->request->count() > 0) {
-            $rawBody = http_build_query($request->request->all());
+        // The declared length first, so an oversized body is refused before it is read.
+        if ($posted && (int) $request->headers->get('Content-Length', '0') > $route->maxBody) {
+            return new Response('', 413);
         }
 
-        if ($request->isMethod('POST') && strlen($rawBody) > $route->maxBody) {
+        $rawBody = $posted ? $request->getContent() : '';
+
+        if ($posted && strlen($rawBody) > $route->maxBody) {
             return new Response('', 413);
         }
 
         $public = $this->toPublicRequest($route, $request, $rawBody);
 
-        if ($request->isMethod('POST') && ! $this->verifiers->passes($route, $public)) {
+        if ($posted && ! $this->verifiers->passes($route, $public)) {
             return new Response('', 401);
         }
 
@@ -78,7 +87,7 @@ final class RouteDispatcher
                 $failure,
             );
 
-            return new Response('', 500);
+            return $failed();
         } finally {
             set_time_limit((int) $previous);
         }
@@ -160,40 +169,12 @@ final class RouteDispatcher
         return new PublicRequest(
             method: strtoupper($request->getMethod()),
             path: $request->getPathInfo(),
-            parameters: $this->pathParameters($route, $request->getPathInfo()),
+            parameters: $route->pathParameters($request->getPathInfo()) ?? [],
             query: $query,
             headers: $headers,
             rawBody: $rawBody,
             clientAddress: (string) $request->ip(),
         );
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function pathParameters(DeclaredRoute $route, string $path): array
-    {
-        $pattern = $route->resolvedPath();
-        $regex = preg_replace_callback('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', function (array $m) use ($route): string {
-            $name = $m[1];
-            $rule = $route->where[$name] ?? '[^/]+';
-
-            return '(?P<'.$name.'>'.$rule.')';
-        }, $pattern);
-
-        if (preg_match('#^'.str_replace('#', '\#', (string) $regex).'$#', $path, $matches) !== 1) {
-            return [];
-        }
-
-        $parameters = [];
-
-        foreach ($matches as $key => $value) {
-            if (is_string($key)) {
-                $parameters[$key] = $value;
-            }
-        }
-
-        return $parameters;
     }
 
     private function toSymfony(PublicResponse $answer, DeclaredRoute $route): SymfonyResponse
@@ -213,12 +194,6 @@ final class RouteDispatcher
             $headers['Cache-Control'] = 'no-store, private';
         }
 
-        $response = new Response($answer->body, $answer->status, $headers);
-
-        if ($route->isCacheable()) {
-            $response->headers->set('X-Teme-Declared-Cacheable', '1');
-        }
-
-        return $response;
+        return new Response($answer->body, $answer->status, $headers);
     }
 }

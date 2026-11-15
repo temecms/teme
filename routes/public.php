@@ -64,24 +64,24 @@ Route::middleware(['public', MarkCacheable::class])->group(function (): void {
 
 Route::middleware(['public', 'throttle:api', MarkCacheable::class])->get('llms.txt', LlmsTxtController::class)->name('llms-txt');
 
-// Declared well-known addresses: exact enough to stay a normal route (B-02).
+// Declared well-known addresses: exact enough to stay a normal route (docs/plans/plugin-public-routes.md).
 Route::middleware(['public', 'throttle:declared-routes'])
     ->match(['get', 'post'], '.well-known/{name}', DeclaredRouteController::class)
     ->where('name', '[A-Za-z0-9._-]+')
     ->name('declared.well-known');
 
-// Fallbacks in order (B-05): feeds and .md keep their route names for
+// Fallbacks in order (docs/plans/plugin-public-routes.md): feeds and .md keep their route names for
 // HoldUntilSetUp and beat the declared catch-all; late-registered probes
 // (e.g. `_probe.md`) still win as ordinary routes. Declared {code}/{path?}
 // is next so plugin paths answer before the public site; miss falls through
 // to FeedController then PublicController. public.path is last.
-Route::middleware(['public', 'throttle:site-search', MarkCacheable::class])
+Route::middleware(['public', 'throttle:declared-routes', MatchDeclaredRoutes::class, MarkCacheable::class])
     ->get('{path}', FeedController::class)
     ->where('path', FeedPath::ROUTE)
     ->name('feeds.show')
     ->fallback();
 
-Route::middleware(['public', 'throttle:api', MarkCacheable::class])
+Route::middleware(['public', 'throttle:api', 'throttle:declared-routes', MatchDeclaredRoutes::class, MarkCacheable::class])
     ->get('{path}.md', MarkdownController::class)
     ->where('path', MarkdownPages::ROUTE)
     ->name('markdown.show')
@@ -89,13 +89,16 @@ Route::middleware(['public', 'throttle:api', MarkCacheable::class])
 
 Route::middleware(['public', 'throttle:declared-routes'])
     ->match(['get', 'post'], '{code}/{path?}', DeclaredRouteController::class)
-    // Skip reserved first segments so /api/… and /admin/… still reach their own routes and fallbacks (D3).
+    // Skip reserved first segments so /api/… and /admin/… still reach their own routes and fallbacks.
     ->where('code', '(?!admin(?:/|$)|api(?:/|$)|up(?:/|$)|build(?:/|$)|storage(?:/|$))'.ThemeManifestValidator::CODE_PATTERN)
     ->where('path', '.*')
     ->name('declared.plugin')
     ->fallback();
 
+// Declared routes are counted before they answer; with no match the
+// limiter counts a search as site-search does.
 Route::middleware('public')->group(function (): void {
-    Route::get('/', [PublicController::class, 'handle'])->middleware([MatchDeclaredRoutes::class, 'throttle:site-search'])->name('home');
-    Route::fallback([PublicController::class, 'handle'])->middleware([MatchDeclaredRoutes::class, 'throttle:site-search'])->name('public.path');
+    Route::get('/', [PublicController::class, 'handle'])->middleware(['throttle:declared-routes', MatchDeclaredRoutes::class])->name('home');
+    Route::post('/', DeclaredRouteController::class)->middleware('throttle:declared-routes')->name('declared.home');
+    Route::fallback([PublicController::class, 'handle'])->middleware(['throttle:declared-routes', MatchDeclaredRoutes::class])->name('public.path');
 });

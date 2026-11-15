@@ -436,7 +436,7 @@ final readonly class ManifestValidator
 
     /**
      * Declared public routes: only with routes.public, and each entry held
-     * to D3 (reserved paths, verifiers, collisions within the plugin).
+     * to the plan's refusals (reserved paths, verifiers, collisions within the plugin).
      *
      * @param  array<string, mixed>  $manifest
      *

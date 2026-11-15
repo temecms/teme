@@ -7,6 +7,8 @@ use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\MigratePluginInput;
+use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Settings\SettingsWrite;
@@ -108,4 +110,39 @@ it('never stores a POST', function (): void {
     $header = (string) $response->headers->get('X-Teme-Cache');
 
     expect($header === '' || str_starts_with($header, 'BYPASS'))->toBeTrue();
+});
+
+it('never serves a stored page to a request an uncacheable conditional entry on that path matches', function (): void {
+    $copy = PluginFixtures::copy('inbound', [
+        'version' => '1.0.0',
+        'routes' => [
+            ...PluginFixtures::manifest('inbound')['routes'],
+            ['id' => 'linked', 'method' => 'GET', 'path' => '/', 'when' => ['accept' => ['application/ld+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor'],
+        ],
+    ]);
+    PluginFixtures::use($copy);
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/inbound', '1.0.0', ['routes.public'], [], [], null));
+    app(PublicRouteRegistry::class)->flush();
+
+    addrGet('/')->assertOk()->assertHeader('X-Teme-Cache', 'MISS');
+    addrGet('/')->assertOk()->assertHeader('X-Teme-Cache', 'HIT');
+
+    $request = Request::create('/', 'GET', server: ['HTTP_ACCEPT' => 'application/ld+json']);
+    $answer = TestResponse::fromBaseResponse(app(Kernel::class)->handle($request), $request)->assertOk();
+
+    expect($answer->headers->get('X-Teme-Cache'))->not->toBe('HIT')
+        ->and($answer->headers->get('Content-Type'))->toBe('application/activity+json');
+});
+
+it('purges plugin pages whenever the plugin’s changes are run after an update', function (): void {
+    addrGet('/inbound/ping')->assertOk()->assertHeader('X-Teme-Cache', 'MISS');
+    addrGet('/inbound/ping')->assertOk()->assertHeader('X-Teme-Cache', 'HIT');
+
+    app(MigratePlugin::class)->execute(new MigratePluginInput('tests/inbound', null));
+
+    addrGet('/inbound/ping')->assertOk()->assertHeader('X-Teme-Cache', 'MISS');
+});
+
+it('sends no declared-cacheable header of its own', function (): void {
+    addrGet('/inbound/ping')->assertOk()->assertHeaderMissing('X-Teme-Declared-Cacheable');
 });

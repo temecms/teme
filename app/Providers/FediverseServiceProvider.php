@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Fediverse\ActivityPub;
+use App\Domain\Fediverse\FediverseSettingsGroup;
 use App\Domain\Fediverse\Remote\FetchedKeyOwners;
 use App\Domain\Fediverse\Signatures\KeyOwners;
 use App\Domain\Fediverse\SiteActors;
@@ -17,10 +18,11 @@ use App\Http\Site\Fediverse\NodeInfoRoute;
 use App\Http\Site\Fediverse\WebFingerRoute;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Teme\Contracts\Settings\SettingsRegistrar;
 
 /**
- * The fediverse in core (I-058): how remote keys are found, and the site's
- * public addresses for actors, discovery and inboxes.
+ * The fediverse in core (I-058): how remote keys are found, the site's
+ * public addresses for actors, discovery and inboxes, and its settings.
  */
 final class FediverseServiceProvider extends ServiceProvider
 {
@@ -38,6 +40,9 @@ final class FediverseServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Settings › Fediverse's own group; its switch is modules.fediverse.
+        $this->app->make(SettingsRegistrar::class)->group(FediverseSettingsGroup::group());
+
         if ($this->app->routesAreCached()) {
             return;
         }
