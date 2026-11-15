@@ -33,15 +33,15 @@ function FigureTile({ figure }: { figure: SiteFigure }) {
 }
 
 /**
- * The site's figures as a row of tiles: 5 across from 1024, 3 from 640, 2 on
- * a phone. Each tile links to its list when the person may open it.
+ * The site's figures as a row of tiles: 5 across from 1024, 3 from 768, 2
+ * under 768. Each tile links to its list when the person may open it.
  */
 export function SiteFigures({ figures }: { figures: SiteFigure[] }) {
     return (
         <nav
             aria-label={__('Site figures')}
             data-test="site-figures"
-            className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+            className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5"
         >
             {figures.map((figure) => (
                 <FigureTile key={figure.key} figure={figure} />

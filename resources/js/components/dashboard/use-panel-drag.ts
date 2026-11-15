@@ -39,8 +39,8 @@ export function usePanelDrag(
             return;
         }
 
-        // Left and right in a grid that flows in reading order; top and bottom in one column.
-        const edges: Edge[] = window.matchMedia('(min-width: 40rem)').matches
+        // Left and right when small and medium sit side by side (md / 768); top and bottom in one column.
+        const edges: Edge[] = window.matchMedia('(min-width: 48rem)').matches
             ? ['left', 'right']
             : ['top', 'bottom'];
 

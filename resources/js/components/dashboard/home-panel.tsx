@@ -220,7 +220,7 @@ export function HomePanel({
                                 onValueChange={(next) =>
                                     onResize(next as PanelSize)
                                 }
-                                className="max-sm:hidden"
+                                className="max-md:hidden"
                                 data-control="size"
                             >
                                 {(
