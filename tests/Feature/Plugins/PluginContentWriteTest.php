@@ -6,10 +6,12 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Hooks\HookDispatcher;
+use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginLoader;
+use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -51,7 +53,10 @@ beforeEach(function (): void {
     ];
 });
 
-afterEach(fn () => PluginFixtures::forget());
+afterEach(function (): void {
+    PluginFixtures::forget();
+    app(CurrentJobActor::class)->clear();
+});
 
 it('offers ContentWriter only when content.write is granted, and a plugin asking for it without that grant fails to start', function (): void {
     $doors = app(PluginDoors::class);
@@ -220,6 +225,28 @@ it('refuses when a contributor’s request asks to act for an administrator, and
     $this->actingAs($contributor);
 
     expect(fn () => $writer->create(new NewItem('post', 'Hijack', ['type' => 'doc', 'content' => []]), (string) $admin->id))
+        ->toThrow(WriteRefused::class)
+        ->and(($this->counts)())->toBe($before);
+});
+
+it('writes for the person in CurrentJobActor, refuses another, and refuses when the holder is cleared', function (): void {
+    $contributor = User::factory()->create()->assignRole('contributor');
+    $admin = User::factory()->create()->assignRole('administrator');
+    $writer = ($this->door)();
+    $holder = app(CurrentJobActor::class);
+    $holder->set(JobActor::person($contributor->id));
+
+    $item = $writer->create(new NewItem('post', 'From job', ['type' => 'doc', 'content' => []]), (string) $contributor->id);
+    $before = ($this->counts)();
+
+    expect($item->title)->toBe('From job')
+        ->and(fn () => $writer->create(new NewItem('post', 'Hijack', ['type' => 'doc', 'content' => []]), (string) $admin->id))
+        ->toThrow(WriteRefused::class)
+        ->and(($this->counts)())->toBe($before);
+
+    $holder->clear();
+
+    expect(fn () => $writer->create(new NewItem('post', 'After clear', ['type' => 'doc', 'content' => []]), (string) $contributor->id))
         ->toThrow(WriteRefused::class)
         ->and(($this->counts)())->toBe($before);
 });

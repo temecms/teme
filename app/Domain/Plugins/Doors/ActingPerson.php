@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
 
-use App\Domain\Support\Security\JobActor;
 use App\Domain\Users\Actors;
 use Illuminate\Support\Facades\Auth;
 use Teme\Contracts\Content\WriteRefused;
 
 /**
- * Who a plugin may write for: only the signed-in person of the current
- * request, or the person recorded on the queued job (JobActor). Anything
- * else is refused before a lookup.
+ * Who a plugin may write for: only the person on CurrentJobActor when a job
+ * is running, otherwise the signed-in person of the current request.
  */
 final class ActingPerson
 {
@@ -40,14 +38,15 @@ final class ActingPerson
     }
 
     /**
-     * The signed-in person, or the job's person when a JobActor is bound.
+     * The job's person when CurrentJobActor holds one; otherwise the
+     * signed-in request person.
      */
     private static function currentId(): ?string
     {
-        if (app()->bound(JobActor::class)) {
-            $actor = app(JobActor::class);
+        $job = app(CurrentJobActor::class)->get();
 
-            return $actor->isOperator() ? null : $actor->userId;
+        if ($job !== null) {
+            return $job->isOperator() ? null : $job->userId;
         }
 
         $id = Auth::id();
