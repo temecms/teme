@@ -199,6 +199,25 @@ it('creates a missing term by name through CreateTerm', function (): void {
         ->and(Content::query()->findOrFail($item->id)->workingRevision->terms)->toBe([(string) $term->id]);
 });
 
+it('rolls back a new term when the draft is refused', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    $writer = ($this->door)();
+    $before = ($this->counts)();
+    $termsBefore = Term::query()->count();
+
+    expect(fn () => $writer->create(new NewItem(
+        type: 'nope',
+        title: 'Bad type',
+        body: ['type' => 'doc', 'content' => []],
+        terms: ['category' => ['Orphan Term']],
+    ), (string) $editor->id))
+        ->toThrow(WriteRefused::class)
+        ->and(($this->counts)())->toBe($before)
+        ->and(Term::query()->count())->toBe($termsBefore)
+        ->and(Term::query()->where('name', 'Orphan Term')->exists())->toBeFalse();
+});
+
 it('refuses creating a term when the person may not, and writes nothing', function (): void {
     $contributor = User::factory()->create()->assignRole('contributor');
     $this->actingAs($contributor);

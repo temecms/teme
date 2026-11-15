@@ -22,6 +22,7 @@ use App\Domain\Taxonomy\Operations\CreateTerm;
 use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
 use DateTimeImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
@@ -45,16 +46,18 @@ final readonly class PluginContentWriter implements ContentWriter
         $this->person($actingPersonId);
 
         try {
-            $content = app(CreateDraft::class)->execute(new CreateDraftInput(
-                type: $item->type,
-                title: $item->title,
-                document: $item->body,
-                fields: $this->fields($item->type, $item->fields, $item->featuredImage),
-                actorId: $actingPersonId,
-                terms: $this->terms($item->terms, $actingPersonId),
-                language: $item->language,
-                via: $this->code,
-            ));
+            $content = DB::transaction(function () use ($item, $actingPersonId) {
+                return app(CreateDraft::class)->execute(new CreateDraftInput(
+                    type: $item->type,
+                    title: $item->title,
+                    document: $item->body,
+                    fields: $this->fields($item->type, $item->fields, $item->featuredImage),
+                    actorId: $actingPersonId,
+                    terms: $this->terms($item->terms, $actingPersonId),
+                    language: $item->language,
+                    via: $this->code,
+                ));
+            });
         } catch (Throwable $failure) {
             $this->refuse($failure);
         }
@@ -89,21 +92,23 @@ final readonly class PluginContentWriter implements ContentWriter
                 $changes->featuredImage,
                 $currentFields,
             );
-        $terms = $changes->terms === null
-            ? array_map('strval', (array) $revision->terms)
-            : $this->terms($changes->terms, $actingPersonId);
-
         try {
-            $content = app(SaveDraft::class)->execute(new SaveDraftInput(
-                contentId: (string) $content->id,
-                title: $title,
-                document: $body,
-                fields: $fields,
-                expectedRevisionId: (string) $content->working_revision_id,
-                actorId: $actingPersonId,
-                terms: $terms,
-                via: $this->code,
-            ));
+            $content = DB::transaction(function () use ($content, $revision, $changes, $title, $body, $fields, $actingPersonId) {
+                $terms = $changes->terms === null
+                    ? array_map('strval', (array) $revision->terms)
+                    : $this->terms($changes->terms, $actingPersonId);
+
+                return app(SaveDraft::class)->execute(new SaveDraftInput(
+                    contentId: (string) $content->id,
+                    title: $title,
+                    document: $body,
+                    fields: $fields,
+                    expectedRevisionId: (string) $content->working_revision_id,
+                    actorId: $actingPersonId,
+                    terms: $terms,
+                    via: $this->code,
+                ));
+            });
         } catch (Throwable $failure) {
             $this->refuse($failure);
         }
