@@ -64,6 +64,8 @@ Cloudflare caches no HTML until you tell it to. Make two Cache Rules, once, in t
 1. **Eligible for cache**, for the site's host. Set its Edge TTL to *Use cache-control header if present, bypass cache if not*. Teme sends the life each page has left in a header Cloudflare reads before any other.
 2. **Bypass cache**, when the cookie contains `teme_auth`. Teme sets that cookie when someone signs in. Without this rule Cloudflare serves its copy even to a signed-in editor.
 
+If the site is on the fediverse, make a third rule: **Bypass cache**, when the `Accept` header contains `activity+json` or `ld+json`. Other servers ask for the site's accounts at some of the same addresses as its pages, and must always get Teme's answer, never a cached page.
+
 Never cache /up: the health check and the updater read it live.
 
 ## SSL mode
