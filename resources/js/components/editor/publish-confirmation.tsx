@@ -9,6 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 
 /** A first publication waiting for its confirmation: what it does, to which saved revision, and when. */
@@ -63,22 +64,25 @@ export function PublishConfirmation({
                 <DialogHeader>
                     <DialogTitle>{heading}</DialogTitle>
                     <DialogDescription>
-                        The checks on this {noun}, as it was just saved.
-                        Warnings don’t stop you.
+                        {__(
+                            'The checks on this :noun, as it was just saved. Warnings don’t stop you.',
+                            { noun },
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <p className="font-medium">{title}</p>
                 {action === 'schedule' && confirming?.runAt && (
-                    <p className="text-[13px]">
-                        It publishes{' '}
-                        {formatInZone(confirming.runAt, siteTimezone)} (
-                        {siteTimezone}).
+                    <p className="text-small">
+                        {__('It publishes :when (:zone).', {
+                            when: formatInZone(confirming.runAt, siteTimezone),
+                            zone: siteTimezone,
+                        })}
                     </p>
                 )}
                 <CheckList checks={checks} testId="confirmation-checks" />
                 <DialogFooter>
                     <Button type="button" variant="outline" onClick={onCancel}>
-                        Cancel
+                        {__('Cancel')}
                     </Button>
                     <Button
                         type="button"

@@ -1,10 +1,11 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
-import { useRef, useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
+import { __ } from '@/lib/i18n';
 import { CardFrame, TextSetting } from './card-frame';
-import { useCardEnvironment } from './card-environment';
+import { useCardEnvironment, useUploadTarget } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 import type { PlayableMedia } from './media-file';
+import { useMediaPicker } from '../pick-media';
+import type { MediaPickerOptions } from '../pick-media';
 
 type AudioAttrs = {
     mediaId: string | null;
@@ -12,7 +13,7 @@ type AudioAttrs = {
     transcript: string | null;
 };
 
-const MUTED = 'text-ink-2 mt-1.5 text-[13px]';
+const MUTED = 'text-ink-2 mt-2 text-small';
 
 /**
  * An audio card as it will play: the browser's player, the caption, and the
@@ -30,22 +31,35 @@ export function AudioCard({
     const item = attrs.mediaId
         ? (media[attrs.mediaId] as PlayableMedia | undefined)
         : undefined;
-    const [choosing, setChoosing] = useState(!attrs.mediaId);
-    const chose = useRef(false);
+    const uploadedFor = useUploadTarget();
+    const pick = (replacing: boolean): MediaPickerOptions => ({
+        caller: 'choose',
+        multi: false,
+        kinds: ['audio'],
+        action: replacing ? __('Replace audio') : __('Insert audio'),
+        uploadedFor,
+        onInsert: (ids) => {
+            void addMedia(ids);
+            updateAttributes({ mediaId: ids[0] });
+        },
+        // A new card closed without a choice is removed, as the Image card is.
+        onClose: replacing ? undefined : deleteNode,
+    });
+    const { open, picker } = useMediaPicker(attrs.mediaId ? null : pick(false));
     const transcript = (attrs.transcript ?? '').trim();
 
     return (
         <>
             <CardFrame
-                label="Audio"
+                label={__('Audio')}
                 selected={selected}
                 warning={
                     item !== undefined && transcript === ''
-                        ? { label: 'No transcript' }
+                        ? { label: __('No transcript') }
                         : null
                 }
-                onReplace={() => setChoosing(true)}
-                replaceLabel="Replace audio"
+                onReplace={() => open(pick(attrs.mediaId !== null))}
+                replaceLabel={__('Replace audio')}
                 onRemove={deleteNode}
                 settings={
                     <AudioSettings
@@ -70,49 +84,34 @@ export function AudioCard({
                         {transcript !== '' && (
                             <p className={`${MUTED} line-clamp-2`}>
                                 <span className="text-ink font-medium">
-                                    Transcript
+                                    {__('Transcript')}
                                 </span>{' '}
                                 {transcript}
                             </p>
                         )}
                     </figure>
                 ) : item ? (
-                    <p className="text-ink-2 text-[13px]">
-                        This file isn’t audio, so the site shows nothing here.
-                        Replace it or remove the card.
+                    <p className="text-ink-2 text-small">
+                        {__(
+                            'This file isn’t audio, so the site shows nothing here. Replace it or remove the card.',
+                        )}
                     </p>
                 ) : attrs.mediaId && loading.includes(attrs.mediaId) ? (
                     <div
                         aria-busy="true"
-                        className="bg-surface-2 h-[54px] w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 h-13.5 w-full rounded-sm motion-safe:animate-pulse"
                     />
                 ) : (
-                    <p className="text-ink-2 text-[13px]">
+                    <p className="text-ink-2 text-small">
                         {attrs.mediaId
-                            ? 'This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.'
-                            : 'Choose an audio file from the library.'}
+                            ? __(
+                                  'This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.',
+                              )
+                            : __('Choose an audio file from the library.')}
                     </p>
                 )}
             </CardFrame>
-            <MediaModal
-                open={choosing}
-                onOpenChange={(open) => {
-                    setChoosing(open);
-
-                    if (!open && !chose.current && !attrs.mediaId) {
-                        deleteNode();
-                    }
-
-                    chose.current = false;
-                }}
-                kinds={['audio']}
-                action={attrs.mediaId ? 'Replace audio' : 'Insert audio'}
-                onChoose={(ids) => {
-                    chose.current = true;
-                    void addMedia(ids);
-                    updateAttributes({ mediaId: ids[0] });
-                }}
-            />
+            {picker}
         </>
     );
 }
@@ -124,13 +123,15 @@ export function AudioSettings({ attrs: raw, update }: CardSettingsProps) {
     return (
         <>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => update({ caption })}
             />
             <TextSetting
-                label="Transcript"
-                hint="Everything said, in words, for people who can’t hear it. A blank line starts a new paragraph. Readers open it under the player."
+                label={__('Transcript')}
+                hint={__(
+                    'Everything said, in words, for people who can’t hear it. A blank line starts a new paragraph. Readers open it under the player.',
+                )}
                 value={attrs.transcript}
                 onChange={(transcript) => update({ transcript })}
                 multiline

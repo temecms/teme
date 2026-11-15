@@ -21,7 +21,7 @@ export function FeaturedImage({
             aria-labelledby="editor-featured-label"
             className="grid grid-cols-[minmax(0,1fr)] gap-2"
         >
-            <span id="editor-featured-label" className="text-sm font-medium">
+            <span id="editor-featured-label" className="text-small font-medium">
                 {field.label}
             </span>
             <MediaControl
@@ -30,9 +30,9 @@ export function FeaturedImage({
                 onChange={onChange}
                 id="editor-featured"
                 idPrefix="editor-featured"
-                chooseAction="Use as featured image"
+                featured
             />
-            <p className="text-ink-2 text-xs">{field.description}</p>
+            <p className="text-ink-2 text-caption">{field.description}</p>
         </section>
     );
 }

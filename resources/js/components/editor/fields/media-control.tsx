@@ -1,11 +1,13 @@
 import { ImageIcon } from 'lucide-react';
-import { useState } from 'react';
 import { useFieldControlContext } from '@/components/editor/fields/field-control';
 import type { FieldControlProps } from '@/components/editor/fields/field-control';
-import { MediaModal } from '@/components/media/media-modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useUploadTarget } from '@/components/editor/cards/card-environment';
+import { useMediaPicker } from '@/components/editor/pick-media';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import type { CardMedia } from '@/types';
 
@@ -44,14 +46,28 @@ export function MediaControl({
     onChange,
     id,
     idPrefix = id,
-    chooseAction = 'Use this image',
+    featured: isFeatured = false,
 }: FieldControlProps & {
     idPrefix?: string;
-    /** The words on the library's button, such as "Use as featured image". */
-    chooseAction?: string;
+    /** The featured image's own picker: its title and "Set featured image". */
+    featured?: boolean;
 }) {
     const { media, loading, addMedia, noun } = useFieldControlContext();
-    const [choosing, setChoosing] = useState(false);
+    const uploadedFor = useUploadTarget();
+    const { open, picker } = useMediaPicker();
+    const choose = () =>
+        open({
+            caller: isFeatured ? 'featured' : 'choose',
+            multi: false,
+            action: isFeatured
+                ? undefined
+                : __('Use as :name', { name: field.label.toLowerCase() }),
+            uploadedFor,
+            onInsert: (ids) => {
+                void addMedia(ids);
+                onChange({ id: ids[0], alt: '', decorative: false });
+            },
+        });
     const allowsDecorative = field.settings.allowsDecorative === true;
     const featured = imageOf(value, allowsDecorative);
     const item: CardMedia | undefined = featured
@@ -71,15 +87,16 @@ export function MediaControl({
     return (
         <>
             {featured === null ? (
-                <button
+                <Button
                     id={`${idPrefix}-choose`}
                     type="button"
-                    onClick={() => setChoosing(true)}
-                    className="border-edge text-ink-2 hover:bg-surface-3 focus-visible:ring-ring flex h-24 items-center justify-center gap-2 rounded-md border border-dashed text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
+                    variant="ghost"
+                    onClick={choose}
+                    className="border-edge text-ink-2 hover:bg-surface-3 text-small h-24 w-full border border-dashed [&_svg]:size-4"
                 >
                     <ImageIcon />
-                    Choose an image
-                </button>
+                    {__('Choose an image')}
+                </Button>
             ) : (
                 <div className="border-edge bg-surface grid gap-4 rounded-md border p-3 sm:grid-cols-[190px_minmax(0,1fr)]">
                     <figure className="m-0 grid content-start gap-1">
@@ -96,17 +113,17 @@ export function MediaControl({
                         ) : loading.includes(featured.id) ? (
                             <div
                                 aria-busy="true"
-                                className="bg-surface-2 aspect-[3/2] w-full animate-pulse rounded-sm"
+                                className="bg-surface-2 aspect-[3/2] w-full rounded-sm motion-safe:animate-pulse"
                             />
                         ) : (
-                            <p className="text-ink-2 text-[13px]">
-                                This image is no longer in the library.
+                            <p className="text-ink-2 text-small">
+                                {__('This image is no longer in the library.')}
                             </p>
                         )}
                         {item && (item.credit || item.licence) && (
                             <figcaption
                                 data-test="featured-credit"
-                                className="text-ink-2 text-[11px] leading-snug"
+                                className="text-ink-2 text-caption leading-snug"
                             >
                                 {[item.credit, item.licence]
                                     .filter((part) => part)
@@ -123,13 +140,13 @@ export function MediaControl({
                                 <span
                                     aria-hidden
                                     data-test="alt-missing"
-                                    className="bg-warn-soft text-warn-ink rounded-sm px-1.5 py-0.5 text-[11px] font-medium"
+                                    className="bg-warn-soft text-warn-ink text-caption rounded-sm px-1.5 py-0.5 font-medium"
                                 >
-                                    Missing
+                                    {__('Missing')}
                                 </span>
                             )}
                         </div>
-                        <input
+                        <Input
                             id={`${idPrefix}-alt`}
                             aria-describedby={`${idPrefix}-alt-hint`}
                             disabled={featured.decorative || undefined}
@@ -140,15 +157,22 @@ export function MediaControl({
                                     alt: event.target.value,
                                 })
                             }
-                            className="border-edge bg-surface focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
+                            className="text-small h-8.5"
                         />
                         <p
                             id={`${idPrefix}-alt-hint`}
-                            className="text-ink-2 text-xs"
+                            className="text-ink-2 text-caption"
                         >
                             {item?.alt
-                                ? `Leave empty to use the library’s: “${item.alt}”.`
-                                : 'The library has no alt text for this image, so write one here.'}
+                                ? __(
+                                      'Leave empty to use the library’s: “:alt”.',
+                                      {
+                                          alt: item.alt,
+                                      },
+                                  )
+                                : __(
+                                      'The library has no alt text for this image, so write one here.',
+                                  )}
                         </p>
                         {allowsDecorative && (
                             <div className="flex items-center gap-2">
@@ -163,8 +187,9 @@ export function MediaControl({
                                     }
                                 />
                                 <Label htmlFor={`${idPrefix}-decorative`}>
-                                    Decorative: it adds nothing a reader would
-                                    miss
+                                    {__(
+                                        'Decorative: it adds nothing a reader would miss',
+                                    )}
                                 </Label>
                             </div>
                         )}
@@ -173,9 +198,9 @@ export function MediaControl({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setChoosing(true)}
+                                onClick={choose}
                             >
-                                Replace…
+                                {__('Replace…')}
                             </Button>
                             <Button
                                 type="button"
@@ -184,22 +209,13 @@ export function MediaControl({
                                 className="text-danger-ink"
                                 onClick={() => onChange(null)}
                             >
-                                Remove
+                                {__('Remove')}
                             </Button>
                         </div>
                     </div>
                 </div>
             )}
-            <MediaModal
-                open={choosing}
-                onOpenChange={setChoosing}
-                kinds={['image']}
-                action={chooseAction}
-                onChoose={(ids) => {
-                    void addMedia(ids);
-                    onChange({ id: ids[0], alt: '', decorative: false });
-                }}
-            />
+            {picker}
         </>
     );
 }

@@ -18,13 +18,13 @@ beforeEach(function (): void {
 
 it('names the item’s own type in the side panel, its screen-reader line and the stale dialog', function (): void {
     expect(($this->flat)('pages/content/edit.tsx'))
-        ->toContain('`${type?.singular ?? \'Item\'} settings`')
-        ->toContain("railNoun={themeRegion !== null ? 'region' : noun}")
+        ->toContain("__(':type settings', { type: type?.singular ?? __('Item'), })")
+        ->toContain("noun: themeRegion !== null ? 'region' : noun,")
         ->toContain("noun={themeRegion !== null ? 'region' : noun}")
         ->not->toContain('Article settings')
         ->not->toContain('changed this article')
-        ->and(($this->flat)('components/editor/editor-shell.tsx'))
-        ->toContain('{`The ${railNoun}’s settings`}')
+        ->and(($this->flat)('components/patterns/editor-page.tsx'))
+        ->toContain("__('The :noun’s settings', { noun: rail.noun, })")
         ->not->toContain("The article's settings")
         ->and(($this->flat)('components/editor/stale-dialog.tsx'))
         ->toContain('{`Someone else changed this ${noun}`}');

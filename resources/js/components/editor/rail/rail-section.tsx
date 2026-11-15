@@ -9,7 +9,7 @@ import {
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 
 /**
- * A rail section that collapses from its 48px header. Every section but
+ * A rail section that collapses from its 44px header. Every section but
  * Publish is one (I-230). Keeping the open state per person waits for I-194,
  * which preferences (1.5f) make possible and nothing has asked for yet.
  */
@@ -27,13 +27,13 @@ export function RailSection({
 
     return (
         <Collapsible open={open} onOpenChange={setOpen} asChild>
-            <Panel>
-                <PanelHeader>
+            <Panel data-slot="rail-section">
+                <PanelHeader className="min-h-0 p-0 px-2">
                     <CollapsibleTrigger
                         id={triggerId}
-                        className="focus-visible:ring-ring flex w-full items-center justify-between rounded-sm outline-none focus-visible:ring-2"
+                        className="focus-visible:ring-ring flex h-11 w-full items-center justify-between rounded-sm px-1 outline-none focus-visible:ring-2"
                     >
-                        <h2>{title}</h2>
+                        <h2 className="text-body font-semibold">{title}</h2>
                         <ChevronDown
                             aria-hidden
                             className="text-ink-2 size-4 transition-transform data-[open=false]:-rotate-90"
@@ -42,7 +42,7 @@ export function RailSection({
                     </CollapsibleTrigger>
                 </PanelHeader>
                 <CollapsibleContent>
-                    <PanelBody>{children}</PanelBody>
+                    <PanelBody className="px-3 pt-1 pb-4">{children}</PanelBody>
                 </CollapsibleContent>
             </Panel>
         </Collapsible>

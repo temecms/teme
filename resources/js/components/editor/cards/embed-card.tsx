@@ -2,6 +2,7 @@ import type { ReactNodeViewProps } from '@tiptap/react';
 import { SelectField } from '@/components/ui/select-field';
 import { variant } from '@/lib/media-urls';
 import type { CardManifest } from '@/types';
+import { __ } from '@/lib/i18n';
 import { CardField, CardFrame, TextSetting } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
@@ -55,9 +56,9 @@ export function EmbedCard({
 
     return (
         <CardFrame
-            label="Embed"
+            label={__('Embed')}
             selected={selected}
-            warning={url === '' ? { label: 'Needs an address' } : null}
+            warning={url === '' ? { label: __('Needs an address') } : null}
             onRemove={deleteNode}
             defaultOpen={url === ''}
             settings={
@@ -65,8 +66,8 @@ export function EmbedCard({
             }
         >
             {url === '' ? (
-                <p className="text-ink-2 text-[13px]">
-                    Paste the address of what to embed.
+                <p className="text-ink-2 text-small">
+                    {__('Paste the address of what to embed.')}
                 </p>
             ) : (
                 <div className="flex items-center gap-3">
@@ -81,15 +82,17 @@ export function EmbedCard({
                         <p className="truncate text-[14px] font-semibold">
                             {attrs.title || url}
                         </p>
-                        <p className="text-ink-2 truncate text-xs">
+                        <p className="text-ink-2 text-caption truncate">
                             {attrs.provider ?? hostOf(url)} ·{' '}
-                            {framed ? 'framed on the site' : 'shown as a link'}
+                            {framed
+                                ? __('framed on the site')
+                                : __('shown as a link')}
                         </p>
                     </div>
                 </div>
             )}
             {attrs.caption && (
-                <p className="text-ink-2 mt-1.5 text-[13px]">{attrs.caption}</p>
+                <p className="text-ink-2 text-small mt-2">{attrs.caption}</p>
             )}
         </CardFrame>
     );
@@ -107,10 +110,12 @@ export function EmbedSettings({
     return (
         <>
             <TextSetting
-                label="Address"
-                hint="A video, a track or a post. Addresses from providers the site does not frame show as a link."
+                label={__('Address')}
+                hint={__(
+                    'A video, a track or a post. Addresses from providers the site does not frame show as a link.',
+                )}
                 value={url}
-                placeholder="https://"
+                placeholder={__('https://')}
                 onChange={(next) =>
                     updateAttributes({
                         url: next,
@@ -118,25 +123,25 @@ export function EmbedSettings({
                     })
                 }
             />
-            <CardField label="Kind">
+            <CardField label={__('Kind')}>
                 {(props) => (
                     <SelectField
                         {...props}
                         value={attrs.kind ?? 'link'}
                         onValueChange={(kind) => updateAttributes({ kind })}
                         options={optionsFor(manifest, 'embed', 'kind')}
-                        className="h-[34px] w-full max-w-40"
+                        className="h-8.5 w-full max-w-40"
                     />
                 )}
             </CardField>
             <TextSetting
-                label="Title"
-                hint="Read out for the frame, and shown on a link."
+                label={__('Title')}
+                hint={__('Read out for the frame, and shown on a link.')}
                 value={attrs.title}
                 onChange={(title) => updateAttributes({ title })}
             />
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => updateAttributes({ caption })}
             />

@@ -120,7 +120,7 @@ export function SaveState({
             data-state={words.kind}
             data-saved-at={savedAt ?? undefined}
             title={words.detail}
-            className="text-ink-2 inline-flex items-center gap-1.5 text-[11px] whitespace-nowrap"
+            className="text-ink-2 text-caption inline-flex items-center gap-2 whitespace-nowrap"
         >
             <span
                 aria-hidden

@@ -1,6 +1,8 @@
 import { NodeViewWrapper } from '@tiptap/react';
 import type { ReactNodeViewProps } from '@tiptap/react';
 import type { ComponentType } from 'react';
+import { __ } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
 import { AudioCard, AudioSettings } from './audio-card';
 import { ButtonCard, ButtonSettings } from './button-card';
 import { CalloutCard, CalloutSettings } from './callout-card';
@@ -53,14 +55,13 @@ export function UnknownCard({ node, selected }: ReactNodeViewProps) {
     return (
         <NodeViewWrapper
             data-card={node.type.name}
-            className={
-                'border-line bg-surface-2 text-ink-2 my-4 rounded-md border p-4 text-[13px]' +
-                (selected ? ' ring-ring ring-2' : '')
-            }
+            className={cn(
+                'bg-surface-2 text-small text-ink-2 my-2 rounded-lg p-4',
+                selected && 'outline-accent outline-2',
+            )}
             contentEditable={false}
         >
-            <span className="text-ink font-semibold">{node.type.name}</span>{' '}
-            card
+            {__(':name card', { name: node.type.name })}
         </NodeViewWrapper>
     );
 }

@@ -8,6 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { __ } from '@/lib/i18n';
 import type { StaleChange } from './use-autosave';
 
 type Node = { type?: string; text?: string; content?: Node[] };
@@ -94,24 +95,35 @@ export function StaleDialog({
                 <DialogHeader>
                     <DialogTitle>{`Someone else changed this ${noun}`}</DialogTitle>
                     <DialogDescription>
-                        {stale?.by ?? 'Someone'} saved a new version
-                        {when ? ` on ${when}` : ''}, so your changes were not
-                        saved over it. Your work is still here, on this page.
+                        {when
+                            ? __(
+                                  ':name saved a new version on :when, so your changes were not saved over it. Your work is still here, on this page.',
+                                  { name: stale?.by ?? __('Someone'), when },
+                              )
+                            : __(
+                                  ':name saved a new version, so your changes were not saved over it. Your work is still here, on this page.',
+                                  { name: stale?.by ?? __('Someone') },
+                              )}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-2 text-[13px]">
+                <div className="text-small grid gap-2">
                     <p>
-                        <strong>Copy my text</strong> puts your words on the
-                        clipboard.{' '}
+                        <strong>{__('Copy my text')}</strong>{' '}
+                        {__('puts your words on the clipboard.')}{' '}
                         {onSaveAsDraft && (
                             <>
-                                <strong>Save mine as a new draft</strong> keeps
-                                everything you have here in a draft of its
-                                own.{' '}
+                                <strong>
+                                    {__('Save mine as a new draft')}
+                                </strong>{' '}
+                                {__(
+                                    'keeps everything you have here in a draft of its own.',
+                                )}{' '}
                             </>
                         )}
-                        <strong>Open the current version</strong> shows theirs,
-                        and your unsaved changes here are lost.
+                        <strong>{__('Open the current version')}</strong>{' '}
+                        {__(
+                            'shows theirs, and your unsaved changes here are lost.',
+                        )}
                     </p>
                     {problem && (
                         <p role="alert" className="text-danger-ink">
@@ -132,12 +144,14 @@ export function StaleDialog({
                                     () => setCopied(true),
                                     () =>
                                         setProblem(
-                                            'The browser would not copy. Select the text and copy it yourself.',
+                                            __(
+                                                'The browser would not copy. Select the text and copy it yourself.',
+                                            ),
                                         ),
                                 );
                         }}
                     >
-                        {copied ? 'Copied' : 'Copy my text'}
+                        {copied ? __('Copied') : __('Copy my text')}
                     </Button>
                     {onSaveAsDraft && (
                         <Button
@@ -152,7 +166,7 @@ export function StaleDialog({
                                 });
                             }}
                         >
-                            Save mine as a new draft
+                            {__('Save mine as a new draft')}
                         </Button>
                     )}
                     <Button
@@ -162,7 +176,7 @@ export function StaleDialog({
                             window.location.reload();
                         }}
                     >
-                        Open the current version
+                        {__('Open the current version')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

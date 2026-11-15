@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 
 /**
  * A ready request whose answer is several fields' proposals (I-1313): each
@@ -30,8 +31,8 @@ export function FieldsProposed({
         <div className="grid gap-2">
             <p>
                 {here
-                    ? 'The proposals are under their fields.'
-                    : 'There’s no field here for these proposals.'}
+                    ? __('The proposals are under their fields.')
+                    : __('There’s no field here for these proposals.')}
             </p>
             <div className="flex gap-2">
                 {here && (
@@ -41,7 +42,7 @@ export function FieldsProposed({
                         data-test="ai-show"
                         onClick={show}
                     >
-                        Show them
+                        {__('Show them')}
                     </Button>
                 )}
                 <Button
@@ -50,7 +51,7 @@ export function FieldsProposed({
                     data-test="ai-discard"
                     onClick={onDiscard}
                 >
-                    Discard
+                    {__('Discard')}
                 </Button>
             </div>
         </div>

@@ -1,5 +1,6 @@
 import { FIELD_CONTROLS } from '@/components/editor/fields/controls';
 import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
 import type { EditorField } from '@/types/editor';
 
 /**
@@ -44,13 +45,15 @@ export function DetailsSection({
             <div className="grid gap-1">
                 <h2
                     id="editor-details-heading"
-                    className="text-sm font-semibold"
+                    className="text-small font-semibold"
                 >
-                    Details
+                    {__('Details')}
                 </h2>
-                <p className="text-ink-2 text-xs">
-                    What every {noun} records. Fields are set up in Site › Types
-                    › {plural}.
+                <p className="text-ink-2 text-caption">
+                    {__(
+                        'What every :noun records. Fields are set up in Site › Types › :plural.',
+                        { noun, plural },
+                    )}
                 </p>
             </div>
             {shown.map((field) => {
@@ -77,8 +80,8 @@ export function DetailsSection({
                                     {field.label}
                                 </Label>
                                 {field.required && (
-                                    <span className="bg-surface-2 text-ink-2 rounded-sm px-1.5 py-0.5 text-[11px] font-medium">
-                                        Required
+                                    <span className="bg-surface-2 text-ink-2 text-caption rounded-sm px-2 py-1 font-medium">
+                                        {__('Required')}
                                     </span>
                                 )}
                             </div>
@@ -101,7 +104,10 @@ export function DetailsSection({
                             />
                         </div>
                         {help && (
-                            <p id={`${id}-help`} className="text-ink-2 text-xs">
+                            <p
+                                id={`${id}-help`}
+                                className="text-ink-2 text-caption"
+                            >
                                 {field.description}
                             </p>
                         )}
@@ -109,7 +115,7 @@ export function DetailsSection({
                             <p
                                 id={`${id}-error`}
                                 role="alert"
-                                className="text-danger-ink text-xs"
+                                className="text-danger-ink text-caption"
                             >
                                 {error}
                             </p>

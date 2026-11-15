@@ -19,6 +19,7 @@ import {
     socialCard,
 } from '@/lib/search-preview';
 import type { Listing, PreviewInput } from '@/lib/search-preview';
+import { __ } from '@/lib/i18n';
 import { textWidth } from '@/lib/text-width';
 import { fillTitle } from '@/lib/title-template';
 import type { CardMedia, EditorSeo, EditorSession } from '@/types/editor';
@@ -79,7 +80,7 @@ export function useSearchPreview({
 }): SearchPreview {
     return useMemo(() => {
         const preview: PreviewInput = {
-            title: titleText.trim() || 'Untitled',
+            title: titleText.trim() || __('Untitled'),
             fields: values,
             document,
             seo,

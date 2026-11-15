@@ -53,6 +53,8 @@ it('asks from Search and social and puts each proposal under its field, the exce
         ->assertSeeIn('[data-ai-proposal="seo_title"]', mdValues()['seo_title'])
         ->assertSeeIn('[data-ai-proposal="meta_description"]', mdValues()['meta_description'])
         ->assertSeeIn('[data-ai-proposal="excerpt"]', mdValues()['excerpt'])
+        // The social proposals wait under their fields on the Social tab.
+        ->click('[data-test="search-section"] [role="tab"]:text-is("Social")')
         ->assertSeeIn('[data-ai-proposal="social_title"]', mdValues()['social_title'])
         ->assertSeeIn('[data-ai-proposal="social_description"]', mdValues()['social_description'])
         ->assertScript('(() => { const field = document.querySelector("#editor-excerpt"); const proposal = document.querySelector("[data-ai-proposal=excerpt]"); const body = document.querySelector("[data-slot=editor-body]"); return Boolean(field.compareDocumentPosition(proposal) & Node.DOCUMENT_POSITION_FOLLOWING) && Boolean(proposal.compareDocumentPosition(body) & Node.DOCUMENT_POSITION_FOLLOWING); })()')

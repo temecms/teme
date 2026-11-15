@@ -73,7 +73,9 @@ it('lists the regions kept from other themes under an open Unplaced heading, wit
 
 it('heads a region\'s editor in its column with its name, its theme and what it takes, and keeps the header bar to the way back', function (): void {
     expect(uiComponent('pages/content/edit.tsx'))
-        ->toContain('title={`Region: ${themeRegion.label}, used by ${themeRegion.themeName}`}')
+        ->toContain("title={__('Region: :label, used by :theme', {")
+        ->toContain('theme: themeRegion.themeName,')
+        ->toContain('label: themeRegion.label,')
         ->toContain('description={themeRegion.takes}')
         ->and(uiComponent('components/editor/editor-header.tsx'))
         ->not->toContain('title?: string');

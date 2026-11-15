@@ -2,8 +2,10 @@ import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLinkTargets } from '@/components/editor/use-link-targets';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
 import { canonicalAddressProblem } from '@/lib/search-preview';
 import type { EditorSeo, LinkedContent } from '@/types/editor';
 import { shownTitle, quotedTitle } from '@/lib/titles';
@@ -59,7 +61,7 @@ function Choice({
     return (
         <label
             htmlFor={id}
-            className="flex min-h-6 items-center gap-2 text-[13px]"
+            className="text-small flex min-h-6 items-center gap-2"
         >
             <input
                 id={id}
@@ -140,48 +142,53 @@ export function CanonicalChoice({
             aria-describedby="editor-canonical-hint"
             className="grid gap-1"
         >
-            <legend className="mb-1 text-sm leading-none font-medium">
+            <legend className="text-small mb-1 leading-none font-medium">
                 Canonical address
             </legend>
-            <p id="editor-canonical-hint" className="text-ink-2 mb-1 text-xs">
+            <p
+                id="editor-canonical-hint"
+                className="text-ink-2 text-caption mb-1"
+            >
                 Where the original of this {noun} lives, if it was first
                 published elsewhere. Search engines are then asked to list the
                 original instead.
                 {!listed &&
-                    ' While it’s hidden from search engines, it has no canonical link.'}
+                    ` ${__('While it’s hidden from search engines, it has no canonical link.')}`}
             </p>
             <Choice
                 id="editor-canonical-self"
                 checked={kind === 'self'}
                 onSelect={() => choose('self')}
             >
-                This {noun}’s own address
+                {__('This :noun’s own address', { noun })}
             </Choice>
             <Choice
                 id="editor-canonical-item"
                 checked={kind === 'item'}
                 onSelect={() => choose('item')}
             >
-                Another item on this site
+                {__('Another item on this site')}
             </Choice>
             {kind === 'item' && (
-                <div className="grid gap-1.5 pb-1 pl-6">
+                <div className="grid gap-2 pb-1 pl-6">
                     <Label
                         htmlFor="editor-canonical-search"
                         className="sr-only"
                     >
-                        Find the item that is the original
+                        {__('Find the item that is the original')}
                     </Label>
                     <Input
                         id="editor-canonical-search"
-                        placeholder="Search by title"
+                        placeholder={__('Search by title')}
                         autoComplete="off"
                         value={query}
                         onChange={(event) => setQuery(event.target.value)}
                     />
                     {query.trim() !== '' && targets.length === 0 && (
-                        <p className="text-ink-2 text-xs">
-                            Nothing matches “{query.trim()}”.
+                        <p className="text-ink-2 text-caption">
+                            {__('Nothing matches “:query”.', {
+                                query: query.trim(),
+                            })}
                         </p>
                     )}
                     {targets.length > 0 && query.trim() !== '' && (
@@ -194,8 +201,10 @@ export function CanonicalChoice({
 
                                 return (
                                     <li key={target.id}>
-                                        <button
+                                        <Button
                                             type="button"
+                                            variant="ghost"
+                                            size="xs"
                                             data-test="canonical-option"
                                             onClick={() => {
                                                 onChoose({
@@ -210,17 +219,22 @@ export function CanonicalChoice({
                                                 onChange({ item: target.id });
                                                 setQuery('');
                                             }}
-                                            className="hover:bg-surface-3 focus-visible:ring-ring flex min-h-6 w-full items-baseline gap-2 rounded-sm px-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
+                                            className="text-ink h-auto min-h-6 w-full items-baseline justify-start rounded-sm text-left font-normal whitespace-normal"
                                         >
                                             <span>
                                                 {shownTitle(target.title)}
                                             </span>
-                                            <span className="text-ink-2 text-xs">
+                                            <span className="text-ink-2 text-caption">
                                                 {target.status === 'published'
                                                     ? singular
-                                                    : `${singular}, not published`}
+                                                    : __(
+                                                          ':type, not published',
+                                                          {
+                                                              type: singular,
+                                                          },
+                                                      )}
                                             </span>
-                                        </button>
+                                        </Button>
                                     </li>
                                 );
                             })}
@@ -230,21 +244,29 @@ export function CanonicalChoice({
                         <>
                             <p
                                 data-test="canonical-chosen"
-                                className="text-[13px]"
+                                className="text-small"
                             >
-                                Chosen: {quotedTitle(chosen.title)}
+                                {__('Chosen: :title', {
+                                    title: quotedTitle(chosen.title),
+                                })}
                             </p>
-                            <p className="text-ink-2 text-xs">
-                                The link follows it if its address changes.
+                            <p className="text-ink-2 text-caption">
+                                {__(
+                                    'The link follows it if its address changes.',
+                                )}
                             </p>
                             {chosen.state === 'unpublished' && (
                                 <p
                                     data-test="canonical-note"
-                                    className="text-ink-2 text-xs"
+                                    className="text-ink-2 text-caption"
                                 >
-                                    “{quotedTitle(chosen.title)}” isn’t
-                                    published, so search engines are sent to
-                                    this {noun} until it is.
+                                    {__(
+                                        '“:title” isn’t published, so search engines are sent to this :noun until it is.',
+                                        {
+                                            title: quotedTitle(chosen.title),
+                                            noun,
+                                        },
+                                    )}
                                 </p>
                             )}
                         </>
@@ -256,17 +278,17 @@ export function CanonicalChoice({
                 checked={kind === 'address'}
                 onSelect={() => choose('address')}
             >
-                An address on another site
+                {__('An address on another site')}
             </Choice>
             {kind === 'address' && (
-                <div className="grid gap-1.5 pb-1 pl-6">
+                <div className="grid gap-2 pb-1 pl-6">
                     <Label htmlFor="editor-canonical-url" className="sr-only">
-                        The address of the original
+                        {__('The address of the original')}
                     </Label>
                     <Input
                         id="editor-canonical-url"
                         type="url"
-                        placeholder="https://example.com/original-story"
+                        placeholder={__('https://example.com/original-story')}
                         spellCheck={false}
                         autoComplete="off"
                         aria-describedby="editor-canonical-url-error"
@@ -279,17 +301,21 @@ export function CanonicalChoice({
                     <p
                         id="editor-canonical-url-error"
                         role="alert"
-                        className="text-danger-ink text-xs"
+                        className="text-danger-ink text-caption"
                     >
                         {text.trim() !== '' ? problem : null}
                     </p>
                 </div>
             )}
             {gone && (
-                <p data-test="canonical-note" className="text-ink-2 text-xs">
-                    The item chosen before is in the trash or was deleted, so
-                    this {noun}’s own address is back in use. Choose another if
-                    you need one.
+                <p
+                    data-test="canonical-note"
+                    className="text-ink-2 text-caption"
+                >
+                    {__(
+                        'The item chosen before is in the trash or was deleted, so this :noun’s own address is back in use. Choose another if you need one.',
+                        { noun },
+                    )}
                 </p>
             )}
         </fieldset>

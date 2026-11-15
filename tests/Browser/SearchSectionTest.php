@@ -45,6 +45,13 @@ beforeEach(function (): void {
     // Waits until an element's words include these.
     $this->shows = fn (mixed $page, string $selector, string $text): mixed => cmWaitUntil($page, '(document.querySelector('.json_encode($selector, JSON_THROW_ON_ERROR).")?.innerText ?? '').includes(".json_encode($text, JSON_THROW_ON_ERROR).')');
 
+    // Shows one of the box's tabs, by its name (I-3415).
+    $this->tab = function (mixed $page, string $name): mixed {
+        $page->click('[data-test="search-section"] [role="tab"]:text-is("'.$name.'")');
+
+        return cmWaitUntil($page, "document.querySelector('[data-test=\"search-section\"] [role=\"tab\"][aria-selected=\"true\"]')?.textContent.trim() === ".json_encode($name, JSON_THROW_ON_ERROR));
+    };
+
     // Warm the screen before the browser's first visit (I-638).
     $this->actingAs($this->editor)->get($this->edit)->assertOk();
 });
@@ -76,10 +83,14 @@ it('shows the search result and the social card as the SEO fields are typed, wit
         ->assertSeeIn('[data-test="serp"]', 'Ferry fares rise in the spring')
         ->assertSeeIn('#editor-seo-title-count', '30 characters, about')
         ->assertDontSeeIn('#editor-seo-title-count', 'Results will cut it.')
-        ->type('#editor-seo-description', 'What the new fares mean for the island’s commuters.')
-        ->assertSeeIn('[data-test="social-card"]', 'What the new fares mean for the island’s commuters.')
-        ->assertSeeIn('[data-test="social-from"]', 'Made from the SEO title and the meta description, with no image.')
-        ->type('#editor-seo-title', $long)
+        ->type('#editor-seo-description', 'What the new fares mean for the island’s commuters.');
+
+    // The social card is on the Social tab.
+    ($this->tab)($page, 'Social');
+    $page->assertSeeIn('[data-test="social-card"]', 'What the new fares mean for the island’s commuters.')
+        ->assertSeeIn('[data-test="social-from"]', 'Made from the SEO title and the meta description, with no image.');
+    ($this->tab)($page, 'Search');
+    $page->type('#editor-seo-title', $long)
         ->assertSeeIn('#editor-seo-title-count', 'Results will cut it.')
         ->assertSeeIn('[data-test="search-check-line"]', 'Title in results. Too long: about')
         ->assertSeeIn('[data-test="rail-checks"]', 'Too long: about');
@@ -120,14 +131,16 @@ it('keeps saving while the canonical\'s address is half typed, refuses this site
     $page->click('#editor-advanced')
         ->click('#editor-canonical-address')
         ->type('#editor-canonical-url', 'https://')
-        ->assertSeeIn('#editor-canonical-url-error', 'Enter the whole address, starting https://.')
-        ->type('#editor-social-title', 'Fares are going up');
+        ->assertSeeIn('#editor-canonical-url-error', 'Enter the whole address, starting https://.');
+    ($this->tab)($page, 'Social');
+    $page->type('#editor-social-title', 'Fares are going up');
 
     ($this->settled)($page);
 
     expect(($this->saved)())->toMatchArray([BuiltInFields::SOCIAL_TITLE => 'Fares are going up'])
         ->and(($this->saved)()[BuiltInFields::CANONICAL] ?? null)->toBeNull();
 
+    ($this->tab)($page, 'Advanced');
     $page->type('#editor-canonical-url', $own)
         ->assertSeeIn('#editor-canonical-url-error', 'That address is on this site. Choose its item instead, so the link survives a move.')
         ->type('#editor-canonical-url', 'https://example.org/original-story')
@@ -142,8 +155,9 @@ it('keeps saving while the canonical\'s address is half typed, refuses this site
 it('chooses the social image from the library, and the card is made from it (I-293)', function (): void {
     $image = pageImage($this->editor, 1200, 630);
 
-    $page = cmOpenSearch(cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit)))
-        ->assertSeeIn('[data-test="social-from"]', 'with no description and no image')
+    $page = cmOpenSearch(cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit)));
+    ($this->tab)($page, 'Social');
+    $page->assertSeeIn('[data-test="social-from"]', 'with no description and no image')
         ->click('#editor-social-image')
         ->assertScript("(() => { const parts = [...document.querySelectorAll('[data-slot=\"dialog-content\"], [data-slot=\"dialog-overlay\"]')]; return parts.length === 0 ? -1 : parts.flatMap((element) => element.getAnimations()).filter((animation) => animation.playState === 'running').length; })()", 0)
         ->click('[role="dialog"] [role="option"]')
@@ -177,7 +191,7 @@ it('starts closed with the search result at Google’s size, a small social card
             const toggle = document.querySelector('[data-test="search-toggle"]');
 
             return {
-                toggle: toggle.textContent.trim(),
+                toggle: toggle.getAttribute('aria-label'),
                 expanded: toggle.getAttribute('aria-expanded'),
                 height: document.querySelector('[data-test="search-section"]').offsetHeight,
                 serp: box('[data-test="serp"]'),
@@ -186,6 +200,7 @@ it('starts closed with the search result at Google’s size, a small social card
                 line: document.querySelector('[data-test="search-check-line"]')?.innerText ?? '',
                 summary: document.querySelector('[data-test="advanced-summary"]')?.innerText ?? '',
                 advanced: document.querySelector('#editor-advanced')?.dataset.state ?? null,
+                tabs: [...document.querySelectorAll('[data-test="search-section"] [role="tab"]')].filter((tab) => tab.offsetParent !== null).map((tab) => tab.textContent.trim()),
                 seoTitle: box('#editor-seo-title'),
                 socialTitle: box('#editor-social-title'),
                 noindex: box('#editor-seo-noindex'),
@@ -195,17 +210,15 @@ it('starts closed with the search result at Google’s size, a small social card
         }
         JS);
 
-    // Closed: the result at the width results give it, the small card beside it, one line, no fields.
+    // Closed: the result at the width results give it, one line, no fields and no tabs.
     $closed = $state();
 
-    expect($closed['toggle'])->toBe('Edit search and social')
+    expect($closed['toggle'])->toBe('Open Search and social')
         ->and($closed['expanded'])->toBe('false')
         ->and($closed['seoTitle'])->toBeNull()
         ->and($closed['socialTitle'])->toBeNull()
+        ->and($closed['tabs'])->toBe([])
         ->and($closed['serp']['width'])->toBe(632)
-        ->and($closed['card']['width'])->toBe(280)
-        ->and($closed['card']['top'])->toEqualWithDelta($closed['serp']['top'], 1)
-        ->and($closed['card']['left'])->toBeGreaterThan($closed['serp']['left'] + 632)
         ->and($closed['titleSize'])->toBe('20px')
         // The draft has no description, no excerpt and no links: the line names both warnings, then counts the rest.
         ->and($closed['line'])->toContain('Description. None, and no excerpt. Search engines will choose text from the page.')
@@ -213,30 +226,38 @@ it('starts closed with the search result at Google’s size, a small social card
         ->toMatch('/The other \d search checks pass\./')
         ->toContain('Every check is in the side panel.');
 
-    // Edit: Search on the left and Social on the right, under the previews; Advanced closed, holding Hide and the canonical.
+    // Open: the Search tab under the result; Social and Advanced on their own tabs, Advanced holding Hide and the canonical.
     cmOpenSearch($page);
     $open = $state();
 
-    expect($open['toggle'])->toBe('Done with search and social')
+    expect($open['toggle'])->toBe('Fold Search and social')
         ->and($open['expanded'])->toBe('true')
+        ->and($open['tabs'])->toBe(['Search', 'Social', 'Schema', 'Advanced'])
         ->and($open['serp']['width'])->toBe(632)
         ->and($open['seoTitle']['top'])->toBeGreaterThan($open['serp']['top'])
-        ->and($open['socialTitle']['top'])->toBe($open['seoTitle']['top'])
-        ->and($open['socialTitle']['left'])->toBeGreaterThan($open['seoTitle']['left'] + $open['seoTitle']['width'])
-        ->and($open['advanced'])->toBe('closed')
+        ->and($open['socialTitle'])->toBeNull()
+        ->and($open['advanced'])->toBe('inactive')
         ->and($open['summary'])->toBe('Hide from search engines, canonical address, page and article type, snippet')
         ->and($open['noindex'])->toBeNull()
         ->and($open['canonical'])->toBeNull()
         ->and($open['height'])->toBeGreaterThan($closed['height'] + 200);
 
+    // Social: a small social card.
+    ($this->tab)($page, 'Social');
+    $social = $state();
+
+    expect($social['card']['width'])->toBe(280)
+        ->and($social['socialTitle'])->not->toBeNull()
+        ->and($social['seoTitle'])->toBeNull();
+
     // Advanced: Hide from search engines and the canonical in its first column, the page type in its second.
     $page->click('#editor-advanced');
-    cmWaitUntil($page, "document.querySelector('#editor-advanced')?.dataset.state === 'open' && document.querySelector('#editor-seo-noindex')?.offsetParent !== null");
+    cmWaitUntil($page, "document.querySelector('#editor-advanced')?.dataset.state === 'active' && document.querySelector('#editor-seo-noindex')?.offsetParent !== null");
     $advanced = $state();
 
     expect($advanced['noindex'])->not->toBeNull()
         ->and($advanced['canonical'])->not->toBeNull()
-        ->and($advanced['noindex']['top'])->toBeGreaterThan($advanced['seoTitle']['top'])
+        ->and($advanced['noindex']['top'])->toBeGreaterThan($advanced['serp']['top'])
         ->and($advanced['pageType']['left'])->toBeGreaterThan($advanced['noindex']['left']);
 
     // Done: closed again, as it started.
@@ -244,7 +265,7 @@ it('starts closed with the search result at Google’s size, a small social card
     cmWaitUntil($page, "document.getElementById('editor-search-fields')?.hidden === true");
     $done = $state();
 
-    expect($done['toggle'])->toBe('Edit search and social')
+    expect($done['toggle'])->toBe('Open Search and social')
         ->and($done['seoTitle'])->toBeNull()
         ->and($done['height'])->toBe($closed['height']);
 });
@@ -261,28 +282,32 @@ it('opens and closes with the keyboard, keeps focus on its button, and leaves it
     $page->keys('[data-test="search-checks-link"]', 'Tab');
     expect($inSection())->toBeFalse();
 
-    // Enter opens it; focus stays on the button, now Done.
+    // Enter opens it; focus stays on the button, now Fold.
     $page->keys('[data-test="search-toggle"]', 'Enter');
     cmWaitUntil($page, "document.getElementById('editor-search-fields')?.hidden === false");
     expect($focused())->toBe('search-toggle')
-        ->and($page->script('() => document.activeElement.textContent.trim()'))->toBe('Done with search and social');
+        ->and($page->script("() => document.activeElement.getAttribute('aria-label')"))->toBe('Fold Search and social');
 
-    // Into the fields: the SEO title follows the check line's link.
+    // Into the open box: the result's size follows the check line's link, then the tabs, then the SEO title.
     $page->keys('[data-test="search-checks-link"]', 'Tab');
+    expect($page->script("() => document.activeElement?.closest('[data-slot=\"segmented\"]') !== null"))->toBeTrue();
+
+    $page->keys('[data-test="search-section"] [role="tab"][aria-selected="true"]', 'Tab');
+    $page->page()->locator(':focus')->press('Tab');
     expect($focused())->toBe('editor-seo-title');
 
     // Space opens Advanced, and Space ticks Hide from search engines.
     $page->keys('#editor-advanced', 'Space');
-    cmWaitUntil($page, "document.querySelector('#editor-advanced')?.dataset.state === 'open'");
+    cmWaitUntil($page, "document.querySelector('#editor-advanced')?.dataset.state === 'active'");
     $page->keys('#editor-seo-noindex', 'Space');
     cmWaitUntil($page, "document.querySelector('#editor-seo-noindex')?.dataset.state === 'checked'");
     ($this->shows)($page, '[data-test="advanced-summary"]', 'Hidden from search engines');
 
-    // Enter on Done closes it; focus stays on the button, now Edit.
+    // Enter on Fold closes it; focus stays on the button, now Open.
     $page->keys('[data-test="search-toggle"]', 'Enter');
     cmWaitUntil($page, "document.getElementById('editor-search-fields')?.hidden === true");
     expect($focused())->toBe('search-toggle')
-        ->and($page->script('() => document.activeElement.textContent.trim()'))->toBe('Edit search and social');
+        ->and($page->script("() => document.activeElement.getAttribute('aria-label')"))->toBe('Open Search and social');
 
     ($this->settled)($page);
 
@@ -292,8 +317,9 @@ it('opens and closes with the keyboard, keeps focus on its button, and leaves it
 it('keeps everything typed when Done closes it and Edit opens it again, the half-typed canonical address too, and saves what is whole (I-3124, I-292)', function (): void {
     $page = cmOpenSearch(cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit)))
         ->type('#editor-seo-title', 'Ferry fares rise in the spring')
-        ->type('#editor-seo-description', 'What the new fares mean for the island’s commuters.')
-        ->type('#editor-social-title', 'Fares are going up')
+        ->type('#editor-seo-description', 'What the new fares mean for the island’s commuters.');
+    ($this->tab)($page, 'Social');
+    $page->type('#editor-social-title', 'Fares are going up')
         ->click('#editor-advanced')
         ->click('#editor-canonical-address')
         ->type('#editor-canonical-url', 'https://');
@@ -311,14 +337,14 @@ it('keeps everything typed when Done closes it and Edit opens it again, the half
         BuiltInFields::SOCIAL_TITLE => 'Fares are going up',
     ])->and(($this->saved)()[BuiltInFields::CANONICAL] ?? null)->toBeNull();
 
-    // Edit: every field as it was left, the outside address still half typed, the fold still open.
+    // Open again: every field as it was left, the outside address still half typed, Advanced still shown.
     cmOpenSearch($page)
         ->assertValue('#editor-seo-title', 'Ferry fares rise in the spring')
         ->assertValue('#editor-seo-description', 'What the new fares mean for the island’s commuters.')
         ->assertValue('#editor-social-title', 'Fares are going up')
         ->assertChecked('#editor-canonical-address')
         ->assertValue('#editor-canonical-url', 'https://')
-        ->assertAttribute('#editor-advanced', 'data-state', 'open')
+        ->assertAttribute('#editor-advanced', 'data-state', 'active')
         ->assertSeeIn('#editor-canonical-url-error', 'Enter the whole address, starting https://.');
 });
 

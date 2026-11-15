@@ -1,3 +1,5 @@
+import { StatusPill } from '@/components/ui/status-pill';
+import { __, __n } from '@/lib/i18n';
 import type { EditorPerson } from '@/types';
 
 /** Names as a sentence: "Ade", "Ade and Bo", "Ade, Bo and Cy". */
@@ -6,7 +8,10 @@ function names(people: EditorPerson[]): string {
 
     return list.length <= 1
         ? (list[0] ?? '')
-        : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`;
+        : __(':names and :last', {
+              names: list.slice(0, -1).join(', '),
+              last: list[list.length - 1],
+          });
 }
 
 /**
@@ -19,11 +24,12 @@ export function PresenceLine({ people }: { people: EditorPerson[] }) {
     }
 
     return (
-        <span
-            role="status"
-            className="bg-warn-soft text-warn-ink rounded-sm px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap"
-        >
-            {names(people)} {people.length === 1 ? 'is' : 'are'} also editing.
-        </span>
+        <StatusPill role="status" tone="warn" className="whitespace-nowrap">
+            {__n(
+                ':names is also editing.|:names are also editing.',
+                people.length,
+                { names: names(people) },
+            )}
+        </StatusPill>
     );
 }

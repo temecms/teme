@@ -1,5 +1,6 @@
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { FIELD, pickedCategory, trailOf } from '@/lib/search-preview';
 import type { EditorField, EditorSeo, EditorSession } from '@/types/editor';
 import type { ChosenTerm } from './taxonomy-panel';
@@ -64,7 +65,9 @@ export function PrimaryCategory({
             <SelectField
                 id="editor-primary-category"
                 aria-describedby="editor-primary-category-hint"
-                emptyLabel={`First ticked: ${ticked[0].name}`}
+                emptyLabel={__('First ticked: :name', {
+                    name: ticked[0].name,
+                })}
                 options={ticked.map((term) => ({
                     value: term.id,
                     label: term.name,
@@ -77,7 +80,7 @@ export function PrimaryCategory({
             <p
                 id="editor-primary-category-hint"
                 data-test="primary-category-hint"
-                className="text-ink-2 text-xs"
+                className="text-ink-2 text-caption"
             >
                 {hint.join(' ')}
             </p>
