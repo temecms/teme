@@ -501,28 +501,93 @@ it('never drops a core panel among plugins\' panels', function (): void {
         kind: 'rows',
     ));
 
-    $page = cmSignIn($this->editor)->resize(1280, 900);
+    $page = cmSignIn($this->editor)->resize(1280, 1800);
     shellSettled($page, '[data-test="home-customize"]');
     $page->click('[data-test="home-customize"]');
-    shellSettled($page, '[data-panel="plugin_visits"]');
+    shellSettled($page, '[data-panel="plugin_visits"] [data-drag-handle]');
 
     $before = $page->script(<<<'JS'
         () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
         JS);
 
-    $page->page()
-        ->locator('[data-panel="my_drafts"] [data-drag-handle]')
-        ->dragTo($page->page()->locator('[data-panel="plugin_visits"]'));
+    $page->script(<<<'JS'
+        () => {
+            window.__temePluginDropEdges = [];
+            window.__temeWatchPluginDrop = true;
+            const tick = () => {
+                if (!window.__temeWatchPluginDrop) {
+                    return;
+                }
 
+                const edge = document
+                    .querySelector('[data-panel="plugin_visits"]')
+                    ?.getAttribute('data-drop-edge');
+                if (edge) {
+                    window.__temePluginDropEdges.push(edge);
+                }
+
+                requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+
+            return true;
+        }
+        JS);
+
+    $points = $page->page()->evaluate(<<<'JS'
+        () => {
+            const panel = document.querySelector('[data-panel="my_drafts"]');
+            const handle = document.querySelector('[data-panel="my_drafts"] [data-drag-handle]');
+            const target = document.querySelector('[data-panel="plugin_visits"]');
+            if (!panel || !handle || !target) {
+                return null;
+            }
+
+            const panelBox = panel.getBoundingClientRect();
+            const handleBox = handle.getBoundingClientRect();
+            const targetBox = target.getBoundingClientRect();
+
+            return {
+                source: {
+                    x: handleBox.x + handleBox.width / 2 - panelBox.x,
+                    y: handleBox.y + handleBox.height / 2 - panelBox.y,
+                },
+                target: {
+                    x: targetBox.width / 2,
+                    y: targetBox.height / 2,
+                },
+            };
+        }
+        JS);
+
+    expect($points)->not->toBeNull();
+
+    $page->page()
+        ->locator('[data-panel="my_drafts"]')
+        ->dragTo(
+            $page->page()->locator('[data-panel="plugin_visits"]'),
+            [
+                'sourcePosition' => [
+                    'x' => (int) round($points['source']['x']),
+                    'y' => (int) round($points['source']['y']),
+                ],
+                'targetPosition' => [
+                    'x' => (int) round($points['target']['x']),
+                    'y' => (int) round($points['target']['y']),
+                ],
+            ],
+        );
+
+    $edges = $page->script('() => window.__temePluginDropEdges ?? []');
     $after = $page->script(<<<'JS'
         () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
         JS);
 
-    expect($after)->toBe($before);
+    expect($edges)->toBe([])
+        ->and($after)->toBe($before);
     $this->editor->refresh();
     expect(PreferencesFor::user($this->editor)['dashboard.order'])->toBe([]);
 });
-
 it('doesn\'t drag outside Customize', function (): void {
     $page = cmSignIn($this->editor)->resize(1280, 900);
     shellSettled($page, '[data-test="home-grid"]');
