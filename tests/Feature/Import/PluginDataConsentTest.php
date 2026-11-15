@@ -89,3 +89,16 @@ it('hands a plugin enabled before names were recorded nothing until someone agre
 
     expect(app(PluginImports::class)->all())->toBe([]);
 });
+
+it('remembers each plugin and its importer by code for the life of a job, and no longer', function (): void {
+    app(PluginLoader::class)->load();
+    $import = app(PluginImports::class)->find('importer');
+
+    expect($import)->not->toBeNull()
+        ->and(app(PluginImports::class)->find('importer'))->toBe($import)
+        ->and(app(PluginImports::class)->find('importer')?->importer())->toBe($import?->importer());
+
+    app()->forgetScopedInstances();
+
+    expect(app(PluginImports::class)->find('importer'))->not->toBe($import);
+});

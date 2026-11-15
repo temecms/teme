@@ -35,6 +35,7 @@ use App\Domain\Import\Phases\Users\AuthorsWaitingStep;
 use App\Domain\Import\Phases\Users\UsersPhase;
 use App\Domain\Import\PluginData\PluginDataGoneStep;
 use App\Domain\Import\PluginData\PluginDataPhase;
+use App\Domain\Import\PluginData\PluginImports;
 use App\Domain\Import\PluginData\PluginOptionsStep;
 use App\Domain\Import\Tracking\ImportJobKind;
 use App\Domain\Import\Tracking\PageParentsJobKind;
@@ -52,6 +53,7 @@ final class ImportServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(ImportMode::class);
+        $this->app->scoped(PluginImports::class);
         $this->app->bind(HostResolver::class, DnsHostResolver::class);
 
         // Core's phases, each tagged ImportPhases::TAG from its own line, in I-333's order.

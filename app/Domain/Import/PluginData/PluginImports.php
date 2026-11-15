@@ -17,14 +17,19 @@ use Teme\Contracts\Plugins\Capability;
  * running in this process, granted import.wordpress, that declare what they
  * bring, in the order of their codes. A disabled plugin, or one never
  * granted the capability, gets nothing and has nothing read for it.
+ * Bound scoped: find() remembers each plugin, and so its importer, by code
+ * for the life of one job or request.
  */
-final readonly class PluginImports
+final class PluginImports
 {
+    /** @var array<string, ?PluginImport> what find() answered, by code */
+    private array $found = [];
+
     public function __construct(
-        private PluginRecords $records,
-        private PluginRegistry $registry,
-        private LoadedPlugins $loaded,
-        private PluginServices $services,
+        private readonly PluginRecords $records,
+        private readonly PluginRegistry $registry,
+        private readonly LoadedPlugins $loaded,
+        private readonly PluginServices $services,
     ) {}
 
     /**
@@ -71,12 +76,18 @@ final readonly class PluginImports
      */
     public function find(string $code): ?PluginImport
     {
+        if (array_key_exists($code, $this->found)) {
+            return $this->found[$code];
+        }
+
+        $this->found[$code] = null;
+
         foreach ($this->all() as $import) {
             if ($import->code === $code) {
-                return $import;
+                $this->found[$code] = $import;
             }
         }
 
-        return null;
+        return $this->found[$code];
     }
 }
