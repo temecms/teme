@@ -885,7 +885,6 @@ R3	js/components/user-menu-content.tsx	py-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
-R3	js/pages/content/index.tsx	mt-0.5
 R3	js/pages/dashboard.tsx	mt-0.5
 R3	js/pages/plugins/index.tsx	gap-1.5
 R3	js/pages/plugins/index.tsx	px-0.5

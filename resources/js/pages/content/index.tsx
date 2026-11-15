@@ -989,7 +989,6 @@ export default function ContentIndex(page: ContentIndexPage) {
                     aria-label={__('Select :title', {
                         title: shownTitle(row.title),
                     })}
-                    className="mt-0.5"
                     checked={selected.includes(row.id)}
                     onClick={(event) => {
                         shiftHeld.current = event.shiftKey;
