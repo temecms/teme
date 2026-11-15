@@ -1,17 +1,16 @@
-import { Form } from "@inertiajs/react";
-import { useState } from "react";
-import ImportSourceController from "@/actions/App/Http/Admin/Tools/Import/ImportSourceController";
-import InputError from "@/components/input-error";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldInline } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
-import { __, __n } from "@/lib/i18n";
+import { Form } from '@inertiajs/react';
+import { useState } from 'react';
+import ImportSourceController from '@/actions/App/Http/Admin/Tools/Import/ImportSourceController';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Field, FieldInline } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { __, __n } from '@/lib/i18n';
 
 /** A group of choices: its legend, a line on what it is for, and its error. */
-const LEGEND = "text-body text-ink font-semibold";
-const GROUP = "grid gap-4";
+const LEGEND = 'text-body text-ink font-semibold';
+const GROUP = 'grid gap-4';
 
 /**
  * Other old addresses of this site: listed hosts as ticks the person can
@@ -46,13 +45,13 @@ export function OtherHostsForm({
             (remembered ?? []).find(
                 (host) =>
                     !listed.includes(host) && !suggestedHosts.includes(host),
-            ) ?? "",
+            ) ?? '',
     );
 
     const hosts = [
         ...kept,
         ...ticked.filter((host) => !kept.includes(host)),
-        ...(manual.trim() !== "" ? [manual.trim()] : []),
+        ...(manual.trim() !== '' ? [manual.trim()] : []),
     ];
 
     return (
@@ -62,7 +61,7 @@ export function OtherHostsForm({
         >
             <PanelHeader>
                 <h2 id="import-other-hosts" className="text-lead font-semibold">
-                    {__("Other addresses of this site")}
+                    {__('Other addresses of this site')}
                 </h2>
             </PanelHeader>
             <PanelBody>
@@ -85,7 +84,7 @@ export function OtherHostsForm({
                             <div className="grid gap-3">
                                 <p className="text-body text-ink-2">
                                     {__(
-                                        "Links and images on these hosts convert like ones on the home address. Untick a saved address to drop it, tick a suggestion, or type another host the site once used.",
+                                        'Links and images on these hosts convert like ones on the home address. Untick a saved address to drop it, tick a suggestion, or type another host the site once used.',
                                     )}
                                 </p>
                             </div>
@@ -97,7 +96,7 @@ export function OtherHostsForm({
                                     data-test="import-other-hosts-listed"
                                 >
                                     <legend className={LEGEND}>
-                                        {__("Saved addresses")}
+                                        {__('Saved addresses')}
                                     </legend>
                                     {listed.map((host, index) => (
                                         <FieldInline
@@ -134,7 +133,7 @@ export function OtherHostsForm({
                                     aria-describedby="import-other-hosts-error"
                                 >
                                     <legend className={LEGEND}>
-                                        {__("Suggested from this site’s links")}
+                                        {__('Suggested from this site’s links')}
                                     </legend>
                                     {suggested
                                         .filter(
@@ -144,10 +143,10 @@ export function OtherHostsForm({
                                             <FieldInline
                                                 key={row.host}
                                                 htmlFor={`import-other-host-${index}`}
-                                                label={__(":host (:links)", {
+                                                label={__(':host (:links)', {
                                                     host: row.host,
                                                     links: __n(
-                                                        ":count link|:count links",
+                                                        ':count link|:count links',
                                                         row.links,
                                                         {
                                                             count: row.links.toLocaleString(),
@@ -185,7 +184,7 @@ export function OtherHostsForm({
 
                             <Field
                                 htmlFor="import-other-host-manual"
-                                label={__("Add a host")}
+                                label={__('Add a host')}
                                 error={errors.hosts}
                             >
                                 <Input
@@ -195,7 +194,7 @@ export function OtherHostsForm({
                                     onChange={(event) =>
                                         setManual(event.target.value)
                                     }
-                                    placeholder={__("stage.example.com")}
+                                    placeholder={__('stage.example.com')}
                                     autoComplete="off"
                                 />
                             </Field>
@@ -206,10 +205,10 @@ export function OtherHostsForm({
                                     data-test="import-other-hosts-save"
                                     disabled={processing}
                                 >
-                                    {__("Save")}
+                                    {__('Save')}
                                 </Button>
                                 <p className="text-small text-ink-2">
-                                    {__("Teme asks for your password first.")}
+                                    {__('Teme asks for your password first.')}
                                 </p>
                             </div>
                         </>
