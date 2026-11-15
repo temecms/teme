@@ -36,6 +36,7 @@ return [
     'id' => ['label' => 'Indonesian', 'search' => 'indonesian', 'native' => 'Bahasa Indonesia', 'direction' => 'ltr', 'og' => 'id_ID'],
     'ig' => ['label' => 'Igbo', 'search' => 'simple', 'native' => 'Igbo', 'direction' => 'ltr', 'og' => 'ig_NG'],
     'it' => ['label' => 'Italian', 'search' => 'italian', 'native' => 'Italiano', 'direction' => 'ltr', 'og' => 'it_IT'],
+    'ja' => ['label' => 'Japanese', 'search' => 'simple', 'native' => '日本語', 'direction' => 'ltr', 'og' => 'ja_JP'],
     'lt' => ['label' => 'Lithuanian', 'search' => 'lithuanian', 'native' => 'Lietuvių', 'direction' => 'ltr', 'og' => 'lt_LT'],
     'nb' => ['label' => 'Norwegian Bokmål', 'search' => 'norwegian', 'native' => 'Norsk bokmål', 'direction' => 'ltr', 'og' => 'nb_NO'],
     'ne' => ['label' => 'Nepali', 'search' => 'nepali', 'native' => 'नेपाली', 'direction' => 'ltr', 'og' => 'ne_NP'],
