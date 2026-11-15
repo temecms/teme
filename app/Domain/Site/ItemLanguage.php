@@ -26,4 +26,17 @@ final class ItemLanguage
             app(PageLanguage::class)->use($tag);
         }
     }
+
+    /**
+     * Sets the page's language, and with it the locale, to the one a site
+     * address is under: a shown language's prefix, else the default.
+     */
+    public static function useAddress(string $path): void
+    {
+        $languages = app(SiteLanguages::class);
+        $first = explode('/', trim($path, '/'), 2)[0];
+        $tag = $first === '' ? null : $languages->byPrefix($first);
+
+        app(PageLanguage::class)->use($tag !== null && $languages->isShown($languages->stored($tag)) ? $tag : $languages->defaultTag());
+    }
 }

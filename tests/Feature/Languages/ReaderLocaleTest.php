@@ -96,3 +96,12 @@ it('draws core\'s words in the site\'s language on a single-language Spanish sit
 
     expect((string) cmPost($post, ['name' => ''])->assertStatus(422)->getContent())->toContain('Escribe tu nombre.');
 });
+
+it('draws a reader\'s own waiting comment on a French post with the theme\'s French words', function (): void {
+    $words = json_decode((string) file_get_contents(base_path('themes/default/lang/fr.json')), true, flags: JSON_THROW_ON_ERROR);
+    cmSubmit(Content::query()->findOrFail($this->site->postFr), 'Un premier mot.');
+
+    $html = (string) cmPending('/fr/bonjour/', 'browser-one-0123456789abcdef')->assertOk()->json('comments.0.html');
+
+    expect($html)->toContain(e($words['Awaiting moderation.']))->not->toContain('Awaiting moderation.');
+});
