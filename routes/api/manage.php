@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Api\Manage\ItemsController;
 use App\Http\Api\Manage\LookupController;
 use App\Http\Api\Manage\MeController;
 use App\Http\Api\Manage\MediaController;
@@ -26,3 +27,8 @@ Route::middleware(RequireApiAbility::class.':media.write')->group(function (): v
     Route::post('media', [MediaController::class, 'store'])->name('api.manage.media.store');
     Route::patch('media/{media}', [MediaController::class, 'update'])->where('media', '[0-9A-Za-z]{26}')->name('api.manage.media.update');
 });
+
+// content.publish too, to publish or schedule: ApiItems asks for it then.
+Route::post('items', [ItemsController::class, 'store'])
+    ->middleware(RequireApiAbility::class.':content.write')
+    ->name('api.manage.items.store');
