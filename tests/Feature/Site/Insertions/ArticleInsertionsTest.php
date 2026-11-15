@@ -57,7 +57,7 @@ afterEach(function (): void {
 it('draws the fixture plugin\'s insertion after paragraph 2 on a published post', function (): void {
     $html = (string) addrGet('/insertion-story/')->assertOk()->getContent();
 
-    expect($html)->toContain('<aside data-test="insertion">Inserted</aside>')
+    expect($html)->toContain('<div data-test="insertion">Inserted</div>')
         ->and((int) strpos($html, 'Paragraph two.'))->toBeLessThan((int) strpos($html, 'data-test="insertion"'))
         ->and((int) strpos($html, 'data-test="insertion"'))->toBeLessThan((int) strpos($html, 'Paragraph three.'));
 });
