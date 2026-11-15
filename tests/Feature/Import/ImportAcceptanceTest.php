@@ -320,6 +320,7 @@ function accSteps(): array
 
             return null;
         }],
+        'fediverse-replies' => ['fediverse-replies', $alone],
         'menus' => ['menus', function (ImportRun $run): null {
             $items = MenuImports::stored(Navigation::query()->findOrFail(DB::table('import_map')->where('object_type', 'menu')->where('object_id', '3')->value('teme_id')));
 
@@ -350,6 +351,11 @@ function accSteps(): array
             $settings = app(SettingsReader::class);
 
             expect([$settings->string('general', 'site_title'), $settings->string('general', 'tagline')])->toBe(['The Harbour Gazette', 'News from the quay']);
+
+            return null;
+        }],
+        'fediverse' => ['fediverse', function (ImportRun $run): null {
+            expect(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'fediverse.companion-too-old')->count())->toBe(1);
 
             return null;
         }],

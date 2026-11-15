@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Fediverse\Import\FediverseRepliesStep;
+use App\Domain\Fediverse\Import\FediverseStep;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\Phases\Addresses\AddressClashStep;
 use App\Domain\Import\Phases\Addresses\AddressSettingsStep;
@@ -76,11 +78,15 @@ final class ImportServiceProvider extends ServiceProvider
 
         $this->app->tag([CommentsPhase::class, CommentCountsStep::class, CommentPagesStep::class], ImportPhases::TAG);
 
+        $this->app->tag([FediverseRepliesStep::class], ImportPhases::TAG);
+
         $this->app->tag([MenusPhase::class, MenuPlacesStep::class, WidgetsStep::class], ImportPhases::TAG);
 
         $this->app->tag([RedirectsStep::class, OldAddressesStep::class], ImportPhases::TAG);
 
         $this->app->tag([SiteSettingsStep::class], ImportPhases::TAG);
+
+        $this->app->tag([FediverseStep::class], ImportPhases::TAG);
 
         $this->app->tag([CheckStep::class], ImportPhases::TAG);
 
