@@ -15,8 +15,10 @@ use App\Domain\Fediverse\Publishing\Operations\QueueActivity;
 use App\Domain\Fediverse\Sockets\CoreActivities;
 use App\Domain\Fediverse\Sockets\Operations\Input\SendPluginActivityInput;
 use App\Domain\Fediverse\Sockets\SentActivities;
+use App\Domain\People\Models\Person;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Support\Operations\BaseOperation;
+use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +29,9 @@ use Teme\Contracts\Plugins\Capability;
  * Stores an activity a plugin sends through FediverseSender, with one
  * delivery per distinct inbox of the sending account's followers
  * (docs/plans/fediverse-publishing.md, D5): only for an enabled plugin
- * granted fediverse.send, never a type or an object Teme keeps for itself.
+ * granted fediverse.send, acting for a person (follow-up R7) who manages
+ * the fediverse, or who sends as their own author account; never a type or
+ * an object Teme keeps for itself.
  * Core signs and delivers it once the plugin's work commits.
  */
 final class SendPluginActivity extends BaseOperation
@@ -35,14 +39,30 @@ final class SendPluginActivity extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var SendPluginActivityInput $input */
-        $granted = $input->actorId === null && PluginRecord::query()
+        $granted = PluginRecord::query()
             ->where('name', $input->plugin)
             ->where('state', PluginRecord::ENABLED)
             ->get()
             ->contains(fn (PluginRecord $record): bool => in_array(Capability::FediverseSend->value, $record->consent['capabilities'] ?? [], true));
+        $person = $input->actorId === null ? null : app(Actors::class)->find($input->actorId);
 
-        if (! $granted) {
+        if (! $granted || $person === null) {
             throw new AuthorizationException('Not permitted to send to the fediverse.');
+        }
+
+        if ($person->can('settings.fediverse.manage')) {
+            return;
+        }
+
+        // Anyone else sends only as their own author account.
+        $own = $input->actorUri !== null && FediverseActor::query()
+            ->where('uri', $input->actorUri)
+            ->where('kind', FediverseActor::PERSON)
+            ->whereIn('person_id', Person::query()->where('user_id', (int) $input->actorId)->select('id'))
+            ->exists();
+
+        if (! $own) {
+            throw new AuthorizationException('Not permitted to send to the fediverse as that account.');
         }
     }
 

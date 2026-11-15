@@ -8,8 +8,8 @@ use Teme\Contracts\Operations\OperationInput;
 
 /**
  * What SendPluginActivity needs: the plugin sending, the activity's type
- * and object, and which of the site's accounts sends it (the blog's when
- * null). Never a person's: actorId is for refusing one.
+ * and object, which of the site's accounts sends it (the blog's when
+ * null), and the person the plugin acts for.
  */
 final readonly class SendPluginActivityInput implements OperationInput
 {

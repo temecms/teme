@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Fediverse\Jobs\ProcessInboxActivity;
 use App\Domain\Fediverse\Models\Activity;
 use App\Domain\Fediverse\Models\Delivery;
+use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\FediverseObject;
 use App\Domain\Fediverse\Models\Follower;
 use App\Domain\Fediverse\Publishing\ContentActivities;
@@ -16,6 +17,7 @@ use App\Domain\Fediverse\Remote\RemoteFetcher;
 use App\Domain\Fediverse\Sockets\Operations\Input\SendPluginActivityInput;
 use App\Domain\Fediverse\Sockets\Operations\SendPluginActivity;
 use App\Domain\Hooks\HookDispatcher;
+use App\Domain\People\Models\Person;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -53,7 +55,7 @@ beforeEach(function (): void {
     importResolve(['solo.example' => ['93.184.216.36']]);
     config(['teme.fediverse.deliver_outside_production' => true]);
     $this->seed(RoleSeeder::class);
-    app()->instance(Elevation::class, new OperatorElevation);
+    $this->admin = User::factory()->create()->assignRole('administrator');
     $this->author = User::factory()->create()->assignRole('editor');
     $this->blog = Actors::blog();
     Inbox::switch(true);
@@ -63,17 +65,23 @@ beforeEach(function (): void {
 });
 
 /**
- * Enables and starts the fixture plugin, granted what its manifest asks for.
+ * Enables and starts the fixture plugin, granted what its manifest asks
+ * for by an administrator (its consent's author), as the operator does.
  */
 function fsockPlugin(): FediversePlugin
 {
+    $previous = app(Elevation::class);
+    app()->instance(Elevation::class, new OperatorElevation);
+    $admin = User::query()->whereHas('roles', fn ($roles) => $roles->where('name', 'administrator'))->firstOrFail();
+
     PluginFixtures::use('fediverse');
     PluginFixtures::installed(['tests/fediverse' => 'fediverse']);
     $manifest = app(PluginRegistry::class)->find('tests/fediverse')?->manifest;
 
-    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/fediverse', '1.0.0', $manifest?->capabilities() ?? [], [], $manifest?->hooks() ?? [], null));
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/fediverse', '1.0.0', $manifest?->capabilities() ?? [], [], $manifest?->hooks() ?? [], (string) $admin->id));
     app()->instance(LoadedPlugins::class, new LoadedPlugins);
     app(PluginLoader::class)->load();
+    app()->instance(Elevation::class, $previous);
 
     $plugin = app(LoadedPlugins::class)->running()['tests/fediverse'] ?? null;
     FediversePlugin::$heard = [];
@@ -202,11 +210,38 @@ it('tells a plugin who follows the site’s accounts', function (): void {
         ->and($followers->count('https://elsewhere.example/actor'))->toBe(0);
 });
 
-it('sends only for a plugin granted fediverse.send, writing nothing otherwise', function (): void {
-    fsockPlugin();
-    $admin = User::factory()->create()->assignRole('administrator');
+it('sends for the person who started the work: one who manages the fediverse, or an author as their own account', function (): void {
+    $sender = fsockPlugin()->sender;
+    $person = Person::query()->create(['name' => 'Ada Writer', 'slug' => 'ada-writer', 'user_id' => $this->author->id]);
+    $ada = Actors::local(FediverseActor::PERSON, 'ada', url('/ap/people/ada'), personId: $person->id);
 
-    foreach ([new SendPluginActivityInput('tests/other', 'Like', 'https://solo.example/statuses/9'), new SendPluginActivityInput('tests/fediverse', 'Like', 'https://solo.example/statuses/9', actorId: (string) $admin->id)] as $input) {
+    // Work the server starts acts for the administrator who enabled the plugin.
+    $sender->send('Like', 'https://solo.example/statuses/1');
+
+    $this->actingAs($this->author);
+    $sender->send('Like', 'https://solo.example/statuses/2', $ada->uri);
+
+    expect(fn () => $sender->send('Like', 'https://solo.example/statuses/3'))->toThrow(SendRefused::class)
+        ->and(Activity::query()->orderBy('created_at')->orderBy('id')->get()->map(fn (Activity $activity): string => $activity->object_uri.' by '.$activity->local_actor_id)->all())
+        ->toBe(['https://solo.example/statuses/1 by '.$this->blog->id, 'https://solo.example/statuses/2 by '.$ada->id]);
+});
+
+it('sends nothing for a visitor who is not signed in', function (): void {
+    $sender = fsockPlugin()->sender;
+
+    PluginFixtures::serving('/fediverse/ping', fn () => expect(fn () => $sender->send('Like', 'https://solo.example/statuses/9'))->toThrow(SendRefused::class));
+
+    expect(Activity::query()->count())->toBe(0);
+});
+
+it('sends only for a plugin granted fediverse.send, for a person allowed to, writing nothing otherwise', function (): void {
+    fsockPlugin();
+
+    foreach ([
+        new SendPluginActivityInput('tests/other', 'Like', 'https://solo.example/statuses/9', actorId: (string) $this->admin->id),
+        new SendPluginActivityInput('tests/fediverse', 'Like', 'https://solo.example/statuses/9'),
+        new SendPluginActivityInput('tests/fediverse', 'Like', 'https://solo.example/statuses/9', actorId: (string) $this->author->id),
+    ] as $input) {
         expect(fn () => app(SendPluginActivity::class)->execute($input))->toThrow(AuthorizationException::class);
     }
 
