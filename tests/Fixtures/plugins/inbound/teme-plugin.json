@@ -1,0 +1,62 @@
+{
+    "manifest": 1,
+    "name": "tests/inbound",
+    "code": "inbound",
+    "label": "Inbound",
+    "description": "A fixture that answers public routes for the public-routes tests.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Inbound\\Inbound",
+    "capabilities": ["routes.public"],
+    "routes": [
+        {
+            "id": "ping",
+            "method": "GET",
+            "path": "/{code}/ping",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Ping",
+            "cache": { "query": [], "varyAccept": false, "lifetime": 3600 }
+        },
+        {
+            "id": "actor",
+            "method": "GET",
+            "path": "/",
+            "when": { "query": { "author": "^[0-9]+$" }, "accept": ["application/activity+json"] },
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Actor",
+            "cache": { "query": ["author"], "varyAccept": true, "lifetime": 3600 }
+        },
+        {
+            "id": "callback",
+            "method": "POST",
+            "path": "/{code}/callback",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Callback",
+            "verify": { "kind": "secret", "from": "header:X-Plugin-Token", "secret": "connection_token" },
+            "maxBody": 1048576,
+            "throttle": 30
+        },
+        {
+            "id": "hmac",
+            "method": "POST",
+            "path": "/{code}/hmac",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Callback",
+            "verify": { "kind": "hmac", "header": "X-Signature", "secret": "connection_token" }
+        },
+        {
+            "id": "custom",
+            "method": "POST",
+            "path": "/{code}/custom",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Callback",
+            "verify": { "kind": "custom", "class": "Tests\\Fixtures\\Plugins\\Inbound\\CustomCheck", "secret": "connection_token" }
+        },
+        {
+            "id": "throwing",
+            "method": "GET",
+            "path": "/{code}/throw",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Throwing"
+        }
+    ],
+    "contributes": {
+        "settings": [
+            { "key": "connection_token", "type": "secret", "label": "Connection token", "description": "The shared secret inbound posts use." }
+        ]
+    }
+}

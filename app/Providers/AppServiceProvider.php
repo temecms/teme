@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Domain\Api\ApiPaths;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Policies\ContentPolicy;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Search\PostgresSiteSearch;
 use App\Domain\Status\StatusChecks;
 use App\Domain\Users\Actors;
@@ -75,6 +76,40 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(10)->by('csp:'.$request->ip())->response(fn (): Response => response()->noContent()),
             Limit::perMinute(600)->by('csp:site')->response(fn (): Response => response()->noContent()),
         ]);
+
+        // Declared public routes (D6): per entry and address; 120 GET / 30 POST
+        // a minute unless the entry asks for less, never more than 240 / 60.
+        RateLimiter::for('declared-routes', function (Request $request): Limit {
+            $query = [];
+
+            foreach ($request->query->all() as $name => $value) {
+                if (is_string($name) && is_string($value)) {
+                    $query[$name] = $value;
+                }
+            }
+
+            $accept = [];
+
+            foreach (explode(',', (string) $request->headers->get('Accept', '')) as $part) {
+                $type = strtolower(trim(explode(';', $part)[0]));
+
+                if ($type !== '' && $type !== '*/*') {
+                    $accept[] = $type;
+                }
+            }
+
+            $route = app(PublicRouteRegistry::class)->match($request->getMethod(), $request->getPathInfo(), $query, $accept);
+
+            if ($route === null) {
+                return Limit::none();
+            }
+
+            $default = $route->method === 'POST' ? 30 : 120;
+            $cap = $route->method === 'POST' ? 60 : 240;
+            $max = $route->throttle === null ? $default : min($cap, max(1, $route->throttle));
+
+            return Limit::perMinute($max)->by('declared:'.$route->entryKey().':'.$request->ip());
+        });
     }
 
     private function configureDefaults(): void

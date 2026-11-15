@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 use App\Domain\Api\Llms\MarkdownPages;
 use App\Domain\Feeds\FeedPath;
+use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
 use App\Http\Site\CommentController;
+use App\Http\Site\DeclaredRouteController;
 use App\Http\Site\Feeds\FeedController;
 use App\Http\Site\LlmsTxtController;
 use App\Http\Site\MarkdownController;
 use App\Http\Site\Middleware\BareReportAnswer;
 use App\Http\Site\Middleware\GuardCommentPost;
 use App\Http\Site\Middleware\MarkCacheable;
+use App\Http\Site\Middleware\MatchDeclaredRoutes;
 use App\Http\Site\PendingCommentsController;
 use App\Http\Site\PolicyReportController;
 use App\Http\Site\PublicController;
@@ -48,6 +51,19 @@ Route::post('_teme/unlock', UnlockController::class)->name('teme.unlock');
 // instead of a table; reserved (_teme), so the page cache passes it by.
 Route::post('_teme/csp', PolicyReportController::class)->middleware([BareReportAnswer::class, 'throttle:csp-reports'])->name('teme.csp');
 
+// Declared public routes (plugins and core): fixed shapes that look up the
+// registry, before feeds and the public fallback (docs/plans/plugin-public-routes.md).
+Route::middleware(['public', 'throttle:declared-routes'])
+    ->match(['get', 'post'], '.well-known/{name}', DeclaredRouteController::class)
+    ->where('name', '[A-Za-z0-9._-]+')
+    ->name('declared.well-known');
+
+Route::middleware(['public', 'throttle:declared-routes'])
+    ->match(['get', 'post'], '{code}/{path?}', DeclaredRouteController::class)
+    ->where('code', ThemeManifestValidator::CODE_PATTERN)
+    ->where('path', '.*')
+    ->name('declared.plugin');
+
 // Feeds (I-299): RSS 2.0 at WordPress's addresses. Every path ending in a feed name
 // comes here; what is not a feed's goes back to PublicController. A fallback, so
 // a route that names such a path itself, a plugin's or a theme's, is matched first.
@@ -79,6 +95,6 @@ Route::middleware(['public', 'throttle:api', MarkCacheable::class])->group(funct
 });
 
 Route::middleware('public')->group(function (): void {
-    Route::get('/', [PublicController::class, 'handle'])->middleware('throttle:site-search')->name('home');
-    Route::fallback([PublicController::class, 'handle'])->middleware('throttle:site-search')->name('public.path');
+    Route::get('/', [PublicController::class, 'handle'])->middleware([MatchDeclaredRoutes::class, 'throttle:site-search'])->name('home');
+    Route::fallback([PublicController::class, 'handle'])->middleware([MatchDeclaredRoutes::class, 'throttle:site-search'])->name('public.path');
 });
