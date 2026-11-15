@@ -210,15 +210,17 @@ it('saves a type that isn’t public, has items and was saved as searchable, its
         ->and(app(ContentTypeRegistry::class)->get('note')->public)->toBeFalse();
 });
 
-it('preloads at most 48 files on the media screen, the whole icon set staying one lazy file', function (): void {
+it('preloads at most 52 files on the media screen, the whole icon set staying one lazy file', function (): void {
     // I-3311: lucide-react/dynamic split every icon into its own file and roughly doubled each admin page's
-    // preloads (media 34 to 64). One lazy file for the set measured 42 on /admin/media; 48 leaves a margin.
+    // preloads (media 34 to 64). One lazy file for the set measured 42 on /admin/media; 48 left a margin.
+    // The redesign's shared list and media parts measured 49 (2026-11-15); 52 keeps that margin, and a
+    // doubling is still caught.
     $page = cmSignIn($this->admin)->navigate('/admin/media');
     cmWaitUntil($page, 'document.querySelector(\'a[data-slot="sidebar-menu-button"]\') !== null');
 
     expect((int) $page->script('() => document.querySelectorAll(\'link[rel="modulepreload"]\').length'))
         ->toBeGreaterThan(0)
-        ->toBeLessThanOrEqual(48);
+        ->toBeLessThanOrEqual(52);
 
     // The set's file is the largest of the chunk Rolldown names after resources/js/lib/lucide-icons.ts and the
     // chunks it imports: the set itself unless a code-splitting group moved it out. It must never be preloaded.
