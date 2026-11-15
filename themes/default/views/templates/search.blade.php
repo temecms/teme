@@ -13,11 +13,11 @@
         @include('theme::partials.search-form', ['id' => 'search-results', 'value' => $page->search?->query ?? ''])
 
         @if ($page->search === null || $page->search->empty)
-            <p class="empty">Type a word or two to search the site.</p>
+            <p class="empty">{{ __('Type a word or two to search the site.') }}</p>
         @elseif ($page->search->results === [])
-            <div class="empty" role="status"><p>Nothing matched “{{ $page->search->query }}”. Try fewer words, or check the spelling.</p></div>
+            <div class="empty" role="status"><p>{{ __('Nothing matched “:query”. Try fewer words, or check the spelling.', ['query' => $page->search->query]) }}</p></div>
         @else
-            <p class="meta search-count" role="status">{{ $page->search->totalCapped ? 'More than '.number_format($page->search->total).' results' : ($page->search->total === 1 ? '1 result' : number_format($page->search->total).' results') }}</p>
+            <p class="meta search-count" role="status">{{ $page->search->totalCapped ? __('More than :count results', ['count' => \Illuminate\Support\Number::format($page->search->total, locale: app()->getLocale())]) : ($page->search->total === 1 ? __('1 result') : __(':count results', ['count' => \Illuminate\Support\Number::format($page->search->total, locale: app()->getLocale())])) }}</p>
 
             <div class="feed-list">
                 @foreach ($page->search->results as $result)

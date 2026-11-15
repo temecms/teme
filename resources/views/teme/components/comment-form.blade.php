@@ -42,7 +42,7 @@
             <p class="teme-as" data-teme-as hidden>{{ __('You’re signed in, so you’ll comment as') }} <strong></strong>.</p>
             {{-- The honeypot (I-578, D8): no person sees or hears it; a bot that fills it is answered as held, and nothing is kept. --}}
             <div class="teme-hp" aria-hidden="true"><label for="c-subject">{{ __('Leave this empty') }}</label><input id="c-subject" name="subject" tabindex="-1" autocomplete="off"></div>
-            <p class="teme-privacy">{{ $form->askWebsite ? __('Your name and website are shown with your comment') : __('Your name is shown with your comment') }}{{ __('; your email address never is. To fight spam, we keep your IP address and browser details for :days days, then delete them.', ['days' => $form->keepIpDays]) }}</p>
+            <p class="teme-privacy">{{ $form->askWebsite ? __('Your name and website are shown with your comment; your email address never is.') : __('Your name is shown with your comment; your email address never is.') }} {{ __('To fight spam, we keep your IP address and browser details for :days days, then delete them.', ['days' => $form->keepIpDays]) }}</p>
             <div class="teme-submit">
                 <button class="button" type="submit">{{ $reply ? __('Post reply') : __('Post comment') }}</button>
                 @unless ($form->standalone)

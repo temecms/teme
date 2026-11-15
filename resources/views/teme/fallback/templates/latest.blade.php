@@ -39,10 +39,10 @@
     </ul>
     <nav>
         @if ($page->feed->pagination->previous !== null)
-            <a href="{{ $page->feed->pagination->previous }}" rel="prev">Newer</a>
+            <a href="{{ $page->feed->pagination->previous }}" rel="prev">{{ __('Newer') }}</a>
         @endif
         @if ($page->feed->pagination->next !== null)
-            <a href="{{ $page->feed->pagination->next }}" rel="next">Older</a>
+            <a href="{{ $page->feed->pagination->next }}" rel="next">{{ __('Older') }}</a>
         @endif
     </nav>
 </main>

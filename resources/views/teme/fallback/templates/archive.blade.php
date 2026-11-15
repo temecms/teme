@@ -15,10 +15,10 @@
     </ul>
     <nav>
         @if ($page->pagination->previous !== null)
-            <a href="{{ $page->pagination->previous }}" rel="prev">Newer</a>
+            <a href="{{ $page->pagination->previous }}" rel="prev">{{ __('Newer') }}</a>
         @endif
         @if ($page->pagination->next !== null)
-            <a href="{{ $page->pagination->next }}" rel="next">Older</a>
+            <a href="{{ $page->pagination->next }}" rel="next">{{ __('Older') }}</a>
         @endif
     </nav>
 </main>

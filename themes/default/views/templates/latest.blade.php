@@ -13,7 +13,7 @@
         @endif
 
         @if ($page->lead === null && $page->featured === [] && $page->feed->items === [])
-            <div class="empty"><p>Nothing published yet.</p></div>
+            <div class="empty"><p>{{ __('Nothing published yet.') }}</p></div>
         @else
             @if (($themeSettings['latest_header'] ?? 'lead') === 'lead' && $page->lead !== null)
                 @include('theme::partials.card', ['item' => $page->lead, 'context' => 'lead', 'showImage' => true, 'showMeta' => true, 'priority' => true, 'class' => 'lead'])

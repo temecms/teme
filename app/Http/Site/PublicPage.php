@@ -21,6 +21,7 @@ use App\Domain\Site\ViewModels\RespondView;
 use App\Domain\Themes\ComposerRegistry;
 use App\Domain\Themes\Resolution;
 use App\Domain\Themes\TemplateResolver;
+use App\Domain\Themes\ThemeWords;
 use App\Domain\Themes\ViewIntent;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -78,6 +79,7 @@ final class PublicPage
     {
         app(PagePolicy::class)->start();
         $resolution = app(TemplateResolver::class)->resolve($intent);
+        ThemeWords::use();
         self::recordFallback($resolution);
         app(ComposerRegistry::class)->startPage($intent, $model);
         self::pushDesignPreviewBar();
@@ -100,6 +102,7 @@ final class PublicPage
         $intent = new ViewIntent('error', code: $code);
         $model = new ErrorView($code);
         $resolution = app(TemplateResolver::class)->resolve($intent);
+        ThemeWords::use();
         app(ComposerRegistry::class)->startPage($intent, $model);
         self::pushDesignPreviewBar();
 

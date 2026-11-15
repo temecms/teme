@@ -8,7 +8,7 @@
 @section('main')
     <div class="wrap comment-answer">
         <header class="article-header">
-            <p class="kicker">Comments</p>
+            <p class="kicker">{{ __('Comments') }}</p>
             <h1 id="page-h" tabindex="-1">{{ $page->heading }}</h1>
             {{-- Core built each lead line and escaped its words. --}}
             @foreach ($page->lead as $line)
@@ -22,10 +22,10 @@
             <div class="c-context">@include('theme::partials.comment-card', ['comment' => $page->context, 'withReply' => false])</div>
         @endif
         @if ($page->echoHtml !== null)
-            <section class="c-echo" aria-labelledby="echo-h"><h2 id="echo-h">What you wrote</h2><div class="teme-comment-body">{!! $page->echoHtml !!}</div></section>
+            <section class="c-echo" aria-labelledby="echo-h"><h2 id="echo-h">{{ __('What you wrote') }}</h2><div class="teme-comment-body">{!! $page->echoHtml !!}</div></section>
         @endif
         @if ($page->keep !== null)
-            <div class="teme-field"><label for="c-keep">Your comment</label><textarea id="c-keep" rows="6" readonly>{{ $page->keep }}</textarea></div>
+            <div class="teme-field"><label for="c-keep">{{ __('Your comment') }}</label><textarea id="c-keep" rows="6" readonly>{{ $page->keep }}</textarea></div>
         @endif
         @if ($page->form !== null)
             <x-teme::comment-form :form="$page->form" />
