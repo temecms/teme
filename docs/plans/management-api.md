@@ -166,9 +166,28 @@ Deleting the person deletes their keys (a key never outlives its actor). A check
 - **B-?? (draft) 18: the editors' settings page names the new page.** Found: `EditorCompletenessTest` asks `docs/guides/editors/settings.md` to describe every Settings page an administrator can open; that file is outside Owns. Options: (a) one short section; (b) leave the test red. Chose (a). `e4d49d0`.
 - **B-?? (draft) 19: the operators' guide lists the page.** `OperatorPagesTest` asks for every page in `OperatorGuide::PAGES` and in the guide's README table; one line in each. `8dfb7aa`.
 
+### Follow-up R7
+
+The review's seven findings, each on `api/manage-foundation`, nothing merged in.
+
+| # | Finding | Commit | Seen red |
+|---|---|---|---|
+| 1 | A suspended person's key has a test | `5c5823a` | With `ApiKeys::signIn()`'s suspended check taken out: "Expected response status code [401] but received 200." |
+| 2 | Elevation refused inside a key's own request | `46b310b` | The test registers a route behind the whole management stack that runs `UpdateSettings` as the key's person. With `AuthenticateApiKey` binding `OperatorElevation`: "Exception [ElevationRequiredException] not thrown." |
+| 3 | Rule 9 in `html` bodies | `55311ef` | Already held: `CreateDraft`'s `DocumentNormaliser` turns this site's own address, written in full, into a link by ID (or a site path when nothing has it). The new test proves it; with that line of the normaliser taken out, it failed. No code change but a docblock. Open item 1 is closed. |
+| 4 | `publish_at` must be a date and time with its offset | `1753ed1` | "tomorrow" and "2030-11-10T09:30:00" were accepted (two dataset cases failed: no `publish_at` error). Now `createFromFormat('!Y-m-d\TH:i:sP')` with no warnings. |
+| 5 | `html` capped at 2 MB, answered `invalid_parameter` | `9b3b5a3` | A 2 MB body was converted ("Failed asserting that two strings are identical": no `html` error). The operators' guide names the cap and the date format. |
+| 6 | `/people` reuses `AuthorOptions` | `cea23f4` | A refactor with no change of behavior, so no red test; the ManageApi tests, `EditorAuthorTest` and Architecture passed. `AuthorOptions` (outside Owns) gains one method, `people()`, the shared query, and its `all()` reads it: B-?? (draft) 20 below. |
+| 7 | American spelling | `8b13e77` | — ("recognise" in `ApiKeys`, and "normaliser" in a docblock this follow-up wrote). |
+
+- **B-?? (draft) 20: `AuthorOptions::people()`.** Options: (a) a `has()` in AuthorOptions and the list kept in `CreditablePeople`; (b) one shared query method both use; (c) leave the duplicate. Chose (b): the query lives once, `AuthorOptions::all()` answers exactly as before, and `CreditablePeople` only adds the slug and the check. `cea23f4`.
+- **Noticed, not changed:** an elevated Operation refused inside a management request would answer 500 through the `/api` problem callback, not 423 or 403. No endpoint reaches one today; if one ever does, `ManageApiProblem::fromRefusal()` should map `ElevationRequiredException` to `forbidden`.
+
+**Full `composer check`** after R7 (exit 0): Pint, PHPStan (no errors), formatting (429 files) and lint (427 files, none) pass. Architecture: 139 passed. Unit and Feature: 10695 passed, 2 skipped, 0 failed.
+
 ### Open items
 
-1. Rule 9: an `html` body's absolute links to the site's own address are stored as given (B-14). Turning them into internal links needs the import's address matching, which this part does not own.
+1. ~~Rule 9: an `html` body's absolute links to the site's own address are stored as given (B-14).~~ Closed in Follow-up R7: `CreateDraft` stores them by ID.
 2. `docs/reference/settings.md` is not regenerated for the new group; this part may not write it.
 3. A wrong method on a management route (such as `PUT /items`) answers the delivery API's `method_not_allowed` problem, whose words say the API only reads. `ApiWords` is outside Owns.
 4. `since: 0.9.0` on the group and its settings is a guess (B-06).
