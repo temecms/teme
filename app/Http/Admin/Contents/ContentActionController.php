@@ -113,6 +113,9 @@ final class ContentActionController extends Controller
             return back(fallback: route('content.index', ['type' => $type]));
         }
 
+        // Undo reverts to a draft, so it is offered only when the item was one: a scheduled or private item would lose its earlier state.
+        $wasDraft = ($pointers->forIds([$content])[$content]['status'] ?? null) === 'draft';
+
         $message = match ($action) {
             'unpublish' => $this->run(app(UnpublishContent::class), $input, __('Reverted to a draft.')),
             'restore' => $this->restoreMessage(app(RestoreContent::class)->execute($input)),
@@ -127,7 +130,7 @@ final class ContentActionController extends Controller
             default => abort(404),
         };
 
-        if ($action === 'publish' && ! $request->boolean('undo')) {
+        if ($action === 'publish' && $wasDraft && ! $request->boolean('undo')) {
             Inertia::flash('toast', ['type' => 'success', 'message' => $message, 'undo' => self::undo($type, $content, 'unpublish')]);
 
             return back(fallback: route('content.index', ['type' => $type]));

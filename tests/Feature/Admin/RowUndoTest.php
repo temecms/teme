@@ -49,6 +49,17 @@ it('offers Undo after publishing from a row, and Undo reverts it to a draft', fu
     expect(Content::query()->find($draft->id)->status)->toBe('draft');
 });
 
+it('offers no Undo after publishing a scheduled item, since reverting it to a draft would lose its schedule', function (): void {
+    $item = lifecycleDraft($this->editor, 'Harbour news');
+    schedFor($item, $this->editor, now()->addDay()->toIso8601String());
+    expect(Content::query()->find($item->id)->status)->toBe('scheduled');
+
+    $published = ($this->act)($this->editor, $item->id, 'publish')->assertRedirect('/admin/posts');
+
+    $published->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Published.']);
+    expect(Content::query()->find($item->id)->status)->toBe('published');
+});
+
 it('offers Undo after trashing an item that offers no redirect, and Undo restores it', function (): void {
     $draft = lifecycleDraft($this->editor, 'Harbour news');
 
