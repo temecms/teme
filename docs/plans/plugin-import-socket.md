@@ -110,4 +110,65 @@ It uses the same guard as every route; refuses the never-sent keys; decodes seri
 
 ## Records
 
-(The builder fills this.)
+### Records (the builder's)
+
+**Setup:** `2026-11-15T15:23:32Z ran in /home/user/teme as root` / `2026-11-15T15:35:43Z finished`; `pwd` `/home/user/teme`. PHP 8.4.27, PostgreSQL on 5433 and Valkey on 6380 answered. Branch `import/plugin-socket` = `origin/import/v1-fixes` (`76f8eb9`, its records commit) merged with `origin/main` (`0de97bd`), no conflict (`4ee51e5`).
+
+**Commits**
+
+1. `44cd033` feat(plugins): declare WordPress imports behind import.wordpress (Task 2)
+2. `fa6015b` feat(plugins): WordPressImporter contracts for plugin import data (Task 3)
+3. `8a18efe` test(import): extension route in the test companion (Task 4)
+4. `8ab9c6e` feat(import): plugin-data phase hands declared WordPress data to plugins (Task 5)
+5. `3209d9e` feat(import): a report row for each plugin's data (Task 6)
+6. `2bf1bd1` docs(plugins): imports key and the companion's extension route (Task 7)
+7. `658c7ef` style(plugins): format the manifest schema's capability list (gate fix)
+8. (this) `docs(plans): plugin import socket's records`
+
+**Each test seen red (implementation moved aside), then green**
+
+- Task 2, `PluginDataManifestTest`: 16 failed, first `import.wordpress isn’t something a plugin can ask for.` and each new sentence missing.
+- Task 3, `PluginDataContractsTest`: `Class "Teme\Contracts\Import\WordPressImporter" does not exist`.
+- Task 4, `PluginDataCompanionTest`: `Call to undefined method Tests\Fixtures\Import\FakeCompanion::wordpress()`.
+- Task 5, `PluginDataPhaseTest`: `Target class [App\Domain\Import\PluginData\PluginOptionsStep] does not exist.`; then one test-data fault (a serialized string with a wrong length) fixed in the test. `ImportAcceptanceTest` went red as it should ("a mark for every step"): marks added, B-07.
+- Task 6, the report row: `Failed asserting that an array contains Array [...'plugin:importer'...]` (the plugins' records were one `plugin` row).
+
+**`composer check`**
+
+- Before (the base, clean): Architecture 139 passed (1,310 assertions); Unit+Feature 10,621 passed, 2 skipped (54,842 assertions). Pint, PHPStan, types, lint passed. (A first base run was spoiled by new test files written while it ran; it was run again with the work stashed.)
+- After: Pint, PHPStan, `types:check`, `npm run check` passed; Architecture 139 passed (1,310); Unit+Feature **10,664 passed, 2 skipped** (54,971 assertions), 0 failed.
+- Browser: none run. The plan has no Browser test and no screen changes (the report's new rows come through the existing kinds table's data).
+- Baselines: `admin-words-baseline.txt` 876 lines and `design-system-baseline.txt` 222 lines, untouched before and after.
+
+**B-?? (draft)**
+
+- **B-01 (draft): the phases' order.** Settled 5 says after core's content, terms and people and before the second pass; P2 says 850, but on main the second pass is 600 (menus 800, redirects 900), so 850 would run after it. Options: 850 as P2 writes, or a place between page-parents (510) and second-pass (600). Chose the Settled section: `plugin-options` 540, `plugin-data` 550, `plugin-data-gone` 560. `8ab9c6e`.
+- **B-02 (draft): options are a step, and gone records a third phase.** `ImportListPage` reads a whole route's items as objects, but the options answer is `{options: {a: <json>}}`, so options can't go through a list phase. Options: change `ImportListPage` (not owned), or a step. Chose a step (`PluginOptionsStep`) before the list phase. Settled 6 ("one gone from WordPress is reported") needed a catch-up step like core's `DeletedStep`: `PluginDataGoneStep`. All three registered on the one provider line. `8ab9c6e`.
+- **B-03 (draft): how the importer is built.** The plan says "through the container"; `docs/architecture/plugins.md` and `PluginLoader` say a plugin is never given the container. Chose the loader's way: constructor parameters filled from `PluginServices::for()` with the plugin's granted capabilities and agreed hosts. `8ab9c6e`.
+- **B-04 (draft): `termMeta` has no taxonomy.** The manifest lists term meta keys only, the route takes `taxonomy`. Chose `taxonomy` optional on the route (every taxonomy unless named); the record's type is each term's taxonomy. `8a18efe`, `2bf1bd1`.
+- **B-05 (draft): every extension request names `plugin=<code>`.** Two plugins declaring the same post type and keys would otherwise be identical lists, and `identify()` couldn't tell whose record it is. The companion ignores the parameter (spec). `8ab9c6e`.
+- **B-06 (draft): the map reference.** `SourceRef`'s type can't hold a colon, so the type is `plugin` and the ID `<code>:<kind>:<type>:<id>` (a person's type empty: `importer:user::1`); the key reads `plugin:<code>:...` as the plan writes. An imported record's map row has `teme_type` `plugin` and `teme_id` the plugin's code. Post types are limited to WordPress's own shape (`^[a-z0-9_-]{1,20}$`) so none holds a colon. `8ab9c6e`.
+- **B-07 (draft): lines outside "Owns" that the plan's own tasks need.** The capability needs one line in `packages/teme-contracts/src/Plugins/Capability.php`, the schema's capability enum, and `tests/Unit/Contracts/PluginContractsTest.php`'s list (meaning kept: it names the capabilities). Three new phases need marks in `tests/Feature/Import/ImportAcceptanceTest.php` ("a mark for every step"); a list phase with no lists makes no batch, so `plugin-data`'s mark enables the fixture plugin and catches up. Task 6 needs three lines in `ImportScreen::report()`. Own lines only, nothing removed. `44cd033`, `8ab9c6e`, `3209d9e`.
+- **B-08 (draft): validator details the plan doesn't spell.** Also refused: `import.wordpress` with no `imports` ("It asks for import.wordpress but declares nothing to import.", like http without hosts); an `importer` that isn't a class name; a post type of the wrong shape. Post type names count towards the 50. `44cd033`.
+- **B-09 (draft): the report's "section per plugin"** is a row per plugin (`<Label> (plugin)`, type `plugin:<code>`) in the report's kinds table, with created, updated, skipped and failed; brought = created + updated. The plugin's failure sentences are the run's messages (`plugin-data.failed`, grouped by code on the screen, each one in the CSV). Chose this over a new screen section, which would need TSX outside the plan's files. `3209d9e`.
+- **B-10 (draft): the extension route's shapes.** Meta values are always lists (WordPress meta is multi-valued); `usermeta`/`termmeta` list only records holding a declared key; options' answer always has `objects`. The "too old" sentence is reported once, by `plugin-options`, only when some plugin would receive data. `8a18efe`, `8ab9c6e`.
+
+**I-?? (draft):** none.
+
+**Contracts the plan names:** built as written (`WordPressImporter`, `WordPressRecord`, `ImportScope`, `ImportOutcome`, `@since 0.9.0`). Additions: `WordPressRecord::POST/USER/TERM` and `ImportOutcome::IMPORTED/SKIPPED/FAILED` constants, and `ImportOutcome`'s public `status` and `words` (the plan's sketch had no way to read an outcome). `Capability::ImportWordPress` added last.
+
+**STOP:** none.
+
+**Left open**
+
+- Consent covers the capability, not the declared names: an update that widens `imports` without a new capability starts without asking again. Worth a decision.
+- `teme-plugin.schema.json` doesn't describe `imports` (it allows unknown keys); only the capability enum changed.
+- The companion's side is specified in `docs/specs/companion-extension-route.md`, not built.
+
+**Try it:** `php artisan test --compact tests/Feature/Import/PluginDataPhaseTest.php` runs a full import, a catch-up, failures, an old companion and a disabled plugin against the `tests/Fixtures/plugins/importer` fixture. On a site: enable a plugin whose manifest asks for `import.wordpress` with an `imports` block, connect a WordPress site whose companion answers API 2, import, and read the plugin's row on the report.
+
+**Changelog lines (for the maintainer)**
+
+- Plugins can bring their own data across from WordPress: a manifest's `imports` declares options, post types with meta, people's and terms' meta, behind the new `import.wordpress` capability, shown with its names on the consent screen.
+- New contracts `Teme\Contracts\Import\WordPressImporter`, `WordPressRecord`, `ImportScope`, `ImportOutcome`.
+- Imports run three new phases (plugin settings, plugin data, and on a catch-up what WordPress deleted) and give each plugin a row in the report.
