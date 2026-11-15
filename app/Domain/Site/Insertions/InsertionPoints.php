@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
 
+use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\PluginRecords;
 use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Insertions\ArticleFacts;
 use Teme\Contracts\Insertions\Insertion;
@@ -14,8 +16,8 @@ use UnexpectedValueException;
 /**
  * The insertions every contributor gives for one article (I-064): read
  * plugin, then site, then core, each key's first kept. Contributors are
- * tagged under CONTRIBUTORS, or bound when a plugin granted content.insert
- * starts.
+ * the started plugins granted content.insert, those bound here, and those
+ * tagged under CONTRIBUTORS.
  */
 final class InsertionPoints
 {
@@ -28,17 +30,21 @@ final class InsertionPoints
     /** @var list<InsertionContributor> */
     private array $bound = [];
 
-    public function __construct(private Container $container) {}
+    public function __construct(
+        private Container $container,
+        private LoadedPlugins $loaded,
+        private PluginRecords $records,
+    ) {}
 
     /**
-     * Registers this contributor when it was granted content.insert; otherwise
-     * leaves it unbound so it is never asked.
+     * Registers this contributor for this scope when it was granted
+     * content.insert; otherwise leaves it unbound so it is never asked.
      *
      * @param  list<string>  $capabilities
      */
     public function bind(InsertionContributor $contributor, array $capabilities): void
     {
-        if (! in_array(Capability::ContentInsert->value, $capabilities, true)) {
+        if (! self::granted($capabilities)) {
             return;
         }
 
@@ -68,7 +74,7 @@ final class InsertionPoints
      */
     private function ordered(): array
     {
-        $contributors = [...$this->bound];
+        $contributors = [...$this->plugins(), ...$this->bound];
 
         foreach ($this->container->tagged(self::CONTRIBUTORS) as $contributor) {
             if (! $contributor instanceof InsertionContributor) {
@@ -86,5 +92,39 @@ final class InsertionPoints
         });
 
         return $contributors;
+    }
+
+    /**
+     * The plugins started once a process that contribute insertions and
+     * whose enabled row grants content.insert, so a fresh scope, as
+     * PageWarmer's, still asks them.
+     *
+     * @return list<InsertionContributor>
+     */
+    private function plugins(): array
+    {
+        $running = array_filter($this->loaded->running(), fn (object $plugin): bool => $plugin instanceof InsertionContributor);
+
+        if ($running === []) {
+            return [];
+        }
+
+        $contributors = [];
+
+        foreach ($this->records->enabled() as $record) {
+            $plugin = $running[$record->name] ?? null;
+
+            if ($plugin instanceof InsertionContributor && self::granted($record->consent['capabilities'] ?? [])) {
+                $contributors[] = $plugin;
+            }
+        }
+
+        return $contributors;
+    }
+
+    /** @param  array<mixed>  $capabilities */
+    private static function granted(array $capabilities): bool
+    {
+        return in_array(Capability::ContentInsert->value, $capabilities, true);
     }
 }
