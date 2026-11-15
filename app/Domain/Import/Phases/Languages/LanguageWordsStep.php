@@ -34,11 +34,21 @@ final readonly class LanguageWordsStep implements StepPhase
     /** Polylang's names for WordPress's own two strings, and the general setting each is. */
     private const array GENERAL = ['Site Title' => 'site_title', 'Tagline' => 'tagline'];
 
-    /** Yoast's title template parts, and Teme's token for each. */
+    /** Yoast's title template parts every template may hold, and Teme's token for each. */
     private const array TOKENS = [
         '%%title%%' => '{title}', '%%sitename%%' => '{site}', '%%sitedesc%%' => '{tagline}', '%%sep%%' => '{sep}',
-        '%%page%%' => '{page}', '%%term_title%%' => '{title}', '%%name%%' => '{title}', '%%date%%' => '{title}',
-        '%%pt_plural%%' => '{title}', '%%searchphrase%%' => '{search}', '%%excerpt%%' => '{excerpt}',
+        '%%page%%' => '{page}', '%%searchphrase%%' => '{search}', '%%excerpt%%' => '{excerpt}',
+    ];
+
+    /** An item's parts: its date, author, category and type, and the year, which here is the year it was published. */
+    private const array ITEM_TOKENS = [
+        '%%date%%' => '{date}', '%%name%%' => '{author}', '%%category%%' => '{term}', '%%primary_category%%' => '{term}',
+        '%%pt_single%%' => '{type}', '%%pt_plural%%' => '{type}', '%%currentyear%%' => '{year}',
+    ];
+
+    /** An archive's parts naming what it lists, which Teme's archives give as their title. */
+    private const array ARCHIVE_TOKENS = [
+        '%%term_title%%' => '{title}', '%%name%%' => '{title}', '%%date%%' => '{title}', '%%pt_plural%%' => '{title}',
     ];
 
     public function __construct(private ImportedLanguages $imported) {}
@@ -85,7 +95,7 @@ final readonly class LanguageWordsStep implements StepPhase
             foreach ($pairs as ['name' => $name, 'translation' => $translation]) {
                 if (isset(self::GENERAL[$name])) {
                     $words['general'][self::GENERAL[$name]] = $translation;
-                } elseif (isset($templates[$name]) && ($template = self::template($translation)) !== null) {
+                } elseif (isset($templates[$name]) && ($template = self::template($translation, str_starts_with($templates[$name], 'title_type_'))) !== null) {
                     $words[SearchAndSocial::KEY][$templates[$name]] = $template;
                 } else {
                     $left[] = $name;
@@ -161,12 +171,12 @@ final readonly class LanguageWordsStep implements StepPhase
     }
 
     /**
-     * A Yoast title template in Teme's tokens, or null when it has a part
-     * Teme has no token for.
+     * A Yoast title template in Teme's tokens, an item's or an archive's,
+     * or null when it has a part Teme has no token for there.
      */
-    private static function template(string $yoast): ?string
+    private static function template(string $yoast, bool $item): ?string
     {
-        $template = trim((string) preg_replace('/\s+/', ' ', strtr($yoast, self::TOKENS)));
+        $template = trim((string) preg_replace('/\s+/', ' ', strtr($yoast, [...self::TOKENS, ...($item ? self::ITEM_TOKENS : self::ARCHIVE_TOKENS)])));
 
         return str_contains($template, '%%') ? null : $template;
     }

@@ -151,6 +151,8 @@ it('copies the site title, the tagline and the title templates in each language,
         ->and($general['es']['site_title'] ?? null)->toBe('La Gaceta del Puerto')
         ->and($general['es']['tagline'] ?? null)->toBe('Noticias del muelle')
         ->and($seo['es']['title_home'] ?? null)->toBe('{site} {sep} {tagline}')
+        ->and($seo['es']['title_type_post'] ?? null)->toBe('{title} {sep} {date} {sep} {author}')
+        ->and($seo['es']['title_taxonomy_category'] ?? null)->toBe('{title} {sep} {site}')
         ->and(plCodes($run))->toContain('language-words.left');
 });
 

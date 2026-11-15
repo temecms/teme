@@ -88,6 +88,8 @@ final class PolylangSite
                     ['name' => 'Site Title', 'translation' => 'La Gaceta del Puerto'],
                     ['name' => 'Tagline', 'translation' => 'Noticias del muelle'],
                     ['name' => 'title-home-wpseo', 'translation' => '%%sitename%% %%sep%% %%sitedesc%%'],
+                    ['name' => 'title-post', 'translation' => '%%title%% %%sep%% %%date%% %%sep%% %%name%%'],
+                    ['name' => 'title-tax-category', 'translation' => '%%term_title%% %%sep%% %%sitename%%'],
                     ['name' => 'Read more', 'translation' => 'Leer más'],
                 ],
             ],
