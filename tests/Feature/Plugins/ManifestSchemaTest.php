@@ -37,6 +37,19 @@ it('states the validator’s patterns and lists, word for word', function (): vo
         ->and($properties['name']['pattern'])->toBe(($this->between)(ManifestValidator::NAME));
 });
 
+it('describes owns.tables as the tables a plugin creates', function (): void {
+    $owns = $this->schema['properties']['owns'];
+
+    expect($owns['type'])->toBe('object')
+        ->and($owns['additionalProperties'])->toBeFalse()
+        ->and($owns['required'])->toBe(['tables'])
+        ->and($owns['properties']['tables']['type'])->toBe('array')
+        ->and($owns['properties']['tables']['uniqueItems'])->toBeTrue()
+        ->and($owns['properties']['tables']['items']['pattern'])->toBe('^[a-z][a-z0-9_]*$')
+        ->and($owns['properties']['tables']['items']['maxLength'])->toBe(63)
+        ->and($owns['description'])->toContain('5.2');
+});
+
 it('takes the same versions the validator takes', function (string $version, bool $ok): void {
     $schema = '/'.$this->schema['properties']['version']['pattern'].'/';
     $manifest = [...PluginFixtures::manifest('hello'), 'version' => $version];

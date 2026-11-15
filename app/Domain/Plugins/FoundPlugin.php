@@ -6,14 +6,15 @@ namespace App\Domain\Plugins;
 
 /**
  * One plugin found on disk: its Composer name, its code, its folder, its
- * manifest (null when teme-plugin.json couldn't be read at all) and every
- * problem found in it. A plugin with any problem can't be used, and is
- * listed with its problems.
+ * manifest (null when teme-plugin.json couldn't be read at all), its
+ * migration names, and every problem found in it. A plugin with any
+ * problem can't be used, and is listed with its problems.
  */
 final readonly class FoundPlugin
 {
     /**
      * @param  list<string>  $problems
+     * @param  list<string>  $migrations  migration file names without .php, in name order
      */
     public function __construct(
         public string $name,
@@ -21,6 +22,7 @@ final readonly class FoundPlugin
         public string $path,
         public ?Manifest $manifest,
         public array $problems,
+        public array $migrations = [],
     ) {}
 
     /**

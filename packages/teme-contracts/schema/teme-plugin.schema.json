@@ -266,6 +266,24 @@
                 }
             }
         },
+        "owns": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tables"],
+            "description": "Tables this plugin creates (slice 5.2). Each name starts with the plugin’s code as a prefix (hyphens become underscores).",
+            "properties": {
+                "tables": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "description": "Table names the plugin’s migrations create.",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$",
+                        "maxLength": 63
+                    }
+                }
+            }
+        },
         "author": {
             "type": "string",
             "description": "Who wrote the plugin."

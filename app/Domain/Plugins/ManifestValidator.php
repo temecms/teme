@@ -123,6 +123,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->hosts($manifest, $read));
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
+        array_push($errors, ...$this->owns($manifest, $read));
 
         return $errors;
     }
@@ -377,6 +378,54 @@ final readonly class ManifestValidator
         $values = $manifest[$key];
 
         return is_array($values) ? array_values(array_unique($values, SORT_REGULAR)) : [$values];
+    }
+
+    /**
+     * owns.tables: an object whose only key is tables, each a distinct
+     * lower-case name that starts with the plugin's prefix (I-3442).
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function owns(array $manifest, Manifest $read): array
+    {
+        if (! array_key_exists('owns', $manifest)) {
+            return [];
+        }
+
+        $owns = $manifest['owns'];
+
+        if (! is_array($owns) || array_is_list($owns) || array_keys($owns) !== ['tables']) {
+            return ['owns must be an object whose only key is tables.'];
+        }
+
+        $tables = $owns['tables'] ?? null;
+
+        if (! is_array($tables) || ! array_is_list($tables) || count($tables) !== count(array_unique($tables, SORT_REGULAR))) {
+            return ['owns.tables must be a list of distinct table names.'];
+        }
+
+        $prefix = str_replace('-', '_', $read->code()).'_';
+        $errors = [];
+
+        foreach ($tables as $table) {
+            if (! is_string($table) || preg_match('/^[a-z][a-z0-9_]*$/', $table) !== 1) {
+                $errors[] = 'owns.tables "'.$this->show($table).'" must be a lower-case name of letters, digits and underscores, starting with a letter.';
+
+                continue;
+            }
+
+            if (! str_starts_with($table, $prefix)) {
+                $errors[] = "owns.tables \"{$table}\" must start with the plugin’s prefix \"{$prefix}\".";
+            }
+
+            if (strlen($table) > 63) {
+                $errors[] = "owns.tables \"{$table}\" must be at most 63 characters.";
+            }
+        }
+
+        return $errors;
     }
 
     private function show(mixed $value): string

@@ -105,3 +105,18 @@ it('says no plugins are installed, and reads nothing, when there are none', func
     expect(app(PluginRegistry::class)->all())->toBe([])
         ->and(DB::getQueryLog())->toBe([]);
 });
+
+it('finds the fixture’s migration names, in order', function (): void {
+    PluginFixtures::use('tables');
+
+    expect(app(PluginRegistry::class)->find('tests/tables')?->migrations)->toBe([
+        '2026_01_01_000000_create_tables_links',
+        '2026_01_02_000000_create_tables_clicks',
+    ]);
+});
+
+it('lists no migrations for a plugin without a migrations folder', function (): void {
+    PluginFixtures::use('hello');
+
+    expect(app(PluginRegistry::class)->find('tests/hello')?->migrations)->toBe([]);
+});

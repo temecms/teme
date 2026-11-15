@@ -32,6 +32,7 @@ use stdClass;
  * @property int|null $disabled_by
  * @property array<string, array<string, mixed>> $faults
  * @property array<string, array<string, mixed>> $quarantine
+ * @property array<string, array{version?: string, ran_at?: string, tables?: list<string>}> $migrations
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
@@ -94,6 +95,14 @@ final class PluginRecord extends Model
      * @return Attribute<array<string, mixed>, array<string, mixed>>
      */
     protected function quarantine(): Attribute
+    {
+        return $this->jsonObject();
+    }
+
+    /**
+     * @return Attribute<array<string, mixed>, array<string, mixed>>
+     */
+    protected function migrations(): Attribute
     {
         return $this->jsonObject();
     }

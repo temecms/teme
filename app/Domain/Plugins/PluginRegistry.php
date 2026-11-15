@@ -26,7 +26,7 @@ use ValueError;
  * never stops it.
  *
  * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}
- * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>}
+ * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>, migrations: list<string>}
  */
 final class PluginRegistry
 {
@@ -37,7 +37,7 @@ final class PluginRegistry
      * hooks are checked on every read anyway. A deployment that changes Teme
      * runs `teme:plugins:cache` again, as `optimize` does.
      */
-    private const int FORMAT = 3;
+    private const int FORMAT = 4;
 
     /** @var array<string, array<string, FoundPlugin>> each discovery, by the settings it was made from */
     private array $memo = [];
@@ -248,13 +248,40 @@ final class PluginRegistry
                 'composer' => $composer,
                 'reading' => $raw === null ? null : $this->validator->classReading($raw, $path, $composer),
                 'code' => $problem === null ? $this->scan->problems($path, $composer) : [$problem],
+                'migrations' => $this->migrationNames($path),
             ];
         } catch (Throwable $failure) {
             // A folder or file that can't be read stops this plugin, never the others, and is read again next time.
             Context::scope(fn () => report($failure), ['plugin' => $package ?? $path]);
 
-            return ['path' => $path, 'package' => $package, 'identity' => '', 'manifest' => null, 'composer' => null, 'reading' => null, 'code' => [$this->unreadable($failure)]];
+            return ['path' => $path, 'package' => $package, 'identity' => '', 'manifest' => null, 'composer' => null, 'reading' => null, 'code' => [$this->unreadable($failure)], 'migrations' => []];
         }
+    }
+
+    /**
+     * The plugin's migration file names without .php, sorted by name.
+     *
+     * @return list<string>
+     */
+    private function migrationNames(string $path): array
+    {
+        $folder = $path.'/database/migrations';
+
+        if (! is_dir($folder)) {
+            return [];
+        }
+
+        $names = [];
+
+        foreach (scandir($folder) ?: [] as $file) {
+            if (str_ends_with($file, '.php') && is_file($folder.'/'.$file)) {
+                $names[] = substr($file, 0, -4);
+            }
+        }
+
+        sort($names);
+
+        return $names;
     }
 
     /**
@@ -300,7 +327,7 @@ final class PluginRegistry
         }
 
         $problems = $taken === null ? $plugin->problems : [...$plugin->problems, "The plugin code \"{$plugin->code}\" is already used by {$taken->name}."];
-        $plugins[$plugin->path] = new FoundPlugin($plugin->name, $plugin->code, $plugin->path, $plugin->manifest, $problems);
+        $plugins[$plugin->path] = new FoundPlugin($plugin->name, $plugin->code, $plugin->path, $plugin->manifest, $problems, $plugin->migrations);
     }
 
     /**
@@ -334,7 +361,8 @@ final class PluginRegistry
                 || ! is_string($entry['identity'] ?? null) || ! array_key_exists('manifest', $entry) || ! (is_array($entry['manifest']) || $entry['manifest'] === null)
                 || ! array_key_exists('composer', $entry) || ! (is_array($entry['composer']) || $entry['composer'] === null)
                 || ! array_key_exists('reading', $entry) || ! (is_array($entry['reading']) || $entry['reading'] === null)
-                || ! is_array($entry['code'] ?? null) || ! array_is_list($entry['code'])) {
+                || ! is_array($entry['code'] ?? null) || ! array_is_list($entry['code'])
+                || ! is_array($entry['migrations'] ?? null) || ! array_is_list($entry['migrations'])) {
                 return null;
             }
 
@@ -411,7 +439,7 @@ final class PluginRegistry
         $raw = $entry['manifest'];
 
         if ($raw === null) {
-            return new FoundPlugin($fallback, basename($path), $path, null, $entry['code']);
+            return new FoundPlugin($fallback, basename($path), $path, null, $entry['code'], $entry['migrations']);
         }
 
         $manifest = new Manifest($raw);
@@ -422,6 +450,7 @@ final class PluginRegistry
             $path,
             $manifest,
             [...$this->validator->errorsGiven($raw, $composer, $entry['reading']), ...$entry['code']],
+            $entry['migrations'],
         );
     }
 
