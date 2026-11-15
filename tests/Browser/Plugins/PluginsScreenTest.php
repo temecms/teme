@@ -102,6 +102,97 @@ it('draws the adopted design with no accessibility issue, in both schemes and at
     $page->screenshot(true, "plugins-dialog-{$scheme}-375");
 })->with(['light', 'dark']);
 
+it('has no accessibility issue on Remove its data or Run database changes, in both schemes and at both widths', function (string $scheme): void {
+    $third = <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tables_notes', function (Blueprint $table): void {
+            $table->id();
+        });
+    }
+};
+PHP;
+
+    $copy = PluginFixtures::copy('tables', [
+        'version' => '1.1.0',
+        'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']],
+    ]);
+    PluginFixtures::use($copy);
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/tables',
+        '1.1.0',
+        ['content.read'],
+        [],
+        ['ContentPublished'],
+        null,
+    ));
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+    app()->forgetInstance(Elevation::class);
+
+    lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->resize(1280, 900)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Tables');
+
+    $page->click('[data-test="plugin-tables"] [data-test="plugin-menu"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"plugin-remove-data\"]') !== null");
+    $page->click('[data-test="plugin-remove-data"]');
+    $page->assertNotPresent('[role="menu"]');
+    cmWaitUntil($page, $this->settled);
+    expect(cmAxeViolations($page))->toBe([]);
+    $page->keys('[role="dialog"]', 'Escape');
+    cmWaitUntil($page, $this->closed);
+
+    $page->resize(375, 812)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Tables');
+    $page->click('[data-test="plugin-tables"] [data-test="plugin-menu"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"plugin-remove-data\"]') !== null");
+    $page->click('[data-test="plugin-remove-data"]');
+    $page->assertNotPresent('[role="menu"]');
+    cmWaitUntil($page, $this->settled);
+    expect(cmAxeViolations($page))->toBe([])
+        ->and(($this->sideways)($page))->toBe(0);
+    $page->keys('[role="dialog"]', 'Escape');
+    cmWaitUntil($page, $this->closed);
+
+    // Waiting on Run database changes: re-enable, add a third migration, axe the row.
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/tables',
+        '1.1.0',
+        ['content.read'],
+        [],
+        ['ContentPublished'],
+        null,
+    ));
+    app()->forgetInstance(Elevation::class);
+    file_put_contents($copy.'/database/migrations/2026_01_03_000000_create_tables_notes.php', $third);
+    $manifest = json_decode((string) file_get_contents($copy.'/teme-plugin.json'), true);
+    $manifest['version'] = '1.1.0';
+    $manifest['owns'] = ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']];
+    file_put_contents($copy.'/teme-plugin.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+    app(PluginRegistry::class)->flush();
+
+    $page->resize(1280, 900)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Version 1.1.0 has database changes to run.');
+    expect(cmAxeViolations($page))->toBe([]);
+
+    $page->resize(375, 812)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Version 1.1.0 has database changes to run.');
+    expect(cmAxeViolations($page))->toBe([])
+        ->and(($this->sideways)($page))->toBe(0);
+})->with(['light', 'dark']);
+
 it('opens the consent dialog, lists what it asks to, and enables the plugin after the password screen', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/plugins');
     ($this->seen)($page, 'Installed, not enabled yet.');
