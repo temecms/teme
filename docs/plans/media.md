@@ -496,6 +496,10 @@ Stop, write why under Records, commit and push, then stop, when:
 
 **STOPPED, for one point: the editors' Media guide.** `tests/Feature/Guides/Editors/EditorPagesTest`, "names only what…", fails for `docs/guides/editors/media.md`: its bold **Licence** and **Save** are no longer said by its sources, because the field is now "License" (I-3439) and the fields save when left (D8), so the panel has no Save button. The guide is not in this plan's Owns, so it stays unchanged. The fix, for the maintainer or the docs part: in "To describe a file", "a drawer" → "a panel beside the library", **Licence** → **License**, and "Choose **Save**." → "Each field is saved when you leave it, and the page says **Saved.**"; "The drawer" → "The panel" twice. Everything else in this part is built.
 
+### Follow-up X3-2
+
+On the maintainer's go-ahead, `docs/guides/editors/media.md` matches the new library: **Licence** became **License** (I-3439), "Choose **Save**" became the fields saving as they are left with **Saved.**, and the drawer became the panel. `EditorPagesTest` 91 passed; the Guides tests 289 passed; the quick check green (Architecture 105 passed). This clears the STOP above.
+
 ### How to try it
 
 On a local site: `/admin/media` — pick a tile size, move with the arrows, Enter opens the details beside the library, change a field and leave it ("Saved."). `/admin/_catalogue#media-picker` — open the picker from each caller, choose with the keyboard or a double-click, tick a gallery in order and remove one from the tray, upload on the Upload tab.
