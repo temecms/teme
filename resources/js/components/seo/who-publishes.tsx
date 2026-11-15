@@ -1,10 +1,10 @@
-import { AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import type { ComponentProps } from 'react';
 import { SettingsField } from '@/components/fields/settings-field';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Notice } from '@/components/ui/notice';
 import type {
     FieldDefinition,
     PublisherScreen,
@@ -13,7 +13,7 @@ import type {
 } from '@/types';
 
 const selectClass =
-    'border-edge bg-page focus-visible:ring-ring w-full max-w-[320px] rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-page focus-visible:ring-ring w-full max-w-80 rounded-md border px-3 py-2 text-small focus-visible:ring-2 focus-visible:outline-none';
 
 const PERSON = 'Person';
 
@@ -168,7 +168,7 @@ export function WhoPublishesSection({
                     </select>
                     <p
                         id="field-publisher_type-hint"
-                        className="text-ink-2 text-sm"
+                        className="text-small text-ink-2"
                     >
                         {kindField.description}
                     </p>
@@ -187,30 +187,22 @@ export function WhoPublishesSection({
                 shown(person) &&
                 publisher.personGone &&
                 kind === PERSON && (
-                    <div
-                        role="note"
-                        data-test="publisher-person-gone"
-                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
-                    >
-                        <AlertTriangle
-                            aria-hidden="true"
-                            className="text-warn-ink mt-0.5 size-4 shrink-0"
-                        />
+                    <Notice tone="warn" data-test="publisher-person-gone">
                         <p>
                             This person no longer has an account, so search
                             engines are told nobody in particular publishes the
                             site. Choose someone else, or Nobody in particular.
                         </p>
-                    </div>
+                    </Notice>
                 )}
             {generic('publisher_profiles')}
 
             {businessShown && (
                 <fieldset className="border-line grid gap-4 rounded-md border p-4">
-                    <legend className="px-1 text-sm font-medium">
+                    <legend className="text-small px-1 font-medium">
                         The business
                     </legend>
-                    <p className="text-ink-2 text-sm">
+                    <p className="text-small text-ink-2">
                         One place. A business with several needs a plugin that
                         describes each one.
                     </p>
@@ -239,10 +231,10 @@ export function WhoPublishesSection({
 
             {ownerShown && (
                 <fieldset className="border-line grid gap-4 rounded-md border p-4">
-                    <legend className="px-1 text-sm font-medium">
+                    <legend className="text-small px-1 font-medium">
                         Owned by
                     </legend>
-                    <p className="text-ink-2 text-sm">
+                    <p className="text-small text-ink-2">
                         Leave these empty unless another organization owns this
                         one.
                     </p>
@@ -287,7 +279,7 @@ function TextField({
                 aria-describedby={`field-${field.key}-hint field-${field.key}-error`}
                 className={className}
             />
-            <p id={`field-${field.key}-hint`} className="text-ink-2 text-sm">
+            <p id={`field-${field.key}-hint`} className="text-small text-ink-2">
                 {field.description}
             </p>
             <InputError id={`field-${field.key}-error`} message={error} />

@@ -757,4 +757,93 @@ Stop, write why under "Records", commit and push, then stop, when:
 
 ## Records (the builder's)
 
-<!-- The builder fills this in: commits; each test seen red (task, file, case, the failure's first line); the design check's counts per rule after each task that changed them, and the words count; differences from the plan as B-?? (draft); changelog lines; any STOP. -->
+**Setup.** `/tmp/teme-cloud-setup.log`: none; the session began in `/home/user`. Branch `ui/settings-pages` from `origin/main`. A whole-base `composer check` could not run in a worktree (its `vendor` is shared), so each new and changed test was instead run red against the base code and a base build (B-07 below).
+
+**Commits.**
+
+| Task | Commit | Message |
+|---|---|---|
+| 1 | `80b299f` | feat(settings): one request saves a settings page and the section another group lends it |
+| 2 | `10b959d` | feat(settings): General, Writing, Reading, Media and People on the settings page with one save bar |
+| 3 | `cb27f6e` | feat(settings): Addresses and Search and social on the settings page with one save bar |
+| 4 | `63c1be7` | feat(settings): Discussion on the settings page; the comments switch acts at once |
+| 5 | `00af1a3` | feat(settings): AI and Site code on the settings page |
+| 6 | `39cab6c` | feat(settings): the settings groups open from one button under 1024 pixels, and Find a setting marks its field |
+| 7 | `4d86d32` | docs(guides): the settings pages save from one bar |
+
+**Tests seen red.**
+
+| Task | File | Case(s) | First line of the failure |
+|---|---|---|---|
+| 1 | `SaveSettingsPageTest` | 6 of 8 (the refusal and lent-elsewhere cases passed, as expected on a base with no Operation) | "Failed asserting that two strings are identical" (the accent not saved from General) |
+| 2 | `SettingsSaveBarTest` | the bar hidden until a change, one bar; leave guard; fresh password | the bar not hidden / more than one bar; the leave-guard dialog never came (timeout); the password dialog never came (timeout) |
+| 2 | `SettingsSaveBarTest` | the bar at a phone's foot | the bar's bottom not 16 above the window's foot |
+| 4 | `SettingsSaveBarTest` | Discussion's switch | `#field-comments` not a switch (timeout) |
+| 5 | `AiSettingsScreenTest` | the two changed cases | timeout waiting for the fresh-password input |
+| 6 | `SettingsSaveBarTest` | Find a setting marks its field | the mark never came (timeout) |
+| 6 | `MenuAndSettingsTest` | at a phone's width, opens the Settings menu from one button | `nav[aria-label="Settings"]` not hidden |
+
+**Counts.** Design check (`DesignSystemTest` baseline), base → end: R1 131→118, R2 823→729, R3 183→174, R5 102→100, R6 55→52, R7 135→123, R8 39→38, R9 25→17, R15 9→6; R10 15 and R14 19 unchanged; nothing left listed as gone. Words (`AdminWordsTest` baseline): 2552→2540. No count raised, no line added.
+
+**Browser files** after `npm run build`, one at a time, each to a file: SettingsSaveBarTest 6, SettingsPanelsTest 18, SettingsPlacementsTest 10, SettingControlsTest 2, TypeBuilderTest 12, TaxonomyBuilderTest 9, DiscussionSettingsTest 3, AiSettingsScreenTest 5, SiteCodeSettingsTest 5, SearchAndSocialSettingsTest 5, WhoPublishesSettingsTest 4, MenuAndSettingsTest 16, SaveBarTest 1: 96 passed, 0 failed.
+
+**Full `composer check`.** Pint, PHPStan (no errors), types and lint (375 files, none) pass. Architecture: 101 passed. Feature and Unit: 1 failed, 2 skipped, 10443 passed. The one failure is `DocumentShellTest` › "it leaves addresses with a…": its fixture `tests/Fixtures/speculation.mjs` calls `URLPattern`, which this container's Node 22 lacks (`ReferenceError: URLPattern is not defined`). This branch changes nothing that test or its fixture reads; GitHub's run decides it. An earlier full run, before the guide commit, had 2 failures, both `EditorPagesTest`, fixed by B-13.
+
+**STOP.** None.
+
+### Differences from the plan (B-?? drafts)
+
+- **B-?? (draft) 01: the dirty check waits a frame.** Found: D3's listener set state in a native `input` listener before React's own `onChange`, which put a controlled field back (Search and social's separator would not change). Options: (a) a frame's wait before reading the form; (b) listen in the capture phase; (c) make the fields uncontrolled. Chose (a): it leaves every field as written and reads the form once React has handled the event. `10b959d`.
+- **B-?? (draft) 02: `SettingsForm` takes `onSuccess`.** Found: Addresses reloads its progress after a save. Options: (a) an `onSuccess` prop passed to the Form; (b) keep Addresses on its own Form. Chose (a): one save bar on every page, as D1 wants. `10b959d`.
+- **B-?? (draft) 03: the Discussion panels case scrolls to the page's end.** Found: the floating bar sits `bottom-4`, so `scrollIntoView({block: 'end'})` on the form leaves the bar 16 above the form's end. Options: (a) scroll to the page's end, where the bar meets the form's end; (b) loosen the measure by 16. Chose (a): the case still proves the bar ends with the form. `10b959d`.
+- **B-?? (draft) 04: shared test files committed in their final state with Task 2.** Found: `SettingsPanelsTest`'s Discussion case went in with Task 2 and passes from Task 4. Options: (a) final state once; (b) intermediate versions per task. Chose (a): fewer edits to the same cases; each was seen red before its task. `10b959d`.
+- **B-?? (draft) 05: the Discussion switch is labelled by its field's own label.** Found: `SettingsPanel` exposes no heading id to point at. Options: (a) the comments field's label beside the switch; (b) add an id to the panel heading (a shared component other parts use). Chose (a). `63c1be7`.
+- **B-?? (draft) 06: the AI note left as written.** Found: "Saving may ask for your password. If it does, you'll come back here to save again…" is no longer true; the password is asked in place and the save goes on. Options: (a) leave it (the plan keeps every other word); (b) remove or reword it. Chose (a); recommend removing it (open item). `00af1a3`.
+- **B-?? (draft) 07: no whole-base `composer check`.** Found: a worktree with a shared `vendor` could not run it. Options: (a) run the new and changed tests red on the base code and build; (b) a second full install. Chose (a): it proves what the base check is for at a fraction of the time. —
+- **B-?? (draft) 08: the layout finds the field's wrapper by walking its parents.** Found: `closest('[data-slot=…]')` is read as an arbitrary value by R1. Options: (a) a loop over `parentElement` checking `dataset.slot`; (b) a baseline line. Chose (a): no baseline line may be added. `39cab6c`.
+- **B-?? (draft) 09: an extra assertion in `SaveSettingsPageTest`.** Found: the "only from General" case did not prove the design accent stays empty elsewhere. Chose to assert it; it adds proof and changes no meaning. `80b299f`.
+- **B-?? (draft) 10: words through `__()`.** Found: the words check counts template strings as new words. Options: (a) put them through `__()`; (b) a baseline line. Chose (a): each save label (`:page settings` forms), "Your latest :things" and "Updating addresses: :done of :total". `10b959d`, `cb27f6e`.
+- **B-?? (draft) 11: the AI test chooses the model before the save.** Found: with the password asked in place, the one confirmed save carries the model; the old test saved, came back and saved again. Chose to choose the model first, then confirm the password once; the case still proves a sensitive save asks for a fresh password and then saves. `00af1a3`.
+- **B-?? (draft) 12: variants and tones.** Addresses' "Choose the home page" is a neutral button; Site code's notice is warn when the code is locked and info otherwise; the structured-data notice is warn; AI's "off" notice is warn and "none on" is info. `cb27f6e`, `00af1a3`.
+- **B-?? (draft) 13: the editor guides.** Found: `EditorPagesTest` failed because `docs/guides/editors/settings.md` and `comments.md` named "Save brand colour", "Save home page" and "Save the comments switch". Options: (a) describe the one save bar and the switch acting at once; (b) leave the test red. Chose (a), with the fewest words changed. `4d86d32`.
+
+### Open items
+
+The plan's 1–6 stand. Also: (7) remove the stale AI note (B-06); (8) Discussion's switch shows an `expected_version` refusal as an error but does not reload the page for you.
+
+### Changelog lines
+
+- Settings pages now save from one bar that appears once something changes, named for its page; Brand colour saves with General and the home page with Reading.
+- A setting that needs a fresh password asks for it in place and then saves.
+- Discussion's comments switch acts at once, and waits while the rules below are unsaved.
+- On phones and tablets, the settings groups open from one **Settings groups** button; **Find a setting** marks the setting it takes you to.
+
+### How to try it
+
+Sign in as an administrator, open **Settings › General**, change the title: the bar appears; **Discard** puts it back, leaving asks first. Change the brand colour and save once. On **Discussion**, flip the switch (it acts at once), then change a rule and see the switch held. On **AI**, save a change and confirm your password in place. At 375 wide, open **Settings groups**.
+
+### Follow-up W2-2 (the review's fixes)
+
+**Commits.**
+
+| Item | Commit | Message |
+|---|---|---|
+| 1 | `36fa371` | fix(settings): Discard puts back what was typed on Addresses and Search and social |
+| 2 | `6855994` | fix(settings): drop the AI page's note that saving sends you back |
+| 3 | `ebd0418` | fix(settings): Find a setting clears its mark, the comments switch names any refusal, and a Reading refusal writes nothing |
+
+**Tests seen red.**
+
+| Item | File | Case | First line of the failure |
+|---|---|---|---|
+| 1 | `SettingsSaveBarTest` | puts a typed base back on Discard on Addresses, and a later Save leaves it as it was | "Timeout 5000ms exceeded", waiting for `#base-tag` to read "tag" with the bar hidden after Discard |
+| 1 | `SettingsSaveBarTest` | puts a typed separator back on Discard on Search and social, and a later Save leaves it as it was | "Timeout 5000ms exceeded", waiting for the separator to read its first value with the bar hidden after Discard |
+| 2 | `AdminWordsTest` | finds no word on a screen outside the catalogue (after removing the note's baseline line and lowering the count to 2539) | "Words outside the catalogue…": `pages/settings/ai.tsx` Saving may ask for your password… |
+
+Item 1: each page's typed state and its sections moved into a component drawn inside `SettingsForm`'s children (`AddressSections`, `SearchAndSocialSections`), so Discard's remount draws them again from props. No `onDiscard` was needed.
+
+Words: 2540 → 2539. Design check counts unchanged.
+
+- **B-?? (draft) 14: item 3's tests.** Found: `SaveSettingsPageTest`'s new Reading refusal case (someone with `settings.general.manage` but not `settings.addresses.manage` sends `front_shows`: 403, Reading and Addresses unchanged) passes before any change, because `SaveSettingsPage` already checks every part first; it was added as asked and recorded as never red. A browser case for the stale mark (Find a setting twice on one page) also passed before the change: the field's `blur` already unmarks it on every path a person can take, so the cleanup's `unmark()` is a guard; options were (a) keep a case that cannot be seen red, (b) leave it out. Chose (b). The comments switch's other refusals (validation of `values.comments`) cannot be reached from the page, so that change has no browser case. `ebd0418`.
+
+**Checks.** Pint, PHPStan, types, `vp check`, Architecture 101 passed. After `npm run build`: SettingsSaveBarTest 8, SettingsPlacementsTest 10, AiSettingsScreenTest 5, DiscussionSettingsTest 3, MenuAndSettingsTest 16, SearchAndSocialSettingsTest 5, SettingsPanelsTest 18: all passed. SaveSettingsPageTest 9 passed. `DocumentShellTest`'s `URLPattern` failure is the container's Node 22 (the review's note); nothing to do.
