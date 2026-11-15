@@ -22,13 +22,28 @@ export function OtherHostsForm({
     siteId,
     listed,
     suggested,
+    remembered = null,
 }: {
     siteId: string;
     listed: string[];
     suggested: { host: string; links: number }[];
+    remembered?: string[] | null;
 }) {
-    const [ticked, setTicked] = useState<string[]>([]);
-    const [manual, setManual] = useState('');
+    const suggestedHosts = suggested.map((row) => row.host);
+    const [ticked, setTicked] = useState<string[]>(() =>
+        (remembered ?? []).filter(
+            (host) =>
+                !listed.includes(host) && suggestedHosts.includes(host),
+        ),
+    );
+    const [manual, setManual] = useState(
+        () =>
+            (remembered ?? []).find(
+                (host) =>
+                    !listed.includes(host) &&
+                    !suggestedHosts.includes(host),
+            ) ?? '',
+    );
 
     const hosts = [
         ...listed,

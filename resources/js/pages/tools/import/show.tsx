@@ -41,6 +41,7 @@ function Plan({
                 siteId={siteId}
                 listed={listedHosts}
                 suggested={plan.suggestedHosts}
+                remembered={plan.rememberedHosts}
             />
 
             <SiteAnalysis

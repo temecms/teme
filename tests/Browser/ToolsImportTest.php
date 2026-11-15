@@ -199,6 +199,10 @@ it('saves a suggested other address of this site, and passes axe at 1280 and 375
     $page->type('#password', 'password')
         ->click('[data-test="confirm-password-button"]');
 
+    // After the password, back on the site page with the tick kept; save again.
+    tiWaitUntil($page, tiPresent('[data-test="import-other-hosts-save"]'));
+    $page->click('[data-test="import-other-hosts-save"]');
+
     tiWaitUntil($page, tiPresent('[data-test="import-other-hosts-listed"]'));
     $page->assertSeeIn('[data-test="import-other-hosts-listed"]', 'stage.old.example');
 

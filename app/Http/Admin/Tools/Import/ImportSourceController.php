@@ -12,6 +12,7 @@ use App\Domain\Import\Operations\Input\SetImportSourceHostsInput;
 use App\Domain\Import\Operations\SetImportSourceHosts;
 use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Queries\ImportScreen;
+use App\Domain\Support\Security\ElevationRequiredException;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,9 @@ use Inertia\Inertia;
  */
 final class ImportSourceController extends Controller
 {
+    /** The session key the hosts are kept under across the password's confirmation, followed by the site's ID. */
+    public const string REMEMBERED_HOSTS = 'import.other-hosts.';
+
     public function connect(Request $request, ConnectImportSource $connect, ImportScreen $screen): RedirectResponse
     {
         try {
@@ -75,9 +79,16 @@ final class ImportSourceController extends Controller
 
         try {
             $set->execute(new SetImportSourceHostsInput($source, $hosts, self::actor($request)));
+        } catch (ElevationRequiredException $ask) {
+            // Kept across the password's confirmation, so nothing is chosen twice.
+            $request->session()->put(self::REMEMBERED_HOSTS.$source, $hosts);
+
+            throw $ask;
         } catch (ValidationException $refused) {
             return back()->withErrors($refused->errors());
         }
+
+        $request->session()->forget(self::REMEMBERED_HOSTS.$source);
 
         return self::told('Saved the other addresses of this site.');
     }

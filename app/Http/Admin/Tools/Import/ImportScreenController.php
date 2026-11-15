@@ -84,23 +84,26 @@ final class ImportScreenController extends Controller
      * confirmation; or why the site couldn't be read. Suggested hosts are
      * filled from that same analysis read.
      *
-     * @return array{analysis: array<string, mixed>|null, problem: string|null, form: array<string, mixed>|null, remembered: mixed, suggestedHosts: list<array{host: string, links: int}>}
+     * @return array{analysis: array<string, mixed>|null, problem: string|null, form: array<string, mixed>|null, remembered: mixed, rememberedHosts: list<string>|null, suggestedHosts: list<array{host: string, links: int}>}
      */
     private static function plan(Request $request, string $source, string $person, ImportAnalysis $analysis, ImportChoices $choices, ImportScreen $screen): array
     {
         try {
             $read = $analysis->read($source);
         } catch (SourceRefused|AddressRefused $refused) {
-            return ['analysis' => null, 'problem' => $refused->sentence(), 'form' => null, 'remembered' => null, 'suggestedHosts' => []];
+            return ['analysis' => null, 'problem' => $refused->sentence(), 'form' => null, 'remembered' => null, 'rememberedHosts' => null, 'suggestedHosts' => []];
         }
 
         $site = $screen->site($source);
+        $keptHosts = $request->session()->get(ImportSourceController::REMEMBERED_HOSTS.$source);
+        $rememberedHosts = is_array($keptHosts) ? array_values(array_filter($keptHosts, is_string(...))) : null;
 
         return [
             'analysis' => $read->toArray(),
             'problem' => null,
             'form' => $read->reported ? $choices->form($read, $person) : null,
             'remembered' => $request->session()->get(ImportRunController::REMEMBERED.$source),
+            'rememberedHosts' => $rememberedHosts,
             'suggestedHosts' => $site['suggestedHosts'] ?? [],
         ];
     }

@@ -101,6 +101,7 @@ export type ImportPlan = {
     problem: string | null;
     form: ChoicesForm | null;
     remembered: RememberedChoices | null;
+    rememberedHosts: string[] | null;
     suggestedHosts: { host: string; links: number }[];
 };
 
