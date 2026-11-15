@@ -24,10 +24,12 @@ use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Plugins\SafeMode;
+use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -236,4 +238,40 @@ it('clamps outbound timeouts to the door’s ceiling, 300 seconds inside a long 
 
     expect($ceiling($short))->toBe(10)
         ->and($ceiling($long))->toBe(300);
+});
+
+it('cancels waiting and running plugin jobs after disable commits', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $waiting = ($this->jobs)()->queue('write-line', ['line' => 'waiting']);
+    $running = ($this->jobs)()->queue('write-line', ['line' => 'running']);
+    TrackedJob::query()->whereKey($running)->update(['state' => JobState::Running]);
+    $finished = app(StartJob::class)->execute(new StartJobInput(
+        kind: 'plugin-job',
+        label: 'Already done',
+        runType: 'plugin-job',
+        runId: 'write-line',
+        owner: 'jobs',
+        payload: [],
+    ));
+    TrackedJob::query()->whereKey($finished)->update(['state' => JobState::Finished, 'ended_at' => now()]);
+
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/jobs', null));
+
+    expect(TrackedJob::query()->findOrFail($waiting)->state)->toBe(JobState::Cancelled)
+        ->and(TrackedJob::query()->findOrFail($running)->state)->toBe(JobState::Cancelled)
+        ->and(TrackedJob::query()->findOrFail($finished)->state)->toBe(JobState::Finished);
+});
+
+it('cancels nothing when disable is refused', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = ($this->jobs)()->queue('write-line', ['line' => 'keep']);
+    app()->instance(Elevation::class, new DeniedElevation);
+
+    expect(fn () => app(DisablePlugin::class)->execute(new DisablePluginInput('tests/jobs', null)))
+        ->toThrow(AuthorizationException::class);
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Waiting)
+        ->and(PluginRecord::query()->where('name', 'tests/jobs')->value('state'))->toBe(PluginRecord::ENABLED);
 });

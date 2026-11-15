@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Jobs\JobState;
+use App\Domain\Jobs\Models\TrackedJob;
+use App\Domain\Jobs\Operations\CancelJob;
+use App\Domain\Jobs\Operations\Input\CancelJobInput;
+use App\Domain\Plugins\Jobs\PluginJobKind;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
@@ -11,15 +16,18 @@ use App\Domain\Plugins\PluginRecords;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
 /**
- * Disables an enabled plugin (I-3353): a person who holds plugins.manage, or
- * the operator, with no password, since it takes access away. Keeps the row
- * and what was agreed to. Returns its name.
+ * Disables an enabled plugin (I-3353, I-3445): a person who holds
+ * plugins.manage, or the operator, with no password, since it takes access
+ * away. Keeps the row and what was agreed to. After commit, cancels its
+ * waiting and running plugin jobs as the operator. Returns its name.
  */
 final class DisablePlugin extends BaseOperation
 {
@@ -28,6 +36,7 @@ final class DisablePlugin extends BaseOperation
     public function __construct(
         private readonly PluginRecords $records,
         private readonly SecurityLog $log,
+        private readonly CancelJob $cancel,
     ) {}
 
     protected function validate(OperationInput $input): void
@@ -59,8 +68,42 @@ final class DisablePlugin extends BaseOperation
 
         $this->log->record(SecurityEventType::PluginDisabled, $input->actorId(), context: ['plugin' => $input->name]);
 
-        DB::afterCommit(fn () => $this->records->changed());
+        $code = $record->code;
+
+        DB::afterCommit(function () use ($code): void {
+            $this->records->changed();
+            $this->cancelPluginJobs($code);
+        });
 
         return $input->name;
+    }
+
+    /**
+     * Ends every waiting or running plugin-job owned by this plugin's code,
+     * as the operator (I-3445).
+     */
+    private function cancelPluginJobs(string $code): void
+    {
+        $ids = TrackedJob::query()
+            ->where('kind', PluginJobKind::KEY)
+            ->where('owner', $code)
+            ->whereIn('state', [JobState::Waiting->value, JobState::Running->value])
+            ->pluck('id')
+            ->all();
+
+        if ($ids === []) {
+            return;
+        }
+
+        $previous = app(Elevation::class);
+        app()->instance(Elevation::class, new OperatorElevation);
+
+        try {
+            foreach ($ids as $id) {
+                $this->cancel->execute(new CancelJobInput((string) $id, null));
+            }
+        } finally {
+            app()->instance(Elevation::class, $previous);
+        }
     }
 }
