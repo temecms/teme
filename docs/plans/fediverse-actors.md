@@ -105,13 +105,10 @@
 
 - Full `composer check`, first run: 2 failed, 2 skipped, 10694 passed. `BenchmarkSmokeTest` (a cache hit made one query: `SiteActors::exist()` asked the table while the site had no account) and `People/ReleaseBeforeTest` (B-21). Both fixed in the `fix(fediverse)` commit.
 - Full `composer check`, final: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1316 assertions); Unit+Feature **10696** passed, **2** skipped (55255 assertions).
+- Full `composer check` after Follow-up R6: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1324 assertions); Unit+Feature **10755** passed, **2** skipped (55548 assertions).
 - Full `composer check` after the R5 merge and T7: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1324 assertions); Unit+Feature **10739** passed, **2** skipped (55511 assertions).
 - Browser: `tests/Browser/FediverseSettingsTest.php` alone, after `npm run build`: 6 passed (53 assertions).
 - Baselines: `admin-words-baseline.txt` 876 lines and `design-system-baseline.txt` 222 lines before and after; no line added, no count raised.
-
-### STOP
-
-- **RFC 9421 verification is not built.** `gapple/structured-fields` **2.3.4** does not exist: Packagist's newest is v2.3.3 (2026-06-12), and `composer require gapple/structured-fields:2.3.4` finds no such version. Another version would be a dependency the plan doesn't name, so `composer.json` and `composer.lock` are untouched. Draft-cavage is verified as D2 says (Mastodon's default). Needs: the maintainers' word on a version that exists (v2.3.3?), then `Verifier` gains the `Signature-Input`/`Content-Digest` branch.
 
 ### T7 built from the approved drawing
 
@@ -124,7 +121,7 @@ The maintainers approved the Settings › Fediverse drawing on 2026-11-15, after
 
 ### Left for a follow-up (not a STOP)
 
-- Prune has no schedule or console command (`routes/console.php` isn't in Owns). Pruning sent activities after 90 days (P3) is not in T8 and is left with F2's deliveries.
+- Pruning sent activities after 90 days (P3) is not in T8 and stays with F2's deliveries.
 
 ### Decisions (B-?? drafts)
 
@@ -147,7 +144,7 @@ The maintainers approved the Settings › Fediverse drawing on 2026-11-15, after
 - **B-17 (draft):** Blocked servers match the host or any domain above it (sub.blocked.example is blocked by blocked.example). The claimed host is the Signature keyId's, read before verifying; the verified actor's host is checked again after. A verified body that isn't an activity (no id or type) answers 400.
 - **B-18 (draft):** No config/teme.php fediverse block: the limits are constants on InboxGate/FediverseDocuments/RemoteFetcher/Verifier (the proposal's values); F2 may add deliver_outside_production there.
 - **B-19 (draft):** The cases are in tests/Feature/Fediverse/StaticRulesTest.php, not tests/Feature/Cache/StaticSettingsTest.php (not in Owns). nginx: the old map now yields $teme_static_page and a new map on $http_accept yields $teme_static_file ("/.teme-none" for activity/ld+json), so the site template and StaticSettingsTest's lines stay as they are. Caddy: one `not header_regexp Accept (?i)(activity\+json|ld\+json)`. Neither server was run here (no nginx or Caddy in the container); `teme:cache:check-static` on a real server is the check.
-- **B-20 (draft):** Forget deletes the fediverse_remote_actors row (its follows cascade, its objects keep their addresses with remote_actor_id null) and clears the replies' author_name, author_url and author_email; purges each item whose replies changed, after commit. Prune: fetched_at older than 30 days, no follow, no reply object. Both: settings.fediverse.manage or the operator. No schedule or console command for prune (routes/console.php isn't in Owns): left open.
+- **B-20 (draft):** Forget deletes the fediverse_remote_actors row (its follows cascade, its objects keep their addresses with remote_actor_id null) and clears the replies' author_name, author_url and author_email; purges each item whose replies changed, after commit. Prune: fetched_at older than 30 days, no follow, no reply object. Both: settings.fediverse.manage or the operator. Its command and daily schedule came in Follow-up R6 (B-33).
 - **B-21 (draft):** ReleaseBeforeTest (outside Owns) now drops people with CASCADE, which removes only later tables' foreign keys to it (the release before had none); what it proves is unchanged. The other option was no foreign key on fediverse_actors.person_id, against the plan's schema.
 
 - **B-22 (draft):** No `managedBy`. The plan's "first managedBy consumer" would add a property to `Teme\Contracts\Settings\Setting` (packages/teme-contracts, not in Owns), and v1's switch needs no more than the group's purge. Options: add managedBy to the contract / use the existing placement. Chose the placement: `modules.fediverse` is one line in `Modules::group()` and one line in `SettingsPlacement::PLACED`, so Find a setting lands on Settings › Fediverse, while the generic modules address still leads to Discussion.
@@ -161,15 +158,31 @@ The maintainers approved the Settings › Fediverse drawing on 2026-11-15, after
 
 No contract the plan names changed: E's `Teme\Contracts\Routes` is used as it is. No I-?? ideas drafted.
 
+### Follow-up R6
+
+The maintainers corrected the version on 2026-11-15: `gapple/structured-fields` **2.3.3**, approved. The STOP is resolved and removed.
+
+- Tests seen red:
+  - `tests/Unit/Fediverse/Rfc9421Test.php`: 10 of 13 failed with `The signature header is missing or does not parse.` (the draft-cavage parser refused every RFC 9421 request); the two parse cases and "another address" passed for that same reason before the code existed, and passed for their own after.
+  - `InboxTest` "takes a Follow signed with RFC 9421": `Expected response status code [202] but received 401`, seen by running it against the committed Verifier.
+  - `InboxTest` "refuses a blocked server's RFC 9421 request with 403": `Expected response status code [403] but received 413` (the claimed host was read only from draft-cavage's keyId).
+  - `ForgetAndPruneTest`: `The command "teme:fediverse:prune" does not exist.` and `Output does not contain "teme:fediverse:prune".`
+- Commits: a merge of `origin/plugins/public-routes` (`bac31b3`, its records commit, docs only); `feat(fediverse): verify RFC 9421 signatures at the inboxes`; `feat(fediverse): prune unneeded remote accounts daily`; `docs(plans): fediverse actors' records, follow-up R6` (this one).
+- Check: see the R6 line under Checks.
+- **B-30 (draft):** `gapple/structured-fields` added at exactly `2.3.3` (`composer require gapple/structured-fields:2.3.3`), as the maintainers approved; the lock gains that package only. `composer require` also ran `boost:update`, which rewrote the agents' guideline and skill files: those changes were thrown away, not committed.
+- **B-31 (draft):** RFC 9421 is chosen when a request carries Signature-Input; the first label the Signature header also carries is verified. Required: `@method`; `@target-uri`, or `@authority` with `@path` or `@request-target`; for a POST, `content-digest` (sha-256 or sha-512) matching the body; `created` within 12 hours and `expires`, if given, not past; `keyid`; `alg` absent or `rsa-v1_5-sha256` (Mastodon's), any other refused. Components with parameters (`;sf`, `;key`, `;req`) are refused. The `@signature-params` line is the member re-serialized by Structured Fields, as the RFC defines it. The key's owner, the one re-fetch in five minutes and the actor check are draft-cavage's, shared.
+- **B-32 (draft):** `@target-uri` and `@scheme` are built with `https`: E's `PublicRequest` carries no scheme, and other servers reach the fediverse only over https. A site served over plain http (local only) would refuse RFC 9421 signatures; draft-cavage is unaffected. The query is rebuilt from `PublicRequest::query`, as B-03.
+- **B-33 (draft):** `teme:fediverse:prune` (`app/Console/Commands/PruneFediverseAccounts.php`) runs `PruneFediverse` as the operator, as `teme:inbox:prune` does, and `routes/console.php` gains one line, `->daily()`, after the other daily prune entries. PruneFediverse is final, so the test proves the command calls it by its effect: a stale account removed with no person acting, which only the operator may do.
+
 ### Changelog lines for the maintainer
 
 ```
 ### Added
 - Fediverse foundations: the site's blog, authors and application can be fediverse accounts, found by WebFinger and NodeInfo, with outbox, followers count and following documents at /ap/ addresses, and an imported WordPress plugin account's old addresses kept.
-- Inboxes take Follow, Undo and an account's Delete, verified by draft-cavage HTTP signatures, refusing blocked servers, oversized bodies and floods; a Follow is kept and its Accept queued.
+- Inboxes take Follow, Undo and an account's Delete, verified by draft-cavage or RFC 9421 HTTP signatures, refusing blocked servers, oversized bodies and floods; a Follow is kept and its Accept queued.
 - Remote documents are fetched over https only, with every address checked public and pinned.
 - nginx and Caddy serve no stored page to a request asking for activity+json or ld+json; the Cloudflare guide adds the matching rule.
-- settings.fediverse.manage for administrators; forgetting a remote account and pruning unneeded ones.
+- settings.fediverse.manage for administrators; forgetting a remote account, and `teme:fediverse:prune`, run daily, removing remote accounts unseen for 30 days that follow nothing and wrote no reply.
 - Settings › Fediverse: switch the fediverse on or pause it, choose who can be followed (the blog, each author, or both), see the accounts and their followers, the servers not answering and what the import brought, and block or unblock servers.
 ```
 
