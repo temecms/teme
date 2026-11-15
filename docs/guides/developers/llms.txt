@@ -1,0 +1,17 @@
+# Teme developer handbook
+
+Guides for people and agents who build Teme plugins and themes. Reference under docs/reference/ is generated; these pages are written and tested against the code.
+
+- [Plugin or theme?](start/plugin-or-theme.md): Which package you need — a plugin that adds behaviour, or a theme that draws the public site.
+- [Your first plugin](start/first-plugin.md): From an empty folder to an enabled plugin that listens to a hook.
+- [Your first theme](start/first-theme.md): A theme with an index template and a single template, from the handbook example.
+- [The manifest](concepts/manifest.md): How to write teme-plugin.json and teme-theme.json, and where the key tables live.
+- [Hooks](concepts/hooks.md): The five verbs, the after-commit rule, capabilities, and where the generated hook list lives.
+- [Operations](concepts/operations.md): Every change goes through an Operation; what a plugin may and may not touch.
+- [Testing a plugin or theme](testing.md): How to test a plugin or theme with Pest and Teme’s fixture helpers.
+- [For agents](for-agents.md): How agents should read this handbook, llms.txt, and an AGENTS.md to put in a plugin.
+- [Plugins writing content](plugins/content-write.md): How a plugin will create and change content through Operations.
+- [Jobs and schedules](plugins/jobs.md): How a plugin will declare queue jobs and schedules in its manifest.
+- [Public routes](plugins/public-routes.md): How a plugin will register routes reachable without signing in.
+- [The plugin import socket](plugins/import.md): How a plugin will take part in site import.
+

@@ -12,7 +12,11 @@ This handbook is written for people and for agents. Prefer the Markdown pages in
 
 ## llms.txt
 
-`docs/guides/developers/llms.txt` lists each page with its one-line summary, in the README’s order. Read that file first when you need a map, then open the linked `.md` pages. Keep it in step with the README whenever you add or rename a page.
+`docs/guides/developers/llms.txt` lists each page with its one-line summary, in the README’s order. Read that file first when you need a map, then open the linked `.md` pages. Regenerate it after you add or rename a page:
+
+```sh
+php artisan teme:docs:handbook-index
+```
 
 ## What to trust
 
