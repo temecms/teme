@@ -57,6 +57,8 @@ final class BuiltInFields
 
     public const string ARTICLE_TYPE = '01K5Z0F1ED00000000000000AT';
 
+    public const string INSERTIONS_OFF = '01K5Z0F1ED00000000000000XF';
+
     /**
      * No field names a type: each applies to every type that supports its
      * feature, so a type registered later gets them by declaring it.
@@ -84,5 +86,7 @@ final class BuiltInFields
         // What search engines are told the item is, from closed lists, by whoever may edit it (I-709).
         $registry->register(new Field(self::PAGE_TYPE, 'page_type', 'Page type', 'What search engines are told this page is. Empty uses the default for its type.', new SelectField, [], '0.1.0', options: ['' => 'Default for its type', 'WebPage' => 'Web page', 'AboutPage' => 'About page', 'ContactPage' => 'Contact page', 'CollectionPage' => 'Collection page'], feature: 'seo', place: FieldPlace::Core));
         $registry->register(new Field(self::ARTICLE_TYPE, 'article_type', 'Article type', 'What kind of article search engines are told this is, if it is one. Empty uses the default for its type.', new SelectField, [], '0.1.0', options: ['' => 'Default for its type', 'Article' => 'Article', 'NewsArticle' => 'News article', 'BlogPosting' => 'Blog post', TypeSchemas::NONE => 'Not an article'], feature: 'seo', place: FieldPlace::Core));
+        // Turns every insertion off on this item (I-064); shown to anyone who may edit it.
+        $registry->register(new Field(self::INSERTIONS_OFF, 'insertions_off', 'No inserted content', 'Turns off ads and other content plugins place inside this item.', new BooleanField, ['post', 'page'], '0.8.0', place: FieldPlace::Core));
     }
 }

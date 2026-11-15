@@ -1,0 +1,11 @@
+{
+    "manifest": 1,
+    "name": "tests/inserts",
+    "code": "inserts",
+    "label": "Inserts",
+    "description": "A plugin the tests use to place markup after paragraph 2.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Inserts\\Inserts",
+    "capabilities": ["content.insert"]
+}
