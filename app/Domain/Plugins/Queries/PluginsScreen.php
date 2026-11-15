@@ -50,6 +50,8 @@ final readonly class PluginsScreen
             $hosts = $row->asks['hosts'];
             $manifest = $this->registry->find($row->name)?->manifest;
 
+            $tables = $record === null ? [] : $this->tables($record);
+
             return [
                 'name' => $row->name,
                 'code' => $row->code,
@@ -74,7 +76,9 @@ final readonly class PluginsScreen
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
                 'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [],
-                'tables' => $record === null ? [] : $this->tables($record),
+                'tables' => $tables,
+                // Same rule as RemovePluginData: disabled (or code gone) and tables left.
+                'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
             ];
         }, $this->list->all());
     }

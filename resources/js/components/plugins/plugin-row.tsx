@@ -111,15 +111,6 @@ function RowMenu({
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
-    // Disabled, stopped, or code gone — not while it is still running.
-    const canRemoveData =
-        plugin.tables.length > 0 &&
-        (plugin.state === 'disabled' ||
-            plugin.state === 'disabled_on_server' ||
-            plugin.state === 'stopped_by_teme' ||
-            plugin.state === 'code_gone' ||
-            plugin.state === 'cant_be_used');
-
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -160,7 +151,7 @@ function RowMenu({
                         </Link>
                     </DropdownMenuItem>
                 )}
-                {canRemoveData && (
+                {plugin.canRemoveData && (
                     <DropdownMenuItem
                         data-test="plugin-remove-data"
                         variant="destructive"
