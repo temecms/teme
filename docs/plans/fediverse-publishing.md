@@ -86,6 +86,40 @@
 - D2's `actor_blog` Announce is to be checked against F3's live fixtures before merging.
 - A permanently deleted item's object loses its Tombstone (B-04).
 
+### Follow-up R7
+
+The review's findings 1 to 9 (7 waived), on this branch only; nothing merged.
+
+Tests seen red, then the fix:
+
+- 1: `PublishingActivitiesTest` "runs plugins’ object and sent listeners without the operator’s power" got `built as operator`/`sent as operator`; "refuses a forged token…" failed with a ReflectionException (no `SiteWork`). `32bc2cf`.
+- 2: `SocketsTest` 3 failed: an author sending as the blog was not refused, a visitor not signed in was not refused, the Operation with no person or an editor was not refused. `46930bb`.
+- 3: `SocketsTest` "tells a plugin granted fediverse.read of a Like…" ran the handler inline with no tracked job (`TrackedJob::sole()` threw). The off-plugin case was written after the fix. `beb5319`.
+- 4: `RepliesTest` "holds an approved reply for moderation again…" (the status stayed approved) and "counts edits toward the ten replies an hour…" (`Edit 10.`, not `Edit 9.`). `26bfd7c`.
+- 5: `PublishingActivitiesTest` "addresses a new object on the sending actor’s host…" (the address began with the editor's host). `4c3bd66`.
+- 6: `PublishingDeliveryTest` "gives a delivery’s job a day to run…" (`$tries` was 100). `ddf3ff0`.
+- 8: `SocketsTest` "takes nothing from a server blocked after its activity was queued…" (a plugin heard the Like). `79f6304`.
+- 9: `PublishingAlternateLinkTest` "finds an author’s account in the same queries however many authors have one" (18 queries, not 12) and "links no author’s account while only the blog can be followed". `aa71b8f`.
+
+Decisions (draft):
+
+- B-13 (draft). Finding 1: the site's own content work carries a `SiteWork` token that only `ContentActivities` can issue (a private constructor, checked by caller; issued tokens kept in a container-held `WeakMap`, since `app/` holds no static state). `QueueActivity` accepts it in place of a person, and binds no operator, so plugins' `ObjectBuilt`/`ObjectBuilder`/`ActivitySent` listeners run as nobody.
+- B-14 (draft). Finding 2: `PluginSender` acts for the signed-in person; in a console or worker, for the administrator who enabled the plugin (`consented_by`); for a visitor not signed in, nobody, so the send is refused. `SendPluginActivity` allows a person holding `settings.fediverse.manage`, or the person behind the author account being sent as. A plugin job started by a person (`RunPluginJob`, the plugins part) does not expose who started it, so the sender acts as the enabling administrator there.
+- B-15 (draft), replacing B-11's first sentence. Finding 3: each matching handler is a tracked job (`fediverse.handler`, owned by the plugin's code, started by the enabling administrator) run by `RunActivityHandler` as that administrator; it fails, running nothing, once the plugin is off, safe mode is on, the consent changed hands or no longer holds `fediverse.read`. A handler's plugin is the running plugin whose namespace holds its class; an anonymous class is left out and logged. The rest of B-11 stands.
+- B-16 (draft). Finding 4: an edit of an approved reply goes to the bound moderator; anything but approved, or changed links, holds it (counts, the waiting email, page purge, `CommentStatusChanged`). An edit counts toward the account's ten replies an hour.
+- B-17 (draft). Finding 5: an object's address is the sending actor's scheme, host and port plus `/ap/objects/{ulid}`.
+- B-18 (draft). Finding 6: `DeliverActivity` has `retryUntil()` a day ahead in place of `$tries`; `failed()` puts a delivery still queued back 15 minutes later (only where the site delivers).
+- B-19 (draft). Finding 8: `ProcessInboxActivity` (F1's file, an addition) returns before `ActivityReceived` when the sender's host is blocked.
+- B-20 (draft). Finding 9: one query joins accounts, people and current addresses; none while only the blog can be followed. `PublishingAlternateLinkTest`'s setup now sets "Who can be followed" to both, since the setting's stored default is the blog: what the first test proves is unchanged.
+
+Check: `composer check` passed on `aa71b8f`: Architecture 139 passed (1334 assertions); Unit and Feature 10863 passed, 2 skipped (55912 assertions). Baselines unchanged (876, 222). The first run had one failure, `Plugins/DiscoveryTest` "finds the configured folders…", which found another worker's `tests/jobs` fixture plugin; it passes alone and passed on the second full run.
+
+Open:
+
+- Finding 7 is waived by the owner for now: F3 (the fediverse import) runs that check against its live fixtures. Open for F3.
+- Finding 10, not filed: `PluginWords` has no `fediverse.read`/`fediverse.send` sentences; a permanent delete loses its Tombstone (both already open items above).
+
+
 ### Changelog lines for the maintainer
 
 - Added: federated posts are sent to followers as Create, Update and Delete, signed, with retries and per-server limits; a staging copy sends nothing.
