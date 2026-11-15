@@ -23,7 +23,7 @@ A plugin that talks to the outside world needs addresses of its own: an AI writi
 9. **Failure stays contained.** A disabled plugin's routes answer 404. A handler that throws answers 500 with no plugin detail shown, and the failure is recorded against the plugin. Safe mode loads no plugin routes.
 10. **The contract has no framework types** (rule 5): `PublicRoute::handle(PublicRequest): PublicResponse` in `teme/contracts`, with plain values in and out.
 
-## Provisional (built as written unless the owner says otherwise)
+## Provisional (built as written unless the maintainers say otherwise)
 
 - **P1.** A plugin's HTML answers are plain (its own markup). Answers drawn inside the active theme's layout come later.
 - **P2.** The limits above (120 and 30 a minute; 1 MB and 10 MB bodies).
