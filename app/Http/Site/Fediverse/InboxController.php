@@ -45,6 +45,23 @@ final class InboxController extends Controller
             }
         }
 
-        return new PublicRequest('POST', $request->getPathInfo(), [], $query, $headers, $request->getContent(), (string) $request->ip());
+        return new PublicRequest('POST', $request->getPathInfo(), [], $query, $headers, self::body($request), (string) $request->ip());
+    }
+
+    /**
+     * The body, read only when its declared length is within the limit, and
+     * then never more than one byte past it, so InboxGate can answer 413.
+     */
+    private static function body(Request $request): string
+    {
+        $length = (string) $request->headers->get('content-length', '');
+
+        if (ctype_digit($length) && (int) $length > InboxGate::MAX_BYTES) {
+            return '';
+        }
+
+        $stream = $request->getContent(true);
+
+        return (string) stream_get_contents($stream, InboxGate::MAX_BYTES + 1);
     }
 }

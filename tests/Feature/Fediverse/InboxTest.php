@@ -67,6 +67,34 @@ it('answers 429 to the 121st request in a minute from one server, whatever the a
     Inbox::post('/ap/inbox', Inbox::follow(url('/ap/blog'), id: Inbox::ALICE.'#follows/121'), address: '198.51.100.7')->assertStatus(429);
 });
 
+it('counts a server’s limit only after its signature verifies, so forged requests naming it don’t lock it out', function (): void {
+    Queue::fake();
+    $forged = ['Digest' => 'SHA-256='.base64_encode(hash('sha256', 'other', true))];
+
+    foreach (range(1, 120) as $n) {
+        Inbox::post('/ap/inbox', Inbox::follow(url('/ap/blog'), id: Inbox::ALICE.'#forged/'.$n), headers: $forged, address: '203.0.113.'.($n % 200 + 1))->assertUnauthorized();
+    }
+
+    Inbox::post('/ap/inbox', Inbox::follow(url('/ap/blog')), address: '198.51.100.7')->assertStatus(202);
+});
+
+it('refuses with 413 a Content-Length over 256 KB, before the body is read', function (): void {
+    Queue::fake();
+
+    Inbox::post('/ap/inbox', Inbox::follow(url('/ap/blog')), headers: ['Content-Length' => '300000'])->assertStatus(413);
+
+    Http::assertNothingSent();
+    Queue::assertNothingPushed();
+});
+
+it('refuses with 400 an activity whose id is on another server than its signer’s, queuing nothing', function (): void {
+    Queue::fake();
+
+    Inbox::post('/ap/inbox', Inbox::follow(url('/ap/blog'), id: 'https://other.example/follows/1'))->assertStatus(400);
+
+    Queue::assertNothingPushed();
+});
+
 it('refuses a bad signature with 401 and no detail', function (): void {
     Queue::fake();
 

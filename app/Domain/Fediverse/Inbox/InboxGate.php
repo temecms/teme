@@ -18,9 +18,11 @@ use Teme\Contracts\Routes\PublicRequest;
 /**
  * Takes an activity POSTed to one of the site's inboxes, in a fixed order
  * (docs/plans/fediverse-actors.md, D8): a blocked server 403 before
- * anything else; a body over 256 KB 413; too many requests from an address
- * or a server 429; a bad signature 401; the fediverse paused 503; else the
- * activity is queued once per id and answered 202. Nothing is written here.
+ * anything else; a body over 256 KB 413, by its Content-Length first; too
+ * many requests from an address 429; a bad signature 401; too many from the
+ * verified server 429; the fediverse paused 503; an activity whose id isn't
+ * on its signer's server 400; else it is queued once per id and answered 202.
+ * Nothing is written here.
  */
 final readonly class InboxGate
 {
@@ -56,11 +58,11 @@ final readonly class InboxGate
             return new InboxAnswer(403);
         }
 
-        if (strlen($request->rawBody) > self::MAX_BYTES) {
+        if (self::tooLarge($request)) {
             return new InboxAnswer(413);
         }
 
-        if (! $this->withinLimits($request->clientAddress, $claimed)) {
+        if (! self::withinLimit('fediverse-inbox:address:'.$request->clientAddress)) {
             return new InboxAnswer(429, ['Retry-After' => '60']);
         }
 
@@ -80,6 +82,12 @@ final readonly class InboxGate
             return new InboxAnswer(403);
         }
 
+        // Counted only once verified, so forged requests naming a server
+        // can't use up its limit.
+        if (! self::withinLimit('fediverse-inbox:host:'.$sender->host())) {
+            return new InboxAnswer(429, ['Retry-After' => '60']);
+        }
+
         if (! FediverseSwitch::on()) {
             return new InboxAnswer(503, ['Retry-After' => '3600']);
         }
@@ -87,6 +95,10 @@ final readonly class InboxGate
         $activity = json_decode($request->rawBody, true);
 
         if (! is_array($activity) || ! is_string($activity['id'] ?? null) || ! is_string($activity['type'] ?? null)) {
+            return new InboxAnswer(400);
+        }
+
+        if (strtolower((string) parse_url($activity['id'], PHP_URL_HOST)) !== $sender->host()) {
             return new InboxAnswer(400);
         }
 
@@ -143,23 +155,28 @@ final readonly class InboxGate
         return $host !== '' && $host === FediverseDocuments::host();
     }
 
-    private function withinLimits(string $address, ?string $host): bool
+    /**
+     * Whether the body is over the limit: by the Content-Length it declares,
+     * or by what was read of it when it declares none.
+     */
+    private static function tooLarge(PublicRequest $request): bool
     {
-        $keys = ['fediverse-inbox:address:'.$address];
+        $length = array_change_key_case($request->headers, CASE_LOWER)['content-length'] ?? '';
 
-        if ($host !== null) {
-            $keys[] = 'fediverse-inbox:host:'.$host;
+        if (ctype_digit($length) && (int) $length > self::MAX_BYTES) {
+            return true;
         }
 
-        foreach ($keys as $key) {
-            if (RateLimiter::tooManyAttempts($key, self::PER_MINUTE)) {
-                return false;
-            }
+        return strlen($request->rawBody) > self::MAX_BYTES;
+    }
+
+    private static function withinLimit(string $key): bool
+    {
+        if (RateLimiter::tooManyAttempts($key, self::PER_MINUTE)) {
+            return false;
         }
 
-        foreach ($keys as $key) {
-            RateLimiter::hit($key, 60);
-        }
+        RateLimiter::hit($key, 60);
 
         return true;
     }
