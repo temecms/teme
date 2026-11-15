@@ -219,6 +219,18 @@ it('duplicates an image card from the block menu, the copy with a new id and the
         ->and($images[1]['attrs']['mediaId'])->toBe($this->image->id);
 });
 
+it('names the handle as a toolbar, and shows each shortcut as this computer names its keys', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+
+    $page->script(($this->ebkCaret)(1));
+    ($this->ebkOpenMenu)($page);
+
+    // The test browser runs on Linux, so the keys read Alt+Shift, and Delete shows Del.
+    expect($page->script("document.querySelector('[data-test=\"block-handle\"][data-source=\"selection\"][role=\"toolbar\"]')?.getAttribute('aria-label') ?? null"))->toBe('Block: Paragraph')
+        ->and($page->script(($this->ebkItem)('Move down').'?.textContent.trim()'))->toBe('Move downAlt+Shift+↓')
+        ->and($page->script(($this->ebkItem)('Delete').'?.querySelector(\'[data-slot="kbd"]\')?.textContent ?? null'))->toBe('Del');
+});
+
 it('turns a paragraph into a heading from the block menu', function (): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
 

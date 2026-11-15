@@ -33,6 +33,7 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Kbd } from '@/components/ui/kbd';
 import { __ } from '@/lib/i18n';
 import type { CardManifestEntry } from '@/types';
 import {
@@ -113,12 +114,16 @@ const TURN_INTO: { kind: TurnInto; label: () => string }[] = [
     { kind: 'orderedList', label: () => __('Numbered list') },
 ];
 
-/** Duplicate's keys, as this computer names them. */
-const DUPLICATE_KEYS =
+/** Whether this computer names its keys as Apple's do. */
+const APPLE =
     typeof navigator !== 'undefined' &&
-    /Mac|iPhone|iPad/.test(navigator.platform)
-        ? '⌘D'
-        : 'Ctrl D';
+    /Mac|iPhone|iPad/.test(navigator.platform);
+
+/** Duplicate's keys, as this computer names them. */
+const DUPLICATE_KEYS = APPLE ? '⌘D' : 'Ctrl D';
+
+/** The keys before ↑ or ↓ that move a block, as this computer names them. */
+const MOVE_KEYS = APPLE ? '⌥⇧' : 'Alt+Shift+';
 
 const HANDLE_BUTTON =
     'text-ink-3 hover:bg-surface-3 pointer-coarse:size-(--ctl-h)';
@@ -184,6 +189,10 @@ function HandleButtons({
 
     return (
         <div
+            role="toolbar"
+            aria-label={
+                name === '' ? __('Block') : __('Block: :name', { name })
+            }
             data-test="block-handle"
             data-source={source}
             className="flex items-center pointer-coarse:flex-col"
@@ -320,7 +329,7 @@ function HandleButtons({
                     >
                         <ArrowUp />
                         {__('Move up')}
-                        <DropdownMenuShortcut>⌥⇧↑</DropdownMenuShortcut>
+                        <DropdownMenuShortcut>{`${MOVE_KEYS}↑`}</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         disabled={target === null || target.index >= last}
@@ -328,7 +337,7 @@ function HandleButtons({
                     >
                         <ArrowDown />
                         {__('Move down')}
-                        <DropdownMenuShortcut>⌥⇧↓</DropdownMenuShortcut>
+                        <DropdownMenuShortcut>{`${MOVE_KEYS}↓`}</DropdownMenuShortcut>
                     </DropdownMenuItem>
                     {frame !== null && (
                         <DropdownMenuItem
@@ -353,6 +362,7 @@ function HandleButtons({
                     >
                         <Trash2 />
                         {__('Delete')}
+                        <Kbd className="ms-auto">{__('Del')}</Kbd>
                     </DropdownMenuItem>
                 </MenuContent>
             </DropdownMenu>
