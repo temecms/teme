@@ -69,6 +69,13 @@ final class MenuShape
         foreach ($nodes as $node) {
             $children = self::settle($node->children, $messages);
 
+            // Nothing goes under a language switcher: what WordPress had there follows it.
+            if (($node->item['kind'] ?? null) === MenuNode::LANGUAGES) {
+                array_push($settled, $node->with([]), ...$children);
+
+                continue;
+            }
+
             if ($node->item !== null) {
                 $settled[] = $node->with($children);
 
@@ -221,11 +228,11 @@ final class MenuShape
      */
     private static function row(MenuNode $node): array
     {
-        /** @var array{kind: string, target_id: string|null, url: string|null} $item */
+        /** @var array{kind: string, target_id: string|null, url: string|null, options?: array<string, bool>} $item */
         $item = $node->item;
         $byId = in_array($item['kind'], ['content', 'term'], true);
 
-        return [
+        $row = [
             'kind' => $item['kind'],
             'target_id' => $item['target_id'],
             'url' => $item['url'],
@@ -233,5 +240,8 @@ final class MenuShape
             'opens_new_tab' => $node->newTab,
             'children' => array_map(self::row(...), $node->children),
         ];
+
+        // A language switcher keeps the options its theme reads (I-3446).
+        return isset($item['options']) ? [...$row, 'options' => $item['options']] : $row;
     }
 }
