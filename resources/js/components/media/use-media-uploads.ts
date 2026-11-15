@@ -1,3 +1,4 @@
+import { __, __n } from '@/lib/i18n';
 import { useEffect, useRef, useState } from 'react';
 import { uploadFile } from '@/lib/upload';
 import { store as storeMedia } from '@/routes/media';
@@ -21,15 +22,15 @@ const PARALLEL = 3;
 
 /** The words for a batch that went in, on the screen's toast and in the modal's status. */
 export function uploadedSentence({ ids, images }: UploadedBatch): string {
-    const files = ids.length === 1 ? '1 file' : `${ids.length} files`;
-
     if (images === 0) {
-        return `Uploaded ${files}.`;
+        return __n('Uploaded 1 file.|Uploaded :count files.', ids.length);
     }
 
     return ids.length === 1
-        ? `Uploaded ${files}. Add its alt text.`
-        : `Uploaded ${files}. Add alt text to each image.`;
+        ? __('Uploaded 1 file. Add its alt text.')
+        : __('Uploaded :count files. Add alt text to each image.', {
+              count: ids.length,
+          });
 }
 
 /**
@@ -144,7 +145,7 @@ export function useMediaUploads({
                                 errors.file?.[0] ??
                                 (typeof body.message === 'string'
                                     ? body.message
-                                    : 'The upload failed.'),
+                                    : __('The upload failed.')),
                         });
                     }
                 })
