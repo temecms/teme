@@ -39,6 +39,9 @@ it('gives a person the declared defaults before they change anything', function 
         'nav.hidden' => [],
         'nav.order' => [],
         'nav.pinned' => [],
+        'dashboard.order' => [],
+        'dashboard.hidden' => [],
+        'dashboard.sizes' => [],
     ])->and($this->author->refresh()->preferences)->toBe([]);
 });
 

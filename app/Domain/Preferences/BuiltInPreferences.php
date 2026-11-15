@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Preferences;
 
+use App\Domain\Dashboard\DashboardPanel;
+use App\Domain\Dashboard\DashboardRegistry;
 use App\Domain\Navigation\Queries\AdminNavigation;
 use App\Domain\Notices\NoticePreferences;
 use App\Domain\Types\ContentTypeRegistry;
@@ -58,6 +60,17 @@ final class BuiltInPreferences
         $registry->register(new PreferenceDefinition('nav.hidden', 'list', [], 'Hidden menu entries', allowed: $menuKeys));
         $registry->register(new PreferenceDefinition('nav.order', 'list', [], 'Menu order', allowed: $menuKeys));
         $registry->register(new PreferenceDefinition('nav.pinned', 'list', [], 'Pinned menu entries', allowed: $menuKeys, maxItems: 5));
+
+        // Home (I-210): each person's order, hidden panels and sizes, over the
+        // registry's declared order and sizes, which are the site default.
+        $panelKeys = fn (): array => array_map(fn (DashboardPanel $panel): string => $panel->key, app(DashboardRegistry::class)->all());
+
+        $registry->register(new PreferenceDefinition('dashboard.order', 'list', [], 'Home panel order', allowed: $panelKeys));
+        $registry->register(new PreferenceDefinition('dashboard.hidden', 'list', [], 'Hidden Home panels', allowed: $panelKeys));
+        $registry->register(new PreferenceDefinition('dashboard.sizes', 'list', [], 'Home panel sizes', allowed: fn (): array => array_merge(...array_map(
+            fn (string $key): array => array_map(fn (string $size): string => "{$key}:{$size}", DashboardPanel::SIZES),
+            $panelKeys(),
+        ))));
     }
 
     /**

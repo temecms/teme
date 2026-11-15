@@ -10,22 +10,32 @@ namespace App\Domain\Dashboard;
  */
 final readonly class DashboardPanel
 {
+    /** The widths a panel may declare or a person may choose. */
+    public const array SIZES = ['small', 'medium', 'large', 'full'];
+
+    /** The kinds of body a panel may draw. */
+    public const array KINDS = ['rows', 'quick-draft'];
+
     /**
-     * @param  class-string<DashboardPanelQuery>  $query  the one bounded query that fills it
+     * @param  class-string<DashboardPanelQuery>|null  $query  the one bounded query that fills a rows panel; none for quick draft
      * @param  list<string>  $actions  ContentType::ACTIONS keys the viewer must hold on a type for its items to be asked for; never ability names
      * @param  string|null  $seeAllTab  the main type's list tab See all opens, or none
      * @param  array<string, string>  $seeAllQuery  list filters See all adds to the tab, such as review=pending
      * @param  bool  $seeAllMine  whether See all narrows the list to the viewer's own items
+     * @param  string  $size  how wide it is drawn until the person changes it; one of self::SIZES
+     * @param  string  $kind  what it draws: up to five rows from its query, or the quick draft form; one of self::KINDS
      */
     public function __construct(
         public string $key,
         public string $label,
         public int $order,
-        public string $query,
+        public ?string $query,
         public array $actions = [],
         public ?string $seeAllTab = null,
         public bool $seeAllMine = false,
         public string $owner = 'core',
         public array $seeAllQuery = [],
+        public string $size = 'medium',
+        public string $kind = 'rows',
     ) {}
 }
