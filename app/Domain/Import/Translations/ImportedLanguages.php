@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Translations;
 
+use App\Domain\Import\ImportEngine;
+use App\Domain\Import\Phases\ImportStopped;
 use App\Domain\Import\Queries\ImportSources;
 use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourceReader;
@@ -60,8 +62,11 @@ final readonly class ImportedLanguages
 
     /**
      * Returns the source's languages: the answer kept, else read afresh
-     * from the old site; a site that can't be read now reads as one without
-     * Polylang, and isn't kept, so the next job asks again.
+     * from the old site and kept. A site that can't be read now is never
+     * taken for one without Polylang: the refusal reaches the step, which
+     * waits for the site or stops as any other read does.
+     *
+     * @throws SourceRefused|AddressRefused when the answer isn't kept and the site can't be read now
      */
     public function for(string $sourceId): PolylangLanguages
     {
@@ -77,10 +82,22 @@ final readonly class ImportedLanguages
             return PolylangLanguages::none();
         }
 
+        return $this->refresh($sourceId, $this->clients->for($source));
+    }
+
+    /**
+     * The source's languages for a phase that imports one object at a time:
+     * a site that can't be read now stops the run, which carries on later,
+     * so no object is written in the wrong language.
+     *
+     * @throws ImportStopped when the answer isn't kept and the site can't be read now
+     */
+    public function forObjects(string $sourceId): PolylangLanguages
+    {
         try {
-            return $this->refresh($sourceId, $this->clients->for($source));
-        } catch (SourceRefused|AddressRefused) {
-            return PolylangLanguages::none();
+            return $this->for($sourceId);
+        } catch (SourceRefused|AddressRefused $refused) {
+            throw ImportStopped::because($refused->reason, $refused->sentence().ImportEngine::AGAIN);
         }
     }
 
@@ -89,10 +106,12 @@ final readonly class ImportedLanguages
      * as `language` holds it: null for the default language, for a site
      * without Polylang, and for a type or taxonomy this site doesn't
      * translate; false when the slug names a language this site lacks.
+     *
+     * @throws ImportStopped when the answer isn't kept and the site can't be read now
      */
     public function stored(string $sourceId, mixed $slug, bool $translated): string|false|null
     {
-        $languages = $this->for($sourceId);
+        $languages = $this->forObjects($sourceId);
 
         if (! $languages->active || ! $translated || ! is_string($slug) || $slug === '' || $slug === $languages->default) {
             return null;

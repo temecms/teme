@@ -9,6 +9,7 @@ use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Phases\ImportPhases;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\ThemeSlotSettings;
@@ -18,6 +19,9 @@ use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Themes\ActiveTheme;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
 use Tests\Fixtures\Import\PolylangSite;
@@ -183,4 +187,25 @@ it('translates here only the types and taxonomies Polylang translated', function
         ->and(app(SiteLanguages::class)->translates('post'))->toBeTrue()
         ->and(plTerm($this->source->id, 6)?->language)->toBeNull()
         ->and(plTerm($this->source->id, 6)?->slug)->toBe('news-it');
+});
+
+it('stops rather than create items in the default language when the old site\'s languages can\'t be read again', function (): void {
+    $this->site->companion->answer('languages', 200, PolylangSite::languages());
+
+    foreach (range(1, 5) as $ignored) {
+        $this->site->companion->answer('languages', 500, ['code' => 'internal_server_error']);
+    }
+
+    // The kept answer is gone by the time the posts and pages are read, as an evicted cache leaves it.
+    Event::listen(JobProcessing::class, function (): void {
+        if (ImportRun::query()->value('phase') === 'content') {
+            Cache::forget(ImportedLanguages::key($this->source->id));
+        }
+    });
+
+    $run = $this->site->import($this->source);
+
+    expect($run->state)->toBe(ImportRunState::Stopped)
+        ->and($run->phase)->toBe('content')
+        ->and(Content::query()->count())->toBe(0);
 });

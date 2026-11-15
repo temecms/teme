@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourceReader;
+use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Import\Translations\PolylangLanguages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,4 +76,12 @@ it('asks the old site once while its answer is kept', function (): void {
     expect($languages->default)->toBe('en')
         ->and(array_column($languages->languages, 'language'))->toBe(array_keys(PolylangSite::SLUGS))
         ->and($this->site->companion->requestsTo('languages'))->toHaveCount(1);
+});
+
+it('lets the refusal through when nothing is kept and the old site can\'t be read now, rather than answering no Polylang', function (): void {
+    $source = importSource();
+    $this->site->companion->answer('languages', 500, ['code' => 'internal_server_error']);
+
+    expect(fn () => app(ImportedLanguages::class)->for($source->id))->toThrow(SourceRefused::class)
+        ->and(cache()->get(ImportedLanguages::key($source->id)))->toBeNull();
 });

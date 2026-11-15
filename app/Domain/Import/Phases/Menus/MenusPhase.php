@@ -136,7 +136,7 @@ final readonly class MenusPhase implements ListPhase
      */
     private function language(string $sourceId, int $menuId): ?string
     {
-        $languages = app(ImportedLanguages::class)->for($sourceId);
+        $languages = app(ImportedLanguages::class)->forObjects($sourceId);
         $slug = $languages->active ? $languages->menuLanguage($menuId) : null;
         $tag = $slug === null ? null : ($languages->language($slug)['language'] ?? null);
 
