@@ -339,7 +339,6 @@ function StatesDemo() {
     );
 }
 
-/** A small form of two fields with the save bar, which shows once something changes. */
 /** A page of the sample plugin's area that throws once asked to, as a plugin's page can. */
 function FailingAreaPage({ name, fail }: { name: string; fail: boolean }) {
     if (fail) {
@@ -414,6 +413,7 @@ function PluginAreaDemo() {
     );
 }
 
+/** A small form of two fields with the save bar, which shows once something changes. */
 function SaveBarDemo() {
     const [name, setName] = useState('');
     const [line, setLine] = useState('');
