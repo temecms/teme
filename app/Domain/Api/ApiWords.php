@@ -206,6 +206,16 @@ final class ApiWords
     }
 
     /**
+     * A language the site doesn't show readers, naming the ones it does (I-3360).
+     *
+     * @param  list<string>  $languages
+     */
+    public static function badLanguage(array $languages): string
+    {
+        return __('language must name a language this site shows: :languages.', ['languages' => implode(', ', $languages)]);
+    }
+
+    /**
      * A taxonomy that isn't a public one, naming the ones that are.
      *
      * @param  list<string>  $taxonomies

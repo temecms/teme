@@ -40,8 +40,8 @@ final class TermsQuery
             return ['rows' => [], 'next' => null];
         }
 
-        // The default language's terms alone while the site has several (I-3360).
-        $query = app(SiteLanguages::class)->whereDefault($this->terms(), 'terms.language');
+        // One language's terms, the default's unless one is asked for (I-3360).
+        $query = $filters->language === null ? app(SiteLanguages::class)->whereDefault($this->terms(), 'terms.language') : $this->terms()->where('terms.language', $filters->language);
         count($taxonomies) === 1 ? $query->where('terms.taxonomy', $taxonomies[0]) : $query->whereIn('terms.taxonomy', $taxonomies);
 
         if ($filters->parent === 'none') {
