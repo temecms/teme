@@ -52,8 +52,11 @@ it('leads from a row into the editor, with Quick edit and Preview beside Edit, t
     // The editor link is built in the browser from the row's id, which the
     // list already sends (rows.N.id), so the source is what carries it.
     expect($list)->toContain('contentEdit(row.id)')
-        ->toMatch("/id: 'edit',\s*owner: 'core',\s*label: 'Edit',\s*href:/")
-        ->toMatch("/id: 'edit'.*id: 'quick-edit'.*id: 'preview'.*id: 'approve'.*action\('publish', 'Publish'\).*action\('unpublish', 'Revert to draft'\).*action\('trash', 'Trash', true\)/s")
+        ->toMatch("/id: 'edit',\s*owner: 'core',\s*label: __\('Edit'\),\s*href:/")
+        // The line: Edit, Quick edit, then View or Preview (look) last; the menu: the decisions, then Trash last.
+        ->toMatch("/id: 'edit'.*id: 'quick-edit'.*onSelect: quickEdit,\s*\},\s*look,\s*\]/s")
+        ->toContain("id: 'preview'")
+        ->toMatch("/id: 'approve'.*action\('publish', __\('Publish'\)\).*action\('unpublish', __\('Revert to draft'\)\).*action\('trash', __\('Trash'\), true\)/s")
         ->and(uiComponent('components/list/row-actions.tsx'))->toContain("'href' in item");
 });
 
@@ -177,7 +180,7 @@ it('opens a new draft from every door with one press', function (): void {
     expect(uiComponent('pages/content/index.tsx'))
         ->not->toContain('new-draft-title')
         ->not->toContain("get('new')")
-        ->toContain('Add new {singular}')
+        ->toContain("__('Add new :singular'")
         ->and(uiComponent('components/palette/palette-commands.ts'))
         ->toContain('router.post(')
         ->toContain('in the editor`')

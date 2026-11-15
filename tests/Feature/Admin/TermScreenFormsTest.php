@@ -46,16 +46,17 @@ it('keeps a subcategory\'s parent and description when its edit form sends them 
 it('draws one heading over the taxonomies\' tabs, and the full add form beside the rows', function (): void {
     expect(uiComponent('pages/terms/index.tsx'))
         ->toContain('<TabStrip')
-        ->toContain('label="Kind"')
+        ->toContain("label={__('Kind')}")
         ->toContain('tabs.length > 1')
         ->toContain('title={heading}')
         ->toContain('<Head title={declared.plural} />')
-        ->toContain('lg:grid-cols-[300px_minmax(0,1fr)]')
+        ->toContain('lg:flex-row')
+        ->toContain('lg:w-75')
         ->toContain('data-test="term-add"')
         ->toMatch("/resetOnSuccess=\{\[\s*'name',\s*'slug',\s*'description',?\s*\]\}/")
         ->toContain("document.getElementById('term-add-name')?.focus()")
-        ->toContain('New {singular}')
-        ->toContain('Add {singular}')
+        ->toContain("__('New :singular'")
+        ->toContain("__('Add :singular'")
         ->toContain('Use the form to add the first one.')
         ->not->toContain('usePage()');
 });
@@ -70,7 +71,7 @@ it('gives Add and Edit the same fields, filled in from the row, a parent only wh
         ->toContain("defaultValue={term?.description ?? ''}")
         ->toContain("defaultValue={term?.slug ?? ''}")
         ->toContain('{declared.hierarchical && (')
-        ->toContain('emptyLabel="None"')
+        ->toContain("emptyLabel={__('None')}")
         ->toContain('The last part of its address. Leave it empty to make one from the name.')
         ->toContain('row.depth <= depth')
         ->toContain('Later (I-1490)')
@@ -82,23 +83,24 @@ it('indents each row under its parent, says so to screen readers, and links each
         ->toContain("'— '.repeat(row.depth)")
         ->toContain('aria-hidden="true"')
         ->toContain('data-test="term-name"')
-        ->toContain('`, under ${row.parentName}`')
+        ->toContain("__(', under :parent'")
         ->toContain('data-test="term-count"')
         ->toMatch('/\[declared\.key\]:\s*row\.id/')
         ->toContain('min-h-6')
         ->toContain('min-w-6')
-        ->toContain('` ${(count === 1 ? type.singular : type.plural).toLowerCase()} in ${row.name}`')
+        ->toContain("__(' :items in :name'")
         ->toContain('count === 0');
 });
 
 it('says what deleting a term does before it is done: who loses it, where its children go, and that it can\'t be undone (I-225)', function (): void {
     expect(uiComponent('pages/terms/index.tsx'))
         ->toContain('function deleteWarning(')
-        ->toMatch("/\?\s*'loses'\s*:\s*'lose'/")
-        ->toContain("'to the top'")
-        ->toContain('moves up a level, ${where}. Nothing under it is deleted.`')
-        ->toContain('move up a level, ${where}. Nothing under them is deleted.`')
+        ->toContain("__(':items loses this :singular.'")
+        ->toContain("__(':items lose this :singular.'")
+        ->toContain("__('to the top')")
+        ->toContain('moves up a level, :where. Nothing under it is deleted.')
+        ->toContain('move up a level, :where. Nothing under them is deleted.')
         ->toContain("'This can’t be undone.'")
-        ->toContain('title={`Delete “${row.name}”?`}')
-        ->toContain('confirmLabel={`Delete ${singular}`}');
+        ->toContain("title={__('Delete “:name”?'")
+        ->toContain("confirmLabel={__('Delete :singular'");
 });
