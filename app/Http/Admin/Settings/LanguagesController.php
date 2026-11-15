@@ -11,7 +11,10 @@ use App\Domain\Languages\Operations\Input\AddSiteLanguageInput;
 use App\Domain\Languages\Operations\Input\ChangeSiteLanguageInput;
 use App\Domain\Languages\Operations\Input\ChangeTranslatedTypesInput;
 use App\Domain\Languages\Operations\Input\RemoveSiteLanguageInput;
+use App\Domain\Languages\Operations\Input\ReorderSiteLanguagesInput;
 use App\Domain\Languages\Operations\RemoveSiteLanguage;
+use App\Domain\Languages\Operations\ReorderSiteLanguages;
+use App\Domain\Languages\Queries\LanguagesScreen;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Settings\Exceptions\StaleSettingsException;
 use App\Http\Controllers\Controller;
@@ -23,15 +26,16 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Settings › Languages (I-3360): a placeholder screen for now, with no form
- * (I-3373); adding, changing and removing a language go through its
- * routes' Operations, each answered with a toast.
+ * Settings › Languages (I-3360; docs/proposals/multilingual-screens.md): the
+ * site's languages in one table, and which types are translated. Adding,
+ * changing, reordering and removing a language go through their
+ * Operations, each answered with a toast.
  */
 final class LanguagesController extends Controller
 {
     public function show(): Response
     {
-        return Inertia::render('settings/languages');
+        return Inertia::render('settings/languages', LanguagesScreen::data());
     }
 
     public function store(Request $request, AddSiteLanguage $add, SiteLanguages $languages): RedirectResponse
@@ -75,6 +79,15 @@ final class LanguagesController extends Controller
             $request->integer('expected_version'),
             (string) $request->user()?->getAuthIdentifier(),
         )), __('Removed :language.', ['language' => $label]));
+    }
+
+    public function reorder(Request $request, ReorderSiteLanguages $reorder): RedirectResponse
+    {
+        return $this->answered(fn () => $reorder->execute(new ReorderSiteLanguagesInput(
+            array_values(array_filter((array) $request->input('tags', []), is_string(...))),
+            $request->integer('expected_version'),
+            (string) $request->user()?->getAuthIdentifier(),
+        )), __('Saved the order of the languages.'));
     }
 
     public function translated(Request $request, ChangeTranslatedTypes $change): RedirectResponse

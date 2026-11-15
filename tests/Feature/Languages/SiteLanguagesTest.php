@@ -108,16 +108,15 @@ it('shows the Languages screen to whoever manages General settings, and to nobod
     $this->actingAs($editor)->get('/admin/settings/languages')->assertForbidden();
 });
 
-it('offers no form to add, change or remove a language', function (): void {
+it('offers the forms to add, change, reorder and remove a language, each through the screen\'s own routes', function (): void {
+    // The placeholder this proved bare is replaced (docs/proposals/multilingual-screens.md, 2).
     $admin = User::factory()->create()->assignRole('administrator');
 
     $this->actingAs($admin)->get('/admin/settings/languages')
         ->assertInertia(fn (Assert $page) => $page->component('settings/languages')
-            ->missing('others')->missing('available')->missing('version')->missing('types'));
+            ->has('languages')->has('choices')->has('version')->has('types'));
 
-    $source = (string) file_get_contents(resource_path('js/pages/settings/languages.tsx'));
-
-    foreach (['<form', '<Form', 'useForm', '<input', '<select', '<button', '<Button', '@/routes/settings/languages', '@/actions/App/Http/Admin/Settings/LanguagesController'] as $forbidden) {
-        expect($source)->not->toContain($forbidden);
-    }
+    expect((string) file_get_contents(resource_path('js/pages/settings/languages.tsx')))
+        ->toContain('@/actions/App/Http/Admin/Settings/LanguagesController')
+        ->not->toContain('fetch(');
 });
