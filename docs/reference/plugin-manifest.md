@@ -14,7 +14,16 @@
 | `requires` | object | yes | What the plugin needs to run. |  |
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "media.read", "http" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs" |
+| `jobs` | array | no | Background jobs the plugin declares (I-3445). |  |
+| `jobs[].key` | string | yes |  | ^[a-z][a-z0-9-]{0,47}$ |
+| `jobs[].label` | string | yes |  |  |
+| `jobs[].long` | boolean | no |  |  |
+| `jobs[].tries` | integer | no |  |  |
+| `jobs[].backoff` | array | no |  |  |
+| `schedules` | array | no | How often a declared job should run (I-3445). |  |
+| `schedules[].job` | string | yes |  | ^[a-z][a-z0-9-]{0,47}$ |
+| `schedules[].every` | string | yes |  | "minute", "five-minutes", "fifteen-minutes", "hour", "day", "week" |
 | `hosts` | array | no | The hosts the plugin asks to reach, when it asks for http. |  |
 | `hooks` | array | no | The hooks the plugin listens to, by name. |  |
 | `contributes` | object | no | What the plugin adds to the admin. |  |
