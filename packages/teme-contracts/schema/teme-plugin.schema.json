@@ -73,7 +73,13 @@
             "type": "array",
             "description": "What the plugin asks to be allowed to do.",
             "items": {
-                "enum": ["content.read", "media.read", "http", "routes.public", "jobs"]
+                "enum": [
+                    "content.read",
+                    "media.read",
+                    "http",
+                    "routes.public",
+                    "jobs"
+                ]
             }
         },
         "routes": {
