@@ -3,9 +3,14 @@
     "name": "tests/inserts",
     "code": "inserts",
     "label": "Inserts",
-    "description": "A plugin the tests use to place markup after paragraph 2.",
+    "description": "A plugin the tests use to place markup after paragraph 2, with one setting.",
     "version": "1.0.0",
     "requires": { "teme": "^0.5" },
     "plugin": "Tests\\Fixtures\\Plugins\\Inserts\\Inserts",
-    "capabilities": ["content.insert"]
+    "capabilities": ["content.insert"],
+    "contributes": {
+        "settings": [
+            { "key": "label", "type": "text", "label": "Label", "description": "What the inserted block says." }
+        ]
+    }
 }

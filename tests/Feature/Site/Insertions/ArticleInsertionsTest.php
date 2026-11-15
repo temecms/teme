@@ -11,10 +11,13 @@ use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
+use App\Domain\Settings\Operations\UpdateSettings;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Fixtures\Api\Switches;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -116,4 +119,18 @@ it('draws the fixture plugin\'s insertion on a page warmed through PageWarmer, w
 
     expect(app(PageWarmer::class)->warm('http://localhost/insertion-story/'))->toBe('MISS')
         ->and(cacheEntry('/insertion-story/')?->body)->toContain('<div data-test="insertion">Inserted</div>');
+});
+
+it('purges insertions pages after a plugin\'s settings are saved, and not when the save is refused', function (): void {
+    $admin = User::factory()->create()->assignRole('administrator');
+    addrGet('/insertion-story/')->assertOk();
+    expect(cacheEntry('/insertion-story/'))->not->toBeNull();
+
+    expect(fn () => app(UpdateSettings::class)->execute(new UpdateSettingsInput('plugin.inserts', ['label' => 'Ad'], [], [], 0, (string) $this->author->id)))
+        ->toThrow(AuthorizationException::class)
+        ->and(cacheEntry('/insertion-story/'))->not->toBeNull();
+
+    app(UpdateSettings::class)->execute(new UpdateSettingsInput('plugin.inserts', ['label' => 'Ad'], [], [], 0, (string) $admin->id));
+
+    expect(cacheEntry('/insertion-story/'))->toBeNull();
 });
