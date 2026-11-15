@@ -57,7 +57,7 @@ it('names the plugin on its settings page in the Settings hub', function (): voi
     $screens = collect(pemEntry($this, $this->admin, 'settings')['screens'] ?? [])->keyBy('key');
 
     expect($screens['plugin.example-sync']['plugin'] ?? null)->toBe('Example Sync')
-        ->and($screens['general'] ?? $screens->first())->not->toHaveKey('plugin');
+        ->and($screens['general'])->not->toHaveKey('plugin');
 });
 
 it('carries the plugin’s name into the menu’s Tools screens', function (): void {
