@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $credential
  * @property string $plugin_version
  * @property int $api_version
+ * @property list<string> $other_hosts
  * @property CarbonImmutable $probed_at
  * @property CarbonImmutable|null $forgotten_at
  * @property int|null $created_by
@@ -41,6 +42,7 @@ final class ImportSource extends Model
             'credential' => 'encrypted',
             'api_version' => 'integer',
             'created_by' => 'integer',
+            'other_hosts' => 'array',
             'probed_at' => 'immutable_datetime',
             'forgotten_at' => 'immutable_datetime',
         ];
