@@ -2,7 +2,7 @@
 
 Guides for people and agents who build Teme plugins and themes. Reference under docs/reference/ is generated; these pages are written and tested against the code.
 
-- [Plugin or theme?](start/plugin-or-theme.md): Which package you need — a plugin that adds behaviour, or a theme that draws the public site.
+- [Plugin or theme?](start/plugin-or-theme.md): Which package you need — a plugin that adds behavior, or a theme that draws the public site.
 - [Your first plugin](start/first-plugin.md): From an empty folder to an enabled plugin that listens to a hook.
 - [Your first theme](start/first-theme.md): A theme with an index template and a single template, from the handbook example.
 - [The manifest](concepts/manifest.md): How to write teme-plugin.json and teme-theme.json, and where the key tables live.

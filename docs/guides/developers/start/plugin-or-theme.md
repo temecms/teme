@@ -2,13 +2,13 @@
 title: Plugin or theme?
 type: concept
 audience: both
-summary: Which package you need — a plugin that adds behaviour, or a theme that draws the public site.
+summary: Which package you need — a plugin that adds behavior, or a theme that draws the public site.
 rests_on: [docs/architecture/plugins.md, docs/architecture/themes.md, docs/guides/developers/examples]
 ---
 
 # Plugin or theme?
 
-Teme splits “add behaviour” from “draw the public site”. Pick the package that matches the job.
+Teme splits “add behavior” from “draw the public site”. Pick the package that matches the job.
 
 ## A plugin
 
