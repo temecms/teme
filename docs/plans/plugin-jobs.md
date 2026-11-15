@@ -139,7 +139,10 @@ The plugin's main class implements `PluginHasJobs` beside `Plugin`. A declared k
 - `66b23ea` fix(plugins): keep DisablePlugin when CancelJob already ended
 - `4b30bf8` test(plugins): cover Task 2 progress, retry, actor, and tries
 - `5c7760f` fix(plugins): translate missing-handler, refuse list payloads, isolate schedules
-- (this) docs(plans): Plugin jobs and schedules' records, follow-up R1
+- `0d57eb0` docs(plans): Plugin jobs and schedules' records, follow-up R1
+- `56520d7` test(plugins): keep BrokenJobsPlugin fault on the throw key
+- `2d8540b` fix(plugins): satisfy PHPStan on list payloads and cancel races
+- (this) docs(plans): Plugin jobs and schedules' records, follow-up R1 gate
 
 ### Tests seen red (then green)
 
@@ -169,6 +172,15 @@ The plugin's main class implements `PluginHasJobs` beside `Plugin`. A declared k
 - types / lint / theme build: clean
 - Architecture: **139 passed** (1313 assertions)
 - Unit+Feature (parallel): **10635 passed**, **2 skipped** (54851 assertions). First run had one flake (`LockOutTest` cut-short cache — empty `running()`; alone and with this part's suites it passes); re-run exit **0**.
+- No PR opened (assignment).
+
+### Follow-up R1 gate
+
+- Pint: passed
+- PHPStan: OK, no errors
+- types / lint / theme build: clean
+- Architecture: **139 passed** (1313 assertions)
+- Unit+Feature (parallel): **10646 passed**, **2 skipped** (54889 assertions). First run had one flake (`DatabaseDownTest` — `reported` count 0 under parallel; alone it passes); re-run exit **0**.
 - No PR opened (assignment).
 
 ### Browser
