@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Models;
 
+use App\Domain\Fediverse\SiteActors;
 use App\Domain\People\Models\Person;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -43,6 +44,12 @@ final class FediverseActor extends Model
     protected $guarded = [];
 
     protected $hidden = ['private_key'];
+
+    protected static function booted(): void
+    {
+        self::created(fn () => SiteActors::changed());
+        self::deleted(fn () => SiteActors::changed());
+    }
 
     protected function casts(): array
     {
