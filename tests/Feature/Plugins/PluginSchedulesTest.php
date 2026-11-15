@@ -1,0 +1,207 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Jobs\Models\TrackedJob;
+use App\Domain\Plugins\Jobs\DueSchedules;
+use App\Domain\Plugins\Jobs\RunPluginJob;
+use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Operations\DisablePlugin;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Support\Security\DeniedElevation;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Console\Scheduling\Event;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Queue;
+use Tests\Fixtures\Plugins\PluginFixtures;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    $this->seed(RoleSeeder::class);
+    app()->instance(Elevation::class, new OperatorElevation);
+    $this->admin = User::factory()->create()->assignRole('administrator');
+
+    PluginFixtures::use('jobs');
+    PluginFixtures::installed(['tests/jobs' => 'jobs']);
+
+    $this->enable = function (): void {
+        $plugin = app(PluginRegistry::class)->find('tests/jobs');
+        $manifest = $plugin?->manifest;
+
+        app(EnablePlugin::class)->execute(new EnablePluginInput(
+            'tests/jobs',
+            $manifest?->version() ?? '1.0.0',
+            $manifest?->capabilities() ?? [],
+            $manifest?->hosts() ?? [],
+            $manifest?->hooks() ?? [],
+            (string) $this->admin->id,
+        ));
+    };
+});
+
+afterEach(fn () => PluginFixtures::forget());
+
+it('queues a due schedule once per interval and records schedule_runs', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $this->travelTo('2026-11-15 12:00:00');
+
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+
+    expect(TrackedJob::query()->where('owner', 'jobs')->where('run_id', 'write-line')->count())->toBe(1)
+        ->and($record->fresh()->schedule_runs['write-line'] ?? null)->toBe(now()->toIso8601String());
+
+    Queue::assertPushed(RunPluginJob::class);
+
+    $this->travelTo('2026-11-15 12:30:00');
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+    expect(TrackedJob::query()->where('owner', 'jobs')->where('run_id', 'write-line')->count())->toBe(1);
+
+    $this->travelTo('2026-11-15 13:00:00');
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+    expect(TrackedJob::query()->where('owner', 'jobs')->where('run_id', 'write-line')->count())->toBe(2)
+        ->and($record->fresh()->schedule_runs['write-line'] ?? null)->toBe(now()->toIso8601String());
+});
+
+it('queues nothing for a disabled plugin, and resumes when enabled again', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $this->travelTo('2026-11-15 12:00:00');
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/jobs', null));
+
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+    expect(TrackedJob::query()->count())->toBe(0);
+
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/jobs',
+        '1.0.0',
+        ['jobs', 'http'],
+        ['api.example.com'],
+        [],
+        (string) $this->admin->id,
+    ));
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+
+    expect(TrackedJob::query()->where('owner', 'jobs')->count())->toBe(1);
+});
+
+it('queues a scheduled run as the administrator who enabled the plugin, without elevation', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $this->travelTo('2026-11-15 12:00:00');
+
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+
+    expect($record->consented_by)->toBe($this->admin->id);
+
+    Queue::assertPushed(RunPluginJob::class, function (RunPluginJob $job): bool {
+        expect($job->actor->userId)->toBe((string) $this->admin->id)
+            ->and($job->actor->isOperator())->toBeFalse();
+
+        app()->instance(Elevation::class, new DeniedElevation);
+        $job->actor->bind();
+
+        expect(app(Elevation::class))->toBeInstanceOf(DeniedElevation::class);
+
+        return true;
+    });
+
+    expect(TrackedJob::query()->where('owner', 'jobs')->sole()->started_by)->toBe($this->admin->id);
+});
+
+it('queues nothing when jobs isn’t granted', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $record->consent = ['capabilities' => ['http'], 'hosts' => ['api.example.com'], 'hooks' => []];
+    $record->save();
+
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+
+    expect(TrackedJob::query()->count())->toBe(0)
+        ->and(app(DueSchedules::class)->run())->toBe(0);
+});
+
+it('is on the schedule every minute, never overlapping, on one server', function (): void {
+    Artisan::call('schedule:list');
+    $event = collect(app(Schedule::class)->events())->first(
+        fn (Event $event): bool => str_contains((string) $event->command, 'teme:plugins:run-due-schedules'),
+    );
+
+    expect($event)->not->toBeNull()
+        ->and($event->expression)->toBe('* * * * *')
+        ->and($event->withoutOverlapping)->toBeTrue()
+        ->and($event->onOneServer)->toBeTrue();
+});
+
+it('keeps queuing other plugins when one schedule throws', function (): void {
+    ($this->enable)();
+
+    $other = PluginFixtures::copy('jobs', [
+        'name' => 'tests/jobs-other',
+        'code' => 'jobs-other',
+        'label' => 'Jobs other',
+        'owns' => ['tables' => ['jobs_other_lines']],
+    ], files: [
+        'database/migrations/2026_01_01_000000_create_jobs_lines.php' => <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('jobs_other_lines', function (Blueprint $table): void {
+            $table->id();
+            $table->string('line');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('jobs_other_lines');
+    }
+};
+PHP,
+    ]);
+    PluginFixtures::use('jobs', $other);
+    PluginFixtures::installed(['tests/jobs' => 'jobs', 'tests/jobs-other' => $other]);
+
+    $plugin = app(PluginRegistry::class)->find('tests/jobs-other');
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/jobs-other',
+        $plugin?->manifest?->version() ?? '1.0.0',
+        $plugin?->manifest?->capabilities() ?? [],
+        $plugin?->manifest?->hosts() ?? [],
+        $plugin?->manifest?->hooks() ?? [],
+        (string) $this->admin->id,
+    ));
+
+    Queue::fake();
+    $this->travelTo('2026-11-15 12:00:00');
+
+    $broken = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $broken->schedule_runs = ['write-line' => 'not-a-time'];
+    $broken->save();
+
+    expect(app(DueSchedules::class)->run())->toBe(1)
+        ->and(TrackedJob::query()->where('owner', 'jobs-other')->count())->toBe(1)
+        ->and(TrackedJob::query()->where('owner', 'jobs')->count())->toBe(0);
+});

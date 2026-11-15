@@ -45,11 +45,13 @@ final readonly class PluginHttp implements OutboundHttp
     /**
      * @param  list<string>  $hosts  the hosts this plugin's consent covers
      * @param  int  $maxBytes  answer size cap; defaults to 1 MB for http, media may pass the upload limit
+     * @param  int  $mostSeconds  the upper limit for each call: 10 normally, 300 inside a long job (I-3445)
      */
     public function __construct(
         private array $hosts,
         private HostResolver $resolver,
         private int $maxBytes = self::MOST_BYTES,
+        private int $mostSeconds = self::MOST_SECONDS,
     ) {}
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
@@ -78,7 +80,7 @@ final readonly class PluginHttp implements OutboundHttp
         $host = $this->allowedHost($uri);
         $body = $json === null ? null : self::jsonBody($json, $host, $this->maxBytes);
         $address = $this->publicAddress($host);
-        $seconds = max(1, min($timeoutSeconds, self::MOST_SECONDS));
+        $seconds = max(1, min($timeoutSeconds, $this->mostSeconds));
 
         $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0, ARRAY_FILTER_USE_KEY))
             ->setHandler(new CurlHandler)

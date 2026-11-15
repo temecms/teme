@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Seams;
 
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -18,15 +19,16 @@ use Teme\Contracts\Settings\SettingsReader;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class];
 
     /**
      * What this plugin's constructor may be given, by interface.
      *
      * @param  list<string>  $capabilities
      * @param  list<string>  $hosts
+     * @param  int|null  $httpSeconds  outbound ceiling for a long job's run
      *
      * @return array<class-string, object>
      */
-    public function for(string $name, string $code, array $capabilities, array $hosts): array;
+    public function for(string $name, string $code, array $capabilities, array $hosts, ?int $httpSeconds = null): array;
 }

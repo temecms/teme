@@ -78,6 +78,7 @@ final class StartJob extends BaseOperation
             'state' => JobState::Waiting,
             'total' => $input->total,
             'done' => 0,
+            'payload' => $input->payload,
         ]);
 
         return (string) $job->id;

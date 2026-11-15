@@ -33,6 +33,8 @@ export type JobRow = {
     kind: string;
     label: string;
     owner: string;
+    /** The plugin's label when this is a plugin job; otherwise null. */
+    plugin: string | null;
     state: JobStateKey;
     stateLabel: string;
     message: string | null;

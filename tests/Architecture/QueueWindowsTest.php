@@ -89,7 +89,7 @@ it('gives every queued job at least 15 seconds of its connection\'s retry window
 });
 
 it('runs the long connection on its own queue in the same jobs table, with the default connection still quick to retry', function (): void {
-    expect(config('queue.connections.database-long'))->toMatchArray(['table' => 'jobs', 'queue' => 'long', 'retry_after' => 360])
+    expect(config('queue.connections.database-long'))->toMatchArray(['table' => 'jobs', 'queue' => 'long', 'retry_after' => 1860])
         ->and(config('queue.connections.database.retry_after'))->toBe(90)
         ->and(qwConnection(GenerateMediaVariants::class))->toBe('database-long');
 });

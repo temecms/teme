@@ -6,6 +6,9 @@ namespace App\Domain\Jobs\Queries;
 
 use App\Domain\Jobs\JobKinds;
 use App\Domain\Jobs\JobState;
+use App\Domain\Plugins\Jobs\PluginJobKind;
+use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Queries\Cursor;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
@@ -13,11 +16,12 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 
 /**
- * Tools › Jobs' list (I-104): every tracked job, newest first, a keyset page
- * at a time, each as the screen draws it with who started it; the failed
- * jobs Retry all failed would retry; and a run's jobs. It writes nothing.
+ * Tools › Jobs' list (I-104, I-3445): every tracked job, newest first, a
+ * keyset page at a time, each as the screen draws it with who started it
+ * and, for a plugin job, the plugin's mark; the failed jobs Retry all
+ * failed would retry; and a run's jobs. It writes nothing.
  *
- * @phpstan-type JobRow array{id: string, kind: string, label: string, owner: string, state: string, stateLabel: string, message: string|null, total: int|null, done: int, percent: int|null, startedAt: string, endedAt: string|null, startedBy: array{kind: string, name: string|null}, canRetry: bool, canCancel: bool}
+ * @phpstan-type JobRow array{id: string, kind: string, label: string, owner: string, plugin: string|null, state: string, stateLabel: string, message: string|null, total: int|null, done: int, percent: int|null, startedAt: string, endedAt: string|null, startedBy: array{kind: string, name: string|null}, canRetry: bool, canCancel: bool}
  */
 final readonly class TrackedJobList
 {
@@ -39,7 +43,10 @@ final readonly class TrackedJobList
         'j.created_at', 'j.ended_at', 'u.name as starter_name',
     ];
 
-    public function __construct(private JobKinds $kinds) {}
+    public function __construct(
+        private JobKinds $kinds,
+        private PluginRegistry $plugins,
+    ) {}
 
     /**
      * Returns a page of jobs, newest first, at most $perPage (1 to 200); with
@@ -241,18 +248,22 @@ final readonly class TrackedJobList
     private function shown(Collection $found): array
     {
         $installed = $this->kinds->all();
+        $labels = $this->pluginLabels($found);
         $rows = [];
 
         foreach ($found as $row) {
             $state = JobState::from((string) $row->state);
             $total = $row->total === null ? null : (int) $row->total;
             $done = (int) $row->done;
+            $owner = (string) $row->owner;
+            $kind = (string) $row->kind;
 
             $rows[] = [
                 'id' => (string) $row->id,
-                'kind' => (string) $row->kind,
+                'kind' => $kind,
                 'label' => (string) $row->label,
-                'owner' => (string) $row->owner,
+                'owner' => $owner,
+                'plugin' => $kind === PluginJobKind::KEY ? ($labels[$owner] ?? $owner) : null,
                 'state' => $state->value,
                 'stateLabel' => $state->label(),
                 'message' => $row->message === null ? null : (string) $row->message,
@@ -267,11 +278,40 @@ final readonly class TrackedJobList
                     $row->starter_name === null => ['kind' => 'removed', 'name' => null],
                     default => ['kind' => 'person', 'name' => (string) $row->starter_name],
                 },
-                'canRetry' => $state === JobState::Failed && isset($installed[(string) $row->kind]),
+                'canRetry' => $state === JobState::Failed && isset($installed[$kind]),
                 'canCancel' => ! $state->ended(),
             ];
         }
 
         return $rows;
+    }
+
+    /**
+     * Plugin labels keyed by plugin code, for the plugin-job rows on this page.
+     *
+     * @param  Collection<int, stdClass>  $found
+     *
+     * @return array<string, string>
+     */
+    private function pluginLabels(Collection $found): array
+    {
+        $codes = $found
+            ->filter(fn (stdClass $row): bool => (string) $row->kind === PluginJobKind::KEY)
+            ->map(fn (stdClass $row): string => (string) $row->owner)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($codes === []) {
+            return [];
+        }
+
+        $labels = [];
+
+        foreach (PluginRecord::query()->whereIn('code', $codes)->get(['name', 'code']) as $record) {
+            $labels[$record->code] = $this->plugins->find($record->name)?->manifest?->label() ?? $record->name;
+        }
+
+        return $labels;
     }
 }

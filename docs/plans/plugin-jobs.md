@@ -104,9 +104,9 @@ The plugin's main class implements `PluginHasJobs` beside `Plugin`. A declared k
 
 ## Tasks
 
-- [ ] **Task 0.** Read the files named above and confirm: where a tracked job keeps data (column name), the jobs screen's files and its browser test, how `PluginLoader` builds a plugin and its doors, how contribution faults reach the Plugins screen. Record differences as `B-?? (draft)` and follow the code.
-- [ ] **Task 1. Manifest and contracts.** Tests first (`DeclaredJobsTest`, manifest validator cases): each J2 rule refused with its sentence; a valid declaration passes; the schema accepts it; `jobs` declared without the capability is refused. Then the contracts (J3) and the enum case. Quick check.
-- [ ] **Task 2. The door and the runner.** Tests first (`PluginJobsTest`, with the `tests/Fixtures/plugins/jobs` fixture: one short job that writes a line to its own table or a log, one `long` job, one that throws):
+- [x] **Task 0.** Read the files named above and confirm: where a tracked job keeps data (column name), the jobs screen's files and its browser test, how `PluginLoader` builds a plugin and its doors, how contribution faults reach the Plugins screen. Record differences as `B-?? (draft)` and follow the code.
+- [x] **Task 1. Manifest and contracts.** Tests first (`DeclaredJobsTest`, manifest validator cases): each J2 rule refused with its sentence; a valid declaration passes; the schema accepts it; `jobs` declared without the capability is refused. Then the contracts (J3) and the enum case. Quick check.
+- [x] **Task 2. The door and the runner.** Tests first (`PluginJobsTest`, with the `tests/Fixtures/plugins/jobs` fixture: one short job that writes a line to its own table or a log, one `long` job, one that throws):
   - granted: `Jobs::queue()` starts a tracked job owned by the plugin, the worker runs it, it finishes;
   - **not granted: the plugin is offered no `Jobs` service, and a hand-made `RunPluginJob` for it cancels and writes nothing** (no handler called, nothing in its table);
   - a disabled plugin's queued run is cancelled, its running run stops at the next progress report;
@@ -115,13 +115,94 @@ The plugin's main class implements `PluginHasJobs` beside `Plugin`. A declared k
   - a payload over 64 KB, or with an object, is refused by `queue()`;
   - a key with no handler fails without retry; the fault shows on the Plugins screen;
   - outbound inside a `long` job may wait longer than 10 seconds (fake transport records the timeout passed, up to 300), outside a job it can't.
-- [ ] **Task 3. Schedules.** Tests first (`PluginSchedulesTest`, with `$this->travelTo()`): a due schedule queues its job once per interval, on one server; **a disabled plugin's schedule queues nothing**; enabling again resumes; a plugin not granted `jobs` queues nothing; `schedule_runs` records each run. The migration, the command, the console line.
-- [ ] **Task 4. Disable and enable.** Tests first: disabling cancels queued and running runs after commit; a refused disable (not allowed) cancels nothing and writes nothing.
-- [ ] **Task 5. Tools › Jobs.** A plugin-owned job shows the plugin's mark and name. One browser case after `npm run build`: the row is drawn with the mark; axe passes in light and dark.
-- [ ] **Task 6. Records and the gate.** Fill the Records; the quick check; `composer check` once.
+- [x] **Task 3. Schedules.** Tests first (`PluginSchedulesTest`, with `$this->travelTo()`): a due schedule queues its job once per interval, on one server; **a disabled plugin's schedule queues nothing**; enabling again resumes; a plugin not granted `jobs` queues nothing; `schedule_runs` records each run. The migration, the command, the console line.
+- [x] **Task 4. Disable and enable.** Tests first: disabling cancels queued and running runs after commit; a refused disable (not allowed) cancels nothing and writes nothing.
+- [x] **Task 5. Tools › Jobs.** A plugin-owned job shows the plugin's mark and name. One browser case after `npm run build`: the row is drawn with the mark; axe passes in light and dark.
+- [x] **Task 6. Records and the gate.** Fill the Records; the quick check; `composer check` once.
 
 **Quick check:** `vendor/bin/pint --dirty`, `vendor/bin/phpstan analyse` on the touched paths, `php artisan test tests/Feature/Plugins tests/Unit/Plugins tests/Architecture`.
 
 ## Records
 
-(The builder fills this.)
+### Commits on `plugins/jobs`
+
+- `b8edf09` feat(plugins): declare jobs and schedules in the manifest
+- `18ad20b` feat(plugins): queue and run declared plugin jobs
+- `e211520` feat(plugins): queue due plugin schedules each minute
+- `b7c7303` feat(plugins): cancel plugin jobs when a plugin is disabled
+- `38e1175` fix(plugins): skip cancel when a plugin job already ended
+- `1530b30` feat(plugins): show plugin mark on Tools › Jobs rows
+- `af2b3f7` docs(plans): Plugin jobs's records
+- `686823e` fix(plugins): skip RunPluginJob when the tracked job already ended
+- `290f477` fix(plugins): run due schedules as the enabling administrator
+- `54d335b` test(plugins): assert schedule starter via started_by
+- `66b23ea` fix(plugins): keep DisablePlugin when CancelJob already ended
+- `4b30bf8` test(plugins): cover Task 2 progress, retry, actor, and tries
+- `5c7760f` fix(plugins): translate missing-handler, refuse list payloads, isolate schedules
+- `0d57eb0` docs(plans): Plugin jobs and schedules' records, follow-up R1
+- `56520d7` test(plugins): keep BrokenJobsPlugin fault on the throw key
+- `2d8540b` fix(plugins): satisfy PHPStan on list payloads and cancel races
+- (this) docs(plans): Plugin jobs and schedules' records, follow-up R1 gate
+
+### Tests seen red (then green)
+
+- **Task 1** `DeclaredJobsTest` — `Failed asserting that two arrays are identical` (expected `[]`, got `jobs isn’t something a plugin can ask for.` before `Capability::Jobs`); later cases: missing validator sentences; `Class "App\Domain\Plugins\Jobs\DeclaredJobs" not found`.
+- **Task 2** `PluginJobsTest` — `Tests\Fixtures\Plugins\Jobs\JobsPlugin asks for Teme\Contracts\Jobs\Jobs; a plugin may ask only for what Teme offers plugins.` (before `Jobs` in `PluginServices::OFFERED` / door); then runner/cancel/payload cases until `RunPluginJob` and payload column landed.
+- **Task 3** `PluginSchedulesTest` — `The command "teme:plugins:run-due-schedules" does not exist.`
+- **Task 4** `PluginJobsTest` "cancels waiting and running…" — expected `Cancelled`, got `Waiting` (before `DisablePlugin` after-commit cancel).
+- **Task 5** `JobsScreenTest` "names the plugin beside…" — `Property [rows.0.plugin] does not exist.`
+
+### Follow-up R1
+
+- **R1-1** `PluginJobsTest` "runs nothing after CancelJob…" / "cancelled by disable then enabled again" — with `quiet-write` (no progress), expected 0 lines, got 1 until `RunPluginJob` returns when the tracked job is missing or ended.
+- **R1-2** `PluginSchedulesTest` "queues a scheduled run as the administrator…" — `RunPluginJob` actor was `null` (operator) until schedules queue as `consented_by` without elevation.
+- **R1-3** `PluginJobsTest` "still disables when a CancelJob finds the run already ended" — `ValidationException` from CancelJob until each cancel is try/caught.
+- **R1-4** Task 2 gaps (progress after disable, tries/backoff, Retry payload, missing handler, long ceilings, person actor) — tests added; behavior already green.
+- **R1-5** list payload refused with JSON-ready sentence (was DB check); DueSchedules isolation — `InvalidFormatException` from one plugin stopped the rest until per-plugin `report()`; missing-handler message wrapped in `__()`.
+
+### Architecture
+
+- Before: **139 passed** (1309 assertions).
+- After: **139 passed** (1313 assertions). `QueueWindowsTest` now expects `database-long` `retry_after` **1860** (was 360) so a long plugin job's 1800s timeout fits; short `RunPluginJob` default timeout is **75** (plan said 120) so it fits the default queue's 90s window. Baselines unchanged: admin-words **876**, design-system **222**.
+
+### Full gate (`export PATH=/opt/node24/bin:$PATH && composer check`)
+
+- Pint: passed
+- PHPStan: OK, no errors
+- types / lint / theme build: clean
+- Architecture: **139 passed** (1313 assertions)
+- Unit+Feature (parallel): **10635 passed**, **2 skipped** (54851 assertions). First run had one flake (`LockOutTest` cut-short cache — empty `running()`; alone and with this part's suites it passes); re-run exit **0**.
+- No PR opened (assignment).
+
+### Follow-up R1 gate
+
+- Pint: passed
+- PHPStan: OK, no errors
+- types / lint / theme build: clean
+- Architecture: **139 passed** (1313 assertions)
+- Unit+Feature (parallel): **10646 passed**, **2 skipped** (54889 assertions). First run had one flake (`DatabaseDownTest` — `reported` count 0 under parallel; alone it passes); re-run exit **0**.
+- No PR opened (assignment).
+
+### Browser
+
+- After `npm run build`: `tests/Browser/JobsScreenTest.php` — axe light/dark and the new plugin-mark light/dark cases **passed**.
+
+### B-?? (draft)
+
+1. **B-01** — `tracked_jobs` had no data/payload column; added `payload` JSONB (object, default `{}`) so plugin payloads and Retry can keep them. Plan Owns named only `schedule_runs`.
+2. **B-02** — Plan J4 short timeout 120 fails `QueueWindowsTest` against `database` `retry_after` 90; short jobs use **75**. Long jobs keep **1800**; `database-long` `retry_after` raised **360 → 1860** (Architecture expectation updated to match).
+3. **B-03** — `teme:plugins:run-due-schedules` matches SafeMode's `teme:plugins:` prefix, so `SafeMode::active()` would always skip schedules during the command. `DueSchedules` does not check SafeMode; `RunPluginJob` still cancels under safe mode.
+4. **B-04** — No separate jobs-row component existed; added `resources/js/components/jobs/job-label.tsx` (uses existing `PluginMark` from `ui/`, not edited).
+5. **B-05** — `CancelJob` has no custom "The plugin is off" message; uses its existing cancelled wording. `RunPluginJob` skips `CancelJob` when the tracked row already ended (DisablePlugin may have cancelled first).
+
+### Changelog lines for the maintainer
+
+- Plugins may declare `jobs` / `schedules`, ask for `jobs`, queue work through `Teme\Contracts\Jobs\Jobs`, and run on core's `RunPluginJob`.
+- `tracked_jobs.payload` JSONB; `plugins.schedule_runs` JSONB; `teme:plugins:run-due-schedules` every minute on one server.
+- Disabling a plugin cancels its waiting and running plugin-jobs after commit.
+- Tools › Jobs shows `PluginMark` beside plugin-owned rows.
+- `database-long` retry window is 1860 seconds so 30-minute plugin jobs fit.
+
+### STOP
+
+none
