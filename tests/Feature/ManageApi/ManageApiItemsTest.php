@@ -167,6 +167,7 @@ it('refuses an unknown field, a bad body, a term of another taxonomy and an auth
     'scheduled for words, not a date' => [['status' => 'scheduled', 'publish_at' => 'tomorrow'], 'publish_at'],
     'scheduled with no offset' => [['status' => 'scheduled', 'publish_at' => '2030-11-10T09:30:00'], 'publish_at'],
     'scheduled on a day no month has' => [['status' => 'scheduled', 'publish_at' => '2030-13-10T09:30:00Z'], 'publish_at'],
+    'html over 2 MB' => [['body' => null, 'html' => '<p>'.str_repeat('a', 2 * 1024 * 1024).'</p>'], 'html'],
 ]);
 
 it('refuses a person who may not create items, writing nothing', function (): void {

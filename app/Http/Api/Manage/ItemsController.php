@@ -19,6 +19,9 @@ use Illuminate\Http\Request;
  */
 final class ItemsController
 {
+    /** The longest html body converted: the import's converter parses all of it at once. */
+    private const int LARGEST_HTML = 2 * 1024 * 1024;
+
     public function store(Request $request, ApiItems $items, HtmlBodies $html): JsonResponse
     {
         $refused = [];
@@ -48,6 +51,8 @@ final class ItemsController
             $refused['body'] = __('body must be a Tiptap document, or send html instead.');
         } elseif ($markup !== null && (! is_string($markup) || trim($markup) === '')) {
             $refused['html'] = __('html must be text.');
+        } elseif (is_string($markup) && strlen($markup) > self::LARGEST_HTML) {
+            $refused['html'] = __('html is larger than :size MB. Send a shorter body.', ['size' => intdiv(self::LARGEST_HTML, 1024 * 1024)]);
         }
 
         if (! is_string($status) || ! in_array($status, ApiItems::STATUSES, true)) {

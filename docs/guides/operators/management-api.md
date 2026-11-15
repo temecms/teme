@@ -101,9 +101,9 @@ curl -X PATCH -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json
 `POST /items` creates an item as the key's person. It takes:
 
 - `type`, the content type, such as `post` or `page`, and a `title`;
-- the body, as a Tiptap document in `body` or as HTML in `html`: HTML is converted to blocks as an import converts it, and the answer lists anything that changed on the way in `notes`;
+- the body, as a Tiptap document in `body` or as HTML of up to 2 MB in `html`: HTML is converted to blocks as an import converts it, and the answer lists anything that changed on the way in `notes`;
 - optionally `slug`, `terms` (term IDs by taxonomy), `featured_media` (a media ID), `author` (an ID from `/people`) and `fields` (values by field handle);
-- `status`: `draft`, `published` or `scheduled`, with `publish_at` for a scheduled item. Publishing or scheduling needs `content.publish`.
+- `status`: `draft`, `published` or `scheduled`, with `publish_at` for a scheduled item, a date and time with its offset such as `2026-11-10T09:30:00Z`. Publishing or scheduling needs `content.publish`.
 
 It needs `content.write`. A request that is refused writes nothing. If the draft is made but publishing it is then refused, the draft stays, and the answer is `202` with the draft and the problem that stopped it.
 
