@@ -76,6 +76,23 @@ final class ApiKeys
     }
 
     /**
+     * The caller a request's secret signs in as, noting the key's use; null
+     * for a key findLive() wouldn't find, or one whose person is suspended.
+     */
+    public function signIn(string $secret): ?ApiCaller
+    {
+        $key = $this->findLive($secret);
+
+        if ($key === null || ! DB::table('users')->where('id', $key->user_id)->whereNull('suspended_at')->exists()) {
+            return null;
+        }
+
+        $this->touch($key);
+
+        return ApiCaller::of($key);
+    }
+
+    /**
      * Notes that the key was used, at most once a minute: a technical
      * timestamp, like a session's touch, written outside any Operation.
      */

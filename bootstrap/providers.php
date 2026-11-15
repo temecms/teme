@@ -21,6 +21,7 @@ use App\Providers\HookServiceProvider;
 use App\Providers\ImportServiceProvider;
 use App\Providers\JsonLdServiceProvider;
 use App\Providers\LanguageServiceProvider;
+use App\Providers\ManageApiServiceProvider;
 use App\Providers\MediaServiceProvider;
 use App\Providers\MetadataSuggestionsServiceProvider;
 use App\Providers\NavigationServiceProvider;
@@ -93,4 +94,5 @@ return [
     ImportServiceProvider::class,
     UpdatesServiceProvider::class,
     PluginServiceProvider::class,
+    ManageApiServiceProvider::class,
 ];
