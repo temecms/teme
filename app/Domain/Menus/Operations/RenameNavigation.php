@@ -11,7 +11,8 @@ use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
 /**
- * Renames a menu. Its handle stays as it was made.
+ * Renames a menu, and sets its language when one is given
+ * (docs/proposals/multilingual-screens.md, 5). Its handle stays as it was made.
  */
 final class RenameNavigation extends BaseOperation
 {
@@ -27,13 +28,14 @@ final class RenameNavigation extends BaseOperation
     {
         /** @var RenameNavigationInput $input */
         $this->validateName($input->name);
+        $this->validateLanguage($input->language);
     }
 
     protected function perform(OperationInput $input): Navigation
     {
         /** @var RenameNavigationInput $input */
         $navigation = Navigation::query()->lockForUpdate()->findOrFail($input->id);
-        $navigation->update(['name' => trim($input->name)]);
+        $navigation->update(['name' => trim($input->name)] + ($input->language === null ? [] : ['language' => self::storedLanguage($input->language)]));
 
         return $navigation;
     }

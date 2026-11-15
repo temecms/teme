@@ -348,3 +348,20 @@ it('shows a French menu in a place for French readers, and adds the language swi
     $page->assertScript("document.getElementById('menu-readers-of').textContent.includes('French')");
     cmNoJavaScriptErrors($page);
 });
+
+it('sets a menu\'s own language from For readers of, kept on reload', function (): void {
+    siteSetLanguage(User::factory()->create()->assignRole('administrator'), 'en-GB');
+    Languages::set(['fr']);
+    $this->actingAs($this->editor)->get("/admin/navigation/{$this->menu->id}")->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor), "/admin/navigation/{$this->menu->id}");
+    cmWaitUntil($page, "document.getElementById('menu-readers-of')?.textContent.includes('English') === true");
+    $page->click('#menu-readers-of')->click('[role="option"] >> text="French"');
+    cmWaitUntil($page, "document.querySelector('[role=\"listbox\"]') === null && document.body.innerText.includes('Saved. “Main” is for readers of French.')");
+
+    expect(Navigation::query()->find($this->menu->id)->language)->toBe('fr');
+
+    cmNavigate($page, "/admin/navigation/{$this->menu->id}");
+    cmWaitUntil($page, "document.getElementById('menu-readers-of')?.textContent.includes('French') === true");
+    cmNoJavaScriptErrors($page);
+});

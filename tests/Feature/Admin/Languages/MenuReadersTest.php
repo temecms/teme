@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 use App\Domain\Menus\Operations\CreateNavigation;
 use App\Domain\Menus\Operations\Input\CreateNavigationInput;
+use App\Domain\Menus\Operations\Input\RenameNavigationInput;
+use App\Domain\Menus\Operations\RenameNavigation;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Teme\Contracts\Settings\SettingsReader;
 use Tests\Fixtures\Languages\Languages;
@@ -61,4 +66,35 @@ it('gives Show in no languages on a site with one', function (): void {
 
     $this->actingAs($this->editor)->get("/admin/navigation/{$plain->id}")
         ->assertInertia(fn (Assert $page) => $page->where('readers', ['languages' => [], 'language' => null, 'bindings' => []]));
+});
+
+it('sets a menu\'s own language from For readers of, through RenameNavigation, keeping its name', function (): void {
+    $this->actingAs($this->editor)
+        ->put("/admin/navigation/{$this->main->id}", ['name' => 'Main', 'language' => 'fr'])
+        ->assertSessionHasNoErrors()
+        ->assertInertiaFlash('toast.message', 'Saved. “Main” is for readers of French.');
+
+    expect(DB::table('navigations')->where('id', $this->main->id)->first(['name', 'language']))->toEqual((object) ['name' => 'Main', 'language' => 'fr']);
+
+    $this->actingAs($this->editor)->put("/admin/navigation/{$this->main->id}", ['name' => 'Main', 'language' => 'en-GB'])->assertSessionHasNoErrors();
+
+    expect(DB::table('navigations')->where('id', $this->main->id)->value('language'))->toBeNull();
+});
+
+it('leaves a menu\'s language as it was when it is only renamed', function (): void {
+    app(RenameNavigation::class)->execute(new RenameNavigationInput($this->principal->id, 'Principale', (string) $this->editor->id));
+
+    expect(DB::table('navigations')->where('id', $this->principal->id)->first(['name', 'language']))->toEqual((object) ['name' => 'Principale', 'language' => 'fr']);
+});
+
+it('refuses a language the site doesn\'t have, or a person who may not manage menus, and writes nothing', function (): void {
+    $author = User::factory()->create()->assignRole('author');
+    $before = DB::table('navigations')->orderBy('id')->get()->all();
+
+    expect(fn () => app(RenameNavigation::class)->execute(new RenameNavigationInput($this->main->id, 'Main', (string) $this->editor->id, 'it')))
+        ->toThrow(ValidationException::class, 'Choose one of the site’s languages.')
+        ->and(fn () => app(RenameNavigation::class)->execute(new RenameNavigationInput($this->main->id, 'Main', (string) $author->id, 'fr')))
+        ->toThrow(AuthorizationException::class);
+
+    expect(DB::table('navigations')->orderBy('id')->get()->all())->toEqual($before);
 });

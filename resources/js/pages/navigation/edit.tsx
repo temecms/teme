@@ -87,6 +87,16 @@ export default function NavigationEdit({
         );
     };
 
+    /** The menu's own language, saved through Rename with its name kept; the places then show that language's menus. */
+    const chooseReaders = (language: string) => {
+        setReadersOf(language);
+        router.put(
+            NavigationController.update.url({ id: navigation.id }),
+            { name: navigation.name, language },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
     const bind = (slot: string, navigationId: string) =>
         router.put(
             NavigationController.updateSlots.url({ id: navigation.id }),
@@ -165,7 +175,7 @@ export default function NavigationEdit({
                                                 label: language.name,
                                             }),
                                         )}
-                                        onValueChange={setReadersOf}
+                                        onValueChange={chooseReaders}
                                         aria-describedby="menu-readers-of-help"
                                     />
                                     <p
@@ -174,10 +184,10 @@ export default function NavigationEdit({
                                     >
                                         {readersOf === defaultLanguage
                                             ? __(
-                                                  'The places below show these menus to readers of the default language.',
+                                                  'This menu is in the default language. The places below show these menus to its readers.',
                                               )
                                             : __(
-                                                  'A place set to None shows readers of this language the default language’s menu.',
+                                                  'This menu is in this language. A place set to None shows its readers the default language’s menu.',
                                               )}
                                     </p>
                                 </div>
