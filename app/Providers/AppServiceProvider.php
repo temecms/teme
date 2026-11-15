@@ -100,8 +100,12 @@ class AppServiceProvider extends ServiceProvider
 
             $route = app(PublicRouteRegistry::class)->match($request->getMethod(), $request->getPathInfo(), $query, $accept);
 
+            // No declared match: this request falls through to feed/public,
+            // which used to sit behind site-search — keep counting ?s= the same way.
             if ($route === null) {
-                return Limit::none();
+                return $request->query->has('s')
+                    ? Limit::perMinute(30)->by((string) $request->ip())
+                    : Limit::none();
             }
 
             $default = $route->method === 'POST' ? 30 : 120;

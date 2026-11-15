@@ -8,24 +8,34 @@ use App\Domain\Cache\PageCache;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\PublicRoutes\RouteDispatcher;
 use App\Http\Controllers\Controller;
+use App\Http\Site\Feeds\FeedController;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Serves an unconditional declared public route looked up from the registry
- * by method and path.
+ * by method and path. The fixed `{code}/{path?}` shape also matches ordinary
+ * public addresses, so a miss falls through to the feed handler (which itself
+ * hands non-feeds to PublicController); `/.well-known/{name}` stays a 404.
  */
 final class DeclaredRouteController extends Controller
 {
-    public function __invoke(Request $request, PublicRouteRegistry $registry, RouteDispatcher $dispatcher): Response
+    public function __invoke(Request $request, PublicRouteRegistry $registry, RouteDispatcher $dispatcher, FeedController $feeds): Response
     {
         $accept = $this->acceptTypes($request);
         $query = $this->stringQuery($request);
         $route = $registry->match($request->getMethod(), $request->getPathInfo(), $query, $accept);
 
         if ($route === null || $route->isConditional()) {
-            throw new NotFoundHttpException;
+            if (str_starts_with($request->getPathInfo(), '/.well-known/')) {
+                throw new NotFoundHttpException;
+            }
+
+            // Feeds need the mark; HTML pages ignore it (StoreRules).
+            $request->attributes->set(PageCache::CACHEABLE, true);
+
+            return $feeds($request);
         }
 
         if ($route->isCacheable()) {

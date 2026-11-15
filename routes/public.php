@@ -60,7 +60,8 @@ Route::middleware(['public', 'throttle:declared-routes'])
 
 Route::middleware(['public', 'throttle:declared-routes'])
     ->match(['get', 'post'], '{code}/{path?}', DeclaredRouteController::class)
-    ->where('code', ThemeManifestValidator::CODE_PATTERN)
+    // Skip reserved first segments so /api/… and /admin/… still reach their own routes and fallbacks (D3).
+    ->where('code', '(?!admin(?:/|$)|api(?:/|$)|up(?:/|$)|build(?:/|$)|storage(?:/|$))'.ThemeManifestValidator::CODE_PATTERN)
     ->where('path', '.*')
     ->name('declared.plugin');
 

@@ -5,7 +5,10 @@ declare(strict_types=1);
 use App\Domain\Cache\PageKey;
 use App\Domain\Cache\PageTags;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+
+uses(RefreshDatabase::class);
 
 it('names each thing a page shows, and each list it draws, as the page cache tags them', function (): void {
     expect(PageTags::content('01jxharbour'))->toBe('content:01jxharbour')
