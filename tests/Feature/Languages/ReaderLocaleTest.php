@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
 use Tests\Fixtures\Contents\Visibilities;
+use Tests\Fixtures\Languages\Languages;
 use Tests\Fixtures\Languages\LanguageSite;
 
 uses(RefreshDatabase::class);
@@ -32,6 +33,7 @@ beforeEach(function (): void {
         'Shorten your comment to 5,000 characters or fewer. It has :count.' => 'Raccourcissez votre commentaire à 5 000 caractères au plus. Il en compte :count.',
         'That isn’t the password. Check it and try again.' => 'Ce n’est pas le mot de passe. Vérifiez-le et réessayez.',
         'Reply to :name' => 'Répondre à :name',
+        'Preview of an unpublished version' => 'Aperçu d’une version non publiée',
     ], JSON_UNESCAPED_UNICODE));
     // Read after core's own lang/, so the stand-in's words win over the shipped French.
     app('translator')->addPath($this->words);
@@ -73,4 +75,24 @@ it('draws the reply page for a comment on a French post in French', function ():
     $comment = cmRow(Content::query()->findOrFail($this->site->postFr));
 
     $this->get("/_teme/comment/{$comment}/reply")->assertOk()->assertSee('Répondre à', false);
+});
+
+it('draws a French item\'s preview in French', function (): void {
+    $link = histPreview(Content::query()->findOrFail($this->site->pageFr), $this->site->editor);
+
+    $html = (string) $this->get("/preview/{$link->token}")->assertOk()->getContent();
+
+    expect(headValue(dtDom($html), '/html/@lang'))->toBe('fr')
+        ->and($html)->toContain('Aperçu d’une version non publiée')->not->toContain('Preview of an unpublished version');
+});
+
+it('draws core\'s words in the site\'s language on a single-language Spanish site', function (): void {
+    File::put($this->words.'/es.json', (string) json_encode(['Enter your name.' => 'Escribe tu nombre.'], JSON_UNESCAPED_UNICODE));
+    app('translator')->setLoaded([]);
+    // One language only: the site's own, Spanish.
+    Languages::set([]);
+    siteSetLanguage($this->site->admin, 'es');
+    $post = cmItem($this->site->editor, 'Hola mundo');
+
+    expect((string) cmPost($post, ['name' => ''])->assertStatus(422)->getContent())->toContain('Escribe tu nombre.');
 });
