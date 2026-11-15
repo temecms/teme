@@ -1,9 +1,9 @@
-import type { Editor } from '@tiptap/core';
-import type { Node as PmNode, Schema } from '@tiptap/pm/model';
+import type { Editor, JSONContent } from '@tiptap/core';
+import type { Node as PmNode } from '@tiptap/pm/model';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import { __ } from '@/lib/i18n';
-import { ulid } from '@/lib/ulid';
 import type { CardManifestEntry } from '@/types';
+import { blockIdsIn, freshPastedIds, idCarryingCards } from './block-ids';
 
 /** A block at the top of the article: the node, where it starts, and its place among its siblings. */
 export type TopBlock = { node: PmNode; pos: number; index: number };
@@ -55,31 +55,19 @@ export function blockAt(editor: Editor, pos: number): TopBlock | null {
     return { node, pos: start, index };
 }
 
-/** Whether a node type carries a block id, the attribute the UniqueID rule writes (I-3362). */
-function carriesId(schema: Schema, type: string): boolean {
-    const attrs = schema.nodes[type]?.spec.attrs;
+/**
+ * A copy of the node as a new block: every ID inside it renewed by the paste
+ * rule, since each is already in the article (I-3362).
+ */
+function freshCopy(editor: Editor, node: PmNode): PmNode {
+    const cards = idCarryingCards(editor.storage);
+    const [copy] = freshPastedIds(
+        [node.toJSON() as JSONContent],
+        blockIdsIn(editor.state.doc.toJSON() as JSONContent, cards),
+        cards,
+    );
 
-    return attrs !== undefined && 'id' in attrs;
-}
-
-/** A copy of the node with every id inside it new, so the copy is a new block (I-3362). */
-function freshCopy(node: PmNode): PmNode {
-    const schema = node.type.schema;
-    const renew = (json: Record<string, unknown>): Record<string, unknown> => {
-        const type = json.type as string;
-        const attrs = json.attrs as Record<string, unknown> | undefined;
-        const content = json.content as Record<string, unknown>[] | undefined;
-        const withId =
-            attrs !== undefined && carriesId(schema, type)
-                ? { ...json, attrs: { ...attrs, id: ulid() } }
-                : json;
-
-        return content === undefined
-            ? withId
-            : { ...withId, content: content.map(renew) };
-    };
-
-    return schema.nodeFromJSON(renew(node.toJSON() as Record<string, unknown>));
+    return editor.schema.nodeFromJSON(copy);
 }
 
 /** Puts the caret at the start of the block at pos, or selects it when it holds no text. */
@@ -146,7 +134,9 @@ export function moveBlock(
 export function duplicateBlock(editor: Editor, block: TopBlock): boolean {
     const after = block.pos + block.node.nodeSize;
 
-    editor.view.dispatch(editor.state.tr.insert(after, freshCopy(block.node)));
+    editor.view.dispatch(
+        editor.state.tr.insert(after, freshCopy(editor, block.node)),
+    );
     caretInto(editor, after);
     editor.view.focus();
 
