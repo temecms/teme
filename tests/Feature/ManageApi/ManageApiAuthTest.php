@@ -143,6 +143,19 @@ it('never satisfies elevation: an elevated Operation reached as the key’s pers
         ->toThrow(ElevationRequiredException::class);
 });
 
+it('refuses a suspended person’s key as it refuses a wrong one, and notes no use', function (): void {
+    ManageApiFixture::on();
+    $secret = ManageApiFixture::key($this->person);
+    DB::table('users')->where('id', $this->person->id)->update(['suspended_at' => now()]);
+
+    $this->getJson('/api/manage/v1/me', ManageApiFixture::headers($secret))
+        ->assertUnauthorized()
+        ->assertJsonPath('code', 'unauthorized')
+        ->assertHeader('WWW-Authenticate');
+
+    expect(DB::table('api_keys')->value('last_used_at'))->toBeNull();
+});
+
 it('sets no cookie and never stores an answer in the page cache', function (): void {
     ManageApiFixture::on();
     $secret = ManageApiFixture::key($this->person);
