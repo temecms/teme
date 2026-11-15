@@ -18,7 +18,6 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Hooks\Payloads;
 use App\Domain\Taxonomy\Models\Term;
-use App\Domain\Users\Actors;
 use DateTimeImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -159,13 +158,11 @@ final readonly class PluginContentWriter implements ContentWriter
     }
 
     /**
-     * Refuses when no person was named or the ID is unknown.
+     * Refuses when the person is not the current actor, or none was named.
      */
     private function person(string $actingPersonId): void
     {
-        if (trim($actingPersonId) === '' || app(Actors::class)->find($actingPersonId) === null) {
-            throw new WriteRefused('A plugin writes on behalf of a person, and none was named.');
-        }
+        ActingPerson::require($actingPersonId);
     }
 
     /**

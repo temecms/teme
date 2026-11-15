@@ -46,6 +46,7 @@ afterEach(function (): void {
 
 it('stores a file from an agreed host, credited to the acting person', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     $body = ($this->jpeg)();
     Http::fake(['https://cdn.example.com/harbour.jpg' => Http::response($body, 200, ['Content-Type' => 'image/jpeg'])]);
 
@@ -61,6 +62,7 @@ it('stores a file from an agreed host, credited to the acting person', function 
 
 it('refuses a host that was not agreed to, and makes no request', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     Http::fake();
     $before = Media::query()->count();
 
@@ -72,6 +74,7 @@ it('refuses a host that was not agreed to, and makes no request', function (): v
 
 it('refuses a private address and writes nothing', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     Http::fake();
     $before = Media::query()->count();
 
@@ -83,6 +86,7 @@ it('refuses a private address and writes nothing', function (): void {
 
 it('refuses a file over the upload limit and writes nothing', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     dlMediaLimits(['max_upload_mb' => 1]);
     Http::fake(['https://cdn.example.com/big.jpg' => Http::response(str_repeat('a', PluginHttp::MOST_BYTES + 1), 200)]);
     $before = Media::query()->count();
@@ -94,6 +98,7 @@ it('refuses a file over the upload limit and writes nothing', function (): void 
 
 it('refuses a type UploadMedia refuses and writes nothing', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     $damaged = mediaDamagedGif();
     $this->temps[] = $damaged;
     Http::fake(['https://cdn.example.com/bad.gif' => Http::response((string) file_get_contents($damaged), 200)]);
@@ -105,6 +110,8 @@ it('refuses a type UploadMedia refuses and writes nothing', function (): void {
 });
 
 it('refuses when no person is named and writes nothing', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     Http::fake(['https://cdn.example.com/x.jpg' => Http::response(($this->jpeg)(), 200)]);
     $before = Media::query()->count();
 
@@ -114,8 +121,22 @@ it('refuses when no person is named and writes nothing', function (): void {
     Http::assertNothingSent();
 });
 
+it('refuses when a contributor’s request asks to act for an administrator, and writes nothing', function (): void {
+    $contributor = User::factory()->create()->assignRole('contributor');
+    $admin = User::factory()->create()->assignRole('administrator');
+    $this->actingAs($contributor);
+    Http::fake(['https://cdn.example.com/x.jpg' => Http::response(($this->jpeg)(), 200)]);
+    $before = Media::query()->count();
+
+    expect(fn () => ($this->door)()->fromAddress('https://cdn.example.com/x.jpg', (string) $admin->id))
+        ->toThrow(WriteRefused::class)
+        ->and(Media::query()->count())->toBe($before);
+    Http::assertNothingSent();
+});
+
 it('removes the temporary file after success and after refusal', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     $dir = sys_get_temp_dir();
     Http::fake(['https://cdn.example.com/ok.jpg' => Http::response(($this->jpeg)(), 200, ['Content-Type' => 'image/jpeg'])]);
 

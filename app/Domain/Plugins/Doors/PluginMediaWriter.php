@@ -9,7 +9,6 @@ use App\Domain\Media\Operations\Input\UpdateMediaDetailsInput;
 use App\Domain\Media\Operations\Input\UploadMediaInput;
 use App\Domain\Media\Operations\UpdateMediaDetails;
 use App\Domain\Media\Operations\UploadMedia;
-use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\WriteRefused;
@@ -38,9 +37,7 @@ final readonly class PluginMediaWriter implements MediaWriter
 
     public function fromAddress(string $url, string $actingPersonId, ?string $alt = null, ?string $title = null): MediaRef
     {
-        if (trim($actingPersonId) === '' || app(Actors::class)->find($actingPersonId) === null) {
-            throw new WriteRefused('A plugin writes on behalf of a person, and none was named.');
-        }
+        ActingPerson::require($actingPersonId);
 
         $http = new PluginHttp($this->hosts, $this->resolver);
         $temp = tempnam(sys_get_temp_dir(), 'teme-plugin-media-');

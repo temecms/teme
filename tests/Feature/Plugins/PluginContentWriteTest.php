@@ -77,6 +77,7 @@ it('starts a granted writer plugin with ContentWriter', function (): void {
 
 it('creates a draft with title, body, fields, terms and featured image, authored by the person, via the plugin', function (): void {
     $editor = User::factory()->create(['name' => 'Ada'])->assignRole('editor');
+    $this->actingAs($editor);
     $media = mediaUpload($editor, mediaJpeg(), 'harbour.jpg', allowDuplicate: true);
     $category = taxonomyTerm('category', 'News');
     $writer = ($this->door)();
@@ -115,6 +116,7 @@ it('creates a draft with title, body, fields, terms and featured image, authored
 
 it('changes an item by saving a new revision through the plugin', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     $writer = ($this->door)();
     $item = $writer->create(new NewItem('post', 'First', ['type' => 'doc', 'content' => []]), (string) $editor->id);
     $before = ContentRevision::query()->count();
@@ -133,6 +135,7 @@ it('publishes and schedules for an editor, and refuses both for a contributor', 
     $editor = User::factory()->create()->assignRole('editor');
     $contributor = User::factory()->create()->assignRole('contributor');
     $writer = ($this->door)();
+    $this->actingAs($editor);
 
     $toPublish = $writer->create(new NewItem('post', 'Ready', ['type' => 'doc', 'content' => []]), (string) $editor->id);
     $published = $writer->publish($toPublish, (string) $editor->id);
@@ -144,6 +147,7 @@ it('publishes and schedules for an editor, and refuses both for a contributor', 
 
     expect($scheduled->status)->toBe('scheduled');
 
+    $this->actingAs($contributor);
     $theirs = $writer->create(new NewItem('post', 'Mine', ['type' => 'doc', 'content' => []]), (string) $contributor->id);
     $before = ($this->counts)();
 
@@ -153,8 +157,21 @@ it('publishes and schedules for an editor, and refuses both for a contributor', 
         ->and(Content::query()->findOrFail($theirs->id)->status)->toBe('draft');
 });
 
+it('refuses when a contributor’s request asks to act for an administrator, and writes nothing', function (): void {
+    $contributor = User::factory()->create()->assignRole('contributor');
+    $admin = User::factory()->create()->assignRole('administrator');
+    $writer = ($this->door)();
+    $before = ($this->counts)();
+    $this->actingAs($contributor);
+
+    expect(fn () => $writer->create(new NewItem('post', 'Hijack', ['type' => 'doc', 'content' => []]), (string) $admin->id))
+        ->toThrow(WriteRefused::class)
+        ->and(($this->counts)())->toBe($before);
+});
+
 it('writes nothing on every refusal', function (string $case): void {
     $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
     $writer = ($this->door)();
     $ok = $writer->create(new NewItem('post', 'Anchor', ['type' => 'doc', 'content' => []]), (string) $editor->id);
     $before = ($this->counts)();
@@ -166,9 +183,11 @@ it('writes nothing on every refusal', function (string $case): void {
 
     $run = match ($case) {
         'no person' => fn () => $writer->create(new NewItem('post', 'X', ['type' => 'doc', 'content' => []]), ''),
+        'abc' => fn () => $writer->create(new NewItem('post', 'X', ['type' => 'doc', 'content' => []]), 'abc'),
         'unknown person' => fn () => $writer->create(new NewItem('post', 'X', ['type' => 'doc', 'content' => []]), '999999'),
         'no permission' => function () use ($writer): void {
             $stranger = User::factory()->create();
+            $this->actingAs($stranger);
             $writer->create(new NewItem('post', 'X', ['type' => 'doc', 'content' => []]), (string) $stranger->id);
         },
         'unknown type' => fn () => $writer->create(new NewItem('nope', 'X', ['type' => 'doc', 'content' => []]), (string) $editor->id),
@@ -176,6 +195,7 @@ it('writes nothing on every refusal', function (string $case): void {
         'not tip tap' => fn () => $writer->create(new NewItem('post', 'X', ['html' => '<p>no</p>']), (string) $editor->id),
         'change without permission' => function () use ($writer, $ok): void {
             $stranger = User::factory()->create();
+            $this->actingAs($stranger);
             $writer->change($ok, new ItemChanges(title: 'Hijack'), (string) $stranger->id);
         },
     };
@@ -186,6 +206,7 @@ it('writes nothing on every refusal', function (string $case): void {
         ->and(Content::query()->findOrFail($ok->id)->title)->toBe('Anchor');
 })->with([
     'no person',
+    'abc',
     'unknown person',
     'no permission',
     'unknown type',

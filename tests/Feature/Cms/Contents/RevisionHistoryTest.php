@@ -35,6 +35,7 @@ it('lists revisions newest first, with who made each one', function (): void {
 it('names through Writer for a revision written by a plugin', function (): void {
     PluginFixtures::use('writer');
     $editor = User::factory()->create(['name' => 'Ada'])->assignRole('editor');
+    $this->actingAs($editor);
     $writer = app(PluginDoors::class)->for('tests/writer', 'writer', ['content.write'], [])[ContentWriter::class];
     $item = $writer->create(new NewItem('post', 'Harbour notes', ['type' => 'doc', 'content' => []]), (string) $editor->id);
 
