@@ -539,13 +539,14 @@ it('removes recorded tables when the plugin’s code is gone', function (): void
     $copy = PluginFixtures::copy('tables');
     PluginFixtures::use($copy);
     ($this->enable)();
-    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
 
+    // Code gone while the row is still enabled: RemovePluginData must still work.
     (new Filesystem)->deleteDirectory($copy);
     PluginFixtures::use();
     app(PluginRegistry::class)->flush();
 
-    expect(app(PluginRegistry::class)->find('tests/tables'))->toBeNull();
+    expect(app(PluginRegistry::class)->find('tests/tables'))->toBeNull()
+        ->and(PluginRecord::query()->sole()->state)->toBe('enabled');
 
     $dropped = app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
 

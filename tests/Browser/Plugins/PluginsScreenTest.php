@@ -3,12 +3,20 @@
 declare(strict_types=1);
 
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Operations\DisablePlugin;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
@@ -293,3 +301,155 @@ it('stacks each row at 375 and 320 pixels with nothing scrolling sideways, every
             JS))->toBeTrue()
         ->and(cmSmallTargets($page)['small'])->toBe([]);
 })->with([375, 320]);
+
+it('runs database changes through the password screen for a plugin with waiting migrations', function (): void {
+    $third = <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tables_notes', function (Blueprint $table): void {
+            $table->id();
+        });
+    }
+};
+PHP;
+
+    $copy = PluginFixtures::copy('tables', [
+        'version' => '1.1.0',
+        'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']],
+    ]);
+    PluginFixtures::use($copy);
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/tables',
+        '1.1.0',
+        ['content.read'],
+        [],
+        ['ContentPublished'],
+        null,
+    ));
+    app()->forgetInstance(Elevation::class);
+
+    file_put_contents($copy.'/database/migrations/2026_01_03_000000_create_tables_notes.php', $third);
+    $manifest = json_decode((string) file_get_contents($copy.'/teme-plugin.json'), true);
+    $manifest['version'] = '1.1.0';
+    $manifest['owns'] = ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']];
+    file_put_contents($copy.'/teme-plugin.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+    app(PluginRegistry::class)->flush();
+
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Version 1.1.0 has database changes to run.');
+    $page->assertScript("document.querySelector('[data-test=\"plugin-tables\"] [data-test=\"plugin-migrate\"]')?.textContent?.includes('Run database changes') === true");
+
+    $page->click('[data-test="plugin-tables"] [data-test="plugin-migrate"]');
+    cmWaitUntil($page, "location.pathname === '/admin/user/confirm-password'");
+    $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
+    ($this->seen)($page, 'Tables’s database changes ran.');
+
+    expect(Schema::hasTable('tables_notes'))->toBeTrue();
+    $page->assertScript("document.querySelector('[data-test=\"plugin-tables\"] [data-test=\"plugin-state\"]')?.textContent === 'Enabled'");
+});
+
+it('offers Remove its data for a disabled plugin with tables, and removes them after confirmation', function (): void {
+    PluginFixtures::use('tables');
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/tables',
+        '1.0.0',
+        ['content.read'],
+        [],
+        ['ContentPublished'],
+        null,
+    ));
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+    app()->forgetInstance(Elevation::class);
+
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Tables');
+
+    $page->click('[data-test="plugin-tables"] [data-test="plugin-menu"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"plugin-remove-data\"]') !== null");
+    $page->click('[data-test="plugin-remove-data"]');
+    cmWaitUntil($page, $this->settled);
+
+    $page->assertScript("document.querySelector('[data-test=\"remove-data-dialog\"] h2')?.textContent === 'Remove Tables’s data?'")
+        ->assertScript("document.querySelector('[data-test=\"remove-data-tables\"]').innerText.includes('tables_links')")
+        ->assertScript("document.querySelector('[data-test=\"remove-data-tables\"]').innerText.includes('tables_clicks')");
+
+    $page->click('[data-test="remove-data-confirm"]');
+    cmWaitUntil($page, "location.pathname === '/admin/user/confirm-password'");
+    $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
+    ($this->seen)($page, 'Tables’s data was removed');
+
+    expect(Schema::hasTable('tables_links'))->toBeFalse()
+        ->and(Schema::hasTable('tables_clicks'))->toBeFalse();
+});
+
+it('offers Remove its data for a code-gone plugin with tables', function (): void {
+    $copy = PluginFixtures::copy('tables');
+    PluginFixtures::use($copy);
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/tables',
+        '1.0.0',
+        ['content.read'],
+        [],
+        ['ContentPublished'],
+        null,
+    ));
+    app()->forgetInstance(Elevation::class);
+
+    (new Filesystem)->deleteDirectory($copy);
+    PluginFixtures::use();
+    app(PluginRegistry::class)->flush();
+
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Its code is no longer installed');
+
+    $page->click('[data-test="plugin-tables"] [data-test="plugin-menu"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"plugin-remove-data\"]') !== null");
+    $page->click('[data-test="plugin-remove-data"]');
+    cmWaitUntil($page, $this->settled);
+    $page->click('[data-test="remove-data-confirm"]');
+    cmWaitUntil($page, "location.pathname === '/admin/user/confirm-password'");
+    $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
+    ($this->seen)($page, 'data was removed');
+
+    expect(Schema::hasTable('tables_links'))->toBeFalse();
+});
+
+it('does not offer Remove its data while the plugin is enabled', function (): void {
+    PluginFixtures::use('tables');
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/tables',
+        '1.0.0',
+        ['content.read'],
+        [],
+        ['ContentPublished'],
+        null,
+    ));
+    app()->forgetInstance(Elevation::class);
+
+    $this->actingAs($this->admin)->get('/admin/plugins')->assertOk();
+
+    $page = cmSignIn($this->admin)->navigate('/admin/plugins');
+    ($this->seen)($page, 'Tables');
+
+    $page->click('[data-test="plugin-tables"] [data-test="plugin-menu"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"plugin-details\"]') !== null");
+    $page->assertScript("document.querySelector('[data-test=\"plugin-remove-data\"]') === null");
+});

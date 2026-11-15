@@ -8,6 +8,7 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\PluginRecords;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
@@ -20,15 +21,16 @@ use Teme\Contracts\Operations\RequiresElevation;
 /**
  * Drops a plugin's recorded tables (I-3442): a person who holds
  * plugins.manage, after their password, or the operator. The plugin must
- * not be enabled. Works from the row alone, so a plugin whose code is gone
- * can still have its tables removed. Keeps the row and its consent.
- * Returns the tables dropped.
+ * be disabled, or its code gone. Works from the row alone, so a plugin
+ * whose code is gone can still have its tables removed. Keeps the row and
+ * its consent. Returns the tables dropped.
  */
 final class RemovePluginData extends BaseOperation implements RequiresElevation
 {
     use AuthorizesPluginChanges;
 
     public function __construct(
+        private readonly PluginRegistry $registry,
         private readonly PluginRecords $records,
         private readonly PluginMigrations $migrations,
         private readonly SecurityLog $log,
@@ -48,7 +50,7 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
         }
 
-        if ($record->state === PluginRecord::ENABLED) {
+        if ($record->state === PluginRecord::ENABLED && ! $this->codeGone($input->name)) {
             throw ValidationException::withMessages(['plugin' => ['Disable it before you remove its data.']]);
         }
 
@@ -69,7 +71,7 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
         }
 
-        if ($record->state === PluginRecord::ENABLED) {
+        if ($record->state === PluginRecord::ENABLED && ! $this->codeGone($input->name)) {
             throw ValidationException::withMessages(['plugin' => ['Disable it before you remove its data.']]);
         }
 
@@ -93,5 +95,16 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
         DB::afterCommit(fn () => $this->records->changed());
 
         return $tables;
+    }
+
+    /**
+     * Whether the plugin's code is no longer installed, so its tables may
+     * be removed even while the row still says enabled.
+     */
+    private function codeGone(string $name): bool
+    {
+        $found = $this->registry->find($name);
+
+        return $found === null || $found->manifest === null;
     }
 }

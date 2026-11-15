@@ -20,7 +20,10 @@ export type PluginEnablePost = {
     hooks: string[];
 };
 
-/** One plugin as Site › Plugins draws it (I-3353). */
+/** One of a plugin’s recorded tables, with its approximate row count (-1 unknown). */
+export type PluginTableRow = { name: string; rows: number };
+
+/** One plugin as Site › Plugins draws it (I-3353, I-3442). */
 export type PluginRowPage = {
     name: string;
     code: string;
@@ -34,7 +37,7 @@ export type PluginRowPage = {
     reason: string;
     enabled: boolean;
     needsAttention: boolean;
-    action: 'enable' | 'review' | 'disable' | null;
+    action: 'enable' | 'review' | 'migrate' | 'disable' | null;
     hasSettings: boolean;
     adds: string[];
     agreedVersion: string | null;
@@ -44,6 +47,7 @@ export type PluginRowPage = {
     shown: PluginEnablePost;
     agreedBefore: boolean;
     asksMore: boolean;
+    tables: PluginTableRow[];
 };
 
 export type PluginsPage = {
