@@ -34,6 +34,7 @@ final class SettingsPlacement
         'addresses.front_shows' => 'reading',
         'addresses.front_page_id' => 'reading',
         'addresses.posts_page_id' => 'reading',
+        'modules.fediverse' => 'fediverse',
     ];
 
     /**

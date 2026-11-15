@@ -22,6 +22,8 @@ final class Modules
 {
     public const string COMMENTS = 'comments';
 
+    public const string FEDIVERSE = 'fediverse';
+
     public const string ON = 'on';
 
     public const string OFF = 'off';
@@ -36,6 +38,8 @@ final class Modules
             ability: 'settings.modules.manage',
             settings: [
                 Setting::select(self::COMMENTS, 'Comments', 'Off, the site takes no comments, and visitors see no comments, form or counts. Comments leaves the menu and the editor. Stored comments and these settings are kept.', '0.1.0', [self::ON => 'On', self::OFF => 'Off']),
+                // Off first, so off by default; edited on Settings › Fediverse (I-058).
+                Setting::select(self::FEDIVERSE, 'Fediverse', 'On, people on Mastodon and other fediverse servers can follow the site. Off, it is paused: nothing is sent or received, and its followers and keys are kept.', '0.9.0', [self::OFF => 'Off', self::ON => 'On']),
             ],
             since: '0.1.0',
             screen: 'settings.discussion',
