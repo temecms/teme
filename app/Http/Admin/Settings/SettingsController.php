@@ -6,13 +6,13 @@ namespace App\Http\Admin\Settings;
 
 use App\Domain\Addresses\Operations\Input\ChangeAddressesInput;
 use App\Domain\Design\Operations\Input\ChangeBrandColourInput;
+use App\Domain\Languages\Operations\Input\SaveSettingsWordsInput;
+use App\Domain\Languages\Operations\SaveSettingsWords;
 use App\Domain\Languages\Queries\SettingsWords;
 use App\Domain\Settings\Exceptions\StaleSettingsException;
 use App\Domain\Settings\Operations\Input\SaveSettingsPageInput;
-use App\Domain\Settings\Operations\Input\TranslateSettingsInput;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\Operations\SaveSettingsPage;
-use App\Domain\Settings\Operations\TranslateSettings;
 use App\Domain\Settings\Queries\SettingsForm;
 use App\Domain\Settings\Queries\SettingsPageSections;
 use App\Domain\Settings\Queries\SettingsPanels;
@@ -119,24 +119,22 @@ final class SettingsController extends Controller
     }
 
     /**
-     * Saves a group's words in other languages, one language at a time
-     * through TranslateSettings, each on the version the last left; an empty
-     * word falls back to the default language's.
+     * Saves a group's words in other languages through SaveSettingsWords,
+     * every language or none; an empty word falls back to the default
+     * language's.
      */
-    public function words(Request $request, string $group, TranslateSettings $translate): RedirectResponse
+    public function words(Request $request, string $group, SaveSettingsWords $save): RedirectResponse
     {
-        $version = $request->integer('expected_version');
-        $actorId = (string) $request->user()?->getAuthIdentifier();
+        $words = [];
+
+        foreach ((array) $request->input('words', []) as $language => $values) {
+            if (is_string($language) && is_array($values)) {
+                $words[$language] = array_map(fn (mixed $value): string => is_scalar($value) ? trim((string) $value) : '', $values);
+            }
+        }
 
         try {
-            foreach ((array) $request->input('words', []) as $language => $values) {
-                if (! is_string($language) || ! is_array($values)) {
-                    continue;
-                }
-
-                $words = array_map(fn (mixed $value): string => is_scalar($value) ? trim((string) $value) : '', $values);
-                $version = $translate->execute(new TranslateSettingsInput($group, $language, $words, [], $version, $actorId))['version'];
-            }
+            $save->execute(new SaveSettingsWordsInput($group, $words, $request->integer('expected_version'), (string) $request->user()?->getAuthIdentifier()));
         } catch (StaleSettingsException) {
             throw ValidationException::withMessages([
                 'expected_version' => __('These settings were changed by someone else while you had them open. Reload the page and try again.'),

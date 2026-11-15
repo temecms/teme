@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Domain\Languages\Operations\Input\SaveSettingsWordsInput;
+use App\Domain\Languages\Operations\SaveSettingsWords;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\Operations\UpdateSettings;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -90,4 +93,26 @@ it('gives no words on a site with one language', function (): void {
 
     $this->actingAs($this->admin)->get('/admin/settings/general')
         ->assertInertia(fn (Assert $page) => $page->where('words', null));
+});
+
+it('keeps no language\'s words when another\'s are refused', function (): void {
+    $before = swWritten();
+
+    $this->actingAs($this->admin)
+        ->put('/admin/settings/general/words', [
+            'words' => ['ig' => ['tagline' => 'Ihe gbasara osisi'], 'fr' => ['timezone' => 'Europe/Paris']],
+            'expected_version' => swVersion(),
+        ])
+        ->assertSessionHasErrors('values.timezone');
+
+    expect(swWritten())->toEqual($before);
+});
+
+it('refuses SaveSettingsWords to someone without the group\'s ability, and writes nothing', function (): void {
+    $before = swWritten();
+
+    expect(fn () => app(SaveSettingsWords::class)->execute(new SaveSettingsWordsInput('general', ['ig' => ['tagline' => 'Osisi']], swVersion(), (string) $this->editor->id)))
+        ->toThrow(AuthorizationException::class);
+
+    expect(swWritten())->toEqual($before);
 });
