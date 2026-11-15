@@ -52,7 +52,7 @@ Not owned (other parts): the handbook, the plugin import socket, the management 
 
 ## Tasks (tests first; each test seen red)
 
-- [ ] **T0.** Read the files above; confirm `PageKey::QUERY` and the public group as described, with lines. Record differences as B-?? (draft).
+- [x] **T0.** Read the files above; confirm `PageKey::QUERY` and the public group as described, with lines. Record differences as B-?? (draft).
 - [ ] **T1. Manifest and capability.** Tests (`ManifestTest`, `PublicRouteCollisionsTest`): a valid `routes` passes; each D3 refusal by its sentence; a POST without `verify` refused; `verify.secret` naming no declared secret refused; `routes.public` accepted as a capability.
 - [ ] **T2. Registry and dispatch.** Tests (`PublicRoutesTest`, fixture `inbound`): an enabled granted plugin's `GET /inbound/ping` answers its body; not granted, or disabled, answers 404; `/?author=0` with `Accept: application/activity+json` reaches the fixture's actor handler while `/` and `/?author=0` in a browser still get the home page; a core-owned entry registered in a test wins over an overlapping plugin entry; in safe mode no entry answers.
 - [ ] **T3. Verifiers.** Tests (`PublicRouteVerifiersTest`): `secret` from header, field and query (right 200, wrong 401, missing 401, handler never called on 401); `hmac` right/wrong; `custom` calls the plugin's class; 413 over `maxBody` before verification.
@@ -64,4 +64,11 @@ Not owned (other parts): the handbook, the plugin import socket, the management 
 
 ## Records
 
-(The builder fills this.)
+### T0
+
+- `PageKey::QUERY` is `['s']` only (`app/Domain/Cache/PageKey.php` line 21), as the plan describes.
+- The `public` middleware group has no session, cookie or CSRF (`bootstrap/app.php` lines 78–84: `HoldUntilSetUp`, `DesignPreviewLink`, `SubstituteBindings` only).
+- **B-01 (draft):** `StoreRules::MARKED_TYPES` already stores `application/json` when a route is marked cacheable, but not `application/activity+json`. A cacheable ActivityPub-style answer needs that type added (or the fixture to answer `application/json`). Built: add `application/activity+json` to `MARKED_TYPES`.
+- **B-02 (draft):** Registering one Laravel route per manifest entry would freeze the router until the next boot, so an enable in a test (and `route:cache`) would miss new paths. Built: fixed shapes `/{code}/{path?}` and `/.well-known/{name}` that look up `PublicRouteRegistry`, plus `MatchDeclaredRoutes` on home and fallback for conditional entries.
+
+Draft numbers: B-01 upward (plan gave no block).
