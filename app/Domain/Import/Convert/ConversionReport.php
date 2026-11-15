@@ -120,6 +120,12 @@ final class ConversionReport
             'link.removed' => $one
                 ? 'Kept the words of 1 link whose address Teme can’t keep, without the link.'
                 : "Kept the words of {$count} links whose addresses Teme can’t keep, without the links.",
+            'links.other-host' => $one
+                ? "Converted 1 link from another address of this site ({$name})."
+                : "Converted {$count} links from another address of this site ({$name}).",
+            'images.other-host' => $one
+                ? "Converted 1 image from another address of this site ({$name})."
+                : "Converted {$count} images from another address of this site ({$name}).",
             'media.missing' => $one
                 ? "Left out 1 sound or video that isn’t in Teme’s library{$named}."
                 : "Left out {$count} sounds or videos that aren’t in Teme’s library{$named}.",
@@ -160,7 +166,7 @@ final class ConversionReport
         };
 
         $context = match ($code) {
-            'block.dynamic', 'block.contents-list', 'block.flattened', 'block.imported', 'imported.too-large', 'block.background', 'shortcode.unwrapped', 'shortcode.removed', 'shortcode.imported', 'shortcode.inline', 'shortcode.unrendered' => ['name' => $name, 'count' => $count],
+            'block.dynamic', 'block.contents-list', 'block.flattened', 'block.imported', 'imported.too-large', 'block.background', 'shortcode.unwrapped', 'shortcode.removed', 'shortcode.imported', 'shortcode.inline', 'shortcode.unrendered', 'links.other-host', 'images.other-host' => ['name' => $name, 'count' => $count],
             'html.removed', 'imported.removed' => ['element' => $name, 'count' => $count],
             'image.missing', 'file.missing', 'media.missing' => ['count' => $count, 'files' => array_slice($items, 0, self::NAMED)],
             'image.outside', 'media.outside' => ['count' => $count, 'hosts' => array_slice($items, 0, self::NAMED)],

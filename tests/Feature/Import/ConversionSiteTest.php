@@ -2,10 +2,68 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cards\DocumentSchema;
+use App\Domain\Import\Convert\BlockConverter;
 use App\Domain\Import\Convert\ConversionSite;
+use App\Domain\Import\Convert\KnownTargets;
+use App\Domain\Import\Convert\Media\KnownMedia;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Fixtures\Convert\WordPressContent;
 
-it('does not treat a staging host as the site’s own page today', function (): void {
-    $site = new ConversionSite('https://example.com');
+uses(RefreshDatabase::class);
 
-    expect($site->pageOf('https://stage.example.com/a-post/'))->toBeNull();
+it('treats a listed staging host as the site’s own page', function (): void {
+    $site = new ConversionSite('https://example.com', otherHosts: ['stage.example.com']);
+
+    expect($site->pageOf('https://stage.example.com/a-post/'))->toBe([
+        'path' => '/a-post/',
+        'query' => '',
+        'place' => '',
+    ])->and($site->hostKind('stage.example.com'))->toBe('other')
+        ->and($site->hostKind('example.com'))->toBe('home')
+        ->and($site->hostKind('other.org'))->toBeNull();
+});
+
+it('converts links and images on another address of this site', function (): void {
+    $article = '01k5z9p2qh7n3x4c8v6b0m1a01';
+    $mediaId = '01K5Z9P2QH7N3X4C8V6B0M1F01';
+    $site = new ConversionSite('https://old.example', otherHosts: ['stage.example.com']);
+    $targets = new KnownTargets(pages: [
+        '/a-post' => ['kind' => 'content', 'id' => $article],
+    ]);
+    $media = new KnownMedia(files: ['2026/01/a.jpg' => $mediaId]);
+
+    $conversion = app(BlockConverter::class)->convert([
+        WordPressContent::classic(
+            '<p><a href="https://stage.example.com/a-post/">Post</a></p>'
+            .'<p><a href="http://www.stage.example.com/a-post/">Http</a></p>'
+            .'<p><a href="/a-post/">Relative</a></p>'
+            .'<p><a href="https://example.org/elsewhere/">Outside</a></p>'
+            .'<p><img src="https://stage.example.com/wp-content/uploads/2026/01/a.jpg" alt="A"></p>'
+        ),
+    ], $site, $media, $targets);
+
+    $hrefs = array_map(
+        fn (array $paragraph): ?string => $paragraph['content'][0]['marks'][0]['attrs']['href']
+            ?? ($paragraph['type'] === 'image' ? $paragraph['attrs']['mediaId'] ?? null : null),
+        $conversion->document['content'],
+    );
+
+    expect($hrefs)->toBe([
+        DocumentSchema::linkTo('content', $article),
+        DocumentSchema::linkTo('content', $article),
+        DocumentSchema::linkTo('content', $article),
+        'https://example.org/elsewhere/',
+        $mediaId,
+    ])->and(array_column(WordPressContent::said($conversion), 0))->toContain('links.other-host', 'images.other-host');
+});
+
+it('leaves a not-yet-imported target on another host for the second pass', function (): void {
+    $site = new ConversionSite('https://old.example', otherHosts: ['stage.example.com']);
+    $conversion = app(BlockConverter::class)->convert([
+        WordPressContent::classic('<p><a href="https://stage.example.com/later-story/">Later</a></p>'),
+    ], $site, new KnownMedia, new KnownTargets);
+
+    expect($conversion->pendingLinks)->toBe(['/later-story/'])
+        ->and($conversion->document['content'][0]['content'][0]['marks'][0]['attrs']['href'])->toBe('/later-story/');
 });
