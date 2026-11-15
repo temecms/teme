@@ -33,6 +33,9 @@ use App\Domain\Import\Phases\Terms\TermParentsStep;
 use App\Domain\Import\Phases\Terms\TermsPhase;
 use App\Domain\Import\Phases\Users\AuthorsWaitingStep;
 use App\Domain\Import\Phases\Users\UsersPhase;
+use App\Domain\Import\PluginData\PluginDataGoneStep;
+use App\Domain\Import\PluginData\PluginDataPhase;
+use App\Domain\Import\PluginData\PluginOptionsStep;
 use App\Domain\Import\Tracking\ImportJobKind;
 use App\Domain\Import\Tracking\PageParentsJobKind;
 use App\Domain\Jobs\JobKinds;
@@ -66,6 +69,8 @@ final class ImportServiceProvider extends ServiceProvider
         $this->app->tag([ContentVisibilityStep::class], ImportPhases::TAG);
 
         $this->app->tag([ContentWaitingStep::class, ContentPhase::class, PageParentsStep::class], ImportPhases::TAG);
+
+        $this->app->tag([PluginOptionsStep::class, PluginDataPhase::class, PluginDataGoneStep::class], ImportPhases::TAG);
 
         $this->app->tag([SecondPassStep::class], ImportPhases::TAG);
 
