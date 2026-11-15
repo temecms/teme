@@ -34,6 +34,20 @@
             "throttle": 30
         },
         {
+            "id": "callback-field",
+            "method": "POST",
+            "path": "/{code}/callback-field",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Callback",
+            "verify": { "kind": "secret", "from": "field:token", "secret": "connection_token" }
+        },
+        {
+            "id": "callback-query",
+            "method": "POST",
+            "path": "/{code}/callback-query",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Callback",
+            "verify": { "kind": "secret", "from": "query:token", "secret": "connection_token" }
+        },
+        {
             "id": "hmac",
             "method": "POST",
             "path": "/{code}/hmac",
@@ -46,6 +60,14 @@
             "path": "/{code}/custom",
             "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Callback",
             "verify": { "kind": "custom", "class": "Tests\\Fixtures\\Plugins\\Inbound\\CustomCheck", "secret": "connection_token" }
+        },
+        {
+            "id": "large",
+            "method": "POST",
+            "path": "/{code}/large",
+            "handler": "Tests\\Fixtures\\Plugins\\Inbound\\Callback",
+            "verify": { "kind": "secret", "from": "header:X-Plugin-Token", "secret": "connection_token" },
+            "maxBody": 64
         },
         {
             "id": "throwing",

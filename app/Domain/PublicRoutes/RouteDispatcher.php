@@ -43,6 +43,12 @@ final class RouteDispatcher
 
         $rawBody = $request->getContent();
 
+        // A form POST in tests (and some stacks) fills the request bag without
+        // leaving a body string; rebuild one so field: verifiers can read it.
+        if ($rawBody === '' && $request->isMethod('POST') && $request->request->count() > 0) {
+            $rawBody = http_build_query($request->request->all());
+        }
+
         if ($request->isMethod('POST') && strlen($rawBody) > $route->maxBody) {
             return new Response('', 413);
         }
