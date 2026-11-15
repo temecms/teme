@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
 
+use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
 use App\Domain\Import\Operations\Input\SetImportSourceHostsInput;
@@ -18,7 +19,7 @@ use Teme\Contracts\Operations\RequiresElevation;
 /**
  * Sets the other old addresses of an import source: staging hosts and
  * former domains that convert like the home host. A person confirms their
- * password first; the operator doesn't.
+ * password first; the operator doesn't. Refused while a run is running.
  */
 final class SetImportSourceHosts extends BaseOperation implements RequiresElevation
 {
@@ -51,6 +52,11 @@ final class SetImportSourceHosts extends BaseOperation implements RequiresElevat
     {
         /** @var SetImportSourceHostsInput $input */
         $source = ImportSource::query()->whereKey($input->sourceId)->lockForUpdate()->firstOrFail();
+
+        if ($source->runs()->where('state', ImportRunState::Running->value)->exists()) {
+            throw ValidationException::withMessages(['source' => 'Stop the import that’s running first: it needs the application password.']);
+        }
+
         $home = OldSiteUrls::bare((string) parse_url($source->address, PHP_URL_HOST));
         $bare = [];
 

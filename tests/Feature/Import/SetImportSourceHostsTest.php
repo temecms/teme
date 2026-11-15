@@ -11,7 +11,9 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Tests\Fixtures\Import\ImportRecords;
 
 uses(RefreshDatabase::class);
 
@@ -85,6 +87,27 @@ it('writes nothing when the person may not import', function (): void {
         (string) $this->editor->id,
     ))))->toThrow(AuthorizationException::class, 'Not permitted to import a site.')
         ->and(DB::table('import_sources')->orderBy('id')->get()->toJson())->toBe($before);
+});
+
+it('refuses while a run is running and writes nothing', function (): void {
+    $this->source->forceFill(['other_hosts' => ['stage.example.com']])->save();
+    ImportRecords::run($this->source->id, [
+        'state' => 'running',
+        'phase' => 'users',
+        'phase_token' => strtolower((string) Str::ulid()),
+        'ended_at' => null,
+    ]);
+    $before = $this->source->fresh()->other_hosts;
+
+    expect(fn () => scElevated(fn () => app(SetImportSourceHosts::class)->execute(new SetImportSourceHostsInput(
+        $this->source->id,
+        ['cdn.example.com'],
+        (string) $this->admin->id,
+    ))))->toThrow(function (ValidationException $refusal): void {
+        expect($refusal->errors()['source'][0] ?? null)->toBe('Stop the import that’s running first: it needs the application password.');
+    });
+
+    expect($this->source->fresh()->other_hosts)->toBe($before);
 });
 
 it('asks a person for their password again, and not the operator', function (): void {

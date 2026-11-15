@@ -150,7 +150,7 @@ export default function ImportShow({
                     />
                 )}
 
-                {!site.forgotten && step !== 'plan' && (
+                {!site.forgotten && step === 'report' && (
                     <OtherHostsForm
                         siteId={site.id}
                         listed={site.otherHosts}
