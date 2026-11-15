@@ -200,6 +200,9 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::post('{code}/migrate', [PluginsController::class, 'migrate'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('migrate');
+                Route::post('{code}/remove-data', [PluginsController::class, 'removeData'])
+                    ->where('code', ManifestValidator::CODE_PATTERN)
+                    ->name('remove-data');
                 Route::post('{code}/disable', [PluginsController::class, 'disable'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('disable');

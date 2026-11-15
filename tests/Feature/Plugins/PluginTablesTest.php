@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\Operations\Input\MigratePluginInput;
+use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
+use App\Domain\Plugins\Operations\RemovePluginData;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
@@ -21,6 +25,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -490,4 +495,110 @@ PHP,
     expect($exit)->toBe(1)
         ->and(Artisan::output())->toContain('doesn’t start with its prefix')
         ->and(Schema::hasTable('extra'))->toBeFalse();
+});
+
+it('refuses RemovePluginData while the plugin is enabled', function (): void {
+    PluginFixtures::use('tables');
+    ($this->enable)();
+
+    expect(fn () => app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null)))
+        ->toThrow(ValidationException::class, 'Disable it before you remove its data.');
+
+    expect(Schema::hasTable('tables_links'))->toBeTrue()
+        ->and(PluginRecord::query()->sole()->migrations)->not->toBe([]);
+});
+
+it('refuses RemovePluginData when the plugin has no tables', function (): void {
+    PluginFixtures::use('hello');
+    ($this->enable)('tests/hello');
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/hello', null));
+
+    expect(fn () => app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/hello', null)))
+        ->toThrow(ValidationException::class, 'It has no tables to remove.');
+});
+
+it('drops both tables for a disabled plugin, empties the record, and keeps consent', function (): void {
+    PluginFixtures::use('tables');
+    ($this->enable)();
+    $consent = PluginRecord::query()->sole()->consent;
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+
+    $dropped = app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+    $record = PluginRecord::query()->sole();
+
+    expect($dropped)->toEqualCanonicalizing(['tables_links', 'tables_clicks'])
+        ->and(Schema::hasTable('tables_links'))->toBeFalse()
+        ->and(Schema::hasTable('tables_clicks'))->toBeFalse()
+        ->and($record->migrations)->toBe([])
+        ->and($record->consent)->toBe($consent)
+        ->and($record->state)->toBe('disabled')
+        ->and(DB::table('security_events')->where('type', 'plugin.data_removed')->count())->toBe(1);
+});
+
+it('removes recorded tables when the plugin’s code is gone', function (): void {
+    $copy = PluginFixtures::copy('tables');
+    PluginFixtures::use($copy);
+    ($this->enable)();
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+
+    (new Filesystem)->deleteDirectory($copy);
+    PluginFixtures::use();
+    app(PluginRegistry::class)->flush();
+
+    expect(app(PluginRegistry::class)->find('tests/tables'))->toBeNull();
+
+    $dropped = app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+    expect($dropped)->toEqualCanonicalizing(['tables_links', 'tables_clicks'])
+        ->and(Schema::hasTable('tables_links'))->toBeFalse()
+        ->and(Schema::hasTable('tables_clicks'))->toBeFalse()
+        ->and(PluginRecord::query()->sole()->migrations)->toBe([])
+        ->and(Schema::hasTable('users'))->toBeTrue();
+});
+
+it('writes nothing when someone without plugins.manage tries to remove plugin data', function (?string $role): void {
+    PluginFixtures::use('tables');
+    ($this->enable)();
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+
+    $before = PluginRecord::query()->sole()->migrations;
+    $actorId = $role === null ? null : (string) User::factory()->create()->assignRole($role)->id;
+    $role === null && app()->instance(Elevation::class, new DeniedElevation);
+
+    expect(fn () => app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', $actorId)))
+        ->toThrow(AuthorizationException::class);
+
+    expect(Schema::hasTable('tables_links'))->toBeTrue()
+        ->and(PluginRecord::query()->sole()->migrations)->toBe($before);
+})->with(['editor', 'author', 'nobody at the shell' => null]);
+
+it('creates the tables again when the plugin is enabled after its data was removed', function (): void {
+    PluginFixtures::use('tables');
+    ($this->enable)();
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+    app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+    ($this->enable)();
+
+    expect(Schema::hasTable('tables_links'))->toBeTrue()
+        ->and(Schema::hasTable('tables_clicks'))->toBeTrue()
+        ->and(array_keys(PluginRecord::query()->sole()->migrations))->toHaveCount(2);
+});
+
+it('lists the tables and asks unless --force on teme:plugins:remove-data', function (): void {
+    PluginFixtures::use('tables');
+    ($this->enable)();
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+
+    $this->artisan('teme:plugins:remove-data', ['name' => 'tests/tables'])
+        ->expectsConfirmation('Remove these tables and everything in them?', 'no')
+        ->assertSuccessful();
+
+    expect(Schema::hasTable('tables_links'))->toBeTrue();
+
+    $this->artisan('teme:plugins:remove-data', ['name' => 'tests/tables', '--force' => true])
+        ->assertSuccessful();
+
+    expect(Schema::hasTable('tables_links'))->toBeFalse()
+        ->and(Schema::hasTable('tables_clicks'))->toBeFalse();
 });
