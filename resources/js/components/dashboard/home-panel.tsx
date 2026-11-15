@@ -150,7 +150,7 @@ export function HomePanel({
                         </span>
                     )}
                     {entry.ownerName !== null && !customizing && (
-                        <PluginMark name={entry.ownerName} iconOnly />
+                        <PluginMark name={entry.ownerName} />
                     )}
                     <span className="flex-1" />
                     {customizing && (
