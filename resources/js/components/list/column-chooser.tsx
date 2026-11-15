@@ -1,19 +1,19 @@
-import { router } from "@inertiajs/react";
-import { ArrowDown, ArrowUp, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import { router } from '@inertiajs/react';
+import { ArrowDown, ArrowUp, SlidersHorizontal } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover";
-import { SelectField } from "@/components/ui/select-field";
-import { __ } from "@/lib/i18n";
-import { savePreferences } from "@/lib/preferences";
-import type { Preferences } from "@/types";
-import { TABLE_FRAME_ID } from "./data-table";
+} from '@/components/ui/popover';
+import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
+import { savePreferences } from '@/lib/preferences';
+import type { Preferences } from '@/types';
+import { TABLE_FRAME_ID } from './data-table';
 
 /** The page sizes lists.per_page offers. */
 const PAGE_SIZES = [25, 50, 100];
@@ -22,7 +22,7 @@ const PAGE_SIZES = [25, 50, 100];
 const FIXED_WIDTH = 48 + 320 + 56;
 
 /** The preference id the Thumbnails entry keeps, as it always has. */
-const THUMBNAILS = "featured";
+const THUMBNAILS = 'featured';
 
 type ChooserColumn = { id: string; label: string; width?: number };
 
@@ -55,7 +55,7 @@ export function ColumnChooser({
     const [withThumbnails, setWithThumbnails] = useState(thumbnails);
     const [rows, setRows] = useState(String(perPage));
     const [frame, setFrame] = useState<number | null>(null);
-    const [state, setState] = useState<"idle" | "saving" | "failed">("idle");
+    const [state, setState] = useState<'idle' | 'saving' | 'failed'>('idle');
 
     const reopen = (next: boolean) => {
         // Opened afresh from what the list shows now.
@@ -64,7 +64,7 @@ export function ColumnChooser({
             setTicked(shown);
             setWithThumbnails(thumbnails);
             setRows(String(perPage));
-            setState("idle");
+            setState('idle');
             setFrame(
                 document.getElementById(TABLE_FRAME_ID)?.clientWidth ?? null,
             );
@@ -90,8 +90,8 @@ export function ColumnChooser({
             frame;
 
     const apply = async () => {
-        setState("saving");
-        const values: Partial<Preferences> = { "lists.per_page": Number(rows) };
+        setState('saving');
+        const values: Partial<Preferences> = { 'lists.per_page': Number(rows) };
         const key: `lists.${string}.columns` = `lists.${list}.columns`;
         // In the order chosen here, whatever order they were ticked in.
         values[key] = [
@@ -106,7 +106,7 @@ export function ColumnChooser({
             setOpen(false);
             router.reload();
         } else {
-            setState("failed");
+            setState('failed');
         }
     };
 
@@ -120,7 +120,7 @@ export function ColumnChooser({
                     className="shrink-0"
                 >
                     <SlidersHorizontal aria-hidden="true" />
-                    {__("Columns")}
+                    {__('Columns')}
                     <span className="text-ink-3 tabular-nums">
                         {shown.length + 1}
                     </span>
@@ -129,13 +129,13 @@ export function ColumnChooser({
             <PopoverContent
                 align="end"
                 data-test="column-chooser"
-                aria-label={__("Columns")}
+                aria-label={__('Columns')}
                 className="w-95"
             >
                 <div className="grid gap-4">
                     <fieldset className="grid gap-1">
                         <legend className="text-caption text-ink-3 mb-2 font-semibold uppercase">
-                            {__("Columns, in order")}
+                            {__('Columns, in order')}
                         </legend>
                         <div className="flex min-h-(--ctl-h-sm) items-center gap-2">
                             <Checkbox
@@ -145,13 +145,13 @@ export function ColumnChooser({
                                 aria-describedby="column-title-note"
                             />
                             <Label htmlFor="column-title" className="flex-1">
-                                {__("Title")}
+                                {__('Title')}
                             </Label>
                             <span
                                 id="column-title-note"
                                 className="text-small text-ink-3"
                             >
-                                {__("always shown")}
+                                {__('always shown')}
                             </span>
                         </div>
                         {order.map((column, at) => (
@@ -183,7 +183,7 @@ export function ColumnChooser({
                                     type="button"
                                     variant="ghost"
                                     size="icon-xs"
-                                    aria-label={__("Move :name earlier", {
+                                    aria-label={__('Move :name earlier', {
                                         name: column.label,
                                     })}
                                     aria-disabled={at === 0 || undefined}
@@ -200,7 +200,7 @@ export function ColumnChooser({
                                     type="button"
                                     variant="ghost"
                                     size="icon-xs"
-                                    aria-label={__("Move :name later", {
+                                    aria-label={__('Move :name later', {
                                         name: column.label,
                                     })}
                                     aria-disabled={
@@ -227,12 +227,12 @@ export function ColumnChooser({
                             }
                         />
                         <Label htmlFor="column-thumbnails">
-                            {__("Thumbnails")}
+                            {__('Thumbnails')}
                         </Label>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="rows-per-page">
-                            {__("Rows per page")}
+                            {__('Rows per page')}
                         </Label>
                         <SelectField
                             id="rows-per-page"
@@ -248,16 +248,16 @@ export function ColumnChooser({
                     <p className="text-small text-ink-3">
                         {wide
                             ? __(
-                                  "The table is now wider than the screen. It scrolls sideways, with the tick box and title kept in view.",
+                                  'The table is now wider than the screen. It scrolls sideways, with the tick box and title kept in view.',
                               )
                             : __(
-                                  "The title takes the room that is left, and never gets narrower than its minimum.",
+                                  'The title takes the room that is left, and never gets narrower than its minimum.',
                               )}
                     </p>
                     <div className="flex items-center gap-2">
                         <p role="status" className="text-small text-danger-ink">
-                            {state === "failed" &&
-                                __("Couldn’t save. Try again in a moment.")}
+                            {state === 'failed' &&
+                                __('Couldn’t save. Try again in a moment.')}
                         </p>
                         <span className="flex-1" />
                         <Button
@@ -266,16 +266,16 @@ export function ColumnChooser({
                             size="sm"
                             onClick={() => setOpen(false)}
                         >
-                            {__("Cancel")}
+                            {__('Cancel')}
                         </Button>
                         <Button
                             type="button"
                             variant="primary"
                             size="sm"
-                            disabled={state === "saving"}
+                            disabled={state === 'saving'}
                             onClick={() => void apply()}
                         >
-                            {__("Apply")}
+                            {__('Apply')}
                         </Button>
                     </div>
                 </div>
