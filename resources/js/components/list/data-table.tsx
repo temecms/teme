@@ -187,6 +187,42 @@ export function DataTable<Row>({
         };
     }, [asCards, rows.length, columns.length]);
 
+    // The header follows the page: the frame scrolls sideways, so `position: sticky` sticks to
+    // the frame, not to the page. The cells are moved down by how far the frame's top has left the view.
+    useEffect(() => {
+        const element = scroller.current;
+
+        if (element === null) {
+            return;
+        }
+
+        let frame = 0;
+        const follow = () => {
+            frame = 0;
+            const head = element.querySelector('thead');
+            const room = element.clientHeight - (head?.offsetHeight ?? 0);
+            const shift = Math.max(
+                0,
+                Math.min(-element.getBoundingClientRect().top, room),
+            );
+
+            element.style.setProperty('--head-shift', `${shift}px`);
+        };
+        const queue = () => {
+            frame ||= requestAnimationFrame(follow);
+        };
+
+        follow();
+        window.addEventListener('scroll', queue, { passive: true });
+        window.addEventListener('resize', queue);
+
+        return () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener('scroll', queue);
+            window.removeEventListener('resize', queue);
+        };
+    }, [asCards, rows.length]);
+
     const start = pinned?.start ?? [];
     const end = pinned?.end ?? [];
     // Each start-pinned column sits after the ones before it; only the last may grow.
@@ -282,6 +318,8 @@ export function DataTable<Row>({
                                             style={{
                                                 ...sizes(column),
                                                 ...place.style,
+                                                transform:
+                                                    'translateY(var(--head-shift, 0px))',
                                             }}
                                             className={cn(
                                                 'bg-surface text-small text-ink-3 top-0 z-(--z-sticky) h-11 px-4 text-start align-middle font-medium whitespace-nowrap',
