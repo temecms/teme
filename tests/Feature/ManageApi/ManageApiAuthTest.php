@@ -7,11 +7,21 @@ use App\Domain\ManageApi\Operations\RevokeApiKey;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\Operations\UpdateSettings;
 use App\Domain\Support\Security\ElevationRequiredException;
+use App\Http\Api\Manage\Middleware\AnswerManageApi;
+use App\Http\Api\Manage\Middleware\AuthenticateApiKey;
+use App\Http\Api\Manage\Middleware\EnsureManageApiOn;
+use App\Http\Api\Manage\Middleware\ThrottleManageAddress;
+use App\Http\Api\Manage\Middleware\ThrottleManageKey;
+use App\Http\Api\Middleware\AnswerAsApi;
+use App\Http\Site\Middleware\MarkCacheable;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Tests\Feature\ManageApi\ManageApiFixture;
 
 uses(RefreshDatabase::class);
@@ -131,16 +141,29 @@ it('notes when a key was last used, at most once a minute', function (): void {
     expect(DB::table('api_keys')->value('last_used_at'))->not->toBe($first)->not->toBeNull();
 });
 
-it('never satisfies elevation: an elevated Operation reached as the key’s person is refused', function (): void {
+it('never satisfies elevation: an elevated Operation run inside a key’s request is refused and writes nothing', function (): void {
     $admin = User::factory()->create()->assignRole('administrator');
     ManageApiFixture::on();
     $secret = ManageApiFixture::key($admin, ['site.read']);
 
-    // What a key's request runs under: the default, which no token satisfies.
-    $this->getJson('/api/manage/v1/me', ManageApiFixture::headers($secret))->assertOk();
+    // A route of the test's own, behind the management API's whole stack, that
+    // runs an elevated Operation as the key's person.
+    Route::middleware('api')
+        ->prefix('api/manage/v1')
+        ->middleware([AnswerManageApi::class, ThrottleManageAddress::class, EnsureManageApiOn::class, AuthenticateApiKey::class, ThrottleManageKey::class])
+        ->withoutMiddleware([AnswerAsApi::class, MarkCacheable::class])
+        ->post('elevation-probe', function (Request $request): JsonResponse {
+            app(UpdateSettings::class)->execute(new UpdateSettingsInput('security', ['password_min_length' => 20], [], [], 0, (string) $request->user()?->getAuthIdentifier()));
 
-    expect(fn () => app(UpdateSettings::class)->execute(new UpdateSettingsInput('security', ['password_min_length' => 20], [], [], 0, (string) $admin->id)))
+            return response()->json(['done' => true]);
+        });
+
+    $this->withoutExceptionHandling();
+
+    expect(fn () => $this->postJson('/api/manage/v1/elevation-probe', [], ManageApiFixture::headers($secret)))
         ->toThrow(ElevationRequiredException::class);
+
+    expect(DB::table('settings')->where('group_key', 'security')->value('overrides'))->toBeNull();
 });
 
 it('refuses a suspended person’s key as it refuses a wrong one, and notes no use', function (): void {
