@@ -20,7 +20,7 @@ This part adds that socket. Core's own ActivityPub (I-058) uses the same route f
 8. **Secrets a plugin imports stay secret:** a plugin stores keys it imports (for example fediverse key pairs) through the `secret` setting type, encrypted, never in plain columns.
 9. **The companion change is specified here and built separately** (the companion is its own WordPress plugin). Teme's side is built and tested against the test companion (`FakeCompanion`), and checks the companion's API version before asking.
 
-## Provisional (built as written unless the owner says otherwise)
+## Provisional (built as written unless the maintainers say otherwise)
 
 - **P1. A plugin's own WordPress tables are later.** v1 brings options, post types with meta, user meta and term meta. Reading a plugin's custom tables waits for a real need (most such data is recomputed on Teme anyway).
 - **P2. The phase's order is 850** (after core content, terms and people; before the second pass), and every plugin's records run in that one phase, plugin by plugin, in the order of their codes.

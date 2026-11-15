@@ -18,7 +18,7 @@ A socket in core: a plugin (for example an ad-placement plugin, built separately
 8. **A plugin needs consent.** Contributing insertions is a declared capability, `content.insert`, granted with the plugin's other capabilities.
 9. **ads.txt is core.** `/ads.txt` serves the text saved in Settings › Site code ("ads.txt"), as plain UTF-8, stored by the page cache like robots.txt, and answers 404 while the setting is empty. Only administrators edit it.
 
-## Provisional (built as written unless the owner says otherwise)
+## Provisional (built as written unless the maintainers say otherwise)
 
 - P1. `EveryParagraphs` has a ceiling of 10 insertions per article per contributor.
 - P2. `NearEnd` counts as "before the last top-level paragraph"; an article with fewer than 3 paragraphs has no `NearEnd`.
