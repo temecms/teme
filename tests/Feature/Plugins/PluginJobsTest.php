@@ -7,12 +7,15 @@ use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Jobs\Operations\CancelJob;
 use App\Domain\Jobs\Operations\FailJob;
 use App\Domain\Jobs\Operations\FinishJob;
+use App\Domain\Jobs\Operations\Input\RetryJobInput;
 use App\Domain\Jobs\Operations\Input\StartJobInput;
 use App\Domain\Jobs\Operations\ReportJobProgress;
+use App\Domain\Jobs\Operations\RetryJob;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Plugins\Doors\HostResolver;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\Doors\PluginHttp;
+use App\Domain\Plugins\Jobs\PluginJobContext;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
@@ -28,14 +31,17 @@ use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Jobs\Jobs;
+use Teme\Contracts\Jobs\JobStopped;
 use Tests\Fixtures\Plugins\Lists\FakeResolver;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -326,4 +332,140 @@ it('runs nothing when the job was cancelled by disable then the plugin was enabl
 
     expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Cancelled)
         ->and(DB::table('jobs_lines')->count())->toBe(0);
+});
+
+it('stops progress after the plugin is disabled', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = ($this->jobs)()->queue('progress-write', ['line' => 'should not write']);
+    TrackedJob::query()->whereKey($id)->update(['state' => JobState::Running]);
+
+    $context = new PluginJobContext(
+        $id,
+        ['line' => 'should not write'],
+        1,
+        'tests/jobs',
+        JobActor::operator(),
+        app(ReportJobProgress::class),
+    );
+
+    $context->progress(1, 2, 'First');
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/jobs', null));
+
+    expect(fn () => $context->progress(2, 2, 'Second'))->toThrow(JobStopped::class)
+        ->and(DB::table('jobs_lines')->count())->toBe(0);
+});
+
+it('queues with the declared tries and backoff', function (): void {
+    ($this->enable)();
+    Queue::fake();
+
+    ($this->jobs)()->queue('write-line', ['line' => 'tries']);
+    ($this->jobs)()->queue('throw', []);
+
+    Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $job): bool => $job->jobKey === 'write-line'
+        && $job->tries === 2
+        && $job->backoff === [1, 2]);
+    Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $job): bool => $job->jobKey === 'throw'
+        && $job->tries === 2
+        && $job->backoff === [1]);
+});
+
+it('retries from Tools › Jobs with the saved payload', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = ($this->jobs)()->queue('write-line', ['line' => 'from the saved payload']);
+    TrackedJob::query()->whereKey($id)->update([
+        'state' => JobState::Failed,
+        'message' => 'It failed.',
+        'ended_at' => now(),
+    ]);
+
+    app(RetryJob::class)->execute(new RetryJobInput($id, null));
+
+    Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $job): bool => $job->trackedJobId === $id
+        && $job->jobKey === 'write-line');
+
+    ($this->run)('write-line', $id);
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Finished)
+        ->and(DB::table('jobs_lines')->pluck('line')->all())->toBe(['from the saved payload']);
+});
+
+it('fails a missing handler without retry', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = app(StartJob::class)->execute(new StartJobInput(
+        kind: 'plugin-job',
+        label: 'Missing',
+        runType: 'plugin-job',
+        runId: 'no-such-handler',
+        owner: 'jobs',
+        payload: ['line' => 'no'],
+    ));
+
+    $job = new RunPluginJob('jobs', 'no-such-handler', $id, JobActor::operator());
+    $job->handle(
+        app(PluginRegistry::class),
+        app(PluginLoader::class),
+        app(SafeMode::class),
+        app(CancelJob::class),
+        app(FailJob::class),
+        app(FinishJob::class),
+        app(ReportJobProgress::class),
+    );
+
+    expect($job->tries)->toBe(1)
+        ->and(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Failed)
+        ->and(TrackedJob::query()->findOrFail($id)->message)->toContain('no-such-handler')
+        ->and(DB::table('jobs_lines')->count())->toBe(0);
+});
+
+it('builds a long job with a 300-second outbound ceiling and 1800-second timeout', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    ($this->jobs)()->queue('long-call', []);
+
+    Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $job): bool => $job->jobKey === 'long-call'
+        && $job->timeout === 1800);
+
+    $doors = app(PluginDoors::class)->for('tests/jobs', 'jobs', ['http'], ['api.example.com'], 300);
+    $ceiling = (new ReflectionProperty($doors[OutboundHttp::class], 'mostSeconds'))->getValue($doors[OutboundHttp::class]);
+
+    expect($ceiling)->toBe(300);
+});
+
+it('runs a job queued by a person as that person', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $person = User::factory()->create()->assignRole('administrator');
+    Auth::login($person);
+
+    $id = ($this->jobs)()->queue('write-line', ['line' => 'as the person']);
+
+    Queue::assertPushed(RunPluginJob::class, function (RunPluginJob $job) use ($person): bool {
+        expect($job->actor->userId)->toBe((string) $person->id)
+            ->and($job->actor->isOperator())->toBeFalse();
+
+        app()->instance(Elevation::class, new DeniedElevation);
+        $job->actor->bind();
+        expect(app(Elevation::class))->toBeInstanceOf(DeniedElevation::class);
+
+        return true;
+    });
+
+    expect(TrackedJob::query()->findOrFail($id)->started_by)->toBe($person->id);
+
+    (new RunPluginJob('jobs', 'write-line', $id, JobActor::person($person->id)))->handle(
+        app(PluginRegistry::class),
+        app(PluginLoader::class),
+        app(SafeMode::class),
+        app(CancelJob::class),
+        app(FailJob::class),
+        app(FinishJob::class),
+        app(ReportJobProgress::class),
+    );
+
+    expect(TrackedJob::query()->findOrFail($id)->state)->toBe(JobState::Finished)
+        ->and(DB::table('jobs_lines')->pluck('line')->all())->toBe(['as the person']);
 });
