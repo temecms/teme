@@ -9,6 +9,11 @@ use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
+use Teme\Contracts\Jobs\JobContext;
+use Teme\Contracts\Jobs\JobHandler;
+use Teme\Contracts\Jobs\Jobs;
+use Teme\Contracts\Jobs\JobStopped;
+use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
@@ -68,9 +73,55 @@ it('gives every new contract its @since and nothing from a framework', function 
     RequestFailed::class,
 ]);
 
-it('names the three capabilities a plugin can ask for in the first release', function (): void {
-    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http']);
+it('names the capabilities a plugin can ask for in the first release', function (): void {
+    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http', 'jobs']);
 });
+
+it('gives every jobs contract its @since 0.9.0 and nothing from a framework', function (string $class): void {
+    $reflection = new ReflectionClass($class);
+
+    expect($reflection->getDocComment())->toContain('@since 0.9.0');
+
+    foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        if ($method->getDeclaringClass()->getName() !== $class || ! $method->isUserDefined()) {
+            continue;
+        }
+
+        expect($method->getDocComment())->toContain('@since 0.9.0');
+    }
+
+    $types = [];
+
+    foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
+        if ($method->getDeclaringClass()->getName() !== $class) {
+            continue;
+        }
+
+        $types[] = $method->getReturnType();
+
+        foreach ($method->getParameters() as $parameter) {
+            $types[] = $parameter->getType();
+        }
+    }
+
+    foreach (array_filter($types) as $type) {
+        $named = $type instanceof ReflectionNamedType ? [$type] : $type->getTypes();
+
+        foreach ($named as $one) {
+            if ($one->isBuiltin() || in_array($one->getName(), ['self', 'static'], true)) {
+                continue;
+            }
+
+            expect($one->getName())->toStartWith('Teme\\Contracts\\');
+        }
+    }
+})->with([
+    Jobs::class,
+    JobHandler::class,
+    JobContext::class,
+    JobStopped::class,
+    PluginHasJobs::class,
+]);
 
 it('decodes an answer’s JSON, and refuses JSON that isn’t', function (): void {
     expect((new HttpAnswer(200, '{"a":1}', []))->json())->toBe(['a' => 1]);

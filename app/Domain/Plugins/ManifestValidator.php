@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins;
 
 use App\Domain\Hooks\Reference\HookCatalogue;
+use App\Domain\Plugins\Jobs\DeclaredJobs;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
@@ -124,6 +125,8 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
         array_push($errors, ...$this->owns($manifest, $read));
+        array_push($errors, ...$this->jobs($manifest, $read));
+        array_push($errors, ...$this->schedules($manifest, $read));
 
         return $errors;
     }
@@ -426,6 +429,144 @@ final readonly class ManifestValidator
         }
 
         return $errors;
+    }
+
+    /**
+     * jobs: a list of declarations, each with a unique key, when the plugin
+     * asks for the jobs capability (I-3445).
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function jobs(array $manifest, Manifest $read): array
+    {
+        if (! array_key_exists('jobs', $manifest) && ! array_key_exists('schedules', $manifest)) {
+            return [];
+        }
+
+        $errors = [];
+        $jobs = $manifest['jobs'] ?? null;
+        $keys = [];
+
+        if ($jobs !== null && (! is_array($jobs) || ! array_is_list($jobs))) {
+            $errors[] = 'jobs must be a list of job declarations.';
+            $jobs = [];
+        }
+
+        foreach (is_array($jobs) ? $jobs : [] as $entry) {
+            if (! is_array($entry)) {
+                $errors[] = 'jobs must be a list of job declarations.';
+
+                continue;
+            }
+
+            $key = $entry['key'] ?? null;
+
+            if (! is_string($key) || preg_match(DeclaredJobs::KEY, $key) !== 1) {
+                $errors[] = 'jobs "'.$this->show($key).'" must be a lower-case key of letters, digits and hyphens, at most 48 characters, starting with a letter.';
+
+                continue;
+            }
+
+            if (isset($keys[$key])) {
+                $errors[] = "jobs key \"{$key}\" is listed more than once.";
+            }
+
+            $keys[$key] = true;
+            $label = $entry['label'] ?? null;
+
+            if (! is_string($label) || trim($label) === '' || strlen($label) > 80) {
+                $errors[] = "jobs \"{$key}\" needs a label of 1 to 80 characters.";
+            }
+
+            if (array_key_exists('long', $entry) && ! is_bool($entry['long'])) {
+                $errors[] = "jobs \"{$key}\" long must be true or false.";
+            }
+
+            if (array_key_exists('tries', $entry) && (! is_int($entry['tries']) || $entry['tries'] < 1 || $entry['tries'] > 5)) {
+                $errors[] = "jobs \"{$key}\" tries must be a whole number from 1 to 5.";
+            }
+
+            if (array_key_exists('backoff', $entry) && ! $this->backoffOk($entry['backoff'])) {
+                $errors[] = "jobs \"{$key}\" backoff must be a list of 1 to 5 whole numbers from 1 to 3600.";
+            }
+        }
+
+        if (($jobs !== null && $jobs !== []) || array_key_exists('schedules', $manifest)) {
+            if (! in_array(Capability::Jobs->value, $read->capabilities(), true)) {
+                $errors[] = 'It declares jobs but doesn’t ask for jobs.';
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * schedules: each names a declared job and a fixed interval (I-3445).
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function schedules(array $manifest, Manifest $read): array
+    {
+        if (! array_key_exists('schedules', $manifest)) {
+            return [];
+        }
+
+        $schedules = $manifest['schedules'];
+
+        if (! is_array($schedules) || ! array_is_list($schedules)) {
+            return ['schedules must be a list of schedule declarations.'];
+        }
+
+        $keys = [];
+
+        foreach ($manifest['jobs'] ?? [] as $entry) {
+            if (is_array($entry) && is_string($entry['key'] ?? null) && preg_match(DeclaredJobs::KEY, $entry['key']) === 1) {
+                $keys[$entry['key']] = true;
+            }
+        }
+
+        $errors = [];
+
+        foreach ($schedules as $entry) {
+            if (! is_array($entry)) {
+                $errors[] = 'schedules must be a list of schedule declarations.';
+
+                continue;
+            }
+
+            $job = $entry['job'] ?? null;
+
+            if (! is_string($job) || ! isset($keys[$job])) {
+                $errors[] = 'schedules names job "'.$this->show($job).'", which isn’t declared.';
+            }
+
+            $every = $entry['every'] ?? null;
+
+            if (! is_string($every) || ! in_array($every, DeclaredJobs::EVERY, true)) {
+                $errors[] = 'schedules every must be one of minute, five-minutes, fifteen-minutes, hour, day, week.';
+            }
+        }
+
+        return $errors;
+    }
+
+    private function backoffOk(mixed $backoff): bool
+    {
+        if (! is_array($backoff) || ! array_is_list($backoff) || $backoff === [] || count($backoff) > 5) {
+            return false;
+        }
+
+        foreach ($backoff as $seconds) {
+            if (! is_int($seconds) || $seconds < 1 || $seconds > 3600) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function show(mixed $value): string
