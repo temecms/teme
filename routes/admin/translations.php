@@ -12,6 +12,7 @@ Route::prefix('content/{type}/{content}')
     ->where(['type' => ContentTypeRegistry::segmentPattern()])
     ->group(function (): void {
         Route::post('translations', [TranslationsController::class, 'store'])->name('content.translations.store');
+        Route::get('translations/candidates', [TranslationsController::class, 'candidates'])->name('content.translations.candidates');
         Route::post('translations/link', [TranslationsController::class, 'link'])->name('content.translations.link');
         Route::post('translations/up-to-date', [TranslationsController::class, 'upToDate'])->name('content.translations.up-to-date');
         Route::delete('translations/{other}', [TranslationsController::class, 'unlink'])->name('content.translations.unlink');

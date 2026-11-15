@@ -52,6 +52,7 @@ import { useMetadataBinding } from '@/components/editor/rail/use-metadata';
 import { SaveState } from '@/components/editor/save-state';
 import { SharePane } from '@/components/editor/share-panel';
 import { StaleDialog } from '@/components/editor/stale-dialog';
+import { LanguageChip } from '@/components/editor/language-chip';
 import { StatusChip } from '@/components/editor/status-chip';
 import { useAutosave } from '@/components/editor/use-autosave';
 import { usePresence } from '@/components/editor/use-presence';
@@ -1222,13 +1223,16 @@ export default function ContentEdit(page: ContentEditPage) {
                                 : (type?.plural ?? 'Back')
                         }
                         statusChip={
-                            <StatusChip
-                                status={status}
-                                review={review}
-                                schedule={schedule}
-                                unpublishedChanges={unpublished}
-                                visibility={visibility}
-                            />
+                            <>
+                                <StatusChip
+                                    status={status}
+                                    review={review}
+                                    schedule={schedule}
+                                    unpublishedChanges={unpublished}
+                                    visibility={visibility}
+                                />
+                                <LanguageChip session={session} />
+                            </>
                         }
                         saveState={
                             <SaveState

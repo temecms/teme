@@ -53,7 +53,7 @@ final readonly class EditorSession
      * @param  list<array{slug: string, label: string}>  $templates
      * @param  array<string, array{title: string, type: string, status: string}>  $entries
      * @param  list<array{tag: string, name: string, shown: bool}>  $languages
-     * @param  list<array{language: string, status: string, visibility: string, outOfDate: bool, sourceLanguage: string|null, sourceChangedAt: string|null, current: bool, id: string|null, title: string|null, editUrl: string|null}>  $translations
+     * @param  list<array{language: string, status: string, visibility: string, outOfDate: bool, sourceLanguage: string|null, sourceChangedAt: string|null, current: bool, id: string|null, title: string|null, editUrl: string|null, workingRevisionId: string|null}>  $translations
      */
     public function __construct(
         public string $id,
@@ -190,7 +190,7 @@ final readonly class EditorSession
      * The item's group's versions with their state (D9), each named, with
      * its editor's address, only to someone who may open it (I-3360).
      *
-     * @return list<array{language: string, status: string, visibility: string, outOfDate: bool, sourceLanguage: string|null, sourceChangedAt: string|null, current: bool, id: string|null, title: string|null, editUrl: string|null}>
+     * @return list<array{language: string, status: string, visibility: string, outOfDate: bool, sourceLanguage: string|null, sourceChangedAt: string|null, current: bool, id: string|null, title: string|null, editUrl: string|null, workingRevisionId: string|null}>
      */
     private static function translations(Content $content, User $viewer): array
     {
@@ -218,6 +218,8 @@ final readonly class EditorSession
                 'id' => $opens ? $version['id'] : null,
                 'title' => $opens ? $version['title'] : null,
                 'editUrl' => $opens ? route('content.edit', ['content' => $version['id']], false) : null,
+                // What Mark up to date is based on, so a version changed meanwhile is refused as stale.
+                'workingRevisionId' => $opens ? $row->working_revision_id : null,
             ];
         }, $versions);
     }
