@@ -488,3 +488,14 @@ Stop, write why under Records, commit and push, then stop, when:
   - The filters are searchable lists that apply at once; on a phone they fold into Filters (n).
 - How to try it: open Posts, Pages, Categories, Tags and Comments at full width and at phone width; tick rows for the bulk bar; open Columns; page through a long list.
 - Done at `06b5dd5`. No STOP.
+
+### Follow-up X1-2
+
+The review accepts the part, and every B-?? decision above is agreed.
+
+- B-29: the Status column is always shown and is not in Columns. Decided by the maintainer; provisional, the owner confirms. The code already did this, so nothing changed.
+- Columns' "Move :name earlier" and "Move :name later" are `aria-disabled` at the ends, and a press there does nothing, so focus stays on the button inside the popover. Seen red first: `ListHeaderTest` "keeps focus on a column's move button when the keyboard moves it to the first or last place" failed because focus had left the button. Commit `30143c2`. That commit was formatted with the wrong tool. `a242d68` puts it back in the project's formatting, with no change in behavior.
+- Undo after Publish is offered only when the item was a draft before. The toast's Undo comes from `ContentActionController`, not from the page, so the fix is there. Seen red first: `RowUndoTest` "offers no Undo after publishing a scheduled item" failed because the toast carried an `undo`. Commit `afec10e`.
+- The bulk bar's count is `__n(':count :one selected|:count :many selected', …)`. Commit `c535e4d`. The term list's screen-reader phrases are the whole-phrase keys "under :parent" and ":items in :name". The comma and space are outside the keys. `TermScreenFormsTest`'s source scan reads the new keys, and it proves the same thing. Commit `49442b4`.
+- `ListPartsTest`'s pager dataset now includes `pages/comments/index.tsx`, as B-05 said it would. It passed when added, because comments already page through `NumberedPager`. Commit `1608559`.
+- Quick check: Pint, PHPStan, the type check, `vp check` and Architecture (130 with the term scans) all pass. Feature: `ListPagesTest` and `RowUndoTest` 17 passed. After `npm run build`, run one at a time, all green: ListHeaderTest 14, ContentListPatternTest 22, ContentListsTest 10, CommentsScreenTest 16, CategoriesAndTagsTest 10.
