@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
+import { useUploadTarget } from '@/components/editor/cards/card-environment';
+import { useMediaPicker } from '@/components/editor/pick-media';
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import type { SearchPreview } from '@/components/editor/use-search-preview';
 import type { CardMedia, EditorField } from '@/types/editor';
@@ -43,28 +44,40 @@ export function SocialImage({
     loading: string[];
     addMedia: (ids: string[]) => Promise<void>;
 }) {
-    const [choosing, setChoosing] = useState(false);
+    const uploadedFor = useUploadTarget();
+    const { open, picker } = useMediaPicker();
+    const choose = () =>
+        open({
+            caller: 'choose',
+            multi: false,
+            action: __('Use as social image'),
+            uploadedFor,
+            onInsert: (ids) => {
+                void addMedia(ids);
+                onChange({ id: ids[0], alt: '', decorative: false });
+            },
+        });
     const id = chosenId(value);
     const item = id === null ? undefined : media[id];
 
     return (
         <div className="grid gap-2">
-            <span className="text-sm leading-none font-medium">
+            <span className="text-small leading-none font-medium">
                 {field.label}
             </span>
             {id === null ? (
                 <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-ink-2 text-xs">
-                        {FALLBACK[card.imageFrom ?? ''] ?? 'No image.'}
+                    <p className="text-ink-2 text-caption">
+                        {FALLBACK[card.imageFrom ?? ''] ?? __('No image.')}
                     </p>
                     <Button
                         id="editor-social-image"
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setChoosing(true)}
+                        onClick={choose}
                     >
-                        Choose an image
+                        {__('Choose an image')}
                     </Button>
                 </div>
             ) : (
@@ -82,11 +95,11 @@ export function SocialImage({
                     ) : loading.includes(id) ? (
                         <div
                             aria-busy="true"
-                            className="bg-surface-2 aspect-[40/21] w-24 animate-pulse rounded-sm"
+                            className="bg-surface-2 aspect-[40/21] w-24 rounded-sm motion-safe:animate-pulse"
                         />
                     ) : (
-                        <p className="text-ink-2 text-xs">
-                            This image is no longer in the library.
+                        <p className="text-ink-2 text-caption">
+                            {__('This image is no longer in the library.')}
                         </p>
                     )}
                     <div className="flex gap-2">
@@ -96,9 +109,9 @@ export function SocialImage({
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setChoosing(true)}
+                                onClick={choose}
                             >
-                                Replace
+                                {__('Replace')}
                             </Button>
                         )}
                         <Button
@@ -107,21 +120,12 @@ export function SocialImage({
                             size="sm"
                             onClick={() => onChange(null)}
                         >
-                            Remove
+                            {__('Remove')}
                         </Button>
                     </div>
                 </div>
             )}
-            <MediaModal
-                open={choosing}
-                onOpenChange={setChoosing}
-                kinds={['image']}
-                action="Use as social image"
-                onChoose={(ids) => {
-                    void addMedia(ids);
-                    onChange({ id: ids[0], alt: '', decorative: false });
-                }}
-            />
+            {picker}
         </div>
     );
 }

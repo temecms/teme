@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import type { EditorReview, EditorSchedule } from '@/types';
 import { ScheduleControl } from '../schedule-control';
@@ -16,11 +17,19 @@ export type WhenChoice = {
 };
 
 /** Why a held schedule cannot run, in words. */
-const HELD: Record<NonNullable<EditorSchedule['heldReason']>, string> = {
-    scheduler_removed: 'the account of the person who scheduled it was removed',
-    scheduler_cannot_publish:
-        'the person who scheduled it may no longer publish',
-};
+function heldWords(): Record<
+    NonNullable<EditorSchedule['heldReason']>,
+    string
+> {
+    return {
+        scheduler_removed: __(
+            'the account of the person who scheduled it was removed',
+        ),
+        scheduler_cannot_publish: __(
+            'the person who scheduled it may no longer publish',
+        ),
+    };
+}
 
 /**
  * The Publish panel's Publish row (Update on a live item), and its Date and
@@ -50,7 +59,7 @@ export function PublishWhen({
     onCancelSchedule: () => void;
     busy: boolean;
 }) {
-    const label = live ? 'Update' : 'Publish';
+    const label = live ? __('Update') : __('Publish');
     const pending = review?.state === 'pending';
     const zoned = (iso: string) =>
         `${formatInZone(iso, siteTimezone)} (${siteTimezone})`;
@@ -67,7 +76,7 @@ export function PublishWhen({
         const held = schedule.heldReason !== null;
 
         row = (
-            <div className="grid gap-1.5">
+            <div className="grid gap-2">
                 <p
                     className={
                         failed
@@ -78,13 +87,24 @@ export function PublishWhen({
                     }
                 >
                     {failed
-                        ? `The publication scheduled for ${zoned(schedule.runAt)} failed: ${schedule.failedReason}`
+                        ? __(
+                              'The publication scheduled for :time failed: :reason',
+                              {
+                                  time: zoned(schedule.runAt),
+                                  reason: schedule.failedReason ?? '',
+                              },
+                          )
                         : schedule.heldReason !== null
-                          ? `Held: ${HELD[schedule.heldReason]}. It publishes nothing until someone who may publish reschedules it.`
-                          : `Scheduled for ${zoned(schedule.runAt)}`}
+                          ? __(
+                                'Held: :reason. It publishes nothing until someone who may publish reschedules it.',
+                                { reason: heldWords()[schedule.heldReason] },
+                            )
+                          : __('Scheduled for :time', {
+                                time: zoned(schedule.runAt),
+                            })}
                 </p>
                 {decides && (
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                         {when.later ? (
                             <Button
                                 type="button"
@@ -92,7 +112,7 @@ export function PublishWhen({
                                 size="sm"
                                 onClick={() => choose({ later: false })}
                             >
-                                Not now
+                                {__('Not now')}
                             </Button>
                         ) : (
                             <>
@@ -103,7 +123,7 @@ export function PublishWhen({
                                     disabled={busy}
                                     onClick={() => choose({ later: true })}
                                 >
-                                    Reschedule…
+                                    {__('Reschedule…')}
                                 </Button>
                                 {!failed && !held && (
                                     <Button
@@ -113,11 +133,14 @@ export function PublishWhen({
                                         disabled={busy}
                                         onClick={onCancelSchedule}
                                     >
-                                        Cancel
+                                        {__('Cancel')}
                                         <span className="sr-only">
+                                            {' '}
                                             {live
-                                                ? ' the scheduled update'
-                                                : ' the scheduled publication'}
+                                                ? __('the scheduled update')
+                                                : __(
+                                                      'the scheduled publication',
+                                                  )}
                                         </span>
                                     </Button>
                                 )}
@@ -130,7 +153,9 @@ export function PublishWhen({
     } else if (!decides) {
         row = (
             <span className="text-ink-2">
-                {pending && canPublish ? 'When you approve it' : 'After review'}
+                {pending && canPublish
+                    ? __('When you approve it')
+                    : __('After review')}
             </span>
         );
     } else {
@@ -158,7 +183,9 @@ export function PublishWhen({
             {when.later && decides && (
                 <>
                     <dt className="text-ink-2">
-                        <label htmlFor="editor-when-at">Date and time</label>
+                        <label htmlFor="editor-when-at">
+                            {__('Date and time')}
+                        </label>
                     </dt>
                     <dd className="min-w-0">
                         <ScheduleControl

@@ -1,4 +1,6 @@
 import { CheckCircle2, CircleAlert } from 'lucide-react';
+import { TextButton } from '@/components/ui/text-button';
+import { __ } from '@/lib/i18n';
 import type { BadLink, CheckId, CoreCheck } from './checks';
 import { RailSection } from './rail-section';
 import { quotedTitle } from '@/lib/titles';
@@ -6,12 +8,14 @@ import { quotedTitle } from '@/lib/titles';
 /** One link to an unreachable article, named. */
 function badLinkLine(link: BadLink): string {
     if (link.state === 'missing' || link.title === null) {
-        return 'An item that no longer exists';
+        return __('An item that no longer exists');
     }
 
     return link.state === 'trashed'
-        ? `“${quotedTitle(link.title)}” is in the trash`
-        : `“${quotedTitle(link.title)}” is not published`;
+        ? __('“:title” is in the trash', { title: quotedTitle(link.title) })
+        : __('“:title” is not published', {
+              title: quotedTitle(link.title),
+          });
 }
 
 /** The checks the rail can put the cursor on: every one but these. */
@@ -31,7 +35,7 @@ function Fact({ check }: { check: CoreCheck }) {
             {' '}
             <span className="text-ink-2">{check.message}</span>
             {check.id === 'links' && check.badLinks.length > 0 && (
-                <ul className="text-ink-2 mt-0.5 grid gap-0.5 pl-[22px] text-xs">
+                <ul className="text-ink-2 text-caption mt-1 grid gap-0.5 pl-5.5">
                     {check.badLinks.map((link) => (
                         <li key={link.id}>{badLinkLine(link)}</li>
                     ))}
@@ -46,7 +50,8 @@ function Label({ check }: { check: CoreCheck }) {
         <>
             <span className="font-medium">{check.label}</span>
             <span className="sr-only">
-                {check.state === 'ok' ? ' passed' : ' warning'}
+                {' '}
+                {check.state === 'ok' ? __('passed') : __('warning')}
             </span>
         </>
     );
@@ -64,10 +69,10 @@ export function CheckList({
     testId: string;
 }) {
     return (
-        <ul data-test={testId} className="grid gap-1.5 text-[13px]">
+        <ul data-test={testId} className="text-small grid gap-2">
             {checks.map((check) => (
                 <li key={check.id}>
-                    <span className="inline-flex items-center gap-1.5 align-top">
+                    <span className="inline-flex items-center gap-2 align-top">
                         <StateIcon check={check} />
                         <Label check={check} />
                     </span>
@@ -97,22 +102,21 @@ export function ChecksPanel({
     noun: string;
 }) {
     return (
-        <RailSection title="Checks" triggerId="rail-checks-trigger">
-            <ul data-test="rail-checks" className="grid gap-1.5 text-[13px]">
+        <RailSection title={__('Checks')} triggerId="rail-checks-trigger">
+            <ul data-test="rail-checks" className="text-small grid gap-2">
                 {checks.map((check) => (
                     <li key={check.id}>
                         {check.state === 'warn' &&
                         !NOWHERE_TO_GO.includes(check.id) ? (
-                            <button
-                                type="button"
+                            <TextButton
                                 onClick={() => onGoTo(check.id)}
-                                className="text-accent-ink focus-visible:ring-ring inline-flex min-h-6 items-center gap-1.5 rounded-sm text-left align-top underline-offset-2 outline-none hover:underline focus-visible:ring-2"
+                                className="gap-2 text-left align-top font-normal decoration-transparent underline-offset-2 hover:underline"
                             >
                                 <StateIcon check={check} />
                                 <Label check={check} />
-                            </button>
+                            </TextButton>
                         ) : (
-                            <span className="inline-flex items-center gap-1.5 align-top">
+                            <span className="inline-flex items-center gap-2 align-top">
                                 <StateIcon check={check} />
                                 <Label check={check} />
                             </span>
@@ -124,18 +128,17 @@ export function ChecksPanel({
             {onGoToSearch !== undefined && (
                 <div
                     data-test="rail-search-note"
-                    className="bg-surface-2 mt-3 grid gap-1.5 rounded-md px-3 py-2.5 text-xs"
+                    className="bg-surface-2 text-caption mt-3 grid gap-2 rounded-md px-3 py-3"
                 >
                     <p className="text-ink-2">
-                        Search and social is under the {noun}.
+                        {__('Search and social is under the :noun.', { noun })}
                     </p>
-                    <button
-                        type="button"
+                    <TextButton
                         onClick={onGoToSearch}
-                        className="text-accent-ink focus-visible:ring-ring min-h-6 justify-self-start rounded-sm underline outline-none focus-visible:ring-2"
+                        className="justify-self-start font-normal decoration-current"
                     >
-                        Go to Search and social
-                    </button>
+                        {__('Go to Search and social')}
+                    </TextButton>
                 </div>
             )}
         </RailSection>

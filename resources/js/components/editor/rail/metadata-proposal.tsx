@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 import { characterCount, useMetadata } from './use-metadata';
 import type { MetadataBinding } from './use-metadata';
 
@@ -35,28 +36,30 @@ export function MetadataProposal({
     return (
         <div
             role="group"
-            aria-label={`Proposed ${field}`}
+            aria-label={__('Proposed :field', { field })}
             data-ai-proposal={handle}
-            className="bg-surface-2 grid gap-1 rounded-md border p-3 text-[13px]"
+            className="bg-surface-2 text-small grid gap-1 rounded-md border p-3"
         >
             <p>
-                <span className="text-ink-2">Proposed: </span>
+                <span className="text-ink-2">{__('Proposed:')} </span>
                 {proposal}
             </p>
             <div className="flex items-center justify-between gap-2">
-                <p className="text-ink-2 text-xs">{characterCount(proposal)}</p>
+                <p className="text-ink-2 text-caption">
+                    {characterCount(proposal)}
+                </p>
                 <Button
                     size="sm"
                     data-test="metadata-use"
-                    aria-label={`Use the proposed ${field}`}
+                    aria-label={__('Use the proposed :field', { field })}
                     disabled={busy}
                     onClick={() => void use([handle])}
                 >
-                    {busy ? 'Using…' : 'Use'}
+                    {busy ? __('Using…') : __('Use')}
                 </Button>
             </div>
             {message !== null && (
-                <p role="alert" className="text-danger-ink text-xs">
+                <p role="alert" className="text-danger-ink text-caption">
                     {message}
                 </p>
             )}

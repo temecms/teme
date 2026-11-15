@@ -1,14 +1,9 @@
-import { ChevronDown } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { BooleanControl } from '@/components/editor/fields/boolean-control';
 import { NumberControl } from '@/components/editor/fields/number-control';
 import { SelectControl } from '@/components/editor/fields/select-control';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
 import type { EditorField, EditorSeo } from '@/types/editor';
 
 /** The article type that describes no article (TypeSchemas::NONE). */
@@ -61,7 +56,7 @@ function BoxRow({
                 id={id}
                 describedBy={`${id}-hint`}
             />
-            <p id={`${id}-hint`} className="text-ink-2 text-xs">
+            <p id={`${id}-hint`} className="text-ink-2 text-caption">
                 {field.description}
             </p>
         </div>
@@ -71,9 +66,9 @@ function BoxRow({
 /**
  * Hide from search engines, the canonical address, what search engines are
  * told the item is, and how much of it they may quote (I-709, I-714,
- * I-3124), in a fold closed by default at the foot of Search and social
- * (I-879); its trigger names what is set, or what it holds when nothing is,
- * so a choice there is never out of sight. The first two arrive as `leading`.
+ * I-3124): Search and social's Advanced tab (I-3415). Its first line names
+ * what is set, or what it holds when nothing is, so a choice there is never
+ * out of sight. The first two arrive as `leading`.
  */
 export function AdvancedFold({
     fields,
@@ -170,27 +165,11 @@ export function AdvancedFold({
             : holds.charAt(0).toUpperCase() + holds.slice(1);
 
     return (
-        <Collapsible className="border-line rounded-md border">
-            <CollapsibleTrigger
-                id="editor-advanced"
-                className="group focus-visible:ring-ring flex min-h-10 w-full items-center gap-3 rounded-md px-3 text-left text-[13px] font-semibold outline-none focus-visible:ring-2"
-            >
-                Advanced
-                <span
-                    data-test="advanced-summary"
-                    className="text-ink-2 flex-1 text-xs font-normal"
-                >
-                    {summary}
-                </span>
-                <ChevronDown
-                    aria-hidden
-                    className="size-4 shrink-0 transition-transform group-data-[state=open]:rotate-180"
-                />
-            </CollapsibleTrigger>
-            <CollapsibleContent
-                forceMount
-                className="grid gap-x-6 gap-y-4 px-3 pb-4 data-[state=closed]:hidden @2xl:grid-cols-2"
-            >
+        <div className="@container grid gap-4">
+            <p data-test="advanced-summary" className="text-ink-2 text-caption">
+                {summary}
+            </p>
+            <div className="grid gap-x-6 gap-y-4 @2xl:grid-cols-2">
                 {leading !== null && (
                     <div className="grid content-start gap-4">
                         {leading.node}
@@ -210,12 +189,20 @@ export function AdvancedFold({
                                 }
                                 id="editor-page-type"
                                 describedBy="editor-page-type-hint"
-                                emptyLabel={`Default for its type (${labelOf(pageType, seo.schema.pageType)})`}
+                                emptyLabel={__(
+                                    'Default for its type (:value)',
+                                    {
+                                        value: labelOf(
+                                            pageType,
+                                            seo.schema.pageType,
+                                        ),
+                                    },
+                                )}
                                 options={optionsOf(pageType)}
                             />
                             <p
                                 id="editor-page-type-hint"
-                                className="text-ink-2 text-xs"
+                                className="text-ink-2 text-caption"
                             >
                                 {pageType.description}
                             </p>
@@ -234,12 +221,20 @@ export function AdvancedFold({
                                 }
                                 id="editor-article-type"
                                 describedBy="editor-article-type-hint"
-                                emptyLabel={`Default for its type (${labelOf(articleType, seo.schema.mainEntity ?? NONE)})`}
+                                emptyLabel={__(
+                                    'Default for its type (:value)',
+                                    {
+                                        value: labelOf(
+                                            articleType,
+                                            seo.schema.mainEntity ?? NONE,
+                                        ),
+                                    },
+                                )}
                                 options={articleOptions}
                             />
                             <p
                                 id="editor-article-type-hint"
-                                className="text-ink-2 text-xs"
+                                className="text-ink-2 text-caption"
                             >
                                 {articleType.description}
                             </p>
@@ -268,16 +263,16 @@ export function AdvancedFold({
                                 describedBy="editor-max-snippet-hint"
                                 min={0}
                                 step={1}
-                                placeholder="No limit"
+                                placeholder={__('No limit')}
                                 disabled={noSnippet}
                             />
                             <p
                                 id="editor-max-snippet-hint"
-                                className="text-ink-2 text-xs"
+                                className="text-ink-2 text-caption"
                             >
                                 {maxSnippet.description}
                                 {noSnippet &&
-                                    ' Not used while “Don’t show a snippet” is ticked.'}
+                                    ` ${__('Not used while “Don’t show a snippet” is ticked.')}`}
                             </p>
                         </div>
                     )}
@@ -290,7 +285,7 @@ export function AdvancedFold({
                         />
                     )}
                 </div>
-            </CollapsibleContent>
-        </Collapsible>
+            </div>
+        </div>
     );
 }

@@ -1,5 +1,7 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { SelectField } from '@/components/ui/select-field';
+import { Textarea } from '@/components/ui/textarea';
+import { __ } from '@/lib/i18n';
 import { CardField, CardFrame, TextSetting } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
@@ -20,27 +22,25 @@ export function CodeCard({
 
     return (
         <CardFrame
-            label="Code"
+            label={__('Code')}
             selected={selected}
-            warning={code === '' ? { label: 'Needs code' } : null}
+            warning={code === '' ? { label: __('Needs code') } : null}
             onRemove={deleteNode}
             settings={
                 <CodeSettings attrs={node.attrs} update={updateAttributes} />
             }
         >
-            <textarea
-                aria-label="Code"
+            <Textarea
+                aria-label={__('Code')}
                 rows={4}
                 spellCheck={false}
                 value={code}
                 onChange={(event) =>
                     updateAttributes({ code: event.target.value })
                 }
-                className="bg-surface-2 focus-visible:ring-ring field-sizing-content w-full resize-none rounded-sm px-3 py-2 font-mono text-[13px] outline-none focus-visible:ring-2"
+                className="bg-surface-2 text-small field-sizing-content resize-none rounded-sm border-0 px-3 py-2 font-mono"
             />
-            {caption && (
-                <p className="text-ink-2 mt-1.5 text-[13px]">{caption}</p>
-            )}
+            {caption && <p className="text-ink-2 text-small mt-2">{caption}</p>}
         </CardFrame>
     );
 }
@@ -56,7 +56,7 @@ export function CodeSettings({
 
     return (
         <>
-            <CardField label="Language">
+            <CardField label={__('Language')}>
                 {(props) => (
                     <SelectField
                         {...props}
@@ -67,12 +67,12 @@ export function CodeSettings({
                             updateAttributes({ language })
                         }
                         options={optionsFor(manifest, 'snippet', 'language')}
-                        className="h-[34px] w-full max-w-48"
+                        className="h-8.5 w-full max-w-48"
                     />
                 )}
             </CardField>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={caption}
                 onChange={(next) => updateAttributes({ caption: next })}
             />

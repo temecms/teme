@@ -104,7 +104,6 @@ components/comments/quick-edit.tsx	Save changes
 components/comments/quick-edit.tsx	This comment has formatting, such as bold or a quote. If you change its text, it’s saved as plain text.
 components/comments/quick-edit.tsx	Website
 components/comments/quick-edit.tsx	https://example.com
-components/confirm-action.tsx	Cancel
 components/dashboard/dashboard-panel.tsx	See all
 components/dashboard/getting-started.tsx	Getting started
 components/dashboard/getting-started.tsx	Hide this
@@ -115,373 +114,16 @@ components/dashboard/quick-draft.tsx	Save draft
 components/dashboard/quick-draft.tsx	Title
 components/dashboard/quick-draft.tsx	What's it about?
 components/dashboard/site-figures.tsx	The site in figures
-components/editor/assistant/assistant-context.tsx	Undo
-components/editor/bubble-menu.tsx	Bold
-components/editor/bubble-menu.tsx	Highlight
-components/editor/bubble-menu.tsx	Inline code
-components/editor/bubble-menu.tsx	Italic
-components/editor/bubble-menu.tsx	Link
-components/editor/bubble-menu.tsx	Selection
-components/editor/bubble-menu.tsx	Strikethrough
-components/editor/bubble-menu.tsx	Underline
-components/editor/cards/audio-card.tsx	Audio
-components/editor/cards/audio-card.tsx	Caption
-components/editor/cards/audio-card.tsx	Choose an audio file from the library.
-components/editor/cards/audio-card.tsx	No transcript
-components/editor/cards/audio-card.tsx	This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.
-components/editor/cards/audio-card.tsx	This file isn’t audio, so the site shows nothing here. Replace it or remove the card.
-components/editor/cards/audio-card.tsx	Transcript
-components/editor/cards/audio-card.tsx	Transcript
-components/editor/cards/button-card.tsx	Button
-components/editor/cards/button-card.tsx	Button
-components/editor/cards/button-card.tsx	Label
-components/editor/cards/button-card.tsx	Leads nowhere yet
-components/editor/cards/button-card.tsx	Leads to an item on this site
-components/editor/cards/button-card.tsx	Link to something on this site
-components/editor/cards/button-card.tsx	Needs a destination
-components/editor/cards/button-card.tsx	Needs a label
-components/editor/cards/button-card.tsx	Or an address
-components/editor/cards/button-card.tsx	Search by title
-components/editor/cards/button-card.tsx	Style
-components/editor/cards/button-card.tsx	https://
-components/editor/cards/callout-card.tsx	Callout
-components/editor/cards/callout-card.tsx	Callout text
-components/editor/cards/callout-card.tsx	Needs text
-components/editor/cards/callout-card.tsx	Tone
-components/editor/cards/callout-card.tsx	What the reader should not miss
-components/editor/cards/card-frame.tsx	Close settings
-components/editor/cards/card-frame.tsx	Drag to move
-components/editor/cards/card-frame.tsx	Edit
-components/editor/cards/card-frame.tsx	Edit
-components/editor/cards/card-frame.tsx	Remove {}
-components/editor/cards/card-frame.tsx	Replace
-components/editor/cards/card-frame.tsx	Replace
-components/editor/cards/card-frame.tsx	{} card
-components/editor/cards/card-views.tsx	card
-components/editor/cards/code-card.tsx	Caption
-components/editor/cards/code-card.tsx	Code
-components/editor/cards/code-card.tsx	Code
-components/editor/cards/code-card.tsx	Language
-components/editor/cards/code-card.tsx	Needs code
-components/editor/cards/embed-card.tsx	Address
-components/editor/cards/embed-card.tsx	Caption
-components/editor/cards/embed-card.tsx	Embed
-components/editor/cards/embed-card.tsx	Kind
-components/editor/cards/embed-card.tsx	Needs an address
-components/editor/cards/embed-card.tsx	Paste the address of what to embed.
-components/editor/cards/embed-card.tsx	Title
-components/editor/cards/embed-card.tsx	framed on the site
-components/editor/cards/embed-card.tsx	https://
-components/editor/cards/embed-card.tsx	shown as a link
-components/editor/cards/gallery-card.tsx	Caption
-components/editor/cards/gallery-card.tsx	Choose two or more images from the library.
-components/editor/cards/gallery-card.tsx	Gallery
-components/editor/cards/gallery-card.tsx	Layout
-components/editor/cards/gallery-card.tsx	Needs two images
-components/editor/cards/gallery-card.tsx	These images are no longer in the library, so the site shows nothing here.
-components/editor/cards/gallery-card.tsx	of the images are no longer in the library and are left out.
-components/editor/cards/image-card.tsx	Alt missing
-components/editor/cards/image-card.tsx	Alt missing
-components/editor/cards/image-card.tsx	Alt text
-components/editor/cards/image-card.tsx	Caption
-components/editor/cards/image-card.tsx	Choose an image from the library.
-components/editor/cards/image-card.tsx	Credit
-components/editor/cards/image-card.tsx	Decorative: it adds nothing a reader would miss
-components/editor/cards/image-card.tsx	Image
-components/editor/cards/image-card.tsx	This image is no longer in the library, so the site shows nothing here. Replace it or remove the card.
-components/editor/cards/image-card.tsx	Width
-components/editor/cards/imported-content-card.tsx	A picture that is no longer in the library.
-components/editor/cards/imported-content-card.tsx	Convert to paragraphs
-components/editor/cards/imported-content-card.tsx	Convert to paragraphs gives you text to edit and loses the layout. Keep as it is leaves it as readers see it. Delete takes it out of the text. Each can be undone.
-components/editor/cards/imported-content-card.tsx	Delete
-components/editor/cards/imported-content-card.tsx	Delete imported content
-components/editor/cards/imported-content-card.tsx	Drag to move
-components/editor/cards/imported-content-card.tsx	Imported content
-components/editor/cards/imported-content-card.tsx	Imported content card
-components/editor/cards/imported-content-card.tsx	It holds what readers saw on the old site, cleaned, and can’t be edited here. Convert it to paragraphs to edit its words, keep it as it is, or delete it.
-components/editor/cards/imported-content-card.tsx	Keep as it is
-components/editor/cards/imported-content-card.tsx	Kept
-components/editor/cards/imported-content-card.tsx	Kept as readers see it. The import’s report no longer lists it.
-components/editor/cards/imported-content-card.tsx	Needs a decision
-components/editor/cards/imported-content-card.tsx	Preview of the imported content
-components/editor/cards/imported-content-card.tsx	What to do with this imported content
-components/editor/cards/video-card.tsx	A video holds up to 8 tracks.
-components/editor/cards/video-card.tsx	Add a track
-components/editor/cards/video-card.tsx	Caption
-components/editor/cards/video-card.tsx	Caption tracks
-components/editor/cards/video-card.tsx	Choose a video from the library.
-components/editor/cards/video-card.tsx	Choose poster
-components/editor/cards/video-card.tsx	For a short clip without sound, used like a moving picture.
-components/editor/cards/video-card.tsx	Kind
-components/editor/cards/video-card.tsx	Label
-components/editor/cards/video-card.tsx	Language
-components/editor/cards/video-card.tsx	Loop: play on its own, silently, again and again, with no controls
-components/editor/cards/video-card.tsx	Loops silently, with no controls.
-components/editor/cards/video-card.tsx	No captions
-components/editor/cards/video-card.tsx	On by default
-components/editor/cards/video-card.tsx	Poster
-components/editor/cards/video-card.tsx	Remove poster
-components/editor/cards/video-card.tsx	Remove track
-components/editor/cards/video-card.tsx	Remove track {}
-components/editor/cards/video-card.tsx	Replace poster
-components/editor/cards/video-card.tsx	The picture shown before it plays. Search engines list a video only when it has one.
-components/editor/cards/video-card.tsx	This file isn’t a video, so the site shows nothing here. Replace it or remove the card.
-components/editor/cards/video-card.tsx	This video is no longer in the library, so the site shows nothing here. Replace it or remove the card.
-components/editor/cards/video-card.tsx	Video
-components/editor/cards/video-card.tsx	WebVTT files (.vtt) from the library, so people who can’t hear the video can read it.
-components/editor/diff-view.tsx	After
-components/editor/diff-view.tsx	Before
-components/editor/diff-view.tsx	Both versions are empty.
-components/editor/editor-header.tsx	All panels
-components/editor/editor-header.tsx	Assistant
-components/editor/editor-header.tsx	Document overview
-components/editor/editor-header.tsx	Focus
-components/editor/editor-header.tsx	Hide settings
-components/editor/editor-header.tsx	Hide settings
-components/editor/editor-header.tsx	History
-components/editor/editor-header.tsx	Leave focus
-components/editor/editor-header.tsx	Panels
-components/editor/editor-header.tsx	Pin
-components/editor/editor-header.tsx	Share
-components/editor/editor-header.tsx	Show settings
-components/editor/editor-header.tsx	Show settings
-components/editor/editor-header.tsx	Unpin
-components/editor/editor-rail.tsx	, opens in a new tab
-components/editor/editor-rail.tsx	Approve
-components/editor/editor-rail.tsx	Approve and schedule
-components/editor/editor-rail.tsx	Approve and schedule…
-components/editor/editor-rail.tsx	Close {}
-components/editor/editor-rail.tsx	Compare with the published version
-components/editor/editor-rail.tsx	Date and time
-components/editor/editor-rail.tsx	Move to trash
-components/editor/editor-rail.tsx	Not now
-components/editor/editor-rail.tsx	Not now
-components/editor/editor-rail.tsx	Preview
-components/editor/editor-rail.tsx	Publish
-components/editor/editor-rail.tsx	Return
-components/editor/editor-rail.tsx	Return to the writer
-components/editor/editor-rail.tsx	Returned for changes
-components/editor/editor-rail.tsx	Save draft
-components/editor/editor-rail.tsx	Schedule
-components/editor/editor-rail.tsx	Schedule update
-components/editor/editor-rail.tsx	Submit for review
-components/editor/editor-rail.tsx	Submit update for review
-components/editor/editor-rail.tsx	Submitted
-components/editor/editor-rail.tsx	Update
-components/editor/editor-rail.tsx	Waiting for review. Submitted
-components/editor/editor-rail.tsx	What needs to change? The writer sees this.
-components/editor/editor-rail.tsx	a removed account
-components/editor/editor-rail.tsx	by
-components/editor/editor-shell.tsx	Resize the panel
-components/editor/editor-shell.tsx	The {}’s settings
-components/editor/fields/datetime-control.tsx	Date
-components/editor/fields/datetime-control.tsx	Time
-components/editor/fields/datetime-control.tsx	Times are in the site’s zone:
-components/editor/fields/details-section.tsx	Details
-components/editor/fields/details-section.tsx	Required
-components/editor/fields/details-section.tsx	What every
-components/editor/fields/details-section.tsx	records. Fields are set up in Site › Types ›
-components/editor/fields/entry-control.tsx	An item that no longer exists
-components/editor/fields/entry-control.tsx	Change
-components/editor/fields/entry-control.tsx	Find an item by its title…
-components/editor/fields/entry-control.tsx	No items match.
-components/editor/fields/entry-control.tsx	Remove
 components/editor/fields/media-control.tsx	Alt text for this
-components/editor/fields/media-control.tsx	Choose an image
-components/editor/fields/media-control.tsx	Decorative: it adds nothing a reader would miss
-components/editor/fields/media-control.tsx	Leave empty to use the library’s: “{}”.
-components/editor/fields/media-control.tsx	Missing
-components/editor/fields/media-control.tsx	Remove
-components/editor/fields/media-control.tsx	Replace…
-components/editor/fields/media-control.tsx	The library has no alt text for this image, so write one here.
-components/editor/fields/media-control.tsx	This image is no longer in the library.
-components/editor/link-popover.tsx	A post, page or other item, a category or tag, an author or a file. The link keeps working when its address changes.
-components/editor/link-popover.tsx	An address on another site, mailto: or tel:, a page on this site (/…) or a place on this page (#…).
-components/editor/link-popover.tsx	Apply
-components/editor/link-popover.tsx	Link to something on this site
-components/editor/link-popover.tsx	Or an address
-components/editor/link-popover.tsx	Remove link
 components/editor/link-popover.tsx	Search by title or name
-components/editor/link-popover.tsx	https://
-components/editor/meta-changes.tsx	Fields and categories
-components/editor/pasted-image-view.tsx	1 pasted image isn’t in the media library yet, so it isn’t saved until it is. Import it only if you have the right to use it.
-components/editor/pasted-image-view.tsx	Alt text: {}
-components/editor/pasted-image-view.tsx	An image from {}
-components/editor/pasted-image-view.tsx	Caption: {}
-components/editor/pasted-image-view.tsx	Import
-components/editor/pasted-image-view.tsx	Import
-components/editor/pasted-image-view.tsx	Import all
-components/editor/pasted-image-view.tsx	Importing…
-components/editor/pasted-image-view.tsx	Importing…
-components/editor/pasted-image-view.tsx	No alt text
-components/editor/pasted-image-view.tsx	Pasted image, not imported
-components/editor/pasted-image-view.tsx	Pasted images
-components/editor/pasted-image-view.tsx	Remove
-components/editor/pasted-image-view.tsx	Remove
-components/editor/pasted-image-view.tsx	Remove all
-components/editor/pasted-image-view.tsx	Try again
-components/editor/pasted-image-view.tsx	{} from {}
-components/editor/pasted-image-view.tsx	{} pasted images aren’t in the media library yet, so they aren’t saved until they are. Import them only if you have the right to use them.
-components/editor/presence-line.tsx	also editing.
-components/editor/presence-line.tsx	are
-components/editor/presence-line.tsx	is
-components/editor/publish-confirmation.tsx	, as it was just saved. Warnings don’t stop you.
-components/editor/publish-confirmation.tsx	Cancel
-components/editor/publish-confirmation.tsx	It publishes
-components/editor/publish-confirmation.tsx	The checks on this
-components/editor/rail/advanced-fold.tsx	Advanced
-components/editor/rail/advanced-fold.tsx	Default for its type ({})
-components/editor/rail/advanced-fold.tsx	Default for its type ({})
-components/editor/rail/advanced-fold.tsx	No limit
-components/editor/rail/advanced-fold.tsx	Not used while “Don’t show a snippet” is ticked.
-components/editor/rail/assistant-panel.tsx	Ask for a suggestion and it appears here. Nothing changes until you choose Use, and using a suggestion is one change you can undo.
-components/editor/rail/assistant-panel.tsx	Cancel
-components/editor/rail/assistant-panel.tsx	Change this in Settings › AI
-components/editor/rail/assistant-panel.tsx	Ctrl + J or ⌘ J opens and closes this pane.
-components/editor/rail/assistant-panel.tsx	Dismiss
-components/editor/rail/assistant-panel.tsx	Sent to
-components/editor/rail/assistant-panel.tsx	To rewrite text, select it within one paragraph and choose Rewrite in the menu that appears.
-components/editor/rail/assistant-panel.tsx	What you ask about is sent to
-components/editor/rail/assistant-panel.tsx	Working…
-components/editor/rail/canonical-choice.tsx	An address on another site
-components/editor/rail/canonical-choice.tsx	Another item on this site
 components/editor/rail/canonical-choice.tsx	Canonical address
-components/editor/rail/canonical-choice.tsx	Chosen:
-components/editor/rail/canonical-choice.tsx	Find the item that is the original
-components/editor/rail/canonical-choice.tsx	Nothing matches “
-components/editor/rail/canonical-choice.tsx	Search by title
-components/editor/rail/canonical-choice.tsx	The address of the original
-components/editor/rail/canonical-choice.tsx	The item chosen before is in the trash or was deleted, so this
-components/editor/rail/canonical-choice.tsx	The link follows it if its address changes.
-components/editor/rail/canonical-choice.tsx	This
 components/editor/rail/canonical-choice.tsx	Where the original of this
-components/editor/rail/canonical-choice.tsx	While it’s hidden from search engines, it has no canonical link.
-components/editor/rail/canonical-choice.tsx	https://example.com/original-story
 components/editor/rail/canonical-choice.tsx	lives, if it was first published elsewhere. Search engines are then asked to list the original instead.
-components/editor/rail/canonical-choice.tsx	until it is.
-components/editor/rail/canonical-choice.tsx	{}, not published
-components/editor/rail/canonical-choice.tsx	’s own address
-components/editor/rail/canonical-choice.tsx	’s own address is back in use. Choose another if you need one.
-components/editor/rail/canonical-choice.tsx	” isn’t published, so search engines are sent to this
-components/editor/rail/card-inspector.tsx	This card is edited in place.
-components/editor/rail/checks-panel.tsx	Checks
-components/editor/rail/checks-panel.tsx	Go to Search and social
-components/editor/rail/checks-panel.tsx	Search and social is under the
-components/editor/rail/checks-panel.tsx	passed
-components/editor/rail/checks-panel.tsx	warning
-components/editor/rail/document-panel.tsx	No headings yet.
-components/editor/rail/document-panel.tsx	Outline
-components/editor/rail/document-panel.tsx	Untitled heading
-components/editor/rail/document-panel.tsx	min read
-components/editor/rail/document-panel.tsx	skips a level
-components/editor/rail/document-panel.tsx	word
-components/editor/rail/document-panel.tsx	words
-components/editor/rail/fields-proposed.tsx	Discard
-components/editor/rail/fields-proposed.tsx	Show them
-components/editor/rail/fields-proposed.tsx	The proposals are under their fields.
-components/editor/rail/fields-proposed.tsx	There’s no field here for these proposals.
-components/editor/rail/history-panel.tsx	Compare with the version before
-components/editor/rail/history-panel.tsx	Current
-components/editor/rail/history-panel.tsx	Live
-components/editor/rail/history-panel.tsx	Load older
-components/editor/rail/history-panel.tsx	Loading…
-components/editor/rail/history-panel.tsx	{}, in AI activity
-components/editor/rail/metadata-proposal.tsx	Proposed {}
-components/editor/rail/metadata-proposal.tsx	Proposed:
-components/editor/rail/metadata-proposal.tsx	Use
-components/editor/rail/metadata-proposal.tsx	Use the proposed {}
-components/editor/rail/metadata-proposal.tsx	Using…
-components/editor/rail/primary-category.tsx	First ticked: {}
-components/editor/rail/publish-panel.tsx	1 revision
-components/editor/rail/publish-panel.tsx	Address
-components/editor/rail/publish-panel.tsx	Address
-components/editor/rail/publish-panel.tsx	Author
-components/editor/rail/publish-panel.tsx	Author
-components/editor/rail/publish-panel.tsx	Change address
-components/editor/rail/publish-panel.tsx	Change password
 components/editor/rail/publish-panel.tsx	Default
-components/editor/rail/publish-panel.tsx	Discussion
-components/editor/rail/publish-panel.tsx	Discussion
-components/editor/rail/publish-panel.tsx	Give it to the people who should read this {}. Changing it asks everyone for the new one.
 components/editor/rail/publish-panel.tsx	History
-components/editor/rail/publish-panel.tsx	Its password can’t be read on this server, so nobody can open the {}. Set a new one.
-components/editor/rail/publish-panel.tsx	Nobody
-components/editor/rail/publish-panel.tsx	Nobody
-components/editor/rail/publish-panel.tsx	Not yet
-components/editor/rail/publish-panel.tsx	Password
-components/editor/rail/publish-panel.tsx	Password protected
-components/editor/rail/publish-panel.tsx	Private
-components/editor/rail/publish-panel.tsx	Protect with this password
-components/editor/rail/publish-panel.tsx	Public
-components/editor/rail/publish-panel.tsx	Publish
-components/editor/rail/publish-panel.tsx	Published
-components/editor/rail/publish-panel.tsx	Status
-components/editor/rail/publish-panel.tsx	Template
-components/editor/rail/publish-panel.tsx	Template
-components/editor/rail/publish-panel.tsx	View on site
-components/editor/rail/publish-panel.tsx	Visibility
-components/editor/rail/publish-panel.tsx	Visibility
-components/editor/rail/publish-panel.tsx	Whoever publishes it sets this.
-components/editor/rail/publish-panel.tsx	Whoever publishes it sets this.
-components/editor/rail/publish-panel.tsx	{} revisions
-components/editor/rail/publish-when.tsx	After review
 components/editor/rail/publish-when.tsx	At a set time…
-components/editor/rail/publish-when.tsx	Cancel
-components/editor/rail/publish-when.tsx	Date and time
-components/editor/rail/publish-when.tsx	Held: {}. It publishes nothing until someone who may publish reschedules it.
 components/editor/rail/publish-when.tsx	Immediately
-components/editor/rail/publish-when.tsx	Not now
-components/editor/rail/publish-when.tsx	Reschedule…
-components/editor/rail/publish-when.tsx	Scheduled for {}
-components/editor/rail/publish-when.tsx	The publication scheduled for {} failed: {}
-components/editor/rail/publish-when.tsx	When you approve it
-components/editor/rail/publish-when.tsx	the scheduled publication
-components/editor/rail/publish-when.tsx	the scheduled update
-components/editor/rail/search-panel.tsx	Asks search engines not to list this
-components/editor/rail/search-panel.tsx	Done
-components/editor/rail/search-panel.tsx	Edit
-components/editor/rail/search-panel.tsx	Every check is in the side panel.
-components/editor/rail/search-panel.tsx	Every check is in the side panel.
-components/editor/rail/search-panel.tsx	How this
-components/editor/rail/search-panel.tsx	Leave empty and search engines choose their own.
-components/editor/rail/search-panel.tsx	Leave empty to use the excerpt, or else the site’s tagline.
-components/editor/rail/search-panel.tsx	Leave empty to use the excerpt.
-components/editor/rail/search-panel.tsx	Leave empty to use the home page’s title template.
-components/editor/rail/search-panel.tsx	Leave empty to use the meta description, or else the excerpt.
-components/editor/rail/search-panel.tsx	Leave empty to use the title template for {}.
-components/editor/rail/search-panel.tsx	Passed
-components/editor/rail/search-panel.tsx	Search
-components/editor/rail/search-panel.tsx	Search and social
-components/editor/rail/search-panel.tsx	Social
-components/editor/rail/search-panel.tsx	The summary search engines may show under the title.
-components/editor/rail/search-panel.tsx	The title on the card when it’s shared. Leave empty to use the SEO title, or else the title.
-components/editor/rail/search-panel.tsx	The title search engines show, exactly as you type it.
-components/editor/rail/search-panel.tsx	Warning
-components/editor/rail/search-panel.tsx	appears in search results and when it’s shared.
-components/editor/rail/search-panel.tsx	search and social
-components/editor/rail/search-panel.tsx	with search and social
-components/editor/rail/search-previews.tsx	, with {}.
-components/editor/rail/search-previews.tsx	Made from
-components/editor/rail/search-previews.tsx	No description. Search engines will pick text from the page.
-components/editor/rail/search-previews.tsx	No image
-components/editor/rail/search-previews.tsx	Previews
-components/editor/rail/search-previews.tsx	Search result
-components/editor/rail/search-previews.tsx	Social card
-components/editor/rail/search-previews.tsx	the {}’s title
-components/editor/rail/social-image.tsx	Choose an image
-components/editor/rail/social-image.tsx	No image.
-components/editor/rail/social-image.tsx	Remove
-components/editor/rail/social-image.tsx	Replace
-components/editor/rail/social-image.tsx	This image is no longer in the library.
-components/editor/rail/suggest-metadata.tsx	Discard
-components/editor/rail/suggest-metadata.tsx	Search and social
-components/editor/rail/suggest-metadata.tsx	Use all
 components/editor/rail/template-choice.ts	{} (not in this theme)
-components/editor/rail/use-metadata.ts	Undo
-components/editor/restore-button.tsx	Restore
-components/editor/restore-button.tsx	Restore this version?
-components/editor/restore-button.tsx	This adds a new revision with the text from {}. Nothing is published and nothing is deleted.
-components/editor/rewrite/rewrite-menu.tsx	Rewrite
 components/editor/rewrite/rewrite-presets.ts	Fix spelling and grammar
 components/editor/rewrite/rewrite-presets.ts	Improve
 components/editor/rewrite/rewrite-presets.ts	Longer
@@ -489,110 +131,9 @@ components/editor/rewrite/rewrite-presets.ts	More casual
 components/editor/rewrite/rewrite-presets.ts	More formal
 components/editor/rewrite/rewrite-presets.ts	Shorter
 components/editor/rewrite/rewrite-presets.ts	Simpler
-components/editor/schedule-control.tsx	Next Monday
 components/editor/schedule-control.tsx	Quick choices
-components/editor/schedule-control.tsx	This evening
-components/editor/schedule-control.tsx	Times are in the site’s zone:
-components/editor/schedule-control.tsx	Tomorrow morning
-components/editor/schema.ts	Write something…
-components/editor/share-panel.tsx	Copied
-components/editor/share-panel.tsx	Copy
-components/editor/share-panel.tsx	Copy it now: it will not be shown again.
-components/editor/share-panel.tsx	Expired {}
-components/editor/share-panel.tsx	Made by
-components/editor/share-panel.tsx	Make a preview link
-components/editor/share-panel.tsx	Making…
 components/editor/share-panel.tsx	Preview links
-components/editor/share-panel.tsx	Revoke
-components/editor/share-panel.tsx	Revoked {}
-components/editor/share-panel.tsx	The new preview link
-components/editor/share-panel.tsx	Works until {}
-components/editor/share-panel.tsx	a removed account
-components/editor/share-panel.tsx	the link made
-components/editor/slash-menu.tsx	Bulleted list
-components/editor/slash-menu.tsx	Code block
-components/editor/slash-menu.tsx	Heading 2
-components/editor/slash-menu.tsx	Heading 3
-components/editor/slash-menu.tsx	Heading 4
-components/editor/slash-menu.tsx	Horizontal rule
-components/editor/slash-menu.tsx	Insert
-components/editor/slash-menu.tsx	Numbered list
-components/editor/slash-menu.tsx	Paragraph
-components/editor/slash-menu.tsx	Quote
-components/editor/slash-menu.tsx	Table
-components/editor/slash-menu.tsx	Task list
-components/editor/stale-dialog.tsx	, so your changes were not saved over it. Your work is still here, on this page.
-components/editor/stale-dialog.tsx	Copied
-components/editor/stale-dialog.tsx	Copy my text
-components/editor/stale-dialog.tsx	Copy my text
-components/editor/stale-dialog.tsx	Open the current version
-components/editor/stale-dialog.tsx	Open the current version
-components/editor/stale-dialog.tsx	Save mine as a new draft
-components/editor/stale-dialog.tsx	Save mine as a new draft
-components/editor/stale-dialog.tsx	Someone
 components/editor/stale-dialog.tsx	Someone else changed this {}
-components/editor/stale-dialog.tsx	keeps everything you have here in a draft of its own.
-components/editor/stale-dialog.tsx	on {}
-components/editor/stale-dialog.tsx	puts your words on the clipboard.
-components/editor/stale-dialog.tsx	saved a new version
-components/editor/stale-dialog.tsx	shows theirs, and your unsaved changes here are lost.
-components/editor/status-chip.tsx	Status:
-components/editor/toolbar.tsx	A line across the column, between two parts of the text.
-components/editor/toolbar.tsx	Aa
-components/editor/toolbar.tsx	Alignment
-components/editor/toolbar.tsx	Block type
-components/editor/toolbar.tsx	Bold
-components/editor/toolbar.tsx	Bulleted list
-components/editor/toolbar.tsx	Bulleted list
-components/editor/toolbar.tsx	Centre
-components/editor/toolbar.tsx	Clear formatting
-components/editor/toolbar.tsx	Code block
-components/editor/toolbar.tsx	Default alignment
-components/editor/toolbar.tsx	Delete table
-components/editor/toolbar.tsx	Delete table
-components/editor/toolbar.tsx	Filter
-components/editor/toolbar.tsx	Filter what to insert
-components/editor/toolbar.tsx	Formatting
-components/editor/toolbar.tsx	Heading 2
-components/editor/toolbar.tsx	Heading 3
-components/editor/toolbar.tsx	Heading 4
-components/editor/toolbar.tsx	Highlight
-components/editor/toolbar.tsx	Horizontal rule
-components/editor/toolbar.tsx	Inline code
-components/editor/toolbar.tsx	Insert
-components/editor/toolbar.tsx	Insert a table
-components/editor/toolbar.tsx	Italic
-components/editor/toolbar.tsx	Justified
-components/editor/toolbar.tsx	Left
-components/editor/toolbar.tsx	Link
-components/editor/toolbar.tsx	More
-components/editor/toolbar.tsx	More
-components/editor/toolbar.tsx	More
-components/editor/toolbar.tsx	Nothing matches.
-components/editor/toolbar.tsx	Numbered list
-components/editor/toolbar.tsx	Numbered list
-components/editor/toolbar.tsx	Paragraph
-components/editor/toolbar.tsx	Quote
-components/editor/toolbar.tsx	Quote
-components/editor/toolbar.tsx	Quote
-components/editor/toolbar.tsx	Redo
-components/editor/toolbar.tsx	Redo
-components/editor/toolbar.tsx	Right
-components/editor/toolbar.tsx	Strikethrough
-components/editor/toolbar.tsx	Strikethrough
-components/editor/toolbar.tsx	Subscript
-components/editor/toolbar.tsx	Superscript
-components/editor/toolbar.tsx	Table
-components/editor/toolbar.tsx	Task list
-components/editor/toolbar.tsx	Task list
-components/editor/toolbar.tsx	Text
-components/editor/toolbar.tsx	Text: alignment, highlight and more
-components/editor/toolbar.tsx	Text: alignment, highlight and more
-components/editor/toolbar.tsx	Underline
-components/editor/toolbar.tsx	Underline
-components/editor/toolbar.tsx	Undo
-components/editor/toolbar.tsx	Undo
-components/editor/use-search-preview.ts	Untitled
 components/fields/brand-colour-setting.tsx	Brand colour
 components/fields/brand-colour-setting.tsx	Brand colour
 components/fields/brand-colour-setting.tsx	Only someone who may change the site’s design can change the brand colour.
@@ -661,8 +202,6 @@ components/inbox/inbox-list.tsx	Inbox items
 components/inbox/inbox-list.tsx	Nothing new
 components/inbox/inbox-list.tsx	Results of imports and other background work arrive here.
 components/jobs/job-progress.tsx	Progress of {}
-components/list/bulk-bar.tsx	Bulk actions
-components/list/bulk-bar.tsx	Clear selection
 components/list/bulk-edit-dialog.tsx	A dash means some of them have it. Click to add it to all, again to remove it from all, and again to leave each as it was.
 components/list/bulk-edit-dialog.tsx	Added to every item. The ones they have stay.
 components/list/bulk-edit-dialog.tsx	Apply to
@@ -681,40 +220,11 @@ components/list/bulk-edit-dialog.tsx	— No change —
 components/list/bulk-edit-dialog.tsx	— No change —
 components/list/bulk-edit-dialog.tsx	— No change —
 components/list/confirm-items.tsx	Cancel
-components/list/date-filter.tsx	All dates
-components/list/date-filter.tsx	Apply dates
-components/list/date-filter.tsx	Back
-components/list/date-filter.tsx	By date published.
-components/list/date-filter.tsx	By date published. Leave To empty for “since”.
-components/list/date-filter.tsx	By last update. Leave To empty for “since”.
-components/list/date-filter.tsx	By last update. On the Published tab, by date published.
-components/list/date-filter.tsx	Choose dates
-components/list/date-filter.tsx	Choose dates…
-components/list/date-filter.tsx	Date
-components/list/date-filter.tsx	Date:
-components/list/date-filter.tsx	From
-components/list/date-filter.tsx	To
 components/list/empty-state.tsx	Clear filters
 components/list/pager.tsx	Pages
 components/list/row-actions.tsx	, opens in a new tab
 components/list/row-actions.tsx	More
 components/list/row-links.tsx	, opens in a new tab
-components/list/screen-options.tsx	Apply
-components/list/screen-options.tsx	Columns
-components/list/screen-options.tsx	Couldn't save. Try again in a moment.
-components/list/screen-options.tsx	Rows per page
-components/list/screen-options.tsx	Saved to your preferences
-components/list/screen-options.tsx	Screen options
-components/list/screen-options.tsx	Screen options
-components/list/screen-options.tsx	Screen options
-components/list/screen-options.tsx	What this list shows for you. Other people keep their own choices.
-components/list/select-all-matching.tsx	All their revisions go with them. This can’t be undone. It runs in the background, one {} at a time, and any you may not change are skipped.
-components/list/select-all-matching.tsx	Cancel
-components/list/select-all-matching.tsx	Delete all {} permanently?
-components/list/select-all-matching.tsx	Move all {} to the trash?
-components/list/select-all-matching.tsx	Restore all {}?
-components/list/select-all-matching.tsx	Select all {}
-components/list/select-all-matching.tsx	{} {} You can restore them from the trash.
 components/nav-main.tsx	Main
 components/navigation/add-item-panel.tsx	A link to the front page of the site. The label starts as “Home”.
 components/navigation/add-item-panel.tsx	Add
@@ -774,15 +284,6 @@ components/palette/palette-commands.ts	Start a new {} in the editor
 components/palette/palette-commands.ts	Suggest alt text for this image
 components/palette/palette-commands.ts	Suggest metadata for this post
 components/palette/palette-commands.ts	Upload files
-components/personalise-menu-dialog.tsx	Changes apply to your menu only. Pin up to
-components/personalise-menu-dialog.tsx	Move {} down
-components/personalise-menu-dialog.tsx	Move {} up
-components/personalise-menu-dialog.tsx	Pin
-components/personalise-menu-dialog.tsx	Pinned
-components/personalise-menu-dialog.tsx	Reset to default
-components/personalise-menu-dialog.tsx	Save
-components/personalise-menu-dialog.tsx	Show {}
-components/personalise-menu-dialog.tsx	entries to the top. Hidden entries stay in search (Ctrl K).
 components/seo/who-publishes.tsx	Leave these empty unless another organization owns this one.
 components/seo/who-publishes.tsx	One place. A business with several needs a plugin that describes each one.
 components/seo/who-publishes.tsx	Owned by
@@ -884,10 +385,6 @@ components/ui/sidebar.tsx	The menu for every admin screen.
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
-components/user-menu-content.tsx	Preferences
-components/user-menu-content.tsx	Profile
-components/user-menu-content.tsx	Security
-components/user-menu-content.tsx	Sign out
 layouts/settings/layout.tsx	Clear
 layouts/settings/layout.tsx	Find a setting
 layouts/settings/layout.tsx	Find a setting, e.g. time zone
@@ -900,161 +397,6 @@ layouts/settings/layout.tsx	{} for “{}”
 lib/discussion.ts	Closed
 lib/discussion.ts	Hidden
 lib/discussion.ts	Open
-pages/comments/index.tsx	Actions for the comment by {}
-pages/comments/index.tsx	Approve
-pages/comments/index.tsx	Approve
-pages/comments/index.tsx	Approve
-pages/comments/index.tsx	Clear filters
-pages/comments/index.tsx	Comments
-pages/comments/index.tsx	Comments
-pages/comments/index.tsx	Delete permanently
-pages/comments/index.tsx	Details
-pages/comments/index.tsx	Empty spam
-pages/comments/index.tsx	Empty trash
-pages/comments/index.tsx	In reply to a removed comment
-pages/comments/index.tsx	In reply to {}
-pages/comments/index.tsx	Keyboard:
-pages/comments/index.tsx	Mark as not spam
-pages/comments/index.tsx	Mark as not spam
-pages/comments/index.tsx	Mark as spam
-pages/comments/index.tsx	Mark as spam
-pages/comments/index.tsx	Mark as spam
-pages/comments/index.tsx	Move to trash
-pages/comments/index.tsx	No approved comments
-pages/comments/index.tsx	No comments match these filters
-pages/comments/index.tsx	No comments match “{}”
-pages/comments/index.tsx	No comments yet
-pages/comments/index.tsx	No spam
-pages/comments/index.tsx	Nothing is waiting
-pages/comments/index.tsx	On “{}”
-pages/comments/index.tsx	Pending
-pages/comments/index.tsx	Quick edit
-pages/comments/index.tsx	Reply
-pages/comments/index.tsx	Restore
-pages/comments/index.tsx	Restore
-pages/comments/index.tsx	Search
-pages/comments/index.tsx	Search comments
-pages/comments/index.tsx	Select all {} comments shown
-pages/comments/index.tsx	Select the 1 comment shown
-pages/comments/index.tsx	Select the comment by {}
-pages/comments/index.tsx	Show comments on every item
-pages/comments/index.tsx	Text, name or email
-pages/comments/index.tsx	Text, name, email or IP address
-pages/comments/index.tsx	The trash is empty
-pages/comments/index.tsx	Unapprove
-pages/comments/index.tsx	Unapprove
-pages/comments/index.tsx	Unapprove
-pages/comments/index.tsx	Views
-pages/comments/off.tsx	Comments are switched off
-pages/comments/off.tsx	Comments are switched off
-pages/comments/off.tsx	Go to Home
-pages/comments/off.tsx	Switch comments on
-pages/comments/off.tsx	This site takes no comments, so there’s nothing to moderate. Comments already stored are kept.
-pages/comments/refused.tsx	Comments
-pages/comments/refused.tsx	Comments
-pages/content/compare.tsx	After
-pages/content/compare.tsx	Back to the editor
-pages/content/compare.tsx	Before
-pages/content/compare.tsx	Compare
-pages/content/compare.tsx	Compare versions of “{}”
-pages/content/compare.tsx	Compare: {}
-pages/content/compare.tsx	Restore the {} version
-pages/content/compare.tsx	What changed between two revisions. Nothing here changes the article.
-pages/content/edit.tsx	Assistant
-pages/content/edit.tsx	Body
-pages/content/edit.tsx	Document overview
-pages/content/edit.tsx	Edit:
-pages/content/edit.tsx	Edit: {}
-pages/content/edit.tsx	Every saved version
-pages/content/edit.tsx	Hide or show everything but the writing
-pages/content/edit.tsx	History
-pages/content/edit.tsx	Open history
-pages/content/edit.tsx	Region: {}
-pages/content/edit.tsx	Region: {}, used by {}
-pages/content/edit.tsx	Share
-pages/content/edit.tsx	The connection failed. Try again.
-pages/content/edit.tsx	Title
-pages/content/edit.tsx	Toggle focus mode
-pages/content/edit.tsx	Untitled
-pages/content/edit.tsx	Untitled
-pages/content/index.tsx	. Select them and try again.
-pages/content/index.tsx	; {} not changed
-pages/content/index.tsx	Actions for {}
-pages/content/index.tsx	Add new
-pages/content/index.tsx	Add new
-pages/content/index.tsx	Add new {}
-pages/content/index.tsx	Address
-pages/content/index.tsx	All authors
-pages/content/index.tsx	All their revisions go with them. This can’t be undone.
-pages/content/index.tsx	All {}
-pages/content/index.tsx	Alt text for this
-pages/content/index.tsx	Approve
-pages/content/index.tsx	Author
-pages/content/index.tsx	Author
-pages/content/index.tsx	Cancel
-pages/content/index.tsx	Change…
-pages/content/index.tsx	Changing a published address takes effect at once, and the old one stops working.
-pages/content/index.tsx	Choose…
-pages/content/index.tsx	Clear filters
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete permanently
-pages/content/index.tsx	Delete {} {} permanently?
-pages/content/index.tsx	Delete “{}” permanently?
-pages/content/index.tsx	Delete “{}” permanently?
-pages/content/index.tsx	Discussion
-pages/content/index.tsx	Edit
-pages/content/index.tsx	Edit…
-pages/content/index.tsx	Everything of this kind on the site. A filtered list shows no total.
-pages/content/index.tsx	Failed
-pages/content/index.tsx	Featured image
-pages/content/index.tsx	Featured image
-pages/content/index.tsx	Featured image
-pages/content/index.tsx	Held
-pages/content/index.tsx	In text
-pages/content/index.tsx	In titles
-pages/content/index.tsx	Last modified
-pages/content/index.tsx	Leave empty to use the image's own
-pages/content/index.tsx	Move to trash
-pages/content/index.tsx	No featured image
-pages/content/index.tsx	No {} here yet
-pages/content/index.tsx	No {} match these filters
-pages/content/index.tsx	None
-pages/content/index.tsx	Preview
-pages/content/index.tsx	Published
-pages/content/index.tsx	Published
-pages/content/index.tsx	Published text only
-pages/content/index.tsx	Quick edit
-pages/content/index.tsx	Quick edit
-pages/content/index.tsx	Remove
-pages/content/index.tsx	Remove the filter: {}
-pages/content/index.tsx	Remove the filter: {}
-pages/content/index.tsx	Restore
-pages/content/index.tsx	Save
-pages/content/index.tsx	Search in
-pages/content/index.tsx	Search text
-pages/content/index.tsx	Search text
-pages/content/index.tsx	Search titles
-pages/content/index.tsx	Search titles
-pages/content/index.tsx	Select all on this page
-pages/content/index.tsx	Select {}
-pages/content/index.tsx	Skipped:
-pages/content/index.tsx	Something went wrong, so these weren’t changed:
-pages/content/index.tsx	Status
-pages/content/index.tsx	Submitted
-pages/content/index.tsx	The trash is empty
-pages/content/index.tsx	Title
-pages/content/index.tsx	View
-pages/content/index.tsx	Whoever publishes it sets this.
-pages/content/index.tsx	a removed account
-pages/content/index.tsx	by
-pages/content/index.tsx	changed;
-pages/content/index.tsx	changed;
-pages/content/index.tsx	skipped
-pages/content/index.tsx	skipped:
-pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
-pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
 pages/dashboard.tsx	Home
 pages/dashboard.tsx	Home
 pages/dashboard.tsx	Home
@@ -1333,33 +675,6 @@ pages/taxonomies/show.tsx	genre
 pages/taxonomies/show.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	picker, and a
 pages/taxonomies/show.tsx	’s page lists their items. The same choice as each type’s Taxonomies, on Site › Types.
-pages/terms/index.tsx	, under {}
-pages/terms/index.tsx	Actions for {}
-pages/terms/index.tsx	Add
-pages/terms/index.tsx	Address
-pages/terms/index.tsx	Cancel
-pages/terms/index.tsx	Delete
-pages/terms/index.tsx	Delete {}
-pages/terms/index.tsx	Delete “{}”?
-pages/terms/index.tsx	Description
-pages/terms/index.tsx	Edit
-pages/terms/index.tsx	Edit
-pages/terms/index.tsx	Find a {} by name
-pages/terms/index.tsx	Kind
-pages/terms/index.tsx	Name
-pages/terms/index.tsx	New
-pages/terms/index.tsx	No {} start with “{}”
-pages/terms/index.tsx	No {} yet
-pages/terms/index.tsx	None
-pages/terms/index.tsx	Parent
-pages/terms/index.tsx	Save
-pages/terms/index.tsx	Search
-pages/terms/index.tsx	Search
-pages/terms/index.tsx	Set up
-pages/terms/index.tsx	Some themes show it on the {}’s page, and search engines may show it in results.
-pages/terms/index.tsx	The last part of its address. Leave it empty to make one from the name.
-pages/terms/index.tsx	Use the form to add the first one.
-pages/terms/index.tsx	{} in {}
 pages/themes/index.tsx	How the public site looks. A theme draws the site; it adds no features of its own.
 pages/themes/index.tsx	Open Settings › General
 pages/themes/index.tsx	Saved as a draft.

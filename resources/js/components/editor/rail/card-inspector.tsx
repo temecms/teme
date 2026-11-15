@@ -1,6 +1,7 @@
 import type { Editor } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
 import { useEditorState } from '@tiptap/react';
+import { __ } from '@/lib/i18n';
 import type { CardManifestEntry } from '@/types';
 import { cardSettings } from '../cards/card-views';
 
@@ -39,7 +40,7 @@ export function CardInspector({
     return (
         <div className="grid gap-3 p-4">
             {entry && (
-                <p className="text-ink-2 text-[13px]">{entry.description}</p>
+                <p className="text-ink-2 text-small">{entry.description}</p>
             )}
             {Settings ? (
                 <Settings
@@ -52,8 +53,8 @@ export function CardInspector({
                     }
                 />
             ) : (
-                <p className="text-ink-2 text-[13px]">
-                    This card is edited in place.
+                <p className="text-ink-2 text-small">
+                    {__('This card is edited in place.')}
                 </p>
             )}
         </div>

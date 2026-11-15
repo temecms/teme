@@ -1,13 +1,13 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { useId, useRef, useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import { CardField, CardFrame, TextSetting } from './card-frame';
-import { useCardEnvironment } from './card-environment';
+import { useCardEnvironment, useUploadTarget } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 import {
     MOST_TRACKS,
@@ -19,6 +19,8 @@ import {
     tracksOf,
 } from './media-file';
 import type { CaptionTrack, PlayableMedia, TrackKind } from './media-file';
+import { useMediaPicker } from '../pick-media';
+import type { MediaPickerOptions } from '../pick-media';
 
 type VideoAttrs = {
     mediaId: string | null;
@@ -30,14 +32,17 @@ type VideoAttrs = {
     tracks: unknown;
 };
 
-const KIND_LABELS: Record<TrackKind, string> = {
-    captions: 'Captions',
-    subtitles: 'Subtitles',
-    descriptions: 'Descriptions',
-    chapters: 'Chapters',
-};
+/** The words for each kind of track, looked up while drawing. */
+function kindLabels(): Record<TrackKind, string> {
+    return {
+        captions: __('Captions'),
+        subtitles: __('Subtitles'),
+        descriptions: __('Descriptions'),
+        chapters: __('Chapters'),
+    };
+}
 
-const MUTED = 'text-ink-2 mt-1.5 text-[13px]';
+const MUTED = 'text-ink-2 mt-2 text-small';
 
 /**
  * A video card as it will play: the file with its poster and size, the
@@ -56,10 +61,33 @@ export function VideoCard({
         ? (media[attrs.mediaId] as PlayableMedia | undefined)
         : undefined;
     const poster = attrs.posterMediaId ? media[attrs.posterMediaId] : undefined;
-    const [choosing, setChoosing] = useState(!attrs.mediaId);
-    const chose = useRef(false);
     // Set when a file is chosen here, so its size is read once it loads.
     const measuring = useRef(false);
+    const uploadedFor = useUploadTarget();
+    const pick = (replacing: boolean): MediaPickerOptions => ({
+        caller: 'choose',
+        multi: false,
+        kinds: ['video'],
+        action: replacing ? __('Replace video') : __('Insert video'),
+        uploadedFor,
+        onInsert: (ids) => {
+            // The same file again: its size is already kept, and no new load would read it.
+            if (ids[0] === attrs.mediaId) {
+                return;
+            }
+
+            measuring.current = true;
+            void addMedia(ids);
+            updateAttributes({
+                mediaId: ids[0],
+                videoWidth: null,
+                videoHeight: null,
+            });
+        },
+        // A new card closed without a choice is removed.
+        onClose: replacing ? undefined : deleteNode,
+    });
+    const { open, picker } = useMediaPicker(attrs.mediaId ? null : pick(false));
     const loop = attrs.loop === true;
     const noCaptions =
         item !== undefined && !loop && tracksOf(attrs.tracks).length === 0;
@@ -67,11 +95,11 @@ export function VideoCard({
     return (
         <>
             <CardFrame
-                label="Video"
+                label={__('Video')}
                 selected={selected}
-                warning={noCaptions ? { label: 'No captions' } : null}
-                onReplace={() => setChoosing(true)}
-                replaceLabel="Replace video"
+                warning={noCaptions ? { label: __('No captions') } : null}
+                onReplace={() => open(pick(attrs.mediaId !== null))}
+                replaceLabel={__('Replace video')}
                 onRemove={deleteNode}
                 settings={
                     <VideoSettings
@@ -110,7 +138,7 @@ export function VideoCard({
                         />
                         {loop && (
                             <p className={MUTED}>
-                                Loops silently, with no controls.
+                                {__('Loops silently, with no controls.')}
                             </p>
                         )}
                         {attrs.caption && (
@@ -120,53 +148,27 @@ export function VideoCard({
                         )}
                     </figure>
                 ) : item ? (
-                    <p className="text-ink-2 text-[13px]">
-                        This file isn’t a video, so the site shows nothing here.
-                        Replace it or remove the card.
+                    <p className="text-ink-2 text-small">
+                        {__(
+                            'This file isn’t a video, so the site shows nothing here. Replace it or remove the card.',
+                        )}
                     </p>
                 ) : attrs.mediaId && loading.includes(attrs.mediaId) ? (
                     <div
                         aria-busy="true"
-                        className="bg-surface-2 aspect-video w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 aspect-video w-full rounded-sm motion-safe:animate-pulse"
                     />
                 ) : (
-                    <p className="text-ink-2 text-[13px]">
+                    <p className="text-ink-2 text-small">
                         {attrs.mediaId
-                            ? 'This video is no longer in the library, so the site shows nothing here. Replace it or remove the card.'
-                            : 'Choose a video from the library.'}
+                            ? __(
+                                  'This video is no longer in the library, so the site shows nothing here. Replace it or remove the card.',
+                              )
+                            : __('Choose a video from the library.')}
                     </p>
                 )}
             </CardFrame>
-            <MediaModal
-                open={choosing}
-                onOpenChange={(open) => {
-                    setChoosing(open);
-
-                    if (!open && !chose.current && !attrs.mediaId) {
-                        deleteNode();
-                    }
-
-                    chose.current = false;
-                }}
-                kinds={['video']}
-                action={attrs.mediaId ? 'Replace video' : 'Insert video'}
-                onChoose={(ids) => {
-                    chose.current = true;
-
-                    // The same file again: its size is already kept, and no new load would read it.
-                    if (ids[0] === attrs.mediaId) {
-                        return;
-                    }
-
-                    measuring.current = true;
-                    void addMedia(ids);
-                    updateAttributes({
-                        mediaId: ids[0],
-                        videoWidth: null,
-                        videoHeight: null,
-                    });
-                }}
-            />
+            {picker}
         </>
     );
 }
@@ -174,11 +176,11 @@ export function VideoCard({
 /** A video card's settings, in the card's panel or the rail's inspector. */
 export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
     const { media, addMedia } = useCardEnvironment();
+    const uploadedFor = useUploadTarget();
+    const { open, picker } = useMediaPicker();
     const attrs = raw as VideoAttrs;
     const tracks = tracksOf(attrs.tracks);
     const poster = attrs.posterMediaId ? media[attrs.posterMediaId] : undefined;
-    const [choosingPoster, setChoosingPoster] = useState(false);
-    const [choosingTrack, setChoosingTrack] = useState(false);
     const [refusal, setRefusal] = useState<string | null>(null);
     const id = useId();
 
@@ -201,16 +203,16 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
     return (
         <>
             <div
-                className="grid gap-1.5"
+                className="grid gap-2"
                 role="group"
                 aria-labelledby={`${id}-poster`}
                 aria-describedby={`${id}-poster-hint`}
             >
                 <span
                     id={`${id}-poster`}
-                    className="text-sm leading-none font-medium"
+                    className="text-small leading-none font-medium"
                 >
-                    Poster
+                    {__('Poster')}
                 </span>
                 {poster && (
                     <img
@@ -224,11 +226,23 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setChoosingPoster(true)}
+                        onClick={() =>
+                            open({
+                                caller: 'choose',
+                                multi: false,
+                                kinds: ['image'],
+                                action: __('Use as poster'),
+                                uploadedFor,
+                                onInsert: (ids) => {
+                                    void addMedia(ids);
+                                    update({ posterMediaId: ids[0] });
+                                },
+                            })
+                        }
                     >
                         {attrs.posterMediaId
-                            ? 'Replace poster'
-                            : 'Choose poster'}
+                            ? __('Replace poster')
+                            : __('Choose poster')}
                     </Button>
                     {attrs.posterMediaId && (
                         <Button
@@ -237,21 +251,22 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                             size="sm"
                             onClick={() => update({ posterMediaId: null })}
                         >
-                            Remove poster
+                            {__('Remove poster')}
                         </Button>
                     )}
                 </div>
-                <p id={`${id}-poster-hint`} className="text-ink-2 text-xs">
-                    The picture shown before it plays. Search engines list a
-                    video only when it has one.
+                <p id={`${id}-poster-hint`} className="text-ink-2 text-caption">
+                    {__(
+                        'The picture shown before it plays. Search engines list a video only when it has one.',
+                    )}
                 </p>
             </div>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => update({ caption })}
             />
-            <div className="grid gap-1.5">
+            <div className="grid gap-2">
                 <div className="flex items-center gap-2">
                     <Checkbox
                         id={`${id}-loop`}
@@ -262,12 +277,15 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                         }
                     />
                     <Label htmlFor={`${id}-loop`}>
-                        Loop: play on its own, silently, again and again, with
-                        no controls
+                        {__(
+                            'Loop: play on its own, silently, again and again, with no controls',
+                        )}
                     </Label>
                 </div>
-                <p id={`${id}-loop-hint`} className="text-ink-2 text-xs">
-                    For a short clip without sound, used like a moving picture.
+                <p id={`${id}-loop-hint`} className="text-ink-2 text-caption">
+                    {__(
+                        'For a short clip without sound, used like a moving picture.',
+                    )}
                 </p>
             </div>
             <div
@@ -278,13 +296,14 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
             >
                 <span
                     id={`${id}-tracks`}
-                    className="text-sm leading-none font-medium"
+                    className="text-small leading-none font-medium"
                 >
-                    Caption tracks
+                    {__('Caption tracks')}
                 </span>
-                <p id={`${id}-tracks-hint`} className="text-ink-2 text-xs">
-                    WebVTT files (.vtt) from the library, so people who can’t
-                    hear the video can read it.
+                <p id={`${id}-tracks-hint`} className="text-ink-2 text-caption">
+                    {__(
+                        'WebVTT files (.vtt) from the library, so people who can’t hear the video can read it.',
+                    )}
                 </p>
                 {tracks.map((track, index) => (
                     <TrackRow
@@ -305,61 +324,54 @@ export function VideoSettings({ attrs: raw, update }: CardSettingsProps) {
                     disabled={tracks.length >= MOST_TRACKS}
                     onClick={() => {
                         setRefusal(null);
-                        setChoosingTrack(true);
+                        open({
+                            caller: 'choose',
+                            multi: false,
+                            kinds: ['document'],
+                            action: __('Add track'),
+                            uploadedFor,
+                            onInsert: (ids, rows) => {
+                                const row = rows.find(
+                                    (candidate) => candidate.id === ids[0],
+                                );
+
+                                if (row === undefined || !isCaptionFile(row)) {
+                                    setRefusal(
+                                        __(
+                                            'That file isn’t a WebVTT file (.vtt), so it can’t be a caption track.',
+                                        ),
+                                    );
+
+                                    return;
+                                }
+
+                                void addMedia(ids);
+                                setTracks([
+                                    ...tracks,
+                                    newTrack(
+                                        ids[0],
+                                        document.documentElement.lang,
+                                        tracks.length === 0,
+                                    ),
+                                ]);
+                            },
+                        });
                     }}
                 >
-                    Add a track
+                    {__('Add a track')}
                 </Button>
                 {tracks.length >= MOST_TRACKS && (
-                    <p className="text-ink-2 text-xs">
-                        A video holds up to 8 tracks.
+                    <p className="text-ink-2 text-caption">
+                        {__('A video holds up to 8 tracks.')}
                     </p>
                 )}
                 {refusal && (
-                    <p role="alert" className="text-danger-ink text-xs">
+                    <p role="alert" className="text-danger-ink text-caption">
                         {refusal}
                     </p>
                 )}
             </div>
-            <MediaModal
-                open={choosingPoster}
-                onOpenChange={setChoosingPoster}
-                kinds={['image']}
-                action="Use as poster"
-                onChoose={(ids) => {
-                    void addMedia(ids);
-                    update({ posterMediaId: ids[0] });
-                }}
-            />
-            <MediaModal
-                open={choosingTrack}
-                onOpenChange={setChoosingTrack}
-                kinds={['document']}
-                action="Add track"
-                onChoose={(ids, rows) => {
-                    const row = rows.find(
-                        (candidate) => candidate.id === ids[0],
-                    );
-
-                    if (row === undefined || !isCaptionFile(row)) {
-                        setRefusal(
-                            'That file isn’t a WebVTT file (.vtt), so it can’t be a caption track.',
-                        );
-
-                        return;
-                    }
-
-                    void addMedia(ids);
-                    setTracks([
-                        ...tracks,
-                        newTrack(
-                            ids[0],
-                            document.documentElement.lang,
-                            tracks.length === 0,
-                        ),
-                    ]);
-                }}
-            />
+            {picker}
         </>
     );
 }
@@ -377,7 +389,8 @@ function TrackRow({
     onRemove: () => void;
 }) {
     const id = useId();
-    const name = title ?? 'This file is no longer in the library.';
+    const name = title ?? __('This file is no longer in the library.');
+    const labels = kindLabels();
     // What's typed stays here until it's a tag the server accepts, so a save
     // never meets a track it refuses (I-452).
     const [language, setLanguage] = useState(track.language);
@@ -389,13 +402,16 @@ function TrackRow({
             role="group"
             aria-label={name}
         >
-            <p className="truncate text-[13px] font-medium">{name}</p>
+            <p className="text-small truncate font-medium">{name}</p>
             <TextSetting
-                label="Language"
+                label={__('Language')}
                 hint={
                     typedIsTag
-                        ? 'A language tag, such as en, fr or pt-BR.'
-                        : `Not a language tag yet, so the track keeps ${track.language}. A tag looks like en, fr or pt-BR.`
+                        ? __('A language tag, such as en, fr or pt-BR.')
+                        : __(
+                              'Not a language tag yet, so the track keeps :language. A tag looks like en, fr or pt-BR.',
+                              { language: track.language },
+                          )
                 }
                 value={language}
                 onChange={(typed) => {
@@ -407,8 +423,10 @@ function TrackRow({
                 }}
             />
             <CardField
-                label="Kind"
-                hint="Captions write out the words and the sounds; subtitles translate the words; descriptions say what happens on screen; chapters name the parts to jump to."
+                label={__('Kind')}
+                hint={__(
+                    'Captions write out the words and the sounds; subtitles translate the words; descriptions say what happens on screen; chapters name the parts to jump to.',
+                )}
             >
                 {(props) => (
                     <SelectField
@@ -419,15 +437,15 @@ function TrackRow({
                         }
                         options={TRACK_KINDS.map((kind) => ({
                             value: kind,
-                            label: KIND_LABELS[kind],
+                            label: labels[kind],
                         }))}
-                        className="h-[34px] w-full max-w-40"
+                        className="h-8.5 w-full max-w-40"
                     />
                 )}
             </CardField>
             <TextSetting
-                label="Label"
-                hint="What the player’s menu shows, such as English."
+                label={__('Label')}
+                hint={__('What the player’s menu shows, such as English.')}
                 value={track.label}
                 onChange={(label) =>
                     onChange({
@@ -443,17 +461,17 @@ function TrackRow({
                         onChange({ default: checked === true })
                     }
                 />
-                <Label htmlFor={`${id}-default`}>On by default</Label>
+                <Label htmlFor={`${id}-default`}>{__('On by default')}</Label>
             </div>
             <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="justify-self-start"
-                aria-label={`Remove track ${name}`}
+                aria-label={__('Remove track :name', { name })}
                 onClick={onRemove}
             >
-                Remove track
+                {__('Remove track')}
             </Button>
         </div>
     );

@@ -4,10 +4,10 @@ import { Check, Copy, ScanLine } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AlertError from '@/components/alert-error';
 import InputError from '@/components/input-error';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
-    DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
@@ -307,7 +307,7 @@ export default function TwoFactorSetupModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-            <DialogContent size="sm">
+            <ResponsiveDialogContent size="sm">
                 <DialogHeader className="flex items-center justify-center">
                     <IconTile icon={ScanLine} size="lg" className="mb-3" />
                     <DialogTitle>{modalConfig.title}</DialogTitle>
@@ -332,7 +332,7 @@ export default function TwoFactorSetupModal({
                         />
                     )}
                 </div>
-            </DialogContent>
+            </ResponsiveDialogContent>
         </Dialog>
     );
 }

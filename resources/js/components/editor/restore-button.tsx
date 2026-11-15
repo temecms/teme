@@ -2,6 +2,7 @@ import { Form } from '@inertiajs/react';
 import RevisionController from '@/actions/App/Http/Admin/Contents/RevisionController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 
 /**
  * Restores one revision, after saying what will happen: a new revision is
@@ -12,7 +13,7 @@ export function RestoreButton({
     contentId,
     revisionId,
     createdAt,
-    label = 'Restore',
+    label,
 }: {
     contentId: string;
     revisionId: string;
@@ -32,13 +33,16 @@ export function RestoreButton({
             })}
         >
             <ConfirmAction
-                title="Restore this version?"
-                description={`This adds a new revision with the text from ${when}. Nothing is published and nothing is deleted.`}
-                confirmLabel="Restore"
+                title={__('Restore this version?')}
+                description={__(
+                    'This adds a new revision with the text from :when. Nothing is published and nothing is deleted.',
+                    { when },
+                )}
+                confirmLabel={__('Restore')}
                 confirmVariant="default"
             >
                 <Button type="submit" variant="outline" size="sm">
-                    {label}
+                    {label ?? __('Restore')}
                 </Button>
             </ConfirmAction>
         </Form>

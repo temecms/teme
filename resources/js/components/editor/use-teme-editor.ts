@@ -1,9 +1,14 @@
+import { Extension } from '@tiptap/core';
+import { Plugin } from '@tiptap/pm/state';
 import { useEditor } from '@tiptap/react';
 import type { Editor, JSONContent } from '@tiptap/react';
 import { useEffect, useRef, useState } from 'react';
 import { ulid } from '@/lib/ulid';
 import type { CardManifestEntry, EditorDocument, EmbedProvider } from '@/types';
+import { currentBlock, duplicateBlock, moveBlock } from './block-actions';
+import { FOCUS_GRIP } from './block-handle';
 import { withBlockIds } from './block-ids';
+import { EDIT_LINK } from './link-popover';
 import { cleanPastedHtml, embedFromPastedText } from './paste';
 import { PastedImageWithView } from './pasted-image-view';
 import { hasPastedImage, withoutPastedImages } from './pasted-images';
@@ -20,6 +25,85 @@ function withBlock(document: EditorDocument): JSONContent {
         ? (document as JSONContent)
         : { ...document, content: [{ type: 'paragraph' }] };
 }
+
+/**
+ * The block keys: Alt Shift ↑ and ↓ move the current block, Mod D
+ * duplicates it, Mod K opens the link editor, and Tab outside a list, a table or code reaches the
+ * block's handle (the handle shows Shift Tab the way back).
+ */
+const BlockKeys = Extension.create({
+    name: 'temeBlockKeys',
+
+    addKeyboardShortcuts() {
+        const block = () => currentBlock(this.editor);
+
+        return {
+            'Alt-Shift-ArrowUp': () => {
+                const at = block();
+
+                return at !== null && moveBlock(this.editor, at, -1);
+            },
+            'Alt-Shift-ArrowDown': () => {
+                const at = block();
+
+                return at !== null && moveBlock(this.editor, at, 1);
+            },
+            'Mod-d': () => {
+                const at = block();
+
+                return at !== null && duplicateBlock(this.editor, at);
+            },
+            Tab: () => {
+                const { editor } = this;
+
+                if (
+                    editor.isActive('listItem') ||
+                    editor.isActive('taskItem') ||
+                    editor.isActive('table') ||
+                    editor.isActive('codeBlock')
+                ) {
+                    return false;
+                }
+
+                // True when the handle took focus.
+                return !editor.view.dom.dispatchEvent(
+                    new Event(FOCUS_GRIP, { cancelable: true }),
+                );
+            },
+        };
+    },
+
+    addProseMirrorPlugins() {
+        return [
+            new Plugin({
+                props: {
+                    // Ctrl K (⌘ K) in the text: the link editor, from the bubble or the
+                    // toolbar. Once it opens, the key goes no further, so the admin's
+                    // palette, which also answers Ctrl K, stays shut.
+                    handleKeyDown: (view, event) => {
+                        if (
+                            !(event.metaKey || event.ctrlKey) ||
+                            event.altKey ||
+                            event.key.toLowerCase() !== 'k'
+                        ) {
+                            return false;
+                        }
+
+                        const opened = !view.dom.dispatchEvent(
+                            new Event(EDIT_LINK, { cancelable: true }),
+                        );
+
+                        if (opened) {
+                            event.stopPropagation();
+                        }
+
+                        return opened;
+                    },
+                },
+            }),
+        ];
+    },
+});
 
 /**
  * The editor for one article's body: Teme's extensions, the stored document,
@@ -75,13 +159,14 @@ export function useTemeEditor({
         extensions: [
             ...temeExtensions(cards, { smartQuotes }),
             PastedImageWithView,
+            BlockKeys,
         ],
         content: opened,
         immediatelyRender: false,
         shouldRerenderOnTransaction: false,
         editorProps: {
             attributes: {
-                class: 'teme-prose min-h-60 px-5 py-4 outline-none',
+                class: 'teme-prose min-h-60 px-8 py-4 outline-none',
                 'aria-labelledby': 'editor-body-label',
                 'aria-multiline': 'true',
                 role: 'textbox',

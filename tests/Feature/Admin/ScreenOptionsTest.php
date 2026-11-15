@@ -55,10 +55,10 @@ it('remembers rows per page for that person and nobody else', function (): void 
     lscrPrefer($this->author, ['lists.per_page' => 25]);
 
     $this->actingAs($this->author)->get(route('content.index', ['type' => 'posts']))
-        ->assertInertia(fn (Assert $page) => $page->has('rows', 25)->where('older', fn ($older): bool => $older !== null));
+        ->assertInertia(fn (Assert $page) => $page->has('rows', 25)->where('paging.last', 2));
 
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))
-        ->assertInertia(fn (Assert $page) => $page->has('rows', 30)->where('older', null));
+        ->assertInertia(fn (Assert $page) => $page->has('rows', 30)->where('paging.last', 1));
 });
 
 it('filters by month in the site\'s time zone, on the date the list shows', function (): void {

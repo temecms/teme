@@ -82,6 +82,14 @@ export function withBlockIds(
     return opened;
 }
 
+/** The cards that carry an ID in this editor, as blockIds() was given them. */
+export function idCarryingCards(storage: unknown): readonly string[] {
+    const cards = (storage as { uniqueID?: { cards?: unknown } }).uniqueID
+        ?.cards;
+
+    return Array.isArray(cards) ? (cards as string[]) : [];
+}
+
 /** Every ID of a node ID's shape the document's blocks and cards carry, in document order. */
 export function blockIdsIn(
     document: JSONContent,
@@ -127,6 +135,11 @@ export function freshPastedIds(
  */
 export function blockIds(cards: readonly string[]): AnyExtension {
     return UniqueID.extend({
+        // The cards that carry an ID, for a block copied in the editor (block-actions.ts).
+        addStorage() {
+            return { ...this.parent?.(), cards };
+        },
+
         addProseMirrorPlugins() {
             // Whether the drop under way moves blocks dragged within this article.
             let moving = false;

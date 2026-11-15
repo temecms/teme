@@ -1,15 +1,17 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import TermController from '@/actions/App/Http/Admin/Taxonomy/TermController';
 import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
-import { Pager } from '@/components/list/pager';
-import { RowLinks } from '@/components/list/row-links';
+import { NumberedPager } from '@/components/list/numbered-pager';
+import type { RowAction } from '@/components/list/row-actions';
+import { RowLine } from '@/components/list/row-line';
+import { RowMenu } from '@/components/list/row-menu';
 import { TabStrip } from '@/components/list/tab-strip';
+import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +24,8 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import { Textarea } from '@/components/ui/textarea';
+import { __ } from '@/lib/i18n';
 import { inTreeOrder } from '@/lib/term-tree';
 import { index as contentIndex } from '@/routes/content';
 import { index as termsIndex } from '@/routes/terms';
@@ -30,9 +34,8 @@ import type { TermRow, TermsIndexPage } from '@/types';
 type Declared = TermsIndexPage['declared'];
 type CountedType = TermsIndexPage['types'][number];
 
-/** A text area drawn as the admin's inputs are. */
-const AREA =
-    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2';
+/** A term list holds 50 rows a page (TermList). */
+const PER_PAGE = 50;
 
 /** Puts the cursor back in the add form's Name, ready for the next term. */
 const focusName = () => document.getElementById('term-add-name')?.focus();
@@ -44,7 +47,10 @@ const focusName = () => document.getElementById('term-add-name')?.focus();
 function andList(names: string[]): string {
     return names.length < 2
         ? (names[0] ?? '')
-        : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+        : __(':list and :last', {
+              list: names.slice(0, -1).join(', '),
+              last: names[names.length - 1],
+          });
 }
 
 type Use = { type: CountedType; count: number };
@@ -78,20 +84,36 @@ function deleteWarning(
 ): string {
     const singular = declared.singular.toLowerCase();
     const uses = usesOf(row, types);
-    const lose = uses.length === 1 && uses[0]?.count === 1 ? 'loses' : 'lose';
+    const one = uses.length === 1 && uses[0]?.count === 1;
     const where =
-        row.parentName === null ? 'to the top' : `to “${row.parentName}”`;
+        row.parentName === null
+            ? __('to the top')
+            : __('to “:parent”', { parent: row.parentName });
     const lost = countsWords(uses);
 
     return [
-        uses.length > 0 ? `${lost} ${lose} this ${singular}.` : null,
+        uses.length > 0
+            ? one
+                ? __(':items loses this :singular.', { items: lost, singular })
+                : __(':items lose this :singular.', { items: lost, singular })
+            : null,
         row.children === 1
-            ? `Its sub${singular} moves up a level, ${where}. Nothing under it is deleted.`
+            ? __(
+                  'Its sub:singular moves up a level, :where. Nothing under it is deleted.',
+                  { singular, where },
+              )
             : null,
         row.children > 1
-            ? `Its ${row.children.toLocaleString()} sub${declared.plural.toLowerCase()} move up a level, ${where}. Nothing under them is deleted.`
+            ? __(
+                  'Its :count sub:plural move up a level, :where. Nothing under them is deleted.',
+                  {
+                      count: row.children.toLocaleString(),
+                      plural: declared.plural.toLowerCase(),
+                      where,
+                  },
+              )
             : null,
-        'This can’t be undone.',
+        __('This can’t be undone.'),
     ]
         .filter((line) => line !== null)
         .join(' ');
@@ -144,8 +166,8 @@ function TermFields({
 
     return (
         <>
-            <div className="grid gap-1.5">
-                <Label htmlFor={`${prefix}-name`}>Name</Label>
+            <div className="grid gap-2">
+                <Label htmlFor={`${prefix}-name`}>{__('Name')}</Label>
                 <Input
                     id={`${prefix}-name`}
                     name="name"
@@ -157,8 +179,8 @@ function TermFields({
                 />
                 <InputError id={`${prefix}-name-error`} message={errors.name} />
             </div>
-            <div className="grid gap-1.5">
-                <Label htmlFor={`${prefix}-slug`}>Address</Label>
+            <div className="grid gap-2">
+                <Label htmlFor={`${prefix}-slug`}>{__('Address')}</Label>
                 <Input
                     id={`${prefix}-slug`}
                     name="slug"
@@ -169,21 +191,24 @@ function TermFields({
                     aria-invalid={errors.slug ? true : undefined}
                     aria-describedby={`${prefix}-slug-hint ${prefix}-slug-error`}
                 />
-                <p id={`${prefix}-slug-hint`} className="text-ink-2 text-xs">
-                    {
-                        'The last part of its address. Leave it empty to make one from the name.'
-                    }
+                <p
+                    id={`${prefix}-slug-hint`}
+                    className="text-ink-2 text-caption"
+                >
+                    {__(
+                        'The last part of its address. Leave it empty to make one from the name.',
+                    )}
                 </p>
                 <InputError id={`${prefix}-slug-error`} message={errors.slug} />
             </div>
             {declared.hierarchical && (
-                <div className="grid gap-1.5">
-                    <Label htmlFor={`${prefix}-parent`}>Parent</Label>
+                <div className="grid gap-2">
+                    <Label htmlFor={`${prefix}-parent`}>{__('Parent')}</Label>
                     {/* Later (I-1490): a searchable parent, through the shared combobox, for a taxonomy too large for a select. */}
                     <SelectField
                         id={`${prefix}-parent`}
                         name="parent_id"
-                        emptyLabel="None"
+                        emptyLabel={__('None')}
                         defaultValue={term?.parentId ?? ''}
                         options={parents}
                         aria-describedby={`${prefix}-parent-error`}
@@ -194,21 +219,25 @@ function TermFields({
                     />
                 </div>
             )}
-            <div className="grid gap-1.5">
-                <Label htmlFor={`${prefix}-description`}>Description</Label>
-                <textarea
+            <div className="grid gap-2">
+                <Label htmlFor={`${prefix}-description`}>
+                    {__('Description')}
+                </Label>
+                <Textarea
                     id={`${prefix}-description`}
                     name="description"
                     rows={3}
-                    className={AREA}
                     defaultValue={term?.description ?? ''}
                     aria-describedby={`${prefix}-description-hint ${prefix}-description-error`}
                 />
                 <p
                     id={`${prefix}-description-hint`}
-                    className="text-ink-2 text-xs"
+                    className="text-ink-2 text-caption"
                 >
-                    {`Some themes show it on the ${singular}’s page, and search engines may show it in results.`}
+                    {__(
+                        'Some themes show it on the :singular’s page, and search engines may show it in results.',
+                        { singular },
+                    )}
                 </p>
                 <InputError
                     id={`${prefix}-description-error`}
@@ -222,8 +251,11 @@ function TermFields({
 /** Where the term's own page is, and what it lists. */
 function pageLine(row: TermRow, uses: Use[]): string {
     return uses.length === 0
-        ? `Its page: ${row.address}.`
-        : `Its page: ${row.address}, listing ${countsWords(uses)}.`;
+        ? __('Its page: :address.', { address: row.address ?? '' })
+        : __('Its page: :address, listing :items.', {
+              address: row.address ?? '',
+              items: countsWords(uses),
+          });
 }
 
 export default function TermsIndex({
@@ -232,17 +264,18 @@ export default function TermsIndex({
     tabs,
     types,
     rows,
-    newer,
-    older,
+    paging,
     search,
     tree,
     setup,
 }: TermsIndexPage) {
     const [editing, setEditing] = useState<string | null>(null);
+    // What opened the edit sheet, to take the focus back to when it closes.
+    const opener = useRef<HTMLElement | null>(null);
     const singular = declared.singular.toLowerCase();
     const plural = declared.plural.toLowerCase();
     const editingRow = rows.find((row) => row.id === editing);
-    const withSearch = search ? { search } : {};
+    const withSearch: Record<string, string> = search ? { search } : {};
     const emptyKind = search ? 'nothing-matches' : 'nothing-yet';
     // Whole branches, a child under its parent; a search lists its matches
     // by name, each with its path.
@@ -251,18 +284,71 @@ export default function TermsIndex({
         tabs.map((tab, at) => (at === 0 ? tab.label : tab.label.toLowerCase())),
     );
     const description = declared.hierarchical
-        ? `${declared.plural} can sit under one another. Counts leave out the trash. Choose a count to list its items, with those in its sub${plural}.`
-        : 'Counts leave out the trash. Choose a count to list its items.';
+        ? __(
+              ':plural can sit under one another. Counts leave out the trash. Choose a count to list its items, with those in its sub:lower.',
+              { plural: declared.plural, lower: plural },
+          )
+        : __('Counts leave out the trash. Choose a count to list its items.');
+    const edit = (row: TermRow) => {
+        opener.current = document.activeElement as HTMLElement | null;
+        setEditing(row.id);
+    };
+
+    /** Under the name (I-3398): Edit, and View when the term has a page. */
+    const lineActions = (row: TermRow): RowAction[] => [
+        {
+            id: 'edit',
+            owner: 'core',
+            label: __('Edit'),
+            onSelect: () => edit(row),
+        },
+        ...(row.address !== null
+            ? [
+                  {
+                      id: 'view',
+                      owner: 'core',
+                      label: __('View'),
+                      href: row.address,
+                      newTab: true,
+                  },
+              ]
+            : []),
+    ];
+
+    /** In the "…" menu: Delete, asked first, saying what it does (I-225). */
+    const menuActions = (row: TermRow): RowAction[] => [
+        {
+            id: 'delete',
+            owner: 'core',
+            label: __('Delete'),
+            destructive: true,
+            form: TermController.destroy.form({
+                taxonomy,
+                term: row.id,
+            }),
+            wrap: (button) => (
+                <ConfirmAction
+                    title={__('Delete “:name”?', { name: row.name })}
+                    description={deleteWarning(row, declared, types)}
+                    confirmLabel={__('Delete :singular', { singular })}
+                >
+                    {button}
+                </ConfirmAction>
+            ),
+        },
+    ];
 
     const columns: Column<TermRow>[] = [
         {
             id: 'name',
             owner: 'core',
-            header: 'Name',
+            header: __('Name'),
+            minWidth: 240,
+            className: 'whitespace-normal',
             cell: (row) => (
-                <>
+                <div className="grid gap-1">
                     {branches ? (
-                        <span className="font-semibold">
+                        <span className="text-body text-ink leading-snug font-semibold">
                             {row.depth > 0 && (
                                 <span
                                     aria-hidden="true"
@@ -275,62 +361,35 @@ export default function TermsIndex({
                                 {row.name}
                             </span>
                             {row.parentName !== null && (
-                                <span className="sr-only">{`, under ${row.parentName}`}</span>
+                                <span className="sr-only">
+                                    {', '}
+                                    {__('under :parent', {
+                                        parent: row.parentName,
+                                    })}
+                                </span>
                             )}
                         </span>
                     ) : (
                         <span
                             data-test="term-name"
                             data-depth={0}
-                            className="font-semibold"
+                            className="text-body text-ink leading-snug font-semibold"
                         >
                             {row.path}
                         </span>
                     )}
-                    <RowLinks
-                        label={`Actions for ${row.name}`}
-                        more={`More actions for ${row.name}`}
-                        items={[
-                            {
-                                id: 'edit',
-                                owner: 'core',
-                                label: 'Edit',
-                                onSelect: () => setEditing(row.id),
-                            },
-                            {
-                                id: 'delete',
-                                owner: 'core',
-                                label: 'Delete',
-                                destructive: true,
-                                form: TermController.destroy.form({
-                                    taxonomy,
-                                    term: row.id,
-                                }),
-                                wrap: (button) => (
-                                    <ConfirmAction
-                                        title={`Delete “${row.name}”?`}
-                                        description={deleteWarning(
-                                            row,
-                                            declared,
-                                            types,
-                                        )}
-                                        confirmLabel={`Delete ${singular}`}
-                                    >
-                                        {button}
-                                    </ConfirmAction>
-                                ),
-                            },
-                        ]}
-                    />
-                </>
+                    <RowLine title={row.name} items={lineActions(row)} />
+                </div>
             ),
         },
         {
             id: 'slug',
             owner: 'core',
-            header: 'Address',
+            header: __('Address'),
             cell: (row) => (
-                <span className="text-ink-2 font-mono text-xs">{row.slug}</span>
+                <span className="text-ink-2 text-small font-mono">
+                    {row.slug}
+                </span>
             ),
         },
         // One column for each listed type that uses the taxonomy (I-225).
@@ -338,7 +397,7 @@ export default function TermsIndex({
             id: `count-${type.key}`,
             owner: 'core',
             header: type.plural,
-            className: 'text-right',
+            className: 'text-end tabular-nums',
             cell: (row) => {
                 const count = row.counts[type.key] ?? 0;
 
@@ -362,148 +421,166 @@ export default function TermsIndex({
                         className="inline-flex min-h-6 min-w-6 items-center justify-end font-mono tabular-nums hover:underline"
                     >
                         {count.toLocaleString()}
-                        <span className="sr-only">{` ${(count === 1 ? type.singular : type.plural).toLowerCase()} in ${row.name}`}</span>
+                        <span className="sr-only">
+                            {' '}
+                            {__(':items in :name', {
+                                items: (count === 1
+                                    ? type.singular
+                                    : type.plural
+                                ).toLowerCase(),
+                                name: row.name,
+                            })}
+                        </span>
                     </Link>
                 );
             },
         })),
+        {
+            id: 'menu',
+            owner: 'core',
+            header: <span className="sr-only">{__('Actions')}</span>,
+            width: 56,
+            cell: (row) => (
+                <RowMenu title={row.name} items={menuActions(row)} />
+            ),
+        },
     ];
 
     return (
-        <>
+        <ListPage
+            title={heading}
+            description={description}
+            actions={
+                setup !== null && (
+                    <Button variant="outline" asChild>
+                        <Link href={setup} data-test="term-setup">
+                            {__('Set up :plural', { plural: declared.plural })}
+                        </Link>
+                    </Button>
+                )
+            }
+        >
             <Head title={declared.plural} />
 
-            <div className="space-y-4 p-6">
-                <PageHeader
-                    title={heading}
-                    description={description}
-                    action={
-                        setup !== null && (
-                            <Button variant="outline" asChild>
-                                <Link href={setup} data-test="term-setup">
-                                    Set up {declared.plural}
-                                </Link>
-                            </Button>
-                        )
-                    }
+            {tabs.length > 1 && (
+                <TabStrip
+                    label={__('Kind')}
+                    current={taxonomy}
+                    tabs={tabs.map((tab) => ({
+                        key: tab.segment,
+                        label: tab.label,
+                        count: tab.count,
+                        href: termsIndex({ taxonomy: tab.segment }),
+                    }))}
                 />
+            )}
 
-                {tabs.length > 1 && (
-                    <TabStrip
-                        label="Kind"
-                        current={taxonomy}
-                        tabs={tabs.map((tab) => ({
-                            key: tab.segment,
-                            label: tab.label,
-                            count: tab.count,
-                            href: termsIndex({ taxonomy: tab.segment }),
-                        }))}
-                    />
-                )}
+            <div className="flex flex-col items-start gap-6 lg:flex-row">
+                <Panel
+                    data-test="term-add"
+                    aria-labelledby="term-add-heading"
+                    className="w-full border-t first:border-t lg:w-75 lg:shrink-0"
+                >
+                    <PanelHeader>
+                        <h2 id="term-add-heading">
+                            {__('New :singular', { singular })}
+                        </h2>
+                    </PanelHeader>
+                    <PanelBody>
+                        <Form
+                            {...TermController.store.form({ taxonomy })}
+                            // The parent stays, so the next sibling is a name away.
+                            resetOnSuccess={['name', 'slug', 'description']}
+                            onSuccess={focusName}
+                            className="grid gap-3"
+                        >
+                            {({ processing, errors }) => (
+                                <>
+                                    <TermFields
+                                        prefix="term-add"
+                                        declared={declared}
+                                        tree={tree}
+                                        errors={errors}
+                                    />
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="justify-self-start"
+                                    >
+                                        {__('Add :singular', { singular })}
+                                    </Button>
+                                </>
+                            )}
+                        </Form>
+                    </PanelBody>
+                </Panel>
 
-                <div className="grid items-start gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
-                    <Panel
-                        data-test="term-add"
-                        aria-labelledby="term-add-heading"
-                        className="border-t first:border-t"
-                    >
-                        <PanelHeader>
-                            <h2 id="term-add-heading">New {singular}</h2>
-                        </PanelHeader>
-                        <PanelBody>
-                            <Form
-                                {...TermController.store.form({ taxonomy })}
-                                // The parent stays, so the next sibling is a name away.
-                                resetOnSuccess={['name', 'slug', 'description']}
-                                onSuccess={focusName}
-                                className="grid gap-3"
-                            >
-                                {({ processing, errors }) => (
-                                    <>
-                                        <TermFields
-                                            prefix="term-add"
-                                            declared={declared}
-                                            tree={tree}
-                                            errors={errors}
-                                        />
-                                        <Button
-                                            type="submit"
-                                            disabled={processing}
-                                            className="justify-self-start"
-                                        >
-                                            Add {singular}
-                                        </Button>
-                                    </>
-                                )}
-                            </Form>
-                        </PanelBody>
-                    </Panel>
+                <div className="grid w-full min-w-0 flex-1 gap-3">
+                    <form method="get" role="search" className="flex gap-2">
+                        <Input
+                            name="search"
+                            defaultValue={search}
+                            placeholder={__('Find a :singular by name', {
+                                singular,
+                            })}
+                            aria-label={__('Search')}
+                            className="max-w-xs"
+                        />
+                        <Button variant="outline">{__('Search')}</Button>
+                    </form>
 
-                    <div className="grid min-w-0 gap-3">
-                        <form method="get" role="search" className="flex gap-2">
-                            <Input
-                                name="search"
-                                defaultValue={search}
-                                placeholder={`Find a ${singular} by name`}
-                                aria-label="Search"
-                                className="max-w-xs"
+                    <DataTable
+                        columns={columns}
+                        rows={rows}
+                        rowKey={(row) => row.id}
+                        caption={declared.plural}
+                        pinned={{ start: ['name'], end: ['menu'] }}
+                        cards={{
+                            titleColumn: 'name',
+                            menu: 'menu',
+                            facts: [
+                                'slug',
+                                ...types.map((type) => `count-${type.key}`),
+                            ],
+                        }}
+                        wideNote={__('More columns: scroll sideways')}
+                        empty={
+                            <EmptyState
+                                kind={emptyKind}
+                                title={
+                                    search
+                                        ? __(
+                                              'No :plural start with “:search”',
+                                              {
+                                                  plural,
+                                                  search,
+                                              },
+                                          )
+                                        : __('No :plural yet', { plural })
+                                }
+                                description={
+                                    search
+                                        ? undefined
+                                        : __(
+                                              'Use the form to add the first one.',
+                                          )
+                                }
+                                clearHref={termsIndex({ taxonomy }).url}
                             />
-                            <Button variant="outline">Search</Button>
-                        </form>
-
-                        <DataTable
-                            columns={columns}
-                            rows={rows}
-                            rowKey={(row) => row.id}
-                            caption={declared.plural}
-                            empty={
-                                <EmptyState
-                                    kind={emptyKind}
-                                    title={
-                                        search
-                                            ? `No ${plural} start with “${search}”`
-                                            : `No ${plural} yet`
-                                    }
-                                    description={
-                                        search
-                                            ? undefined
-                                            : 'Use the form to add the first one.'
-                                    }
-                                    clearHref={termsIndex({ taxonomy }).url}
-                                />
-                            }
-                        />
-
-                        <Pager
-                            labels={{ newer: 'Previous', older: 'Next' }}
-                            newer={
-                                newer
-                                    ? termsIndex(
-                                          { taxonomy },
-                                          {
-                                              query: {
-                                                  before: newer,
-                                                  ...withSearch,
-                                              },
-                                          },
-                                      ).url
-                                    : null
-                            }
-                            older={
-                                older
-                                    ? termsIndex(
-                                          { taxonomy },
-                                          {
-                                              query: {
-                                                  after: older,
-                                                  ...withSearch,
-                                              },
-                                          },
-                                      ).url
-                                    : null
-                            }
-                        />
-                    </div>
+                        }
+                        footer={
+                            <NumberedPager
+                                pages={paging}
+                                perPage={PER_PAGE}
+                                href={(query) =>
+                                    termsIndex(
+                                        { taxonomy },
+                                        { query: { ...withSearch, ...query } },
+                                    ).url
+                                }
+                            />
+                        }
+                    />
                 </div>
             </div>
 
@@ -511,9 +588,19 @@ export default function TermsIndex({
                 open={editingRow !== undefined}
                 onOpenChange={(open) => !open && setEditing(null)}
             >
-                <SheetContent className="w-full sm:max-w-[480px]">
+                <SheetContent
+                    className="w-full sm:max-w-120"
+                    onCloseAutoFocus={(event) => {
+                        if (opener.current?.isConnected) {
+                            event.preventDefault();
+                            opener.current.focus();
+                        }
+                    }}
+                >
                     <SheetHeader>
-                        <SheetTitle>Edit {singular}</SheetTitle>
+                        <SheetTitle>
+                            {__('Edit :singular', { singular })}
+                        </SheetTitle>
                         <SheetDescription>{editingRow?.path}</SheetDescription>
                     </SheetHeader>
                     {editingRow && (
@@ -538,7 +625,7 @@ export default function TermsIndex({
                                     {editingRow.address !== null && (
                                         <p
                                             data-test="term-page"
-                                            className="text-ink-2 text-xs"
+                                            className="text-ink-2 text-caption"
                                         >
                                             {pageLine(
                                                 editingRow,
@@ -551,14 +638,14 @@ export default function TermsIndex({
                                             type="submit"
                                             disabled={processing}
                                         >
-                                            Save
+                                            {__('Save')}
                                         </Button>
                                         <Button
                                             variant="ghost"
                                             type="button"
                                             onClick={() => setEditing(null)}
                                         >
-                                            Cancel
+                                            {__('Cancel')}
                                         </Button>
                                     </div>
                                 </>
@@ -567,6 +654,6 @@ export default function TermsIndex({
                     )}
                 </SheetContent>
             </Sheet>
-        </>
+        </ListPage>
     );
 }

@@ -16,12 +16,14 @@ export type LinkChoiceGroup = {
  * What a link can lead to by ID, matching the query, fetched a moment after
  * typing stops while `enabled` is true (LinkChoices): the articles, then,
  * once something is typed, each taxonomy's terms, the authors and the files.
+ * `loading` is true until the answer for the latest query has arrived.
  */
 export function useLinkChoices(
     query: string,
     enabled: boolean,
-): LinkChoiceGroup[] {
+): { groups: LinkChoiceGroup[]; loading: boolean } {
     const [groups, setGroups] = useState<LinkChoiceGroup[]>([]);
+    const [answered, setAnswered] = useState<string | null>(null);
     const { submit } = useHttp();
 
     useEffect(() => {
@@ -31,12 +33,15 @@ export function useLinkChoices(
 
         const timer = window.setTimeout(() => {
             void submit(LinkChoicesController({ query: { q: query } })).then(
-                (found) => setGroups(found as LinkChoiceGroup[]),
+                (found) => {
+                    setGroups(found as LinkChoiceGroup[]);
+                    setAnswered(query);
+                },
             );
         }, 200);
 
         return () => window.clearTimeout(timer);
     }, [enabled, query, submit]);
 
-    return groups;
+    return { groups, loading: enabled && answered !== query };
 }

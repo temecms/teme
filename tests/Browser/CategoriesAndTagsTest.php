@@ -78,7 +78,7 @@ it('adds a subcategory from the full form, then keeps its parent for the next an
         ->toBe(['parent_id' => $this->roads->id, 'description' => 'Every crossing.']);
 });
 
-it('opens the list a count counts, a category\'s with its subcategories\' posts, and names a tag in a chip that another filter keeps and its link removes', function (): void {
+it('opens the list a count counts, a category\'s with its subcategories\' posts, and names a tag on its filter, which another filter keeps and its All tags choice removes', function (): void {
     $page = cmSignIn($this->editor)
         ->navigate('/admin/categories')
         ->click("a[data-test=\"term-count\"][href*=\"{$this->transport->id}\"]")
@@ -88,7 +88,7 @@ it('opens the list a count counts, a category\'s with its subcategories\' posts,
 
     $page->navigate('/admin/tags')
         ->click("a[data-test=\"term-count\"][href*=\"{$this->harbour->id}\"]")
-        ->assertScript("document.querySelector('[data-test=\"filter-chip\"]')?.textContent", 'Tag: Harbour')
+        ->assertScript("document.querySelector('[data-test=\"filter-tag\"] [data-slot=\"combobox-trigger\"]')?.textContent.trim()", 'Harbour')
         ->assertScript("document.querySelector('table').innerText.includes('Ferry fares')", false)
         ->type('[data-test="list-search"]', 'fares')
         ->keys('[data-test="list-search"]', 'Enter');
@@ -97,9 +97,12 @@ it('opens the list a count counts, a category\'s with its subcategories\' posts,
 
     $page->assertScript("new URLSearchParams(window.location.search).get('tab')", 'all')
         ->assertScript("new URLSearchParams(window.location.search).get('tag')", $this->harbour->id)
-        ->assertScript("document.querySelector('[data-test=\"filter-chip\"]')?.textContent", 'Tag: Harbour')
-        ->click('a[aria-label="Remove the filter: Tag: Harbour"]')
-        ->assertScript("new URLSearchParams(window.location.search).has('tag')", false)
+        ->assertScript("document.querySelector('[data-test=\"filter-tag\"] [data-slot=\"combobox-trigger\"]')?.textContent.trim()", 'Harbour')
+        ->click('[data-test="filter-tag"] [data-slot="combobox-trigger"]')
+        ->click('[data-slot="combobox-item"] >> text="All tags"');
+
+    cmWaitUntil($page, "!new URLSearchParams(window.location.search).has('tag')")
+        ->assertScript("new URLSearchParams(window.location.search).get('search')", 'fares')
         ->assertScript("document.querySelector('table').innerText.includes('Ferry fares')", true);
 });
 
@@ -109,9 +112,6 @@ it('edits a subcategory\'s name without moving it or losing its description, off
     $page = cmSignIn($this->editor)
         ->navigate('/admin/categories')
         ->click('[aria-label="Actions for Rail"] >> text="Edit"');
-
-    // The menu fades out as the sheet slides in.
-    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]') === null");
 
     shellSettled($page, '[data-slot="sheet-content"], [data-slot="sheet-overlay"]')
         ->assertScript("document.querySelector('#term-edit-description')?.value", 'Lines and stations.')
@@ -142,7 +142,11 @@ it('says what deleting each category does, in the singular where one, and delete
         'Transport' => '2 posts lose this category. Its 2 subcategories move up a level, to the top. Nothing under them is deleted. This can’t be undone.',
     ] as $name => $words) {
         $page->navigate('/admin/categories')
-            ->click("[aria-label=\"Actions for {$name}\"] >> text=\"Delete\"")
+            ->click("[aria-label=\"More actions for {$name}\"]");
+
+        cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0");
+
+        $page->click('[role="menu"] [data-action="delete"]')
             ->assertScript("document.querySelector('[role=\"dialog\"] h2')?.textContent", "Delete “{$name}”?")
             ->assertScript($warning, $words);
     }
@@ -169,8 +173,6 @@ it('passes axe on Categories, and with the edit sheet open, every target 24 pixe
 
     $page->click('[aria-label="Actions for Roads"] >> text="Edit"');
 
-    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]') === null");
-
     // The sheet and its overlay slide and fade in, and axe doesn't retry.
     shellSettled($page, '[data-slot="sheet-content"], [data-slot="sheet-overlay"]')
         ->assertNoAccessibilityIssues(3);
@@ -182,3 +184,54 @@ it('passes axe on Categories, and with the edit sheet open, every target 24 pixe
         ->and($sheet['small'])->toBe([])
         ->and($sheet['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
+
+it('shows Edit and View under every term and Delete in its menu, confirmed', function (): void {
+    $page = cmSignIn($this->editor)->navigate('/admin/categories');
+
+    cmWaitUntil($page, "document.querySelector('[aria-label=\"Actions for Transport\"]') !== null");
+
+    $lines = cmScriptArray($page, "[...document.querySelectorAll('[data-test=\"row-line\"]')].map((line) => ({ opacity: getComputedStyle(line).opacity, actions: [...line.querySelectorAll('[data-action]')].map((action) => action.dataset.action).join('|'), view: line.querySelector('[data-action=\"view\"]')?.getAttribute('target') ?? null }))", 'CategoriesAndTagsTest');
+
+    expect($lines)->toHaveCount(5);
+
+    foreach ($lines as $line) {
+        expect($line['opacity'])->toBe('1')
+            ->and($line['actions'])->toMatch('/^edit(\|view)?$/')
+            ->and($line['view'])->toBeIn([null, '_blank']);
+    }
+
+    $page->click('[aria-label="More actions for Weather"]');
+    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0")
+        ->assertScript("[...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim()).join('|')", 'Delete')
+        ->click('[role="menu"] [data-action="delete"]');
+
+    cmWaitUntil($page, "document.querySelector('[role=\"dialog\"] h2')?.textContent === 'Delete “Weather”?'");
+
+    expect(Term::query()->where('name', 'Weather')->exists())->toBeTrue();
+});
+
+it('pages a long tag list by number', function (): void {
+    foreach (range(1, 58) as $n) {
+        taxonomyTerm('tag', sprintf('Topic %02d', $n));
+    }
+
+    $page = cmSignIn($this->editor)->navigate('/admin/tags');
+
+    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"term-name\"]').length === 50")
+        ->assertSee('1 to 50 of 60')
+        ->click('[aria-label="Pages"] [aria-label="Page 2"]');
+
+    cmWaitUntil($page, "new URLSearchParams(location.search).get('page') === '2' && document.querySelectorAll('[data-test=\"term-name\"]').length === 10")
+        ->assertSee('51 to 60 of 60')
+        ->assertScript("document.querySelector('[aria-label=\"Pages\"] [aria-current=\"page\"]')?.textContent.trim()", '2');
+});
+
+it('lists terms as cards with their address and counts on a phone', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 812)->navigate('/admin/categories');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"list-cards\"]') !== null")
+        ->assertScript("document.querySelector('[data-slot=\"list-cards\"]').dataset.cardFacts.split(' ')[0]", 'slug')
+        ->assertScript("document.querySelectorAll('[data-slot=\"list-card\"]').length", 5)
+        ->assertScript("document.querySelector('[data-slot=\"list-card\"]').innerText.includes('transport')", true)
+        ->assertScript('document.documentElement.scrollWidth <= window.innerWidth', true);
+});

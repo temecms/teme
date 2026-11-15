@@ -50,8 +50,8 @@ it('lays out categories as whole branches, each child under its parent and a ste
         ->and($rows['Transport'])->toMatchArray(['slug' => 'transport', 'path' => 'Transport', 'parentId' => null, 'parentName' => null, 'children' => 2, 'description' => ''])
         ->and($rows['Roads'])->toMatchArray(['parentId' => $transport->id, 'parentName' => 'Transport', 'children' => 1, 'description' => 'Streets and highways.'])
         ->and($rows['Bridges']['path'])->toBe('Transport › Roads › Bridges')
-        ->and($props['newer'])->toBeNull()
-        ->and($props['older'])->toBeNull();
+        ->and($props['paging']['newer'])->toBeNull()
+        ->and($props['paging']['older'])->toBeNull();
 });
 
 it('never splits a branch between pages, gives a branch longer than a page a page of its own, and brings Previous back to the page Next left', function (): void {
@@ -69,22 +69,22 @@ it('never splits a branch between pages, gives a branch longer than a page a pag
 
     $tops = fn (array $props): array => array_values(array_map(fn (array $row): string => $row['name'], array_filter($props['rows'], fn (array $row): bool => $row['depth'] === 0)));
     $one = ($this->props)('categories');
-    $two = ($this->props)('categories', ['after' => $one['older']]);
-    $three = ($this->props)('categories', ['after' => $two['older']]);
-    $four = ($this->props)('categories', ['after' => $three['older']]);
-    $back = ($this->props)('categories', ['before' => $three['newer']]);
+    $two = ($this->props)('categories', ['after' => $one['paging']['older']]);
+    $three = ($this->props)('categories', ['after' => $two['paging']['older']]);
+    $four = ($this->props)('categories', ['after' => $three['paging']['older']]);
+    $back = ($this->props)('categories', ['before' => $three['paging']['newer']]);
 
     // 45 single rows fill page one: B's 11 rows would take it past 50.
     expect($one['rows'])->toHaveCount(45)
-        ->and($one['newer'])->toBeNull()
+        ->and($one['paging']['newer'])->toBeNull()
         ->and($tops($two))->toBe(['B'])
         ->and($two['rows'])->toHaveCount(11)
         ->and($tops($three))->toBe(['C'])
         ->and($three['rows'])->toHaveCount(61)
         ->and($tops($four))->toBe(['D'])
-        ->and($four['older'])->toBeNull()
+        ->and($four['paging']['older'])->toBeNull()
         ->and(array_column($back['rows'], 'id'))->toBe(array_column($two['rows'], 'id'))
-        ->and($back['newer'])->toBe($two['newer']);
+        ->and($back['paging']['newer'])->toBe($two['paging']['newer']);
 });
 
 it('opens the first page when the category a cursor names has gone', function (): void {
@@ -95,11 +95,11 @@ it('opens the first page when the category a cursor names has gone', function ()
     $first = ($this->props)('categories');
     Term::query()->where('name', 'Category 50')->delete();
 
-    $again = ($this->props)('categories', ['after' => $first['older']]);
+    $again = ($this->props)('categories', ['after' => $first['paging']['older']]);
 
     expect($again['rows'])->toHaveCount(50)
         ->and($again['rows'][0]['name'])->toBe('Category 01')
-        ->and($again['newer'])->toBeNull();
+        ->and($again['paging']['newer'])->toBeNull();
 });
 
 it('lists a search\'s matches by name, flat, each with its path and parent', function (): void {

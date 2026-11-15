@@ -1,5 +1,7 @@
 import type { Editor } from '@tiptap/core';
 import { useEditorState } from '@tiptap/react';
+import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 
 /** Words a person reads in a minute, for "time to read". */
 const WORDS_PER_MINUTE = 230;
@@ -67,19 +69,32 @@ export function overviewOf(editor: Editor): Overview {
     };
 }
 
-/** "1,240 words · 6 min read": the compact count at the foot of the editor. */
+/** Words, characters and reading time, under the body (docs/architecture/design-system.md, 4.39). */
 export function WordCount({ editor }: { editor: Editor }) {
     const overview = useEditorState({
         editor,
         selector: ({ editor: current }) => overviewOf(current),
     });
+    const counts: [string, string][] = [
+        [__('Words'), overview.words.toLocaleString()],
+        [__('Characters'), overview.characters.toLocaleString()],
+        [__('Reading time'), __(':count min', { count: overview.minutes })],
+    ];
 
     return (
-        <p className="text-ink-2 border-line border-t px-5 py-2 text-[11px]">
-            {overview.words.toLocaleString()}{' '}
-            {overview.words === 1 ? 'word' : 'words'} · {overview.minutes} min
-            read
-        </p>
+        <dl
+            data-test="body-counts"
+            className="text-ink-3 text-small mt-8 flex flex-wrap gap-x-6 gap-y-1 px-8 py-4"
+        >
+            {counts.map(([label, value]) => (
+                <div key={label} className="flex gap-2">
+                    <dt>{label}</dt>
+                    <dd className="text-ink-2 font-medium tabular-nums">
+                        {value}
+                    </dd>
+                </div>
+            ))}
+        </dl>
     );
 }
 
@@ -105,7 +120,7 @@ export function DocumentOverview({ editor }: { editor: Editor }) {
 
     return (
         <div className="grid gap-4 p-4">
-            <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1.5 text-[13px]">
+            <dl className="text-small grid grid-cols-[1fr_auto] gap-x-4 gap-y-2">
                 {counts.map(([label, value]) => (
                     <div key={label} className="contents">
                         <dt className="text-ink-2">{label}</dt>
@@ -115,17 +130,16 @@ export function DocumentOverview({ editor }: { editor: Editor }) {
                     </div>
                 ))}
             </dl>
-            <section
-                aria-labelledby="overview-outline"
-                className="grid gap-1.5"
-            >
-                <h3 id="overview-outline" className="text-[13px] font-semibold">
-                    Outline
+            <section aria-labelledby="overview-outline" className="grid gap-2">
+                <h3 id="overview-outline" className="text-small font-semibold">
+                    {__('Outline')}
                 </h3>
                 {overview.headings.length === 0 ? (
-                    <p className="text-ink-2 text-[13px]">No headings yet.</p>
+                    <p className="text-ink-2 text-small">
+                        {__('No headings yet.')}
+                    </p>
                 ) : (
-                    <ul className="grid gap-0.5 text-[13px]">
+                    <ul className="text-small grid gap-0.5">
                         {overview.headings.map((heading) => (
                             <li
                                 key={heading.pos}
@@ -133,8 +147,10 @@ export function DocumentOverview({ editor }: { editor: Editor }) {
                                     paddingLeft: (heading.level - 2) * 12,
                                 }}
                             >
-                                <button
+                                <Button
                                     type="button"
+                                    variant="ghost"
+                                    size="xs"
                                     onClick={() =>
                                         editor
                                             .chain()
@@ -143,15 +159,15 @@ export function DocumentOverview({ editor }: { editor: Editor }) {
                                             .scrollIntoView()
                                             .run()
                                     }
-                                    className="hover:bg-surface-3 focus-visible:ring-ring w-full rounded-sm px-1.5 py-1 text-left outline-none focus-visible:ring-2"
+                                    className="text-ink h-auto min-h-0 w-full justify-start rounded-sm py-1 text-left font-normal whitespace-normal"
                                 >
-                                    {heading.text || 'Untitled heading'}
+                                    {heading.text || __('Untitled heading')}
                                     {heading.skipped && (
-                                        <span className="text-warn-ink ml-1.5 text-[11px]">
-                                            skips a level
+                                        <span className="text-warn-ink text-caption ml-2">
+                                            {__('skips a level')}
                                         </span>
                                     )}
-                                </button>
+                                </Button>
                             </li>
                         ))}
                     </ul>

@@ -1,15 +1,16 @@
 import { cloneElement, useRef, useState } from 'react';
 import type { MouseEvent, ReactElement } from 'react';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
-    DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { __ } from '@/lib/i18n';
 
 type SubmitButton = ReactElement<{
     onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
@@ -54,14 +55,14 @@ export function ConfirmAction({
                 },
             })}
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent>
+                <ResponsiveDialogContent phone="foot">
                     <DialogHeader>
                         <DialogTitle>{title}</DialogTitle>
                         <DialogDescription>{description}</DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button variant="outline">Cancel</Button>
+                            <Button variant="outline">{__('Cancel')}</Button>
                         </DialogClose>
                         <Button
                             variant={confirmVariant}
@@ -75,7 +76,7 @@ export function ConfirmAction({
                             {confirmLabel}
                         </Button>
                     </DialogFooter>
-                </DialogContent>
+                </ResponsiveDialogContent>
             </Dialog>
         </>
     );
