@@ -153,6 +153,25 @@ It uses the same guard as every route; refuses the never-sent keys; decodes seri
 - **B-09 (draft): the report's "section per plugin"** is a row per plugin (`<Label> (plugin)`, type `plugin:<code>`) in the report's kinds table, with created, updated, skipped and failed; brought = created + updated. The plugin's failure sentences are the run's messages (`plugin-data.failed`, grouped by code on the screen, each one in the CSV). Chose this over a new screen section, which would need TSX outside the plan's files. `3209d9e`.
 - **B-10 (draft): the extension route's shapes.** Meta values are always lists (WordPress meta is multi-valued); `usermeta`/`termmeta` list only records holding a declared key; options' answer always has `objects`. The "too old" sentence is reported once, by `plugin-options`, only when some plugin would receive data. `8a18efe`, `8ab9c6e`.
 
+**Follow-up R7**
+
+The review's findings 1 to 6, each on `import/plugin-socket` alone (nothing merged), each test seen red first:
+
+1. **Consent covers the declared names** (`35ae1e1`). `tests/Feature/Import/PluginDataConsentTest.php`, 4 tests, seen red: `Undefined array key "imports"` in the consent record; the updated plugin's state wasn't `waiting`; `Consent::imports()` didn't exist; `PluginImports::all()` handed over a plugin whose names were never agreed.
+2. **Never-sent names in any case, plus `mailserver_pass` and `{table prefix}capabilities`** (`13cd27e`). Six new cases in `PluginDataManifestTest`'s refusals (`User_Pass`, `WP_USER_ROLES`, `site1_user_roles`, `mailserver_pass`, `wp_capabilities`, `WP_2_Capabilities`) and four in `PluginDataCompanionTest`'s, seen red: no sentence, and the fake companion answered instead of refusing. The spec and `docs/architecture/plugins.md` say the same.
+3. **Plugins and importers remembered by code for the job** (`a8bd823`). `PluginDataConsentTest` "remembers each plugin and its importer…", seen red: a second `find()` in the same job returned a new instance.
+4. **Objects only under declared names** (`0cb2c5e`). `PluginDataPhaseTest` "reports objects only under the names the plugin declared…", seen red: the warning listed `_importer_inbox, _secret, importer_mode`.
+5. **A person or term "no longer has the data … declared"** (`4ba0d9c`). `PluginDataPhaseTest` "says, on a catch-up, that a person no longer has the data the plugin declared", seen red: it said "the person 1 whose data Importer brought across".
+6. **Docs line** (`286359d`): `import.wordpress` includes reading imported items' titles and status, shown at consent; plus a line that consent is agreed name by name. Docs only, so no test.
+
+- **B-11 (draft): finding 1 reaches beyond the three named files' callers.** `Consent::covers()` now also asks that every declared name was agreed, so `PluginList`, `PluginLoader`, `MigratePlugin` and `MigratePluginsCommand` treat such an update as waiting through it, unchanged. `Consent::added()` gains an `imports` key only when there are new names, so `tests/Feature/Plugins/ConsentTest.php`'s exact shape holds. `EnablePluginInput` carries no names (not in the allowed files), so `EnablePlugin` records the names of the manifest it finds; the version, capabilities, hosts and hooks are still checked against the input. A plugin enabled before this fix holds no names and waits for a new yes. `PluginRecord`'s `$consent` docblock doesn't name `imports` (not allowed); `Consent::agreedImports()` reads it. `35ae1e1`.
+- **B-12 (draft): the validator can't know the table prefix,** so it refuses any name ending in `user_roles` or `capabilities`, lowercased; the companion checks `$wpdb->prefix . 'user_roles'` and `$wpdb->get_blog_prefix() . 'capabilities'` exactly, case-insensitively (spec). The fake companion uses the prefix `wp_`. `13cd27e`.
+- **B-13 (draft): "for the life of the job" is a scoped binding.** `PluginImports` is bound `scoped()` (one provider line) and `find()` remembers by code; the queue worker forgets scoped instances before each job, so a disabled plugin is seen at the next job. No static state (I-087). `a8bd823`.
+
+The first item under "Left open" (consent covers the capability, not the names) is fixed by finding 1.
+
+**R7 check:** `composer check`: Pint, PHPStan, types, `npm run check` and the themes' build passed; Architecture 139 passed; Unit+Feature 10,680 passed, 2 skipped, 1 failed: `tests/Feature/Media/MediaFiltersTest.php` "finds each month…", a query-plan assertion this part doesn't touch, which passed when run again alone (7 passed).
+
 **I-?? (draft):** none.
 
 **Contracts the plan names:** built as written (`WordPressImporter`, `WordPressRecord`, `ImportScope`, `ImportOutcome`, `@since 0.9.0`). Additions: `WordPressRecord::POST/USER/TERM` and `ImportOutcome::IMPORTED/SKIPPED/FAILED` constants, and `ImportOutcome`'s public `status` and `words` (the plan's sketch had no way to read an outcome). `Capability::ImportWordPress` added last.
