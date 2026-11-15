@@ -90,7 +90,20 @@ Fill Records; `composer check` once; the import browser tests you touched after 
 7. `9b9b7ec` fix(import): clear PHPStan findings on other_hosts wiring
 8. `6c00f58` fix(import): keep other hosts across password confirmation
 9. `743e676` style(import): format OtherHostsForm after elevation remember
-10. (this) `docs(plans): Import fixes's records`
+10. `76f8eb9` docs(plans): Import fixes's records
+11. `7761842` fix(import): refuse SetImportSourceHosts while a run is running
+12. `7483dc0` test(import): lasting proof a sibling host stays outside
+13. `da50e3f` fix(import): let people untick a saved other address
+14. `85ebdc5` fix(import): drop duplicate other hosts; remember on report
+15. `f4533df` style(import): format OtherHostsForm; drop unused InputError
+16. (this) `docs(plans): Import v1 fixes' records, follow-up R1`
+
+### Follow-up R1
+
+1. Refuse while running + form on plan/report only — first red: `Exception [Illuminate\Validation\ValidationException] not thrown.` (after fixing a missing `ImportRecords` import that failed first as `Class "ImportRecords" not found`).
+2. Sibling host stays outside — lasting test green as written (home `example.com`, listed `stage.example.com`, `dev.example.com` link/image unchanged, no other-host counts).
+3. Untick a listed host — feature omit-save green; form uses checkboxes for saved addresses; browser test added for unticking one.
+4. Drop duplicates (B-05); hosts error once on the Add a host field; `rememberedHosts` on the show page for the report step — first reds: `Enter a host name only, such as stage.example.com.` (duplicate refusal) and `Property [rememberedHosts] does not exist.`
 
 ### Task 1 — what main did today (file:line at confirm)
 
@@ -116,6 +129,7 @@ Fill Records; `composer check` once; the import browser tests you touched after 
 - **B-02 (draft):** SuggestedHosts / browser fixtures use `stage.old.example` (FakeCompanion home is `old.example`), not the plan’s illustrative `example.com`. Settled meaning kept: subdomain of home.
 - **B-03 (draft):** `SuggestedHosts::for` reads cache only; `ImportAnalysis::read` calls `remember()`. Weighed vs re-calling analyze on the show page (would hit the old site twice / consume scripted failures).
 - **B-04 (draft):** remember submitted hosts across elevation and click Save again after password confirm — same pattern as starting a run. Weighed vs in-place password (header) for this form.
+- **B-05 (draft):** drop duplicate hosts after normalizing rather than refusing them (Follow-up R1). Weighed vs the plan’s original “duplicates refused” sentence.
 
 ### Architecture baselines
 
@@ -128,15 +142,17 @@ Fill Records; `composer check` once; the import browser tests you touched after 
 - Pint: passed
 - PHPStan: OK (0 errors)
 - types / `vp check`: passed (after format fix)
-- Tests: **10621 passed**, **2 skipped** (54842 assertions); Architecture slice also **139 passed** in the gate log
-- Browser: other-hosts axe/save — **2 passed** (light/dark) after `npm run build`
+- Architecture: **139 passed**
+- Unit+Feature (parallel): **10624 passed**, **2 skipped**, **1 failed** — `Tests\Feature\Media\MediaFiltersTest` › `it finds each month that has a live file uses the created index` (EXPLAIN expects `media_live_created`; passes alone, fails under `--parallel`; outside owns, unchanged by this follow-up). Assertions **54858**.
+- Browser: other-hosts axe/save from Part C; untick browser test added (not re-run in this follow-up gate).
 
 ### Changelog lines (for the maintainer; CHANGELOG.md not edited)
 
 - Import: other old addresses of a site (`other_hosts`) convert links and images like the home host; set via elevated Operation; suggestions from analysis subdomains on the site’s import page.
 - Import: tagDiv `tdm_` and `tdc_` shortcode families unwrap like existing tagDiv rows.
 - Import: anonymized real-markup fixtures prove FAQ, TOC drop (no fidelity loss), Canvas flatten, WPBakery/tagDiv unwrap, registered app-store shortcode as Imported content, and `[State]` kept as text.
+- Import (R1): refuse other-hosts save while a run is running; listed hosts untickable; drop normalized duplicates; remember hosts on the report step.
 
 ### STOP
 
-None.
+None. Parallel-only flake in `MediaFiltersTest` (media months EXPLAIN) noted above; not owned by this part.
