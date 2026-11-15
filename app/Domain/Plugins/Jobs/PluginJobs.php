@@ -147,4 +147,3 @@ final readonly class PluginJobs implements Jobs
         throw new InvalidArgumentException('Only a person or the operator queues a plugin job.');
     }
 }
-

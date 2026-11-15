@@ -7,6 +7,7 @@ use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Jobs\Operations\CancelJob;
 use App\Domain\Jobs\Operations\FailJob;
 use App\Domain\Jobs\Operations\FinishJob;
+use App\Domain\Jobs\Operations\Input\CancelJobInput;
 use App\Domain\Jobs\Operations\Input\RetryJobInput;
 use App\Domain\Jobs\Operations\Input\StartJobInput;
 use App\Domain\Jobs\Operations\ReportJobProgress;
@@ -315,7 +316,7 @@ it('runs nothing after CancelJob ended the tracked job', function (): void {
     ($this->enable)();
     Queue::fake();
     $id = ($this->jobs)()->queue('quiet-write', ['line' => 'should not write']);
-    app(CancelJob::class)->execute(new \App\Domain\Jobs\Operations\Input\CancelJobInput($id, null));
+    app(CancelJob::class)->execute(new CancelJobInput($id, null));
 
     ($this->run)('quiet-write', $id);
 

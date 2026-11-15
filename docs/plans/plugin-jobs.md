@@ -132,7 +132,14 @@ The plugin's main class implements `PluginHasJobs` beside `Plugin`. A declared k
 - `b7c7303` feat(plugins): cancel plugin jobs when a plugin is disabled
 - `38e1175` fix(plugins): skip cancel when a plugin job already ended
 - `1530b30` feat(plugins): show plugin mark on Tools › Jobs rows
-- (this) docs(plans): Plugin jobs's records
+- `af2b3f7` docs(plans): Plugin jobs's records
+- `686823e` fix(plugins): skip RunPluginJob when the tracked job already ended
+- `290f477` fix(plugins): run due schedules as the enabling administrator
+- `54d335b` test(plugins): assert schedule starter via started_by
+- `66b23ea` fix(plugins): keep DisablePlugin when CancelJob already ended
+- `4b30bf8` test(plugins): cover Task 2 progress, retry, actor, and tries
+- `5c7760f` fix(plugins): translate missing-handler, refuse list payloads, isolate schedules
+- (this) docs(plans): Plugin jobs and schedules' records, follow-up R1
 
 ### Tests seen red (then green)
 
@@ -141,6 +148,14 @@ The plugin's main class implements `PluginHasJobs` beside `Plugin`. A declared k
 - **Task 3** `PluginSchedulesTest` — `The command "teme:plugins:run-due-schedules" does not exist.`
 - **Task 4** `PluginJobsTest` "cancels waiting and running…" — expected `Cancelled`, got `Waiting` (before `DisablePlugin` after-commit cancel).
 - **Task 5** `JobsScreenTest` "names the plugin beside…" — `Property [rows.0.plugin] does not exist.`
+
+### Follow-up R1
+
+- **R1-1** `PluginJobsTest` "runs nothing after CancelJob…" / "cancelled by disable then enabled again" — with `quiet-write` (no progress), expected 0 lines, got 1 until `RunPluginJob` returns when the tracked job is missing or ended.
+- **R1-2** `PluginSchedulesTest` "queues a scheduled run as the administrator…" — `RunPluginJob` actor was `null` (operator) until schedules queue as `consented_by` without elevation.
+- **R1-3** `PluginJobsTest` "still disables when a CancelJob finds the run already ended" — `ValidationException` from CancelJob until each cancel is try/caught.
+- **R1-4** Task 2 gaps (progress after disable, tries/backoff, Retry payload, missing handler, long ceilings, person actor) — tests added; behavior already green.
+- **R1-5** list payload refused with JSON-ready sentence (was DB check); DueSchedules isolation — `InvalidFormatException` from one plugin stopped the rest until per-plugin `report()`; missing-handler message wrapped in `__()`.
 
 ### Architecture
 
