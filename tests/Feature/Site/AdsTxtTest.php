@@ -61,3 +61,14 @@ it('shows the ads.txt box on the Site code page', function (): void {
             ->where('adsTxt', '')
             ->has('adsTxtVersion'));
 });
+
+it('saves and serves ads.txt while the host disallows site code, since it is text, not code', function (): void {
+    config(['teme.disallow_site_code' => true]);
+
+    $this->actingAs($this->admin)
+        ->put('/admin/settings/site-code/ads-txt', ['ads_txt' => 'example.com, pub-1, DIRECT', 'expected_version' => 0])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    addrGet('/ads.txt')->assertOk()->assertContent('example.com, pub-1, DIRECT');
+});

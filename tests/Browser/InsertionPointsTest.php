@@ -83,3 +83,13 @@ it('sits the inserted block between the right paragraphs and passes axe', functi
             JS)
         ->assertNoAccessibilityIssues(3);
 })->with([1280, 375]);
+
+it('keeps the ads.txt box editable while the host disallows site code, since ads.txt is text, not code', function (): void {
+    config(['teme.disallow_site_code' => true]);
+
+    $page = cmSignIn($this->admin)->navigate('/admin/settings/site-code');
+
+    $page->assertSee('The host has switched site code off.')
+        ->assertPresent('[data-test="site-code-ads-txt-save"]')
+        ->assertScript('document.querySelector(\'[data-test="site-code-ads-txt"]\')?.disabled === false');
+});

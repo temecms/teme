@@ -536,7 +536,6 @@ export default function SiteCodeSettings({
                                         rows={6}
                                         spellCheck={false}
                                         defaultValue={adsTxt}
-                                        disabled={locked}
                                         data-test="site-code-ads-txt"
                                         aria-describedby="site-code-ads-txt-hint site-code-ads-txt-error"
                                         className="font-mono"
@@ -556,15 +555,13 @@ export default function SiteCodeSettings({
                                             errors.expected_version
                                         }
                                     />
-                                    {!locked && (
-                                        <Button
-                                            type="submit"
-                                            disabled={processing}
-                                            data-test="site-code-ads-txt-save"
-                                        >
-                                            {__('Save ads.txt')}
-                                        </Button>
-                                    )}
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        data-test="site-code-ads-txt-save"
+                                    >
+                                        {__('Save ads.txt')}
+                                    </Button>
                                 </>
                             )}
                         </Form>
