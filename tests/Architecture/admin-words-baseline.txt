@@ -105,16 +105,6 @@ components/comments/quick-edit.tsx	This comment has formatting, such as bold or 
 components/comments/quick-edit.tsx	Website
 components/comments/quick-edit.tsx	https://example.com
 components/confirm-action.tsx	Cancel
-components/dashboard/dashboard-panel.tsx	See all
-components/dashboard/getting-started.tsx	Getting started
-components/dashboard/getting-started.tsx	Hide this
-components/dashboard/getting-started.tsx	done
-components/dashboard/getting-started.tsx	of
-components/dashboard/quick-draft.tsx	Quick draft
-components/dashboard/quick-draft.tsx	Save draft
-components/dashboard/quick-draft.tsx	Title
-components/dashboard/quick-draft.tsx	What's it about?
-components/dashboard/site-figures.tsx	The site in figures
 components/editor/assistant/assistant-context.tsx	Undo
 components/editor/bubble-menu.tsx	Bold
 components/editor/bubble-menu.tsx	Highlight
@@ -1056,11 +1046,6 @@ pages/content/index.tsx	skipped:
 pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
 pages/content/index.tsx	“{}” and all its revisions are deleted. This can’t be undone.
 pages/dashboard.tsx	Home
-pages/dashboard.tsx	Home
-pages/dashboard.tsx	Home
-pages/dashboard.tsx	New
-pages/dashboard.tsx	Nothing needs you right now.
-pages/dashboard.tsx	Your work first, then the site's figures
 pages/inbox/index.tsx	Inbox
 pages/inbox/index.tsx	Inbox
 pages/inbox/index.tsx	Inbox

@@ -11,6 +11,9 @@ export type Preferences = {
     'lists.per_page': number;
     'appearance.mode': 'light' | 'dark' | 'system';
     'dashboard.getting_started_hidden': boolean;
+    'dashboard.order': string[];
+    'dashboard.hidden': string[];
+    'dashboard.sizes': string[];
     /** Screen options: the columns each type's list shows, by column id. */
     [key: `lists.${string}.columns`]: string[];
     'nav.hidden': string[];

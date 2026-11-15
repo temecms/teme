@@ -135,15 +135,6 @@ R2	js/components/comments/inline-reply.tsx	text-[12px]
 R2	js/components/comments/inline-reply.tsx	text-[13px]
 R2	js/components/comments/quick-edit.tsx	text-[12px]
 R2	js/components/comments/quick-edit.tsx	text-[13px]
-R2	js/components/dashboard/dashboard-panel.tsx	text-[13px]
-R2	js/components/dashboard/dashboard-panel.tsx	text-[13px]
-R2	js/components/dashboard/getting-started.tsx	text-[13px]
-R2	js/components/dashboard/getting-started.tsx	text-[13px]
-R2	js/components/dashboard/getting-started.tsx	text-xs
-R2	js/components/dashboard/quick-draft.tsx	text-[13px]
-R2	js/components/dashboard/site-figures.tsx	text-[11px]
-R2	js/components/dashboard/site-figures.tsx	text-[22px]
-R2	js/components/dashboard/site-figures.tsx	text-xs
 R2	js/components/editor/cards/audio-card.tsx	text-[13px]
 R2	js/components/editor/cards/audio-card.tsx	text-[13px]
 R2	js/components/editor/cards/audio-card.tsx	text-[13px]
@@ -416,8 +407,6 @@ R2	js/pages/content/index.tsx	text-xs
 R2	js/pages/content/index.tsx	text-xs
 R2	js/pages/content/index.tsx	text-xs
 R2	js/pages/content/index.tsx	text-xs
-R2	js/pages/dashboard.tsx	text-[13px]
-R2	js/pages/dashboard.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
@@ -450,9 +439,6 @@ R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
-R3	js/components/dashboard/quick-draft.tsx	gap-1.5
-R3	js/components/dashboard/quick-draft.tsx	gap-1.5
-R3	js/components/dashboard/site-figures.tsx	gap-1.5
 R3	js/components/editor/cards/audio-card.tsx	mt-1.5
 R3	js/components/editor/cards/button-card.tsx	py-1.5
 R3	js/components/editor/cards/card-frame.tsx	gap-1.5
@@ -539,7 +525,6 @@ R3	js/pages/content/index.tsx	pr-0.5
 R3	js/pages/content/index.tsx	pr-0.5
 R3	js/pages/content/index.tsx	py-0.5
 R3	js/pages/content/index.tsx	py-0.5
-R3	js/pages/dashboard.tsx	mt-0.5
 R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
 R3	js/pages/terms/index.tsx	gap-1.5
@@ -548,8 +533,6 @@ R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
 R5	js/components/comments/quick-edit.tsx	<textarea>
-R5	js/components/dashboard/getting-started.tsx	<button type="button">
-R5	js/components/dashboard/quick-draft.tsx	<textarea>
 R5	js/components/editor/bubble-menu.tsx	<button type="button">
 R5	js/components/editor/cards/button-card.tsx	<button type="button">
 R5	js/components/editor/cards/button-card.tsx	<input>
@@ -650,8 +633,6 @@ R7	js/pages/content/index.tsx	frame:p-6
 R7	js/pages/content/index.tsx	frame:sm:max-w-[480px]
 R7	js/pages/content/index.tsx	root:div
 R7	js/pages/content/index.tsx	root:Sheet
-R7	js/pages/dashboard.tsx	frame:p-6
-R7	js/pages/dashboard.tsx	root:div
 R7	js/pages/settings/site-code.tsx	frame:sm:max-w-[560px]
 R7	js/pages/settings/site-code.tsx	root:Sheet
 R7	js/pages/terms/index.tsx	frame:p-6
@@ -690,4 +671,3 @@ R9	js/components/editor/fields/media-control.tsx	classes: bg-warn-soft px-1.5 py
 R9	js/components/editor/presence-line.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/rail/search-previews.tsx	role="note"
 R9	js/pages/content/index.tsx	classes: bg-warn-soft px-3 py-2
-R9	js/pages/dashboard.tsx	role="note"
