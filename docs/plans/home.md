@@ -492,3 +492,27 @@ Stop, write why under Records, commit and push, then stop, when:
 - Home is drawn on the design system in a 12-column grid of four panel sizes, with Site figures as tiles and Quick draft as a panel (I-3401).
 - Customize moves, resizes, hides, adds and resets panels from the keyboard, saving each change at once (I-210).
 - Customize also drags panels by their grip via Pragmatic drag and drop 4.0.0 / hitbox 3.0.0 (I-3441).
+
+### Follow-up C1-2
+Commits:
+1. `d1302b1` `fix(admin): plugins' Home panels are Small unless they declare a size`
+2. `ec4b03a` `fix(admin): show a plugin's name on its Home panel mark`
+3. `ff37f58` `fix(admin): keep Home's panel order without dense packing`
+4. `e981781` `fix(admin): align Home breakpoints with the design system at 768px`
+5. `b89b2fe` `test(admin): move a Home panel later with Enter, not a click`
+6. `cd4a344` `test(admin): assert Home never paints a drop edge across sections`
+7. `fddf4c5` `chore(deps): restore the Windows Rollup optional in the lockfile`
+8. `7549578` `fix(admin): polish Home's plugin section, hide label and failed save`
+9. (this) failed-save test wait for reload + Records
+
+Tests seen red:
+- **1:** `HomeLayoutTest` "gives a plugin's panel Small when it declares no size" — got `medium` (constructor default) until registry resolves null → Small for non-core.
+- **6:** `HomeScreenTest` "never drops a core panel among plugins' panels" — plant left `data-drop-edge` on plugin panels while customizing; edges array non-empty; plant removed.
+- **8:** `HomeScreenTest` "hides From plugins outside Customize when every plugin panel is empty" — section still shown via catalogue until `pluginKeys.length > 0` gate; existing "puts Home back…" failed after reload change until it waited for the server layout (my_recent_edits first).
+
+Maintainer decisions over the plan (recorded):
+- **B-11:** No `grid-flow-dense` — visual order must match saved order for Tab, announcements and Move (WCAG 1.3.2, 2.4.3). Commit `ff37f58`.
+- **B-12:** Breakpoints at 768px (`md`) for one column and for Small/Medium side by side, per `docs/architecture/design-system.md`, not the plan's 640px. Commit `e981781`.
+- **B-13:** `package-lock.json` keeps `@rollup/rollup-win32-x64-msvc` 4.65.1 in root `packages[""].dependencies` as on main (npm install for Pragmatic had dropped it). Commit `fddf4c5`.
+
+Gate after follow-up: Architecture 115 passed; Unit+Feature **10534 passed**, 2 skipped (54136 assertions). `HomeLayoutTest` 11; `HomeScreenTest` 22 after build.
