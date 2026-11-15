@@ -35,6 +35,7 @@ final class TermVersions
             return [];
         }
 
+        // Terms are deleted outright, never trashed, so every row joined here is live.
         $rows = DB::table('terms as own')
             ->leftJoin('terms as versions', fn ($join) => $join->on('versions.translation_group', '=', 'own.translation_group'))
             ->whereIn('own.id', $termIds)
