@@ -137,6 +137,17 @@ it('marks one current step on a site’s page, Choose once the plan has arrived'
         ->and($page->script('() => [...document.querySelectorAll(\'[data-test="import-step"] > li\')].slice(0, 2).map((step) => step.dataset.state)'))->toBe(['done', 'done']);
 });
 
+it('marks no step current on a stopped import, the steps it finished still done', function (): void {
+    $source = ImportRecords::source(['created_by' => $this->admin->id]);
+    ImportRecords::run($source, ['state' => 'stopped', 'phase' => 'fixture-notes', 'stop_reason' => 'by-hand', 'stop_message' => 'Stopped on request. Run it again to carry on from where it stopped.', 'started_by' => $this->admin->id, 'ended_at' => now()]);
+
+    $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source}");
+    tiWaitUntil($page, tiPresent('[aria-label="Steps of this import"]'));
+
+    expect($page->script('() => document.querySelectorAll(\'[aria-label="Steps of this import"] [aria-current]\').length'))->toBe(0)
+        ->and($page->script('() => document.querySelectorAll(\'[aria-label="Steps of this import"] [data-state="done"]\').length'))->toBe(1);
+});
+
 it('passes axe on a finished import’s report, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
     ['source' => $source] = ImportRecords::finishedImport($this->admin->id);

@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { CheckIcon } from 'lucide-react';
 import ImportRunController from '@/actions/App/Http/Admin/Tools/Import/ImportRunController';
 import { JobProgress } from '@/components/jobs/job-progress';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,37 @@ function currentStep(steps: ImportRunView['steps']): number {
     const next = steps.findIndex((step) => step.state !== 'done');
 
     return next === -1 ? steps.length : next;
+}
+
+/**
+ * A stopped run's steps: those it finished marked done, and none current,
+ * since nothing is under way. The step bar always marks one current.
+ */
+function StoppedSteps({ steps }: { steps: ImportRunView['steps'] }) {
+    return (
+        <ol aria-label={__('Steps of this import')} className="grid gap-1">
+            {steps.map((step) => (
+                <li
+                    key={step.key}
+                    data-state={step.state === 'done' ? 'done' : 'upcoming'}
+                    className="text-small text-ink-2 flex items-center gap-2"
+                >
+                    {step.state === 'done' ? (
+                        <>
+                            <CheckIcon
+                                aria-hidden="true"
+                                className="text-ok-ink size-4 shrink-0"
+                            />
+                            <span className="sr-only">{__('Done')}</span>
+                        </>
+                    ) : (
+                        <span aria-hidden="true" className="size-4 shrink-0" />
+                    )}
+                    {step.label}
+                </li>
+            ))}
+        </ol>
+    );
 }
 
 /**
@@ -55,11 +87,15 @@ export function RunProgress({
                     <p>{run.stopMessage}</p>
                 )}
 
-                <StepBar
-                    steps={run.steps.map((step) => step.label)}
-                    current={currentStep(run.steps)}
-                    aria-label={__('Steps of this import')}
-                />
+                {running ? (
+                    <StepBar
+                        steps={run.steps.map((step) => step.label)}
+                        current={currentStep(run.steps)}
+                        aria-label={__('Steps of this import')}
+                    />
+                ) : (
+                    <StoppedSteps steps={run.steps} />
+                )}
 
                 <p className="tabular-nums">
                     {__(
