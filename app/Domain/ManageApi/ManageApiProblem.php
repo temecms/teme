@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\ManageApi;
 
 use App\Domain\Api\Problems;
+use App\Domain\Media\Exceptions\DuplicateMediaException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Debug\ShouldntReport;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /**
  * One refusal of the management API, as the API's problems are written
@@ -99,6 +102,22 @@ final class ManageApiProblem extends RuntimeException implements Responsable, Sh
         }
 
         return self::invalid($errors);
+    }
+
+    /**
+     * An Operation's refusal as the API answers it: the person's permission
+     * as forbidden, refused input as invalid_parameter, a duplicate file as
+     * duplicate. Anything else is thrown on, and answered server_error.
+     */
+    public static function fromRefusal(Throwable $refusal): Throwable
+    {
+        return match (true) {
+            $refusal instanceof self => $refusal,
+            $refusal instanceof AuthorizationException => self::notPermitted(),
+            $refusal instanceof ValidationException => self::fromValidation($refusal),
+            $refusal instanceof DuplicateMediaException => self::duplicate($refusal->existingId),
+            default => $refusal,
+        };
     }
 
     /**

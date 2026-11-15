@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Api\Manage\LookupController;
 use App\Http\Api\Manage\MeController;
+use App\Http\Api\Manage\MediaController;
 use App\Http\Api\Manage\Middleware\RequireApiAbility;
 use Illuminate\Support\Facades\Route;
 
@@ -19,4 +20,9 @@ Route::middleware(RequireApiAbility::class.':site.read')->group(function (): voi
         ->where('taxonomy', '[a-z][a-z0-9_-]*')
         ->name('api.manage.terms');
     Route::get('people', [LookupController::class, 'people'])->name('api.manage.people');
+});
+
+Route::middleware(RequireApiAbility::class.':media.write')->group(function (): void {
+    Route::post('media', [MediaController::class, 'store'])->name('api.manage.media.store');
+    Route::patch('media/{media}', [MediaController::class, 'update'])->where('media', '[0-9A-Za-z]{26}')->name('api.manage.media.update');
 });
