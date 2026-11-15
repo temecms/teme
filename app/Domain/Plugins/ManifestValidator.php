@@ -13,6 +13,7 @@ use ReflectionClass;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
 use UnexpectedValueException;
 
@@ -237,6 +238,8 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for the outbound door, but the plugin doesn’t ask for http.";
             } elseif (strtolower((string) $type) === strtolower(ContentWriter::class) && ! in_array(Capability::ContentWrite->value, $read->capabilities(), true)) {
                 $errors[] = "{$class} asks for the content door, but the plugin doesn’t ask for content.write.";
+            } elseif (strtolower((string) $type) === strtolower(MediaWriter::class) && ! in_array(Capability::MediaWrite->value, $read->capabilities(), true)) {
+                $errors[] = "{$class} asks for the media door, but the plugin doesn’t ask for media.write.";
             }
         }
 
