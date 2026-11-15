@@ -3,10 +3,14 @@
 declare(strict_types=1);
 
 use App\Domain\Contents\Queries\RevisionHistory;
+use App\Domain\Plugins\Doors\PluginDoors;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Content\NewItem;
+use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -14,6 +18,8 @@ beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     $this->author = User::factory()->create()->assignRole('author');
 });
+
+afterEach(fn () => PluginFixtures::forget());
 
 it('lists revisions newest first, with who made each one', function (): void {
     $content = lifecycleDraft($this->author, 'Harbour festival');
@@ -24,6 +30,19 @@ it('lists revisions newest first, with who made each one', function (): void {
 
     expect($rows[0]['author'])->toBe($this->author->name)
         ->and($rows[0]['createdAt'])->toBeGreaterThanOrEqual($rows[1]['createdAt']);
+});
+
+it('names through Writer for a revision written by a plugin', function (): void {
+    PluginFixtures::use('writer');
+    $editor = User::factory()->create(['name' => 'Ada'])->assignRole('editor');
+    $writer = app(PluginDoors::class)->for('tests/writer', 'writer', ['content.write'], [])[ContentWriter::class];
+    $item = $writer->create(new NewItem('post', 'Harbour notes', ['type' => 'doc', 'content' => []]), (string) $editor->id);
+
+    $rows = RevisionHistory::for($item->id, $editor)->rows;
+
+    expect($rows[0]['via'])->toBe('through Writer')
+        ->and($rows[0]['author'])->toBe('Ada')
+        ->and(uiComponent('components/editor/rail/history-panel.tsx'))->toContain('row.via');
 });
 
 it('says how much each revision changed', function (): void {
