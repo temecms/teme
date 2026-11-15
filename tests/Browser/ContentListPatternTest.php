@@ -329,6 +329,17 @@ it('passes axe with the chooser, a row menu and a filter open, every target 24 p
     }
 })->with(['light', 'dark']);
 
+it('keeps the table header in view while a long list scrolls down the page, at 1280 (#285)', function (): void {
+    $page = ($this->drawn)(cmSignIn($this->editor)->resize(1280, 700)->navigate('/admin/posts'));
+
+    $page->script('window.scrollTo(0, 500)');
+    cmWaitUntil($page, 'window.scrollY > 300');
+
+    // The first row has left the view, and the header is still at the top of it.
+    $page->assertScript("document.querySelector('[data-test=\"row-title\"]').getBoundingClientRect().bottom < 0", true)
+        ->assertScript("Math.abs(document.querySelector('th[scope=\"col\"]').getBoundingClientRect().top) <= 1", true);
+});
+
 it('opens a row menu inside the main landmark, drawn by the shared menu (#286)', function (): void {
     $page = ($this->drawn)(cmSignIn($this->editor)->resize(1280, 900)->navigate('/admin/posts'));
 
