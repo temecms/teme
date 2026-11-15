@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins;
 
 use App\Domain\Hooks\Reference\HookCatalogue;
+use App\Domain\Import\PluginData\WordPressNames;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
@@ -124,6 +125,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
         array_push($errors, ...$this->owns($manifest, $read));
+        array_push($errors, ...$this->imports($manifest, $read));
 
         return $errors;
     }
@@ -422,6 +424,98 @@ final readonly class ManifestValidator
 
             if (strlen($table) > 63) {
                 $errors[] = "owns.tables \"{$table}\" must be at most 63 characters.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * imports: an object of what the plugin brings across from WordPress,
+     * each name of a WordPress option or meta key's shape, never one Teme
+     * never sends, at most WordPressNames::MOST in all, and only with
+     * import.wordpress (docs/architecture/plugins.md).
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function imports(array $manifest, Manifest $read): array
+    {
+        $asks = in_array(Capability::ImportWordPress->value, $read->capabilities(), true);
+
+        if (! array_key_exists('imports', $manifest)) {
+            return $asks ? ['It asks for import.wordpress but declares nothing to import.'] : [];
+        }
+
+        $imports = $manifest['imports'];
+
+        if (! is_array($imports) || ($imports !== [] && array_is_list($imports))) {
+            return ['imports must be an object: what the plugin brings across from WordPress.'];
+        }
+
+        $errors = $asks ? [] : ['It declares imports but doesn’t ask for import.wordpress.'];
+
+        foreach (array_diff(array_keys($imports), WordPressNames::KEYS) as $key) {
+            $errors[] = 'imports may hold only importer, options, postTypes, userMeta and termMeta: "'.$key.'" isn’t one of them.';
+        }
+
+        if (! is_string($imports['importer'] ?? null) || preg_match('/^\\\\?[A-Za-z_][A-Za-z0-9_]*(\\\\[A-Za-z_][A-Za-z0-9_]*)*$/', $imports['importer']) !== 1) {
+            $errors[] = 'imports.importer must name the plugin’s importer class.';
+        }
+
+        $count = 0;
+
+        foreach (['options', 'userMeta', 'termMeta'] as $key) {
+            if (array_key_exists($key, $imports)) {
+                array_push($errors, ...$this->importNames("imports.{$key}", $imports[$key], $count));
+            }
+        }
+
+        $postTypes = $imports['postTypes'] ?? [];
+
+        if (! is_array($postTypes) || ($postTypes !== [] && array_is_list($postTypes))) {
+            $errors[] = 'imports.postTypes must be an object of post types, each with a list of its meta keys.';
+            $postTypes = [];
+        }
+
+        foreach ($postTypes as $type => $meta) {
+            $count++;
+
+            if (preg_match(WordPressNames::POST_TYPE, (string) $type) !== 1) {
+                $errors[] = "imports.postTypes \"{$type}\" isn’t the shape of a WordPress post type.";
+            }
+
+            array_push($errors, ...$this->importNames("imports.postTypes.{$type}", $meta, $count));
+        }
+
+        if ($count > WordPressNames::MOST) {
+            $errors[] = "imports declares {$count} names; declare only what the plugin needs, at most ".WordPressNames::MOST.'.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * One list of names under imports, each counted.
+     *
+     * @return list<string>
+     */
+    private function importNames(string $where, mixed $names, int &$count): array
+    {
+        if (! is_array($names) || ! array_is_list($names)) {
+            return ["{$where} must be a list of names."];
+        }
+
+        $errors = [];
+
+        foreach ($names as $name) {
+            $count++;
+
+            if (! is_string($name) || preg_match(WordPressNames::PATTERN, $name) !== 1) {
+                $errors[] = "{$where} \"{$this->show($name)}\" isn’t the shape of a WordPress option or meta key.";
+            } elseif (in_array($name, WordPressNames::NEVER_SENT, true)) {
+                $errors[] = "{$where} names {$name}, which Teme never brings across from WordPress.";
             }
         }
 

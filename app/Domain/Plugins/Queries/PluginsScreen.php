@@ -69,9 +69,9 @@ final readonly class PluginsScreen
                 'hasSettings' => $this->labels($manifest?->contributes()['settings'] ?? null) !== [],
                 'adds' => [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)],
                 'agreedVersion' => $record?->version,
-                'agreed' => $this->words($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], []),
+                'agreed' => $this->words($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $manifest?->imports() ?? []),
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
-                'asks' => $this->words($row->asks['capabilities'], $hosts, $row->consent === [] ? [] : $row->added['capabilities'], $row->consent === [] ? [] : $row->added['hosts']),
+                'asks' => $this->words($row->asks['capabilities'], $hosts, $row->consent === [] ? [] : $row->added['capabilities'], $row->consent === [] ? [] : $row->added['hosts'], $manifest?->imports() ?? []),
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
@@ -155,13 +155,14 @@ final readonly class PluginsScreen
      * @param  list<string>  $hosts
      * @param  list<string>  $newCapabilities
      * @param  list<string>  $newHosts
+     * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
      *
      * @return list<array{words: string, new: bool}>
      */
-    private function words(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = []): array
+    private function words(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $imports = []): array
     {
         return array_map(fn (string $capability): array => [
-            'words' => PluginWords::capability($capability, $hosts),
+            'words' => PluginWords::capability($capability, $hosts, $imports),
             'new' => in_array($capability, $newCapabilities, true) || ($capability === 'http' && $newHosts !== []),
         ], $capabilities);
     }
