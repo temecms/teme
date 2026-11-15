@@ -85,6 +85,7 @@ final class SaveDraft extends BaseOperation
             'terms' => array_values(array_unique($input->terms)),
             // What it was translated from, carried forward: the restored revision's, else the one it replaces (I-3360).
             'source_revision_id' => ContentRevision::query()->whereKey($input->restoredFromId ?? $content->working_revision_id)->value('source_revision_id'),
+            'via' => $input->via,
         ]);
 
         $content->update([

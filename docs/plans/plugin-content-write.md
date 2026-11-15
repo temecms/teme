@@ -95,26 +95,26 @@ interface MediaWriter
 ## Tasks
 
 ### Task 0: confirm the start
-- [ ] Confirm each line under "What main does today"; record differences as `B-?? (draft)` and follow the code.
+- [x] Confirm each line under "What main does today"; record differences as `B-?? (draft)` and follow the code.
 
 ### Task 1: capabilities and contracts
-- [ ] Tests first: `ManifestValidatorTest` accepts `content.write` and `media.write`; `CapabilityTest` (contracts) lists five cases; the contracts' architecture test still finds no `App\` or `Illuminate\` import.
-- [ ] Add D1 and D2. Build; the quick check.
+- [x] Tests first: `ManifestValidatorTest` accepts `content.write` and `media.write`; `CapabilityTest` (contracts) lists five cases; the contracts' architecture test still finds no `App\` or `Illuminate\` import.
+- [x] Add D1 and D2. Build; the quick check.
 
 ### Task 2: the content door
-- [ ] Fixture plugin `tests/Fixtures/plugins/writer` (asks for `content.read`, `content.write`).
-- [ ] Tests first, `tests/Feature/Plugins/PluginContentWriteTest.php`: a granted plugin gets `ContentWriter`; one not granted doesn't (its constructor asking for it fails to start, as today for `OutboundHttp`); `create` makes a draft with title, body, fields, terms and featured image, authored by the acting person, `via` = the plugin's code; `change` saves a new revision; `publish` and `schedule` work for an editor and are refused for a contributor (the person's permission decides); **every refusal writes nothing** (content and revisions counts compared, no hook fired): no person, an unknown person, a person without permission, an unknown type, invalid fields, a body that isn't a Tiptap document.
-- [ ] D3, D4, D5 (migration and the optional `via` on the four inputs). Build; the quick check.
+- [x] Fixture plugin `tests/Fixtures/plugins/writer` (asks for `content.read`, `content.write`).
+- [x] Tests first, `tests/Feature/Plugins/PluginContentWriteTest.php`: a granted plugin gets `ContentWriter`; one not granted doesn't (its constructor asking for it fails to start, as today for `OutboundHttp`); `create` makes a draft with title, body, fields, terms and featured image, authored by the acting person, `via` = the plugin's code; `change` saves a new revision; `publish` and `schedule` work for an editor and are refused for a contributor (the person's permission decides); **every refusal writes nothing** (content and revisions counts compared, no hook fired): no person, an unknown person, a person without permission, an unknown type, invalid fields, a body that isn't a Tiptap document.
+- [x] D3, D4, D5 (migration and the optional `via` on the four inputs). Build; the quick check.
 
 ### Task 3: the media door
-- [ ] Tests first, `PluginMediaWriteTest.php` (HTTP faked): from an agreed host, a file is stored as `UploadMedia` stores one, credited to the acting person; refused, and nothing written: a host not agreed to (no request made), a private address, a file over the limit, a type `UploadMedia` refuses, no person. The temporary file is gone after each case.
-- [ ] D6. Build; the quick check.
+- [x] Tests first, `PluginMediaWriteTest.php` (HTTP faked): from an agreed host, a file is stored as `UploadMedia` stores one, credited to the acting person; refused, and nothing written: a host not agreed to (no request made), a private address, a file over the limit, a type `UploadMedia` refuses, no person. The temporary file is gone after each case.
+- [x] D6. Build; the quick check.
 
 ### Task 4: History shows the plugin
-- [ ] Test: the History screen's data names "through Writer" for a revision with `via`. Build the small view change; `npm run build`; the quick check.
+- [x] Test: the History screen's data names "through Writer" for a revision with `via`. Build the small view change; `npm run build`; the quick check.
 
 ### Task 5: documents and records
-- [ ] `docs/architecture/plugins.md`: the two capabilities have doors (one paragraph each, with the acting-person rule). Fill this plan's Records; the full gate once.
+- [x] `docs/architecture/plugins.md`: the two capabilities have doors (one paragraph each, with the acting-person rule). Fill this plan's Records; the full gate once.
 
 ## Quick check
 
@@ -128,4 +128,77 @@ interface MediaWriter
 
 ## Records
 
-(The builder fills this.)
+### Commits
+
+- `f7daff7` feat(plugins): content.write and media.write contracts
+- `98cec10` feat(plugins): content.write door through Operations
+- `27cafad` feat(plugins): media.write door from agreed hosts
+- `98baa41` feat(cms): show through Writer on revision history
+- `47821d4` docs(plans): Plugins write content's records
+- Follow-up R1: `30e3448` `62494d8` `f51a1c7` `0795fe7` `24a012f` `04c27f8` `825683a`
+- Follow-up R1b: `627ddeb` `571178f` `c627afc` `eefbf79` `f680ea9` (and this Records commit)
+
+### Tests seen red (first failure line)
+
+- Task 1 `PluginContractsTest` names the five capabilities — `Failed asserting that two arrays are identical.`
+- Task 1 `ManifestTest` accepts content.write and media.write — `Failed asserting that two arrays are identical.`
+- Task 2 `PluginContentWriteTest` (first case) — `Undefined array key "Teme\Contracts\Content\ContentWriter"`
+- Task 3 `PluginMediaWriteTest` (first case) — `Undefined array key "Teme\Contracts\Media\MediaWriter"`
+- Task 4 `RevisionHistoryTest` names through Writer — `Undefined array key "via"`
+
+### Architecture
+
+- Before: 139 passed (1309 assertions)
+- After: 139 passed (1309 assertions) — no baseline lines added; LATER entries for `content.write` / `media.write` removed
+
+### Gate
+
+- Full `composer check` green: Pint passed; PHPStan `[OK] No errors`; types:check; vp check; Architecture **139 passed** (1309 assertions); feature suite **2 skipped, 10621 passed** (54806 assertions).
+
+### B-?? (draft)
+
+1. **B-01 (draft)** Resolved in Follow-up R1: removed unused `via` on `PublishRevisionInput` / `SchedulePublicationInput`.
+2. **B-02 (draft)** Resolved in Follow-up R1: `PluginHttp` optional `maxBytes`; media door passes the upload limit.
+3. **B-03 (draft)** Task 4's History panel assertion: the word "through" lives in the translated `via` string from PHP, not in the TSX source. The panel renders `row.via`. Options: hardcode "through" in the component; assert `row.via` in the source. Chose assert `row.via` so the test proves the view change without duplicating the translation.
+
+### Follow-up R1
+
+**Commits:** `30e3448` current actor + digits · `62494d8` alt/title before fetch + transaction · `f51a1c7` drop language/via · `0795fe7` media fetch size · `24a012f` terms by name · `04c27f8` query strip + contracts · (this) Records.
+
+**Tests seen red (first failure line):**
+
+- R1.1 contributor acting for admin — `Exception [Teme\Contracts\Content\WriteRefused] not thrown.`
+- R1.3 alt of 1001 — `Failed asserting that an instance of class Illuminate\Validation\ValidationException is an instance of class Teme\Contracts\Content\WriteRefused.`
+- R1.4 ItemChanges/via — `Failed asserting that true is false.`
+- R1.5 2 MB file — `The answer from cdn.example.com was larger than 1 MB.`
+- R1.6 terms by name — `There is no category term “Harbour News”.`
+- R1.7 strip query — failed asserting `source_url` equals URL without query (still had `?token=secret`).
+
+**Gate:** `composer check` green — Pint; PHPStan OK; types; vp check; Architecture **139 passed** (1309); feature **2 skipped, 10639 passed** (54865).
+
+### Follow-up R1b
+
+**Commits:** `627ddeb` CurrentJobActor · `571178f` term+draft transaction · `c627afc` media refuse-all · `eefbf79` scoped (I-087) · `f680ea9` import fix · (this) Records.
+
+**Tests seen red (first failure line):**
+
+- R1b.1 CurrentJobActor — `Target class [App\Domain\Plugins\Doors\CurrentJobActor] does not exist.`
+- R1b.2 rolls back a new term — `Failed asserting that 1 is identical to 0.`
+- R1b.3 turns every upload failure — `Failed asserting that two strings are identical.` (`'should have been WriteRefused'` vs `'The disk refused the write.'`)
+
+**B-04 (draft):** Follow-up asked for a singleton; `NoStaticStateTest` forbids a new process-wide singleton without widening its list (forbidden). Bound `scoped` instead so the holder is one job/request (I-087). Test meaning unchanged.
+
+**Gate:** `composer check` green — Pint; PHPStan OK; types; vp check; Architecture **139 passed** (1309); feature **2 skipped, 10642 passed** (54877).
+
+### Changelog lines (for the maintainer)
+
+- Plugins granted `content.write` receive a `ContentWriter` door that creates, changes, publishes and schedules through existing Operations on behalf of a named person; revisions record the plugin code in `content_revisions.via`.
+- Plugins granted `media.write` receive a `MediaWriter` door that fetches from agreed hosts and stores via `UploadMedia` on behalf of a named person.
+- History shows "through …" beside the author when a revision was written through a plugin.
+- `docs/architecture/plugins.md` Trust: paragraphs for the two write doors and the acting-person rule.
+- Follow-up R1: writes only for the current actor; ctype_digit IDs; alt/title limits before fetch; terms by name via CreateTerm; media up to upload limit; source_url without query.
+- Follow-up R1b: CurrentJobActor holder for job writes; term create + draft in one transaction; every media upload failure becomes WriteRefused.
+
+### STOP
+
+None.

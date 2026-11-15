@@ -1,0 +1,11 @@
+{
+    "manifest": 1,
+    "name": "tests/writer",
+    "code": "writer",
+    "label": "Writer",
+    "description": "A plugin that writes content through Teme’s content door.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Writer\\Writer",
+    "capabilities": ["content.read", "content.write"]
+}

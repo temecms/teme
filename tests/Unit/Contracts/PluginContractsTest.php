@@ -2,29 +2,36 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Operations\Input\PublishRevisionInput;
+use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
+use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Content\ItemChanges;
+use Teme\Contracts\Content\NewItem;
+use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
+use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
 use Teme\Contracts\Status\StatusNotice;
 
-it('gives every new contract its @since and nothing from a framework', function (string $class): void {
+it('gives every new contract its @since and nothing from a framework', function (string $class, string $since): void {
     $reflection = new ReflectionClass($class);
 
-    expect($reflection->getDocComment())->toContain('@since 0.5.0');
+    expect($reflection->getDocComment())->toContain('@since '.$since);
 
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
         if ($method->getDeclaringClass()->getName() !== $class || ! $method->isUserDefined()) {
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since 0.5.0');
+        expect($method->getDocComment())->toContain('@since '.$since);
     }
 
     $types = [];
@@ -49,7 +56,7 @@ it('gives every new contract its @since and nothing from a framework', function 
         $named = $type instanceof ReflectionNamedType ? [$type] : $type->getTypes();
 
         foreach ($named as $one) {
-            if ($one->isBuiltin() || in_array($one->getName(), ['self', 'static'], true)) {
+            if ($one->isBuiltin() || in_array($one->getName(), ['self', 'static', DateTimeImmutable::class], true)) {
                 continue;
             }
 
@@ -57,19 +64,36 @@ it('gives every new contract its @since and nothing from a framework', function 
         }
     }
 })->with([
-    Capability::class,
-    StatusCheck::class,
-    StatusNotice::class,
-    ChecksStatus::class,
-    OutboundHttp::class,
-    HttpAnswer::class,
-    HostRefused::class,
-    AnswerTooLarge::class,
-    RequestFailed::class,
+    [Capability::class, '0.5.0'],
+    [StatusCheck::class, '0.5.0'],
+    [StatusNotice::class, '0.5.0'],
+    [ChecksStatus::class, '0.5.0'],
+    [OutboundHttp::class, '0.5.0'],
+    [HttpAnswer::class, '0.5.0'],
+    [HostRefused::class, '0.5.0'],
+    [AnswerTooLarge::class, '0.5.0'],
+    [RequestFailed::class, '0.5.0'],
+    [ContentWriter::class, '0.9.0'],
+    [NewItem::class, '0.9.0'],
+    [ItemChanges::class, '0.9.0'],
+    [WriteRefused::class, '0.9.0'],
+    [MediaWriter::class, '0.9.0'],
 ]);
 
-it('names the three capabilities a plugin can ask for in the first release', function (): void {
-    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http']);
+it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
+    expect((new ReflectionClass(ItemChanges::class))->hasProperty('language'))->toBeFalse()
+        ->and((new ReflectionClass(PublishRevisionInput::class))->hasProperty('via'))->toBeFalse()
+        ->and((new ReflectionClass(SchedulePublicationInput::class))->hasProperty('via'))->toBeFalse();
+});
+
+it('names the five capabilities a plugin can ask for in the first release', function (): void {
+    expect(array_column(Capability::cases(), 'value'))->toBe([
+        'content.read',
+        'content.write',
+        'media.read',
+        'media.write',
+        'http',
+    ]);
 });
 
 it('decodes an answer’s JSON, and refuses JSON that isn’t', function (): void {

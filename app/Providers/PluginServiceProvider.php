@@ -8,6 +8,7 @@ use App\Domain\Plugins\Contributions\Contributions;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Contributions\RecordedStatusFaults;
 use App\Domain\Plugins\Contributions\StatusFaults;
+use App\Domain\Plugins\Doors\CurrentJobActor;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\PluginLoader;
@@ -34,6 +35,8 @@ final class PluginServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PluginRegistry::class);
         $this->app->singleton(LoadedPlugins::class);
+        // Scoped: holds the job actor for one job/request only (I-087).
+        $this->app->scoped(CurrentJobActor::class);
 
         $this->app->singleton(HookSubscriptions::class, DispatcherSubscriptions::class);
 
