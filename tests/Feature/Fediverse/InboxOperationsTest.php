@@ -18,6 +18,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -51,6 +52,31 @@ it('records a remote account only for the account itself, writing nothing otherw
     expect([$remote->uri, $remote->host, $remote->inbox_url, $remote->shared_inbox_url, $remote->handle])
         ->toBe([Inbox::ALICE, 'remote.example', Inbox::ALICE.'/inbox', 'https://remote.example/inbox', 'alice@remote.example']);
 });
+
+it('keeps the key the sender signed with, not the document’s first', function (): void {
+    $document = Actors::remoteDocument();
+    $document['publicKey'] = [
+        ['id' => Inbox::ALICE.'#other-key', 'owner' => Inbox::ALICE, 'publicKeyPem' => Actors::keys('site')['public']],
+        $document['publicKey'],
+    ];
+
+    $remote = app(RecordRemoteActor::class)->execute(new RecordRemoteActorInput($document, $this->alice));
+
+    expect($remote->key_id)->toBe(Inbox::ALICE.'#main-key')
+        ->and($remote->public_key_pem)->toBe(Actors::keys('remote')['public']);
+});
+
+it('refuses a remote account whose key, inbox or shared inbox is on another server, writing nothing', function (array $change): void {
+    $document = array_replace_recursive(Actors::remoteDocument(), $change);
+    $sender = new VerifiedSender((string) $document['publicKey']['id'], Inbox::ALICE);
+
+    expect(fn () => app(RecordRemoteActor::class)->execute(new RecordRemoteActorInput($document, $sender)))->toThrow(ValidationException::class)
+        ->and(RemoteActor::query()->count())->toBe(0);
+})->with([
+    'key' => [['publicKey' => ['id' => 'https://elsewhere.example/keys/1']]],
+    'inbox' => [['inbox' => 'https://elsewhere.example/inbox']],
+    'shared inbox' => [['endpoints' => ['sharedInbox' => 'https://elsewhere.example/inbox']]],
+]);
 
 it('accepts a Follow only from the follower itself, writing nothing otherwise', function (): void {
     $remote = Actors::remote();

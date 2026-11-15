@@ -8,13 +8,15 @@ use InvalidArgumentException;
 
 /**
  * Reads a remote actor document into what fediverse_remote_actors keeps:
- * its address, handle, host, name, pages, inboxes and key. Refuses one
- * without an https address, an https inbox on the same server, or a key.
+ * its address, handle, host, name, pages, inboxes and key, the one the
+ * sender signed with when known. Refuses one without an https address, an
+ * https inbox on the same server, or a key on the same server; a shared
+ * inbox, when it names one, must be on the same server too.
  */
 final class RemoteActorDocument
 {
     /**
-     * The columns for this document.
+     * The columns for this document, keeping the key $keyId names, or its first.
      *
      * @param  array<string, mixed>  $document
      *
@@ -22,7 +24,7 @@ final class RemoteActorDocument
      *
      * @throws InvalidArgumentException
      */
-    public static function attributes(array $document): array
+    public static function attributes(array $document, ?string $keyId = null): array
     {
         $uri = self::https($document['id'] ?? null);
         $host = strtolower((string) parse_url((string) $uri, PHP_URL_HOST));
@@ -32,8 +34,9 @@ final class RemoteActorDocument
             throw new InvalidArgumentException('The actor has no https address or inbox.');
         }
 
-        $key = $document['publicKey'] ?? null;
-        $key = is_array($key) && array_is_list($key) ? ($key[0] ?? null) : $key;
+        $keys = $document['publicKey'] ?? null;
+        $keys = is_array($keys) && array_is_list($keys) ? $keys : [$keys];
+        $key = $keyId === null ? ($keys[0] ?? null) : (array_values(array_filter($keys, fn (mixed $entry): bool => is_array($entry) && ($entry['id'] ?? null) === $keyId))[0] ?? null);
 
         if (! is_array($key) || ! is_string($key['id'] ?? null) || ! is_string($key['publicKeyPem'] ?? null)) {
             throw new InvalidArgumentException('The actor has no public key.');
@@ -41,6 +44,12 @@ final class RemoteActorDocument
 
         $endpoints = is_array($document['endpoints'] ?? null) ? $document['endpoints'] : [];
         $shared = self::https($endpoints['sharedInbox'] ?? null);
+
+        foreach ([$key['id'], $inbox, $shared] as $address) {
+            if ($address !== null && strtolower((string) parse_url($address, PHP_URL_HOST)) !== $host) {
+                throw new InvalidArgumentException('The actor’s key and inboxes must be on its own server.');
+            }
+        }
         $username = is_string($document['preferredUsername'] ?? null) ? $document['preferredUsername'] : null;
         $icon = $document['icon'] ?? null;
         $icon = is_array($icon) && array_is_list($icon) ? ($icon[0] ?? null) : $icon;

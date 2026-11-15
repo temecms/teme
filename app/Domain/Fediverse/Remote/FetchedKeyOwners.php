@@ -67,18 +67,26 @@ final readonly class FetchedKeyOwners implements KeyOwners
     }
 
     /**
-     * The public key an actor document names for this key id, or null.
+     * The public key an actor document names for this key id, or null: a
+     * key kept on another server than the actor's is never its own.
      *
      * @param  array<string, mixed>  $document
      */
     public static function keyIn(array $document, string $keyId): ?string
     {
+        $actorUri = is_string($document['id'] ?? null) ? $document['id'] : '';
+        $actorHost = strtolower((string) parse_url($actorUri, PHP_URL_HOST));
+
+        if ($actorHost === '' || strtolower((string) parse_url($keyId, PHP_URL_HOST)) !== $actorHost) {
+            return null;
+        }
+
         $keys = $document['publicKey'] ?? null;
         $keys = is_array($keys) && array_is_list($keys) ? $keys : [$keys];
 
         foreach ($keys as $key) {
             if (is_array($key) && ($key['id'] ?? null) === $keyId && is_string($key['publicKeyPem'] ?? null)
-                && ($key['owner'] ?? $document['id'] ?? null) === ($document['id'] ?? null)) {
+                && ($key['owner'] ?? $actorUri) === $actorUri) {
                 return $key['publicKeyPem'];
             }
         }

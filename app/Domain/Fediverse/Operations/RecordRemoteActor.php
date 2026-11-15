@@ -44,7 +44,7 @@ final class RecordRemoteActor extends BaseOperation
     {
         /** @var RecordRemoteActorInput $input */
         try {
-            RemoteActorDocument::attributes($input->document);
+            RemoteActorDocument::attributes($input->document, $input->sender?->keyId);
         } catch (InvalidArgumentException $refusal) {
             throw ValidationException::withMessages(['document' => $refusal->getMessage()]);
         }
@@ -53,7 +53,7 @@ final class RecordRemoteActor extends BaseOperation
     protected function perform(OperationInput $input): RemoteActor
     {
         /** @var RecordRemoteActorInput $input */
-        $attributes = RemoteActorDocument::attributes($input->document);
+        $attributes = RemoteActorDocument::attributes($input->document, $input->sender?->keyId);
         $remote = RemoteActor::query()->where('uri', $attributes['uri'])->lockForUpdate()->first() ?? new RemoteActor;
 
         $remote->fill([...$attributes, 'fetched_at' => now(), 'gone_at' => null])->save();

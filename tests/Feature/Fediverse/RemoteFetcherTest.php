@@ -90,3 +90,13 @@ it('refuses a key whose actor does not name it', function (): void {
 
     expect(app(KeyOwners::class)->owner('https://remote.example/users/alice#main-key'))->toBeNull();
 });
+
+it('refuses a key kept on another server than its actor’s, even when the actor names it', function (): void {
+    $key = ['id' => 'https://other.example/keys/alice', 'owner' => 'https://remote.example/users/alice', 'publicKeyPem' => Actors::keys('remote')['public']];
+    Http::fake([
+        'https://other.example/keys/alice' => Http::response($key, 200),
+        'https://remote.example/users/alice' => Http::response([...Actors::remoteDocument(), 'publicKey' => $key], 200),
+    ]);
+
+    expect(app(KeyOwners::class)->owner('https://other.example/keys/alice'))->toBeNull();
+});
