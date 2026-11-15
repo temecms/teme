@@ -1,0 +1,211 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\PublicRoutes;
+
+use App\Domain\Plugins\Manifest;
+
+/**
+ * The D3 refusals for a plugin's declared public routes: reserved paths,
+ * unconditional paths outside /{code}/ and /.well-known/, core .well-known
+ * names and public addresses, missing POST verifiers, unknown secret
+ * settings, and two entries that could match one request.
+ */
+final class RouteCollisions
+{
+    /** Prefixes a plugin may not claim (Settled §3). */
+    public const array RESERVED_PREFIXES = ['admin', '_teme', 'api', 'up', 'build', 'storage'];
+
+    /** .well-known names that belong to core (P3). */
+    public const array CORE_WELL_KNOWN = ['webfinger', 'nodeinfo', 'host-meta', 'security.txt', 'change-password'];
+
+    /** Core public path names a plugin may not take. */
+    public const array CORE_PUBLIC = [
+        'robots.txt',
+        'sitemap.xml',
+        'sitemap.xsl',
+        'llms.txt',
+        'feed',
+        'wp-sitemap.xml',
+        'sitemap_index.xml',
+    ];
+
+    /**
+     * Every problem in this plugin's routes alone; empty when the list is fine.
+     *
+     * @param  list<array<string, mixed>>  $routes
+     *
+     * @return list<string>
+     */
+    public function errorsFor(Manifest $manifest, array $routes): array
+    {
+        $errors = [];
+        $seen = [];
+
+        foreach ($routes as $route) {
+            $id = is_string($route['id'] ?? null) ? $route['id'] : '';
+            $method = is_string($route['method'] ?? null) ? strtoupper($route['method']) : '';
+            $path = is_string($route['path'] ?? null) ? $route['path'] : '';
+            $handler = is_string($route['handler'] ?? null) ? $route['handler'] : '';
+
+            if ($id === '' || preg_match('/^[a-z][a-z0-9_-]*$/', $id) !== 1) {
+                $errors[] = 'Each route needs an id of lower-case letters, digits, hyphens and underscores.';
+            }
+
+            if (! in_array($method, ['GET', 'POST'], true)) {
+                $errors[] = 'Each route’s method must be GET or POST.';
+            }
+
+            if ($path === '' || ! str_starts_with($path, '/')) {
+                $errors[] = 'Each route needs a path that starts with /.';
+            } else {
+                array_push($errors, ...$this->pathErrors($manifest->code(), $path, $route));
+            }
+
+            if ($handler === '') {
+                $errors[] = 'Each route needs a handler class.';
+            }
+
+            if ($method === 'POST') {
+                array_push($errors, ...$this->verifyErrors($manifest, $route));
+            }
+
+            $resolved = str_replace('{code}', $manifest->code(), $path);
+            $key = $method.' '.$resolved.' '.$this->conditionKey($route);
+
+            if (isset($seen[$key])) {
+                $errors[] = "This route collides with {$manifest->code()}’s {$seen[$key]}.";
+            } elseif ($id !== '') {
+                $seen[$key] = $id;
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Whether this unconditional resolved path is under the plugin’s code or
+     * /.well-known/.
+     */
+    public function unconditionalAllowed(string $resolvedPath, string $code): bool
+    {
+        if (str_starts_with($resolvedPath, '/.well-known/')) {
+            return true;
+        }
+
+        return str_starts_with($resolvedPath, '/'.$code.'/') || $resolvedPath === '/'.$code;
+    }
+
+    /**
+     * @param  array<string, mixed>  $route
+     *
+     * @return list<string>
+     */
+    private function pathErrors(string $code, string $path, array $route): array
+    {
+        $resolved = str_replace('{code}', $code, $path);
+        $trimmed = ltrim($resolved, '/');
+        $segments = $trimmed === '' ? [] : explode('/', $trimmed);
+        $first = $segments[0] ?? '';
+        $when = $route['when'] ?? null;
+        $conditional = is_array($when) && $when !== [];
+
+        if ($first !== '' && in_array($first, self::RESERVED_PREFIXES, true)) {
+            return ["The path {$resolved} is reserved."];
+        }
+
+        if (in_array($trimmed, self::CORE_PUBLIC, true) || str_starts_with($trimmed, 'sitemap-')) {
+            return ["The path {$resolved} is a core public address."];
+        }
+
+        if (str_starts_with($resolved, '/.well-known/')) {
+            $wellKnown = substr($resolved, strlen('/.well-known/'));
+            $name = $wellKnown === '' ? '' : explode('/', $wellKnown)[0];
+
+            if (in_array($name, self::CORE_WELL_KNOWN, true)) {
+                return ["The .well-known name {$name} belongs to core."];
+            }
+
+            return [];
+        }
+
+        if (! $conditional && ! $this->unconditionalAllowed($resolved, $code)) {
+            return ['An unconditional path must be under /{code}/ or /.well-known/.'];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $route
+     *
+     * @return list<string>
+     */
+    private function verifyErrors(Manifest $manifest, array $route): array
+    {
+        $verify = $route['verify'] ?? null;
+
+        if (! is_array($verify) || $verify === []) {
+            return ['A POST route needs a verify block.'];
+        }
+
+        $kind = is_string($verify['kind'] ?? null) ? $verify['kind'] : '';
+
+        if (! in_array($kind, ['secret', 'hmac', 'custom'], true)) {
+            return ['verify.kind must be secret, hmac or custom.'];
+        }
+
+        if ($kind === 'custom') {
+            return is_string($verify['class'] ?? null) && $verify['class'] !== ''
+                ? []
+                : ['A custom verifier needs a class.'];
+        }
+
+        $secret = is_string($verify['secret'] ?? null) ? $verify['secret'] : '';
+
+        if ($secret === '') {
+            return ['verify needs a secret setting name.'];
+        }
+
+        $keys = [];
+
+        foreach ($manifest->contributes()['settings'] ?? [] as $setting) {
+            if (is_array($setting) && ($setting['type'] ?? null) === 'secret' && is_string($setting['key'] ?? null)) {
+                $keys[] = $setting['key'];
+            }
+        }
+
+        if (! in_array($secret, $keys, true)) {
+            return ["verify.secret \"{$secret}\" isn’t a declared secret setting."];
+        }
+
+        if ($kind === 'secret') {
+            $from = is_string($verify['from'] ?? null) ? $verify['from'] : '';
+
+            if (! preg_match('/^(header|field|query):.+$/', $from)) {
+                return ['verify.from must be header:, field: or query: and a name.'];
+            }
+        }
+
+        if ($kind === 'hmac' && (! is_string($verify['header'] ?? null) || $verify['header'] === '')) {
+            return ['An hmac verifier needs a header name.'];
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $route
+     */
+    private function conditionKey(array $route): string
+    {
+        $when = $route['when'] ?? null;
+
+        if (! is_array($when) || $when === []) {
+            return '';
+        }
+
+        return json_encode($when, JSON_THROW_ON_ERROR);
+    }
+}
