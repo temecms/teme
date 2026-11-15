@@ -1,0 +1,19 @@
+{
+    "subject": "acct:pfefferle@notiz.blog",
+    "aliases": [
+        "https://notiz.blog/author/matthias-pfefferle/",
+        "https://notiz.blog/@pfefferle"
+    ],
+    "links": [
+        {
+            "rel": "http://webfinger.net/rel/profile-page",
+            "href": "https://notiz.blog/author/matthias-pfefferle/",
+            "type": "text/html"
+        },
+        {
+            "rel": "self",
+            "type": "application/activity+json",
+            "href": "https://notiz.blog/author/matthias-pfefferle/"
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{
+    "id": "https://notiz.blog/?post_type=ap_outbox&p=60326",
+    "type": "Announce",
+    "audience": "https://notiz.blog/@notiz.blog",
+    "published": "2026-11-07T20:15:50Z",
+    "to": [
+        "https://www.w3.org/ns/activitystreams#Public"
+    ],
+    "cc": [
+        "https://notiz.blog/wp-api/activitypub/1.0/actors/1/followers",
+        "https://mastodon.social/users/voxpelli",
+        "https://notiz.blog/author/matthias-pfefferle/"
+    ],
+    "object": {
+        "id": "https://notiz.blog/?post_type=ap_outbox&p=60325",
+        "type": "Create",
+        "audience": "https://notiz.blog/@notiz.blog",
+        "published": "2026-11-07T20:15:50Z",
+        "to": [
+            "https://www.w3.org/ns/activitystreams#Public"
+        ],
+        "cc": [
+            "https://notiz.blog/wp-api/activitypub/1.0/actors/1/followers",
+            "https://mastodon.social/users/voxpelli"
+        ],
+        "object": {
+            "id": "https://notiz.blog/?p=59775",
+            "type": "Article",
+            "attributedTo": "https://notiz.blog/author/matthias-pfefferle/",
+            "audience": "https://notiz.blog/@notiz.blog",
+            "published": "2026-11-07T20:15:50Z",
+            "url": "https://notiz.blog/2026/11/07/socialspecing-hypertexting/",
+            "to": [
+                "https://www.w3.org/ns/activitystreams#Public"
+            ],
+            "cc": [
+                "https://notiz.blog/wp-api/activitypub/1.0/actors/1/followers",
+                "https://mastodon.social/users/voxpelli"
+            ]
+        },
+        "actor": "https://notiz.blog/author/matthias-pfefferle/"
+    },
+    "actor": "https://notiz.blog/@notiz.blog"
+}

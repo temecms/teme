@@ -118,6 +118,16 @@ it('keeps each private key encrypted, and never in the map, a message or a log',
         ->and(fiCodes($run))->toBe(['fediverse.key-made']);
 });
 
+it('names the application’s account “application” when the blog has the host’s name, as the plugin names it by default', function (): void {
+    $host = (string) parse_url(url('/'), PHP_URL_HOST);
+    $this->companion->fediverse(ImportFixtures::whole('blog', [ImportFixtures::actor(0, $host)]));
+
+    $run = ImportFixtures::run($this->source);
+
+    expect($run->state)->toBe(ImportRunState::Finished)
+        ->and(FediverseActor::query()->orderBy('kind')->pluck('username', 'kind')->all())->toBe([FediverseActor::APPLICATION => 'application', FediverseActor::BLOG => $host]);
+});
+
 it('makes a new key pair for an account WordPress had no key for, and says so', function (): void {
     $keyless = ImportFixtures::actor(1, 'ada', ['public' => '', 'private' => '']);
     $this->companion->fediverse(ImportFixtures::whole('actor', [$keyless]));

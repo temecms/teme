@@ -1,0 +1,20 @@
+{
+    "subject": "acct:notiz.blog@notiz.blog",
+    "aliases": [
+        "https://notiz.blog/@notiz.blog",
+        "https://notiz.blog",
+        "https://notiz.blog/"
+    ],
+    "links": [
+        {
+            "rel": "self",
+            "type": "application/activity+json",
+            "href": "https://notiz.blog/@notiz.blog"
+        },
+        {
+            "rel": "http://webfinger.net/rel/profile-page",
+            "type": "text/html",
+            "href": "https://notiz.blog/@notiz.blog"
+        }
+    ]
+}

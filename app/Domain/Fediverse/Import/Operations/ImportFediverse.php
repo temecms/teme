@@ -26,9 +26,12 @@ use App\Domain\People\Models\Person;
 use App\Domain\Settings\Modules;
 use App\Domain\Support\Operations\BaseOperation;
 use Carbon\CarbonImmutable;
+use Closure;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
@@ -198,7 +201,7 @@ final class ImportFediverse extends BaseOperation
 
         $username = $actor['username'] !== '' ? $actor['username'] : $actor['login'];
 
-        if (preg_match(self::USERNAME, $username) !== 1 || FediverseActor::query()->whereRaw('lower(username) = ?', [mb_strtolower($username)])->exists()) {
+        if (preg_match(self::USERNAME, $username) !== 1 || self::taken($username)) {
             return [ImportMessage::error('fediverse.name-taken', __('A WordPress fediverse account’s name is taken in Teme or isn’t one Teme can answer for, so it and its followers weren’t brought across.'), $who)];
         }
 
@@ -210,7 +213,7 @@ final class ImportFediverse extends BaseOperation
             $messages[] = new ImportMessage('fediverse.key-made', __('WordPress had no usable key for a fediverse account, so Teme made a new one. Its followers’ servers pick it up the next time they hear from it.'), $who);
         }
 
-        $made = FediverseActor::query()->create([
+        $made = self::stored(fn (): FediverseActor => FediverseActor::query()->create([
             'kind' => $blog ? FediverseActor::BLOG : FediverseActor::PERSON,
             'person_id' => $personId,
             'uri' => $actor['id'],
@@ -226,7 +229,7 @@ final class ImportFediverse extends BaseOperation
             'public_key_pem' => $keys['public'],
             'private_key' => $keys['private'],
             'enabled' => $blog ? $mode !== 'actor' : $mode !== 'blog',
-        ]);
+        ]));
 
         $this->entry($input, self::ACTOR, (string) $actor['user_id'], 'fediverse_actor', $made->id);
 
@@ -245,14 +248,43 @@ final class ImportFediverse extends BaseOperation
     {
         $base = rtrim(url('/'), '/').'/'.ActivityPub::PREFIX;
 
-        if (! FediverseActor::query()->where('kind', FediverseActor::BLOG)->exists()
-            && ! FediverseActor::query()->whereRaw('lower(username) = ?', ['blog'])->exists()) {
-            $this->makeLocalActor(FediverseActor::BLOG, 'blog', $base.'/blog', $followable !== FediverseSettingsGroup::AUTHORS);
+        if (! FediverseActor::query()->where('kind', FediverseActor::BLOG)->exists() && ! self::taken('blog')) {
+            self::stored(fn (): FediverseActor => $this->makeLocalActor(FediverseActor::BLOG, 'blog', $base.'/blog', $followable !== FediverseSettingsGroup::AUTHORS));
         }
 
-        if (! FediverseActor::query()->where('kind', FediverseActor::APPLICATION)->exists()) {
-            $host = (string) (parse_url(url('/'), PHP_URL_HOST) ?: 'localhost');
-            $this->makeLocalActor(FediverseActor::APPLICATION, $host, $base.'/application');
+        if (FediverseActor::query()->where('kind', FediverseActor::APPLICATION)->exists()) {
+            return;
+        }
+
+        // The plugin names the blog after the host by default, as Teme names the application: then it is "application".
+        $host = (string) (parse_url(url('/'), PHP_URL_HOST) ?: 'localhost');
+        $name = self::taken($host) ? 'application' : $host;
+
+        if (! self::taken($name)) {
+            self::stored(fn (): FediverseActor => $this->makeLocalActor(FediverseActor::APPLICATION, $name, $base.'/application'));
+        }
+    }
+
+    /**
+     * Whether one of the site's accounts is called this already.
+     */
+    private static function taken(string $username): bool
+    {
+        return FediverseActor::query()->whereRaw('lower(username) = ?', [mb_strtolower($username)])->exists();
+    }
+
+    /**
+     * Stores an account, and when the database refuses it, says so without
+     * the statement, whose values hold the key.
+     *
+     * @param  Closure(): FediverseActor  $store
+     */
+    private static function stored(Closure $store): FediverseActor
+    {
+        try {
+            return $store();
+        } catch (QueryException) {
+            throw new RuntimeException('The database refused a fediverse account the import brought.');
         }
     }
 
