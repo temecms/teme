@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\DB;
  * pointing nowhere else, and the front page and the posts page as the head
  * treats them. Read a page at a time from a key, never by OFFSET; llms.txt
  * is to read the same rule (I-713). A type's own hide box is its caller's
- * to ask. The lists keep to the default language's items, the only ones
- * their addresses carry yet (I-3360); one item is read in any shown language.
+ * to ask. A sitemap's pages list every shown language's items (I-3360);
+ * the newest, the latest and whether a type has any keep to one language,
+ * the default unless one is named; one item is read in any shown language.
  */
 final class ListedItems
 {
@@ -57,8 +58,8 @@ final class ListedItems
 
     /**
      * The first ID of each page after the first, for this type's live items
-     * in ID order, one every PAGE: one pass over contents_sitemap, read from
-     * the index alone.
+     * in every shown language in ID order, one every PAGE: one pass over
+     * contents_sitemap.
      *
      * @return list<string>
      */
@@ -74,17 +75,19 @@ final class ListedItems
             ORDER BY id
             SQL;
 
-        return array_map(fn (object $row): string => (string) $row->id, DB::select($this->inDefault($sql), [$type, now(), self::PAGE]));
+        [$shown, $bindings] = $this->inShown();
+
+        return array_map(fn (object $row): string => (string) $row->id, DB::select(str_replace('{default}', $shown, $sql), [$type, now(), ...$bindings, self::PAGE]));
     }
 
     /**
-     * One page of this type's listed items from the key $from, the first
-     * page when null: of the next PAGE live items in ID order, those a
+     * One page of this type's listed items in every shown language from the
+     * key $from, the first page when null: of the next PAGE live items in ID order, those a
      * page's head lets search engines list, each with its current address
      * and when it last changed, the later of going live and its published
      * revision. The front page is left out: it is the site's address.
      *
-     * @return list<array{id: string, path: string, changed_at: string}>
+     * @return list<array{id: string, path: string, changed_at: string, group: string|null}>
      */
     public function page(string $type, ?string $from): array
     {
@@ -103,9 +106,17 @@ final class ListedItems
             WHERE live.id <> ?
             SQL;
 
-        $rows = DB::select($this->inDefault($sql).' AND '.self::rule().' ORDER BY live.id', [$type, now(), $from ?? '', self::PAGE, $front, $posts, self::ADDRESS]);
+        [$shown, $bindings] = $this->inShown();
+        $sql = str_replace(['{default}', 'SELECT id, published_at'], [$shown, 'SELECT id, translation_group, published_at'], $sql);
+        $sql = str_replace('SELECT live.id, address.path', 'SELECT live.id, live.translation_group, address.path', $sql);
+        $rows = DB::select($sql.' AND '.self::rule().' ORDER BY live.id', [$type, now(), $from ?? '', ...$bindings, self::PAGE, $front, $posts, self::ADDRESS]);
 
-        return array_map(fn (object $row): array => ['id' => (string) $row->id, 'path' => (string) $row->path, 'changed_at' => (string) $row->changed_at], $rows);
+        return array_map(fn (object $row): array => [
+            'id' => (string) $row->id,
+            'path' => (string) $row->path,
+            'changed_at' => (string) $row->changed_at,
+            'group' => $row->translation_group === null ? null : (string) $row->translation_group,
+        ], $rows);
     }
 
     /**
@@ -117,7 +128,7 @@ final class ListedItems
      *
      * @return list<array{id: string, path: string, title: string, excerpt: string|null}>
      */
-    public function latestListed(string $type, int $count): array
+    public function latestListed(string $type, int $count, ?string $language = null): array
     {
         [$front, $posts] = self::sitePages();
         $sql = <<<'SQL'
@@ -134,7 +145,8 @@ final class ListedItems
             WHERE live.id <> ?
             SQL;
 
-        $rows = DB::select($this->inDefault($sql).' AND '.self::rule().' ORDER BY live.published_at DESC, live.id DESC', [BuiltInFields::EXCERPT, $type, now(), $count, $front, $posts, self::ADDRESS]);
+        [$sql, $bindings] = $this->inLanguage($sql, $language);
+        $rows = DB::select($sql.' AND '.self::rule().' ORDER BY live.published_at DESC, live.id DESC', [BuiltInFields::EXCERPT, $type, now(), ...$bindings, $count, $front, $posts, self::ADDRESS]);
 
         return array_map(fn (object $row): array => [
             'id' => (string) $row->id,
@@ -145,9 +157,10 @@ final class ListedItems
     }
 
     /**
-     * Whether this type has a live item.
+     * Whether this type has a live item in this language, as stored: null
+     * for the default.
      */
-    public function any(string $type): bool
+    public function any(string $type, ?string $language = null): bool
     {
         $sql = <<<'SQL'
             SELECT EXISTS (
@@ -156,7 +169,25 @@ final class ListedItems
             ) AS found
             SQL;
 
-        return DB::selectOne($this->inDefault($sql), [$type, now()])?->found === true;
+        [$sql, $bindings] = $this->inLanguage($sql, $language);
+
+        return DB::selectOne($sql, [$type, now(), ...$bindings])?->found === true;
+    }
+
+    /**
+     * Whether this type has a live item in any shown language.
+     */
+    public function anyShown(string $type): bool
+    {
+        [$shown, $bindings] = $this->inShown();
+        $sql = <<<'SQL'
+            SELECT EXISTS (
+                SELECT 1 FROM contents
+                WHERE type = ? AND status = 'published' AND deleted_at IS NULL AND visibility = 'public' AND published_at <= ?{default}
+            ) AS found
+            SQL;
+
+        return DB::selectOne(str_replace('{default}', $shown, $sql), [$type, now(), ...$bindings])?->found === true;
     }
 
     /**
@@ -181,11 +212,14 @@ final class ListedItems
     }
 
     /**
-     * When the newest live item of these types last changed, the later of
-     * going live and its published revision: the date the site's address
-     * carries while it lists them; null for no types, or none live.
+     * When the newest live item of these types, in this language as stored
+     * (null for the default), last changed, the later of going live and its
+     * published revision: the date the site's address carries while it
+     * lists them; null for no types, or none live.
+     *
+     * @param  list<string>  $types
      */
-    public function newest(string ...$types): ?CarbonImmutable
+    public function newestIn(array $types, ?string $language): ?CarbonImmutable
     {
         if ($types === []) {
             return null;
@@ -204,9 +238,57 @@ final class ListedItems
             JOIN content_revisions revision ON revision.id = live.published_revision_id
             SQL;
 
-        $row = DB::selectOne($this->inDefault($sql), [...$types, now()]);
+        [$sql, $bindings] = $this->inLanguage($sql, $language);
+        $row = DB::selectOne($sql, [...$types, now(), ...$bindings]);
 
         return $row === null ? null : CarbonImmutable::parse((string) $row->changed_at);
+    }
+
+    /**
+     * As newestIn(), in the default language.
+     */
+    public function newest(string ...$types): ?CarbonImmutable
+    {
+        return $this->newestIn(array_values($types), null);
+    }
+
+    /**
+     * Every live, public version of these groups in a shown language, each
+     * with its current address, by group, for a sitemap page's alternates:
+     * one statement.
+     *
+     * @param  list<string>  $groups
+     *
+     * @return array<string, list<array{id: string, language: string|null, type: string, path: string}>>
+     */
+    public function versions(array $groups): array
+    {
+        if ($groups === []) {
+            return [];
+        }
+
+        [$shown, $bindings] = $this->inShown('c.language');
+        $rows = DB::select(<<<SQL
+            SELECT c.id, c.language, c.type, c.translation_group, p.path
+            FROM contents c
+            JOIN paths p ON p.target_type = 'content' AND p.target_id = c.id::text AND p.is_current
+            WHERE c.translation_group = ANY(?::text[])
+                AND c.status = 'published' AND c.deleted_at IS NULL AND c.visibility = 'public' AND c.published_at <= ?{$shown}
+            ORDER BY c.id
+            SQL, ['{'.implode(',', $groups).'}', now(), ...$bindings]);
+
+        $versions = [];
+
+        foreach ($rows as $row) {
+            $versions[(string) $row->translation_group][] = [
+                'id' => (string) $row->id,
+                'language' => $row->language === null ? null : (string) $row->language,
+                'type' => (string) $row->type,
+                'path' => (string) $row->path,
+            ];
+        }
+
+        return $versions;
     }
 
     /**
@@ -223,12 +305,33 @@ final class ListedItems
     }
 
     /**
-     * A statement with its `{default}` mark made the default language's
-     * condition (SiteLanguages::defaultOnlySql()).
+     * A statement with its `{default}` mark made one language's condition,
+     * the default's (SiteLanguages::defaultOnlySql()) when none is named,
+     * with its bindings.
+     *
+     * @return array{0: string, 1: list<string>}
      */
-    private function inDefault(string $sql): string
+    private function inLanguage(string $sql, ?string $language): array
     {
-        return str_replace('{default}', $this->languages->defaultOnlySql('language'), $sql);
+        return $language === null
+            ? [str_replace('{default}', $this->languages->defaultOnlySql('language'), $sql), []]
+            : [str_replace('{default}', ' AND language = ?', $sql), [$language]];
+    }
+
+    /**
+     * The condition that keeps to the shown languages' rows, the default's
+     * always among them, with its bindings: the shown other languages bound
+     * as one array literal.
+     *
+     * @return array{0: string, 1: list<string>}
+     */
+    private function inShown(string $column = 'language'): array
+    {
+        $others = array_values(array_filter(array_map(fn (string $tag): ?string => $this->languages->stored($tag), $this->languages->shown())));
+
+        return $others === []
+            ? [$this->languages->defaultOnlySql($column), []]
+            : [" AND ({$column} IS NULL OR {$column} = ANY(?::text[]))", ['{'.implode(',', $others).'}']];
     }
 
     /**

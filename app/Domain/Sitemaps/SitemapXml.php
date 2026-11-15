@@ -19,6 +19,9 @@ final class SitemapXml
     /** Google's image extension's namespace. */
     public const string IMAGES = 'http://www.google.com/schemas/sitemap-image/1.1';
 
+    /** XHTML's namespace, which an address's language versions are written in (I-3360). */
+    public const string XHTML = 'http://www.w3.org/1999/xhtml';
+
     /**
      * The index: a `<sitemap>` for each page's address.
      *
@@ -37,11 +40,12 @@ final class SitemapXml
 
     /**
      * One page: a `<url>` for each address, its `<lastmod>` in W3C form in
-     * UTC when known, and an `<image:image>` for each image.
+     * UTC when known, an `<image:image>` for each image, and an
+     * `<xhtml:link>` for each of its language versions.
      */
     public static function urlset(SitemapPage $page): string
     {
-        $xml = self::opening().'<urlset xmlns="'.self::SITEMAPS.'" xmlns:image="'.self::IMAGES.'">'."\n";
+        $xml = self::opening().'<urlset xmlns="'.self::SITEMAPS.'" xmlns:image="'.self::IMAGES.'" xmlns:xhtml="'.self::XHTML.'">'."\n";
 
         foreach ($page->addresses as $address) {
             $xml .= '<url><loc>'.self::text($address->loc).'</loc>';
@@ -52,6 +56,10 @@ final class SitemapXml
 
             foreach ($address->images as $image) {
                 $xml .= '<image:image><image:loc>'.self::text($image).'</image:loc></image:image>';
+            }
+
+            foreach ($address->alternates as $alternate) {
+                $xml .= '<xhtml:link rel="alternate" hreflang="'.self::text($alternate['hreflang']).'" href="'.self::text($alternate['href']).'"/>';
             }
 
             $xml .= "</url>\n";
