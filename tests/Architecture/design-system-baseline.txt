@@ -78,15 +78,6 @@ R2	js/components/comments/inline-reply.tsx	text-[12px]
 R2	js/components/comments/inline-reply.tsx	text-[13px]
 R2	js/components/comments/quick-edit.tsx	text-[12px]
 R2	js/components/comments/quick-edit.tsx	text-[13px]
-R2	js/components/dashboard/dashboard-panel.tsx	text-[13px]
-R2	js/components/dashboard/dashboard-panel.tsx	text-[13px]
-R2	js/components/dashboard/getting-started.tsx	text-[13px]
-R2	js/components/dashboard/getting-started.tsx	text-[13px]
-R2	js/components/dashboard/getting-started.tsx	text-xs
-R2	js/components/dashboard/quick-draft.tsx	text-[13px]
-R2	js/components/dashboard/site-figures.tsx	text-[11px]
-R2	js/components/dashboard/site-figures.tsx	text-[22px]
-R2	js/components/dashboard/site-figures.tsx	text-xs
 R2	js/components/editor/cards/button-card.tsx	text-[14px]
 R2	js/components/editor/cards/embed-card.tsx	text-[14px]
 R2	js/components/editor/cards/imported-content-card.tsx	text-[14px]
@@ -123,8 +114,6 @@ R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
-R2	js/pages/dashboard.tsx	text-[13px]
-R2	js/pages/dashboard.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
@@ -152,9 +141,6 @@ R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
-R3	js/components/dashboard/quick-draft.tsx	gap-1.5
-R3	js/components/dashboard/quick-draft.tsx	gap-1.5
-R3	js/components/dashboard/site-figures.tsx	gap-1.5
 R3	js/components/editor/editor-rail.tsx	py-1.5
 R3	js/components/editor/fields/media-control.tsx	px-1.5
 R3	js/components/editor/fields/media-control.tsx	py-0.5
@@ -172,13 +158,10 @@ R3	js/components/ui/sidebar.tsx	top-1.5
 R3	js/components/ui/sidebar.tsx	top-3.5
 R3	js/components/ui/toggle.tsx	px-1.5
 R3	js/components/user-menu-content.tsx	py-1.5
-R3	js/pages/dashboard.tsx	mt-0.5
 R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
 R5	js/components/comments/quick-edit.tsx	<textarea>
-R5	js/components/dashboard/getting-started.tsx	<button type="button">
-R5	js/components/dashboard/quick-draft.tsx	<textarea>
 R5	js/components/editor/cards/callout-card.tsx	<textarea>
 R5	js/components/editor/fields/textarea-control.tsx	<textarea>
 R5	js/components/editor/rail/canonical-choice.tsx	<input type="radio">
@@ -218,8 +201,6 @@ R6	js/components/list/bulk-edit-dialog.tsx	rounded
 R6	js/components/list/confirm-items.tsx	rounded
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
-R7	js/pages/dashboard.tsx	frame:p-6
-R7	js/pages/dashboard.tsx	root:div
 R7	js/pages/settings/site-code.tsx	frame:sm:max-w-[560px]
 R7	js/pages/settings/site-code.tsx	root:Sheet
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
@@ -239,4 +220,3 @@ R8	js/pages/settings/site-code.tsx	overflow-y-auto
 R9	js/components/editor/editor-rail.tsx	classes: bg-warn-soft px-2 py-1.5
 R9	js/components/editor/fields/media-control.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/rail/search-previews.tsx	role="note"
-R9	js/pages/dashboard.tsx	role="note"

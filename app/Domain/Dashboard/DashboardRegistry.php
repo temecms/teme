@@ -8,7 +8,7 @@ use InvalidArgumentException;
 
 /**
  * Every panel the Home screen can show, as the menu is a registry of
- * entries: core registers six, and nothing names them anywhere else.
+ * entries: core registers its panels, and nothing names them anywhere else.
  */
 final class DashboardRegistry
 {
@@ -23,11 +23,38 @@ final class DashboardRegistry
             throw new InvalidArgumentException("Dashboard panel [{$panel->key}] is already registered.");
         }
 
-        if (! is_subclass_of($panel->query, DashboardPanelQuery::class)) {
-            throw new InvalidArgumentException("Dashboard panel [{$panel->key}]'s query must implement DashboardPanelQuery.");
+        // Settled 2: plugins' panels are Small unless they declare a size; core's default Medium.
+        $size = $panel->size ?? ($panel->owner === 'core' ? 'medium' : 'small');
+
+        if (! in_array($size, DashboardPanel::SIZES, true)) {
+            throw new InvalidArgumentException("Dashboard panel [{$panel->key}] has an unknown size [{$size}].");
         }
 
-        $this->panels[$panel->key] = $panel;
+        if (! in_array($panel->kind, DashboardPanel::KINDS, true)) {
+            throw new InvalidArgumentException("Dashboard panel [{$panel->key}] has an unknown kind [{$panel->kind}].");
+        }
+
+        if ($panel->kind === 'rows') {
+            if ($panel->query === null || ! is_subclass_of($panel->query, DashboardPanelQuery::class)) {
+                throw new InvalidArgumentException("Dashboard panel [{$panel->key}]'s query must implement DashboardPanelQuery.");
+            }
+        }
+
+        $this->panels[$panel->key] = $panel->size === $size
+            ? $panel
+            : new DashboardPanel(
+                $panel->key,
+                $panel->label,
+                $panel->order,
+                $panel->query,
+                $panel->actions,
+                $panel->seeAllTab,
+                $panel->seeAllMine,
+                $panel->owner,
+                $panel->seeAllQuery,
+                $size,
+                $panel->kind,
+            );
     }
 
     /**

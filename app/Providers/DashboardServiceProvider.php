@@ -15,7 +15,7 @@ use App\Domain\Dashboard\Panels\WaitingForMyReview;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Registers the Home screen's panel registry, and core's six panels: the
+ * Registers the Home screen's panel registry, and core's panels: the
  * person's own work first (study P §3, I-161). A panel names the actions it
  * needs as ContentType::ACTIONS keys, never an ability.
  */
@@ -28,12 +28,14 @@ final class DashboardServiceProvider extends ServiceProvider
 
             // Both review panels open the list with a review filter, not the In
             // review tab, which leaves out a live article whose update waits.
-            $registry->register(new DashboardPanel('waiting_for_my_review', 'Waiting for your review', 100, WaitingForMyReview::class, ['publish', 'edit.any'], 'all', seeAllQuery: ['review' => 'pending']));
-            $registry->register(new DashboardPanel('returned_to_me', 'Returned to you', 150, ReturnedToMe::class, [], 'mine'));
-            $registry->register(new DashboardPanel('my_items_in_review', 'Your items in review', 200, MyItemsInReview::class, [], 'all', seeAllQuery: ['review' => 'submitted']));
-            $registry->register(new DashboardPanel('my_drafts', 'Your drafts', 300, MyDrafts::class, ['create'], 'drafts', seeAllMine: true));
-            $registry->register(new DashboardPanel('scheduled', 'Scheduled', 400, Scheduled::class, ['create'], 'scheduled'));
-            $registry->register(new DashboardPanel('my_recent_edits', 'You edited recently', 500, MyRecentEdits::class, ['create']));
+            // Default sizes (I-3401): review and drafts Medium; Scheduled, recent edits and Quick draft Small.
+            $registry->register(new DashboardPanel('waiting_for_my_review', 'Waiting for your review', 100, WaitingForMyReview::class, ['publish', 'edit.any'], 'all', seeAllQuery: ['review' => 'pending'], size: 'medium'));
+            $registry->register(new DashboardPanel('returned_to_me', 'Returned to you', 150, ReturnedToMe::class, [], 'mine', size: 'medium'));
+            $registry->register(new DashboardPanel('my_items_in_review', 'Your items in review', 200, MyItemsInReview::class, [], 'all', seeAllQuery: ['review' => 'submitted'], size: 'medium'));
+            $registry->register(new DashboardPanel('my_drafts', 'Your drafts', 300, MyDrafts::class, ['create'], 'drafts', seeAllMine: true, size: 'medium'));
+            $registry->register(new DashboardPanel('scheduled', 'Scheduled', 400, Scheduled::class, ['create'], 'scheduled', size: 'small'));
+            $registry->register(new DashboardPanel('my_recent_edits', 'You edited recently', 500, MyRecentEdits::class, ['create'], size: 'small'));
+            $registry->register(new DashboardPanel('quick_draft', 'Quick draft', 600, null, ['create'], size: 'small', kind: 'quick-draft'));
 
             return $registry;
         });

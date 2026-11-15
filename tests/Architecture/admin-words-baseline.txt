@@ -104,16 +104,6 @@ components/comments/quick-edit.tsx	Save changes
 components/comments/quick-edit.tsx	This comment has formatting, such as bold or a quote. If you change its text, it’s saved as plain text.
 components/comments/quick-edit.tsx	Website
 components/comments/quick-edit.tsx	https://example.com
-components/dashboard/dashboard-panel.tsx	See all
-components/dashboard/getting-started.tsx	Getting started
-components/dashboard/getting-started.tsx	Hide this
-components/dashboard/getting-started.tsx	done
-components/dashboard/getting-started.tsx	of
-components/dashboard/quick-draft.tsx	Quick draft
-components/dashboard/quick-draft.tsx	Save draft
-components/dashboard/quick-draft.tsx	Title
-components/dashboard/quick-draft.tsx	What's it about?
-components/dashboard/site-figures.tsx	The site in figures
 components/editor/fields/media-control.tsx	Alt text for this
 components/editor/link-popover.tsx	Search by title or name
 components/editor/rail/canonical-choice.tsx	Canonical address
@@ -398,11 +388,6 @@ lib/discussion.ts	Closed
 lib/discussion.ts	Hidden
 lib/discussion.ts	Open
 pages/dashboard.tsx	Home
-pages/dashboard.tsx	Home
-pages/dashboard.tsx	Home
-pages/dashboard.tsx	New
-pages/dashboard.tsx	Nothing needs you right now.
-pages/dashboard.tsx	Your work first, then the site's figures
 pages/inbox/index.tsx	Inbox
 pages/inbox/index.tsx	Inbox
 pages/inbox/index.tsx	Inbox

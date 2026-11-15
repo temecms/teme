@@ -1,51 +1,55 @@
 import { Link } from '@inertiajs/react';
-import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
-import type { DashboardPanelData } from '@/types';
+import type { DashboardRow } from '@/types';
 import { shownTitle } from '@/lib/titles';
+import { __ } from '@/lib/i18n';
 
 /**
- * One panel of the person's own work: its name and See all in a hairline
- * header, then up to five items, each its title as a link to the editor and
- * a line in words. Rows wrap; nothing is cut off.
+ * The rows body of a Home panel: up to five items, each its title as a link
+ * and a line in words. Rows wrap; nothing is cut off.
  */
-export function DashboardPanel({ panel }: { panel: DashboardPanelData }) {
-    const labelId = `panel-${panel.key}`;
+export function DashboardPanelRows({
+    rows,
+    seeAll,
+    label,
+}: {
+    rows: DashboardRow[];
+    seeAll: string | null;
+    label: string;
+}) {
+    if (rows.length === 0) {
+        return (
+            <p className="text-small text-ink-2">
+                {__('Nothing here right now.')}
+            </p>
+        );
+    }
 
     return (
-        <Panel aria-labelledby={labelId} className="border-t first:border-t">
-            <PanelHeader>
-                <h2 id={labelId}>{panel.label}</h2>
-                <span className="flex-1" />
-                {panel.seeAll !== null && (
-                    <Link
-                        href={panel.seeAll}
-                        className="text-accent-ink text-[13px] font-normal underline-offset-2 hover:underline"
-                    >
-                        See all
-                        <span className="sr-only"> {panel.label}</span>
-                    </Link>
-                )}
-            </PanelHeader>
-            <PanelBody className="gap-0">
-                <ul>
-                    {panel.rows.map((row) => (
-                        <li
-                            key={row.id}
-                            className="border-line grid min-h-11 content-center gap-0.5 border-t py-2 text-[13px]"
+        <>
+            <ul className="grid gap-0">
+                {rows.map((row) => (
+                    <li key={row.id} className="grid gap-0.5 py-2 first:pt-0">
+                        <Link
+                            href={row.url}
+                            className="text-body text-ink font-medium break-words hover:underline"
                         >
-                            <Link
-                                href={row.url}
-                                className="font-medium break-words hover:underline"
-                            >
-                                {shownTitle(row.title)}
-                            </Link>
-                            <span className="text-ink-2 break-words">
-                                {row.subtitle}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
-            </PanelBody>
-        </Panel>
+                            {shownTitle(row.title)}
+                        </Link>
+                        <span className="text-small text-ink-2 break-words">
+                            {row.subtitle}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+            {seeAll !== null && (
+                <Link
+                    href={seeAll}
+                    className="text-small text-accent-ink font-medium underline-offset-2 hover:underline"
+                >
+                    {__('See all')}
+                    <span className="sr-only"> {label}</span>
+                </Link>
+            )}
+        </>
     );
 }

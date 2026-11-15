@@ -8,6 +8,12 @@ export type DashboardRow = {
     at: string;
 };
 
+/** How wide a panel is drawn. */
+export type PanelSize = 'small' | 'medium' | 'large' | 'full';
+
+/** What a panel draws: rows from its query, or the quick draft form. */
+export type PanelKind = 'rows' | 'quick-draft';
+
 /** One panel the person's Home screen shows; empty panels are never sent. */
 export type DashboardPanelData = {
     key: string;
@@ -15,6 +21,26 @@ export type DashboardPanelData = {
     rows: DashboardRow[];
     /** The list that answers the panel in full, or null. */
     seeAll: string | null;
+    /** True when this panel's query failed; the rest of Home still shows. */
+    failed: boolean;
+};
+
+/** One panel the person may see, empty or hidden, for Customize. */
+export type DashboardCatalogueEntry = {
+    key: string;
+    label: string;
+    size: PanelSize;
+    kind: PanelKind;
+    owner: string;
+    /** The plugin's name when owner is not core; null for core. */
+    ownerName: string | null;
+};
+
+/** The person's arrangement of Home panels. */
+export type DashboardLayout = {
+    order: string[];
+    hidden: string[];
+    sizes: Record<string, PanelSize>;
 };
 
 /** One of the site's figures, from the maintained counts. */
@@ -39,12 +65,15 @@ export type GettingStartedStep = {
 /** The props of the Home screen. */
 export type DashboardPage = {
     panels: DashboardPanelData[];
+    catalogue: DashboardCatalogueEntry[];
+    layout: DashboardLayout;
     figures: SiteFigure[];
     /** The type Home writes and links to; posts today. */
     mainType: { singular: string; segment: string; canCreate: boolean };
     /** For someone who may manage the site, until it is done or hidden. */
     gettingStarted: { steps: GettingStartedStep[] } | null;
     canQuickDraft: boolean;
+    canUpload: boolean;
     /** While search engines are asked to stay away, for whoever may change Search and social (I-873). */
     searchEngines: {
         message: string;

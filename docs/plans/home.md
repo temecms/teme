@@ -430,4 +430,90 @@ Stop, write why under Records, commit and push, then stop, when:
 
 ## Records
 
-<!-- Filled in while building: setup; commits; each test seen red (task, file, case, the failure's first line); the design-system and admin-words counts before and after; every existing test changed, with its meaning kept; differences from the plan as B-?? (draft) with the options weighed; the lock's diff; the Home chunk's size; changelog lines; any STOP. -->
+### Setup
+- Branch `ui/home` from `origin/main` @ `4c51812`. Task 0: wave-2 merges for content-lists / editor / phone-overlays were not all on main yet; continued with Home-only Owns files.
+- Stack from locks: Laravel 13, PHP 8.4.27, PostgreSQL 18, Inertia 3, React 19, TypeScript, Tailwind 4.3.3, Pest 5.3.4, Vite 8.
+- Cursor setup via `scripts/cursor-setup.sh` / `scripts/cursor-start.sh` (PostgreSQL 18 on 5433, Valkey on 6380). Gate: `export PATH=/opt/node24/bin:$PATH && composer check`.
+
+### Commits (on `ui/home`)
+1. `d1c95c8` `feat(admin): Home's panels in each person's order, sizes and hidden set (I-210)`
+2. `3447879` `feat(admin): the rules that move Home's panels within their section`
+3. `26730b8` `feat(admin): Home on the design system, in panels of four sizes (I-3401)`
+4. `5691ce4` `feat(admin): Customize Home from the keyboard: move, resize, hide, add and reset (I-210)`
+5. `d681da6` `build(deps): add Pragmatic drag and drop for Home's panels (I-3441)`
+6. `bff0d42` `feat(admin): drag Home's panels by their grip in Customize (I-3441)`
+7. (this) `docs(plans): Home's records`
+
+### Tests seen red
+- **Task 1:** `PreferencesTest` declared defaults — missing `dashboard.order` / `hidden` / `sizes`. `HomeLayoutTest` — missing catalogue/layout/canUpload; unknown `$size`; register did not yet validate size/kind.
+- **Task 2:** `HomeLayoutRulesTest` — module `home-layout` missing.
+- **Task 3:** `HomeScreenTest` — missing Home UI / wrong panel widths / nothing-waiting until built. Design-system new offences (tracking, root:Page) until fixed; then gone baseline lines for old Home files.
+- **Task 4:** `HomeScreenTest` Customize cases — move order assumed absolute index; Undo selector hit dismiss; phone controls measured 40px until `h-11 w-11`; Add a panel matched three bar buttons until text locator.
+- **Task 5:** `HomeScreenTest` drag case — timeout until tall viewport + `sourcePosition` on the grip (Playwright scrolled and started on the wrong panel); wrong source key until drag data reads `data-panel` from the node.
+
+### Baselines (before → after)
+- Design-system `dsCounts`: R2 330→319, R3 103→99, R5 65→63, R7 26→24, R9 7→6 (other rules unchanged at end: R1 82, R6 23, R8 26, R10 14, R14 12, R15 5). Dashboard design-system lines removed in Task 3; none remain for `js/pages/dashboard.tsx` or `js/components/dashboard/`.
+- Admin-words count: 1576→1561. One line kept: `pages/dashboard.tsx	Home` (breadcrumb title on `Dashboard.layout` — `__()` at module load is refused by AdminWordsTest). See B-08.
+
+### Existing tests changed (meaning kept)
+- `PreferencesTest` declared defaults: gains the three dashboard preference keys.
+- `HomeScreenTest`: rewritten/extended for the new Home (sizes, Customize, drag); same screen.
+- Design-system / admin-words baselines: lines removed or counts lowered only; never raised.
+- Feature suites `Dashboard*`, `Preferences`, and browsers that open Home (`FirstRunTest`, `ShellTest`, `HeaderActivityTest`, `SearchAndSocialSettingsTest`) pass unchanged in meaning.
+
+### Lock diff
+- Added only: `@atlaskit/pragmatic-drag-and-drop` 4.0.0, `@atlaskit/pragmatic-drag-and-drop-hitbox` 3.0.0, `raf-schd` 4.0.3, `bind-event-listener` 3.0.0. No existing lock entry versions changed.
+
+### Home chunk size (gzip, from build output)
+- After Task 3: `dashboard-*.js` ≈ 5.66 kB gzip.
+- After Task 5 (with Pragmatic): `dashboard-CVXNuNd8.js` 45.57 kB │ gzip 15.30 kB.
+
+### Full gate
+- `composer check`: PHPStan OK; pint/lint OK; Architecture 115 passed; Unit+Feature **10533 passed**, 2 skipped (54136 assertions). Exit 0.
+- Browsers after build: `HomeScreenTest` 21 passed; `FirstRunTest` 6; `ShellTest` 17; `HeaderActivityTest` 3; `SearchAndSocialSettingsTest` 5.
+
+### B-?? (draft)
+- **B-01:** PHPStan narrowed unions on register `$size`/`$kind` → document as `string` + `SIZES`/`KINDS` checks. Commit `d1c95c8`.
+- **B-02:** Proposal path not on main yet → cite I-3401 in the provider. Commit `d1c95c8`.
+- **B-03:** Client `Preferences` type gains the three dashboard keys. Commit `26730b8`.
+- **B-04:** R7 needs a root `DashboardPage` → add `patterns/dashboard-page.tsx`. Commit `26730b8`.
+- **B-05:** Small panel width with `gap-4` is `(grid−32)/3`, not `grid/3`. Commit `26730b8`.
+- **B-06:** Empty Home line when no rows panels; Quick draft still draws. Commit `26730b8`.
+- **B-07:** `usePanelDrag` takes `setDragging` as well as `setEdge` so `data-dragging` / opacity work. Commit `bff0d42`.
+- **B-08:** Keep one admin-words baseline line for breadcrumb `Home` on `Dashboard.layout` (cannot call `__()` at load). No extra commit.
+- **B-09:** Drag browser case uses viewport height 1800 and `sourcePosition` on the grip so Playwright HTML5-drags the panel node without scrolling onto another panel. Commit `bff0d42`.
+- **B-10:** Drag payload reads `data-panel` / `data-section` from the registered node so the source key cannot be another panel's. Commit `bff0d42`.
+
+### STOP
+- None.
+
+### Changelog lines (for the maintainer)
+- Home's panels respect each person's order, sizes and hidden set (preferences `dashboard.order`, `dashboard.hidden`, `dashboard.sizes`) (I-210).
+- Home is drawn on the design system in a 12-column grid of four panel sizes, with Site figures as tiles and Quick draft as a panel (I-3401).
+- Customize moves, resizes, hides, adds and resets panels from the keyboard, saving each change at once (I-210).
+- Customize also drags panels by their grip via Pragmatic drag and drop 4.0.0 / hitbox 3.0.0 (I-3441).
+
+### Follow-up C1-2
+Commits:
+1. `d1302b1` `fix(admin): plugins' Home panels are Small unless they declare a size`
+2. `ec4b03a` `fix(admin): show a plugin's name on its Home panel mark`
+3. `ff37f58` `fix(admin): keep Home's panel order without dense packing`
+4. `e981781` `fix(admin): align Home breakpoints with the design system at 768px`
+5. `b89b2fe` `test(admin): move a Home panel later with Enter, not a click`
+6. `cd4a344` `test(admin): assert Home never paints a drop edge across sections`
+7. `fddf4c5` `chore(deps): restore the Windows Rollup optional in the lockfile`
+8. `7549578` `fix(admin): polish Home's plugin section, hide label and failed save`
+9. `295732d` `test(admin): wait for Home's layout reload after a failed save`
+10. `12feeac` `docs(plans): Home follow-up C1-2 records`
+
+Tests seen red:
+- **1:** `HomeLayoutTest` "gives a plugin's panel Small when it declares no size" — got `medium` (constructor default) until registry resolves null → Small for non-core.
+- **6:** `HomeScreenTest` "never drops a core panel among plugins' panels" — plant left `data-drop-edge` on plugin panels while customizing; edges array non-empty; plant removed.
+- **8:** `HomeScreenTest` "hides From plugins outside Customize when every plugin panel is empty" — section still shown via catalogue until `pluginKeys.length > 0` gate; existing "puts Home back…" failed after reload change until it waited for the server layout (my_recent_edits first).
+
+Maintainer decisions over the plan (recorded):
+- **B-11:** No `grid-flow-dense` — visual order must match saved order for Tab, announcements and Move (WCAG 1.3.2, 2.4.3). Commit `ff37f58`.
+- **B-12:** Breakpoints at 768px (`md`) for one column and for Small/Medium side by side, per `docs/architecture/design-system.md`, not the plan's 640px. Commit `e981781`.
+- **B-13:** `package-lock.json` keeps `@rollup/rollup-win32-x64-msvc` 4.65.1 in root `packages[""].dependencies` as on main (npm install for Pragmatic had dropped it). Commit `fddf4c5`.
+
+Gate after follow-up: Architecture 115 passed; Unit+Feature **10534 passed**, 2 skipped (54136 assertions). `HomeLayoutTest` 11; `HomeScreenTest` 22 after build.
