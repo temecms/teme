@@ -365,3 +365,17 @@ it('sets a menu\'s own language from For readers of, kept on reload', function (
     cmWaitUntil($page, "document.getElementById('menu-readers-of')?.textContent.includes('French') === true");
     cmNoJavaScriptErrors($page);
 });
+
+it('passes axe on a menu\'s Show in card with For readers of, at 1280 and 375, in both schemes', function (string $scheme, int $width): void {
+    siteSetLanguage(User::factory()->create()->assignRole('administrator'), 'en-GB');
+    Languages::set(['fr']);
+    lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
+    $this->actingAs($this->editor)->get("/admin/navigation/{$this->menu->id}")->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize($width, 900), "/admin/navigation/{$this->menu->id}");
+    cmWaitUntil($page, "document.getElementById('menu-readers-of') !== null");
+
+    expect(cmAxeViolations($page))->toBe([])
+        ->and($page->script('() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)'))->toBe(0);
+    cmNoJavaScriptErrors($page);
+})->with(['light', 'dark'])->with([1280, 375]);

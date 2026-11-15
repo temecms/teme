@@ -379,3 +379,16 @@ it('saves Igbo\'s tagline in other languages, keeps it on reload, and shows the 
     expect(cmAnswer($page, "() => document.querySelector('{$field}').placeholder", 'placeholder'))->toBe($placeholder);
     cmNoJavaScriptErrors($page);
 });
+
+it('passes axe on General\'s words in other languages at 1280 and 375, in both schemes, with nothing scrolling sideways', function (string $scheme, int $width): void {
+    lscrPrefer($this->site->admin, ['appearance.mode' => $scheme]);
+    $this->actingAs($this->site->admin)->get('/admin/settings/general')->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->site->admin)->resize($width, 900), '/admin/settings/general');
+    cmWaitUntil($page, "document.getElementById('words-in-other-languages') !== null");
+    $page->script('() => document.getElementById("words-in-other-languages").scrollIntoView()');
+
+    expect(cmAxeViolations($page))->toBe([])
+        ->and($page->script('() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)'))->toBe(0);
+    cmNoJavaScriptErrors($page);
+})->with(['light', 'dark'])->with([1280, 375]);

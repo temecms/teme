@@ -241,3 +241,15 @@ it('turns the Languages column on and off in the column chooser', function (): v
         cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') === null && {$headings}.includes('Languages') === ".($on ? 'true' : 'false'));
     }
 });
+
+it('passes axe on the posts list with its language marks, at 1440 and 375, in both schemes, the marks wrapping on a phone', function (string $scheme, int $width): void {
+    clMultilingual($this->editor, $this->harbour);
+    lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize($width, 900), '/admin/posts');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"language-marks\"]') !== null");
+
+    expect(cmAxeViolations($page))->toBe([])
+        ->and($page->script('() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)'))->toBe(0);
+    cmNoJavaScriptErrors($page);
+})->with(['light', 'dark'])->with([1440, 375]);
