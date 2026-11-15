@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Site\Insertions\InsertionPoints;
 use Teme\Contracts\Insertions\ArticleFacts;
 use Teme\Contracts\Insertions\Insertion;
@@ -112,4 +113,53 @@ it('does not bind a contributor when the plugin was not granted content.insert',
     expect($holder->asked)->toBeTrue()
         ->and($insertions)->toHaveCount(1)
         ->and(Capability::ContentInsert->value)->toBe('content.insert');
+});
+
+it('records a contributor that throws as a plugin fault, skips what is not an Insertion, and still asks the rest', function (): void {
+    $faults = new class implements ListenerFaults
+    {
+        /** @var list<array{string, string, string}> */
+        public array $seen = [];
+
+        public function record(string $owner, string $id, string $hook, Throwable $failure): void
+        {
+            $this->seen[] = [$owner, $id, $failure->getMessage()];
+        }
+    };
+    app()->instance(ListenerFaults::class, $faults);
+
+    $broken = new readonly class implements InsertionContributor
+    {
+        public function precedence(): string
+        {
+            return 'plugin';
+        }
+
+        public function insertions(ArticleFacts $article): array
+        {
+            throw new RuntimeException('The ad server is down.');
+        }
+    };
+    app(InsertionPoints::class)->bind($broken, [Capability::ContentInsert->value], 'tests/broken');
+
+    $name = 'test.insertions.mixed.'.uniqid();
+    app()->instance($name, new readonly class implements InsertionContributor
+    {
+        public function precedence(): string
+        {
+            return 'site';
+        }
+
+        public function insertions(ArticleFacts $article): array
+        {
+            return ['<div>not an insertion</div>', null, new Insertion('site.kept', Position::afterContent(), '<div data-test="kept">K</div>')];
+        }
+    });
+    app()->tag([$name], InsertionPoints::CONTRIBUTORS);
+
+    $insertions = app(InsertionPoints::class)->for(new ArticleFacts('id1', 'post', [], 'en', [], 10, 2));
+
+    expect($insertions)->toHaveCount(1)
+        ->and($insertions[0]->key)->toBe('site.kept')
+        ->and($faults->seen)->toBe([['tests/broken', 'tests/broken#insertions', 'The ad server is down.']]);
 });
