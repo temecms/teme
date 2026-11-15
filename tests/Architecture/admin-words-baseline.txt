@@ -1118,15 +1118,6 @@ components/palette/palette-commands.ts	Start a new {} in the editor
 components/palette/palette-commands.ts	Suggest alt text for this image
 components/palette/palette-commands.ts	Suggest metadata for this post
 components/palette/palette-commands.ts	Upload files
-components/personalise-menu-dialog.tsx	Changes apply to your menu only. Pin up to
-components/personalise-menu-dialog.tsx	Move {} down
-components/personalise-menu-dialog.tsx	Move {} up
-components/personalise-menu-dialog.tsx	Pin
-components/personalise-menu-dialog.tsx	Pinned
-components/personalise-menu-dialog.tsx	Reset to default
-components/personalise-menu-dialog.tsx	Save
-components/personalise-menu-dialog.tsx	Show {}
-components/personalise-menu-dialog.tsx	entries to the top. Hidden entries stay in search (Ctrl K).
 components/seo/who-publishes.tsx	Leave these empty unless another organization owns this one.
 components/seo/who-publishes.tsx	One place. A business with several needs a plugin that describes each one.
 components/seo/who-publishes.tsx	Owned by
