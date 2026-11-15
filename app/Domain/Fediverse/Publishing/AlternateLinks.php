@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
 
-use App\Domain\Addresses\Addresses;
-use App\Domain\Addresses\Paths;
 use App\Domain\Fediverse\ActivityPub;
+use App\Domain\Fediverse\FediverseSettingsGroup;
 use App\Domain\Fediverse\FediverseSwitch;
 use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\FediverseObject;
-use App\Domain\People\Models\Person;
 use App\Domain\Site\Document\DocumentPage;
 use App\Domain\Site\Document\HeadContributor;
 use App\Domain\Site\Document\LinkRelation;
@@ -18,6 +16,7 @@ use App\Domain\Site\Document\LinkTag;
 use App\Domain\Site\Document\Precedence;
 use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\ListingView;
+use Illuminate\Database\Query\JoinClause;
 
 /**
  * The fediverse's alternate in a public page's head (I-058): a federated
@@ -64,23 +63,35 @@ final readonly class AlternateLinks implements HeadContributor
     }
 
     /**
-     * The address of the enabled author account whose archive is at this path, or null.
+     * The address of the enabled author account whose archive is at this
+     * path, or null; none while only the blog can be followed. One query:
+     * the account's person, and the current address of the person's
+     * account, or of the person when they have none.
      */
     private function author(string $path): ?string
     {
-        if ($path === '') {
+        $path = trim($path, '/');
+
+        if ($path === '' || ! FediverseSettingsGroup::authorsFollowable()) {
             return null;
         }
 
-        foreach (FediverseActor::query()->where('kind', FediverseActor::PERSON)->where('enabled', true)->whereNotNull('person_id')->get() as $actor) {
-            $person = Person::query()->find($actor->person_id);
-            $own = $person?->user_id === null ? Paths::current('person', (string) $actor->person_id) : Paths::current('user', (string) $person->user_id);
+        $uri = FediverseActor::query()
+            ->join('people', 'people.id', '=', 'fediverse_actors.person_id')
+            ->join('paths', function (JoinClause $join): void {
+                $join->where('paths.is_current', true)->where(function (JoinClause $owner): void {
+                    $owner->where(function (JoinClause $account): void {
+                        $account->whereNotNull('people.user_id')->where('paths.target_type', 'user')->whereRaw('paths.target_id = people.user_id::text');
+                    })->orWhere(function (JoinClause $person): void {
+                        $person->whereNull('people.user_id')->where('paths.target_type', 'person')->whereColumn('paths.target_id', 'people.id');
+                    });
+                });
+            })
+            ->where('fediverse_actors.kind', FediverseActor::PERSON)
+            ->where('fediverse_actors.enabled', true)
+            ->where('paths.path', $path)
+            ->value('fediverse_actors.uri');
 
-            if ($own !== null && Addresses::toUrl($own) === $path) {
-                return $actor->uri;
-            }
-        }
-
-        return null;
+        return is_string($uri) ? $uri : null;
     }
 }

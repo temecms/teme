@@ -11,6 +11,7 @@ use App\Domain\People\Models\Person;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Tests\Fixtures\Fediverse\Actors;
 use Tests\Fixtures\Fediverse\Inbox;
@@ -26,6 +27,7 @@ beforeEach(function (): void {
     app(PathProjection::class)->syncUser($this->author);
     $this->blog = Actors::blog();
     Inbox::switch(true);
+    Inbox::followable('both');
     ContentActivities::listen(app(HookDispatcher::class));
     $this->item = pageArticle($this->author, 'Harbour news');
     $this->object = FediverseObject::query()->where('content_id', $this->item->id)->value('uri');
@@ -63,4 +65,38 @@ it('links nothing while the fediverse is off', function (): void {
 
     expect(fpubAlternates('/harbour-news/'))->toBe([])
         ->and(fpubAlternates('/author/jane-doe/'))->toBe([]);
+});
+
+it('finds an author’s account in the same queries however many authors have one', function (): void {
+    $queries = function (): int {
+        fpubAlternates('/author/jane-doe/');
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        fpubAlternates('/author/jane-doe/');
+        DB::disableQueryLog();
+
+        return count(DB::getQueryLog());
+    };
+    $before = $queries();
+
+    // Other authors' accounts, and Jane's again after them.
+    $jane = $this->jane->person_id;
+    $this->jane->delete();
+
+    foreach (['ann', 'ben', 'cal'] as $name) {
+        $person = Person::query()->create(['name' => ucfirst($name), 'slug' => $name]);
+        Actors::local(FediverseActor::PERSON, $name, url('/ap/people/'.$name), personId: $person->id);
+    }
+
+    $again = Actors::local(FediverseActor::PERSON, 'jane', url('/ap/people/jane'), personId: $jane);
+
+    expect($queries())->toBe($before)
+        ->and(fpubAlternates('/author/jane-doe/'))->toBe([$again->uri]);
+});
+
+it('links no author’s account while only the blog can be followed', function (): void {
+    Inbox::followable('blog');
+
+    expect(fpubAlternates('/author/jane-doe/'))->toBe([])
+        ->and(fpubAlternates('/harbour-news/'))->toBe([$this->object]);
 });
