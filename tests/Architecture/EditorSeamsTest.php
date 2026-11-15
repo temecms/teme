@@ -61,6 +61,16 @@ it('pins tools up to three, refusing a fourth and anything not pinnable', functi
     ]);
 });
 
+it('offers the available tools, and refuses one that opens as a workspace', function (): void {
+    $tool = fn (string $id, string $size, bool $available = true): array => ['id' => $id, 'size' => $size, 'available' => $available];
+
+    expect(guardCall('components/editor/tools/pins.ts', 'offeredTools', [
+        [[$tool('overview', 'pane'), $tool('assistant', 'pane', false), $tool('words', 'dialog'), $tool('studio', 'workspace')]],
+    ]))->toBe([
+        [$tool('overview', 'pane'), $tool('words', 'dialog')],
+    ]);
+});
+
 it('places a plugin\'s tab where its author declared it, Search always first', function (): void {
     expect(guardCall('components/editor/search-social/tab-order.ts', 'orderTabs', [
         [[]],

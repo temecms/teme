@@ -1,26 +1,28 @@
 import { usePage } from '@inertiajs/react';
-import type { FileText } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 import { __ } from '@/lib/i18n';
 import { savePreferences } from '@/lib/preferences';
 import { togglePin } from './pins';
 
-/** A tool the editor's bar and Tools offer (docs/architecture/design-system.md, 4.39). */
+export { offeredTools } from './pins';
+
+/** One tool in the launcher (docs/architecture/design-system.md, 6.1's Tool surface). Core's today; a plugin's once plugins ship admin code. */
 export type EditorTool = {
     id: string;
-    /** 'core' for Teme's own; a plugin's name for a plugin's. */
     owner: string;
     label: string;
-    icon: typeof FileText;
-    /** How large it opens. */
-    size: 'pane' | 'window' | 'full';
-    /** False while the part that fills it is not built: nothing is drawn for it. */
+    icon: LucideIcon;
+    size: 'pane' | 'dialog' | 'workspace';
+    openLarger?: boolean;
+    /** Outline and History: always on the bar, never pinnable. */
+    fixed?: boolean;
+    /** False hides it for this item (the Assistant without AI, Share on a theme region). */
     available: boolean;
+    render: () => ReactNode;
 };
-
-/** The tools always on the bar, before the pins. */
-export const FIXED_TOOLS = ['outline', 'history'];
 
 /** The tools a person may pin, as the server's preference allows them. */
 export const PINNABLE_TOOLS = ['assistant', 'share'];

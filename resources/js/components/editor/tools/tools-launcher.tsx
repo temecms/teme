@@ -19,9 +19,9 @@ import type { EditorTool } from './editor-tools';
 /** How large a tool opens, as its row's tag says. */
 function sizeWord(size: EditorTool['size']): string {
     switch (size) {
-        case 'window':
+        case 'dialog':
             return __('Window');
-        case 'full':
+        case 'workspace':
             return __('Full screen');
         default:
             return __('Pane');

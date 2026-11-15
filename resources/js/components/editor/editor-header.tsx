@@ -13,12 +13,26 @@ import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { __ } from '@/lib/i18n';
-import { FIXED_TOOLS, PINNABLE_TOOLS, usePins } from './tools/editor-tools';
+import { offeredTools, PINNABLE_TOOLS, usePins } from './tools/editor-tools';
 import type { EditorTool } from './tools/editor-tools';
 import { ToolsLauncher } from './tools/tools-launcher';
 
-/** Teme's own tools, before the ones this item does not offer are left out. */
-function coreTools(): EditorTool[] {
+/** What each of Teme's own tools draws in its pane. */
+export type ToolPanes = {
+    outline: () => ReactNode;
+    history: () => ReactNode;
+    assistant: () => ReactNode;
+    share: () => ReactNode;
+};
+
+/**
+ * Teme's own tools. Their ids stay as the panes have always been named;
+ * `assistant` and `canShare` say whether this item offers those two.
+ */
+export function coreTools(
+    panes: ToolPanes,
+    { assistant, canShare }: { assistant: boolean; canShare: boolean },
+): EditorTool[] {
     return [
         {
             id: 'outline',
@@ -26,7 +40,9 @@ function coreTools(): EditorTool[] {
             label: __('Outline'),
             icon: ListTree,
             size: 'pane',
+            fixed: true,
             available: true,
+            render: panes.outline,
         },
         {
             id: 'history',
@@ -34,7 +50,10 @@ function coreTools(): EditorTool[] {
             label: __('History'),
             icon: History,
             size: 'pane',
+            openLarger: true,
+            fixed: true,
             available: true,
+            render: panes.history,
         },
         // Shown only when the editor's ai prop offers a task (I-321).
         {
@@ -43,7 +62,8 @@ function coreTools(): EditorTool[] {
             label: __('Assistant'),
             icon: Sparkles,
             size: 'pane',
-            available: true,
+            available: assistant,
+            render: panes.assistant,
         },
         // Preview links, for anyone who may edit the item; never a theme region's (I-1316).
         {
@@ -52,7 +72,8 @@ function coreTools(): EditorTool[] {
             label: __('Share'),
             icon: Share2,
             size: 'pane',
-            available: true,
+            available: canShare,
+            render: panes.share,
         },
     ];
 }
@@ -78,6 +99,7 @@ export function EditorHeader({
     onToggleFocus,
     canShare,
     assistant = false,
+    panes,
 }: {
     backHref: string;
     backLabel: string;
@@ -95,15 +117,11 @@ export function EditorHeader({
     canShare: boolean;
     /** Whether the editor's ai prop offers a task, so the assistant shows (I-321). */
     assistant?: boolean;
+    /** What each tool draws in its pane. */
+    panes: ToolPanes;
 }) {
     const { pins, saving, refused, toggle } = usePins();
-    const tools = coreTools().filter((tool) =>
-        tool.id === 'assistant'
-            ? assistant
-            : tool.id === 'share'
-              ? canShare
-              : true,
-    );
+    const tools = offeredTools(coreTools(panes, { assistant, canShare }));
     const icon = (tool: EditorTool) => (
         <Button
             key={tool.id}
@@ -118,7 +136,7 @@ export function EditorHeader({
             <tool.icon />
         </Button>
     );
-    const fixed = tools.filter((tool) => FIXED_TOOLS.includes(tool.id));
+    const fixed = tools.filter((tool) => tool.fixed === true);
     const pinned = pins
         .map((id) => tools.find((tool) => tool.id === id))
         .filter((tool): tool is EditorTool => tool !== undefined);

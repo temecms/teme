@@ -21,3 +21,30 @@ export function togglePin(
 
     return { pins: [...pins, id], refused: false };
 }
+
+/** The tools already warned of, so each warning is given once. */
+const warned = new Set<string>();
+
+/**
+ * The tools the editor can open: the available ones, without any that opens
+ * as a workspace, which is refused with a warning until the workspace frame
+ * is built.
+ */
+export function offeredTools<
+    Tool extends { id: string; size: string; available: boolean },
+>(tools: Tool[]): Tool[] {
+    return tools.filter((tool) => {
+        if (tool.size === 'workspace') {
+            if (!warned.has(tool.id)) {
+                warned.add(tool.id);
+                console.warn(
+                    `The editor tool "${tool.id}" opens as a workspace, which the editor cannot show yet, so it is left out.`,
+                );
+            }
+
+            return false;
+        }
+
+        return tool.available;
+    });
+}

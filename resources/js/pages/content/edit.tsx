@@ -11,7 +11,9 @@ import ReviewController from '@/actions/App/Http/Admin/Contents/ReviewController
 import ScheduleController from '@/actions/App/Http/Admin/Contents/ScheduleController';
 import { post, reasonOf, send } from '@/components/editor/editor-http';
 import type { Answer, Route } from '@/components/editor/editor-http';
-import { EditorHeader } from '@/components/editor/editor-header';
+import { coreTools, EditorHeader } from '@/components/editor/editor-header';
+import type { ToolPanes } from '@/components/editor/editor-header';
+import { offeredTools } from '@/components/editor/tools/editor-tools';
 import {
     EditorRail,
     RailScope,
@@ -1012,31 +1014,44 @@ export default function ContentEdit(page: ContentEditPage) {
         }
     };
 
-    // The History pane, from the header's icon or the revisions count. Asked
-    // for by name, so the rail opens with it, even where it is a sheet.
-    const openHistory = () => {
+    // What each tool draws in its pane, and the tools this item offers.
+    const panes: ToolPanes = {
+        outline: () =>
+            editor === null ? null : <DocumentOverview editor={editor} />,
+        history: () => <HistoryPanel contentId={session.id} />,
+        assistant: () => (ai === null ? null : <AssistantPanel ai={ai} />),
+        share: () => (
+            <SharePane contentId={session.id} saveFirst={checkpoint} />
+        ),
+    };
+    const tools = offeredTools(
+        coreTools(panes, {
+            assistant: ai !== null,
+            canShare: session.can.edit && themeRegion === null,
+        }),
+    );
+
+    // A tool's pane. Asked for by name, so the rail opens with it, even
+    // where it is a sheet.
+    const openToolPane = (id: string) => {
+        const tool = tools.find((each) => each.id === id);
+
+        if (tool === undefined) {
+            return;
+        }
+
         setRailOpen(true);
         openPane({
-            id: 'history',
-            owner: 'core',
-            title: __('History'),
-            openLarger: true,
-            render: () => <HistoryPanel contentId={session.id} />,
+            id: tool.id,
+            owner: tool.owner,
+            title: tool.label,
+            openLarger: tool.openLarger,
+            render: tool.render,
         });
     };
 
-    // Share, from its icon: the rail opens with it, even where it is a sheet.
-    const openShare = () => {
-        setRailOpen(true);
-        openPane({
-            id: 'share',
-            owner: 'core',
-            title: __('Share'),
-            render: () => (
-                <SharePane contentId={session.id} saveFirst={checkpoint} />
-            ),
-        });
-    };
+    // The History pane, from the header's icon or the revisions count.
+    const openHistory = () => openToolPane('history');
 
     // Preview shows the latest saved version (content.preview), so what is
     // typed is saved first. The tab opens inside the click, where no pop-up
@@ -1078,16 +1093,9 @@ export default function ContentEdit(page: ContentEditPage) {
         } else if (id === 'assistant') {
             openAssistant();
         } else if (id === 'share') {
-            openShare();
-        } else if (id === 'outline' && editor !== null) {
-            // Asked for by name, so the rail opens with it, even where it is a sheet.
-            setRailOpen(true);
-            openPane({
-                id,
-                owner: 'core',
-                title: __('Outline'),
-                render: () => <DocumentOverview editor={editor} />,
-            });
+            openToolPane(id);
+        } else if (id !== 'outline' || editor !== null) {
+            openToolPane(id);
         }
     };
 
@@ -1244,6 +1252,7 @@ export default function ContentEdit(page: ContentEditPage) {
                         focus={focus}
                         onToggleFocus={() => setFocus((on) => !on)}
                         assistant={ai !== null}
+                        panes={panes}
                         // A preview shows a page, which a theme region never is.
                         canShare={session.can.edit && themeRegion === null}
                     />
