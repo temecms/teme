@@ -13,8 +13,9 @@ use Illuminate\Support\Str;
 use Teme\Contracts\Operations\OperationInput;
 
 /**
- * Creates an empty menu. Its handle is made from its name, unique among
- * menus, and never changes, so a theme or 1.7's cache tags can rely on it.
+ * Creates an empty menu, in the site's default language or another of its
+ * languages (I-3360). Its handle is made from its name, unique among menus,
+ * and never changes, so a theme or 1.7's cache tags can rely on it.
  */
 final class CreateNavigation extends BaseOperation
 {
@@ -30,6 +31,7 @@ final class CreateNavigation extends BaseOperation
     {
         /** @var CreateNavigationInput $input */
         $this->validateName($input->name);
+        $this->validateLanguage($input->language);
     }
 
     protected function perform(OperationInput $input): Navigation
@@ -38,6 +40,7 @@ final class CreateNavigation extends BaseOperation
         return Navigation::query()->create([
             'name' => trim($input->name),
             'handle' => self::handleFor($input->name),
+            'language' => self::storedLanguage($input->language),
         ]);
     }
 

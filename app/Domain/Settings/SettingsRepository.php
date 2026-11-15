@@ -29,6 +29,14 @@ final class SettingsRepository implements SettingsReader
         return 'settings:'.$group;
     }
 
+    /**
+     * The cache key of a group's words in other languages (I-3360).
+     */
+    public static function translationsKey(string $group): string
+    {
+        return self::cacheKey($group).':translations';
+    }
+
     public function group(string $group): array
     {
         $definition = $this->definition($group);

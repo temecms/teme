@@ -154,6 +154,11 @@ final class NavigationTree
      */
     private static function drawn(object $item, array $contents, array $terms, array $paths, string $currentPath): ?array
     {
+        // A language switcher has no address of its own: it is expanded where the page's versions are known.
+        if ((string) $item->kind === 'languages') {
+            return null;
+        }
+
         if ((string) $item->kind === 'heading') {
             return ['label' => (string) $item->label, 'url' => null, 'current' => false, 'opensNewTab' => false, 'heading' => true];
         }
