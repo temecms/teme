@@ -191,6 +191,33 @@ it('opens Columns as a popover under its button, not a modal, its first field ta
     cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]') === null && document.activeElement === document.querySelector('[data-test=\"columns\"]')");
 });
 
+it('keeps focus on a column\'s move button when the keyboard moves it to the first or last place', function (): void {
+    $page = cmSignIn($this->editor)->navigate('/admin/posts');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"columns\"]') !== null");
+    $page->click('[data-test="columns"]');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"]')?.getAnimations().length === 0 && document.querySelector('[data-test=\"column-chooser\"]').contains(document.activeElement)");
+
+    $earlier = '[data-chooser-column="taxonomy-category"] [aria-label$=" earlier"]';
+    $page->script("document.querySelector('{$earlier}').focus()");
+    $page->keys($earlier, 'Enter');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"column-chooser\"] [data-chooser-column]').dataset.chooserColumn === 'taxonomy-category'")
+        ->assertScript("document.activeElement === document.querySelector('{$earlier}') && document.querySelector('[data-test=\"column-chooser\"]').contains(document.activeElement)", true)
+        ->assertAttribute($earlier, 'aria-disabled', 'true');
+
+    // Pressed again at the first place, it does nothing and focus stays.
+    $page->keys($earlier, 'Enter');
+    $page->assertScript("document.querySelector('[data-test=\"column-chooser\"] [data-chooser-column]').dataset.chooserColumn === 'taxonomy-category' && document.activeElement === document.querySelector('{$earlier}')", true);
+
+    $later = '[data-chooser-column="comments"] [aria-label$=" later"]';
+    $page->script("document.querySelector('{$later}').focus()");
+    $page->keys($later, 'Enter');
+
+    cmWaitUntil($page, "[...document.querySelectorAll('[data-test=\"column-chooser\"] [data-chooser-column]')].at(-1).dataset.chooserColumn === 'comments'")
+        ->assertScript("document.activeElement === document.querySelector('{$later}')", true);
+});
+
 it('shows each title\'s thumbnail once Columns turns Thumbnails on: a small thumbnail, or a mark of the same size (I-3120)', function (): void {
     $image = mediaUpload($this->editor, mediaJpeg(800, 600), 'quay.jpg');
     docSave($this->ferry, $this->editor, docWith(docText('Fares rise in November.')), [
