@@ -72,3 +72,19 @@ it('refuses the search to someone who may not change the item, and to an address
         ->getJson("/admin/content/pages/{$this->site->alone}/translations/candidates?language=fr")
         ->assertNotFound();
 });
+
+it('finds the items a person may change however many newer ones they may not', function (): void {
+    $author = User::factory()->create()->assignRole('author');
+    $mine = LanguageSite::version($author, 'My post', null, null, [], publish: false);
+    $article = LanguageSite::version($author, 'Mon article', 'fr', null, [], publish: false);
+    $this->travel(1)->minutes();
+
+    foreach (range(1, 21) as $n) {
+        LanguageSite::version($this->site->editor, "Article {$n}", 'fr', null, [], publish: false);
+    }
+
+    $this->actingAs($author)
+        ->getJson("/admin/content/posts/{$mine}/translations/candidates?language=fr&q=article")
+        ->assertOk()
+        ->assertExactJson([['id' => $article, 'title' => 'Mon article', 'status' => 'draft']]);
+});

@@ -41,20 +41,20 @@ final class TranslationCandidates
 
         $stored = $languages->stored($language);
         $needle = trim($query);
-        $gate = Gate::forUser($viewer);
+        // ContentPolicy::update as SQL (ContentAbilities), so a person who may change few items still gets every match.
+        [$canEdit, $bindings] = ContentAbilities::forUser($viewer, $content->type)->canEditSql('author_id', (int) $viewer->id);
 
         return Content::query()
             ->where('type', $content->type)
             ->whereKeyNot($content->id)
+            ->whereRaw("({$canEdit})", $bindings)
             ->when($stored === null, fn ($builder) => $builder->whereNull('language'), fn ($builder) => $builder->where('language', $stored))
             ->when($content->translation_group !== null, fn ($builder) => $builder->where(fn ($inner) => $inner->whereNull('translation_group')->orWhere('translation_group', '<>', $content->translation_group)))
             ->when($needle !== '', fn ($builder) => $builder->where('title', 'ilike', '%'.addcslashes($needle, '%_\\').'%'))
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
-            ->limit($limit * 2)
+            ->limit($limit)
             ->get()
-            ->filter(fn (Content $item): bool => $gate->allows('update', $item))
-            ->take($limit)
             ->map(fn (Content $item): array => ['id' => (string) $item->id, 'title' => (string) $item->title, 'status' => (string) $item->status])
             ->values()
             ->all();
