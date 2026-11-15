@@ -51,34 +51,9 @@ Route::post('_teme/unlock', UnlockController::class)->name('teme.unlock');
 // instead of a table; reserved (_teme), so the page cache passes it by.
 Route::post('_teme/csp', PolicyReportController::class)->middleware([BareReportAnswer::class, 'throttle:csp-reports'])->name('teme.csp');
 
-// Declared public routes (plugins and core): fixed shapes that look up the
-// registry, before feeds and the public fallback (docs/plans/plugin-public-routes.md).
-Route::middleware(['public', 'throttle:declared-routes'])
-    ->match(['get', 'post'], '.well-known/{name}', DeclaredRouteController::class)
-    ->where('name', '[A-Za-z0-9._-]+')
-    ->name('declared.well-known');
-
-Route::middleware(['public', 'throttle:declared-routes'])
-    ->match(['get', 'post'], '{code}/{path?}', DeclaredRouteController::class)
-    // Skip reserved first segments so /api/… and /admin/… still reach their own routes and fallbacks (D3).
-    ->where('code', '(?!admin(?:/|$)|api(?:/|$)|up(?:/|$)|build(?:/|$)|storage(?:/|$))'.ThemeManifestValidator::CODE_PATTERN)
-    ->where('path', '.*')
-    ->name('declared.plugin');
-
-// Feeds (I-299): RSS 2.0 at WordPress's addresses. Every path ending in a feed name
-// comes here; what is not a feed's goes back to PublicController. A fallback, so
-// a route that names such a path itself, a plugin's or a theme's, is matched first.
-Route::middleware(['public', 'throttle:site-search', MarkCacheable::class])
-    ->get('{path}', FeedController::class)
-    ->where('path', FeedPath::ROUTE)
-    ->name('feeds.show')
-    ->fallback();
-
-// robots.txt, written by Teme (I-300) and stored by the page cache like a page.
+// Exact public addresses before any catch-all fallback (docs/plans/plugin-public-routes.md).
 Route::middleware(['public', MarkCacheable::class])->get('robots.txt', RobotsTxtController::class)->name('robots-txt');
 
-// Sitemaps (I-296): the index, every page of each child and the stylesheet, stored by
-// the page cache like pages; WordPress's and Yoast's index addresses sent to the index.
 Route::middleware(['public', MarkCacheable::class])->group(function (): void {
     Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('sitemaps.index');
     Route::get('sitemap.xsl', [SitemapController::class, 'stylesheet'])->name('sitemaps.stylesheet');
@@ -87,13 +62,38 @@ Route::middleware(['public', MarkCacheable::class])->group(function (): void {
     Route::get('sitemap_index.xml', [SitemapController::class, 'moved'])->name('sitemaps.yoast');
 });
 
-// llms.txt and each listed item's Markdown copy (I-713), behind their switch:
-// stored by the page cache like pages. What isn't one goes back to
-// PublicController, as the feed's route does.
-Route::middleware(['public', 'throttle:api', MarkCacheable::class])->group(function (): void {
-    Route::get('llms.txt', LlmsTxtController::class)->name('llms-txt');
-    Route::get('{path}.md', MarkdownController::class)->where('path', MarkdownPages::ROUTE)->name('markdown.show')->fallback();
-});
+Route::middleware(['public', 'throttle:api', MarkCacheable::class])->get('llms.txt', LlmsTxtController::class)->name('llms-txt');
+
+// Declared well-known addresses: exact enough to stay a normal route (B-02).
+Route::middleware(['public', 'throttle:declared-routes'])
+    ->match(['get', 'post'], '.well-known/{name}', DeclaredRouteController::class)
+    ->where('name', '[A-Za-z0-9._-]+')
+    ->name('declared.well-known');
+
+// Fallbacks in order (B-05): feeds and .md keep their route names for
+// HoldUntilSetUp and beat the declared catch-all; late-registered probes
+// (e.g. `_probe.md`) still win as ordinary routes. Declared {code}/{path?}
+// is next so plugin paths answer before the public site; miss falls through
+// to FeedController then PublicController. public.path is last.
+Route::middleware(['public', 'throttle:site-search', MarkCacheable::class])
+    ->get('{path}', FeedController::class)
+    ->where('path', FeedPath::ROUTE)
+    ->name('feeds.show')
+    ->fallback();
+
+Route::middleware(['public', 'throttle:api', MarkCacheable::class])
+    ->get('{path}.md', MarkdownController::class)
+    ->where('path', MarkdownPages::ROUTE)
+    ->name('markdown.show')
+    ->fallback();
+
+Route::middleware(['public', 'throttle:declared-routes'])
+    ->match(['get', 'post'], '{code}/{path?}', DeclaredRouteController::class)
+    // Skip reserved first segments so /api/… and /admin/… still reach their own routes and fallbacks (D3).
+    ->where('code', '(?!admin(?:/|$)|api(?:/|$)|up(?:/|$)|build(?:/|$)|storage(?:/|$))'.ThemeManifestValidator::CODE_PATTERN)
+    ->where('path', '.*')
+    ->name('declared.plugin')
+    ->fallback();
 
 Route::middleware('public')->group(function (): void {
     Route::get('/', [PublicController::class, 'handle'])->middleware([MatchDeclaredRoutes::class, 'throttle:site-search'])->name('home');
