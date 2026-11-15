@@ -168,6 +168,8 @@ export type SiteCodeChange = {
 };
 
 export type SiteCodePage = {
+    adsTxt: string;
+    adsTxtVersion: number;
     locked: boolean;
     siteTimezone: string;
     places: {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Api\Llms\MarkdownPages;
 use App\Domain\Feeds\FeedPath;
+use App\Http\Site\AdsTxtController;
 use App\Http\Site\CommentController;
 use App\Http\Site\Feeds\FeedController;
 use App\Http\Site\LlmsTxtController;
@@ -59,6 +60,9 @@ Route::middleware(['public', 'throttle:site-search', MarkCacheable::class])
 
 // robots.txt, written by Teme (I-300) and stored by the page cache like a page.
 Route::middleware(['public', MarkCacheable::class])->get('robots.txt', RobotsTxtController::class)->name('robots-txt');
+
+// ads.txt from Settings › Site code (I-064), stored by the page cache like robots.txt.
+Route::middleware(['public', MarkCacheable::class])->get('ads.txt', AdsTxtController::class)->name('ads-txt');
 
 // Sitemaps (I-296): the index, every page of each child and the stylesheet, stored by
 // the page cache like pages; WordPress's and Yoast's index addresses sent to the index.

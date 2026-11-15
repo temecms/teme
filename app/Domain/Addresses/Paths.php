@@ -34,7 +34,7 @@ final class Paths
      *
      * @var list<string>
      */
-    public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'api', 'llms.txt'];
+    public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'ads.txt', 'api', 'llms.txt'];
 
     /**
      * Every kind of target this release writes to the path table and
