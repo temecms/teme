@@ -38,10 +38,12 @@ it('keeps the pins in the order given', function (): void {
     expect(PreferencesFor::user($this->author->refresh())['editor.pinned_tools'])->toBe(['share', 'assistant']);
 });
 
-it('refuses a fourth pin and writes nothing', function (): void {
+// The server's cap of three can't be reached on its own: only two tools may be pinned, so any list
+// of four holds tools that can't be pinned, and that is what refuses it.
+it('refuses four pins that include tools which can\'t be pinned, and writes nothing', function (): void {
     ($this->pinsSave)($this->author, ['share']);
 
-    expect(fn () => ($this->pinsSave)($this->author, ['assistant', 'share', 'outline', 'history']))
+    expect(fn () => ($this->pinsSave)($this->author, ['assistant', 'share', 'overview', 'history']))
         ->toThrow(ValidationException::class);
 
     expect($this->author->refresh()->preferences)->toBe(['editor.pinned_tools' => ['share']]);
