@@ -16,6 +16,7 @@ import {
 import { HomePanel } from '@/components/dashboard/home-panel';
 import { PanelGrid } from '@/components/dashboard/panel-grid';
 import { SiteFigures } from '@/components/dashboard/site-figures';
+import { usePanelDrops } from '@/components/dashboard/use-panel-drag';
 import { showToast } from '@/components/flash-toast';
 import { DashboardPage } from '@/components/patterns/dashboard-page';
 import { Button } from '@/components/ui/button';
@@ -143,14 +144,10 @@ export default function Dashboard({
         });
     };
 
-    const sayMove = (key: string, order: string[]) => {
+    const sayMove = (key: string, next: Layout) => {
         const entry = catalogue.find((item) => item.key === key);
         const section = sectionOf(owners[key] ?? 'core');
-        const shown = shownIn(
-            { ...layout, order, hidden: layout.hidden },
-            owners,
-            section,
-        );
+        const shown = shownIn(next, owners, section);
         const position = shown.indexOf(key) + 1;
 
         setAnnounce(
@@ -172,14 +169,50 @@ export default function Dashboard({
             return;
         }
 
-        void persist({ ...previous, order }, previous).then((saved) => {
+        const next = { ...previous, order };
+
+        void persist(next, previous).then((saved) => {
             if (saved) {
-                sayMove(key, order);
+                sayMove(key, next);
             }
 
             focusControl(key, step === -1 ? 'move-earlier' : 'move-later');
         });
     };
+
+    const dropPanel = (key: string, targetKey: string, after: boolean) => {
+        const previous = layoutRef.current;
+        const section = sectionOf(owners[key] ?? 'core');
+        const shown = shownIn(previous, owners, section);
+        const from = shown.indexOf(key);
+        const targetIndex = shown.indexOf(targetKey);
+
+        if (from === -1 || targetIndex === -1) {
+            return;
+        }
+
+        let to = after ? targetIndex + 1 : targetIndex;
+
+        if (from < to) {
+            to -= 1;
+        }
+
+        const order = moveTo(previous, owners, key, to);
+
+        if (order === previous.order) {
+            return;
+        }
+
+        const next = { ...previous, order };
+
+        void persist(next, previous).then((saved) => {
+            if (saved) {
+                sayMove(key, next);
+            }
+        });
+    };
+
+    usePanelDrops(dropPanel, customizing);
 
     const resizePanel = (key: string, size: PanelSize) => {
         const previous = layoutRef.current;

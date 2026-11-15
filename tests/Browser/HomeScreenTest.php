@@ -386,6 +386,156 @@ it('keeps Customize usable on a phone', function (): void {
     expect(min($sizes))->toBeGreaterThanOrEqual(44);
 });
 
+it('drags a panel by its grip to after another, and saves it', function (): void {
+    // Tall enough that Your work stays on screen — Playwright's drag otherwise
+    // scrolls the target into view and starts the drag on the wrong panel.
+    $page = cmSignIn($this->editor)->resize(1280, 1800);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-panel="my_drafts"] [data-drag-handle]');
+
+    $targetKey = $page->script(<<<'JS'
+        () => {
+            const keys = [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')]
+                .map((node) => node.getAttribute('data-panel'));
+            const from = keys.indexOf('my_drafts');
+
+            return keys[from + 2] ?? null;
+        }
+        JS);
+
+    expect($targetKey)->not->toBeNull();
+
+    $points = $page->page()->evaluate(<<<'JS'
+        (key) => {
+            const panel = document.querySelector('[data-panel="my_drafts"]');
+            const handle = document.querySelector('[data-panel="my_drafts"] [data-drag-handle]');
+            const target = document.querySelector(`[data-panel="${key}"]`);
+            if (!panel || !handle || !target) {
+                return null;
+            }
+
+            const panelBox = panel.getBoundingClientRect();
+            const handleBox = handle.getBoundingClientRect();
+            const targetBox = target.getBoundingClientRect();
+
+            return {
+                source: {
+                    x: handleBox.x + handleBox.width / 2 - panelBox.x,
+                    y: handleBox.y + handleBox.height / 2 - panelBox.y,
+                },
+                target: {
+                    x: targetBox.width * 0.75,
+                    y: targetBox.height / 2,
+                },
+            };
+        }
+        JS, $targetKey);
+
+    expect($points)->not->toBeNull();
+
+    $page->page()
+        ->locator('[data-panel="my_drafts"]')
+        ->dragTo(
+            $page->page()->locator('[data-panel="'.$targetKey.'"]'),
+            [
+                'sourcePosition' => [
+                    'x' => (int) round($points['source']['x']),
+                    'y' => (int) round($points['source']['y']),
+                ],
+                'targetPosition' => [
+                    'x' => (int) round($points['target']['x']),
+                    'y' => (int) round($points['target']['y']),
+                ],
+            ],
+        );
+
+    cmWaitUntil($page, <<<JS
+        (() => {
+            const keys = [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')]
+                .map((node) => node.getAttribute('data-panel'));
+            const drafts = keys.indexOf('my_drafts');
+            const target = keys.indexOf('{$targetKey}');
+
+            return drafts === target + 1;
+        })()
+        JS);
+
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="home-announce"]\')?.textContent?.includes("moved to position") === true');
+
+    $this->editor->refresh();
+    $saved = PreferencesFor::user($this->editor)['dashboard.order'];
+    $shownSaved = array_values(array_filter(
+        $saved,
+        fn (string $key): bool => in_array($key, [
+            'waiting_for_my_review',
+            'returned_to_me',
+            'my_items_in_review',
+            'my_drafts',
+            'scheduled',
+            'my_recent_edits',
+            'quick_draft',
+        ], true),
+    ));
+    expect(array_search('my_drafts', $shownSaved, true))
+        ->toBe(array_search($targetKey, $shownSaved, true) + 1);
+});
+
+it('never drops a core panel among plugins\' panels', function (): void {
+    app(DashboardRegistry::class)->register(new DashboardPanel(
+        'plugin_visits',
+        'Visits',
+        700,
+        HomeScreenEmptyQuery::class,
+        ['create'],
+        owner: 'tests/hello',
+        size: 'small',
+        kind: 'rows',
+    ));
+
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-panel="plugin_visits"]');
+
+    $before = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+
+    $page->page()
+        ->locator('[data-panel="my_drafts"] [data-drag-handle]')
+        ->dragTo($page->page()->locator('[data-panel="plugin_visits"]'));
+
+    $after = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+
+    expect($after)->toBe($before);
+    $this->editor->refresh();
+    expect(PreferencesFor::user($this->editor)['dashboard.order'])->toBe([]);
+});
+
+it('doesn\'t drag outside Customize', function (): void {
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-grid"]');
+
+    $page->assertMissing('[data-drag-handle]');
+
+    $before = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+
+    $page->page()
+        ->locator('[data-panel="my_drafts"] h3')
+        ->dragTo($page->page()->locator('[data-panel="scheduled"]'));
+
+    $after = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+
+    expect($after)->toBe($before);
+});
+
 /**
  * A panel query that always throws, for Home's failed-panel browser cases.
  */
