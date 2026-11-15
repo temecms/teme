@@ -26,6 +26,11 @@ final readonly class RepresentedPersonGone implements StatusCheck
         return SearchAndSocial::ABILITY;
     }
 
+    public function label(): string
+    {
+        return __('Search and social');
+    }
+
     public function banner(): ?StatusBanner
     {
         $id = $this->settings->get(SearchAndSocial::KEY, WhoPublishes::PERSON);

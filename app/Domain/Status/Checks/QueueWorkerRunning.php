@@ -28,6 +28,11 @@ final readonly class QueueWorkerRunning implements StatusCheck
         return 'settings.general.manage';
     }
 
+    public function label(): string
+    {
+        return __('Background jobs');
+    }
+
     public function banner(): ?StatusBanner
     {
         if (! app()->isProduction()) {

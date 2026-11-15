@@ -1376,10 +1376,6 @@ pages/tools/backups/place.tsx	Making the place can take a few minutes on a dista
 pages/tools/backups/place.tsx	Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.
 pages/tools/backups/place.tsx	Tools
 pages/tools/backups/place.tsx	Your recovery key
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Utilities for looking after the site.
 pages/tools/jobs.tsx	Actions
 pages/tools/jobs.tsx	Cancel
 pages/tools/jobs.tsx	Cancel {}

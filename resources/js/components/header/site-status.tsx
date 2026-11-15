@@ -3,6 +3,7 @@ import { CircleCheck, OctagonAlert, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { HeaderPanel } from '@/components/header/header-panel';
 import { Button } from '@/components/ui/button';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { StatusPill } from '@/components/ui/status-pill';
 import { __, __n } from '@/lib/i18n';
 import type { StatusBanner } from '@/types/status';
@@ -25,8 +26,9 @@ function levelWord(level: StatusBanner['level']): string {
 
 /**
  * The site status's content: how many things want a look, then one row per
- * status check that has something to say, its pill, its message and its
- * action. Also drawn in the small screens' status sheet.
+ * status check that has something to say: what it is about, with the
+ * plugin's mark for a plugin's, its pill, its message and its action. Also
+ * drawn in the small screens' status sheet.
  */
 export function SiteStatusBody({ banners }: { banners: StatusBanner[] }) {
     return (
@@ -45,17 +47,40 @@ export function SiteStatusBody({ banners }: { banners: StatusBanner[] }) {
                         <li
                             key={index}
                             data-test="site-status-row"
-                            className="grid justify-items-start gap-2 py-3 first:pt-0 last:pb-0"
+                            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 py-3 first:pt-0 last:pb-0"
                         >
+                            {banner.label === '' ? (
+                                <span />
+                            ) : (
+                                <span className="flex min-w-0 items-center gap-1">
+                                    <span
+                                        data-test="site-status-label"
+                                        className="text-body text-ink truncate font-medium"
+                                    >
+                                        {banner.label}
+                                    </span>
+                                    {banner.plugin !== null && (
+                                        <PluginMark
+                                            iconOnly
+                                            name={banner.plugin}
+                                        />
+                                    )}
+                                </span>
+                            )}
                             <StatusPill tone={TONE[banner.level]}>
                                 {levelWord(banner.level)}
                             </StatusPill>
-                            <p className="text-small text-ink-2">
+                            <p className="text-small text-ink-2 col-span-2">
                                 {banner.message}
                             </p>
                             {banner.actionUrl !== null &&
                                 banner.actionLabel !== null && (
-                                    <Button variant="neutral" size="sm" asChild>
+                                    <Button
+                                        variant="neutral"
+                                        size="sm"
+                                        className="col-span-2 justify-self-start"
+                                        asChild
+                                    >
                                         <Link href={banner.actionUrl}>
                                             {banner.actionLabel}
                                         </Link>

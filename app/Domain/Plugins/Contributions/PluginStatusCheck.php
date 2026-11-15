@@ -37,6 +37,14 @@ final readonly class PluginStatusCheck implements StatusCheck
         return PluginAccess::MANAGE;
     }
 
+    /**
+     * The plugin's name, so its row is labelled and marked as the plugin's.
+     */
+    public function label(): string
+    {
+        return $this->label;
+    }
+
     public function banner(): ?StatusBanner
     {
         try {

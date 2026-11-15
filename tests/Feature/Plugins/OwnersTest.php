@@ -44,6 +44,11 @@ function ownedCheck(?int $priority): StatusCheck
             return 'plugins.manage';
         }
 
+        public function label(): string
+        {
+            return 'Owned';
+        }
+
         public function banner(): ?StatusBanner
         {
             return $this->priority === null ? null : new StatusBanner('warning', "Priority {$this->priority}.", null, null, $this->priority);

@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Plug } from 'lucide-react';
 import { useState } from 'react';
 import { showToast } from '@/components/flash-toast';
 import {
@@ -177,6 +177,8 @@ function SubEntry({
 }: {
     item: Pick<AdminNavChild, 'key' | 'label' | 'href' | 'soon'> & {
         badge?: number;
+        /** The plugin that added this screen: a plug, named for screen readers. */
+        plugin?: string;
     };
     isActive: boolean;
 }) {
@@ -195,6 +197,19 @@ function SubEntry({
                     <SidebarMenuSubButton asChild isActive={isActive}>
                         <Link href={item.href} prefetch>
                             {item.label}
+                            {item.plugin !== undefined && (
+                                <>
+                                    <Plug
+                                        aria-hidden="true"
+                                        className="text-ink-3 ms-auto size-3.5"
+                                    />
+                                    <span className="sr-only">
+                                        {__('From :name', {
+                                            name: item.plugin,
+                                        })}
+                                    </span>
+                                </>
+                            )}
                         </Link>
                     </SidebarMenuSubButton>
                     <NavBadge count={item.badge ?? 0} />

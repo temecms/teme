@@ -31,6 +31,11 @@ final readonly class PluginsRunning implements StatusCheck
         return PluginAccess::MANAGE;
     }
 
+    public function label(): string
+    {
+        return __('Plugins');
+    }
+
     public function banner(): ?StatusBanner
     {
         $enabled = array_map(fn (PluginRecord $record): string => $record->name, $this->records->enabled());
