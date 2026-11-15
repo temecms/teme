@@ -46,4 +46,4 @@ it('pages these lists only through the numbered pager', function (string $page):
 
     expect($source)->toContain("from '@/components/list/numbered-pager'")
         ->and($source)->not->toContain("from '@/components/list/pager'");
-})->with(['pages/content/index.tsx', 'pages/terms/index.tsx']);
+})->with(['pages/content/index.tsx', 'pages/terms/index.tsx', 'pages/comments/index.tsx']);
