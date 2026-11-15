@@ -184,7 +184,7 @@ final readonly class ArticleViews
             type: (string) $content->type,
             termIdsByTaxonomy: $byTaxonomy,
             language: $language,
-            authorIds: array_values(array_map(fn (object $person): string => (string) $person->id, $credits)),
+            authorIds: array_map(fn (object $person): string => (string) $person->id, $credits),
             words: (int) $revision->word_count,
             paragraphs: $paragraphs,
         );
