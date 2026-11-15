@@ -10,6 +10,7 @@ use App\Domain\Contents\Queries\ContentList;
 use App\Domain\Contents\Queries\ContentListFilters;
 use App\Domain\Contents\Queries\HeldSchedules;
 use App\Domain\Contents\Queries\SingleItem;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
 use App\Domain\Support\Queries\ListPages;
@@ -88,6 +89,8 @@ final class ContentListController extends Controller
                 'canCreate' => (bool) $viewer?->can('terms.manage') && $viewer->can($taxonomy->ability),
             ], $typeTaxonomies),
             'labels' => ['singular' => $contentType->singular, 'plural' => $contentType->plural],
+            // The site's languages for the language marks and filter; none on a site with one, or for a type that isn't translated (D25).
+            'languages' => $this->languages($contentType->key),
             'canAdd' => ! $contentType->single || $singleItem === null,
             // Later (I-221): this becomes a StatusCheck banner when StatusChecks
             // exists (1.6b), so the warning shows on every screen, not only here.
@@ -203,5 +206,23 @@ final class ContentListController extends Controller
         }
 
         return $chosen;
+    }
+
+    /**
+     * The site's languages in order, each with its tag and English name,
+     * when the type has versions in them; none otherwise.
+     *
+     * @return list<array{tag: string, name: string}>
+     */
+    private function languages(string $type): array
+    {
+        $languages = app(SiteLanguages::class);
+
+        if (! $languages->isMultilingual() || ! $languages->translates($type)) {
+            return [];
+        }
+
+        // compact(): the key is a language's tag, never the taxonomy (NoTypeLiteralsTest).
+        return array_map(fn (string $tag): array => compact('tag') + ['name' => $languages->label($tag)], $languages->all());
     }
 }

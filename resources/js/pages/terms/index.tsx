@@ -8,6 +8,7 @@ import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
 import { NumberedPager } from '@/components/list/numbered-pager';
 import type { RowAction } from '@/components/list/row-actions';
+import { LanguageMarks } from '@/components/list/language-marks';
 import { RowLine } from '@/components/list/row-line';
 import { RowMenu } from '@/components/list/row-menu';
 import { TabStrip } from '@/components/list/tab-strip';
@@ -268,6 +269,8 @@ export default function TermsIndex({
     search,
     tree,
     setup,
+    languages = [],
+    versions = null,
 }: TermsIndexPage) {
     const [editing, setEditing] = useState<string | null>(null);
     // What opened the edit sheet, to take the focus back to when it closes.
@@ -377,6 +380,12 @@ export default function TermsIndex({
                         >
                             {row.path}
                         </span>
+                    )}
+                    {languages.length > 0 && (
+                        <LanguageMarks
+                            languages={languages}
+                            states={versions?.[row.id] ?? {}}
+                        />
                     )}
                     <RowLine title={row.name} items={lineActions(row)} />
                 </div>

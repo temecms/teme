@@ -31,6 +31,10 @@ export type TaxonomyInfo = {
 };
 
 export type TermsIndexPage = {
+    /** The site's languages, in order, for the language marks; none when the taxonomy has no versions. */
+    languages?: { tag: string; name: string }[];
+    /** By term ID, the languages it has a version in; null on a site with one language. */
+    versions?: Record<string, Record<string, 'there'>> | null;
     /** The URL segment, such as categories. */
     taxonomy: string;
     declared: {

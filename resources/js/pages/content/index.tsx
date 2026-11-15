@@ -32,6 +32,7 @@ import {
     SelectAllMatching,
 } from '@/components/list/select-all-matching';
 import type { MatchingAction } from '@/components/list/select-all-matching';
+import { LanguageMarks } from '@/components/list/language-marks';
 import { TitleCell } from '@/components/list/title-cell';
 import { MediaModal } from '@/components/media/media-modal';
 import { InPageNav } from '@/components/patterns/in-page-nav';
@@ -997,6 +998,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                 />
             ),
     };
+    const siteLanguages = page.languages ?? [];
     const titleColumn: Column<ContentRow> = {
         id: 'title',
         owner: 'core',
@@ -1018,14 +1020,22 @@ export default function ContentIndex(page: ContentIndexPage) {
                         : undefined
                 }
                 line={
-                    <RowLine
-                        title={shownTitle(row.title)}
-                        items={lineActions(row, page, () => {
-                            opener.current =
-                                document.activeElement as HTMLElement | null;
-                            setEditing(row.id);
-                        })}
-                    />
+                    <>
+                        {siteLanguages.length > 0 && (
+                            <LanguageMarks
+                                languages={siteLanguages}
+                                states={row.versions ?? {}}
+                            />
+                        )}
+                        <RowLine
+                            title={shownTitle(row.title)}
+                            items={lineActions(row, page, () => {
+                                opener.current =
+                                    document.activeElement as HTMLElement | null;
+                                setEditing(row.id);
+                            })}
+                        />
+                    </>
                 }
             />
         ),
@@ -1085,6 +1095,24 @@ export default function ContentIndex(page: ContentIndexPage) {
                   },
               ]
             : []),
+        ...(siteLanguages.length > 0
+            ? [
+                  {
+                      id: 'languages',
+                      owner: 'core',
+                      header: __('Languages'),
+                      label: __('Languages'),
+                      width: 168,
+                      cell: (row: ContentRow) => (
+                          <LanguageMarks
+                              languages={siteLanguages}
+                              states={row.versions ?? {}}
+                              className="flex-nowrap"
+                          />
+                      ),
+                  },
+              ]
+            : []),
         {
             id: 'date',
             owner: 'core',
@@ -1120,7 +1148,9 @@ export default function ContentIndex(page: ContentIndexPage) {
             .filter((column) => column !== undefined),
         ...optional.filter((column) => !(named ?? []).includes(column.id)),
     ];
-    const isShown = (id: string) => named === null || named.includes(id);
+    // The Languages column is offered, never shown by default: the marks under the title say it (docs/proposals/multilingual-screens.md).
+    const isShown = (id: string) =>
+        named === null ? id !== 'languages' : named.includes(id);
     const columns: Column<ContentRow>[] = [
         select,
         titleColumn,
@@ -1308,6 +1338,32 @@ export default function ContentIndex(page: ContentIndexPage) {
                                 }
                             />
                         ))}
+                        {siteLanguages.length > 0 && (
+                            <ChoiceFilter
+                                testId="filter-language"
+                                label={__('Language')}
+                                allLabel={__('All languages')}
+                                options={[
+                                    ...siteLanguages.map((language) => ({
+                                        value: language.tag,
+                                        label: language.name,
+                                    })),
+                                    ...siteLanguages.map((language) => ({
+                                        value: `missing:${language.tag}`,
+                                        label: __(
+                                            'Missing a version in :language',
+                                            {
+                                                language: language.name,
+                                            },
+                                        ),
+                                    })),
+                                ]}
+                                value={page.filters.language}
+                                onChange={(value) =>
+                                    filterTo({ language: value })
+                                }
+                            />
+                        )}
                         <DateFilter
                             dates={page.dates}
                             filters={page.filters}

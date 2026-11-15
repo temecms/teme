@@ -117,7 +117,7 @@ final class ContentList
                 // The Scheduled tab's and the author sort's cursors are built
                 // from these.
                 'contents.scheduled_for', 'contents.author_sort', 'contents.comment_status', 'contents.visibility',
-                'contents.language', 'users.name as author_name',
+                'contents.language', 'contents.translation_group', 'users.name as author_name',
             ])
             // Whether the viewer may edit each row: ContentPolicy::update's
             // rule as SQL (ContentAbilities), so fifty rows ask no policy.
@@ -164,6 +164,7 @@ final class ContentList
         $scheduleIssues = $this->scheduleIssuesFor($rows->pluck('id')->map(fn (mixed $id): string => (string) $id)->values()->all());
         $reviews = ReviewQueue::pendingFor($rows->pluck('id')->map(fn (mixed $id): string => (string) $id)->all(), $request->viewerId, [$request->type => $abilities]);
         $comments = $request->withComments ? $this->commentsFor($rows, $request->type, $request->viewerId) : [];
+        $versions = $this->versionsFor($rows, $request->type);
         $first = $rows->first();
         $last = $rows->last();
         $languages = app(SiteLanguages::class);
@@ -179,6 +180,10 @@ final class ContentList
                 'visibility' => (string) $row->visibility,
                 // Its language's tag (I-3360).
                 'language' => $languages->of($row->language === null ? null : (string) $row->language),
+                // Its group's versions by language, for the list's language marks; null on a site with one language.
+                'versions' => $versions === null ? null : ($row->translation_group === null
+                    ? [$languages->of($row->language === null ? null : (string) $row->language) => $versions['alone'][(string) $row->id] ?? 'there']
+                    : $versions['groups'][(string) $row->translation_group] ?? []),
                 'trashed' => $row->deleted_at !== null,
                 'authorId' => $row->author_id === null ? null : (int) $row->author_id,
                 'authorName' => $row->author_name,
@@ -207,6 +212,59 @@ final class ContentList
             'sort' => $sort,
             'direction' => $direction,
         ];
+    }
+
+    /**
+     * The versions of every row's group, by group and language, each there
+     * or out of date (D9), in one statement for the page however many rows
+     * it holds; a row alone has only itself. Null when the site has one
+     * language or the type isn't translated (D25), and no statement is run.
+     *
+     * @param  Collection<int, stdClass>  $rows
+     *
+     * @return array{groups: array<string, array<string, 'there'|'outOfDate'>>, alone: array<string, 'there'|'outOfDate'>}|null
+     */
+    private function versionsFor(Collection $rows, string $type): ?array
+    {
+        $languages = app(SiteLanguages::class);
+
+        if (! $languages->isMultilingual() || ! $languages->translates($type)) {
+            return null;
+        }
+
+        $groups = $rows->pluck('translation_group')->filter()->map(fn (mixed $group): string => (string) $group)->unique()->values()->all();
+        $alone = $rows->filter(fn (object $row): bool => $row->translation_group === null)->pluck('id')->map(fn (mixed $id): string => (string) $id)->values()->all();
+        $found = ['groups' => [], 'alone' => []];
+
+        if ($groups === [] && $alone === []) {
+            return $found;
+        }
+
+        // D9's out-of-date rule, as TranslationStatus::forGroup() writes it, for many groups at once.
+        $marks = DB::select(<<<'SQL'
+            SELECT c.id, c.translation_group, c.language,
+                   COALESCE(src.published_revision_id IS NOT NULL
+                       AND src.published_revision_id <> sr.id
+                       AND pub.created_at > sr.created_at, false) AS out_of_date
+            FROM contents c
+            JOIN content_revisions r ON r.id = c.working_revision_id
+            LEFT JOIN content_revisions sr ON sr.id = r.source_revision_id
+            LEFT JOIN contents src ON src.id = sr.content_id AND src.deleted_at IS NULL
+            LEFT JOIN content_revisions pub ON pub.id = src.published_revision_id
+            WHERE (c.translation_group = ANY(?::text[]) OR c.id = ANY(?::text[])) AND c.deleted_at IS NULL
+            SQL, ['{'.implode(',', $groups).'}', '{'.implode(',', $alone).'}']);
+
+        foreach ($marks as $mark) {
+            $state = (bool) $mark->out_of_date ? 'outOfDate' : 'there';
+
+            if ($mark->translation_group === null) {
+                $found['alone'][(string) $mark->id] = $state;
+            } else {
+                $found['groups'][(string) $mark->translation_group][$languages->of($mark->language === null ? null : (string) $mark->language)] = $state;
+            }
+        }
+
+        return $found;
     }
 
     /**
@@ -379,6 +437,21 @@ final class ContentList
         if ($request->language !== null && $languages->has($request->language) && $languages->translates($request->type)) {
             $stored = $languages->stored($request->language);
             $stored === null ? $query->whereNull('contents.language') : $query->where('contents.language', $stored);
+            $filtered = true;
+        }
+
+        // "Missing a version in…": no live item of its group is in that language
+        // (docs/proposals/multilingual-screens.md); an item alone has no version but its own.
+        $missing = $request->language !== null && str_starts_with($request->language, 'missing:') ? substr($request->language, 8) : null;
+
+        if ($missing !== null && $languages->has($missing) && $languages->translates($request->type)) {
+            $stored = $languages->stored($missing);
+            $stored === null ? $query->whereNotNull('contents.language') : $query->where(fn (Builder $own) => $own->whereNull('contents.language')->orWhere('contents.language', '<>', $stored));
+            $query->where(fn (Builder $alone) => $alone->whereNull('contents.translation_group')->orWhereNotExists(fn (Builder $version) => $version->selectRaw('1')
+                ->from('contents as versions')
+                ->whereColumn('versions.translation_group', 'contents.translation_group')
+                ->whereNull('versions.deleted_at')
+                ->when($stored === null, fn (Builder $in) => $in->whereNull('versions.language'), fn (Builder $in) => $in->where('versions.language', $stored))));
             $filtered = true;
         }
 
