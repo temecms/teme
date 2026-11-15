@@ -12,6 +12,7 @@ use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\PluginData\PluginDataGoneStep;
 use App\Domain\Import\PluginData\PluginDataPhase;
 use App\Domain\Import\PluginData\PluginOptionsStep;
+use App\Domain\Import\Queries\ImportScreen;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -245,4 +246,18 @@ it('lists, on a catch-up, a record WordPress no longer has, and changes nothing'
     expect(pdCodes($run))->toBe(['plugin-data.gone'])
         ->and(pdWords($run, 'plugin-data.gone'))->toBe('WordPress no longer has the post 8 whose data Importer brought across. Nothing was changed: Importer keeps what it has.')
         ->and(array_keys(pdReceived()))->toContain('post:8');
+});
+
+it('gives each plugin a row in the run’s report with what it brought, skipped and failed', function (): void {
+    pdWordPress($this->companion, [
+        ['id' => 3, 'type' => 'ap_actor', 'title' => 'Ada', 'meta' => []],
+        ['id' => 4, 'type' => 'ap_actor', 'title' => 'fail me', 'meta' => []],
+        ['id' => 6, 'type' => 'ap_actor', 'title' => 'skip me', 'meta' => []],
+    ]);
+
+    $run = pdRun($this->source);
+    $types = app(ImportScreen::class)->report($run->id)['types'];
+
+    expect($types)->toContain(['type' => 'plugin:importer', 'label' => 'Importer (plugin)', 'created' => 2, 'updated' => 0, 'skipped' => 1, 'failed' => 1])
+        ->and(array_column($types, 'type'))->not->toContain('plugin');
 });
