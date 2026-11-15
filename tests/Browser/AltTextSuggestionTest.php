@@ -56,21 +56,24 @@ it('suggests alt text in the library’s drawer, shows it beside what the field 
 
     $page = ($this->open)(cmSignIn($this->author)->navigate('/admin/media'))
         ->assertSee('The image is sent to Fake AI.')
-        ->type(($this->field)('caption'), 'Typed, not saved')
+        ->type(($this->field)('caption'), 'Saved on leaving')
         ->click('[data-test="alt-text-suggest"]')
         ->assertSeeIn('[data-test="alt-text-card"]', 'Sent to Fake AI')
         ->assertSeeIn('[data-test="alt-text-card"] ins', 'Fishing');
 
     expect(($this->axe)($page))->toBe([]);
 
+    // Changed by someone else after the caption was saved on leaving: Use must not write it back.
+    $this->media->update(['caption' => 'Changed elsewhere']);
+
     $page->click('[data-test="ai-use"]')
         ->assertSee('Suggested alt text saved.')
         ->assertNotPresent('[data-test="alt-text-card"]')
         ->assertValue(($this->field)('alt'), 'Fishing boats moored at dawn.')
-        ->assertValue(($this->field)('caption'), 'Typed, not saved');
+        ->assertValue(($this->field)('caption'), 'Saved on leaving');
 
-    // Use saved the alt text and left the caption alone: the caption holds what leaving its field saved.
-    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => 'Fishing boats moored at dawn.', 'caption' => 'Typed, not saved'])
+    // Use saved the alt text and nothing else: the caption is as it was changed elsewhere.
+    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => 'Fishing boats moored at dawn.', 'caption' => 'Changed elsewhere'])
         ->and(AiActivity::query()->sole()->outcome)->toBe(AiOutcome::Applied);
 })->with(['light', 'dark']);
 
@@ -95,7 +98,7 @@ it('says plainly when AI fails, and Discard leaves the alt text and the form as 
     $this->fake->fail(AiFailure::refused())->answer(altAnswer('Fishing boats moored at dawn.'));
 
     ($this->open)(cmSignIn($this->author)->navigate('/admin/media'))
-        ->type(($this->field)('caption'), 'Typed, not saved')
+        ->type(($this->field)('caption'), 'Saved on leaving')
         ->click('[data-test="alt-text-suggest"]')
         ->waitForText('The AI service declined to answer.')
         ->click('[data-test="ai-dismiss"]')
@@ -106,10 +109,10 @@ it('says plainly when AI fails, and Discard leaves the alt text and the form as 
         ->click('[data-test="ai-discard"]')
         ->assertNotPresent('[data-test="alt-text-card"]')
         ->assertValue(($this->field)('alt'), '')
-        ->assertValue(($this->field)('caption'), 'Typed, not saved');
+        ->assertValue(($this->field)('caption'), 'Saved on leaving');
 
     // Discard wrote nothing: the caption holds what leaving its field saved.
-    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => null, 'caption' => 'Typed, not saved'])
+    expect($this->media->refresh()->only(['alt', 'caption']))->toBe(['alt' => null, 'caption' => 'Saved on leaving'])
         ->and(AiActivity::query()->pluck('outcome')->map(fn (AiOutcome $outcome): string => $outcome->value)->sort()->values()->all())->toBe(['discarded', 'refused']);
 });
 
