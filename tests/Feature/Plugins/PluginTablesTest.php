@@ -224,6 +224,62 @@ PHP,
     Schema::dropIfExists('core_scratch');
 });
 
+it('refuses a migration that fails, and leaves nothing behind', function (): void {
+    $failing = <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        DB::statement('select * from nope');
+    }
+};
+PHP;
+    $sentence = 'The migration 2026_01_02_000000_create_tables_clicks of Tables failed: SQLSTATE[42P01]: Undefined table: 7 ERROR:  relation "nope" does not exist';
+
+    $copy = PluginFixtures::copy('tables', files: [
+        'database/migrations/2026_01_02_000000_create_tables_clicks.php' => $failing,
+    ]);
+    PluginFixtures::use($copy);
+
+    expect(fn () => ($this->enable)())
+        ->toThrow(ValidationException::class, $sentence);
+
+    expect(Schema::hasTable('tables_links'))->toBeFalse()
+        ->and(Schema::hasTable('tables_clicks'))->toBeFalse()
+        ->and(PluginRecord::query()->count())->toBe(0);
+
+    // Same refusal through MigratePlugin and the console once the plugin is enabled.
+    $waiting = PluginFixtures::copy('tables', [
+        'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']],
+    ]);
+    PluginFixtures::use($waiting);
+    ($this->enable)();
+    $before = PluginRecord::query()->sole()->migrations;
+    file_put_contents($waiting.'/database/migrations/2026_01_03_000000_create_tables_notes.php', $failing);
+    app(PluginRegistry::class)->flush();
+
+    $waitingSentence = 'The migration 2026_01_03_000000_create_tables_notes of Tables failed: SQLSTATE[42P01]: Undefined table: 7 ERROR:  relation "nope" does not exist';
+
+    expect(fn () => app(MigratePlugin::class)->execute(new MigratePluginInput('tests/tables', null)))
+        ->toThrow(ValidationException::class, $waitingSentence);
+
+    expect(PluginRecord::query()->sole()->migrations)->toBe($before)
+        ->and(Schema::hasTable('tables_links'))->toBeTrue()
+        ->and(Schema::hasTable('tables_notes'))->toBeFalse();
+
+    $exit = Artisan::call('teme:plugins:migrate', ['name' => 'tests/tables']);
+
+    expect($exit)->toBe(1)
+        ->and(Artisan::output())->toContain('2026_01_03_000000_create_tables_notes of Tables failed:')
+        ->and(PluginRecord::query()->sole()->migrations)->toBe($before)
+        ->and(Schema::hasTable('tables_notes'))->toBeFalse();
+});
+
 it('refuses a migration that sets withinTransaction to false', function (): void {
     $copy = PluginFixtures::copy('tables', files: [
         'database/migrations/2026_01_01_000000_create_tables_links.php' => <<<'PHP'

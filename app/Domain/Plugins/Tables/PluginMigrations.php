@@ -9,6 +9,7 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * Runs a plugin's migrations that haven't run, in name order, inside the
@@ -34,23 +35,30 @@ final readonly class PluginMigrations
     public function run(FoundPlugin $plugin, array $record): array
     {
         foreach ($this->waiting($plugin, $record) as $name => $file) {
-            $migration = (static fn (string $path): mixed => require $path)($file);
+            try {
+                $migration = (static fn (string $path): mixed => require $path)($file);
 
-            if (! $migration instanceof Migration) {
-                throw PluginTablesRefused::notAMigration($plugin, $name);
+                if (! $migration instanceof Migration) {
+                    throw PluginTablesRefused::notAMigration($plugin, $name);
+                }
+
+                if ($migration->withinTransaction === false) {
+                    throw PluginTablesRefused::outsideTransaction($plugin, $name);
+                }
+
+                if (! is_callable([$migration, 'up'])) {
+                    throw PluginTablesRefused::notAMigration($plugin, $name);
+                }
+
+                $before = $this->tables();
+                $migration->{'up'}();
+                $after = $this->tables();
+            } catch (PluginTablesRefused $refused) {
+                throw $refused;
+            } catch (Throwable $e) {
+                report($e);
+                throw PluginTablesRefused::failed($plugin, $name, $e);
             }
-
-            if ($migration->withinTransaction === false) {
-                throw PluginTablesRefused::outsideTransaction($plugin, $name);
-            }
-
-            if (! is_callable([$migration, 'up'])) {
-                throw PluginTablesRefused::notAMigration($plugin, $name);
-            }
-
-            $before = $this->tables();
-            $migration->{'up'}();
-            $after = $this->tables();
 
             $created = array_values(array_diff($after, $before));
             $dropped = array_values(array_diff($before, $after));
