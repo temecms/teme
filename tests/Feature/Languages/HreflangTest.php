@@ -70,3 +70,14 @@ it('writes hreflang on page 1 of the home page and never on page 2', function ()
     expect(hlLinks('/'))->toBe(['en-GB' => '/', 'fr' => '/fr/', 'x-default' => '/'])
         ->and(hlLinks('/page/2/'))->toBe([]);
 });
+
+it('counts only what a reader can open when it lists the languages on the home page', function (): void {
+    DB::table('contents')->where('id', $this->site->postFr)->update(['visibility' => 'private']);
+    $region = regionCreate($this->site->editor, 'default');
+    regionSave($region, $this->site->editor, [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Pied de page']]]]);
+    listsPublish($region->refresh(), $this->site->editor);
+    DB::table('contents')->where('id', $region->id)->update(['language' => 'fr']);
+
+    expect(DB::table('contents')->where('id', $region->id)->value('status'))->toBe('published')
+        ->and(hlLinks('/'))->toBe([]);
+});

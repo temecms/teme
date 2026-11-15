@@ -7,6 +7,7 @@ namespace App\Domain\Site;
 use App\Domain\Addresses\Addresses;
 use App\Domain\Addresses\PublicRequestPath;
 use App\Domain\Addresses\TypeArchives;
+use App\Domain\Api\Live;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Languages\PageLanguage;
@@ -186,8 +187,9 @@ final class Alternates
 
     /**
      * The shown languages, in the site's order, that have a live, public
-     * item (of this type, when one is named): one indexed probe a language,
-     * the page's own language always among them.
+     * item a reader can open (of this type, when one is named, else of any
+     * public type): one indexed probe a language, the page's own language
+     * always among them.
      *
      * @return list<string>
      */
@@ -203,7 +205,7 @@ final class Alternates
                 ->whereNull('deleted_at')
                 ->where('visibility', 'public')
                 ->where('published_at', '<=', now())
-                ->when($type !== null, fn ($query) => $query->where('type', $type));
+                ->when($type !== null, fn ($query) => $query->where('type', $type), fn ($query) => $query->whereIn('type', Live::types()));
 
             $query = $stored === null ? $query->whereNull('language') : $query->where('language', $stored);
 
