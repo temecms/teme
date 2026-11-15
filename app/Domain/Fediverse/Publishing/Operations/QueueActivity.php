@@ -13,6 +13,7 @@ use App\Domain\Fediverse\Models\Delivery;
 use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\FediverseObject;
 use App\Domain\Fediverse\Operations\Concerns\AuthorizesFediverseWork;
+use App\Domain\Fediverse\Publishing\Deliveries;
 use App\Domain\Fediverse\Publishing\ObjectDocuments;
 use App\Domain\Fediverse\Publishing\Operations\Input\QueueActivityInput;
 use App\Domain\Fediverse\Publishing\PublishingSettings;
@@ -69,6 +70,7 @@ final class QueueActivity extends BaseOperation
     protected function afterCommit(mixed $result): void
     {
         /** @var QueuedActivities $result */
+        app(Deliveries::class)->dispatch($result->deliveryIds);
         app(SentActivities::class)->announce($result->activities);
     }
 
