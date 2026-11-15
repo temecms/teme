@@ -175,6 +175,16 @@ it('finds a tool by typing in Tools, and opens it with Enter', function (): void
     cmWaitUntil($page, "document.querySelector('[data-slot=\"tool-row\"]') === null && document.activeElement?.tagName === 'H2' && document.activeElement.textContent === 'History' && document.activeElement.closest('{$this->etlHead}') !== null");
 });
 
+it('names each group of Tools by its heading', function (): void {
+    aiReady();
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    ($this->etlOpenTools)($page);
+
+    // Each group's aria-labelledby names one element, the group's own heading.
+    expect(cmScriptArray($page, "Array.from(new Set(Array.from(document.querySelectorAll('[data-slot=\"tool-row\"]'), (row) => row.closest('section'))), (group) => { const ids = (group.getAttribute('aria-labelledby') ?? '').split(/\\s+/).filter(Boolean); const heading = ids.length === 1 ? document.getElementById(ids[0]) : null; return heading !== null && heading.tagName === 'H3' && group.contains(heading) ? heading.textContent : null; })"))
+        ->toBe(['Pinned to the bar', 'Teme']);
+});
+
 it('opens every tool from the command palette too', function (): void {
     aiReady();
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));

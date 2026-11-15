@@ -190,13 +190,13 @@ export function ToolsLauncher({
                         className="grid gap-3 px-3 pb-3"
                         onKeyDown={move}
                     >
-                        {shown.map((group) => (
+                        {shown.map((group, index) => (
                             <section
                                 key={group.label}
-                                aria-labelledby={`${fieldId}-${group.label}`}
+                                aria-labelledby={`${fieldId}-group-${index}`}
                             >
                                 <h3
-                                    id={`${fieldId}-${group.label}`}
+                                    id={`${fieldId}-group-${index}`}
                                     className="text-caption text-ink-3 px-2 pb-1 font-semibold uppercase"
                                 >
                                     {group.label}
