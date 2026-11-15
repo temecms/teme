@@ -17,7 +17,7 @@ final readonly class NewItem
     /**
      * @param  array<string, mixed>  $body  a Tiptap document (`type: doc`)
      * @param  array<string, mixed>  $fields  by field handle
-     * @param  array<string, list<string>>  $terms  term slugs by taxonomy
+     * @param  array<string, list<string>>  $terms  term slugs or names by taxonomy
      *
      * @since 0.9.0
      */

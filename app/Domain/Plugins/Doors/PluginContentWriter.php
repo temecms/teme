@@ -18,6 +18,8 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Hooks\Payloads;
 use App\Domain\Taxonomy\Models\Term;
+use App\Domain\Taxonomy\Operations\CreateTerm;
+use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
 use DateTimeImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -49,7 +51,7 @@ final readonly class PluginContentWriter implements ContentWriter
                 document: $item->body,
                 fields: $this->fields($item->type, $item->fields, $item->featuredImage),
                 actorId: $actingPersonId,
-                terms: $this->terms($item->terms),
+                terms: $this->terms($item->terms, $actingPersonId),
                 language: $item->language,
                 via: $this->code,
             ));
@@ -89,7 +91,7 @@ final readonly class PluginContentWriter implements ContentWriter
             );
         $terms = $changes->terms === null
             ? array_map('strval', (array) $revision->terms)
-            : $this->terms($changes->terms);
+            : $this->terms($changes->terms, $actingPersonId);
 
         try {
             $content = app(SaveDraft::class)->execute(new SaveDraftInput(
@@ -242,27 +244,41 @@ final readonly class PluginContentWriter implements ContentWriter
     }
 
     /**
+     * Resolves each entry as a slug, then as a name; a missing name is created
+     * through CreateTerm under the acting person's permission.
+     *
      * @param  array<string, list<string>>  $byTaxonomy
      *
      * @return list<string>
      */
-    private function terms(array $byTaxonomy): array
+    private function terms(array $byTaxonomy, string $actingPersonId): array
     {
         $ids = [];
 
-        foreach ($byTaxonomy as $taxonomy => $slugs) {
-            foreach ($slugs as $slug) {
-                if ($slug === '') {
-                    throw new WriteRefused('Terms must be listed by taxonomy as slugs.');
+        foreach ($byTaxonomy as $taxonomy => $labels) {
+            foreach ($labels as $label) {
+                if ($label === '') {
+                    throw new WriteRefused(__('Terms must be listed by taxonomy as slugs or names.'));
                 }
 
-                $id = Term::query()->where('taxonomy', $taxonomy)->where('slug', $slug)->value('id');
+                $id = Term::query()->where('taxonomy', $taxonomy)->where('slug', $label)->value('id')
+                    ?? Term::query()->where('taxonomy', $taxonomy)->where('name', $label)->value('id');
 
                 if ($id === null) {
-                    throw new WriteRefused(__('There is no :taxonomy term “:slug”.', [
-                        'taxonomy' => $taxonomy,
-                        'slug' => $slug,
-                    ]));
+                    try {
+                        $term = app(CreateTerm::class)->execute(new SaveTermInput(
+                            taxonomy: $taxonomy,
+                            name: $label,
+                            slug: null,
+                            parentId: null,
+                            description: null,
+                            actorId: $actingPersonId,
+                        ));
+                    } catch (Throwable $failure) {
+                        $this->refuse($failure);
+                    }
+
+                    $id = $term->id;
                 }
 
                 $ids[] = (string) $id;

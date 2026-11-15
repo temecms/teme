@@ -10,6 +10,7 @@ use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginLoader;
+use App\Domain\Taxonomy\Models\Term;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -155,6 +156,60 @@ it('publishes and schedules for an editor, and refuses both for a contributor', 
         ->and(fn () => $writer->schedule($theirs, new DateTimeImmutable('2026-11-16 10:00:00'), (string) $contributor->id))->toThrow(WriteRefused::class)
         ->and(($this->counts)())->toBe($before)
         ->and(Content::query()->findOrFail($theirs->id)->status)->toBe('draft');
+});
+
+it('uses an existing term by name', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    $category = taxonomyTerm('category', 'Harbour News');
+    $writer = ($this->door)();
+
+    $item = $writer->create(new NewItem(
+        type: 'post',
+        title: 'By name',
+        body: ['type' => 'doc', 'content' => []],
+        terms: ['category' => ['Harbour News']],
+    ), (string) $editor->id);
+
+    expect(Content::query()->findOrFail($item->id)->workingRevision->terms)->toBe([(string) $category->id]);
+});
+
+it('creates a missing term by name through CreateTerm', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    $writer = ($this->door)();
+    $before = Term::query()->count();
+
+    $item = $writer->create(new NewItem(
+        type: 'post',
+        title: 'New term',
+        body: ['type' => 'doc', 'content' => []],
+        terms: ['category' => ['Fresh Harbour']],
+    ), (string) $editor->id);
+
+    $term = Term::query()->where('taxonomy', 'category')->where('name', 'Fresh Harbour')->first();
+
+    expect($term)->not->toBeNull()
+        ->and(Term::query()->count())->toBe($before + 1)
+        ->and(Content::query()->findOrFail($item->id)->workingRevision->terms)->toBe([(string) $term->id]);
+});
+
+it('refuses creating a term when the person may not, and writes nothing', function (): void {
+    $contributor = User::factory()->create()->assignRole('contributor');
+    $this->actingAs($contributor);
+    $writer = ($this->door)();
+    $before = ($this->counts)();
+    $termsBefore = Term::query()->count();
+
+    expect(fn () => $writer->create(new NewItem(
+        type: 'post',
+        title: 'No terms',
+        body: ['type' => 'doc', 'content' => []],
+        terms: ['category' => ['Forbidden New']],
+    ), (string) $contributor->id))
+        ->toThrow(WriteRefused::class)
+        ->and(($this->counts)())->toBe($before)
+        ->and(Term::query()->count())->toBe($termsBefore);
 });
 
 it('refuses when a contributor’s request asks to act for an administrator, and writes nothing', function (): void {
