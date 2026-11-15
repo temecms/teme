@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Site;
+namespace Tests\Fixtures\Languages;
 
 use FilesystemIterator;
 use RecursiveDirectoryIterator;

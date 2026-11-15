@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Domain\Site\ReaderWords;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Finder\Finder;
+use Tests\Fixtures\Languages\ReaderWords;
 
 /*
  * The reader words Teme ships (I-3360): every key a reader can meet, in each
