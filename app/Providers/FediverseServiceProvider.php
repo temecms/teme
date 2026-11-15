@@ -12,8 +12,10 @@ use App\Domain\PublicRoutes\DeclaredRoute;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Http\Site\Fediverse\BrowserRoute;
 use App\Http\Site\Fediverse\DocumentRoute;
+use App\Http\Site\Fediverse\InboxController;
 use App\Http\Site\Fediverse\NodeInfoRoute;
 use App\Http\Site\Fediverse\WebFingerRoute;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -31,6 +33,21 @@ final class FediverseServiceProvider extends ServiceProvider
             foreach (self::routes(SiteActors::exist()) as $route) {
                 $registry->registerCore($route);
             }
+        });
+    }
+
+    public function boot(): void
+    {
+        if ($this->app->routesAreCached()) {
+            return;
+        }
+
+        // The inboxes, shared and each actor's, new and imported: their own
+        // routes, not declared ones, so a blocked server is refused before the
+        // body or the rate limit (docs/plans/fediverse-actors.md, D8).
+        Route::middleware('public')->group(function (): void {
+            Route::post(ActivityPub::PREFIX.'/{rest}', InboxController::class)->where('rest', '(.+/)?inbox')->name('fediverse.inbox');
+            Route::post(ActivityPub::WORDPRESS_PREFIX.'/activitypub/1.0/{rest}', InboxController::class)->where('rest', '(.+/)?inbox')->name('fediverse.wordpress-inbox');
         });
     }
 
