@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Domain\Cards\DocumentRenderer;
+use App\Domain\Cards\LinkResolver;
+use App\Domain\Cards\RenderContext;
 use App\Domain\Site\Insertions\PlanBuilder;
 use Teme\Contracts\Insertions\ArticleFacts;
 use Teme\Contracts\Insertions\Insertion;
@@ -117,3 +120,19 @@ it('draws everyParagraphs at most ten times, by default and when a larger ceilin
     'the default' => [null],
     'a ceiling of 50' => [50],
 ]);
+
+it('counts top-level nodes as the renderer does, a node that is not an array included', function (): void {
+    $document = ['type' => 'doc', 'content' => [
+        'stray',
+        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'One']]],
+        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Two']]],
+        ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Three']]],
+    ]];
+
+    $plan = PlanBuilder::for($document, insertionFacts(3), [new Insertion('after-2', Position::afterParagraph(2), '<i>e</i>')]);
+    $html = app(DocumentRenderer::class)->html($document, new RenderContext(app(LinkResolver::class), insertions: $plan));
+
+    expect($plan->at())->toBe([3 => ['<i>e</i>']])
+        ->and((int) strpos($html, 'Two'))->toBeLessThan((int) strpos($html, '<i>e</i>'))
+        ->and((int) strpos($html, '<i>e</i>'))->toBeLessThan((int) strpos($html, 'Three'));
+});

@@ -23,15 +23,13 @@ final class PlanBuilder
     {
         unset($facts);
 
-        $content = array_values(array_filter(
-            (array) ($document['content'] ?? []),
-            is_array(...),
-        ));
+        // Counted as DocumentRenderer counts them: every top-level node, one that isn't an array included.
+        $content = array_values((array) ($document['content'] ?? []));
         $paragraphs = [];
         $headings = [];
 
         foreach ($content as $i => $node) {
-            match ($node['type'] ?? null) {
+            match (is_array($node) ? $node['type'] ?? null : null) {
                 'paragraph' => $paragraphs[] = $i,
                 'heading' => $headings[(int) ($node['attrs']['level'] ?? 2)][] = $i,
                 default => null,
