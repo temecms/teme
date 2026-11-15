@@ -66,8 +66,8 @@ export function EmbedCard({
             }
         >
             {url === '' ? (
-                <p className="text-ink-2 text-[13px]">
-                    Paste the address of what to embed.
+                <p className="text-ink-2 text-small">
+                    {__('Paste the address of what to embed.')}
                 </p>
             ) : (
                 <div className="flex items-center gap-3">
@@ -82,15 +82,17 @@ export function EmbedCard({
                         <p className="truncate text-[14px] font-semibold">
                             {attrs.title || url}
                         </p>
-                        <p className="text-ink-2 truncate text-xs">
+                        <p className="text-ink-2 text-caption truncate">
                             {attrs.provider ?? hostOf(url)} ·{' '}
-                            {framed ? 'framed on the site' : 'shown as a link'}
+                            {framed
+                                ? __('framed on the site')
+                                : __('shown as a link')}
                         </p>
                     </div>
                 </div>
             )}
             {attrs.caption && (
-                <p className="text-ink-2 mt-1.5 text-[13px]">{attrs.caption}</p>
+                <p className="text-ink-2 text-small mt-2">{attrs.caption}</p>
             )}
         </CardFrame>
     );
@@ -128,7 +130,7 @@ export function EmbedSettings({
                         value={attrs.kind ?? 'link'}
                         onValueChange={(kind) => updateAttributes({ kind })}
                         options={optionsFor(manifest, 'embed', 'kind')}
-                        className="h-[34px] w-full max-w-40"
+                        className="h-8.5 w-full max-w-40"
                     />
                 )}
             </CardField>

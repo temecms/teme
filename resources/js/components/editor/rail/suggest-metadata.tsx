@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react';
 import { useAssistant } from '@/components/editor/assistant/assistant-context';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { __ } from '@/lib/i18n';
 import type { ContentEditPage, EditorAi } from '@/types/editor';
 import {
     METADATA_FIELDS,
@@ -46,7 +47,7 @@ export function SuggestMetadataButtons({ state }: { state: Suggestion }) {
                         disabled={busy}
                         onClick={() => void use(waiting)}
                     >
-                        {busy ? METADATA_WORDS.using : 'Use all'}
+                        {busy ? METADATA_WORDS.using : __('Use all')}
                     </Button>
                     <Button
                         size="sm"
@@ -55,7 +56,7 @@ export function SuggestMetadataButtons({ state }: { state: Suggestion }) {
                         disabled={busy}
                         onClick={() => void putAside()}
                     >
-                        Discard
+                        {__('Discard')}
                     </Button>
                 </>
             )}
@@ -72,13 +73,13 @@ export function SuggestMetadataNote({ state }: { state: Suggestion }) {
 
     return (
         <div className="grid gap-2">
-            <p className="text-ink-2 text-xs">
+            <p className="text-ink-2 text-caption">
                 {Object.keys(proposals).length > 0
                     ? METADATA_WORDS.waiting
                     : METADATA_WORDS.hint}
             </p>
             {message !== null && (
-                <p role="alert" className="text-danger-ink text-xs">
+                <p role="alert" className="text-danger-ink text-caption">
                     {message}
                 </p>
             )}
@@ -112,10 +113,10 @@ export function SuggestMetadataPane({ ai }: { ai: EditorAi }) {
             aria-labelledby="assistant-metadata"
             className="grid gap-2"
         >
-            <h3 id="assistant-metadata" className="text-xs font-medium">
-                Search and social
+            <h3 id="assistant-metadata" className="text-caption font-medium">
+                {__('Search and social')}
             </h3>
-            <p className="text-ink-2 text-xs">{METADATA_WORDS.paneHint}</p>
+            <p className="text-ink-2 text-caption">{METADATA_WORDS.paneHint}</p>
             <div>
                 <Button
                     size="sm"

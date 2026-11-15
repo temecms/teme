@@ -6,9 +6,11 @@ import { DiffView } from '@/components/editor/diff-view';
 import { MetaChanges } from '@/components/editor/meta-changes';
 import { RestoreButton } from '@/components/editor/restore-button';
 import Heading from '@/components/heading';
+import { EditorPage } from '@/components/patterns/editor-page';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { compare, edit } from '@/routes/content';
 import type {
     ComparePageProps,
@@ -28,9 +30,10 @@ function nameOf(revision: RevisionSummary | RevisionRow): string {
 }
 
 /**
- * The comparison screen: two revisions of one article, block by block, with
- * a control to pick which two, and Restore for either one that is not the
- * working version. Restoring adds a revision; nothing else here writes.
+ * The comparison screen, on the editor's page without its rail: two
+ * revisions of one article, block by block, with a control to pick which
+ * two, and Restore for either one that is not the working version.
+ * Restoring adds a revision; nothing else here writes.
  */
 export default function Compare({
     contentId,
@@ -64,18 +67,25 @@ export default function Compare({
 
     return (
         <>
-            <Head title={`Compare: ${title}`} />
-            <div className="grid grid-cols-[minmax(0,1fr)] gap-6 px-4 py-6 sm:px-6">
-                <Link
-                    href={edit(contentId).url}
-                    className="text-ink-2 hover:text-ink inline-flex items-center gap-1.5 justify-self-start text-[13px]"
-                >
-                    <ArrowLeft className="size-4" />
-                    Back to the editor
-                </Link>
+            <Head title={__('Compare: :title', { title })} />
+            <EditorPage
+                header={
+                    <header className="border-line bg-chrome flex h-(--top-h) shrink-0 items-center gap-3 border-b px-4">
+                        <Link
+                            href={edit(contentId).url}
+                            className="text-ink-2 hover:text-ink text-small inline-flex items-center gap-2"
+                        >
+                            <ArrowLeft className="size-4" />
+                            {__('Back to the editor')}
+                        </Link>
+                    </header>
+                }
+            >
                 <Heading
-                    title={`Compare versions of “${title}”`}
-                    description="What changed between two revisions. Nothing here changes the article."
+                    title={__('Compare versions of “:title”', { title })}
+                    description={__(
+                        'What changed between two revisions. Nothing here changes the article.',
+                    )}
                     level={1}
                 />
                 <form
@@ -89,48 +99,59 @@ export default function Compare({
                         );
                     }}
                 >
-                    <div className="grid gap-1.5">
-                        <Label htmlFor="compare-from">Before</Label>
+                    <div className="grid gap-2">
+                        <Label htmlFor="compare-from">{__('Before')}</Label>
                         <SelectField
                             id="compare-from"
                             value={older}
                             onValueChange={setOlder}
                             options={options}
-                            className="h-[34px] w-72 max-w-full"
+                            className="w-72 max-w-full"
                         />
                     </div>
-                    <div className="grid gap-1.5">
-                        <Label htmlFor="compare-to">After</Label>
+                    <div className="grid gap-2">
+                        <Label htmlFor="compare-to">{__('After')}</Label>
                         <SelectField
                             id="compare-to"
                             value={newer}
                             onValueChange={setNewer}
                             options={options}
-                            className="h-[34px] w-72 max-w-full"
+                            className="w-72 max-w-full"
                         />
                     </div>
                     <Button type="submit" variant="outline">
-                        Compare
+                        {__('Compare')}
                     </Button>
                 </form>
-                <div className="text-ink-2 grid gap-3 text-[13px] lg:grid-cols-2 lg:gap-6">
+                <div className="text-ink-2 text-small grid gap-3 lg:grid-cols-2 lg:gap-6">
                     {[
-                        { side: 'Before', revision: from },
-                        { side: 'After', revision: to },
-                    ].map(({ side, revision }) => (
+                        {
+                            side: __('Before'),
+                            restore: __('Restore the before version'),
+                            revision: from,
+                        },
+                        {
+                            side: __('After'),
+                            restore: __('Restore the after version'),
+                            revision: to,
+                        },
+                    ].map(({ side, restore, revision }) => (
                         <div
                             key={side}
                             className="flex flex-wrap items-center gap-3"
                         >
                             <p>
-                                {side}: {nameOf(revision)}
+                                {__(':side: :name', {
+                                    side,
+                                    name: nameOf(revision),
+                                })}
                             </p>
                             {revision.id !== workingRevisionId && (
                                 <RestoreButton
                                     contentId={contentId}
                                     revisionId={revision.id}
                                     createdAt={revision.createdAt}
-                                    label={`Restore the ${side.toLowerCase()} version`}
+                                    label={restore}
                                 />
                             )}
                         </div>
@@ -138,7 +159,7 @@ export default function Compare({
                 </div>
                 <MetaChanges fields={fields} terms={terms} />
                 <DiffView blocks={blocks} />
-            </div>
+            </EditorPage>
         </>
     );
 }

@@ -1,3 +1,4 @@
+import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import type { EditorReview, EditorSchedule } from '@/types';
 
@@ -82,7 +83,7 @@ export function StatusChip({
             data-test="status-chip"
             title={words}
             className={cn(
-                'inline-block max-w-full min-w-0 truncate rounded-sm px-2 py-0.5 align-middle text-[11px] leading-4 font-medium',
+                'text-caption inline-block max-w-full min-w-0 truncate rounded-sm px-2 py-px align-middle font-medium',
                 TONES[
                     state.status === 'published' &&
                     state.visibility === 'private'
@@ -91,7 +92,7 @@ export function StatusChip({
                 ] ?? TONES.draft,
             )}
         >
-            {named && <span className="sr-only">Status: </span>}
+            {named && <span className="sr-only">{__('Status:')} </span>}
             {words}
         </span>
     );

@@ -26,6 +26,7 @@ import { PluginMark } from '@/components/ui/plugin-mark';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { __ } from '@/lib/i18n';
 import { nextWholeHour } from '@/lib/zoned-time';
 import { compare } from '@/routes/content';
@@ -271,19 +272,19 @@ function ActionBar({
             : !canPublish
               ? {
                     label: live
-                        ? 'Submit update for review'
-                        : 'Submit for review',
+                        ? __('Submit update for review')
+                        : __('Submit for review'),
                     run: actions.submit,
                 }
               : when.later
                 ? {
-                      label: live ? 'Schedule update' : 'Schedule',
+                      label: live ? __('Schedule update') : __('Schedule'),
                       run: scheduleChosen,
                   }
                 : waiting
                   ? null
                   : {
-                        label: live ? 'Update' : 'Publish',
+                        label: live ? __('Update') : __('Publish'),
                         run: actions.publish,
                     };
 
@@ -297,7 +298,7 @@ function ActionBar({
                 aria-expanded={returning}
                 onClick={() => setReturning((open) => !open)}
             >
-                Return
+                {__('Return')}
             </Button>
             <Button
                 type="button"
@@ -313,7 +314,7 @@ function ActionBar({
                     setApprovingLater((open) => !open);
                 }}
             >
-                Approve and schedule…
+                {__('Approve and schedule…')}
             </Button>
             <Button
                 type="button"
@@ -321,7 +322,7 @@ function ActionBar({
                 disabled={busy}
                 onClick={() => actions.approve()}
             >
-                Approve
+                {__('Approve')}
             </Button>
         </>
     );
@@ -342,8 +343,10 @@ function ActionBar({
                         onClick={onPreview}
                     >
                         <Eye />
-                        Preview
-                        <span className="sr-only">, opens in a new tab</span>
+                        {__('Preview')}
+                        <span className="sr-only">
+                            {__(', opens in a new tab')}
+                        </span>
                     </Button>
                 )}
                 <Button
@@ -353,7 +356,7 @@ function ActionBar({
                     disabled={saveDisabled}
                     onClick={onSave}
                 >
-                    Save draft
+                    {__('Save draft')}
                 </Button>
                 <span className="flex-1" />
                 {pending !== null
@@ -371,12 +374,19 @@ function ActionBar({
             </div>
 
             {pending !== null && (
-                <div className="grid gap-1 text-xs">
+                <div className="text-caption grid gap-1">
                     <p>
                         {canPublish
-                            ? 'Submitted'
-                            : 'Waiting for review. Submitted'}{' '}
-                        by {pending.submittedBy ?? 'a removed account'}.
+                            ? __('Submitted by :name.', {
+                                  name:
+                                      pending.submittedBy ??
+                                      __('a removed account'),
+                              })
+                            : __('Waiting for review. Submitted by :name.', {
+                                  name:
+                                      pending.submittedBy ??
+                                      __('a removed account'),
+                              })}
                     </p>
                     <Link
                         href={
@@ -386,14 +396,16 @@ function ActionBar({
                         }
                         className="text-accent-ink underline-offset-2 hover:underline"
                     >
-                        Compare with the published version
+                        {__('Compare with the published version')}
                     </Link>
                 </div>
             )}
 
             {pending !== null && canPublish && approvingLater && (
                 <div className="grid gap-2">
-                    <Label htmlFor="editor-approve-at">Date and time</Label>
+                    <Label htmlFor="editor-approve-at">
+                        {__('Date and time')}
+                    </Label>
                     <ScheduleControl
                         id="editor-approve-at"
                         siteTimezone={siteTimezone}
@@ -428,7 +440,7 @@ function ActionBar({
                                 setApprovingLater(false);
                             }}
                         >
-                            Approve and schedule
+                            {__('Approve and schedule')}
                         </Button>
                         <Button
                             type="button"
@@ -436,7 +448,7 @@ function ActionBar({
                             size="sm"
                             onClick={() => setApprovingLater(false)}
                         >
-                            Not now
+                            {__('Not now')}
                         </Button>
                     </div>
                 </div>
@@ -452,10 +464,13 @@ function ActionBar({
                         setNote('');
                     }}
                 >
-                    <label htmlFor="editor-return-note" className="text-xs">
-                        What needs to change? The writer sees this.
+                    <label
+                        htmlFor="editor-return-note"
+                        className="text-caption"
+                    >
+                        {__('What needs to change? The writer sees this.')}
                     </label>
-                    <textarea
+                    <Textarea
                         id="editor-return-note"
                         required
                         maxLength={2000}
@@ -463,7 +478,7 @@ function ActionBar({
                         value={note}
                         onChange={(event) => setNote(event.target.value)}
                         onKeyDown={(event) => event.stopPropagation()}
-                        className="border-edge bg-surface focus-visible:ring-ring rounded-md border px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2"
+                        className="text-small px-2"
                     />
                     <div className="flex gap-2">
                         <Button
@@ -471,7 +486,7 @@ function ActionBar({
                             size="sm"
                             disabled={busy || note.trim() === ''}
                         >
-                            Return to the writer
+                            {__('Return to the writer')}
                         </Button>
                         <Button
                             type="button"
@@ -479,21 +494,21 @@ function ActionBar({
                             size="sm"
                             onClick={() => setReturning(false)}
                         >
-                            Not now
+                            {__('Not now')}
                         </Button>
                     </div>
                 </form>
             )}
 
             {review?.state === 'returned' && (
-                <div className="bg-warn-soft rounded-md px-2 py-1.5 text-xs">
-                    <p className="font-medium">Returned for changes</p>
+                <div className="bg-warn-soft text-caption rounded-md px-2 py-1.5">
+                    <p className="font-medium">{__('Returned for changes')}</p>
                     <p className="whitespace-pre-line">{review.note}</p>
                 </div>
             )}
 
             {notice && (
-                <p role="status" className="text-xs">
+                <p role="status" className="text-caption">
                     {notice}
                 </p>
             )}
@@ -867,7 +882,7 @@ export function EditorRail({
                                     size="sm"
                                     className="text-danger-ink"
                                 >
-                                    Move to trash
+                                    {__('Move to trash')}
                                 </Button>
                                 <InputError message={errors.action} />
                             </>

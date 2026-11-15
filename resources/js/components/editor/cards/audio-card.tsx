@@ -13,7 +13,7 @@ type AudioAttrs = {
     transcript: string | null;
 };
 
-const MUTED = 'text-ink-2 mt-1.5 text-[13px]';
+const MUTED = 'text-ink-2 mt-2 text-small';
 
 /**
  * An audio card as it will play: the browser's player, the caption, and the
@@ -84,27 +84,30 @@ export function AudioCard({
                         {transcript !== '' && (
                             <p className={`${MUTED} line-clamp-2`}>
                                 <span className="text-ink font-medium">
-                                    Transcript
+                                    {__('Transcript')}
                                 </span>{' '}
                                 {transcript}
                             </p>
                         )}
                     </figure>
                 ) : item ? (
-                    <p className="text-ink-2 text-[13px]">
-                        This file isn’t audio, so the site shows nothing here.
-                        Replace it or remove the card.
+                    <p className="text-ink-2 text-small">
+                        {__(
+                            'This file isn’t audio, so the site shows nothing here. Replace it or remove the card.',
+                        )}
                     </p>
                 ) : attrs.mediaId && loading.includes(attrs.mediaId) ? (
                     <div
                         aria-busy="true"
-                        className="bg-surface-2 h-[54px] w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 h-13.5 w-full rounded-sm motion-safe:animate-pulse"
                     />
                 ) : (
-                    <p className="text-ink-2 text-[13px]">
+                    <p className="text-ink-2 text-small">
                         {attrs.mediaId
-                            ? 'This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.'
-                            : 'Choose an audio file from the library.'}
+                            ? __(
+                                  'This audio file is no longer in the library, so the site shows nothing here. Replace it or remove the card.',
+                              )
+                            : __('Choose an audio file from the library.')}
                     </p>
                 )}
             </CardFrame>

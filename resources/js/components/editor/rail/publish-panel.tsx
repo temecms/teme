@@ -17,6 +17,8 @@ import type {
     EditorReview,
     EditorSchedule,
 } from '@/types';
+import { TextButton } from '@/components/ui/text-button';
+import { __ } from '@/lib/i18n';
 import { StatusChip } from '../status-chip';
 import { PublishWhen } from './publish-when';
 import type { WhenChoice } from './publish-when';
@@ -34,31 +36,37 @@ const PUBLISH_WORDS = {
 export type Visibility = 'public' | 'private' | 'protected';
 
 /** Who may read the item, and what each choice means (I-1700). */
-const VISIBILITY_CHOICES: {
+function visibilityChoices(): {
     value: Visibility;
     label: string;
     meaning: string;
-}[] = [
-    { value: 'public', label: 'Public', meaning: PUBLISH_WORDS.public },
-    {
-        value: 'private',
-        label: 'Private',
-        meaning:
-            'Only people who can edit it can read it, here in the admin. On the site its address answers “not found”.',
-    },
-    {
-        value: 'protected',
-        label: 'Password protected',
-        meaning:
-            'Readers need the password to read it. Lists on the site show its title, without its excerpt or image.',
-    },
-];
+}[] {
+    return [
+        { value: 'public', label: __('Public'), meaning: PUBLISH_WORDS.public },
+        {
+            value: 'private',
+            label: __('Private'),
+            meaning: __(
+                'Only people who can edit it can read it, here in the admin. On the site its address answers “not found”.',
+            ),
+        },
+        {
+            value: 'protected',
+            label: __('Password protected'),
+            meaning: __(
+                'Readers need the password to read it. Lists on the site show its title, without its excerpt or image.',
+            ),
+        },
+    ];
+}
 
 /** What Discussion adds when the item can't take comments for its visibility. */
-const VISIBILITY_NOTES = {
-    private: 'Private items never take comments.',
-    protected: 'Items protected by a password take no new comments.',
-};
+function visibilityNotes() {
+    return {
+        private: __('Private items never take comments.'),
+        protected: __('Items protected by a password take no new comments.'),
+    };
+}
 
 /** A refusal of the Visibility row: which part of it, and why. */
 export type VisibilityRefusal = {
@@ -207,15 +215,16 @@ export function PublishPanel({
     );
     const [passwordProblem, setPasswordProblem] = useState<string | null>(null);
     const shown: Visibility = pending ? 'protected' : visibility;
+    const visibilityOptions = visibilityChoices();
     const visibilityChoice =
-        VISIBILITY_CHOICES.find((option) => option.value === shown) ??
-        VISIBILITY_CHOICES[0];
+        visibilityOptions.find((option) => option.value === shown) ??
+        visibilityOptions[0];
     const visibilityMeaning =
         shown === 'public' && status === 'published'
             ? PUBLISH_WORDS.publicLive
             : visibilityChoice.meaning;
     const visibilityNote =
-        visibility === 'public' ? null : VISIBILITY_NOTES[visibility];
+        visibility === 'public' ? null : visibilityNotes()[visibility];
     const saveVisibility = (next: Visibility, password: string | null) => {
         setVisibilitySaving(true);
         setVisibilityProblem(null);
@@ -256,16 +265,19 @@ export function PublishPanel({
     const missingNote =
         choice.missing === null
             ? null
-            : `The template “${choice.missing}” isn't in the current theme, so the default layout is used. It stays chosen, and comes back if the theme does.`;
+            : __(
+                  "The template “:template” isn't in the current theme, so the default layout is used. It stays chosen, and comes back if the theme does.",
+                  { template: choice.missing },
+              );
 
     return (
         <Panel data-test="publish-section">
             <PanelHeader>
-                <h2>Publish</h2>
+                <h2>{__('Publish')}</h2>
             </PanelHeader>
             <PanelBody>
-                <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-[13px]">
-                    <dt className="text-ink-2">Status</dt>
+                <dl className="text-small grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2">
+                    <dt className="text-ink-2">{__('Status')}</dt>
                     <dd className="min-w-0">
                         <StatusChip
                             named={false}
@@ -278,19 +290,19 @@ export function PublishPanel({
                     </dd>
                     {!themeRegion && (
                         <>
-                            <dt className="text-ink-2">Visibility</dt>
+                            <dt className="text-ink-2">{__('Visibility')}</dt>
                             <dd className="min-w-0">
                                 {canSetVisibility ? (
                                     <>
                                         <SelectField
                                             id="editor-visibility"
-                                            aria-label="Visibility"
+                                            aria-label={__('Visibility')}
                                             aria-describedby={
                                                 visibilityProblem !== null
                                                     ? 'editor-visibility-meaning editor-visibility-error'
                                                     : 'editor-visibility-meaning'
                                             }
-                                            options={VISIBILITY_CHOICES.map(
+                                            options={visibilityOptions.map(
                                                 (option) => ({
                                                     value: option.value,
                                                     label: option.label,
@@ -324,26 +336,26 @@ export function PublishPanel({
                                         />
                                         <p
                                             id="editor-visibility-meaning"
-                                            className="text-ink-2 mt-1 text-xs"
+                                            className="text-ink-2 text-caption mt-1"
                                         >
                                             {visibilityMeaning}
                                             {protectedAlready &&
                                                 passwordUnreadable &&
-                                                ` Its password can’t be read on this server, so nobody can open the ${noun}. Set a new one.`}
+                                                ` ${__('Its password can’t be read on this server, so nobody can open the :noun. Set a new one.', { noun })}`}
                                         </p>
                                         {visibilityProblem !== null && (
                                             <p
                                                 id="editor-visibility-error"
                                                 role="alert"
-                                                className="text-danger-ink mt-1 text-xs"
+                                                className="text-danger-ink text-caption mt-1"
                                             >
                                                 {visibilityProblem}
                                             </p>
                                         )}
                                         {shown === 'protected' && (
-                                            <div className="mt-2 grid gap-1.5">
+                                            <div className="mt-2 grid gap-2">
                                                 <Label htmlFor="editor-password">
-                                                    Password
+                                                    {__('Password')}
                                                 </Label>
                                                 <Input
                                                     id="editor-password"
@@ -371,15 +383,18 @@ export function PublishPanel({
                                                 />
                                                 <p
                                                     id="editor-password-hint"
-                                                    className="text-ink-2 text-xs"
+                                                    className="text-ink-2 text-caption"
                                                 >
-                                                    {`Give it to the people who should read this ${noun}. Changing it asks everyone for the new one.`}
+                                                    {__(
+                                                        'Give it to the people who should read this :noun. Changing it asks everyone for the new one.',
+                                                        { noun },
+                                                    )}
                                                 </p>
                                                 {passwordProblem !== null && (
                                                     <p
                                                         id="editor-password-error"
                                                         role="alert"
-                                                        className="text-danger-ink text-xs"
+                                                        className="text-danger-ink text-caption"
                                                     >
                                                         {passwordProblem}
                                                     </p>
@@ -402,8 +417,12 @@ export function PublishPanel({
                                                         }
                                                     >
                                                         {protectedAlready
-                                                            ? 'Change password'
-                                                            : 'Protect with this password'}
+                                                            ? __(
+                                                                  'Change password',
+                                                              )
+                                                            : __(
+                                                                  'Protect with this password',
+                                                              )}
                                                     </Button>
                                                 )}
                                             </div>
@@ -412,9 +431,11 @@ export function PublishPanel({
                                 ) : (
                                     <>
                                         {visibilityChoice.label}
-                                        <p className="text-ink-2 mt-1 text-xs">
-                                            {visibilityMeaning} Whoever
-                                            publishes it sets this.
+                                        <p className="text-ink-2 text-caption mt-1">
+                                            {visibilityMeaning}{' '}
+                                            {__(
+                                                'Whoever publishes it sets this.',
+                                            )}
                                         </p>
                                     </>
                                 )}
@@ -423,13 +444,13 @@ export function PublishPanel({
                     )}
                     {!themeRegion && discussion !== null && (
                         <>
-                            <dt className="text-ink-2">Discussion</dt>
+                            <dt className="text-ink-2">{__('Discussion')}</dt>
                             <dd className="min-w-0">
                                 {canSetDiscussion ? (
                                     <>
                                         <SelectField
                                             id="editor-discussion"
-                                            aria-label="Discussion"
+                                            aria-label={__('Discussion')}
                                             aria-describedby={
                                                 discussionProblem !== null
                                                     ? 'editor-discussion-meaning editor-discussion-error'
@@ -457,7 +478,7 @@ export function PublishPanel({
                                         />
                                         <p
                                             id="editor-discussion-meaning"
-                                            className="text-ink-2 mt-1 text-xs"
+                                            className="text-ink-2 text-caption mt-1"
                                         >
                                             {choiceOf(discussion.value).meaning}
                                             {discussionNote !== null &&
@@ -469,7 +490,7 @@ export function PublishPanel({
                                             <p
                                                 id="editor-discussion-error"
                                                 role="alert"
-                                                className="text-danger-ink mt-1 text-xs"
+                                                className="text-danger-ink text-caption mt-1"
                                             >
                                                 {discussionProblem}
                                             </p>
@@ -478,13 +499,15 @@ export function PublishPanel({
                                 ) : (
                                     <>
                                         {choiceOf(discussion.value).label}
-                                        <p className="text-ink-2 mt-1 text-xs">
+                                        <p className="text-ink-2 text-caption mt-1">
                                             {choiceOf(discussion.value).meaning}
                                             {discussionNote !== null &&
                                                 ` ${discussionNote}`}
                                             {visibilityNote !== null &&
                                                 ` ${visibilityNote}`}{' '}
-                                            Whoever publishes it sets this.
+                                            {__(
+                                                'Whoever publishes it sets this.',
+                                            )}
                                         </p>
                                     </>
                                 )}
@@ -493,14 +516,14 @@ export function PublishPanel({
                     )}
                     {status === 'published' && (
                         <>
-                            <dt className="text-ink-2">Published</dt>
+                            <dt className="text-ink-2">{__('Published')}</dt>
                             <dd>
                                 {publishedAt
                                     ? new Date(publishedAt).toLocaleString([], {
                                           dateStyle: 'medium',
                                           timeStyle: 'short',
                                       })
-                                    : 'Not yet'}
+                                    : __('Not yet')}
                             </dd>
                         </>
                     )}
@@ -517,7 +540,7 @@ export function PublishPanel({
                     />
                     {!themeRegion && (
                         <>
-                            <dt className="text-ink-2">Address</dt>
+                            <dt className="text-ink-2">{__('Address')}</dt>
                             <dd className="min-w-0">
                                 <DropdownMenu
                                     open={open}
@@ -531,12 +554,9 @@ export function PublishPanel({
                                         asChild
                                         disabled={!canEdit}
                                     >
-                                        <button
-                                            type="button"
-                                            className="text-accent-ink block max-w-full truncate text-left underline-offset-2 hover:underline"
-                                        >
+                                        <TextButton className="block max-w-full truncate text-left font-normal">
                                             /{slug}
-                                        </button>
+                                        </TextButton>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent
                                         align="start"
@@ -560,7 +580,7 @@ export function PublishPanel({
                                             }}
                                         >
                                             <Label htmlFor="editor-slug">
-                                                Address
+                                                {__('Address')}
                                             </Label>
                                             <Input
                                                 id="editor-slug"
@@ -575,7 +595,7 @@ export function PublishPanel({
                                             />
                                             <p
                                                 id="editor-slug-url"
-                                                className="text-ink-2 text-xs break-all"
+                                                className="text-ink-2 text-caption break-all"
                                             >
                                                 {addressOf(
                                                     siteUrl,
@@ -586,7 +606,7 @@ export function PublishPanel({
                                             {problem && (
                                                 <p
                                                     role="alert"
-                                                    className="text-danger-ink text-xs"
+                                                    className="text-danger-ink text-caption"
                                                 >
                                                     {problem}
                                                 </p>
@@ -599,7 +619,7 @@ export function PublishPanel({
                                                 }
                                                 className="justify-self-start"
                                             >
-                                                Change address
+                                                {__('Change address')}
                                             </Button>
                                         </form>
                                     </DropdownMenuContent>
@@ -609,9 +629,9 @@ export function PublishPanel({
                                         href={url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-accent-ink text-xs underline-offset-2 hover:underline"
+                                        className="text-accent-ink text-caption underline-offset-2 hover:underline"
                                     >
-                                        View on site
+                                        {__('View on site')}
                                     </a>
                                 )}
                             </dd>
@@ -621,11 +641,11 @@ export function PublishPanel({
                         template !== null &&
                         (templates.length > 0 || missingNote !== null) && (
                             <>
-                                <dt className="text-ink-2">Template</dt>
+                                <dt className="text-ink-2">{__('Template')}</dt>
                                 <dd className="min-w-0">
                                     {templates.length > 0 && (
                                         <SelectField
-                                            aria-label="Template"
+                                            aria-label={__('Template')}
                                             aria-describedby={
                                                 missingNote !== null
                                                     ? 'editor-template-missing'
@@ -641,7 +661,7 @@ export function PublishPanel({
                                     {missingNote !== null && (
                                         <p
                                             id="editor-template-missing"
-                                            className="text-ink-2 mt-1 text-xs"
+                                            className="text-ink-2 text-caption mt-1"
                                         >
                                             {missingNote}
                                         </p>
@@ -651,13 +671,13 @@ export function PublishPanel({
                         )}
                     {!themeRegion && (
                         <>
-                            <dt className="text-ink-2">Author</dt>
+                            <dt className="text-ink-2">{__('Author')}</dt>
                             <dd className="min-w-0">
                                 {authors !== null ? (
                                     <>
                                         <SelectField
                                             id="editor-author"
-                                            aria-label="Author"
+                                            aria-label={__('Author')}
                                             aria-describedby={
                                                 [
                                                     status === 'published'
@@ -676,7 +696,7 @@ export function PublishPanel({
                                             )}
                                             emptyLabel={
                                                 author === null
-                                                    ? 'Nobody'
+                                                    ? __('Nobody')
                                                     : undefined
                                             }
                                             value={
@@ -704,7 +724,7 @@ export function PublishPanel({
                                         {status === 'published' && (
                                             <p
                                                 id="editor-author-live"
-                                                className="text-ink-2 mt-1 text-xs"
+                                                className="text-ink-2 text-caption mt-1"
                                             >
                                                 {PUBLISH_WORDS.authorLive(noun)}
                                             </p>
@@ -713,29 +733,30 @@ export function PublishPanel({
                                             <p
                                                 id="editor-author-error"
                                                 role="alert"
-                                                className="text-danger-ink mt-1 text-xs"
+                                                className="text-danger-ink text-caption mt-1"
                                             >
                                                 {authorProblem}
                                             </p>
                                         )}
                                     </>
                                 ) : (
-                                    (author?.name ?? 'Nobody')
+                                    (author?.name ?? __('Nobody'))
                                 )}
                             </dd>
                         </>
                     )}
                     <dt className="text-ink-2">History</dt>
                     <dd>
-                        <button
-                            type="button"
+                        <TextButton
                             onClick={onOpenHistory}
-                            className="text-accent-ink focus-visible:ring-ring rounded-sm underline-offset-2 outline-none hover:underline focus-visible:ring-2"
+                            className="font-normal"
                         >
                             {revisionCount === 1
-                                ? '1 revision'
-                                : `${revisionCount} revisions`}
-                        </button>
+                                ? __('1 revision')
+                                : __(':count revisions', {
+                                      count: revisionCount,
+                                  })}
+                        </TextButton>
                     </dd>
                 </dl>
             </PanelBody>

@@ -8,6 +8,7 @@ import {
 import type { AssistantSaving } from '@/components/editor/assistant/assistant-context';
 import { send } from '@/components/editor/editor-http';
 import { showToast } from '@/components/flash-toast';
+import { __ } from '@/lib/i18n';
 import type { EditorAi, EditorField } from '@/types/editor';
 
 /** The metadata task's key (MetadataTask::KEY). */
@@ -203,7 +204,7 @@ export function useMetadata(binding: MetadataBinding) {
                             ? ASSISTANT_WORDS.used
                             : METADATA_WORDS.usedAll,
                     action: {
-                        label: 'Undo',
+                        label: __('Undo'),
                         onClick: () =>
                             binding.setValues((current) => ({
                                 ...current,

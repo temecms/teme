@@ -214,7 +214,7 @@ export function CardField({
     const hintId = `${id}-hint`;
 
     return (
-        <div className="grid gap-1.5">
+        <div className="grid gap-2">
             <Label htmlFor={id}>{label}</Label>
             {children({ id, 'aria-describedby': hint ? hintId : undefined })}
             {hint && (

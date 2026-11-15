@@ -1,6 +1,7 @@
 import { Info } from 'lucide-react';
 import { descriptionSource } from '@/components/editor/rail/checks';
 import type { SearchPreview } from '@/components/editor/use-search-preview';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import { fitWidth } from '@/lib/text-width';
 import type { CardMedia, EditorSeo } from '@/types/editor';
@@ -9,7 +10,10 @@ import type { CardMedia, EditorSeo } from '@/types/editor';
 function joined(parts: string[]): string {
     return parts.length < 2
         ? (parts[0] ?? '')
-        : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+        : __(':first and :last', {
+              first: parts.slice(0, -1).join(', '),
+              last: parts[parts.length - 1],
+          });
 }
 
 /** An address as a result shows it: no scheme, its parts joined by "›". */
@@ -46,23 +50,28 @@ export function SearchResult({
 }) {
     const note =
         search.listing === 'discouraged'
-            ? 'Search engines are asked to stay away from the whole site, so it won’t appear in results.'
+            ? __(
+                  'Search engines are asked to stay away from the whole site, so it won’t appear in results.',
+              )
             : search.listing === 'hidden'
-              ? 'Hidden from search engines, so it won’t appear in results.'
+              ? __('Hidden from search engines, so it won’t appear in results.')
               : search.listing === 'type-hidden'
-                ? `Search and social hides ${plural} from search engines, so it won’t appear in results.`
+                ? __(
+                      'Search and social hides :plural from search engines, so it won’t appear in results.',
+                      { plural },
+                  )
                 : canonicalNote;
 
     return (
         <div className="grid grid-cols-1 content-start gap-2">
-            <h3 className="text-ink-2 text-[11px] font-medium">
-                Search result
+            <h3 className="text-ink-2 text-caption font-medium">
+                {__('Search result')}
             </h3>
             {note !== null && (
                 <p
                     role="note"
                     data-test="serp-note"
-                    className="text-ink-2 flex gap-1.5 text-xs"
+                    className="text-ink-2 text-caption flex gap-2"
                 >
                     <Info aria-hidden className="mt-px size-3.5 shrink-0" />
                     <span>{note}</span>
@@ -73,7 +82,9 @@ export function SearchResult({
                 data-size={size}
                 className={`ring-line grid max-w-full gap-0.5 rounded-md p-4 font-[Arial,Helvetica,sans-serif] ring-1 ${size === 'mobile' ? 'w-108' : 'w-158'}`}
             >
-                <p className="text-ink-2 truncate text-xs">{crumbs(address)}</p>
+                <p className="text-ink-2 text-caption truncate">
+                    {crumbs(address)}
+                </p>
                 <p
                     data-test="serp-title"
                     className="text-accent-ink text-[20px] leading-snug"
@@ -86,11 +97,13 @@ export function SearchResult({
                 </p>
                 <p className="text-[14px] leading-[1.58]">
                     {search.description.text === null
-                        ? 'No description. Search engines will pick text from the page.'
+                        ? __(
+                              'No description. Search engines will pick text from the page.',
+                          )
                         : fitWidth(search.description.text, 14, 920)}
                 </p>
             </div>
-            <p data-test="description-from" className="text-ink-2 text-xs">
+            <p data-test="description-from" className="text-ink-2 text-caption">
                 {descriptionSource(descriptionFrom)}
             </p>
         </div>
@@ -142,22 +155,22 @@ export function SocialCard({
 
     const made = [
         {
-            social: 'the social title',
-            seo: 'the SEO title',
-            title: `the ${noun}’s title`,
+            social: __('the social title'),
+            seo: __('the SEO title'),
+            title: __('the :noun’s title', { noun }),
         }[card.titleFrom],
     ];
     const lacks: string[] = [];
 
     if (card.descriptionFrom === null) {
-        lacks.push('no description');
+        lacks.push(__('no description'));
     } else {
         made.push(
             {
-                social: 'the social description',
-                meta: 'the meta description',
-                excerpt: 'the excerpt',
-                tagline: 'the site’s tagline',
+                social: __('the social description'),
+                meta: __('the meta description'),
+                excerpt: __('the excerpt'),
+                tagline: __('the site’s tagline'),
             }[card.descriptionFrom],
         );
     }
@@ -165,19 +178,21 @@ export function SocialCard({
     if (card.imageFrom !== null && (source !== null || waiting)) {
         made.push(
             {
-                social: 'the social image',
-                featured: 'the featured image',
-                body: 'the first image in the body',
-                default: 'the site’s default social image',
+                social: __('the social image'),
+                featured: __('the featured image'),
+                body: __('the first image in the body'),
+                default: __('the site’s default social image'),
             }[card.imageFrom],
         );
     } else {
-        lacks.push('no image');
+        lacks.push(__('no image'));
     }
 
     return (
         <div className="grid w-70 max-w-full content-start gap-2">
-            <h3 className="text-ink-2 text-[11px] font-medium">Social card</h3>
+            <h3 className="text-ink-2 text-caption font-medium">
+                {__('Social card')}
+            </h3>
             <div
                 data-test="social-card"
                 className="border-line grid grid-cols-[132px_minmax(0,1fr)] overflow-hidden rounded-md border"
@@ -191,28 +206,32 @@ export function SocialCard({
                 ) : waiting ? (
                     <div
                         aria-busy="true"
-                        className="bg-surface-2 min-h-[72px] w-full animate-pulse"
+                        className="bg-surface-2 min-h-[72px] w-full motion-safe:animate-pulse"
                     />
                 ) : (
-                    <div className="border-line text-ink-2 m-2 flex min-h-[56px] items-center justify-center rounded-sm border border-dashed text-xs">
-                        No image
+                    <div className="border-line text-ink-2 text-caption m-2 flex min-h-[56px] items-center justify-center rounded-sm border border-dashed">
+                        {__('No image')}
                     </div>
                 )}
                 <div className="grid content-start gap-0.5 px-3 py-2">
-                    <p className="text-ink-2 text-[11px] uppercase">{host}</p>
-                    <p className="line-clamp-2 text-xs font-semibold">
+                    <p className="text-ink-2 text-caption uppercase">{host}</p>
+                    <p className="text-caption line-clamp-2 font-semibold">
                         {card.title}
                     </p>
                     {description !== null && (
-                        <p className="text-ink-2 line-clamp-2 text-[11px]">
+                        <p className="text-ink-2 text-caption line-clamp-2">
                             {description}
                         </p>
                     )}
                 </div>
             </div>
-            <p data-test="social-from" className="text-ink-2 text-xs">
-                Made from {joined(made)}
-                {lacks.length > 0 ? `, with ${joined(lacks)}.` : '.'}
+            <p data-test="social-from" className="text-ink-2 text-caption">
+                {lacks.length > 0
+                    ? __('Made from :made, with :lacks.', {
+                          made: joined(made),
+                          lacks: joined(lacks),
+                      })
+                    : __('Made from :made.', { made: joined(made) })}
             </p>
         </div>
     );

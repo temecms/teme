@@ -1,5 +1,8 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { SelectField } from '@/components/ui/select-field';
 import { cn } from '@/lib/utils';
 import { useLinkTargets } from '../use-link-targets';
@@ -52,12 +55,12 @@ export function ButtonCard({
                             : 'bg-accent text-on-accent',
                     )}
                 >
-                    {label || 'Button'}
+                    {label || __('Button')}
                 </span>
-                <span className="text-ink-2 truncate text-xs">
+                <span className="text-ink-2 text-caption truncate">
                     {contentId
-                        ? 'Leads to an item on this site'
-                        : url || 'Leads nowhere yet'}
+                        ? __('Leads to an item on this site')
+                        : url || __('Leads nowhere yet')}
                 </span>
             </div>
         </CardFrame>
@@ -92,35 +95,40 @@ export function ButtonSettings({
             >
                 {(props) => (
                     <div className="grid gap-1">
-                        <input
+                        <Input
                             {...props}
                             value={query}
                             placeholder={__('Search by title')}
                             onFocus={() => setSearching(true)}
                             onChange={(event) => setQuery(event.target.value)}
-                            className="border-edge bg-surface focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
+                            className="text-small h-8.5"
                         />
                         {searching && targets.length > 0 && (
-                            <ul className="border-line max-h-40 overflow-y-auto rounded-md border">
-                                {targets.map((target) => (
-                                    <li key={target.id}>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                updateAttributes({
-                                                    contentId: target.id,
-                                                    url: null,
-                                                });
-                                                setChosenTitle(target.title);
-                                                setSearching(false);
-                                            }}
-                                            className="hover:bg-surface-3 focus-visible:ring-ring w-full px-2 py-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
-                                        >
-                                            {shownTitle(target.title)}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                            <ScrollArea className="border-line max-h-40 rounded-md border">
+                                <ul>
+                                    {targets.map((target) => (
+                                        <li key={target.id}>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    updateAttributes({
+                                                        contentId: target.id,
+                                                        url: null,
+                                                    });
+                                                    setChosenTitle(
+                                                        target.title,
+                                                    );
+                                                    setSearching(false);
+                                                }}
+                                                className="text-ink text-small h-auto w-full justify-start px-2 py-2 text-left font-normal whitespace-normal"
+                                            >
+                                                {shownTitle(target.title)}
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </ScrollArea>
                         )}
                     </div>
                 )}
@@ -147,7 +155,7 @@ export function ButtonSettings({
                             updateAttributes({ style: next })
                         }
                         options={optionsFor(manifest, 'button', 'style')}
-                        className="h-[34px] w-full max-w-40"
+                        className="h-8.5 w-full max-w-40"
                     />
                 )}
             </CardField>

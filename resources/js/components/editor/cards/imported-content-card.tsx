@@ -4,6 +4,8 @@ import { Fragment, createElement, useId } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { largest, variant } from '@/lib/media-urls';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { useCardEnvironment } from './card-environment';
 import { headline, partsOf, sourceLine, toParagraphs } from './imported-markup';
@@ -49,7 +51,7 @@ const PROPS: Record<string, string> = {
 
 /** The editor's prose look for the preview's elements. */
 const PREVIEW =
-    'border-line max-h-96 overflow-auto rounded-sm border p-3 text-[14px] leading-relaxed [&>*+*]:mt-2 [&_blockquote]:border-l-2 [&_blockquote]:ps-3 [&_caption]:text-ink-2 [&_caption]:text-start [&_dd]:ms-5 [&_dt]:font-semibold [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:ps-5 [&_pre]:whitespace-pre-wrap [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:p-1.5 [&_th]:border [&_th]:p-1.5 [&_th]:text-start [&_ul]:list-disc [&_ul]:ps-5';
+    'border-line max-h-96 rounded-sm border p-3 text-[14px] leading-relaxed [&>*+*]:mt-2 [&_blockquote]:border-l-2 [&_blockquote]:ps-3 [&_caption]:text-ink-2 [&_caption]:text-start [&_dd]:ms-5 [&_dt]:font-semibold [&_h2]:text-lead [&_h2]:font-semibold [&_h3]:font-semibold [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:ps-5 [&_pre]:whitespace-pre-wrap [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:p-2 [&_th]:border [&_th]:p-2 [&_th]:text-start [&_ul]:list-disc [&_ul]:ps-5';
 
 /** The tree as readers see it, for the box's preview; a link is drawn as words, so a click never leaves the editor. */
 function Preview({ parts }: { parts: MarkupPart[] }) {
@@ -87,7 +89,7 @@ function Preview({ parts }: { parts: MarkupPart[] }) {
                     />
                 ) : (
                     <span key={index} className="text-ink-2 italic">
-                        A picture that is no longer in the library.
+                        {__('A picture that is no longer in the library.')}
                     </span>
                 );
             }
@@ -174,42 +176,41 @@ export function ImportedContentCard({
     return (
         <NodeViewWrapper
             role="group"
-            aria-label="Imported content card"
+            aria-label={__('Imported content card')}
             className={cn(
                 'border-line bg-surface relative my-4 rounded-md border',
                 selected && 'ring-ring ring-2',
             )}
             contentEditable={false}
         >
-            <div className="flex flex-wrap items-center gap-1 px-2 pt-1.5">
-                <span className="text-ink-2 text-[11px] font-medium tracking-wide uppercase">
-                    Imported content
+            <div className="flex flex-wrap items-center gap-1 px-2 pt-2">
+                <span className="text-ink-2 text-caption font-medium tracking-wide uppercase">
+                    {__('Imported content')}
                 </span>
                 <span
                     className={cn(
-                        'ml-auto rounded-md px-2 py-0.5 text-[12px] font-medium',
+                        'text-caption ml-auto rounded-md px-2 py-1 font-medium',
                         kept ? 'text-ink-2' : 'bg-warn-soft text-warn-ink',
                     )}
                 >
-                    {kept ? 'Kept' : 'Needs a decision'}
+                    {kept ? __('Kept') : __('Needs a decision')}
                 </span>
             </div>
             <div className="grid gap-2 px-3 pt-1 pb-3">
-                <p className="text-[13px] font-medium">{headline(parts)}</p>
+                <p className="text-small font-medium">{headline(parts)}</p>
                 {source !== null && (
-                    <p className="text-ink-2 text-[13px]">{source}</p>
+                    <p className="text-ink-2 text-small">{source}</p>
                 )}
-                <div
-                    role="region"
-                    aria-label="Preview of the imported content"
-                    tabIndex={0}
+                <ScrollArea
+                    axis="both"
+                    label={__('Preview of the imported content')}
                     className={PREVIEW}
                 >
                     <Preview parts={parts} />
-                </div>
+                </ScrollArea>
                 <div
                     role="group"
-                    aria-label="What to do with this imported content"
+                    aria-label={__('What to do with this imported content')}
                     aria-describedby={hint}
                     className="flex flex-wrap items-center gap-2"
                 >
@@ -219,7 +220,7 @@ export function ImportedContentCard({
                         size="sm"
                         onClick={convert}
                     >
-                        Convert to paragraphs
+                        {__('Convert to paragraphs')}
                     </Button>
                     {!kept && (
                         <Button
@@ -228,7 +229,7 @@ export function ImportedContentCard({
                             size="sm"
                             onClick={() => updateAttributes({ kept: true })}
                         >
-                            Keep as it is
+                            {__('Keep as it is')}
                         </Button>
                     )}
                     <Button
@@ -236,22 +237,23 @@ export function ImportedContentCard({
                         variant="ghost"
                         size="sm"
                         className="text-danger-ink"
-                        aria-label="Delete imported content"
+                        aria-label={__('Delete imported content')}
                         onClick={deleteNode}
                     >
-                        Delete
+                        {__('Delete')}
                     </Button>
                 </div>
                 {kept && (
-                    <p className="text-ink-2 text-[13px]">
-                        Kept as readers see it. The import’s report no longer
-                        lists it.
+                    <p className="text-ink-2 text-small">
+                        {__(
+                            'Kept as readers see it. The import’s report no longer lists it.',
+                        )}
                     </p>
                 )}
-                <p id={hint} className="text-ink-2 text-xs">
-                    Convert to paragraphs gives you text to edit and loses the
-                    layout. Keep as it is leaves it as readers see it. Delete
-                    takes it out of the text. Each can be undone.
+                <p id={hint} className="text-ink-2 text-caption">
+                    {__(
+                        'Convert to paragraphs gives you text to edit and loses the layout. Keep as it is leaves it as readers see it. Delete takes it out of the text. Each can be undone.',
+                    )}
                 </p>
             </div>
         </NodeViewWrapper>
@@ -261,10 +263,10 @@ export function ImportedContentCard({
 /** The rail's inspector for the card: nothing to set, only a decision to make on the box. */
 export function ImportedContentSettings() {
     return (
-        <p className="text-ink-2 text-[13px]">
-            It holds what readers saw on the old site, cleaned, and can’t be
-            edited here. Convert it to paragraphs to edit its words, keep it as
-            it is, or delete it.
+        <p className="text-ink-2 text-small">
+            {__(
+                'It holds what readers saw on the old site, cleaned, and can’t be edited here. Convert it to paragraphs to edit its words, keep it as it is, or delete it.',
+            )}
         </p>
     );
 }

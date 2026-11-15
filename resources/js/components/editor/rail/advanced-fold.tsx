@@ -3,6 +3,7 @@ import { BooleanControl } from '@/components/editor/fields/boolean-control';
 import { NumberControl } from '@/components/editor/fields/number-control';
 import { SelectControl } from '@/components/editor/fields/select-control';
 import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
 import type { EditorField, EditorSeo } from '@/types/editor';
 
 /** The article type that describes no article (TypeSchemas::NONE). */
@@ -55,7 +56,7 @@ function BoxRow({
                 id={id}
                 describedBy={`${id}-hint`}
             />
-            <p id={`${id}-hint`} className="text-ink-2 text-xs">
+            <p id={`${id}-hint`} className="text-ink-2 text-caption">
                 {field.description}
             </p>
         </div>
@@ -165,7 +166,7 @@ export function AdvancedFold({
 
     return (
         <div className="@container grid gap-4">
-            <p data-test="advanced-summary" className="text-ink-2 text-xs">
+            <p data-test="advanced-summary" className="text-ink-2 text-caption">
                 {summary}
             </p>
             <div className="grid gap-x-6 gap-y-4 @2xl:grid-cols-2">
@@ -188,12 +189,20 @@ export function AdvancedFold({
                                 }
                                 id="editor-page-type"
                                 describedBy="editor-page-type-hint"
-                                emptyLabel={`Default for its type (${labelOf(pageType, seo.schema.pageType)})`}
+                                emptyLabel={__(
+                                    'Default for its type (:value)',
+                                    {
+                                        value: labelOf(
+                                            pageType,
+                                            seo.schema.pageType,
+                                        ),
+                                    },
+                                )}
                                 options={optionsOf(pageType)}
                             />
                             <p
                                 id="editor-page-type-hint"
-                                className="text-ink-2 text-xs"
+                                className="text-ink-2 text-caption"
                             >
                                 {pageType.description}
                             </p>
@@ -212,12 +221,20 @@ export function AdvancedFold({
                                 }
                                 id="editor-article-type"
                                 describedBy="editor-article-type-hint"
-                                emptyLabel={`Default for its type (${labelOf(articleType, seo.schema.mainEntity ?? NONE)})`}
+                                emptyLabel={__(
+                                    'Default for its type (:value)',
+                                    {
+                                        value: labelOf(
+                                            articleType,
+                                            seo.schema.mainEntity ?? NONE,
+                                        ),
+                                    },
+                                )}
                                 options={articleOptions}
                             />
                             <p
                                 id="editor-article-type-hint"
-                                className="text-ink-2 text-xs"
+                                className="text-ink-2 text-caption"
                             >
                                 {articleType.description}
                             </p>
@@ -246,16 +263,16 @@ export function AdvancedFold({
                                 describedBy="editor-max-snippet-hint"
                                 min={0}
                                 step={1}
-                                placeholder="No limit"
+                                placeholder={__('No limit')}
                                 disabled={noSnippet}
                             />
                             <p
                                 id="editor-max-snippet-hint"
-                                className="text-ink-2 text-xs"
+                                className="text-ink-2 text-caption"
                             >
                                 {maxSnippet.description}
                                 {noSnippet &&
-                                    ' Not used while “Don’t show a snippet” is ticked.'}
+                                    ` ${__('Not used while “Don’t show a snippet” is ticked.')}`}
                             </p>
                         </div>
                     )}

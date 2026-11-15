@@ -5,6 +5,7 @@ import {
 } from '@/components/editor/fields/field-control';
 import type { FieldControlProps } from '@/components/editor/fields/field-control';
 import { Input } from '@/components/ui/input';
+import { __ } from '@/lib/i18n';
 import { zonedToIso } from '@/lib/zoned-time';
 
 /** A stored moment's date and time on a clock in `zone`, or empty parts for none. */
@@ -104,7 +105,7 @@ export function DatetimeControl({
                 <Input
                     id={`${id}-date`}
                     type="date"
-                    aria-label="Date"
+                    aria-label={__('Date')}
                     aria-describedby={described}
                     aria-invalid={invalid || undefined}
                     value={parts.date}
@@ -116,7 +117,7 @@ export function DatetimeControl({
                 <Input
                     id={`${id}-time`}
                     type="time"
-                    aria-label="Time"
+                    aria-label={__('Time')}
                     aria-describedby={described}
                     aria-invalid={invalid || undefined}
                     value={parts.time}
@@ -126,8 +127,11 @@ export function DatetimeControl({
                     className="w-auto"
                 />
             </div>
-            <p id={`${id}-zone`} className="text-ink-2 text-xs">
-                Times are in the site’s zone: {zoneName} ({siteTimezone}).
+            <p id={`${id}-zone`} className="text-ink-2 text-caption">
+                {__('Times are in the site’s zone: :zone (:timezone).', {
+                    zone: zoneName,
+                    timezone: siteTimezone,
+                })}
             </p>
         </div>
     );

@@ -4,6 +4,7 @@ import PreviewLinkController from '@/actions/App/Http/Admin/Contents/PreviewLink
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
 import type { CreatedPreviewLink, PreviewLinkRow } from '@/types';
 import { post, reasonOf } from './editor-http';
 
@@ -14,26 +15,39 @@ function when(iso: string): string {
     });
 }
 
+/** Who made the link, or what stands in when their account is gone. */
+function maker(link: PreviewLinkRow): string {
+    return link.createdByName ?? 'a removed account';
+}
+
 /** "Opened 3 times, last 14 Aug 10:42", or "Not opened yet". */
 function views(link: PreviewLinkRow): string {
     if (link.viewCount === 0 || link.lastViewedAt === null) {
-        return 'Not opened yet';
+        return __('Not opened yet');
     }
 
-    const times = link.viewCount === 1 ? 'once' : `${link.viewCount} times`;
-
-    return `Opened ${times}, last ${when(link.lastViewedAt)}`;
+    return link.viewCount === 1
+        ? __('Opened once, last :when', { when: when(link.lastViewedAt) })
+        : __('Opened :count times, last :when', {
+              count: link.viewCount,
+              when: when(link.lastViewedAt),
+          });
 }
 
-/** The pane's own sentences, as strings, so a formatter never splits them. */
-const SHARE_WORDS = {
-    intro: 'A preview link shows this version to anyone who has it, without an account, for two days. It opens nothing else. Making one saves your changes first.',
-    loadFailed: 'The links could not be loaded.',
-    makeFailed: 'The link could not be made. Try again.',
-    revokeFailed: 'The link could not be revoked. Try again.',
-    notSaved:
-        'Your work couldn’t be saved, so no link was made. The save state says why.',
-};
+/** The pane's own sentences, looked up when drawn, as strings so a formatter never splits them. */
+function shareWords() {
+    return {
+        intro: __(
+            'A preview link shows this version to anyone who has it, without an account, for two days. It opens nothing else. Making one saves your changes first.',
+        ),
+        loadFailed: __('The links could not be loaded.'),
+        makeFailed: __('The link could not be made. Try again.'),
+        revokeFailed: __('The link could not be revoked. Try again.'),
+        notSaved: __(
+            'Your work couldn’t be saved, so no link was made. The save state says why.',
+        ),
+    };
+}
 
 /**
  * Share, a pane of the rail (I-1316): a link that shows this version to someone with no account, for two days. Making one saves the person's changes first, so the link shows what's on the screen. The link's address is shown once, when it is made; every link is listed with its expiry, who made it and its views, and Revoke on each that still works.
@@ -52,6 +66,7 @@ export function SharePane({
     const [copied, setCopied] = useState(false);
     const [problem, setProblem] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
+    const SHARE_WORDS = shareWords();
 
     const load = useCallback(async () => {
         try {
@@ -120,7 +135,7 @@ export function SharePane({
     };
 
     return (
-        <div className="grid gap-3 p-4 text-[13px]">
+        <div className="text-small grid gap-3 p-4">
             <p>{SHARE_WORDS.intro}</p>
             <Button
                 type="button"
@@ -130,11 +145,13 @@ export function SharePane({
                 onClick={() => void make()}
                 className="justify-self-start"
             >
-                {busy ? 'Making…' : 'Make a preview link'}
+                {busy ? __('Making…') : __('Make a preview link')}
             </Button>
             {made && (
-                <div className="grid gap-1.5">
-                    <Label htmlFor="share-url">The new preview link</Label>
+                <div className="grid gap-2">
+                    <Label htmlFor="share-url">
+                        {__('The new preview link')}
+                    </Label>
                     <div className="flex gap-2">
                         <Input
                             id="share-url"
@@ -146,23 +163,22 @@ export function SharePane({
                             type="button"
                             variant="outline"
                             size="sm"
-                            className="h-[34px]"
                             onClick={() =>
                                 void navigator.clipboard
                                     .writeText(made)
                                     .then(() => setCopied(true))
                             }
                         >
-                            {copied ? 'Copied' : 'Copy'}
+                            {copied ? __('Copied') : __('Copy')}
                         </Button>
                     </div>
-                    <p className="text-ink-2 text-xs">
-                        Copy it now: it will not be shown again.
+                    <p className="text-ink-2 text-caption">
+                        {__('Copy it now: it will not be shown again.')}
                     </p>
                 </div>
             )}
             {problem && (
-                <p role="alert" className="text-danger-ink text-xs">
+                <p role="alert" className="text-danger-ink text-caption">
                     {problem}
                 </p>
             )}
@@ -180,15 +196,23 @@ export function SharePane({
                             <span className="grid gap-0.5">
                                 <span>
                                     {link.live
-                                        ? `Works until ${when(link.expiresAt)}`
+                                        ? __('Works until :when', {
+                                              when: when(link.expiresAt),
+                                          })
                                         : link.revokedAt
-                                          ? `Revoked ${when(link.revokedAt)}`
-                                          : `Expired ${when(link.expiresAt)}`}
+                                          ? __('Revoked :when', {
+                                                when: when(link.revokedAt),
+                                            })
+                                          : __('Expired :when', {
+                                                when: when(link.expiresAt),
+                                            })}
                                 </span>
-                                <span className="text-ink-2 text-xs">
-                                    Made by{' '}
-                                    {link.createdByName ?? 'a removed account'},{' '}
-                                    {when(link.createdAt)} · {views(link)}
+                                <span className="text-ink-2 text-caption">
+                                    {__('Made by :name, :when · :views', {
+                                        name: maker(link),
+                                        when: when(link.createdAt),
+                                        views: views(link),
+                                    })}
                                 </span>
                             </span>
                             {link.live && (
@@ -199,10 +223,12 @@ export function SharePane({
                                     className="text-danger-ink"
                                     onClick={() => void revoke(link.id)}
                                 >
-                                    Revoke
+                                    {__('Revoke')}
                                     <span className="sr-only">
                                         {' '}
-                                        the link made {when(link.createdAt)}
+                                        {__('the link made :when', {
+                                            when: when(link.createdAt),
+                                        })}
                                     </span>
                                 </Button>
                             )}

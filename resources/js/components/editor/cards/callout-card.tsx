@@ -44,7 +44,7 @@ export function CalloutCard({
                     updateAttributes({ text: event.target.value })
                 }
                 className={cn(
-                    'bg-surface-2 focus-visible:ring-ring field-sizing-content w-full resize-none rounded-sm border-l-4 px-3 py-2 text-[15px] outline-none focus-visible:ring-2',
+                    'bg-surface-2 focus-visible:ring-ring text-body field-sizing-content w-full resize-none rounded-sm border-l-4 px-3 py-2 outline-none focus-visible:ring-2',
                     TONES[tone] ?? TONES.note,
                 )}
             />
@@ -68,7 +68,7 @@ export function CalloutSettings({
                     value={tone}
                     onValueChange={(next) => updateAttributes({ tone: next })}
                     options={optionsFor(manifest, 'callout', 'tone')}
-                    className="h-[34px] w-full max-w-40"
+                    className="h-8.5 w-full max-w-40"
                 />
             )}
         </CardField>

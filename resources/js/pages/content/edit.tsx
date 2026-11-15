@@ -370,7 +370,7 @@ export default function ContentEdit(page: ContentEditPage) {
         openPane({
             id: 'assistant',
             owner: 'core',
-            title: 'Assistant',
+            title: __('Assistant'),
             render: () => <AssistantPanel ai={ai} />,
         });
     }, [ai, openPane]);
@@ -673,7 +673,7 @@ export default function ContentEdit(page: ContentEditPage) {
 
             return null;
         } catch {
-            return 'The connection failed. Try again.';
+            return __('The connection failed. Try again.');
         }
     };
 
@@ -706,7 +706,7 @@ export default function ContentEdit(page: ContentEditPage) {
         } catch {
             setDiscussion(before);
 
-            return 'The connection failed. Try again.';
+            return __('The connection failed. Try again.');
         }
     };
 
@@ -750,7 +750,7 @@ export default function ContentEdit(page: ContentEditPage) {
         } catch {
             return {
                 field: 'visibility',
-                message: 'The connection failed. Try again.',
+                message: __('The connection failed. Try again.'),
             };
         }
     };
@@ -785,7 +785,7 @@ export default function ContentEdit(page: ContentEditPage) {
 
             return null;
         } catch {
-            return 'The connection failed. Try again.';
+            return __('The connection failed. Try again.');
         }
     };
 
@@ -1019,7 +1019,7 @@ export default function ContentEdit(page: ContentEditPage) {
         openPane({
             id: 'history',
             owner: 'core',
-            title: 'History',
+            title: __('History'),
             openLarger: true,
             render: () => <HistoryPanel contentId={session.id} />,
         });
@@ -1031,7 +1031,7 @@ export default function ContentEdit(page: ContentEditPage) {
         openPane({
             id: 'share',
             owner: 'core',
-            title: 'Share',
+            title: __('Share'),
             render: () => (
                 <SharePane contentId={session.id} saveFirst={checkpoint} />
             ),
@@ -1109,8 +1109,8 @@ export default function ContentEdit(page: ContentEditPage) {
             {
                 id: 'editor.history',
                 owner: 'core',
-                label: 'Open history',
-                description: 'Every saved version',
+                label: __('Open history'),
+                description: __('Every saved version'),
                 group: 'Do',
                 order: 200,
                 keywords: ['revisions', 'versions', 'compare', 'restore'],
@@ -1155,8 +1155,8 @@ export default function ContentEdit(page: ContentEditPage) {
             {
                 id: 'editor.focus',
                 owner: 'core',
-                label: 'Toggle focus mode',
-                description: 'Hide or show everything but the writing',
+                label: __('Toggle focus mode'),
+                description: __('Hide or show everything but the writing'),
                 group: 'Do',
                 order: 210,
                 keywords: ['focus', 'distraction', 'chrome'],
@@ -1305,7 +1305,7 @@ export default function ContentEdit(page: ContentEditPage) {
                                         onChange={setValue}
                                         seo={page.seo}
                                         noun={noun}
-                                        title={title.trim() || 'Untitled'}
+                                        title={title.trim() || __('Untitled')}
                                         published={status === 'published'}
                                     />
                                 ) : undefined
@@ -1501,7 +1501,7 @@ export default function ContentEdit(page: ContentEditPage) {
                 </FieldControlContext.Provider>
                 <PublishConfirmation
                     confirming={confirming}
-                    title={title.trim() || 'Untitled'}
+                    title={title.trim() || __('Untitled')}
                     noun={noun}
                     siteTimezone={page.siteTimezone}
                     checks={search.publishingChecks}

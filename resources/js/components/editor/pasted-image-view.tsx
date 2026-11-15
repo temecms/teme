@@ -10,7 +10,7 @@ import { useId } from 'react';
 import ImportImageController from '@/actions/App/Http/Admin/Media/ImportImageController';
 import { Button } from '@/components/ui/button';
 import { ulid } from '@/lib/ulid';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { useCardEnvironment } from './cards/card-environment';
 import { post, reasonOf } from './editor-http';
@@ -119,14 +119,16 @@ function failure({ status, body }: Answer): string {
     }
 
     if (status === 403) {
-        return 'You can’t add files to the media library. Ask an editor to import this image, or remove it.';
+        return __(
+            'You can’t add files to the media library. Ask an editor to import this image, or remove it.',
+        );
     }
 
     if (status === 429) {
-        return 'Too many images at once. Wait a minute, then try again.';
+        return __('Too many images at once. Wait a minute, then try again.');
     }
 
-    return 'Teme couldn’t import this image. Try again.';
+    return __('Teme couldn’t import this image. Try again.');
 }
 
 /**
@@ -158,7 +160,9 @@ async function importPastedImages(
                     editor,
                     src,
                     'failed',
-                    'Teme couldn’t reach the server. Check your connection, then try again.',
+                    __(
+                        'Teme couldn’t reach the server. Check your connection, then try again.',
+                    ),
                 );
                 continue;
             }
@@ -208,7 +212,7 @@ function PastedImageView({
             data-pasted-image=""
             contentEditable={false}
             className={cn(
-                'border-edge bg-surface my-2 rounded-lg border border-dashed px-3 py-2.5',
+                'border-edge bg-surface my-2 rounded-lg border border-dashed px-3 py-3',
                 selected && 'outline-accent outline-2',
             )}
         >
@@ -328,14 +332,15 @@ export function PastedImagesBar({ editor }: { editor: Editor }) {
     return (
         <div
             role="region"
-            aria-label="Pasted images"
+            aria-label={__('Pasted images')}
             data-test="pasted-images"
-            className="border-line bg-surface-2/40 flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-2.5 text-[13px]"
+            className="border-line bg-surface-2/40 text-small flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-5 py-3"
         >
             <p aria-live="polite" className="min-w-0 flex-1">
-                {count === 1
-                    ? '1 pasted image isn’t in the media library yet, so it isn’t saved until it is. Import it only if you have the right to use it.'
-                    : `${count} pasted images aren’t in the media library yet, so they aren’t saved until they are. Import them only if you have the right to use them.`}
+                {__n(
+                    ':count pasted image isn’t in the media library yet, so it isn’t saved until it is. Import it only if you have the right to use it.|:count pasted images aren’t in the media library yet, so they aren’t saved until they are. Import them only if you have the right to use them.',
+                    count,
+                )}
             </p>
             <div className="flex gap-2">
                 <Button
@@ -352,10 +357,10 @@ export function PastedImagesBar({ editor }: { editor: Editor }) {
                     }
                 >
                     {importing
-                        ? 'Importing…'
+                        ? __('Importing…')
                         : count === 1
-                          ? 'Import'
-                          : 'Import all'}
+                          ? __('Import')
+                          : __('Import all')}
                 </Button>
                 <Button
                     type="button"
@@ -364,7 +369,7 @@ export function PastedImagesBar({ editor }: { editor: Editor }) {
                     disabled={importing}
                     onClick={() => removeAll(editor)}
                 >
-                    {count === 1 ? 'Remove' : 'Remove all'}
+                    {count === 1 ? __('Remove') : __('Remove all')}
                 </Button>
             </div>
         </div>

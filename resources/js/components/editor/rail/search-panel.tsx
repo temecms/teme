@@ -51,7 +51,7 @@ function characters(text: string): string {
 }
 
 const textareaClass =
-    'border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
+    'border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 text-small outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
 
 /** A count under a field: in characters and about the pixels, a warning past the width. */
 function Count({
@@ -66,7 +66,9 @@ function Count({
     return (
         <p
             id={id}
-            className={over ? 'text-warn-ink text-xs' : 'text-ink-2 text-xs'}
+            className={
+                over ? 'text-warn-ink text-caption' : 'text-ink-2 text-caption'
+            }
         >
             {children}
         </p>
@@ -278,7 +280,7 @@ export function SearchPanel({
                     >
                         {__('Search and social')}
                     </h2>
-                    <p className="text-ink-2 text-xs">
+                    <p className="text-ink-2 text-caption">
                         {__(
                             'How this :noun appears in search results and when it’s shared.',
                             { noun },
@@ -313,17 +315,17 @@ export function SearchPanel({
                 data-test="search-check-line"
                 className="border-line flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-6 py-3"
             >
-                <div className="flex min-w-0 flex-1 items-start gap-2 text-xs">
+                <div className="text-caption flex min-w-0 flex-1 items-start gap-2">
                     {line.warnings.length > 0 ? (
                         <CircleAlert
                             role="img"
-                            aria-label="Warning"
+                            aria-label={__('Warning')}
                             className="text-warn-ink mt-px size-4 shrink-0"
                         />
                     ) : (
                         <CheckCircle2
                             role="img"
-                            aria-label="Passed"
+                            aria-label={__('Passed')}
                             className="text-ok-ink mt-px size-4 shrink-0"
                         />
                     )}
@@ -346,17 +348,16 @@ export function SearchPanel({
                     </p>
                 </div>
                 {onGoToChecks !== null ? (
-                    <button
-                        type="button"
+                    <TextButton
                         data-test="search-checks-link"
                         onClick={onGoToChecks}
-                        className="text-accent-ink focus-visible:ring-ring min-h-6 rounded-sm text-xs underline outline-none focus-visible:ring-2"
+                        className="text-caption font-normal decoration-current"
                     >
-                        Every check is in the side panel.
-                    </button>
+                        {__('Every check is in the side panel.')}
+                    </TextButton>
                 ) : (
-                    <p className="text-ink-2 text-xs">
-                        Every check is in the side panel.
+                    <p className="text-ink-2 text-caption">
+                        {__('Every check is in the side panel.')}
                     </p>
                 )}
             </div>
@@ -422,13 +423,19 @@ export function SearchPanel({
                                         </Label>
                                         <p
                                             id="editor-seo-title-hint"
-                                            className="text-ink-2 text-xs"
+                                            className="text-ink-2 text-caption"
                                         >
-                                            The title search engines show,
-                                            exactly as you type it.{' '}
+                                            {__(
+                                                'The title search engines show, exactly as you type it.',
+                                            )}{' '}
                                             {home
-                                                ? 'Leave empty to use the home page’s title template.'
-                                                : `Leave empty to use the title template for ${plural}.`}
+                                                ? __(
+                                                      'Leave empty to use the home page’s title template.',
+                                                  )
+                                                : __(
+                                                      'Leave empty to use the title template for :plural.',
+                                                      { plural },
+                                                  )}
                                         </p>
                                         <Count
                                             id="editor-seo-title-count"
@@ -469,15 +476,22 @@ export function SearchPanel({
                                         </Label>
                                         <p
                                             id="editor-seo-description-hint"
-                                            className="text-ink-2 text-xs"
+                                            className="text-ink-2 text-caption"
                                         >
-                                            The summary search engines may show
-                                            under the title.{' '}
+                                            {__(
+                                                'The summary search engines may show under the title.',
+                                            )}{' '}
                                             {!hasExcerpt
-                                                ? 'Leave empty and search engines choose their own.'
+                                                ? __(
+                                                      'Leave empty and search engines choose their own.',
+                                                  )
                                                 : home
-                                                  ? 'Leave empty to use the excerpt, or else the site’s tagline.'
-                                                  : 'Leave empty to use the excerpt.'}
+                                                  ? __(
+                                                        'Leave empty to use the excerpt, or else the site’s tagline.',
+                                                    )
+                                                  : __(
+                                                        'Leave empty to use the excerpt.',
+                                                    )}
                                         </p>
                                         <Count
                                             id="editor-seo-description-count"
@@ -528,11 +542,11 @@ export function SearchPanel({
                                         </Label>
                                         <p
                                             id="editor-social-title-hint"
-                                            className="text-ink-2 text-xs"
+                                            className="text-ink-2 text-caption"
                                         >
-                                            The title on the card when it’s
-                                            shared. Leave empty to use the SEO
-                                            title, or else the title.
+                                            {__(
+                                                'The title on the card when it’s shared. Leave empty to use the SEO title, or else the title.',
+                                            )}
                                         </p>
                                     </>
                                 }
@@ -565,10 +579,11 @@ export function SearchPanel({
                                         </Label>
                                         <p
                                             id="editor-social-description-hint"
-                                            className="text-ink-2 text-xs"
+                                            className="text-ink-2 text-caption"
                                         >
-                                            Leave empty to use the meta
-                                            description, or else the excerpt.
+                                            {__(
+                                                'Leave empty to use the meta description, or else the excerpt.',
+                                            )}
                                         </p>
                                     </>
                                 }
@@ -625,7 +640,7 @@ export function SearchPanel({
                         value="schema"
                         forceMount
                         hidden={tab !== 'schema'}
-                        className="grid gap-2 text-[13px]"
+                        className="text-small grid gap-2"
                     >
                         <p>
                             {__('Published as :type', {
@@ -688,11 +703,12 @@ export function SearchPanel({
                                                           />
                                                           <p
                                                               id="editor-seo-noindex-hint"
-                                                              className="text-ink-2 text-xs"
+                                                              className="text-ink-2 text-caption"
                                                           >
-                                                              Asks search
-                                                              engines not to
-                                                              list this {noun}.
+                                                              {__(
+                                                                  'Asks search engines not to list this :noun.',
+                                                                  { noun },
+                                                              )}
                                                           </p>
                                                       </div>
                                                   )}

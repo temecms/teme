@@ -14,6 +14,7 @@ import AiRequestController from '@/actions/App/Http/Admin/Ai/AiRequestController
 import { send } from '@/components/editor/editor-http';
 import { showToast } from '@/components/flash-toast';
 import type { Answer } from '@/components/editor/editor-http';
+import { __ } from '@/lib/i18n';
 import type { EditorAi } from '@/types';
 import { blockPath, TEXT_BLOCKS } from './selection-target';
 import type { BlockTarget } from './selection-target';
@@ -516,6 +517,6 @@ function usedToast(undo: () => void): void {
     showToast({
         type: 'success',
         message: ASSISTANT_WORDS.used,
-        action: { label: 'Undo', onClick: undo },
+        action: { label: __('Undo'), onClick: undo },
     });
 }

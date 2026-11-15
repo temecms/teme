@@ -6,21 +6,25 @@ import { useState } from 'react';
 import { useAssistant } from '@/components/editor/assistant/assistant-context';
 import { selectionTarget } from '@/components/editor/assistant/selection-target';
 import type { BlockTarget } from '@/components/editor/assistant/selection-target';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { __ } from '@/lib/i18n';
 import type { EditorAi } from '@/types';
 import { REWRITE_PRESETS, REWRITE_TASK } from './rewrite-presets';
 
-/** The menu's own sentences; the first is the scope, shown before anything runs. */
-const REWRITE_WORDS = {
-    scope: 'Rewrite the selected text',
-    blocks: 'Select text within one paragraph',
-    lineBreak: 'Select text without a line break',
-};
+/** The menu's own sentences, looked up while drawing; the first is the scope, shown before anything runs. */
+function rewriteWords(): { scope: string; blocks: string; lineBreak: string } {
+    return {
+        scope: __('Rewrite the selected text'),
+        blocks: __('Select text within one paragraph'),
+        lineBreak: __('Select text without a line break'),
+    };
+}
 
 /** Why a selection can't be rewritten. */
 type Refusal = 'blocks' | 'line-break';
@@ -60,11 +64,13 @@ function rewriteTarget(editor: Editor): BlockTarget | Refusal {
 
 /** The menu's first line: the scope, or why nothing can be chosen. */
 function firstLine(refusal: Refusal | null): string {
+    const words = rewriteWords();
+
     if (refusal === 'line-break') {
-        return REWRITE_WORDS.lineBreak;
+        return words.lineBreak;
     }
 
-    return refusal === 'blocks' ? REWRITE_WORDS.blocks : REWRITE_WORDS.scope;
+    return refusal === 'blocks' ? words.blocks : words.scope;
 }
 
 /**
@@ -82,7 +88,7 @@ export function RewriteMenu({ editor }: { editor: Editor }) {
 
     return (
         <>
-            <span aria-hidden="true" className="bg-line mx-0.5 h-5 w-px" />
+            <span aria-hidden="true" className="bg-line mx-1 h-5 w-px" />
             <RewriteDropdown editor={editor} />
         </>
     );
@@ -100,7 +106,9 @@ function RewriteDropdown({ editor }: { editor: Editor }) {
 
         void ask({
             task: REWRITE_TASK,
-            scope: `Rewrite · ${label}: the selected text`,
+            scope: __('Rewrite · :preset: the selected text', {
+                preset: label,
+            }),
             before: target.text,
             target,
             options: { variant },
@@ -117,25 +125,26 @@ function RewriteDropdown({ editor }: { editor: Editor }) {
             }}
         >
             <DropdownMenuTrigger asChild>
-                <button
+                <Button
                     type="button"
+                    variant="ghost"
                     data-test="rewrite-menu"
-                    className="hover:bg-surface-3 focus-visible:ring-ring inline-flex h-[30px] items-center gap-1 rounded-md px-2 text-[13px] outline-none focus-visible:ring-2"
+                    className="text-small h-7.5 gap-1 px-2 text-inherit"
                 >
                     <Sparkles aria-hidden="true" className="size-4" />
-                    Rewrite
+                    {__('Rewrite')}
                     <ChevronDown aria-hidden="true" className="size-3" />
-                </button>
+                </Button>
             </DropdownMenuTrigger>
             {/* In place, not portalled: focus stays inside the selection menu, which hides when it leaves. */}
             <MenuContent
                 align="start"
                 sideOffset={4}
-                className="bg-surface text-ink shadow-float z-50 min-w-[8rem] rounded-md border p-1"
+                className="bg-surface text-ink shadow-float z-(--z-float) min-w-32 rounded-md border p-1"
             >
                 <DropdownMenuLabel
                     data-test="rewrite-scope"
-                    className="text-ink-2 text-xs font-normal"
+                    className="text-ink-2 text-caption font-normal"
                 >
                     {firstLine(refusal)}
                 </DropdownMenuLabel>
@@ -144,9 +153,9 @@ function RewriteDropdown({ editor }: { editor: Editor }) {
                         key={preset.value}
                         data-test={`rewrite-${preset.value}`}
                         disabled={refusal !== null}
-                        onSelect={() => choose(preset.value, preset.label)}
+                        onSelect={() => choose(preset.value, __(preset.label))}
                     >
-                        {preset.label}
+                        {__(preset.label)}
                     </DropdownMenuItem>
                 ))}
             </MenuContent>
