@@ -1,21 +1,22 @@
 import { Form } from '@inertiajs/react';
-import { Info } from 'lucide-react';
+import type { ReactNode } from 'react';
 import ImportSourceController from '@/actions/App/Http/Admin/Tools/Import/ImportSourceController';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingState } from '@/components/ui/loading-state';
+import { Notice } from '@/components/ui/notice';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import type { ImportPlan } from '@/types/import';
 
 /** What stands in for the analysis while the site report is read. */
 export function AnalysisSkeleton() {
     return (
-        <div className="space-y-4">
-            <Skeleton className="h-40 w-full max-w-[640px]" />
-            <Skeleton className="h-28 w-full max-w-[640px]" />
-            <p role="status" className="sr-only">
-                Reading the site report…
-            </p>
-        </div>
+        <LoadingState
+            shape="panel"
+            label={__('Reading the site report')}
+            rows={5}
+        />
     );
 }
 
@@ -32,10 +33,34 @@ function AnalyzeAgain({ siteId }: { siteId: string }) {
                     data-test="import-analyze"
                     disabled={processing}
                 >
-                    Analyze again
+                    {__('Analyze again')}
                 </Button>
             )}
         </Form>
+    );
+}
+
+/** A section of the analysis: a panel with its heading. */
+function Section({
+    id,
+    title,
+    children,
+}: {
+    id: string;
+    title: string;
+    children: ReactNode;
+}) {
+    return (
+        <Panel aria-labelledby={id}>
+            <PanelHeader>
+                <h2 id={id} className="text-lead font-semibold">
+                    {title}
+                </h2>
+            </PanelHeader>
+            <PanelBody className="text-body justify-items-start">
+                {children}
+            </PanelBody>
+        </Panel>
     );
 }
 
@@ -55,95 +80,76 @@ export function SiteAnalysis({
     const { analysis, problem } = plan;
 
     return (
-        <section
-            data-test="import-analysis"
-            aria-labelledby="import-comes"
-            className="max-w-[640px] space-y-5"
-        >
+        <div data-test="import-analysis" className="grid gap-4">
             {problem !== null && (
-                <div className="space-y-3">
-                    <h2 id="import-comes" className="text-base font-medium">
-                        What comes across
-                    </h2>
-                    <p className="text-[13px]">{problem}</p>
+                <Section id="import-comes" title={__('What comes across')}>
+                    <p>{problem}</p>
                     <AnalyzeAgain siteId={siteId} />
-                </div>
+                </Section>
             )}
 
             {problem === null && analysis !== null && !analysis.reported && (
-                <div className="space-y-3">
-                    <h2 id="import-comes" className="text-base font-medium">
-                        What comes across
-                    </h2>
-                    <p className="text-[13px]">
-                        WordPress hasn’t made a site report yet. On the
-                        WordPress site, open Tools › Teme site report and run
-                        it, then choose Analyze again.
+                <Section id="import-comes" title={__('What comes across')}>
+                    <p>
+                        {__(
+                            'WordPress hasn’t made a site report yet. On the WordPress site, open Tools › Teme site report and run it, then choose Analyze again.',
+                        )}
                     </p>
                     <AnalyzeAgain siteId={siteId} />
-                </div>
+                </Section>
             )}
 
             {problem === null && analysis !== null && analysis.reported && (
                 <>
                     {analysis.warning !== null && (
-                        <div
-                            role="note"
-                            data-test="import-warning"
-                            className="border-line flex gap-3 rounded-md border p-4 text-sm"
-                        >
-                            <Info
-                                aria-hidden="true"
-                                className="mt-0.5 size-4 shrink-0"
-                            />
+                        <Notice tone="warn" data-test="import-warning">
                             <p>
-                                Most of this site’s addresses belong to custom
-                                types:{' '}
-                                {analysis.warning.custom.toLocaleString()} of{' '}
-                                {analysis.warning.total.toLocaleString()}{' '}
-                                published items. Teme can’t import custom types
-                                yet, so those addresses would answer “not found”
-                                after the switch. Move this site once Teme can
-                                import them.
+                                {__(
+                                    'Most of this site’s addresses belong to custom types: :custom of :total published items. Teme can’t import custom types yet, so those addresses would answer “not found” after the switch. Move this site once Teme can import them.',
+                                    {
+                                        custom: analysis.warning.custom.toLocaleString(),
+                                        total: analysis.warning.total.toLocaleString(),
+                                    },
+                                )}
                             </p>
-                        </div>
+                        </Notice>
                     )}
 
-                    <div className="space-y-3">
-                        <h2 id="import-comes" className="text-base font-medium">
-                            What comes across
-                        </h2>
-                        <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1 text-[13px]">
+                    <Section id="import-comes" title={__('What comes across')}>
+                        <dl className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 sm:max-w-(--form-max)">
                             {analysis.comes.map((row) => (
                                 <div key={row.key} className="contents">
-                                    <dt>{row.label}</dt>
-                                    <dd className="tabular-nums">
+                                    <dt className="text-ink-2">{row.label}</dt>
+                                    <dd className="text-end tabular-nums">
                                         {row.count.toLocaleString()}
                                     </dd>
                                 </div>
                             ))}
                         </dl>
-                        <p className="text-[13px]">
-                            Every old address keeps working: at the same
-                            address, or through a permanent redirect to its new
-                            one.
+                        <p>
+                            {__(
+                                'Every old address keeps working: at the same address, or through a permanent redirect to its new one.',
+                            )}
                         </p>
                         {analysis.seo !== null && (
-                            <p className="text-[13px]">
-                                Each post’s and page’s own SEO fields come from{' '}
-                                {analysis.seo}.
+                            <p>
+                                {__(
+                                    'Each post’s and page’s own SEO fields come from :plugin.',
+                                    { plugin: analysis.seo },
+                                )}
                             </p>
                         )}
-                    </div>
+                    </Section>
 
-                    <div className="space-y-3">
-                        <h2 className="text-base font-medium">Not imported</h2>
+                    <Section id="import-stays" title={__('Not imported')}>
                         {analysis.stays.length === 0 ? (
-                            <p className="text-[13px]">
-                                Nothing: everything on this site comes across.
+                            <p>
+                                {__(
+                                    'Nothing: everything on this site comes across.',
+                                )}
                             </p>
                         ) : (
-                            <ul className="space-y-2 text-[13px]">
+                            <ul className="grid gap-2">
                                 {analysis.stays.map((row) => (
                                     <li key={row.key}>
                                         <span className="font-medium">
@@ -166,20 +172,25 @@ export function SiteAnalysis({
                                 ))}
                             </ul>
                         )}
-                    </div>
-
-                    <div className="space-y-3">
-                        <p className="text-ink-2 text-[13px]">
-                            Counted from the site report made in WordPress
-                            {analysis.reportedAt !== null &&
-                                ` on ${formatInZone(analysis.reportedAt, siteTimezone)}`}
-                            . To count again, run Tools › Teme site report
-                            there, then choose Analyze again.
+                        <p className="text-small text-ink-2">
+                            {analysis.reportedAt === null
+                                ? __(
+                                      'Counted from the site report made in WordPress. To count again, run Tools › Teme site report there, then choose Analyze again.',
+                                  )
+                                : __(
+                                      'Counted from the site report made in WordPress on :date. To count again, run Tools › Teme site report there, then choose Analyze again.',
+                                      {
+                                          date: formatInZone(
+                                              analysis.reportedAt,
+                                              siteTimezone,
+                                          ),
+                                      },
+                                  )}
                         </p>
                         <AnalyzeAgain siteId={siteId} />
-                    </div>
+                    </Section>
                 </>
             )}
-        </section>
+        </div>
     );
 }

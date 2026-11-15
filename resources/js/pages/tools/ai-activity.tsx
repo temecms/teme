@@ -1,18 +1,19 @@
-import { Head, Link, router } from '@inertiajs/react';
-import { Info } from 'lucide-react';
-import type { FormEvent } from 'react';
+import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import type { CSSProperties, FormEvent } from 'react';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
 import { Pager } from '@/components/list/pager';
+import { ListPage } from '@/components/patterns/list-page';
 import {
     AiActivityDetails,
     AiSubject,
     OutcomeBadge,
 } from '@/components/tools/ai-activity-details';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/field';
+import { Notice } from '@/components/ui/notice';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { SelectField } from '@/components/ui/select-field';
 import {
     costWords,
@@ -21,10 +22,14 @@ import {
     tokenWords,
     whenWords,
 } from '@/lib/ai-cost';
+import { __, __n } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 import { index as toolsIndex } from '@/routes/tools';
 import { index } from '@/routes/tools/ai-activity';
 import type { AiActivityPage, AiActivityRow, AiMonthSummary } from '@/types';
+
+/** The summary's two columns from the small breakpoint up. */
+const FACTS = { '--facts-cols': 'max-content 1fr' } as CSSProperties;
 
 /** The figures above the list: a month's spend and requests, and, for this month, the budget (I-1307). */
 function Summary({
@@ -39,97 +44,111 @@ function Summary({
         budget === null ? 0 : Math.max(0, budget - summary.costMicrounits);
 
     return (
-        <section
+        <Panel
             aria-labelledby="ai-activity-month"
             data-test="ai-activity-summary"
-            className="border-line rounded-md border p-4"
         >
-            <h2 id="ai-activity-month" className="text-base font-medium">
-                {summary.current
-                    ? `This month: ${summary.label}`
-                    : summary.label}
-            </h2>
-            <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[13px]">
-                <dt className="text-ink-2">Spent</dt>
-                <dd>
-                    {formatCost(summary.costMicrounits)}
-                    {summary.unpricedRequests > 0 && (
-                        <span className="text-ink-2 block text-[12px]">
-                            {summary.unpricedRequests === 1
-                                ? '1 request used a model with no price, so its cost is left out.'
-                                : `${summary.unpricedRequests.toLocaleString()} requests used a model with no price, so their cost is left out.`}
-                        </span>
-                    )}
-                    <span className="text-ink-2 block text-[12px]">
-                        Cost is Teme’s own sum from each model’s price, in US
-                        dollars, so it can differ a little from an AI company’s
-                        invoice. Requests are removed after 12 months; the
-                        monthly totals stay.
-                    </span>
-                </dd>
-
-                <dt className="text-ink-2">Requests</dt>
-                <dd>{summary.requests.toLocaleString()}</dd>
-
-                {summary.current && (
-                    <>
-                        <dt className="text-ink-2">Budget</dt>
-                        <dd>
-                            {budget === null ? (
-                                <>
-                                    None set
-                                    {canChangeSettings && (
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="ml-2"
-                                            asChild
-                                        >
-                                            <Link
-                                                href={showSettings({
-                                                    group: 'ai',
-                                                })}
-                                            >
-                                                Set a budget
-                                            </Link>
-                                        </Button>
-                                    )}
-                                </>
-                            ) : (
-                                `${formatCost(budget)} a month, ${summary.reached ? 'reached' : `${formatCost(left)} left`}`
-                            )}
-                        </dd>
-                    </>
-                )}
-            </dl>
-            {summary.reached && (
-                <p
-                    role="status"
-                    data-test="ai-activity-budget-reached"
-                    className="mt-3 text-[13px]"
+            <PanelHeader>
+                <h2 id="ai-activity-month" className="text-lead font-semibold">
+                    {summary.current
+                        ? __('This month: :month', { month: summary.label })
+                        : summary.label}
+                </h2>
+            </PanelHeader>
+            <PanelBody className="text-body">
+                <dl
+                    className="grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                    style={FACTS}
                 >
-                    <strong className="font-medium">
-                        The budget is reached.
-                    </strong>{' '}
-                    AI is unavailable to everyone until the new month starts.
-                    {canChangeSettings && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="ml-2"
-                            asChild
-                        >
-                            <Link href={showSettings({ group: 'ai' })}>
-                                Change the budget
-                            </Link>
-                        </Button>
+                    <dt className="text-small text-ink-2">{__('Spent')}</dt>
+                    <dd>
+                        {formatCost(summary.costMicrounits)}
+                        {summary.unpricedRequests > 0 && (
+                            <span className="text-ink-2 text-caption block">
+                                {__n(
+                                    ':count request used a model with no price, so its cost is left out.|:count requests used a model with no price, so their cost is left out.',
+                                    summary.unpricedRequests,
+                                    {
+                                        count: summary.unpricedRequests.toLocaleString(),
+                                    },
+                                )}
+                            </span>
+                        )}
+                        <span className="text-ink-2 text-caption block">
+                            {__(
+                                'Cost is Teme’s own sum from each model’s price, in US dollars, so it can differ a little from an AI company’s invoice. Requests are removed after 12 months; the monthly totals stay.',
+                            )}
+                        </span>
+                    </dd>
+
+                    <dt className="text-small text-ink-2">{__('Requests')}</dt>
+                    <dd>{summary.requests.toLocaleString()}</dd>
+
+                    {summary.current && (
+                        <>
+                            <dt className="text-small text-ink-2">
+                                {__('Budget')}
+                            </dt>
+                            <dd>
+                                {budget === null ? (
+                                    <span className="flex flex-wrap items-center gap-2">
+                                        {__('None set')}
+                                        {canChangeSettings && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
+                                            >
+                                                <Link
+                                                    href={showSettings({
+                                                        group: 'ai',
+                                                    })}
+                                                >
+                                                    {__('Set a budget')}
+                                                </Link>
+                                            </Button>
+                                        )}
+                                    </span>
+                                ) : summary.reached ? (
+                                    __(':budget a month, reached', {
+                                        budget: formatCost(budget),
+                                    })
+                                ) : (
+                                    __(':budget a month, :left left', {
+                                        budget: formatCost(budget),
+                                        left: formatCost(left),
+                                    })
+                                )}
+                            </dd>
+                        </>
                     )}
+                </dl>
+                {summary.reached && (
+                    <Notice
+                        tone="warn"
+                        role="status"
+                        data-test="ai-activity-budget-reached"
+                        title={__('The budget is reached.')}
+                    >
+                        <span className="flex flex-wrap items-center gap-2">
+                            {__(
+                                'AI is unavailable to everyone until the new month starts.',
+                            )}
+                            {canChangeSettings && (
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href={showSettings({ group: 'ai' })}>
+                                        {__('Change the budget')}
+                                    </Link>
+                                </Button>
+                            )}
+                        </span>
+                    </Notice>
+                )}
+                <p className="text-ink-2 text-caption">
+                    {__('Months follow UTC, as the AI companies bill.')}
                 </p>
-            )}
-            <p className="text-ink-2 mt-3 text-[12px]">
-                Months follow UTC, as the AI companies bill.
-            </p>
-        </section>
+            </PanelBody>
+        </Panel>
     );
 }
 
@@ -154,6 +173,13 @@ export default function AiActivity(page: AiActivityPage) {
         aiOn,
         canChangeSettings,
     } = page;
+
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Tools'), href: toolsIndex() },
+            { title: __('AI activity'), href: index() },
+        ],
+    });
     const filtered =
         filters.person !== null ||
         filters.task !== null ||
@@ -208,28 +234,28 @@ export default function AiActivity(page: AiActivityPage) {
         {
             id: 'when',
             owner: 'core',
-            header: 'When',
+            header: __('When'),
             className: 'whitespace-nowrap',
             cell: (row) => <time dateTime={row.at}>{when(row)}</time>,
         },
         {
             id: 'person',
             owner: 'core',
-            header: 'Person',
+            header: __('Person'),
             cell: (row) =>
                 row.person.name ?? (
-                    <span className="text-ink-2">A removed person</span>
+                    <span className="text-ink-2">{__('A removed person')}</span>
                 ),
         },
         {
             id: 'task',
             owner: 'core',
-            header: 'Task',
+            header: __('Task'),
             cell: (row) => (
                 <>
                     {row.task.label}
                     {row.variant !== null && (
-                        <span className="text-ink-2 block text-[12px]">
+                        <span className="text-ink-2 text-caption block">
                             {row.variant.label}
                         </span>
                     )}
@@ -239,18 +265,18 @@ export default function AiActivity(page: AiActivityPage) {
         {
             id: 'on',
             owner: 'core',
-            header: 'On',
+            header: __('On'),
             cell: (row) => <AiSubject subject={row.subject} />,
         },
         {
             id: 'result',
             owner: 'core',
-            header: 'Result',
+            header: __('Result'),
             cell: (row) => (
                 <>
                     <OutcomeBadge outcome={row.outcome} />
                     {row.why !== null && (
-                        <span className="text-ink-2 mt-1 block max-w-64 text-[12px] whitespace-normal">
+                        <span className="text-ink-2 text-caption mt-1 block max-w-64 whitespace-normal">
                             {row.why}
                         </span>
                     )}
@@ -260,17 +286,17 @@ export default function AiActivity(page: AiActivityPage) {
         {
             id: 'model',
             owner: 'core',
-            header: 'Model',
+            header: __('Model'),
             cell: (row) =>
                 row.model === null ? (
-                    <span className="text-ink-2">None</span>
+                    <span className="text-ink-2">{__('None')}</span>
                 ) : (
                     <>
-                        <span className="font-mono text-[12px]">
+                        <span className="text-small font-mono">
                             {row.model}
                         </span>
                         {row.provider !== null && (
-                            <span className="text-ink-2 block text-[12px]">
+                            <span className="text-ink-2 text-caption block">
                                 {row.provider}
                             </span>
                         )}
@@ -280,7 +306,7 @@ export default function AiActivity(page: AiActivityPage) {
         {
             id: 'cost',
             owner: 'core',
-            header: 'Cost',
+            header: __('Cost'),
             className: 'text-right',
             cell: (row) => {
                 const cost = costWords(row.costMicrounits, row.tokens);
@@ -290,7 +316,7 @@ export default function AiActivity(page: AiActivityPage) {
                         <span className={cost.known ? undefined : 'text-ink-2'}>
                             {cost.text}
                         </span>
-                        <span className="text-ink-2 block text-[12px]">
+                        <span className="text-ink-2 text-caption block">
                             {tokenWords(tokensUsed(row.tokens))}
                         </span>
                     </>
@@ -300,17 +326,20 @@ export default function AiActivity(page: AiActivityPage) {
         {
             id: 'actions',
             owner: 'core',
-            header: <span className="sr-only">Actions</span>,
+            header: <span className="sr-only">{__('Actions')}</span>,
             className: 'w-px text-right',
             cell: (row) => (
                 <Button
                     variant="outline"
                     size="sm"
                     data-test={`ai-row-details-${row.id}`}
-                    aria-label={`Details of the ${row.task.label} request on ${when(row)}`}
+                    aria-label={__('Details of the :task request on :date', {
+                        task: row.task.label,
+                        date: when(row),
+                    })}
                     onClick={() => openDetails(row.id)}
                 >
-                    Details
+                    {__('Details')}
                 </Button>
             ),
         },
@@ -318,51 +347,35 @@ export default function AiActivity(page: AiActivityPage) {
 
     return (
         <>
-            <Head title="AI activity" />
+            <Head title={__('AI activity')} />
 
-            <div className="space-y-4 p-6">
-                <PageHeader
-                    title="AI activity"
-                    description="Every AI request, newest first. Teme keeps the figures, never the text sent or the answer; when AI’s alt text is used, it also keeps the image’s alt text from before and after. Requests are removed after 12 months."
-                />
-
+            <ListPage
+                title={__('AI activity')}
+                description={__(
+                    'Every AI request, newest first. Teme keeps the figures, never the text sent or the answer; when AI’s alt text is used, it also keeps the image’s alt text from before and after. Requests are removed after 12 months.',
+                )}
+            >
                 {!aiOn && (
-                    <div
-                        role="note"
+                    <Notice
+                        tone="info"
                         data-test="ai-activity-off"
-                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
+                        title={__('AI is switched off on this server.')}
                     >
-                        <Info
-                            aria-hidden="true"
-                            className="mt-0.5 size-4 shrink-0"
-                        />
-                        <p>
-                            <strong className="font-medium">
-                                AI is switched off on this server.
-                            </strong>{' '}
-                            Nobody can ask for a suggestion until the host
-                            switches it on again. The requests below stay.
-                        </p>
-                    </div>
+                        {__(
+                            'Nobody can ask for a suggestion until the host switches it on again. The requests below stay.',
+                        )}
+                    </Notice>
                 )}
 
                 {missing && (
-                    <div
+                    <Notice
+                        tone="info"
                         role="status"
                         data-test="ai-activity-missing"
-                        className="border-line flex gap-3 rounded-md border p-4 text-sm"
+                        title={__('That request is gone.')}
                     >
-                        <Info
-                            aria-hidden="true"
-                            className="mt-0.5 size-4 shrink-0"
-                        />
-                        <p>
-                            <strong className="font-medium">
-                                That request is gone.
-                            </strong>{' '}
-                            Requests are removed after 12 months.
-                        </p>
-                    </div>
+                        {__('Requests are removed after 12 months.')}
+                    </Notice>
                 )}
 
                 <Summary
@@ -372,15 +385,15 @@ export default function AiActivity(page: AiActivityPage) {
 
                 <form
                     role="search"
-                    aria-label="Filter AI requests"
+                    aria-label={__('Filter AI requests')}
                     className="flex flex-wrap items-end gap-3"
                     onSubmit={filter}
                 >
-                    <div
+                    <Field
                         key={`person-${filters.person ?? ''}`}
-                        className="grid gap-1.5"
+                        htmlFor="ai-person"
+                        label={__('Person')}
                     >
-                        <Label htmlFor="ai-person">Person</Label>
                         <SelectField
                             id="ai-person"
                             name="person"
@@ -389,49 +402,51 @@ export default function AiActivity(page: AiActivityPage) {
                                     ? ''
                                     : String(filters.person)
                             }
-                            emptyLabel="Everyone"
+                            emptyLabel={__('Everyone')}
                             options={people}
                             className="w-52"
                         />
-                    </div>
-                    <div
+                    </Field>
+                    <Field
                         key={`task-${filters.task ?? ''}`}
-                        className="grid gap-1.5"
+                        htmlFor="ai-task"
+                        label={__('Task')}
                     >
-                        <Label htmlFor="ai-task">Task</Label>
                         <SelectField
                             id="ai-task"
                             name="task"
                             defaultValue={filters.task ?? ''}
-                            emptyLabel="All tasks"
+                            emptyLabel={__('All tasks')}
                             options={tasks}
                             className="w-52"
                         />
-                    </div>
-                    <div
+                    </Field>
+                    <Field
                         key={`month-${filters.month ?? ''}`}
-                        className="grid gap-1.5"
+                        htmlFor="ai-month"
+                        label={__('Month')}
                     >
-                        <Label htmlFor="ai-month">Month</Label>
                         <SelectField
                             id="ai-month"
                             name="month"
                             defaultValue={filters.month ?? ''}
-                            emptyLabel="Any month"
+                            emptyLabel={__('Any month')}
                             options={months}
                             className="w-44"
                         />
-                    </div>
+                    </Field>
                     <Button
                         type="submit"
                         variant="outline"
                         data-test="ai-filter"
                     >
-                        Filter
+                        {__('Filter')}
                     </Button>
                     {filtered && (
                         <Button variant="ghost" asChild>
-                            <Link href={index().url}>Clear filters</Link>
+                            <Link href={index().url}>
+                                {__('Clear filters')}
+                            </Link>
                         </Button>
                     )}
                 </form>
@@ -440,19 +455,21 @@ export default function AiActivity(page: AiActivityPage) {
                     columns={columns}
                     rows={rows}
                     rowKey={(row) => row.id}
-                    caption="AI requests"
+                    caption={__('AI requests')}
                     empty={
                         filtered ? (
                             <EmptyState
                                 kind="nothing-matches"
-                                title="No requests match these filters"
+                                title={__('No requests match these filters')}
                                 clearHref={index().url}
                             />
                         ) : (
                             <EmptyState
                                 kind="nothing-yet"
-                                title="No AI requests yet"
-                                description="When someone asks AI for a suggestion, the request appears here with what it cost."
+                                title={__('No AI requests yet')}
+                                description={__(
+                                    'When someone asks AI for a suggestion, the request appears here with what it cost.',
+                                )}
                             />
                         )
                     }
@@ -470,20 +487,13 @@ export default function AiActivity(page: AiActivityPage) {
                             : null
                     }
                 />
-            </div>
 
-            <AiActivityDetails
-                details={details}
-                siteTimezone={siteTimezone}
-                onClose={() => openDetails(null)}
-            />
+                <AiActivityDetails
+                    details={details}
+                    siteTimezone={siteTimezone}
+                    onClose={() => openDetails(null)}
+                />
+            </ListPage>
         </>
     );
 }
-
-AiActivity.layout = {
-    breadcrumbs: [
-        { title: 'Tools', href: toolsIndex() },
-        { title: 'AI activity', href: index() },
-    ],
-};

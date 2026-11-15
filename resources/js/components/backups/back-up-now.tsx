@@ -4,6 +4,7 @@ import BackUpNowController from '@/actions/App/Http/Admin/Tools/Backups/BackUpNo
 import JobsController from '@/actions/App/Http/Admin/Tools/JobsController';
 import { JobProgress } from '@/components/jobs/job-progress';
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 import type { BackupsPage } from '@/types/backups';
 import type { JobRow } from '@/types/jobs';
 
@@ -32,7 +33,7 @@ export function BackUpNowButton({
                     }
                 >
                     <DatabaseBackup aria-hidden="true" />
-                    Back up now
+                    {__('Back up now')}
                 </Button>
             )}
         </Form>
@@ -48,16 +49,18 @@ export function BackupJobLine({
     running: string | null;
 }) {
     return (
-        <div data-test="backup-job" className="space-y-2">
+        <div data-test="backup-job" className="grid justify-items-start gap-2">
             {job.state === 'waiting' ? (
-                <p className="text-sm font-medium">
-                    {job.label} is waiting to start. It starts within a minute,
-                    once nothing else is running.
+                <p className="font-medium">
+                    {__(
+                        ':job is waiting to start. It starts within a minute, once nothing else is running.',
+                        { job: job.label },
+                    )}
                 </p>
             ) : (
                 <>
                     {running !== null && (
-                        <p className="flex items-center gap-2 text-sm font-medium">
+                        <p className="flex items-center gap-2 font-medium">
                             <Loader2
                                 aria-hidden="true"
                                 className="size-4 motion-safe:animate-spin"
@@ -65,9 +68,7 @@ export function BackupJobLine({
                             {running}
                         </p>
                     )}
-                    {job.message !== null && (
-                        <p className="text-sm">{job.message}</p>
-                    )}
+                    {job.message !== null && <p>{job.message}</p>}
                     <JobProgress job={job} />
                 </>
             )}
@@ -84,7 +85,7 @@ export function BackupJobLine({
                             disabled={processing}
                             data-test="backup-job-cancel"
                         >
-                            Cancel
+                            {__('Cancel')}
                             <span className="sr-only"> {job.label}</span>
                         </Button>
                     )}

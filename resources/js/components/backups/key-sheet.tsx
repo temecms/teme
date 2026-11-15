@@ -2,6 +2,7 @@ import { Printer } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { names } from '@/lib/backup-words';
+import { __ } from '@/lib/i18n';
 import type { RecoveryKeyPageProps } from '@/types/backups';
 
 /** Only the sheet prints: everything else in the page is hidden on paper. */
@@ -10,10 +11,17 @@ const PRINT_ONLY = `@media print {
     #key-print-sheet { display: block !important; background: var(--paper); color: CanvasText; color-scheme: light; }
 }`;
 
-const SENTENCES = [
-    'Write it down or print it, and keep it somewhere other than this server.',
-    'If this server is lost, this key is the only way to open your backups. Anyone who has it and a copy of them can read them.',
-    'To open them with restic itself, type it exactly as shown, with its hyphens.',
+/** The sentences about keeping a key, looked up as they are drawn. */
+const sentencesAboutKeeping = () => [
+    __(
+        'Write it down or print it, and keep it somewhere other than this server.',
+    ),
+    __(
+        'If this server is lost, this key is the only way to open your backups. Anyone who has it and a copy of them can read them.',
+    ),
+    __(
+        'To open them with restic itself, type it exactly as shown, with its hyphens.',
+    ),
 ];
 
 /**
@@ -31,39 +39,42 @@ export function KeySheet({
     const replaced = page.purpose === 'replace';
     const sentences = replaced
         ? [
-              ...SENTENCES,
-              `Your old key for ${page.label} keeps working until you’ve typed part of this one back.`,
+              ...sentencesAboutKeeping(),
+              __(
+                  'Your old key for :label keeps working until you’ve typed part of this one back.',
+                  { label: page.label },
+              ),
           ]
-        : SENTENCES;
+        : sentencesAboutKeeping();
 
     return (
-        <section className="space-y-5">
-            <div className="space-y-1">
-                <p className="text-ink-2 text-[13px]">
-                    Teme shows it once and keeps no copy.
-                </p>
-            </div>
+        <section className="grid gap-5">
+            <p className="text-small text-ink-2">
+                {__('Teme shows it once and keeps no copy.')}
+            </p>
 
             <ol
-                aria-label="Recovery key, eight groups"
-                className="grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4"
+                aria-label={__('Recovery key, eight groups')}
+                className="grid grid-cols-2 gap-3 sm:grid-cols-4"
             >
                 {page.groups.map((group, index) => (
                     <li
                         key={index}
                         data-test="key-group"
-                        className="border-line rounded-md border p-3"
+                        className="bg-surface shadow-raised grid gap-1 rounded-md p-3"
                     >
                         <span
                             aria-hidden="true"
-                            className="text-ink-2 block text-xs"
+                            className="text-caption text-ink-3"
                         >
                             {index + 1}
                         </span>
-                        <span className="sr-only">Group {index + 1}: </span>
+                        <span className="sr-only">
+                            {__('Group :number:', { number: index + 1 })}{' '}
+                        </span>
                         <span
                             data-test="key-group-value"
-                            className="font-mono text-xl tracking-wider"
+                            className="text-title font-mono font-medium"
                         >
                             {group}
                         </span>
@@ -71,7 +82,7 @@ export function KeySheet({
                 ))}
             </ol>
 
-            <div className="max-w-xl space-y-2 text-sm">
+            <div className="text-body grid gap-2">
                 {sentences.map((sentence) => (
                     <p key={sentence}>{sentence}</p>
                 ))}
@@ -85,47 +96,49 @@ export function KeySheet({
                     data-test="key-print"
                 >
                     <Printer aria-hidden="true" />
-                    Print this key
+                    {__('Print this key')}
                 </Button>
                 <Button
                     type="button"
                     onClick={onContinue}
                     data-test="key-continue"
                 >
-                    I’ve kept it safe: continue
+                    {__('I’ve kept it safe: continue')}
                 </Button>
             </div>
 
             {createPortal(
                 <div id="key-print-sheet" className="hidden p-10">
                     <style>{PRINT_ONLY}</style>
-                    <h1 className="text-2xl font-semibold">
-                        Recovery key for {page.site}
+                    <h1 className="text-title font-semibold">
+                        {__('Recovery key for :site', { site: page.site })}
                     </h1>
                     <p className="mt-2">
-                        Made {page.madeOn} for the backups at{' '}
-                        {names(page.places)}.
+                        {__('Made :date for the backups at :places.', {
+                            date: page.madeOn,
+                            places: names(page.places),
+                        })}
                     </p>
                     <ol className="mt-8 grid grid-cols-4 gap-6">
                         {page.groups.map((group, index) => (
                             <li key={index} data-test="key-sheet-group">
-                                <span className="block text-sm">
+                                <span className="text-small block">
                                     {index + 1}
                                 </span>
-                                <span className="font-mono text-3xl">
+                                <span className="text-display font-mono">
                                     {group}
                                 </span>
                             </li>
                         ))}
                     </ol>
-                    <div className="mt-8 space-y-2">
+                    <div className="mt-8 grid gap-2">
                         {sentences.map((sentence) => (
                             <p key={sentence}>{sentence}</p>
                         ))}
                         <p>
-                            Keep this sheet somewhere other than the server: a
-                            safe, a drawer at home, or a sealed envelope with
-                            someone you trust.
+                            {__(
+                                'Keep this sheet somewhere other than the server: a safe, a drawer at home, or a sealed envelope with someone you trust.',
+                            )}
                         </p>
                     </div>
                 </div>,

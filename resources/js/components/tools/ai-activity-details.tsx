@@ -1,41 +1,56 @@
 import { Link } from '@inertiajs/react';
-import type { ReactNode } from 'react';
-import { Badge } from '@/components/ui/badge';
+import type { CSSProperties, ReactNode } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import { StatusPill } from '@/components/ui/status-pill';
 import { costWords, secondsWords, whenWords } from '@/lib/ai-cost';
+import { __ } from '@/lib/i18n';
 import { edit } from '@/routes/content';
 import type { AiActivityRow } from '@/types';
 
-/** What each way a request ends says in the drawer, when its own words don't. */
-const OUTCOME_WORDS: Record<string, string> = {
-    suggested: 'AI made a suggestion. It hasn’t been used or discarded.',
-    applied: 'The suggestion was used.',
-    discarded: 'The suggestion was discarded.',
-    stale: 'The text changed after the suggestion was made, so it wasn’t used.',
-};
+/** What each way a request ends says in the drawer, when its own words don't, looked up as it is drawn. */
+function outcomeWords(key: string): string | undefined {
+    const words: Record<string, string> = {
+        suggested: __(
+            'AI made a suggestion. It hasn’t been used or discarded.',
+        ),
+        applied: __('The suggestion was used.'),
+        discarded: __('The suggestion was discarded.'),
+        stale: __(
+            'The text changed after the suggestion was made, so it wasn’t used.',
+        ),
+    };
+
+    return words[key];
+}
+
+/** The drawer's two columns from the small breakpoint up. */
+const FACTS = { '--facts-cols': '8rem 1fr' } as CSSProperties;
 
 /**
- * How a request ended, as a badge. The words carry the meaning; the tint
- * only helps.
+ * How a request ended, as a status pill. The words carry the meaning; the
+ * tone only helps.
  */
 export function OutcomeBadge({
     outcome,
 }: {
     outcome: AiActivityRow['outcome'];
 }) {
-    const variant =
+    const tone =
         outcome.key === 'applied'
-            ? 'success'
+            ? 'ok'
             : outcome.key === 'failed' || outcome.key === 'refused'
-              ? 'destructive'
-              : 'secondary';
+              ? 'danger'
+              : outcome.key === 'suggested'
+                ? 'info'
+                : 'neutral';
 
-    return <Badge variant={variant}>{outcome.label}</Badge>;
+    return <StatusPill tone={tone}>{outcome.label}</StatusPill>;
 }
 
 /**
@@ -47,15 +62,15 @@ export function AiSubject({ subject }: { subject: AiActivityRow['subject'] }) {
         return (
             <span className="text-ink-2">
                 {subject.kind === 'media'
-                    ? 'A deleted image'
-                    : 'A deleted item'}
+                    ? __('A deleted image')
+                    : __('A deleted item')}
             </span>
         );
     }
 
     const title =
         subject.title === null || subject.title === ''
-            ? 'Untitled'
+            ? __('Untitled')
             : subject.title;
     const openable = subject.kind === 'content' && subject.state === 'present';
 
@@ -71,9 +86,9 @@ export function AiSubject({ subject }: { subject: AiActivityRow['subject'] }) {
             ) : (
                 title
             )}
-            <span className="text-ink-2 block text-[12px]">
+            <span className="text-ink-2 text-caption block">
                 {subject.state === 'trashed'
-                    ? `${subject.kindLabel}, in the trash`
+                    ? __(':kind, in the trash', { kind: subject.kindLabel })
                     : subject.kindLabel}
             </span>
         </>
@@ -82,8 +97,11 @@ export function AiSubject({ subject }: { subject: AiActivityRow['subject'] }) {
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
     return (
-        <div className="grid grid-cols-[8rem_1fr] gap-3 text-[13px]">
-            <dt className="text-ink-2">{label}</dt>
+        <div
+            className="text-body grid gap-x-3 gap-y-1 sm:grid-cols-(--facts-cols)"
+            style={FACTS}
+        >
+            <dt className="text-small text-ink-2">{label}</dt>
             <dd className="min-w-0 break-words">{children}</dd>
         </div>
     );
@@ -120,78 +138,86 @@ export function AiActivityDetails({
                 // The drawer's own title says what it is.
                 aria-describedby={undefined}
                 data-test="ai-activity-details"
-                className="w-full overflow-y-auto sm:max-w-[480px]"
             >
                 {details && cost && (
                     <>
                         <SheetHeader>
-                            <SheetTitle>{`${details.task.label} request`}</SheetTitle>
+                            <SheetTitle>
+                                {__(':task request', {
+                                    task: details.task.label,
+                                })}
+                            </SheetTitle>
                         </SheetHeader>
-                        <div className="px-4 pb-4">
-                            <dl className="space-y-2">
-                                <Row label="Result">
+                        <ScrollArea className="px-6 pb-4">
+                            <dl className="grid gap-2">
+                                <Row label={__('Result')}>
                                     <OutcomeBadge outcome={details.outcome} />
                                     <span className="mt-1 block">
                                         {failed
-                                            ? `${details.why ?? ''} Nothing was changed.`.trim()
-                                            : OUTCOME_WORDS[
-                                                  details.outcome.key
-                                              ]}
+                                            ? __(':why Nothing was changed.', {
+                                                  why: details.why ?? '',
+                                              }).trim()
+                                            : outcomeWords(details.outcome.key)}
                                     </span>
                                 </Row>
-                                <Row label="When">
+                                <Row label={__('When')}>
                                     {whenWords(details.at, siteTimezone)}
                                 </Row>
-                                <Row label="Person">
+                                <Row label={__('Person')}>
                                     {details.person.name ?? (
                                         <span className="text-ink-2">
-                                            A removed person
+                                            {__('A removed person')}
                                         </span>
                                     )}
                                 </Row>
-                                <Row label="Task">
+                                <Row label={__('Task')}>
                                     {details.variant === null
                                         ? details.task.label
                                         : `${details.task.label} · ${details.variant.label}`}
                                 </Row>
-                                <Row label="On">
+                                <Row label={__('On')}>
                                     <AiSubject subject={details.subject} />
                                 </Row>
-                                <Row label="Model">
+                                <Row label={__('Model')}>
                                     {details.model === null ? (
-                                        <span className="text-ink-2">None</span>
+                                        <span className="text-ink-2">
+                                            {__('None')}
+                                        </span>
                                     ) : (
                                         <>
-                                            <span className="font-mono text-[12px]">
+                                            <span className="text-small font-mono">
                                                 {details.model}
                                             </span>
                                             {details.provider !== null && (
-                                                <span className="text-ink-2 block text-[12px]">
+                                                <span className="text-ink-2 text-caption block">
                                                     {details.provider}
                                                 </span>
                                             )}
                                         </>
                                     )}
                                 </Row>
-                                <Row label="Prompt">
-                                    {`${details.prompt.key}, version ${details.prompt.version}`}
+                                <Row label={__('Prompt')}>
+                                    {__(':key, version :version', {
+                                        key: details.prompt.key,
+                                        version: details.prompt.version,
+                                    })}
                                 </Row>
-                                <Row label="Tokens sent">
+                                <Row label={__('Tokens sent')}>
                                     {details.tokens.input.toLocaleString()}
                                 </Row>
-                                <Row label="Tokens received">
+                                <Row label={__('Tokens received')}>
                                     {details.tokens.output.toLocaleString()}
                                 </Row>
-                                <Row label="Read from the cache">
+                                <Row label={__('Read from the cache')}>
                                     {details.tokens.cacheRead.toLocaleString()}
                                 </Row>
-                                <Row label="Written to the cache">
+                                <Row label={__('Written to the cache')}>
                                     {details.tokens.cacheWrite.toLocaleString()}
                                 </Row>
-                                <Row label="Time taken">
+                                <Row label={__('Time taken')}>
                                     {secondsWords(details.latencyMs)}
                                 </Row>
-                                <Row label="Cost">
+                                <Row label={__('Cost')}>
                                     <span
                                         className={
                                             cost.known
@@ -202,34 +228,38 @@ export function AiActivityDetails({
                                         {cost.text}
                                     </span>
                                     {details.costMicrounits === null && (
-                                        <span className="text-ink-2 block text-[12px]">
-                                            No price is set for this model, so
-                                            this request isn’t counted in the
-                                            month’s spend.
+                                        <span className="text-ink-2 text-caption block">
+                                            {__(
+                                                'No price is set for this model, so this request isn’t counted in the month’s spend.',
+                                            )}
                                         </span>
                                     )}
                                 </Row>
                                 {details.altText && (
                                     <>
-                                        <Row label="Alt text before">
+                                        <Row label={__('Alt text before')}>
                                             {details.altText.before ?? (
                                                 <span className="text-ink-2">
-                                                    None
+                                                    {__('None')}
                                                 </span>
                                             )}
-                                            <span className="text-ink-2 block text-[12px]">
+                                            <span className="text-ink-2 text-caption block">
                                                 {details.altText.before === null
-                                                    ? 'The image had none. To put that back, clear its alt text in Media.'
-                                                    : 'To put it back, copy it into the image’s alt text in Media.'}
+                                                    ? __(
+                                                          'The image had none. To put that back, clear its alt text in Media.',
+                                                      )
+                                                    : __(
+                                                          'To put it back, copy it into the image’s alt text in Media.',
+                                                      )}
                                             </span>
                                         </Row>
-                                        <Row label="Alt text after">
+                                        <Row label={__('Alt text after')}>
                                             {details.altText.after}
                                         </Row>
                                     </>
                                 )}
                             </dl>
-                        </div>
+                        </ScrollArea>
                     </>
                 )}
             </SheetContent>

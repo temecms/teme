@@ -112,11 +112,22 @@ it('asks for the password in place on the key page, and keeps the key there', fu
     $this->travel(16)->minutes();
 
     $page->click('[data-test="key-continue"]')->type('#group-3', '9HTR')->type('#group-7', 'YA8G')->click('[data-test="key-confirm"]');
-    cmWaitUntil($page, 'document.querySelector("#key-password") !== null');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="fresh-password-input"]\') !== null');
     ($this->seen)($page, 'Type your password to carry on.');
-    $page->type('#key-password', 'password')->click('[data-test="key-password-confirm"]');
+    shellSettled($page, '[data-slot="dialog-content"]');
+    $page->type('[data-test="fresh-password-input"]', 'password')->click('[data-test="fresh-password-confirm"]');
     cmWaitUntil($page, 'location.pathname === "/admin/tools/backups"');
     ($this->seen)($page, 'Backups are set up at This server. The first backup starts within a minute.');
+});
+
+it('draws setup’s three steps on the step bar, the first current', function (): void {
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/backups')->click('[data-test="backup-set-up"]');
+    ($this->seen)($page, 'Confirm password');
+    $page->type('#password', 'password')->click('[data-test="confirm-password-button"]');
+    ($this->seen)($page, 'Where should backups be kept?');
+
+    expect($page->script('() => document.querySelectorAll(\'[data-slot="step-bar"][aria-label="Setup steps"] > li\').length'))->toBe(3)
+        ->and($page->script('() => document.querySelector(\'[data-slot="step-bar"][aria-label="Setup steps"] [aria-current="step"]\')?.textContent'))->toContain('Choose a place');
 });
 
 it('draws the screen at 375 pixels with nothing scrolling sideways', function (): void {
@@ -155,7 +166,7 @@ it('checks a recovery key in its dialog, place by place', function (): void {
         cmWaitUntil($page, 'document.querySelector(\'[role="dialog"] #check-recovery-key\') !== null');
         $page->type('#check-recovery-key', $ready->recoveryKey->value())->click('[data-test="check-key-submit"]');
         ($this->seen)($page, 'Type your password to carry on.');
-        $page->type('#key-password', 'password')->click('[data-test="key-password-confirm"]');
+        $page->type('[data-test="fresh-password-input"]', 'password')->click('[data-test="fresh-password-confirm"]');
         ($this->seen)($page, 'Opens the backups at This server.');
         $page->assertScript('document.querySelector(\'[role="dialog"]\').innerText.includes("This is Recovery key.")');
     } finally {

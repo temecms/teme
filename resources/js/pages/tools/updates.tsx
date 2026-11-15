@@ -1,14 +1,25 @@
-import { Head, Link, router, usePoll } from '@inertiajs/react';
-import { CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
+import { Head, Link, router, setLayoutProps, usePoll } from '@inertiajs/react';
+import { ChevronDown, CircleCheck, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { PageHeader } from '@/components/list/page-header';
+import type { CSSProperties, ReactNode } from 'react';
+import { FormPage } from '@/components/patterns/form-page';
 import {
+    Code,
     duration,
     UpdateButton,
     UpdateProgress,
+    WithCode,
 } from '@/components/tools/update-progress';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Notice } from '@/components/ui/notice';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { StatusPill } from '@/components/ui/status-pill';
+import { TextButton } from '@/components/ui/text-button';
+import { __, __n } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import { index } from '@/routes/tools';
 import { index as backupsIndex } from '@/routes/tools/backups';
@@ -18,62 +29,80 @@ import type { UpdateRelease, UpdatesPage } from '@/types';
 /** How many lines of a release's notes show before "Show all". */
 const NOTE_LINES = 8;
 
-/** How each deploy outcome reads, and how serious it is. */
-const OUTCOMES: Record<
-    string,
-    { label: string; level: 'ok' | 'warn' | 'bad' }
-> = {
-    deployed: { label: 'Deployed', level: 'ok' },
-    failed: { label: 'Failed', level: 'bad' },
-    refused: { label: 'Refused', level: 'warn' },
-    'backup-failed': { label: 'Backup failed', level: 'bad' },
-    'migration-failed': { label: 'Migration failed', level: 'bad' },
-    unfinished: { label: 'Unfinished', level: 'warn' },
-    busy: { label: 'Busy', level: 'warn' },
+/** The settings and commands the page names, typed as they are. */
+const CODES = {
+    channel: 'TEME_UPDATES_CHANNEL',
+    check: 'TEME_UPDATES_CHECK',
+    deploy: 'php artisan teme:deploy',
+    checkNow: 'php artisan teme:updates:check',
+    image: 'TEME_IMAGE',
+    updaterImage: 'TEME_UPDATER_IMAGE',
+    env: '.env',
+    pull: 'docker compose pull',
+    up: 'docker compose up --detach',
 };
 
-function Panel({
+/** Definition lists' two columns from the small breakpoint up. */
+const FACTS: CSSProperties = {
+    '--facts-cols': 'max-content 1fr',
+} as CSSProperties;
+
+/** How each deploy outcome reads, and its tone, looked up as it is drawn. */
+function outcome(name: string): {
+    label: string;
+    tone: 'ok' | 'warn' | 'danger';
+} {
+    const outcomes: Record<
+        string,
+        { label: string; tone: 'ok' | 'warn' | 'danger' }
+    > = {
+        deployed: { label: __('Deployed'), tone: 'ok' },
+        failed: { label: __('Failed'), tone: 'danger' },
+        refused: { label: __('Refused'), tone: 'danger' },
+        'backup-failed': { label: __('Backup failed'), tone: 'danger' },
+        'migration-failed': { label: __('Migration failed'), tone: 'danger' },
+        unfinished: { label: __('Unfinished'), tone: 'warn' },
+        busy: { label: __('Busy'), tone: 'warn' },
+    };
+
+    return outcomes[name] ?? { label: name, tone: 'warn' };
+}
+
+/** One of the page's sections: a panel under its heading. */
+function Section({
     id,
     title,
-    warn = false,
     children,
 }: {
     id: string;
     title: string;
-    warn?: boolean;
-    children: React.ReactNode;
+    children: ReactNode;
 }) {
     return (
-        <section
-            aria-labelledby={id}
-            className={`rounded-md border p-4 ${warn ? 'border-warn' : 'border-line'}`}
-        >
-            <h2 id={id} className="text-base font-medium">
-                {title}
-            </h2>
-            <div className="mt-3 space-y-3 text-[13px]">{children}</div>
-        </section>
+        <Panel aria-labelledby={id}>
+            <PanelHeader>
+                <h2 id={id} className="text-lead font-semibold">
+                    {title}
+                </h2>
+            </PanelHeader>
+            <PanelBody className="text-body">{children}</PanelBody>
+        </Panel>
     );
-}
-
-function Code({ children }: { children: React.ReactNode }) {
-    return <code className="bg-surface-2 rounded px-1 py-0.5">{children}</code>;
 }
 
 function Marks({ release }: { release: UpdateRelease }) {
     return (
         <span className="flex flex-wrap gap-2">
             {release.prerelease && (
-                <Badge variant="secondary">Pre-release</Badge>
+                <StatusPill tone="neutral">{__('Pre-release')}</StatusPill>
             )}
             {release.security && (
-                <Badge variant="outline">
-                    <TriangleAlert aria-hidden="true" />
-                    Security fixes
-                </Badge>
+                <StatusPill tone="warn">{__('Security fixes')}</StatusPill>
             )}
             {release.maintenance && (
-                <Badge variant="outline">Needs maintenance mode</Badge>
+                <StatusPill tone="warn">
+                    {__('Needs maintenance mode')}
+                </StatusPill>
             )}
         </span>
     );
@@ -92,7 +121,7 @@ function Notes({ release }: { release: UpdateRelease }) {
     let left = all ? Infinity : NOTE_LINES;
 
     return (
-        <div className="space-y-2">
+        <div className="grid justify-items-start gap-2">
             {release.notes.map((section, at) => {
                 if (left <= 0) {
                     return null;
@@ -108,15 +137,15 @@ function Notes({ release }: { release: UpdateRelease }) {
                 left -= items.length;
 
                 return (
-                    <div key={at} className="space-y-1">
+                    <div key={at} className="grid gap-1">
                         {heading && (
-                            <h3 className="font-medium">{section.heading}</h3>
+                            <h3 className="font-semibold">{section.heading}</h3>
                         )}
                         {paragraphs.map((text, i) => (
                             <p key={i}>{text}</p>
                         ))}
                         {items.length > 0 && (
-                            <ul className="list-disc space-y-0.5 pl-5">
+                            <ul className="grid list-disc gap-1 ps-5">
                                 {items.map((text, i) => (
                                     <li key={i}>{text}</li>
                                 ))}
@@ -126,15 +155,11 @@ function Notes({ release }: { release: UpdateRelease }) {
                 );
             })}
             {lines > NOTE_LINES && (
-                <Button
-                    type="button"
-                    variant="link"
-                    className="h-auto p-0 text-[13px]"
-                    aria-expanded={all}
-                    onClick={() => setAll(!all)}
-                >
-                    {all ? 'Show less' : `Show all ${lines} lines`}
-                </Button>
+                <TextButton aria-expanded={all} onClick={() => setAll(!all)}>
+                    {all
+                        ? __('Show less')
+                        : __('Show all :count lines', { count: lines })}
+                </TextButton>
             )}
         </div>
     );
@@ -153,6 +178,12 @@ export default function Updates({
     canUpdate,
     siteTimezone,
 }: UpdatesPage) {
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Tools'), href: index() },
+            { title: __('Updates'), href: updatesIndex() },
+        ],
+    });
     const when = (iso: string) => formatInZone(iso, siteTimezone);
     const open = update?.status === 'requested' || update?.status === 'running';
     // The update last seen open: only a poll's answer compares against it.
@@ -202,7 +233,6 @@ export default function Updates({
         }
     }, [open, update?.id, start, stop]); // eslint-disable-line react-hooks/exhaustive-deps
     const lastDeployed = deploys.find((run) => run.outcome === 'deployed');
-    const security = newer.some((release) => release.security);
     const top = newer[0] ?? null;
     const older = newer.slice(1);
     const securityBefore =
@@ -210,377 +240,449 @@ export default function Updates({
             ? newer.find((release) => release.security)
             : undefined;
 
+    const notRelease = __(
+        'This build isn’t a release, so Teme doesn’t compare it with the releases.',
+    );
+    const noDeploy = (
+        <WithCode
+            words={__(
+                'No deploy recorded yet. Each :deploy is recorded from this release on.',
+            )}
+            codes={CODES}
+        />
+    );
+
     return (
         <>
-            <Head title="Updates" />
+            <Head title={__('Updates')} />
 
-            <div className="max-w-3xl space-y-6 p-6">
-                <PageHeader
-                    title="Updates"
-                    description="Which Teme this site runs, and the releases after it."
-                    action={
-                        top !== null && (
-                            <UpdateButton
-                                version={top.version}
-                                canUpdate={canUpdate}
-                                open={open}
-                            />
-                        )
-                    }
-                />
-
-                {update !== null && (
-                    <UpdateProgress
-                        update={update}
-                        rollback={rollback}
-                        updaterSeenAt={updaterSeenAt}
-                        deploys={deploys}
-                        when={when}
-                    />
+            <FormPage
+                title={__('Updates')}
+                description={__(
+                    'Which Teme this site runs, and the releases after it.',
                 )}
+                actions={
+                    top !== null && (
+                        <UpdateButton
+                            version={top.version}
+                            canUpdate={canUpdate}
+                            open={open}
+                        />
+                    )
+                }
+            >
+                <div className="grid gap-4">
+                    {update !== null && (
+                        <UpdateProgress
+                            update={update}
+                            rollback={rollback}
+                            updaterSeenAt={updaterSeenAt}
+                            deploys={deploys}
+                            when={when}
+                        />
+                    )}
 
-                <Panel id="updates-site" title="This site">
-                    <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
-                        <dt className="text-ink-2">Version</dt>
-                        <dd>
-                            <strong className="font-medium">
-                                Teme {running.version}
-                            </strong>
-                            {running.revision !== null && (
-                                <>
-                                    {' · Build '}
-                                    <Code>{running.revision}</Code>
-                                </>
-                            )}
-                            {!running.tagged && (
-                                <span className="text-ink-2 block">
-                                    This build isn’t a release, so Teme doesn’t
-                                    compare it with the releases.
-                                </span>
-                            )}
-                        </dd>
-
-                        <dt className="text-ink-2">Channel</dt>
-                        <dd>
-                            {running.channel === 'prerelease'
-                                ? 'Gets: every release, pre-releases too'
-                                : 'Gets: releases only'}
-                            <span className="text-ink-2 block">
-                                {running.channelSet ? (
+                    <Section id="updates-site" title={__('This site')}>
+                        <dl
+                            className="grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                            style={FACTS}
+                        >
+                            <dt className="text-small text-ink-2">
+                                {__('Version')}
+                            </dt>
+                            <dd>
+                                <strong className="font-medium">
+                                    {__('Teme :version', {
+                                        version: running.version,
+                                    })}
+                                </strong>
+                                {running.revision !== null && (
                                     <>
-                                        Set by <Code>TEME_UPDATES_CHANNEL</Code>
-                                        .
-                                    </>
-                                ) : (
-                                    <>
-                                        Follows the version this site runs. To
-                                        choose, set{' '}
-                                        <Code>TEME_UPDATES_CHANNEL</Code>.
+                                        {` · ${__('Build')} `}
+                                        <Code>{running.revision}</Code>
                                     </>
                                 )}
-                            </span>
-                        </dd>
+                                {!running.tagged && (
+                                    <span className="text-ink-2 block">
+                                        {notRelease}
+                                    </span>
+                                )}
+                            </dd>
 
-                        <dt className="text-ink-2">Last deploy</dt>
-                        <dd>
-                            {lastDeployed === undefined ? (
-                                <>
-                                    No deploy recorded yet. Each{' '}
-                                    <Code>php artisan teme:deploy</Code> is
-                                    recorded from this release on.
-                                </>
-                            ) : (
-                                `Deployed Teme ${lastDeployed.version} on ${when(lastDeployed.finishedAt)}.`
-                            )}
-                        </dd>
-                    </dl>
-                </Panel>
-
-                <Panel id="updates-available" title="Available" warn={security}>
-                    {!running.tagged ? (
-                        <>
-                            <p>
-                                This build isn’t a release, so Teme doesn’t
-                                compare it with the releases.
-                            </p>
-                            {newest !== null && (
-                                <p className="text-ink-2">
-                                    The newest release is Teme {newest.version},
-                                    published {when(newest.publishedAt)}.
-                                </p>
-                            )}
-                        </>
-                    ) : newest === null ? (
-                        <>
-                            <p>No release has been found yet.</p>
-                            {!check.enabled && (
-                                <p className="text-ink-2">
-                                    Update checks are off, so this list isn’t
-                                    kept up to date.
-                                </p>
-                            )}
-                        </>
-                    ) : top === null ? (
-                        <>
-                            <p className="flex items-center gap-2">
-                                <CircleCheck
-                                    aria-hidden="true"
-                                    className="text-ok-ink size-4 shrink-0"
-                                />
-                                <span>
-                                    <span className="sr-only">All well. </span>
-                                    This site runs the newest release it gets.
+                            <dt className="text-small text-ink-2">
+                                {__('Channel')}
+                            </dt>
+                            <dd>
+                                {running.channel === 'prerelease'
+                                    ? __(
+                                          'Gets: every release, pre-releases too',
+                                      )
+                                    : __('Gets: releases only')}
+                                <span className="text-ink-2 block">
+                                    <WithCode
+                                        words={
+                                            running.channelSet
+                                                ? __('Set by :channel.')
+                                                : __(
+                                                      'Follows the version this site runs. To choose, set :channel.',
+                                                  )
+                                        }
+                                        codes={CODES}
+                                    />
                                 </span>
-                            </p>
-                            <p className="text-ink-2">
-                                Teme {newest.version}, published{' '}
-                                {when(newest.publishedAt)}.
-                            </p>
-                        </>
-                    ) : (
-                        <>
-                            {check.error !== null &&
-                                check.succeededAt !== null && (
-                                    <p className="flex items-start gap-2">
-                                        <TriangleAlert
-                                            aria-hidden="true"
-                                            className="text-warn-ink mt-0.5 size-4 shrink-0"
-                                        />
-                                        <span>
-                                            This list is from{' '}
-                                            {when(check.succeededAt)}, the last
-                                            time Teme could read it.
-                                        </span>
+                            </dd>
+
+                            <dt className="text-small text-ink-2">
+                                {__('Last deploy')}
+                            </dt>
+                            <dd>
+                                {lastDeployed === undefined
+                                    ? noDeploy
+                                    : __('Deployed Teme :version on :date.', {
+                                          version: lastDeployed.version,
+                                          date: when(lastDeployed.finishedAt),
+                                      })}
+                            </dd>
+                        </dl>
+                    </Section>
+
+                    <Section id="updates-available" title={__('Available')}>
+                        {!running.tagged ? (
+                            <>
+                                <p>{notRelease}</p>
+                                {newest !== null && (
+                                    <p className="text-ink-2">
+                                        {__(
+                                            'The newest release is Teme :version, published :date.',
+                                            {
+                                                version: newest.version,
+                                                date: when(newest.publishedAt),
+                                            },
+                                        )}
                                     </p>
                                 )}
-                            <p className="flex items-center gap-2 font-medium">
-                                {newer.length === 1
-                                    ? `Teme ${top.version} is available`
-                                    : `${newer.length} releases after yours · Teme ${top.version} is the newest`}
-                            </p>
-                            <p className="flex flex-wrap items-center gap-2">
-                                <Marks release={top} />
-                                <span className="text-ink-2">
-                                    Published {when(top.publishedAt)}
-                                </span>
-                            </p>
-                            {securityBefore !== undefined && (
-                                <p className="flex items-start gap-2">
-                                    <TriangleAlert
+                            </>
+                        ) : newest === null ? (
+                            <>
+                                <p>{__('No release has been found yet.')}</p>
+                                {!check.enabled && (
+                                    <p className="text-ink-2">
+                                        {__(
+                                            'Update checks are off, so this list isn’t kept up to date.',
+                                        )}
+                                    </p>
+                                )}
+                            </>
+                        ) : top === null ? (
+                            <>
+                                <p className="flex items-center gap-2">
+                                    <CircleCheck
                                         aria-hidden="true"
-                                        className="mt-0.5 size-4 shrink-0"
+                                        className="text-ok-ink size-4 shrink-0"
                                     />
                                     <span>
-                                        {securityBefore.version} carries
-                                        security fixes. Updating to{' '}
-                                        {top.version} brings them too.
+                                        <span className="sr-only">
+                                            {__('All well.')}{' '}
+                                        </span>
+                                        {__(
+                                            'This site runs the newest release it gets.',
+                                        )}
                                     </span>
                                 </p>
-                            )}
-                            {top.maintenance && (
-                                <p role="note">
-                                    This release changes the database in a way
-                                    the one before can’t run beside. The site
-                                    must be in maintenance mode while it
-                                    deploys: see the release’s notes.
-                                </p>
-                            )}
-                            <Notes release={top} />
-                            {top.url !== null && (
-                                <p>
-                                    <a
-                                        href={top.url}
-                                        className="underline"
-                                        rel="noreferrer"
-                                    >
-                                        Read it on GitHub
-                                    </a>
-                                </p>
-                            )}
-                            {older.length > 0 && (
-                                <div className="space-y-2">
-                                    <p className="text-ink-2">
-                                        Also after yours
-                                    </p>
-                                    {older.map((release) => (
-                                        <details
-                                            key={release.version}
-                                            className="border-line rounded-md border p-3"
-                                        >
-                                            <summary className="cursor-pointer">
-                                                Teme {release.version} ·
-                                                Published{' '}
-                                                {when(release.publishedAt)}
-                                            </summary>
-                                            <div className="mt-3 space-y-3">
-                                                <Marks release={release} />
-                                                <Notes release={release} />
-                                            </div>
-                                        </details>
-                                    ))}
-                                </div>
-                            )}
-                        </>
-                    )}
-                </Panel>
-
-                <Panel
-                    id="updates-check"
-                    title="Checking for releases"
-                    warn={check.error !== null}
-                >
-                    {!check.enabled ? (
-                        <p>
-                            Update checks are off on this server (
-                            <Code>TEME_UPDATES_CHECK</Code>).
-                        </p>
-                    ) : (
-                        <>
-                            <p>
-                                Once an hour Teme asks GitHub for its list of
-                                releases. It sends nothing about this site.
-                            </p>
-                            {check.checkedAt === null ? (
                                 <p className="text-ink-2">
-                                    Not checked yet. It runs within the hour, or
-                                    now with{' '}
-                                    <Code>php artisan teme:updates:check</Code>.
+                                    {__('Teme :version, published :date.', {
+                                        version: newest.version,
+                                        date: when(newest.publishedAt),
+                                    })}
                                 </p>
-                            ) : (
-                                <>
-                                    {check.error !== null && (
-                                        <p role="note">
-                                            <span className="sr-only">
-                                                Problem:{' '}
+                            </>
+                        ) : (
+                            <>
+                                {check.error !== null &&
+                                    check.succeededAt !== null && (
+                                        <p className="flex items-start gap-2">
+                                            <span className="flex h-5 items-center">
+                                                <TriangleAlert
+                                                    aria-hidden="true"
+                                                    className="text-warn-ink size-4 shrink-0"
+                                                />
                                             </span>
-                                            {check.error}
+                                            <span>
+                                                {__(
+                                                    'This list is from :date, the last time Teme could read it.',
+                                                    {
+                                                        date: when(
+                                                            check.succeededAt,
+                                                        ),
+                                                    },
+                                                )}
+                                            </span>
                                         </p>
                                     )}
-                                    <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
-                                        <dt className="text-ink-2">
-                                            Last checked
-                                        </dt>
-                                        <dd>{when(check.checkedAt)}</dd>
-                                        {check.succeededAt !== null && (
-                                            <>
-                                                <dt className="text-ink-2">
-                                                    Last read the list
-                                                </dt>
-                                                <dd>
-                                                    {when(check.succeededAt)}
-                                                </dd>
-                                            </>
+                                <p className="font-semibold">
+                                    {newer.length === 1
+                                        ? __('Teme :version is available', {
+                                              version: top.version,
+                                          })
+                                        : __n(
+                                              ':count release after yours · Teme :version is the newest|:count releases after yours · Teme :version is the newest',
+                                              newer.length,
+                                              { version: top.version },
+                                          )}
+                                </p>
+                                <p className="flex flex-wrap items-center gap-2">
+                                    <Marks release={top} />
+                                    <span className="text-ink-2">
+                                        {__('Published :date', {
+                                            date: when(top.publishedAt),
+                                        })}
+                                    </span>
+                                </p>
+                                {securityBefore !== undefined && (
+                                    <Notice tone="warn">
+                                        {__(
+                                            ':before carries security fixes. Updating to :version brings them too.',
+                                            {
+                                                before: securityBefore.version,
+                                                version: top.version,
+                                            },
                                         )}
-                                    </dl>
-                                </>
-                            )}
-                        </>
-                    )}
-                </Panel>
-
-                <Panel id="updates-how" title="How to update">
-                    <p>To update by hand instead:</p>
-                    <ul className="list-disc space-y-1 pl-5">
-                        <li>
-                            <strong className="font-medium">On Dokploy:</strong>{' '}
-                            set <Code>TEME_IMAGE</Code> and{' '}
-                            <Code>TEME_UPDATER_IMAGE</Code> to the new tag and
-                            Deploy.
-                        </li>
-                        <li>
-                            <strong className="font-medium">
-                                With Docker Compose:
-                            </strong>{' '}
-                            change <Code>TEME_IMAGE</Code> in <Code>.env</Code>{' '}
-                            to the new tag, then run{' '}
-                            <Code>docker compose pull</Code> and{' '}
-                            <Code>docker compose up --detach</Code>.
-                        </li>
-                    </ul>
-                </Panel>
-
-                <Panel id="updates-deploys" title="Deploys">
-                    <p className="text-ink-2">The last ten, newest first.</p>
-                    {deploys.length === 0 ? (
-                        <p className="text-ink-2">
-                            No deploy recorded yet. Each{' '}
-                            <Code>php artisan teme:deploy</Code> is recorded
-                            from this release on.
-                        </p>
-                    ) : (
-                        <ul className="space-y-3">
-                            {deploys.map((run, at) => {
-                                const outcome = OUTCOMES[run.outcome] ?? {
-                                    label: run.outcome,
-                                    level: 'warn' as const,
-                                };
-                                const Icon =
-                                    outcome.level === 'ok'
-                                        ? CircleCheck
-                                        : outcome.level === 'bad'
-                                          ? CircleX
-                                          : TriangleAlert;
-                                const color = {
-                                    ok: 'text-ok-ink',
-                                    warn: 'text-warn-ink',
-                                    bad: 'text-danger-ink',
-                                }[outcome.level];
-                                const ran = `${run.migrations} ${run.migrations === 1 ? 'migration' : 'migrations'} ran`;
-                                const sentence =
-                                    run.outcome === 'deployed'
-                                        ? `Updated to Teme ${run.version}. ${
-                                              run.migrations === 0
-                                                  ? 'No migrations to run.'
-                                                  : `${ran}${run.backupRun !== null ? ', after a backup' : ''}.`
-                                          }`
-                                        : `Teme ${run.version}. ${run.sentence}`;
-
-                                return (
-                                    <li key={at} className="space-y-0.5">
-                                        <span
-                                            className={`${color} flex items-center gap-1.5 font-medium`}
+                                    </Notice>
+                                )}
+                                {top.maintenance && (
+                                    <Notice tone="info">
+                                        {__(
+                                            'This release changes the database in a way the one before can’t run beside. The site must be in maintenance mode while it deploys: see the release’s notes.',
+                                        )}
+                                    </Notice>
+                                )}
+                                <Notes release={top} />
+                                {top.url !== null && (
+                                    <p>
+                                        <a
+                                            href={top.url}
+                                            className="underline"
+                                            rel="noreferrer"
                                         >
-                                            <Icon
-                                                aria-hidden="true"
-                                                className="size-4 shrink-0"
-                                            />
-                                            {outcome.label}
-                                        </span>
-                                        <span className="block">
-                                            {sentence}
-                                        </span>
-                                        <span className="text-ink-2 block">
-                                            {when(run.finishedAt)} · took{' '}
-                                            {duration(
-                                                run.startedAt,
-                                                run.finishedAt,
+                                            {__('Read it on GitHub')}
+                                        </a>
+                                    </p>
+                                )}
+                                {older.length > 0 && (
+                                    <div className="grid gap-2">
+                                        <p className="text-ink-2">
+                                            {__('Also after yours')}
+                                        </p>
+                                        {older.map((release) => (
+                                            <Collapsible
+                                                key={release.version}
+                                                className="border-line rounded-md border"
+                                            >
+                                                <CollapsibleTrigger className="group focus-visible:ring-ring flex min-h-10 w-full items-center gap-3 rounded-md px-3 text-start outline-none focus-visible:ring-2">
+                                                    <span className="flex-1">
+                                                        {__(
+                                                            'Teme :version · Published :date',
+                                                            {
+                                                                version:
+                                                                    release.version,
+                                                                date: when(
+                                                                    release.publishedAt,
+                                                                ),
+                                                            },
+                                                        )}
+                                                    </span>
+                                                    <ChevronDown
+                                                        aria-hidden="true"
+                                                        className="size-4 shrink-0 group-data-[state=open]:rotate-180"
+                                                    />
+                                                </CollapsibleTrigger>
+                                                <CollapsibleContent className="grid gap-3 px-3 pb-3">
+                                                    <Marks release={release} />
+                                                    <Notes release={release} />
+                                                </CollapsibleContent>
+                                            </Collapsible>
+                                        ))}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </Section>
+
+                    <Section
+                        id="updates-check"
+                        title={__('Checking for releases')}
+                    >
+                        {!check.enabled ? (
+                            <p>
+                                <WithCode
+                                    words={__(
+                                        'Update checks are off on this server (:check).',
+                                    )}
+                                    codes={CODES}
+                                />
+                            </p>
+                        ) : (
+                            <>
+                                <p>
+                                    {__(
+                                        'Once an hour Teme asks GitHub for its list of releases. It sends nothing about this site.',
+                                    )}
+                                </p>
+                                {check.checkedAt === null ? (
+                                    <p className="text-ink-2">
+                                        <WithCode
+                                            words={__(
+                                                'Not checked yet. It runs within the hour, or now with :checkNow.',
                                             )}
-                                            {run.backupRun !== null && (
+                                            codes={CODES}
+                                        />
+                                    </p>
+                                ) : (
+                                    <>
+                                        {check.error !== null && (
+                                            <Notice tone="warn">
+                                                <span className="sr-only">
+                                                    {__('Problem:')}{' '}
+                                                </span>
+                                                {check.error}
+                                            </Notice>
+                                        )}
+                                        <dl
+                                            className="grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                                            style={FACTS}
+                                        >
+                                            <dt className="text-small text-ink-2">
+                                                {__('Last checked')}
+                                            </dt>
+                                            <dd>{when(check.checkedAt)}</dd>
+                                            {check.succeededAt !== null && (
                                                 <>
-                                                    {' · '}
-                                                    <Link
-                                                        href={backupsIndex()}
-                                                        className="underline"
-                                                    >
-                                                        See the backup
-                                                    </Link>
+                                                    <dt className="text-small text-ink-2">
+                                                        {__(
+                                                            'Last read the list',
+                                                        )}
+                                                    </dt>
+                                                    <dd>
+                                                        {when(
+                                                            check.succeededAt,
+                                                        )}
+                                                    </dd>
                                                 </>
                                             )}
-                                        </span>
-                                    </li>
-                                );
-                            })}
+                                        </dl>
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </Section>
+
+                    <Section id="updates-how" title={__('How to update')}>
+                        <p>{__('To update by hand instead:')}</p>
+                        <ul className="grid list-disc gap-1 ps-5">
+                            <li>
+                                <strong className="font-medium">
+                                    {__('On Dokploy:')}
+                                </strong>{' '}
+                                <WithCode
+                                    words={__(
+                                        'set :image and :updaterImage to the new tag and Deploy.',
+                                    )}
+                                    codes={CODES}
+                                />
+                            </li>
+                            <li>
+                                <strong className="font-medium">
+                                    {__('With Docker Compose:')}
+                                </strong>{' '}
+                                <WithCode
+                                    words={__(
+                                        'change :image in :env to the new tag, then run :pull and :up.',
+                                    )}
+                                    codes={CODES}
+                                />
+                            </li>
                         </ul>
-                    )}
-                </Panel>
-            </div>
+                    </Section>
+
+                    <Section id="updates-deploys" title={__('Deploys')}>
+                        <p className="text-ink-2">
+                            {__('The last ten, newest first.')}
+                        </p>
+                        {deploys.length === 0 ? (
+                            <p className="text-ink-2">{noDeploy}</p>
+                        ) : (
+                            <ul className="grid gap-3">
+                                {deploys.map((run, at) => {
+                                    const { label, tone } = outcome(
+                                        run.outcome,
+                                    );
+                                    const sentence =
+                                        run.outcome === 'deployed'
+                                            ? __(
+                                                  'Updated to Teme :version. :ran',
+                                                  {
+                                                      version: run.version,
+                                                      ran:
+                                                          run.migrations === 0
+                                                              ? __(
+                                                                    'No migrations to run.',
+                                                                )
+                                                              : run.backupRun !==
+                                                                  null
+                                                                ? __n(
+                                                                      ':count migration ran, after a backup.|:count migrations ran, after a backup.',
+                                                                      run.migrations,
+                                                                  )
+                                                                : __n(
+                                                                      ':count migration ran.|:count migrations ran.',
+                                                                      run.migrations,
+                                                                  ),
+                                                  },
+                                              )
+                                            : __('Teme :version. :sentence', {
+                                                  version: run.version,
+                                                  sentence: run.sentence,
+                                              });
+
+                                    return (
+                                        <li
+                                            key={at}
+                                            className="grid justify-items-start gap-1"
+                                        >
+                                            <StatusPill tone={tone}>
+                                                {label}
+                                            </StatusPill>
+                                            <span>{sentence}</span>
+                                            <span className="text-ink-2">
+                                                {__(':date · took :took', {
+                                                    date: when(run.finishedAt),
+                                                    took: duration(
+                                                        run.startedAt,
+                                                        run.finishedAt,
+                                                    ),
+                                                })}
+                                                {run.backupRun !== null && (
+                                                    <>
+                                                        {' · '}
+                                                        <Link
+                                                            href={backupsIndex()}
+                                                            className="underline"
+                                                        >
+                                                            {__(
+                                                                'See the backup',
+                                                            )}
+                                                        </Link>
+                                                    </>
+                                                )}
+                                            </span>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </Section>
+                </div>
+            </FormPage>
         </>
     );
 }
-
-Updates.layout = {
-    breadcrumbs: [
-        { title: 'Tools', href: index() },
-        { title: 'Updates', href: updatesIndex() },
-    ],
-};
