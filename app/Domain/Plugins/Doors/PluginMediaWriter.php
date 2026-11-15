@@ -78,15 +78,16 @@ final readonly class PluginMediaWriter implements MediaWriter
             }
 
             $name = $this->filename($url, $title);
+            $sourceUrl = $this->sourceUrl($url);
 
             try {
-                $media = DB::transaction(function () use ($temp, $name, $actingPersonId, $url, $alt, $title) {
+                $media = DB::transaction(function () use ($temp, $name, $actingPersonId, $sourceUrl, $alt, $title) {
                     $media = app(UploadMedia::class)->execute(new UploadMediaInput(
                         path: $temp,
                         originalFilename: $name,
                         actorId: $actingPersonId,
                         allowDuplicate: true,
-                        sourceUrl: $url,
+                        sourceUrl: $sourceUrl,
                     ));
 
                     if ($alt !== null || $title !== null) {
@@ -130,6 +131,21 @@ final readonly class PluginMediaWriter implements MediaWriter
         return ($title !== null && trim($title) !== '' ? trim($title) : 'download').'.bin';
     }
 
+    /** The URL without its query string, for storage. */
+    private function sourceUrl(string $url): string
+    {
+        $parts = parse_url($url);
+
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
+            return $url;
+        }
+
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $path = $parts['path'] ?? '';
+
+        return $parts['scheme'].'://'.$parts['host'].$port.$path;
+    }
+
     /**
      * @throws WriteRefused
      */
@@ -140,13 +156,13 @@ final readonly class PluginMediaWriter implements MediaWriter
         }
 
         if ($failure instanceof AuthorizationException) {
-            throw new WriteRefused($failure->getMessage() !== '' ? $failure->getMessage() : 'Not permitted.', previous: $failure);
+            throw new WriteRefused($failure->getMessage() !== '' ? $failure->getMessage() : __('Not permitted.'), previous: $failure);
         }
 
         if ($failure instanceof ValidationException) {
             $first = collect($failure->errors())->flatten()->first();
 
-            throw new WriteRefused(is_string($first) && $first !== '' ? $first : 'The change was refused.', previous: $failure);
+            throw new WriteRefused(is_string($first) && $first !== '' ? $first : __('The change was refused.'), previous: $failure);
         }
 
         throw $failure;

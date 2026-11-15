@@ -137,6 +137,51 @@ it('refuses when no person is named and writes nothing', function (): void {
     Http::assertNothingSent();
 });
 
+it('refuses a person without media.upload and writes nothing', function (): void {
+    $contributor = User::factory()->create()->assignRole('contributor');
+    $this->actingAs($contributor);
+    Http::fake(['https://cdn.example.com/harbour.jpg' => Http::response(($this->jpeg)(), 200, ['Content-Type' => 'image/jpeg'])]);
+    $before = Media::query()->count();
+
+    expect(fn () => ($this->door)()->fromAddress('https://cdn.example.com/harbour.jpg', (string) $contributor->id))
+        ->toThrow(WriteRefused::class)
+        ->and(Media::query()->count())->toBe($before);
+});
+
+it('refuses an unknown person and writes nothing', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    Http::fake(['https://cdn.example.com/harbour.jpg' => Http::response(($this->jpeg)(), 200)]);
+    $before = Media::query()->count();
+
+    expect(fn () => ($this->door)()->fromAddress('https://cdn.example.com/harbour.jpg', '999999'))
+        ->toThrow(WriteRefused::class)
+        ->and(Media::query()->count())->toBe($before);
+    Http::assertNothingSent();
+});
+
+it('refuses a 3xx answer and writes nothing', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    Http::fake(['https://cdn.example.com/harbour.jpg' => Http::response('moved', 302, ['Location' => 'https://cdn.example.com/other.jpg'])]);
+    $before = Media::query()->count();
+
+    expect(fn () => ($this->door)()->fromAddress('https://cdn.example.com/harbour.jpg', (string) $editor->id))
+        ->toThrow(WriteRefused::class)
+        ->and(Media::query()->count())->toBe($before);
+});
+
+it('strips the query string from the stored source URL', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    $body = ($this->jpeg)();
+    Http::fake(['https://cdn.example.com/harbour.jpg*' => Http::response($body, 200, ['Content-Type' => 'image/jpeg'])]);
+
+    $media = ($this->door)()->fromAddress('https://cdn.example.com/harbour.jpg?token=secret', (string) $editor->id);
+
+    expect(Media::query()->findOrFail($media->id)->source_url)->toBe('https://cdn.example.com/harbour.jpg');
+});
+
 it('refuses alt text over 1000 characters before fetching, and writes nothing', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
     $this->actingAs($editor);

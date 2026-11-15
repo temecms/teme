@@ -68,14 +68,14 @@ final readonly class PluginContentWriter implements ContentWriter
         $content = Content::query()->find($item->id);
 
         if ($content === null) {
-            throw new WriteRefused('That item does not exist.');
+            throw new WriteRefused(__('That item does not exist.'));
         }
 
         /** @var ContentRevision|null $revision */
         $revision = ContentRevision::query()->find($content->working_revision_id);
 
         if ($revision === null) {
-            throw new WriteRefused('That item has no draft to change.');
+            throw new WriteRefused(__('That item has no draft to change.'));
         }
 
         $title = $changes->title ?? (string) $revision->title;
@@ -117,7 +117,7 @@ final readonly class PluginContentWriter implements ContentWriter
         $content = Content::query()->find($item->id);
 
         if ($content === null || $content->working_revision_id === null) {
-            throw new WriteRefused('That item does not exist.');
+            throw new WriteRefused(__('That item does not exist.'));
         }
 
         try {
@@ -139,7 +139,7 @@ final readonly class PluginContentWriter implements ContentWriter
         $content = Content::query()->find($item->id);
 
         if ($content === null || $content->working_revision_id === null) {
-            throw new WriteRefused('That item does not exist.');
+            throw new WriteRefused(__('That item does not exist.'));
         }
 
         try {
@@ -298,13 +298,13 @@ final readonly class PluginContentWriter implements ContentWriter
         }
 
         if ($failure instanceof AuthorizationException) {
-            throw new WriteRefused($failure->getMessage() !== '' ? $failure->getMessage() : 'Not permitted.', previous: $failure);
+            throw new WriteRefused($failure->getMessage() !== '' ? $failure->getMessage() : __('Not permitted.'), previous: $failure);
         }
 
         if ($failure instanceof ValidationException) {
             $first = collect($failure->errors())->flatten()->first();
 
-            throw new WriteRefused(is_string($first) && $first !== '' ? $first : 'The change was refused.', previous: $failure);
+            throw new WriteRefused(is_string($first) && $first !== '' ? $first : __('The change was refused.'), previous: $failure);
         }
 
         throw $failure;
