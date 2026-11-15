@@ -31,6 +31,9 @@ final class PageTags
     /** Search and social's settings, which every page the document shell draws reads, its robots meta at least. */
     public const string SEO = 'seo';
 
+    /** Every article page that drew insertions from contributors (I-064). */
+    public const string INSERTIONS = 'insertions';
+
     /**
      * Whether the tag names a list by its query (a type's, a term's, an
      * author's, a year's, a month's, an item's comments, the list of a

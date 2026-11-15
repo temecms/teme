@@ -10,9 +10,11 @@ use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\Site\Insertions\InsertionPoints;
 use Composer\Autoload\ClassLoader;
 use ReflectionClass;
 use ReflectionNamedType;
+use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Plugins\Plugin;
 use Throwable;
 
@@ -111,6 +113,11 @@ final readonly class PluginLoader
 
             if ($problems !== []) {
                 throw new PluginRefused($problems[0]);
+            }
+
+            // Insertion contributors are bound only when content.insert was granted (I-064).
+            if ($instance instanceof InsertionContributor) {
+                app(InsertionPoints::class)->bind($instance, $record->consent['capabilities'] ?? []);
             }
         } catch (Throwable $failure) {
             $this->subscriptions->forget($plugin->name);

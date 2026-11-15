@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 
 /**
  * What Teme offers a plugin's constructor: the settings reader, its own
- * secrets, and the outbound door to its hosts when it was granted http
- * (I-3353). Bound as the loader's PluginServices.
+ * secrets, the outbound door to its hosts when it was granted http, and
+ * InsertionsChanged when it was granted content.insert (I-3353, I-064).
+ * Bound as the loader's PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
 {
@@ -21,6 +24,7 @@ final readonly class PluginDoors implements PluginServices
         private SettingsReader $settings,
         private SecretReader $secrets,
         private HostResolver $resolver,
+        private CoreInsertionsChanged $insertionsChanged,
     ) {}
 
     /**
@@ -41,6 +45,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
             $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver);
+        }
+
+        if (in_array(Capability::ContentInsert->value, $capabilities, true)) {
+            $offered[InsertionsChanged::class] = $this->insertionsChanged;
         }
 
         return $offered;

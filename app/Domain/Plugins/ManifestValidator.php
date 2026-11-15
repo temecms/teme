@@ -12,6 +12,7 @@ use Composer\Semver\Semver;
 use ReflectionClass;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Plugins\Capability;
 use UnexpectedValueException;
 
@@ -234,6 +235,8 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for ".($type ?? "an untyped \${$parameter['name']}").'; a plugin may ask only for what Teme offers plugins.';
             } elseif (strtolower((string) $type) === strtolower(OutboundHttp::class) && ! in_array(Capability::Http->value, $read->capabilities(), true)) {
                 $errors[] = "{$class} asks for the outbound door, but the plugin doesn’t ask for http.";
+            } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! in_array(Capability::ContentInsert->value, $read->capabilities(), true)) {
+                $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
             }
         }
 

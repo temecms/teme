@@ -7,7 +7,8 @@ namespace Teme\Contracts\Plugins;
 /**
  * What a plugin can ask an administrator to let it do in the first release.
  * ContentRead unlocks the content-reading hooks, MediaRead the media-reading
- * hooks, and Http the outbound door, to the hosts the plugin names.
+ * hooks, ContentInsert the article insertion points, and Http the outbound
+ * door, to the hosts the plugin names.
  *
  * @since 0.5.0
  */
@@ -15,5 +16,6 @@ enum Capability: string
 {
     case ContentRead = 'content.read';
     case MediaRead = 'media.read';
+    case ContentInsert = 'content.insert';
     case Http = 'http';
 }

@@ -55,6 +55,7 @@ final class EnablePluginCommand extends Command
             $this->line('  '.match ($capability) {
                 Capability::ContentRead->value => __('Read your posts and pages, including drafts'),
                 Capability::MediaRead->value => __('Read the media library'),
+                Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
                 Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
                 default => $capability,
             });
