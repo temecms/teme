@@ -42,6 +42,7 @@ final readonly class PluginWords
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
             Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
+            Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
             default => $capability,
         };
     }

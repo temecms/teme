@@ -66,16 +66,9 @@ final readonly class PluginLoader
 
         foreach ($records as $record) {
             $plugin = $found[$record->name] ?? null;
-            $why = match (true) {
-                in_array($record->name, $disabledOnServer, true) => PluginState::DisabledOnServer,
-                $plugin === null => PluginState::CodeGone,
-                ! $plugin->usable() || $plugin->manifest === null || $this->validator->liveErrors($plugin) !== [] => PluginState::CantBeUsed,
-                ! Consent::covers($record->consent, $plugin->manifest) => PluginState::Waiting,
-                $this->migrations->waiting($plugin, $record->migrations) !== [] => PluginState::Waiting,
-                default => null,
-            };
+            $why = $this->skipReason($record, $plugin, $disabledOnServer);
 
-            if ($why !== null) {
+            if ($why !== null || $plugin === null) {
                 $this->loaded->skipped($record->name, $why);
 
                 continue;
@@ -83,6 +76,29 @@ final readonly class PluginLoader
 
             $this->start($record, $plugin);
         }
+    }
+
+    /**
+     * Why this enabled plugin may not load now, or null when it may: the
+     * server's switch (one name or `*`), its code gone, a live error in its
+     * manifest or code, an update that asks for more than was agreed, or
+     * migrations waiting. Starting it and answering its public routes follow
+     * this one rule.
+     *
+     * @param  true|list<string>|null  $disabledOnServer  the server's switch, read afresh when null
+     */
+    public function skipReason(PluginRecord $record, ?FoundPlugin $plugin, true|array|null $disabledOnServer = null): ?PluginState
+    {
+        $disabledOnServer ??= $this->disabledOnServer();
+
+        return match (true) {
+            $disabledOnServer === true || in_array($record->name, $disabledOnServer, true) => PluginState::DisabledOnServer,
+            $plugin === null => PluginState::CodeGone,
+            ! $plugin->usable() || $plugin->manifest === null || $this->validator->liveErrors($plugin) !== [] => PluginState::CantBeUsed,
+            ! Consent::covers($record->consent, $plugin->manifest) => PluginState::Waiting,
+            $this->migrations->waiting($plugin, $record->migrations) !== [] => PluginState::Waiting,
+            default => null,
+        };
     }
 
     /**

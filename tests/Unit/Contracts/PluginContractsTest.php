@@ -69,7 +69,7 @@ it('gives every new contract its @since and nothing from a framework', function 
 ]);
 
 it('names the capabilities a plugin can ask for in the first release', function (): void {
-    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http', 'import.wordpress']);
+    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http', 'import.wordpress', 'routes.public']);
 });
 
 it('decodes an answer’s JSON, and refuses JSON that isn’t', function (): void {

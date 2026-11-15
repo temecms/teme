@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\PublicRoutes\DeclaredRoute;
+
 /**
  * What a person agreed to a plugin doing, against what its manifest asks for
  * now (I-3353): an update that asks for nothing more starts at once, and one
- * that asks for more waits until someone agrees.
+ * that asks for more waits until someone agrees. Declared public routes count
+ * as access too: a new METHOD path, a GET turned into a POST, or a new
+ * `.well-known` name needs another yes (`docs/plans/plugin-public-routes.md`).
  */
 final readonly class Consent
 {
     /**
      * Whether the access agreed to covers what the manifest asks for now: every
-     * capability agreed, and every host covered by an agreed host (HostPattern).
-     * Hooks are shown, never agreed to: a new hook that needs no new capability
-     * needs no new yes.
+     * capability agreed, every host covered by an agreed host (HostPattern),
+     * and every declared public route's METHOD path. Hooks are shown, never
+     * agreed to: a new hook that needs no new capability needs no new yes.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>}  $consent
      */
     public static function covers(array $consent, Manifest $manifest): bool
     {
@@ -29,6 +33,10 @@ final readonly class Consent
             if (! HostPattern::anyCovers($consent['hosts'] ?? [], $host)) {
                 return false;
             }
+        }
+
+        if (array_diff(self::routeLines($manifest), $consent['routes'] ?? []) !== []) {
+            return false;
         }
 
         return true;
@@ -50,17 +58,43 @@ final readonly class Consent
 
     /**
      * What the manifest asks for that was never agreed to: its new
-     * capabilities, and its hosts no agreed host covers.
+     * capabilities, its hosts no agreed host covers, and its new route lines.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>}  $consent
      *
-     * @return array{capabilities: list<string>, hosts: list<string>}
+     * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>}
      */
     public static function added(array $consent, Manifest $manifest): array
     {
         return [
             'capabilities' => array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? [])),
             'hosts' => array_values(array_filter($manifest->hosts(), fn (string $host): bool => ! HostPattern::anyCovers($consent['hosts'] ?? [], $host))),
+            'routes' => array_values(array_diff(self::routeLines($manifest), $consent['routes'] ?? [])),
         ];
+    }
+
+    /**
+     * Each declared public route as `METHOD path`, with `{code}` replaced by
+     * the plugin's code and its condition, when it has one, in brackets, in
+     * the file's order. The consent screen lists these, so a changed
+     * condition asks again too.
+     *
+     * @return list<string>
+     */
+    public static function routeLines(Manifest $manifest): array
+    {
+        $lines = [];
+
+        foreach ($manifest->routes() as $raw) {
+            $route = DeclaredRoute::fromManifest($manifest, $raw);
+
+            if (! is_string($raw['method'] ?? null) || $route->path === '') {
+                continue;
+            }
+
+            $lines[] = $route->consentLine();
+        }
+
+        return $lines;
     }
 }

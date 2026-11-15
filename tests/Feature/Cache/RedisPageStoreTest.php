@@ -9,14 +9,16 @@ use App\Domain\Cache\PageStore;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RedisPageStore;
 use Illuminate\Contracts\Redis\Factory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Redis\Events\CommandExecuted;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Redis;
 
-// No database trait: the store keeps nothing in PostgreSQL, and TestCase
-// stops any query from a test without one (#14).
+// The store keeps nothing in PostgreSQL, but PageKey consults
+// PublicRouteRegistry (plugins table), so RefreshDatabase is required (#14).
+uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->freezeSecond();

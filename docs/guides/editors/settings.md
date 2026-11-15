@@ -10,6 +10,7 @@ screens:
   - settings.addresses.show
   - settings.ai
   - settings.site-code
+  - settings.fediverse
   - themes.index
 sources:
   - resources/js/pages/settings
@@ -127,6 +128,10 @@ The AI services Teme may use, the model each task uses, and how much people may 
 ### Languages
 
 The language your site is written in, and the other languages it publishes in. For now this page only shows them: adding a language, and translating, come in a later release.
+
+### Fediverse
+
+Whether people on Mastodon and other fediverse servers can follow the site, and who they can follow: the blog, its authors, or both. Switching it off pauses it and keeps the followers. It also lists the site's accounts, the servers not answering, and the blocked servers. Administrators change it.
 
 ## To find a setting
 

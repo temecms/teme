@@ -7,7 +7,8 @@ namespace Teme\Contracts\Plugins;
 /**
  * What a plugin can ask an administrator to let it do in the first release.
  * ContentRead unlocks the content-reading hooks, MediaRead the media-reading
- * hooks, and Http the outbound door, to the hosts the plugin names.
+ * hooks, Http the outbound door to the hosts the plugin names, and
+ * RoutesPublic the door that answers the plugin's declared public addresses.
  * ImportWordPress hands an import the data the plugin declares under its
  * manifest's `imports`, read from the WordPress site Teme imports.
  *
@@ -19,4 +20,5 @@ enum Capability: string
     case MediaRead = 'media.read';
     case Http = 'http';
     case ImportWordPress = 'import.wordpress';
+    case RoutesPublic = 'routes.public';
 }

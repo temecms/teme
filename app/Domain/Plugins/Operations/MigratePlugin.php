@@ -17,6 +17,7 @@ use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
@@ -98,6 +99,9 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
                 'migrations' => $ran,
             ]);
         }
+
+        // Run after an update, so what the plugin's public routes stored may be another version's.
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code]));
 
         DB::afterCommit(fn () => $this->records->changed());
 

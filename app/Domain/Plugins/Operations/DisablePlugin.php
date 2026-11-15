@@ -14,6 +14,7 @@ use App\Domain\Support\Operations\BaseOperation;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
 /**
@@ -50,6 +51,8 @@ final class DisablePlugin extends BaseOperation
             throw ValidationException::withMessages(['plugin' => ['It isn’t enabled.']]);
         }
 
+        $code = $record->code;
+
         $record->fill([
             'state' => PluginRecord::DISABLED,
             'disabled_reason' => PluginRecord::BY_USER,
@@ -58,6 +61,7 @@ final class DisablePlugin extends BaseOperation
         ])->save();
 
         $this->log->record(SecurityEventType::PluginDisabled, $input->actorId(), context: ['plugin' => $input->name]);
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
 
         DB::afterCommit(fn () => $this->records->changed());
 
