@@ -101,3 +101,19 @@ it('draws nothing for NearEnd when there are fewer than three paragraphs', funct
 
     expect($plan->at())->toBe([]);
 });
+
+it('draws everyParagraphs at most ten times, by default and when a larger ceiling is asked for', function (?int $max): void {
+    $long = ['type' => 'doc', 'content' => array_map(
+        fn (int $n): array => ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => "P{$n}"]]],
+        range(1, 25),
+    )];
+    $at = $max === null ? Position::everyParagraphs(1) : Position::everyParagraphs(1, $max);
+
+    $plan = PlanBuilder::for($long, insertionFacts(25), [new Insertion('every', $at, '<i>e</i>')]);
+
+    expect(array_keys($plan->at()))->toBe(range(1, 10))
+        ->and($at->args['max'] ?? null)->toBe(10);
+})->with([
+    'the default' => [null],
+    'a ceiling of 50' => [50],
+]);

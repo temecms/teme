@@ -65,7 +65,7 @@ final class PlanBuilder
             Position::BEFORE_CONTENT => [0],
             Position::AFTER_CONTENT => [$end],
             Position::AFTER_PARAGRAPH => self::afterParagraph($at->args['n'] ?? 0, $paragraphs),
-            Position::EVERY_PARAGRAPHS => self::everyParagraphs($at->args['n'] ?? 0, $at->args['max'] ?? 10, $paragraphs),
+            Position::EVERY_PARAGRAPHS => self::everyParagraphs($at->args['n'] ?? 0, min($at->args['max'] ?? Position::EVERY_PARAGRAPHS_MAX, Position::EVERY_PARAGRAPHS_MAX), $paragraphs),
             Position::BEFORE_HEADING => self::headingIndex($headings, $at->args['level'] ?? 2, $at->args['nth'] ?? 1, 0),
             Position::AFTER_HEADING => self::headingIndex($headings, $at->args['level'] ?? 2, $at->args['nth'] ?? 1, 1),
             Position::NEAR_END => count($paragraphs) >= 3 ? [(int) end($paragraphs)] : [],

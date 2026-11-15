@@ -38,6 +38,14 @@ final class Position
     public const string NEAR_END = 'near_end';
 
     /**
+     * The most times one everyParagraphs insertion is drawn in an article; a
+     * larger ceiling is held to this.
+     *
+     * @since 0.8.0
+     */
+    public const int EVERY_PARAGRAPHS_MAX = 10;
+
+    /**
      * @param  array{n?: int, max?: int, level?: int, nth?: int}  $args
      */
     private function __construct(
@@ -67,8 +75,13 @@ final class Position
         return new self(self::AFTER_PARAGRAPH, ['n' => $n]);
     }
 
-    /** @since 0.8.0 */
-    public static function everyParagraphs(int $n, int $max = 10): self
+    /**
+     * Every $n paragraphs, at most $max times, and never more than
+     * EVERY_PARAGRAPHS_MAX.
+     *
+     * @since 0.8.0
+     */
+    public static function everyParagraphs(int $n, int $max = self::EVERY_PARAGRAPHS_MAX): self
     {
         if ($n < 1) {
             throw new InvalidArgumentException('everyParagraphs needs a positive step.');
@@ -78,7 +91,7 @@ final class Position
             throw new InvalidArgumentException('everyParagraphs needs a positive ceiling.');
         }
 
-        return new self(self::EVERY_PARAGRAPHS, ['n' => $n, 'max' => $max]);
+        return new self(self::EVERY_PARAGRAPHS, ['n' => $n, 'max' => min($max, self::EVERY_PARAGRAPHS_MAX)]);
     }
 
     /** @since 0.8.0 */
