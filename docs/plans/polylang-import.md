@@ -126,3 +126,20 @@ On a WordPress site with Polylang and the companion's `languages` route (the spe
 
 - Added: importing a WordPress site that uses Polylang brings every language, with Polylang's slugs as address prefixes, every post, page and term in its language at the address it had, translations linked, each language's home page, menus per language with their language switcher, and the site's title, tagline and title templates in each language.
 - Added: the import's analysis says when Polylang set languages from the content (the import stops), gave each language a host of its own, or when TranslatePress or MultilingualPress translates the site.
+
+### Follow-up R7
+
+The review's seven findings and its B11 note, each fixed with its test written first and seen red. The services had stopped since the first run, so `bash scripts/cloud-setup.sh` ran once more before the tests; it changed no tracked file.
+
+- **1, an unreadable answer read as no Polylang** (6f7e7b1). `ImportedLanguages::for()` no longer catches a refusal: a step waits for the site or stops as any read does. The phases that import one object at a time (content, terms, menus) call `forObjects()`, which stops the run with the refusal's reason, so no object is written in the wrong language. Red: `for()` with nothing kept and a 500 answered `none()` instead of throwing; an import whose kept answer was gone by the content phase, and whose site then answered 500, finished with every item in the default language (`Finished`, not `Stopped`).
+- **2, the from-content stop came after settings were written** (c858be0). The stop moved into `AddressSettingsStep`, before `ImportSettings`, and left `LanguagesStep`. Red: the test now also compares every settings group before and after, and `general` had gained `timezone` (version 1).
+- **3, Yoast's item parts all became `{title}`** (92be581). Every template keeps the shared parts; an item's template turns `%%date%%`, `%%name%%`, `%%category%%`/`%%primary_category%%`, `%%pt_single%%`/`%%pt_plural%%` and `%%currentyear%%` into `{date}`, `{author}`, `{term}`, `{type}` and `{year}`; an archive's, whose page fills only `{title}` with what it lists, turns `%%term_title%%`, `%%name%%`, `%%date%%` and `%%pt_plural%%` into `{title}`. `%%currentyear%%` in an archive's template has no token there and is counted with the strings left. Here `{year}` is the year the item was published, not the current year. Red: `title-post` gave `{title} {sep} {title} {sep} {title}`.
+- **4, the switcher constants split EMAIL from its docblock** (4d4353f). Moved below `EMAIL`. Only the layout of the code changed, so there is no test.
+- **5, two old languages that become one here** (cce2c43). `LanguagesStep` says so (`languages.same-tag`, with both prefixes); the first keeps its prefix. Red: an extra `es_MX` language (Teme has no `es-MX`) left no message.
+- **6, validation words outside `__()`** (a928c83). The three now go through `__()`. Red: with each sentence translated in the test, each refusal still said the English.
+- **7, groups read again for each batch** (1d58383). Fixed rather than left as a draft: `TranslationsStep` keeps a run's groups of each kind in the cache for its later jobs, and reads the maps again whenever they aren't kept (I-261). Red: three jobs of one run read the maps three times; now once. The I-?? draft about this is withdrawn.
+- **B11, `hide_default` off** (c402ee3). The analysis says when Polylang showed the default language under its own prefix (`languages.default-prefixed`). Red: no note for `hide_default: false`.
+
+**Totals** (`composer check` on c402ee3): Pint and PHPStan pass; Architecture 139 passed (1310 assertions); Unit and Feature 1 failed, 2 skipped, 10685 passed (55049 assertions). That is 8 more passing than before R7, and the same one failure as on the base (`PluginSettingsReadTest`, i18n/readers' `translationsKey()`). No baseline count changed.
+
+**Changelog line for the maintainer, added:** the import's analysis also says when Polylang showed the default language under a prefix of its own.
