@@ -77,31 +77,13 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(600)->by('csp:site')->response(fn (): Response => response()->noContent()),
         ]);
 
-        // Declared public routes (D6): per entry and address; 120 GET / 30 POST
+        // Declared public routes: per entry and address; 120 GET / 30 POST
         // a minute unless the entry asks for less, never more than 240 / 60.
         RateLimiter::for('declared-routes', function (Request $request): Limit {
-            $query = [];
+            $route = app(PublicRouteRegistry::class)->matchRequest($request);
 
-            foreach ($request->query->all() as $name => $value) {
-                if (is_scalar($value)) {
-                    $query[(string) $name] = (string) $value;
-                }
-            }
-
-            $accept = [];
-
-            foreach (explode(',', (string) $request->headers->get('Accept', '')) as $part) {
-                $type = strtolower(trim(explode(';', $part)[0]));
-
-                if ($type !== '' && $type !== '*/*') {
-                    $accept[] = $type;
-                }
-            }
-
-            $route = app(PublicRouteRegistry::class)->match($request->getMethod(), $request->getPathInfo(), $query, $accept);
-
-            // No declared match: this request falls through to feed/public,
-            // which used to sit behind site-search — keep counting ?s= the same way.
+            // No declared match: the request goes on to the public site's own
+            // routes, which count a search as site-search does.
             if ($route === null) {
                 return $request->query->has('s')
                     ? Limit::perMinute(30)->by((string) $request->ip())

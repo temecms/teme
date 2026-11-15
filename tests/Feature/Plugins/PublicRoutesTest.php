@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Contributions\DeclaredSettings;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\PublicRoutes\DeclaredRoute;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\Settings\SettingsRegistry;
+use App\Domain\Settings\SettingsWrite;
+use App\Domain\Settings\SettingsWriter;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Database\Seeders\RoleSeeder;
@@ -124,6 +128,84 @@ it('loads no plugin entry in safe mode', function (): void {
 
         expect(app(PublicRouteRegistry::class)->match('GET', '/inbound/ping'))->toBeNull();
     });
+});
+
+it('answers 404 for a plugin the server switches off, by name or with *', function (string $switch): void {
+    ($this->enable)();
+    $this->get('/inbound/ping')->assertOk();
+
+    config(['teme.plugins.disabled' => $switch]);
+    app(PublicRouteRegistry::class)->flush();
+
+    $this->get('/inbound/ping')->assertNotFound();
+})->with(['by name' => 'tests/inbound', 'all' => '*']);
+
+it('waits for consent before an update’s added route answers', function (): void {
+    ($this->enable)();
+
+    $wider = PluginFixtures::copy('inbound', [
+        'version' => '1.1.0',
+        'routes' => [
+            ...PluginFixtures::manifest('inbound')['routes'],
+            ['id' => 'extra', 'method' => 'GET', 'path' => '/{code}/extra', 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Ping'],
+        ],
+    ]);
+    PluginFixtures::use($wider);
+    app(PublicRouteRegistry::class)->flush();
+
+    $this->get('/inbound/extra')->assertNotFound();
+    expect(($this->hits)('ping'))->toBe(0);
+});
+
+it('dispatches a conditional entry on any path, GET or POST, and falls through only when nothing matches', function (): void {
+    $settings = PluginFixtures::manifest('inbound')['contributes']['settings'];
+    app(SettingsRegistry::class)->group(DeclaredSettings::group('inbound', 'Inbound', 'Inbound secrets.', '1.0.0', $settings), 'tests/inbound');
+    app(SettingsWriter::class)->write(new SettingsWrite('plugin.inbound', [], secrets: ['connection_token' => 'shared-secret']));
+
+    $conditional = PluginFixtures::copy('inbound', [
+        'routes' => [
+            ...PluginFixtures::manifest('inbound')['routes'],
+            ['id' => 'note', 'method' => 'GET', 'path' => '/{slug}', 'where' => ['slug' => '[a-z-]+'], 'when' => ['accept' => ['application/activity+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor'],
+            ['id' => 'inbox', 'method' => 'POST', 'path' => '/{slug}', 'where' => ['slug' => '[a-z-]+'], 'when' => ['query' => ['inbox' => '^1$']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Callback', 'verify' => ['kind' => 'secret', 'from' => 'header:X-Plugin-Token', 'secret' => 'connection_token']],
+        ],
+    ]);
+    PluginFixtures::use($conditional);
+    ($this->enable)();
+
+    $this->get('/hello-world', ['Accept' => 'application/activity+json'])
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/activity+json');
+    expect(($this->hits)('actor'))->toBe(1);
+
+    $this->post('/hello-world?inbox=1', [], ['X-Plugin-Token' => 'shared-secret'])->assertOk()->assertSee('ok', false);
+    expect(($this->hits)('callback'))->toBe(1);
+
+    $this->get('/hello-world', ['Accept' => 'text/html'])->assertNotFound();
+    expect(($this->hits)('actor'))->toBe(1);
+});
+
+it('answers a POST that matches nothing with 405, never a page', function (string $path): void {
+    ($this->enable)();
+
+    $response = $this->post($path);
+
+    expect($response->getStatusCode())->toBeIn([404, 405])
+        ->and($response->headers->has('X-Teme-Template'))->toBeFalse();
+})->with(['a post path' => '/hello-world', 'home' => '/', 'under the plugin' => '/inbound/nothing']);
+
+it('answers HEAD for a declared GET', function (): void {
+    ($this->enable)();
+
+    $this->call('HEAD', '/inbound/ping')->assertOk();
+    expect(($this->hits)('ping'))->toBe(1);
+});
+
+it('answers Teme’s error page when a handler throws', function (): void {
+    ($this->enable)();
+
+    $this->get('/inbound/throw')
+        ->assertStatus(500)
+        ->assertHeader('X-Teme-Template');
 });
 
 /**

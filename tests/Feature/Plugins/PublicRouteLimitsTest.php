@@ -77,7 +77,7 @@ it('lists METHOD path for each route on the consent screen', function (): void {
         ->and(collect($row['asks'])->pluck('words')->all())->toContain('Answer addresses on the public site without anyone signing in')
         ->and(collect($row['asks'])->pluck('words')->all())->toContain('GET /inbound/ping')
         ->and(collect($row['asks'])->pluck('words')->all())->toContain('POST /inbound/callback')
-        ->and(collect($row['asks'])->pluck('words')->all())->toContain('GET /');
+        ->and(collect($row['asks'])->pluck('words')->all())->toContain('GET / (query author: ^[0-9]+$; Accept: application/activity+json)');
 });
 
 it('asks for consent again when an update adds a route', function (): void {
@@ -104,4 +104,17 @@ it('asks for consent again when an update adds a route', function (): void {
 
     expect(Consent::covers($agreed, $manifest))->toBeFalse()
         ->and(Consent::added($agreed, $manifest)['routes'])->toContain('GET /inbound/extra');
+});
+
+it('answers 429 on /?author=0 with the activity Accept once its entry’s limit is spent', function (): void {
+    ($this->enable)();
+
+    $key = md5('declared-routes'.'declared:inbound:actor:127.0.0.1');
+
+    for ($i = 0; $i < 120; $i++) {
+        RateLimiter::hit($key, 60);
+    }
+
+    $this->get('/?author=0', ['Accept' => 'application/activity+json'])->assertStatus(429);
+    expect(app('inbound.hits')['actor'])->toBe(0);
 });

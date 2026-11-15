@@ -62,8 +62,9 @@ it('accepts a secret from the header and refuses a wrong or missing one', functi
 });
 
 it('accepts a secret from a form field and from the query', function (): void {
-    $this->post('/inbound/callback-field', ['token' => 'shared-secret'])
-        ->assertOk();
+    $this->call('POST', '/inbound/callback-field', content: 'token=shared-secret', server: [
+        'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+    ])->assertOk();
     expect(($this->hits)())->toBe(1);
 
     $this->post('/inbound/callback-query?token=shared-secret')
@@ -101,6 +102,24 @@ it('answers 413 over maxBody before verification, so the handler never runs', fu
         'CONTENT_TYPE' => 'text/plain',
         'HTTP_X_PLUGIN_TOKEN' => 'shared-secret',
     ])->assertStatus(413);
+
+    expect(($this->hits)())->toBe(0);
+});
+
+it('answers 413 from a Content-Length over maxBody before reading the body', function (): void {
+    $this->call('POST', '/inbound/large', content: 'x', server: [
+        'CONTENT_TYPE' => 'text/plain',
+        'CONTENT_LENGTH' => '65',
+        'HTTP_X_PLUGIN_TOKEN' => 'shared-secret',
+    ])->assertStatus(413);
+
+    expect(($this->hits)())->toBe(0);
+});
+
+it('reads a form field from a real form body and refuses a wrong one', function (): void {
+    $this->call('POST', '/inbound/callback-field', content: 'token=wrong', server: [
+        'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+    ])->assertUnauthorized();
 
     expect(($this->hits)())->toBe(0);
 });
