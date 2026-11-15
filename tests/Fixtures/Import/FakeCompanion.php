@@ -51,6 +51,9 @@ final class FakeCompanion
     /** @var array{options: array<string, string>, posts: list<array<string, mixed>>, users: array<int, array<string, list<string>>>, terms: list<array<string, mixed>>}|null */
     private ?array $wordpress = null;
 
+    /** @var array{whole: array<string, mixed>, followers: list<array<string, mixed>>, reply_sources: list<array<string, mixed>>, permalinks: array<int, string>}|null */
+    private ?array $fediverse = null;
+
     /**
      * Replaces a list route's items, or a whole route's answer, for this test.
      *
@@ -112,6 +115,24 @@ final class FakeCompanion
     }
 
     /**
+     * What the WordPress ActivityPub plugin holds, for the fediverse route
+     * (docs/specs/companion-fediverse-export.md): the route's whole answer,
+     * its followers and reply sources as items of its pages, and older
+     * posts' permalinks by ID.
+     *
+     * @param  array<string, mixed>  $whole
+     * @param  list<array<string, mixed>>  $followers
+     * @param  list<array<string, mixed>>  $replySources
+     * @param  array<int, string>  $permalinks
+     */
+    public function fediverse(array $whole, array $followers = [], array $replySources = [], array $permalinks = []): self
+    {
+        $this->fediverse = ['whole' => $whole, 'followers' => $followers, 'reply_sources' => $replySources, 'permalinks' => $permalinks];
+
+        return $this;
+    }
+
+    /**
      * The site uses plain permalinks: /wp-json/ isn't there, ?rest_route=/ is.
      */
     public function plainPermalinks(): self
@@ -168,6 +189,10 @@ final class FakeCompanion
 
         if ($route === 'extension' && $this->wordpress !== null && (int) ($this->fixture('probe')['api'] ?? 1) >= 2) {
             return $this->extension($query);
+        }
+
+        if ($route === 'fediverse' && $this->fediverse !== null && (int) ($this->fixture('probe')['api'] ?? 1) >= 3) {
+            return $this->fediverseAnswer($query);
         }
 
         $fixture = $this->fixture($route);
@@ -336,6 +361,47 @@ final class FakeCompanion
 
         return Http::response([
             'api' => 2,
+            'items' => $items,
+            'next' => count($items) >= $limit ? ['after_id' => (int) $items[count($items) - 1]['id']] : null,
+            'limit' => $limit,
+        ]);
+    }
+
+    /**
+     * The fediverse route's answer, as the companion's API 3 shapes it: the
+     * whole answer without a kind; a keyset page of followers or reply
+     * sources; the permalinks of the posts named, at most 200.
+     *
+     * @param  array<string, mixed>  $query
+     */
+    private function fediverseAnswer(array $query): PromiseInterface
+    {
+        /** @var array{whole: array<string, mixed>, followers: list<array<string, mixed>>, reply_sources: list<array<string, mixed>>, permalinks: array<int, string>} $site */
+        $site = $this->fediverse;
+        $kind = (string) ($query['kind'] ?? '');
+
+        if ($kind === '') {
+            return Http::response($site['whole']);
+        }
+
+        if ($kind === 'permalinks') {
+            $ids = array_slice(array_map(intval(...), array_filter(explode(',', (string) ($query['ids'] ?? '')), is_numeric(...))), 0, 200);
+
+            return Http::response(['permalinks' => (object) array_intersect_key($site['permalinks'], array_flip($ids))]);
+        }
+
+        if (! in_array($kind, ['followers', 'reply_sources'], true)) {
+            return Http::response(['code' => 'rest_invalid_param', 'message' => 'Invalid parameter(s): kind', 'data' => ['status' => 400]], 400);
+        }
+
+        $after = max(0, (int) ($query['after_id'] ?? 0));
+        $limit = min($kind === 'followers' ? 200 : 500, max(1, (int) ($query['limit'] ?? 200)));
+        $items = array_values(array_filter($site[$kind], fn (array $item): bool => (int) $item['id'] > $after));
+        usort($items, fn (array $a, array $b): int => (int) $a['id'] <=> (int) $b['id']);
+        $items = array_slice($items, 0, $limit);
+
+        return Http::response([
+            'api' => 3,
             'items' => $items,
             'next' => count($items) >= $limit ? ['after_id' => (int) $items[count($items) - 1]['id']] : null,
             'limit' => $limit,
