@@ -71,6 +71,10 @@ final readonly class PluginJobs implements Jobs
      */
     private function ready(array $payload): array
     {
+        if ($payload !== [] && array_is_list($payload)) {
+            throw new InvalidArgumentException('A job’s payload must be JSON-ready data.');
+        }
+
         $this->assertReady($payload);
 
         try {

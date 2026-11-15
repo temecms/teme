@@ -109,7 +109,11 @@ final class RunPluginJob implements ShouldQueue
 
         if ($handler === null) {
             $this->tries = 1;
-            $fail->execute(new FailJobInput($this->trackedJobId, "The plugin has no handler for {$this->jobKey}", $this->actor->userId));
+            $fail->execute(new FailJobInput(
+                $this->trackedJobId,
+                __('The plugin has no handler for :key', ['key' => $this->jobKey]),
+                $this->actor->userId,
+            ));
 
             return;
         }

@@ -13,6 +13,7 @@ use App\Domain\Support\Security\JobActor;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Plugins\Capability;
+use Throwable;
 
 /**
  * Queues each enabled plugin's due schedules (I-3445): one pass over enabled
@@ -51,7 +52,11 @@ final readonly class DueSchedules
         $queued = 0;
 
         foreach (PluginRecord::query()->where('state', PluginRecord::ENABLED)->cursor() as $record) {
-            $queued += $this->plugin($record, $now);
+            try {
+                $queued += $this->plugin($record, $now);
+            } catch (Throwable $failure) {
+                report($failure);
+            }
         }
 
         return $queued;

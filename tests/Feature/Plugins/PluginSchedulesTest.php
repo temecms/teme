@@ -146,3 +146,62 @@ it('is on the schedule every minute, never overlapping, on one server', function
         ->and($event->withoutOverlapping)->toBeTrue()
         ->and($event->onOneServer)->toBeTrue();
 });
+
+it('keeps queuing other plugins when one schedule throws', function (): void {
+    ($this->enable)();
+
+    $other = PluginFixtures::copy('jobs', [
+        'name' => 'tests/jobs-other',
+        'code' => 'jobs-other',
+        'label' => 'Jobs other',
+        'owns' => ['tables' => ['jobs_other_lines']],
+    ], files: [
+        'database/migrations/2026_01_01_000000_create_jobs_lines.php' => <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('jobs_other_lines', function (Blueprint $table): void {
+            $table->id();
+            $table->string('line');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('jobs_other_lines');
+    }
+};
+PHP,
+    ]);
+    PluginFixtures::use('jobs', $other);
+    PluginFixtures::installed(['tests/jobs' => 'jobs', 'tests/jobs-other' => $other]);
+
+    $plugin = app(PluginRegistry::class)->find('tests/jobs-other');
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/jobs-other',
+        $plugin?->manifest?->version() ?? '1.0.0',
+        $plugin?->manifest?->capabilities() ?? [],
+        $plugin?->manifest?->hosts() ?? [],
+        $plugin?->manifest?->hooks() ?? [],
+        (string) $this->admin->id,
+    ));
+
+    Queue::fake();
+    $this->travelTo('2026-11-15 12:00:00');
+
+    $broken = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+    $broken->schedule_runs = ['write-line' => 'not-a-time'];
+    $broken->save();
+
+    expect(app(DueSchedules::class)->run())->toBe(1)
+        ->and(TrackedJob::query()->where('owner', 'jobs-other')->count())->toBe(1)
+        ->and(TrackedJob::query()->where('owner', 'jobs')->count())->toBe(0);
+});

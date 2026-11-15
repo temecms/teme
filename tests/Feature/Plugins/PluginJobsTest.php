@@ -192,7 +192,9 @@ it('refuses a payload over 64 KB or with an object', function (): void {
     expect(fn () => $jobs->queue('write-line', ['line' => str_repeat('a', 70_000)]))
         ->toThrow(InvalidArgumentException::class)
         ->and(fn () => $jobs->queue('write-line', ['line' => new stdClass]))
-        ->toThrow(InvalidArgumentException::class)
+        ->toThrow(InvalidArgumentException::class, 'A job’s payload must be JSON-ready data.')
+        ->and(fn () => $jobs->queue('write-line', ['one', 'two']))
+        ->toThrow(InvalidArgumentException::class, 'A job’s payload must be JSON-ready data.')
         ->and(DB::table('tracked_jobs')->count())->toBe(0);
 });
 
