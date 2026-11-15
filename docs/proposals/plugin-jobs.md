@@ -18,7 +18,7 @@ A plugin that writes articles with AI, syncs with an outside service or rebuilds
 8. **Jobs change content only through Operations** (rule 1). Writing content is part A's socket; this part only runs the work.
 9. **A failing handler never breaks the worker.** Its exception is reported, the run fails with the first line of the message, and other jobs carry on.
 
-## Provisional (built as written unless the owner says otherwise)
+## Provisional (built as written unless the maintainers say otherwise)
 
 - P1. The longest run: 30 minutes for `long` jobs, 2 minutes for others.
 - P2. The schedule choices listed in Settled 6 (no free-form cron yet).
