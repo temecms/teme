@@ -259,7 +259,7 @@ export function PublishPanel({
             : `The template “${choice.missing}” isn't in the current theme, so the default layout is used. It stays chosen, and comes back if the theme does.`;
 
     return (
-        <Panel>
+        <Panel data-test="publish-section">
             <PanelHeader>
                 <h2>Publish</h2>
             </PanelHeader>

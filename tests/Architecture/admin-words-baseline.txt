@@ -319,7 +319,6 @@ components/editor/editor-rail.tsx	, opens in a new tab
 components/editor/editor-rail.tsx	Approve
 components/editor/editor-rail.tsx	Approve and schedule
 components/editor/editor-rail.tsx	Approve and schedule…
-components/editor/editor-rail.tsx	Close {}
 components/editor/editor-rail.tsx	Compare with the published version
 components/editor/editor-rail.tsx	Date and time
 components/editor/editor-rail.tsx	Move to trash

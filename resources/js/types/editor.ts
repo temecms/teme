@@ -271,6 +271,8 @@ export type RailPane = {
     owner: string;
     title: string;
     render: () => ReactNode;
+    /** Offers "Open larger": the same pane, its state kept, in a large dialog. */
+    openLarger?: boolean;
 };
 
 /** What wrote a revision the assistant made: the option's words, else the task's (null once the request was pruned), and the request's row for those who may open it (I-1307). */

@@ -1,20 +1,32 @@
 import { Form, Link } from '@inertiajs/react';
 import type { Editor } from '@tiptap/core';
 import { NodeSelection } from '@tiptap/pm/state';
-import { Eye, X } from 'lucide-react';
+import { ArrowLeft, Eye, X } from 'lucide-react';
 import {
     createContext,
     useCallback,
     useContext,
     useEffect,
+    useLayoutEffect,
     useMemo,
+    useRef,
     useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import ContentActionController from '@/actions/App/Http/Admin/Contents/ContentActionController';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { PluginMark } from '@/components/ui/plugin-mark';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import InputError from '@/components/input-error';
 import { Label } from '@/components/ui/label';
+import { __ } from '@/lib/i18n';
 import { nextWholeHour } from '@/lib/zoned-time';
 import { compare } from '@/routes/content';
 import type {
@@ -57,6 +69,8 @@ export type RailContext = {
     pane: RailPane | null;
     openPane: (pane: RailPane) => void;
     closePane: (id?: string) => void;
+    /** Closes the pane from its head, and puts focus back on what opened it. */
+    leavePane: () => void;
 };
 
 const Rail = createContext<RailContext | null>(null);
@@ -70,8 +84,18 @@ const Rail = createContext<RailContext | null>(null);
  */
 export function useRailPanes(): RailContext {
     const [pane, setPane] = useState<RailPane | null>(null);
+    // What had focus as the pane opened, and its id, should the sections draw it again.
+    const opener = useRef<{ element: HTMLElement; id: string } | null>(null);
 
-    const openPane = useCallback((next: RailPane) => setPane(next), []);
+    const openPane = useCallback((next: RailPane) => {
+        const active = document.activeElement;
+
+        if (active instanceof HTMLElement && active !== document.body) {
+            opener.current = { element: active, id: active.id };
+        }
+
+        setPane(next);
+    }, []);
     const closePane = useCallback(
         (id?: string) =>
             setPane((current) =>
@@ -79,10 +103,30 @@ export function useRailPanes(): RailContext {
             ),
         [],
     );
+    const leavePane = useCallback(() => {
+        const back = opener.current;
+
+        setPane(null);
+        opener.current = null;
+
+        // Once the sections are drawn again.
+        requestAnimationFrame(() => {
+            const target =
+                back === null
+                    ? null
+                    : back.element.isConnected
+                      ? back.element
+                      : back.id !== ''
+                        ? document.getElementById(back.id)
+                        : null;
+
+            target?.focus();
+        });
+    }, []);
 
     return useMemo(
-        () => ({ pane, openPane, closePane }),
-        [pane, openPane, closePane],
+        () => ({ pane, openPane, closePane, leavePane }),
+        [pane, openPane, closePane, leavePane],
     );
 }
 
@@ -283,7 +327,10 @@ function ActionBar({
     );
 
     return (
-        <div className="border-line bg-page sticky top-0 z-10 grid gap-2 border-b px-4 py-3">
+        <div
+            data-slot="action-bar"
+            className="bg-chrome sticky top-0 z-(--z-sticky) grid gap-2 p-4"
+        >
             <div className="flex flex-wrap items-center gap-2">
                 {onPreview !== null && (
                     <Button
@@ -454,6 +501,155 @@ function ActionBar({
     );
 }
 
+/** The pane's body, rendered once into a node that moves between the rail and the larger dialog, so its state survives (DS 4.39). */
+function PaneBody({
+    pane,
+    large,
+    railSlot,
+    dialogSlot,
+}: {
+    pane: RailPane;
+    large: boolean;
+    railSlot: HTMLElement | null;
+    dialogSlot: HTMLElement | null;
+}) {
+    const [host] = useState(() => document.createElement('div'));
+
+    useLayoutEffect(() => {
+        const slot = large ? dialogSlot : railSlot;
+
+        slot?.appendChild(host);
+
+        return () => {
+            host.remove();
+        };
+    }, [host, large, railSlot, dialogSlot]);
+
+    return createPortal(pane.render(), host);
+}
+
+/**
+ * One pane in the rail (docs/architecture/design-system.md, 4.39): a
+ * sticky head with Back, the title (focused as the pane opens, unless it
+ * opened from the text, as a selected card's does), the plug mark for a
+ * plugin's, "Open larger" where the pane offers it, and Close. Open larger
+ * moves the same body into a large dialog and back, its state kept.
+ */
+function PaneView({
+    pane,
+    noun,
+    onBack,
+}: {
+    pane: RailPane;
+    noun: string;
+    onBack: () => void;
+}) {
+    const [large, setLarge] = useState(false);
+    const [railSlot, setRailSlot] = useState<HTMLElement | null>(null);
+    const [dialogSlot, setDialogSlot] = useState<HTMLElement | null>(null);
+    const title = useRef<HTMLHeadingElement>(null);
+    const larger = useRef<HTMLButtonElement>(null);
+    const plugin = pane.owner !== 'core';
+
+    useEffect(() => {
+        const fromText =
+            document.activeElement?.closest('.ProseMirror') !== null &&
+            document.activeElement?.closest('.ProseMirror') !== undefined;
+
+        if (!fromText) {
+            title.current?.focus();
+        }
+    }, []);
+
+    return (
+        <div className="flex min-h-full flex-col">
+            <div
+                data-slot="pane-head"
+                className="bg-chrome sticky top-0 z-(--z-sticky) flex h-14 shrink-0 items-center gap-1 px-2"
+            >
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={__('Back to the :noun settings', { noun })}
+                    title={__('Back to the :noun settings', { noun })}
+                    onClick={onBack}
+                >
+                    <ArrowLeft />
+                </Button>
+                <h2
+                    ref={title}
+                    tabIndex={-1}
+                    className="text-body focus-visible:ring-ring min-w-0 flex-1 truncate rounded-sm font-semibold outline-none focus-visible:ring-2"
+                >
+                    {pane.title}
+                </h2>
+                {plugin && <PluginMark name={pane.owner} iconOnly />}
+                {pane.openLarger === true && (
+                    <Button
+                        ref={larger}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setLarge(true)}
+                    >
+                        {__('Open larger')}
+                    </Button>
+                )}
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={__('Close :name', { name: pane.title })}
+                    title={__('Close :name', { name: pane.title })}
+                    onClick={onBack}
+                >
+                    <X />
+                </Button>
+            </div>
+            <div ref={setRailSlot} className="min-h-0 flex-1 pb-6" />
+            <PaneBody
+                pane={pane}
+                large={large}
+                railSlot={railSlot}
+                dialogSlot={dialogSlot}
+            />
+            {pane.openLarger === true && (
+                <Dialog open={large} onOpenChange={setLarge}>
+                    <DialogContent
+                        size="xl"
+                        onCloseAutoFocus={(event) => {
+                            event.preventDefault();
+                            larger.current?.focus();
+                        }}
+                    >
+                        <div className="flex items-center gap-2 pe-10">
+                            <DialogTitle className="min-w-0 flex-1 truncate">
+                                {pane.title}
+                            </DialogTitle>
+                            {plugin && <PluginMark name={pane.owner} />}
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setLarge(false)}
+                            >
+                                {__('Back to the pane')}
+                            </Button>
+                        </div>
+                        <DialogDescription className="sr-only">
+                            {pane.title}
+                        </DialogDescription>
+                        <ScrollArea className="min-h-0 flex-1">
+                            <div ref={setDialogSlot} />
+                        </ScrollArea>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </div>
+    );
+}
+
 /**
  * The editor's rail: a pinned action bar over labelled sections, or one
  * pane in their place (docs/architecture/admin-design.md, Layout). Publish
@@ -561,7 +757,7 @@ export function EditorRail({
     /** The live address, for View on site; null while it has none. */
     url: string | null;
 }) {
-    const { pane, closePane } = useRail();
+    const { pane, leavePane } = useRail();
     const [when, setWhen] = useState<WhenChoice>(() => ({
         later: false,
         at: defaultAt(siteTimezone),
@@ -578,21 +774,12 @@ export function EditorRail({
 
     if (pane !== null) {
         return (
-            <div className="flex min-h-full flex-col">
-                <div className="border-line flex h-12 items-center gap-2 border-b px-4">
-                    <h2 className="text-[13px] font-semibold">{pane.title}</h2>
-                    <span className="flex-1" />
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Close ${pane.title}`}
-                        onClick={() => closePane()}
-                    >
-                        <X />
-                    </Button>
-                </div>
-                <div className="min-h-0 flex-1">{pane.render()}</div>
-            </div>
+            <PaneView
+                key={pane.id}
+                pane={pane}
+                noun={noun}
+                onBack={leavePane}
+            />
         );
     }
 

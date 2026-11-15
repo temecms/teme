@@ -272,7 +272,6 @@ R2	js/components/editor/diff-view.tsx	text-[13px]
 R2	js/components/editor/diff-view.tsx	text-[14px]
 R2	js/components/editor/diff-view.tsx	text-[14px]
 R2	js/components/editor/editor-rail.tsx	text-[13px]
-R2	js/components/editor/editor-rail.tsx	text-[13px]
 R2	js/components/editor/editor-rail.tsx	text-xs
 R2	js/components/editor/editor-rail.tsx	text-xs
 R2	js/components/editor/editor-rail.tsx	text-xs
@@ -964,7 +963,6 @@ R6	js/components/backups/key-sheet.tsx	tracking-wider
 R6	js/components/backups/schedule-form.tsx	leading-9
 R6	js/components/comments/commenter.tsx	leading-4
 R6	js/components/editor/cards/imported-content-card.tsx	tracking-wide
-R6	js/components/editor/editor-rail.tsx	z-10
 R6	js/components/editor/rewrite/rewrite-menu.tsx	z-50
 R6	js/components/editor/status-chip.tsx	leading-4
 R6	js/components/fields/brand-colour-setting.tsx	rounded

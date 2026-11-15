@@ -1015,6 +1015,7 @@ export default function ContentEdit(page: ContentEditPage) {
             id: 'history',
             owner: 'core',
             title: 'History',
+            openLarger: true,
             render: () => <HistoryPanel contentId={session.id} />,
         });
     };
