@@ -474,7 +474,7 @@ export default function LanguagesSettings({
             id: 'language',
             owner: 'core',
             header: __('Language'),
-            minWidth: 240,
+            minWidth: 200,
             cell: (row) => (
                 <div className="grid gap-1 whitespace-normal">
                     <span className="text-ink flex flex-wrap items-center gap-2 font-semibold">
@@ -498,7 +498,7 @@ export default function LanguagesSettings({
             id: 'prefix',
             owner: 'core',
             header: __('Address'),
-            width: 128,
+            width: 104,
             cell: (row) => (
                 <code className="text-small">
                     {row.isDefault ? '/…' : `/${row.prefix}/…`}
@@ -509,7 +509,7 @@ export default function LanguagesSettings({
             id: 'readers',
             owner: 'core',
             header: __('Readers'),
-            width: 120,
+            width: 112,
             cell: (row) => (
                 <StatusPill tone={row.shown ? 'ok' : 'neutral'}>
                     {row.shown ? __('Shown') : __('Hidden')}
@@ -520,7 +520,7 @@ export default function LanguagesSettings({
             id: 'content',
             owner: 'core',
             header: __('Content'),
-            width: 160,
+            width: 144,
             cell: (row) => holds(row),
         },
         {
