@@ -54,7 +54,7 @@ final class RunPluginJob implements ShouldQueue
     {
         $job->tries = $declared['tries'];
         $job->backoff = $declared['backoff'];
-        $job->timeout = $declared['long'] ? 1800 : 120;
+        $job->timeout = $declared['long'] ? 1800 : 75;
 
         return $job;
     }
@@ -81,7 +81,12 @@ final class RunPluginJob implements ShouldQueue
             || $manifest === null
             || ! $granted
             || $safeMode->active()) {
-            $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
+            $tracked = TrackedJob::query()->find($this->trackedJobId);
+
+            // DisablePlugin may already have cancelled waiting runs after commit.
+            if ($tracked !== null && ! $tracked->state->ended()) {
+                $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
+            }
 
             return;
         }
