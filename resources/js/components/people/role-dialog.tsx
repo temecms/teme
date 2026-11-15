@@ -3,11 +3,11 @@ import type { FormComponentRef } from '@inertiajs/core';
 import { useRef, useState } from 'react';
 import UserController from '@/actions/App/Http/Admin/Users/UserController';
 import { FreshPasswordInline } from '@/components/patterns/fresh-password';
+import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogClose,
-    DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
@@ -47,7 +47,7 @@ export function RoleDialog({
                 }
             }}
         >
-            <DialogContent size="sm" data-test="role-dialog">
+            <ResponsiveDialogContent size="sm" data-test="role-dialog">
                 {person && (
                     <>
                         <DialogHeader>
@@ -148,7 +148,7 @@ export function RoleDialog({
                         </Form>
                     </>
                 )}
-            </DialogContent>
+            </ResponsiveDialogContent>
         </Dialog>
     );
 }

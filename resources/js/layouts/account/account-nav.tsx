@@ -2,14 +2,14 @@ import { Link, usePage } from '@inertiajs/react';
 import type { InertiaLinkProps } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
 import { Fragment } from 'react';
-import { Button } from '@/components/ui/button';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+    ResponsiveMenu,
+    ResponsiveMenuContent,
+    ResponsiveMenuItem,
+    ResponsiveMenuSeparator,
+    ResponsiveMenuTrigger,
+} from '@/components/patterns/responsive-menu';
+import { Button } from '@/components/ui/button';
 import { PersonPicture } from '@/components/ui/person-picture';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { __ } from '@/lib/i18n';
@@ -116,8 +116,8 @@ export function AccountPagesButton() {
 
     return (
         <div className="lg:hidden">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+            <ResponsiveMenu>
+                <ResponsiveMenuTrigger asChild>
                     <Button
                         type="button"
                         variant="neutral"
@@ -138,16 +138,17 @@ export function AccountPagesButton() {
                         </span>
                         <ChevronDown aria-hidden="true" />
                     </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
+                </ResponsiveMenuTrigger>
+                <ResponsiveMenuContent
+                    title={__('Account pages')}
                     align="start"
                     className="w-(--radix-dropdown-menu-trigger-width)"
                 >
                     {groups.map((group, index) => (
                         <Fragment key={index}>
-                            {index > 0 && <DropdownMenuSeparator />}
+                            {index > 0 && <ResponsiveMenuSeparator />}
                             {group.map((item) => (
-                                <DropdownMenuItem
+                                <ResponsiveMenuItem
                                     key={toUrl(item.href)}
                                     asChild
                                 >
@@ -161,12 +162,12 @@ export function AccountPagesButton() {
                                     >
                                         {item.title}
                                     </Link>
-                                </DropdownMenuItem>
+                                </ResponsiveMenuItem>
                             ))}
                         </Fragment>
                     ))}
-                </DropdownMenuContent>
-            </DropdownMenu>
+                </ResponsiveMenuContent>
+            </ResponsiveMenu>
         </div>
     );
 }

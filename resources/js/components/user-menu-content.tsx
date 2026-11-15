@@ -6,13 +6,14 @@ import {
     UserRound,
 } from 'lucide-react';
 import {
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
+    ResponsiveMenuGroup,
+    ResponsiveMenuItem,
+    ResponsiveMenuLabel,
+    ResponsiveMenuSeparator,
+} from '@/components/patterns/responsive-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { __ } from '@/lib/i18n';
 import { logout } from '@/routes';
 import { edit as editPreferences } from '@/routes/preferences';
 import { edit as editProfile } from '@/routes/profile';
@@ -32,10 +33,10 @@ export function UserMenuContent({ user }: Props) {
     };
 
     const items = [
-        { title: 'Profile', href: editProfile(), icon: UserRound },
-        { title: 'Security', href: editSecurity(), icon: ShieldCheck },
+        { title: __('Profile'), href: editProfile(), icon: UserRound },
+        { title: __('Security'), href: editSecurity(), icon: ShieldCheck },
         {
-            title: 'Preferences',
+            title: __('Preferences'),
             href: editPreferences(),
             icon: SlidersHorizontal,
         },
@@ -43,15 +44,15 @@ export function UserMenuContent({ user }: Props) {
 
     return (
         <>
-            <DropdownMenuLabel className="p-0 font-normal">
+            <ResponsiveMenuLabel className="p-0 font-normal">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <UserInfo user={user} showEmail={true} />
                 </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            </ResponsiveMenuLabel>
+            <ResponsiveMenuSeparator />
+            <ResponsiveMenuGroup>
                 {items.map((item) => (
-                    <DropdownMenuItem key={item.title} asChild>
+                    <ResponsiveMenuItem key={item.title} asChild>
                         <Link
                             className="block w-full cursor-pointer"
                             href={item.href}
@@ -61,11 +62,11 @@ export function UserMenuContent({ user }: Props) {
                             <item.icon className="mr-2" />
                             {item.title}
                         </Link>
-                    </DropdownMenuItem>
+                    </ResponsiveMenuItem>
                 ))}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            </ResponsiveMenuGroup>
+            <ResponsiveMenuSeparator />
+            <ResponsiveMenuItem asChild>
                 <Link
                     className="block w-full cursor-pointer"
                     href={logout()}
@@ -74,9 +75,9 @@ export function UserMenuContent({ user }: Props) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    Sign out
+                    {__('Sign out')}
                 </Link>
-            </DropdownMenuItem>
+            </ResponsiveMenuItem>
         </>
     );
 }

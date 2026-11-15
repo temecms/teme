@@ -396,3 +396,95 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: setup; commits; each test seen red (task, file, case, the failure's first line); the design-system and admin-words counts before and after; existing tests whose selectors changed, and why; differences from the plan as B-?? (draft), each with what was found, the options and the choice; changelog lines; any STOP. -->
+
+### Setup
+
+- Before setup, `/tmp/teme-cloud-setup.log`: none; working directory `/home/user/teme`. PHP was 8.3 and neither PostgreSQL nor Valkey answered, so `bash scripts/cloud-setup.sh` ran once (20:55 to 21:07 UTC). After it: PHP 8.4.27, Node 24.22.1, `pg_isready` accepting on 5433, Valkey PONG on 6380.
+- Stack from the locks: Laravel 13.39.0, Inertia Laravel 3.5.2, Pest 5.3.4, pest-plugin-browser 5.1.2; React 19.3.1, `@inertiajs/react` 3.9.1, Tailwind 4.3.3, Vite 8.3.5, TypeScript 7.0.2, `@radix-ui/react-dialog` 1.3.1, `-dropdown-menu` 2.2.1, `-slot` 1.5.0.
+
+### Task 0
+
+- `origin/main` at `4b8cc3b`. The design-system commit is `e7f2af7` (the grep also lists its merge, `bd0e715`, whose message quotes it); the Combobox commit is `772e0dd`.
+- None of the four new files existed. `ui/dialog.tsx` writes the three slots, `ui/sheet.tsx` `sheet-content`; `app.css` holds `--dialog-xl-h` and `max-width: 39.99rem`. Every opt-in file uses the part named. `UserMenuContent` is used only in `account-menu.tsx` and `user-menu-content.tsx`. `tests/Pest.php` holds the five helpers.
+- `ConfirmAction` users: `backups/key-actions.tsx`, `backups/places-list.tsx`, `backups/verdict.tsx`, `editor/restore-button.tsx`, `import/run-report.tsx`, `manage-two-factor.tsx`, `media-drawer.tsx`, `people/row-actions.tsx`, `pages/content/index.tsx`, `pages/navigation/edit.tsx`, `pages/navigation/index.tsx`, `pages/settings/site-code.tsx`, `pages/taxonomies/index.tsx`, `pages/taxonomies/show.tsx`, `pages/terms/index.tsx`, `pages/tools/redirects.tsx`, `pages/types/index.tsx`, `pages/types/show.tsx`.
+- `ui/settings-pages` and `ui/remaining-screens` change none of the Owns files.
+- `DesignSystemTest` and `AdminWordsTest` green. The design-system baseline: 1,228 lines (R1 114, R2 661, R3 149, R5 82, R6 41, R7 89, R8 34, R9 23, R10 14, R14 13, R15 8). Lines naming Owns files: `personalise-menu-dialog.tsx` 5 (R1 `max-h-[90vh]`, R2 `text-[11px]`, `text-[13px]`, `text-xs`, R8 `overflow-y-auto`), `user-menu-content.tsx` 2 (R2 `text-sm`, R3 `py-1.5`). The admin-words count: 2,350; Owns lines: `confirm-action.tsx` 1, `personalise-menu-dialog.tsx` 9, `user-menu-content.tsx` 4.
+- Browser files naming these overlays: `AccountPagesTest`, `FirstRunTest`, `PeopleScreenTest`, `ShellResponsiveTest`, `ShellTest`, `SignInPagesTest`.
+
+
+### Progress
+
+- Done to Task 4, the quick check green. Task 5 done: the full check and the browser files below green.
+
+### Commits
+
+- `47d5678` feat(admin): dialogs fill a phone's screen and confirmations open from its foot
+- `07470d1` feat(admin): menus open from the foot of a phone's screen
+- `d3004dd` feat(admin): confirmations, people's dialogs and the status sheet fit a phone
+- `1bce15d` feat(admin): the account menus open from the foot of a phone's screen
+- this records commit
+
+### Tests seen red
+
+- Task 1, `PhoneOverlaysTest`, every case: `Timeout 5000ms exceeded` in `cmWaitUntil`, waiting for `[data-test="catalogue-overlay-dialog"]` (the section was not built yet). Once built, the geometry cases first failed on the window's width (B-01), then on the title 32px down (B-02) and the height read before the resize settled (B-03).
+- Task 1 plants: without the footer's `sticky`, "fills a phone's screen with a dialog…" failed with `Failed asserting that 1149 is equal to 667 or is less than 667` (after B-04); without `max-sm:inset-0`, the same case failed with `Failed asserting that two arrays are identical`.
+- Task 2, the five menu cases: `Timeout 5000ms exceeded` on clicking `[data-test="catalogue-overlay-menu"]` (not built yet). Plants: without `moveFocus`'s `aria-disabled` filter, "moves through a phone menu…" timed out waiting for focus on Move to trash; without the crossing effect, "closes an open menu when the window crosses 640" timed out with the menu still open.
+- Task 3: "fills a phone's screen with the invite dialog…" `Failed asserting that two arrays are identical` (the box did not fill the window); "asks to revoke an invitation…" `Failed asserting that 474 is identical to 667`; "fills a phone's screen with the status sheet…" `Failed asserting that 480 is identical to 590`.
+- Task 4: the account menu and account pages cases timed out waiting for `[data-slot="sheet-content"] [role="menu"]` (each was still a dropdown). "keeps the account menu inside the top bar from 640 up" passed from the start: it guards behavior that already held.
+
+### Counts
+
+- Design-system baseline: 1,228 lines before, 1,226 after. R1 114 → 113 and R8 34 → 33 (`personalise-menu-dialog.tsx`'s `max-h-[90vh]` and `overflow-y-auto`); every other rule unchanged. No line names the three new patterns or `confirm-action.tsx`.
+- Admin words: 2,350 before, 2,345 after (`confirm-action.tsx` Cancel; `user-menu-content.tsx` Profile, Security, Preferences, Sign out).
+- `git diff --stat origin/main -- resources/js/components/ui resources/css` is empty, and `git diff --name-only origin/main` lists only the Owns files.
+
+### Gate
+
+- The full `composer check` at the end: Pint passed, PHPStan no errors, Architecture 105 passed (1,228 assertions), Unit and Feature 10,490 passed and 2 skipped (53,862 assertions), exit 0.
+- Browser, one file at a time after `npm run build`: `PhoneOverlaysTest` 20 passed (258 assertions), `DesignCatalogueTest` 18, `PeopleScreenTest` 14, `AccountPagesTest` 18, `AccountNotificationsTest` 3, `ShellTest` 17, `ShellResponsiveTest` 10, `AdminShellTest` 1, `HeaderActivityTest` 3, `FirstRunTest` 6, `SignInPagesTest` 17, all passed.
+
+### Existing tests
+
+No existing test was changed. Run one at a time after `npm run build`, all green: `PeopleScreenTest`, `ShellResponsiveTest`, `ShellTest`, `FirstRunTest`, `SignInPagesTest` (after Task 3), and `AccountPagesTest`, `ShellTest`, `ShellResponsiveTest`, `AdminShellTest`, `AccountNotificationsTest` (after Task 4). `DesignCatalogueTest` needed no change: no case counts sections.
+
+### Decisions (B-?? drafts)
+
+- **B-01 (draft), the window's size in `poBox()`.** The plan reads `innerWidth`; the admin keeps the scrollbar's gutter (`scrollbar-gutter: stable`, I-3130), so a fixed overlay at `inset-0` is 10px narrower than `innerWidth` in the test browser, and `documentElement.clientWidth` still reported the full width. Options: `innerWidth` (fails for a reason that is not the overlay's), `clientWidth` (same), the box of a probe `position: fixed; inset: 0` element, or the dialog's scrim. Chose the probe: it is exactly the area a fixed overlay fills, and it measures the same thing the plan means ("fills the window"). `poBox()` also reads through `cmScriptArray()` instead of a bare `script()`, so an answer to another call is refused. Commit `47d5678`.
+- **B-02 (draft), the sticky head and footer's offsets.** The plan's `top-0` and `bottom-0` stick inside the body's padding, so the title sat 32px down after scrolling. Options: keep `top-0` and loosen the test, remove the body's padding, or offset the stick by the padding. Chose `-top-4` and `-bottom-6`, matching the body's `pt-4` and `pb-6`, inside `responsive-dialog.tsx` as the plan allows. Commit `47d5678`.
+- **B-03 (draft), reading the height after a resize.** At 1280 × 600 the dialog's height was read before the new viewport reached `--dialog-xl-h` (682 instead of 552; a second later it was 552). Options: a fixed pause, or waiting for the condition. Chose `cmWaitUntil` on the height being within `innerHeight − 48`, then the same assertion. Commit `47d5678`.
+- **B-04 (draft), "Save in view" is checked before scrolling too.** The planted removal of the footer's `sticky` left the case green: after scrolling to the end, Save is in view whether or not it sticks. Options: plant something else, or check Save at the top of the body as well. Chose the second; it is what the case's name says ("its title and Save in view as the body scrolls") and makes the plant go red. Commit `47d5678`.
+- **B-05 (draft), no rounded corner removed with `rounded-none`.** The scanner's R6 counts `rounded-none` and `rounded-b-none` outside the save bar, so the plan's `max-sm:rounded-none` and `max-sm:rounded-b-none` would add baseline lines. Options: add the lines (not allowed), an arbitrary value (R1), or the logical `rounded-s-none rounded-e-none` the scanner allows in `patterns/`. Chose the logical pair, plus `rounded-t-xl` for the foot sheet's top corners; the confirmation case checks all four corners. The side sheet uses the same pair. Commit `47d5678`.
+- **B-06 (draft), axe through `cmAxeViolations()`.** The plan names `assertNoAccessibilityIssues()`; the shared helper runs the same full axe once nothing is mid-transition, which an overlay that has just opened needs. Commit `47d5678`.
+- **B-07 (draft), axe on the open dropdown at 1280.** With the dropdown menu open, axe on the whole page reports what Radix hides behind a dropdown (`aria-hidden-focus` on the sidebar, `landmark-one-main`, `page-has-heading-one`, and `region` for the menu's wrapper), since a dropdown is not a modal dialog. Options: make the catalogue's menu non-modal (the `region` finding stays), drop axe for the open dropdown, or run axe on the menu itself. Chose axe on `[role="menu"]` at 1280 (`poMenuAxeViolations()`, in the test file), and the whole page at 375, where the menu is a modal sheet. Commit `07470d1`.
+- **B-08 (draft), the catalogue's overlays stand in a column.** At 375 the catalogue's column is wider than the window (other sections overflow it, clipped), so a wrapping row put the menu's button off the screen and Playwright could not click it. Options: fix the other sections (not this part's), or stack this section's buttons. Chose `grid justify-items-start` for this section only. Commit `07470d1`.
+- **B-09 (draft), the menu's dropdown `[role="menu"]`.** Radix writes `role="menu"` on the dropdown's content itself, not inside it; "keeps the dropdown menu from 640 up" accepts either. Commit `07470d1`.
+- **B-10 (draft), where signing out lands.** The plan's case expects the sign-in page; signing out answers with the site's home (`route('home')`, as `AuthenticationTest` proves), and Inertia, receiving a page that is not an admin page, draws it in its own frame over the admin. Options: assert the home address only (Inertia does not always go there), or wait for either and then prove the person is signed out. Chose the second: wait for the home or Inertia's frame, then open `/admin` and land on `/admin/login`. The frame is the existing behavior of the menu's sign-out at every width, not this part's; see Left open. Commit `1bce15d`.
+- **B-11 (draft), the Task 0 commit grep.** The design-system grep lists two lines: the commit and its merge, whose message quotes it. Not a difference in text, so no STOP.
+- **B-12 (draft), the base's `composer check`.** The hand-off asks for the full check once, at the end; the project's own note asks for one before the first task as well. Options: both (about an hour of the shared test database), or the end only. Chose the end only, and compared any failure with `origin/main` file by file.
+- **B-13 (draft), the account menu's comment.** "Not modal, so the rest of the page is not hidden…" now holds from 640px up only; the comment says so, and that on a phone the menu is a modal sheet (the proposal's decision 5). Commit `1bce15d`.
+
+### Contracts
+
+None changed. No `ui/` file, existing pattern, token, scanner or `tests/Pest.php` was edited.
+
+### Left open
+
+- Signing out from the account menu (at any width) shows the site's home inside Inertia's frame for pages that are not admin pages, rather than going there. It predates this part; a plain link or a full visit would fix it. For the maintainers.
+- The plan's "At the merge" list stands as written: DS 4.17, 4.19, 4.20 and 6.2; the existing patterns' opt-ins; popovers; the follow-up for the files on `ui/settings-pages` and `ui/remaining-screens`.
+
+### Changelog line
+
+"On a phone, dialogs fill the screen with their buttons in reach, and confirmations and menus open from the bottom of the screen."
+
+### How to try it
+
+On a local site, in a window 375px wide: People › Invite fills the screen with Send invitation in reach; Invited › a row's Revoke invitation asks from the foot of the screen; the account button at the top end opens its menu from the foot; Account › any page › the pages button does the same. `/admin/_catalogue#phone-overlays` draws each overlay; widen the window past 640px to see them as before.
+
+### Follow-up X6-2
+
+The review's two fixes, each its own commit.
+
+- `7317ffe` fix(admin): a phone menu's items can be reached again after Tab. Every phone item had `tabIndex={-1}`, so once Tab reached the sheet's Close button, Shift+Tab could not come back (Radix keeps focus inside the sheet). The phone menu now keeps a roving tabindex: the focused item, or else the first enabled one, is 0 and the others -1. It is set when the list mounts, in `moveFocus` and on focus. Test first: "moves through a phone menu…" now presses Tab (focus leaves the items but stays in the sheet), then Shift+Tab, and expects focus on Move to trash, the item it left. Seen red before the fix: `Timeout 5000ms exceeded` in `cmWaitUntil` waiting for that focus.
+- `6b817ac` fix(admin): the customize menu dialog's words go through the translation helper. The dialog's description (`:count` for the pinned limit), "Show :label", "Move :label up", "Move :label down", "Pin", "Pinned", "Reset to default" and "Save" go through `__()`. "Customise menu" keeps its existing key. Seen red: `AdminWordsTest` listed those 9 lines as gone. Removed them; the admin-words count goes from 2,345 to 2,336.
+- **B-14 (draft), the container was set up again.** The session's container had restarted, so PostgreSQL and Valkey were down. `bash scripts/cloud-setup.sh` ran once more before the red run.
+- Checks: the quick check is green (Pint, PHPStan, types, lint, Architecture 105 passed), `PersonaliseMenuTest` passed 5, and after `npm run build`, `PhoneOverlaysTest` passed 20 (260 assertions).

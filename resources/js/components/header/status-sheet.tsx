@@ -6,11 +6,11 @@ import { InboxPanelBody, useInboxLatest } from '@/components/header/inbox-bell';
 import { JobsPanelBody } from '@/components/header/jobs-button';
 import { SiteStatusBody } from '@/components/header/site-status';
 import type { useHeaderActivity } from '@/components/header/use-header-activity';
+import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Sheet,
-    SheetContent,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
@@ -87,7 +87,7 @@ export function StatusSheet({
                     )}
                 </Button>
             </SheetTrigger>
-            <SheetContent
+            <ResponsiveSheetContent
                 side="right"
                 data-test="status-sheet"
                 aria-describedby={undefined}
@@ -111,7 +111,7 @@ export function StatusSheet({
                         </Section>
                     )}
                 </ScrollArea>
-            </SheetContent>
+            </ResponsiveSheetContent>
         </Sheet>
     );
 }

@@ -57,7 +57,6 @@ R1	js/components/list/filter-button.tsx	[data-slot="popover-content"]
 R1	js/components/list/filter-button.tsx	max-h-[85vh]
 R1	js/components/list/page-header.tsx	max-w-[640px]
 R1	js/components/list/page-header.tsx	tracking-[-0.015em]
-R1	js/components/personalise-menu-dialog.tsx	max-h-[90vh]
 R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
 R1	js/components/term-tree-picker.tsx	h-[30px]
@@ -599,7 +598,6 @@ R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/confirm-items.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
-R8	js/components/personalise-menu-dialog.tsx	overflow-y-auto
 R8	js/components/term-tree-picker.tsx	overflow-y-auto
 R8	js/components/ui/popover.tsx	overflow-y-auto
 R8	js/components/ui/sidebar.tsx	overflow-auto

@@ -104,7 +104,6 @@ components/comments/quick-edit.tsx	Save changes
 components/comments/quick-edit.tsx	This comment has formatting, such as bold or a quote. If you change its text, it’s saved as plain text.
 components/comments/quick-edit.tsx	Website
 components/comments/quick-edit.tsx	https://example.com
-components/confirm-action.tsx	Cancel
 components/dashboard/dashboard-panel.tsx	See all
 components/dashboard/getting-started.tsx	Getting started
 components/dashboard/getting-started.tsx	Hide this
@@ -743,15 +742,6 @@ components/palette/palette-commands.ts	Start a new {} in the editor
 components/palette/palette-commands.ts	Suggest alt text for this image
 components/palette/palette-commands.ts	Suggest metadata for this post
 components/palette/palette-commands.ts	Upload files
-components/personalise-menu-dialog.tsx	Changes apply to your menu only. Pin up to
-components/personalise-menu-dialog.tsx	Move {} down
-components/personalise-menu-dialog.tsx	Move {} up
-components/personalise-menu-dialog.tsx	Pin
-components/personalise-menu-dialog.tsx	Pinned
-components/personalise-menu-dialog.tsx	Reset to default
-components/personalise-menu-dialog.tsx	Save
-components/personalise-menu-dialog.tsx	Show {}
-components/personalise-menu-dialog.tsx	entries to the top. Hidden entries stay in search (Ctrl K).
 components/seo/who-publishes.tsx	Leave these empty unless another organization owns this one.
 components/seo/who-publishes.tsx	One place. A business with several needs a plugin that describes each one.
 components/seo/who-publishes.tsx	Owned by
@@ -853,10 +843,6 @@ components/ui/sidebar.tsx	The menu for every admin screen.
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
 components/ui/sidebar.tsx	Toggle sidebar
-components/user-menu-content.tsx	Preferences
-components/user-menu-content.tsx	Profile
-components/user-menu-content.tsx	Security
-components/user-menu-content.tsx	Sign out
 layouts/settings/layout.tsx	Clear
 layouts/settings/layout.tsx	Find a setting
 layouts/settings/layout.tsx	Find a setting, e.g. time zone
