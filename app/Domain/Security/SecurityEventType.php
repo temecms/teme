@@ -59,6 +59,8 @@ enum SecurityEventType: string
     case BackupRestoreEnded = 'backup.restore_ended';
     case PluginEnabled = 'plugin.enabled';
     case PluginDisabled = 'plugin.disabled';
+    case PluginMigrated = 'plugin.migrated';
+    case PluginDataRemoved = 'plugin.data_removed';
     case SiteSetUp = 'site.set_up';
 
     /**

@@ -9,6 +9,8 @@ use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\Plugins\Tables\PluginTablesRefused;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -20,11 +22,12 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
 /**
- * Enables a plugin (I-3353): a person who holds plugins.manage, after their
- * password, or the operator. Its manifest is checked and its code scanned
- * afresh, never from the cache, and what the person agreed to must be what
- * it asks for now. Records that consent, for this exact version and by
- * whom, and clears its faults and stopped parts. Returns its name.
+ * Enables a plugin (I-3353, I-3442): a person who holds plugins.manage, after
+ * their password, or the operator. Its manifest is checked and its code
+ * scanned afresh, never from the cache, and what the person agreed to must
+ * be what it asks for now. Runs its waiting migrations inside the same
+ * transaction, records that consent, for this exact version and by whom,
+ * and clears its faults and stopped parts. Returns its name.
  */
 final class EnablePlugin extends BaseOperation implements RequiresElevation
 {
@@ -33,6 +36,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
     public function __construct(
         private readonly PluginRegistry $registry,
         private readonly PluginRecords $records,
+        private readonly PluginMigrations $migrations,
         private readonly SecurityLog $log,
     ) {}
 
@@ -96,6 +100,14 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         ]);
 
         $record = PluginRecord::query()->where('name', $input->name)->lockForUpdate()->sole();
+        $found = $this->registry->find($input->name) ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
+
+        try {
+            $migrations = $this->migrations->run($found, $record->migrations);
+        } catch (PluginTablesRefused $refused) {
+            throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
+        }
+
         $record->fill([
             'code' => $code,
             'state' => PluginRecord::ENABLED,
@@ -110,6 +122,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             // Enabling again is the manual clear of what Teme stopped.
             'faults' => [],
             'quarantine' => [],
+            'migrations' => $migrations,
         ])->save();
 
         $this->log->record(SecurityEventType::PluginEnabled, $input->actorId(), context: [

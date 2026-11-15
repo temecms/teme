@@ -103,6 +103,19 @@ Capabilities still matter, and core enforces them where it hands things out:
 
 Study C Decision 3 is the lifecycle: present → installed → enabled ⇄ disabled → uninstalled; `disabled` with a reason; `plugins` and `plugin_history`; safe routes; quarantine of failing listeners. This document adds only that **present** is reached through the installer, and that **consent is given when the install is requested, before anything is downloaded**. The agreement is recorded against that exact version, so enabling it does not ask again; an update whose access widens asks again before it is enabled (the 2026-09-21 prototype showed asking first is clearer).
 
+**A plugin’s own tables run with enable and with “Run database changes”** (I-3442). Enabling runs the plugin’s waiting Laravel migrations inside that Operation’s transaction. When a new version of an already-enabled plugin brings new migrations, the plugin does not start until someone runs them — so its code never meets the old tables. The Plugins screen shows the reason and **Run database changes**; `php artisan teme:plugins:migrate` does the same for one plugin or every enabled plugin that is waiting. A deploy does not run them in this release. Removing the tables is offered only while the plugin is disabled or its code is gone (`Remove its data…`, `php artisan teme:plugins:remove-data`); the row and its consent stay.
+
+**Console commands** that touch plugins today:
+
+| Command | Help |
+|---|---|
+| `teme:plugins:cache` | Cache what Teme found in the installed plugins |
+| `teme:plugins:clear` | Remove the plugin cache |
+| `teme:plugins:enable` | Enable a plugin, agreeing to what it asks for |
+| `teme:plugins:disable` | Disable a plugin |
+| `teme:plugins:migrate` | Run waiting database changes for enabled plugins |
+| `teme:plugins:remove-data` | Remove a disabled plugin’s database tables |
+
 ## Where plugins appear
 
 Each task goes in the **smallest surface that fits it**. Small surfaces are data that core draws with its own components, so they look native and survive every upgrade. Larger ones are the plugin's own React, drawn inside core's frame.
@@ -176,7 +189,7 @@ Overrides run theme, then plugin, then core. Every overridable view declares a `
 ## Plugin data
 
 - **Fields on content** are registered in the field registry and stored in the content row's JSONB (rule 2). Values are keyed by the field's ULID, so plugins never collide. A plugin's handles carry its prefix. A field whose plugin is disabled keeps its value and shows read-only.
-- **Tables** come from the plugin's migrations, recorded in `plugin_history`, named with its prefix and listed under `owns`.
+- **Tables** (I-3442) come from Laravel migrations in the plugin’s `database/migrations` folder, each returning a migration as Laravel’s own do, read in name order. The plugin lists them under `owns.tables` in the manifest. The prefix is the plugin’s code with hyphens written as underscores, then `_` (`link-helper` → `link_helper_…`); every owned table name must start with that prefix and match `^[a-z][a-z0-9_]*$`, at most 63 characters. Each run records on the plugin’s row in `plugins.migrations` (a JSONB object: migration name → `{version, ran_at, tables}`), not in `plugin_history` — that broader, append-only history is parked with I-3442. Before and after each migration file, Teme lists the database’s tables: every new table must start with the prefix and be listed in `owns.tables`, and a dropped table must be one the plugin created; otherwise the run is undone. A migration that sets `$withinTransaction = false` is refused. `RemovePluginData` drops the recorded tables (without `CASCADE`), empties the record, and keeps the row and consent; it reads the tables from that record alone, so it still works when the plugin’s code is gone.
 - **Ownership is recorded by the platform:** every registry entry (field, card, setting, permission, Operation, job, schedule, admin contribution) carries its owning plugin, or `core`.
 - **Uninstall** lists exactly what goes, from those records, and classifies it as owned, contributed or derived (study C). It is refused while a card or field type the plugin provides is used in content, or while an enabled plugin requires it.
 - **Secrets** use the `secret` setting type (`docs/architecture/settings.md`): encrypted, write-only, never cached, never sent to the browser.
@@ -232,3 +245,12 @@ Everything else, in phase 5, and the repository in phase 6:
 - the deprecation log;
 - `owner` on the registries that exist before phase 5 (fields, settings, Operations), added then with `core` as the default so no existing registration changes;
 - a sandboxed tier, parked (I-213).
+
+Parked with a plugin’s own tables (I-3442), each with what brings it back:
+- **Fuller safe mode** (the basic safe mode stays as it is). Back when a plugin locks someone out in a way the safe pages don’t cover.
+- **Undo scripts** (a migration’s `down()`), and rolling a plugin back to an earlier version. Back when a plugin needs to go back a version without losing its data.
+- **Deeper checks before removal**, such as refusing while content uses a card or field type the plugin provides, or while another plugin needs it. Back with the first plugin that provides a card or field type, or depends on another plugin.
+- **A broader, append-only history** of every install, upgrade and removal (`plugin_history`). Back when someone needs to see a plugin’s past beyond what its row records.
+- **Removing a plugin’s settings and field values** with its tables. Back with the deeper checks above.
+- **Running plugins’ changes during `teme:deploy`.** Back when an updated plugin waiting for its changes after a deploy becomes a real nuisance on a live site.
+- **Migrations outside a transaction.** Back with the first plugin that needs one.

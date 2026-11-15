@@ -2,7 +2,7 @@
 
 **One part, one branch: `plugins/tables`, from `origin/main`** after the admin redesign's wave 2 has merged (the Plugins screen's files are wave 2's until then). It lets a plugin ship Laravel migrations for tables of its own: run when it is enabled, run again for what a new version adds, checked against what it declares, recorded on its row, and removed on request.
 
-Steps use checkbox (`- [ ]`) syntax for tracking.
+Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Written 2026-11-15** for the repository `temecms/teme`. This plan is lighter (I-569): it writes out the decisions, names, schema, permissions, tests and the delicate code, and describes the rest.
 
@@ -119,49 +119,49 @@ private function tables(): array
 
 ### Task 0: confirm the start
 
-- [ ] Read every file named under "What main does today" and confirm each statement with its line. Write a lasting test in `tests/Feature/Plugins/PluginTablesTest.php`: a fixture plugin with a migration, enabled by a factory row, and `php artisan migrate` run: its table doesn't exist afterwards. Record any difference as `B-?? (draft)` and follow the code.
+- [x] Read every file named under "What main does today" and confirm each statement with its line. Write a lasting test in `tests/Feature/Plugins/PluginTablesTest.php`: a fixture plugin with a migration, enabled by a factory row, and `php artisan migrate` run: its table doesn't exist afterwards. Record any difference as `B-?? (draft)` and follow the code.
 
 ### Task 1: the fixture, the manifest and the record
 
 **Files:** `tests/Fixtures/plugins/tables/` (new: `composer.json`, `teme-plugin.json` with `owns.tables` `["tables_links", "tables_clicks"]`, `src/Tables.php`, `database/migrations/2026_01_01_000000_create_tables_links.php`, `2026_01_02_000000_create_tables_clicks.php`, with a foreign key from clicks to links); `ManifestValidator`; `teme-plugin.schema.json`; the migration adding `plugins.migrations`; `FoundPlugin`, `PluginRegistry`.
 
-- [ ] Tests first (`ManifestTest`, `ManifestSchemaTest`): each `owns` error in T2, by its sentence; a valid `owns` passes; the schema accepts it. `DiscoveryTest`: the fixture's migration names are found, in order.
-- [ ] Build; the quick check.
+- [x] Tests first (`ManifestTest`, `ManifestSchemaTest`): each `owns` error in T2, by its sentence; a valid `owns` passes; the schema accepts it. `DiscoveryTest`: the fixture's migration names are found, in order.
+- [x] Build; the quick check.
 
 ### Task 2: the runner and enabling
 
 **Files:** `app/Domain/Plugins/Tables/PluginMigrations.php`, `PluginTablesRefused.php`; `EnablePlugin`.
 
-- [ ] Tests first, in `PluginTablesTest`: enabling the fixture creates both tables and records both names with the version and tables; enabling a copy (`PluginFixtures::copy`) whose second migration creates `links` (no prefix), or a table not listed, or drops a core table, is refused with the sentence, and afterwards **no** table it made exists, the row is as before, and the plugin is not enabled; a migration with `$withinTransaction = false` is refused; a copy coded `tables-x` beside `tables` can't create `tables_x_…` from `tables`; enabling again with nothing waiting runs nothing.
-- [ ] The existing `EnablePluginTest` cases still pass, with their meaning.
-- [ ] Build; the quick check.
+- [x] Tests first, in `PluginTablesTest`: enabling the fixture creates both tables and records both names with the version and tables; enabling a copy (`PluginFixtures::copy`) whose second migration creates `links` (no prefix), or a table not listed, or drops a core table, is refused with the sentence, and afterwards **no** table it made exists, the row is as before, and the plugin is not enabled; a migration with `$withinTransaction = false` is refused; a copy coded `tables-x` beside `tables` can't create `tables_x_…` from `tables`; enabling again with nothing waiting runs nothing.
+- [x] The existing `EnablePluginTest` cases still pass, with their meaning.
+- [x] Build; the quick check.
 
 ### Task 3: changes waiting and `MigratePlugin`
 
 **Files:** `MigratePlugin`, its input, `SecurityEventType`, `PluginLoader`, `PluginList`, `PluginsController::migrate`, the route, `MigratePluginsCommand`.
 
-- [ ] Tests first: after a third migration is added to an enabled copy, the loader doesn't start it and `PluginList` shows Waiting with the reason; `MigratePlugin` runs only the third and records it, and then the plugin starts; a refused run leaves the record and tables as they were; **refused when the actor lacks `plugins.manage`, and writes nothing** (record, tables, security log compared); without the password it asks for it; the console command runs it as the operator, and ends non-zero on a refusal.
-- [ ] Build; the quick check.
+- [x] Tests first: after a third migration is added to an enabled copy, the loader doesn't start it and `PluginList` shows Waiting with the reason; `MigratePlugin` runs only the third and records it, and then the plugin starts; a refused run leaves the record and tables as they were; **refused when the actor lacks `plugins.manage`, and writes nothing** (record, tables, security log compared); without the password it asks for it; the console command runs it as the operator, and ends non-zero on a refusal.
+- [x] Build; the quick check.
 
 ### Task 4: `RemovePluginData`
 
 **Files:** `RemovePluginData`, its input, `SecurityEventType`, `PluginsController::removeData`, the route, `RemovePluginDataCommand`.
 
-- [ ] Tests first: refused while enabled; refused with no tables; for a disabled plugin, drops both tables (the foreign key between them is no obstacle), empties the record, keeps the row and its consent; **code gone:** the fixture is enabled (both tables made), then its folder is removed (`PluginFixtures::forget()` or a copy deleted) so the registry no longer finds it, and `RemovePluginData` drops exactly its two recorded tables, no other table changed, the record emptied; **refused for an actor without `plugins.manage`, and writes nothing** (tables still there, record unchanged); enabling afterwards creates the tables again; the command lists the tables and asks unless `--force`.
-- [ ] Build; the quick check.
+- [x] Tests first: refused while enabled; refused with no tables; for a disabled plugin, drops both tables (the foreign key between them is no obstacle), empties the record, keeps the row and its consent; **code gone:** the fixture is enabled (both tables made), then its folder is removed (`PluginFixtures::forget()` or a copy deleted) so the registry no longer finds it, and `RemovePluginData` drops exactly its two recorded tables, no other table changed, the record emptied; **refused for an actor without `plugins.manage`, and writes nothing** (tables still there, record unchanged); enabling afterwards creates the tables again; the command lists the tables and asks unless `--force`.
+- [x] Build; the quick check.
 
 ### Task 5: the Plugins screen
 
 **Files:** `PluginsScreen`/`PluginRow` (the `tables` list; the waiting action), `pages/plugins/index.tsx` and its row component, a new `components/plugins/remove-data-dialog.tsx`.
 
-- [ ] Browser tests first, in `tests/Browser/Plugins/PluginsScreenTest.php`: a plugin with changes waiting shows the reason and Run database changes, which goes through the password screen and back, after which the plugin is Enabled; a disabled plugin with tables offers Remove its data… in its menu, the dialog lists both tables, and confirming removes them; a code-gone row (the fixture enabled, then its folder removed) offers Remove its data… and removes both tables; an enabled plugin's menu doesn't offer it; axe clean in light and dark at 1280 and 375.
-- [ ] Every new word through `__()`; the design-system and admin-words lists only shrink.
-- [ ] `npm run build`; the touched browser file; the quick check.
+- [x] Browser tests first, in `tests/Browser/Plugins/PluginsScreenTest.php`: a plugin with changes waiting shows the reason and Run database changes, which goes through the password screen and back, after which the plugin is Enabled; a disabled plugin with tables offers Remove its data… in its menu, the dialog lists both tables, and confirming removes them; a code-gone row (the fixture enabled, then its folder removed) offers Remove its data… and removes both tables; an enabled plugin's menu doesn't offer it; axe clean in light and dark at 1280 and 375.
+- [x] Every new word through `__()`; the design-system and admin-words lists only shrink.
+- [x] `npm run build`; the touched browser file; the quick check.
 
 ### Task 6: the documents and records
 
-- [ ] `docs/architecture/plugins.md`: Plugin data says where migrations live, the prefix, `owns.tables`, the record on the row (not `plugin_history`, which is parked with the broader history, I-3442), and the check; Lifecycle says when migrations run; "Not built yet" lists the parked items. The `teme:plugins:*` commands' help in the docs where the others are listed.
-- [ ] The full `composer check` once. Fill Records; changelog lines for the maintainers.
+- [x] `docs/architecture/plugins.md`: Plugin data says where migrations live, the prefix, `owns.tables`, the record on the row (not `plugin_history`, which is parked with the broader history, I-3442), and the check; Lifecycle says when migrations run; "Not built yet" lists the parked items. The `teme:plugins:*` commands' help in the docs where the others are listed.
+- [x] The full `composer check` once. Fill Records; changelog lines for the maintainers.
 
 ## Quick check
 
@@ -173,4 +173,97 @@ private function tables(): array
 
 ## Records
 
-(The builder fills this.)
+### Commits on `plugins/tables`
+
+- `e03c509` test(plugins): artisan migrate leaves a plugin’s tables alone
+- `d659590` feat(plugins): owns.tables, migration discovery and the record column
+- `11ee768` feat(plugins): run a plugin’s migrations when it is enabled
+- `d85c635` feat(plugins): hold back plugins with waiting migrations and MigratePlugin
+- `1febf02` feat(plugins): RemovePluginData drops a plugin’s recorded tables
+- `d203c86` feat(plugins): Plugins screen runs waiting migrations and removes data
+- `ccad52d` docs(plugins): record a plugin’s tables on its row
+- `f1e2ea5` docs(plans): Plugin tables' records
+
+### Tests seen red (then green)
+
+- Task 0: `it leaves a plugin’s tables alone when artisan migrate runs` — fixture folder missing (`ErrorException`).
+- Task 2: enabling / refusal cases in `PluginTablesTest` — `PluginMigrations` and EnablePlugin wiring absent; drop-non-plugin case first failed dropping `users` (FK dependents) before B-01.
+- Task 3: waiting / `MigratePlugin` / auth / console cases — operation, loader hold-back, route and command absent.
+- Task 4: `RemovePluginData` cases — operation, route and command absent; code-gone-while-enabled refused until B-05.
+- Task 5: four new Browser cases in `PluginsScreenTest` — UI actions and dialog absent; design-system scan red on `remove-data-dialog` until B-06.
+
+### Baselines
+
+- admin-words: **1576 → 1576** (unchanged; no new offences).
+- design-system: **693 → 693** (unchanged; dialog restyled so no new lines).
+
+### Full gate (`export PATH=/opt/node24/bin:$PATH && composer check`)
+
+- Pint: passed
+- PHPStan: OK, no errors
+- Architecture: **115 passed**
+- Unit+Feature (parallel): **10551 passed**, 2 skipped, 54160 assertions
+- Exit: **0**
+
+### Browser (Plugins screen file this part owns)
+
+- `tests/Browser/Plugins/PluginsScreenTest.php`: **17 passed** (includes the four new cases and axe light/dark).
+
+### Follow-up C1-2
+
+#### Commits
+
+- `3d7f5b4` fix(plugins): turn a failed plugin migration into a refusal
+- `828ca15` fix(plugins): ignore recorded tables that no longer exist
+- `fbb8874` fix(plugins): offer Remove its data only when the server allows it
+- `93db8b4` test(plugins): axe the remove-data dialog and waiting migrate row
+- `5670d8d` fix(plugins): harden remove-data and pending sign-in markers
+- (this) docs(plans): Follow-up C1-2 records
+
+#### Tests seen red
+
+- C1-2.1: `refuses a migration that fails` — `QueryException` / server error instead of ValidationException refusal (enable path).
+- C1-2.2: `removes data when a recorded table is already gone` — `DROP TABLE` included the missing name (`42P01`).
+- C1-2.3: `does not offer Remove its data while the plugin is enabled with tables` — undefined `canRemoveData` on the page props.
+- C1-2.4: axe cases — written as regression checks; passed once present (no product defect).
+- C1-2.5: `refuses RemovePluginData when a recorded table lacks the plugin’s prefix` — tried to DROP `users` (FK dependents) instead of refusing.
+
+#### Gate after Follow-up C1-2
+
+- Pint: passed; PHPStan: OK
+- Architecture: **115 passed**
+- Unit+Feature: **10555 passed**, 2 skipped, 54192 assertions
+- Exit: **0**
+- Browser `PluginsScreenTest.php`: **19 passed**
+
+### Contract
+
+- `packages/teme-contracts/schema/teme-plugin.schema.json`: added `owns` (`tables` list). FORMAT on the registry raised to 4 for `owns.tables` in the found-plugin cache.
+
+### B-?? (draft)
+
+- **B-01 (draft):** Plan’s drop-core-table example used `users`. Dropping `users` fails with `SQLSTATE[2BP01]` (dependents). Options: drop another core table; create a disposable non-plugin table. Chose disposable `core_scratch` so the check’s meaning (refuse dropping a table that isn’t the plugin’s) stays, without fighting FKs. Commit `11ee768`.
+- **B-02 (draft):** PHPStan rejected calling `$migration->up()` on a `Migration` instance. Options: ignore; `is_callable` then `$migration->{'up'}()`. Chose the callable form. Commit `11ee768`.
+- **B-03 (draft):** PHPStan rejected `@extends BaseOperation` on `MigratePlugin` (generic parse). Options: `@extends BaseOperation<…>`; remove the tag. Chose remove (siblings don’t need it). Commit `d85c635`.
+- **B-04 (draft):** `Omit<Pending, 'at'>` with a union `Pending` broke `writePending` for enable/migrate/remove-data. Options: distributive omit helper; pass full `Pending` including `at`. Chose full `Pending` with `at` at each call site. Commit `d203c86`.
+- **B-05 (draft):** Settled #5 says Remove works for code-gone; an enabled row whose code is gone was refused as “still enabled”. Options: require disable first; treat missing code as removable. Chose `codeGone()` (registry finds no usable manifest) so removal still reads `plugins.migrations` alone. Commit `d203c86`.
+- **B-06 (draft):** `remove-data-dialog` first copied `confirm-items` classes (`text-[13px]`, bare `rounded`, `overflow-y-auto`) and introduced three new design-system offences. Options: baseline the lines (forbidden — lists only shrink); restyle with tokens. Chose `text-small` + `ScrollArea` (no new offences). Commit `d203c86`.
+
+### STOP
+
+None.
+
+### Changelog lines for the maintainers
+
+- Added `owns.tables` to the plugin manifest schema and discovery; migrations live in each plugin’s `database/migrations`.
+- Added `plugins.migrations` (JSONB) and run a plugin’s waiting migrations inside EnablePlugin / MigratePlugin with a prefix and owns check.
+- An enabled plugin with new migration files stays Waiting until Run database changes or `teme:plugins:migrate`.
+- RemovePluginData / Remove its data… drops recorded tables for disabled or code-gone plugins; `teme:plugins:remove-data` on the console.
+- Plugins screen: waiting action, remove-data dialog, password gate for migrate and remove-data.
+
+### How to try it
+
+1. Branch `plugins/tables`. Setup: `scripts/cursor-setup.sh` / `scripts/cursor-start.sh`.
+2. `php artisan test --compact tests/Feature/Plugins/PluginTablesTest.php`
+3. After `npm run build`: the four new cases in `tests/Browser/Plugins/PluginsScreenTest.php` (filter by name), one at a time.
+4. Admin: enable the fixture plugin (or any with migrations); add a migration file to an enabled copy and use Run database changes; disable and Remove its data….

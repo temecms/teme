@@ -35,15 +35,17 @@ const REASON_INK = {
     danger: 'text-danger-ink',
 } as const;
 
-/** The one button a row offers: Enable, Review access for its version, or Disable. */
+/** The one button a row offers: Enable, Review, Run database changes, or Disable. */
 function RowAction({
     plugin,
     onAsk,
     onDisable,
+    onMigrate,
 }: {
     plugin: PluginRowPage;
     onAsk: (plugin: PluginRowPage, opener: HTMLElement) => void;
     onDisable: (plugin: PluginRowPage) => void;
+    onMigrate: (plugin: PluginRowPage) => void;
 }) {
     if (plugin.action === 'disable') {
         return (
@@ -55,6 +57,21 @@ function RowAction({
                 onClick={() => onDisable(plugin)}
             >
                 {__('Disable')}
+                <span className="sr-only"> {plugin.label}</span>
+            </Button>
+        );
+    }
+
+    if (plugin.action === 'migrate') {
+        return (
+            <Button
+                type="button"
+                variant="neutral"
+                size="sm"
+                data-test="plugin-migrate"
+                onClick={() => onMigrate(plugin)}
+            >
+                {__('Run database changes')}
                 <span className="sr-only"> {plugin.label}</span>
             </Button>
         );
@@ -84,13 +101,15 @@ function RowAction({
     );
 }
 
-/** The ⋯ menu: Details and access, and Settings for a plugin that has them. */
+/** The ⋯ menu: Details and access, Settings, and Remove its data… when allowed. */
 function RowMenu({
     plugin,
     onDetails,
+    onRemoveData,
 }: {
     plugin: PluginRowPage;
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
+    onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
     return (
         <DropdownMenu>
@@ -132,6 +151,22 @@ function RowMenu({
                         </Link>
                     </DropdownMenuItem>
                 )}
+                {plugin.canRemoveData && (
+                    <DropdownMenuItem
+                        data-test="plugin-remove-data"
+                        variant="destructive"
+                        onSelect={() =>
+                            onRemoveData(
+                                plugin,
+                                document.querySelector<HTMLElement>(
+                                    `[data-plugin-menu="${plugin.name}"]`,
+                                ),
+                            )
+                        }
+                    >
+                        {__('Remove its data…')}
+                    </DropdownMenuItem>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -147,11 +182,15 @@ export function PluginRow({
     onAsk,
     onDisable,
     onDetails,
+    onMigrate,
+    onRemoveData,
 }: {
     plugin: PluginRowPage;
     onAsk: (plugin: PluginRowPage, opener: HTMLElement) => void;
     onDisable: (plugin: PluginRowPage) => void;
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
+    onMigrate: (plugin: PluginRowPage) => void;
+    onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
     const tone = TONES[plugin.state];
 
@@ -205,8 +244,13 @@ export function PluginRow({
                     plugin={plugin}
                     onAsk={onAsk}
                     onDisable={onDisable}
+                    onMigrate={onMigrate}
                 />
-                <RowMenu plugin={plugin} onDetails={onDetails} />
+                <RowMenu
+                    plugin={plugin}
+                    onDetails={onDetails}
+                    onRemoveData={onRemoveData}
+                />
             </div>
         </li>
     );

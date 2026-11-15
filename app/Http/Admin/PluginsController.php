@@ -8,6 +8,10 @@ use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\MigratePluginInput;
+use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
+use App\Domain\Plugins\Operations\MigratePlugin;
+use App\Domain\Plugins\Operations\RemovePluginData;
 use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Plugins\Queries\PluginRow;
 use App\Domain\Plugins\Queries\PluginsScreen;
@@ -21,7 +25,7 @@ use Inertia\Response;
 
 /**
  * Site › Plugins: every plugin, what it asks for and where it stands, and
- * the enable and disable buttons, which call EnablePlugin and DisablePlugin.
+ * the enable, migrate and disable buttons, which call their Operations.
  * It changes nothing itself and starts no plugin: the page reads files only.
  */
 final class PluginsController extends Controller
@@ -72,6 +76,48 @@ final class PluginsController extends Controller
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __(':name disabled. Everything it added to the admin is gone until you enable it; its data is kept.', ['name' => $row->label])]);
+
+        return to_route('plugins.index');
+    }
+
+    /**
+     * Runs waiting database changes for an enabled plugin.
+     */
+    public function migrate(Request $request, string $code, PluginList $list, MigratePlugin $migrate): RedirectResponse
+    {
+        $row = $this->row($list, $code);
+
+        try {
+            $ran = $migrate->execute(new MigratePluginInput($row->name, (string) $request->user()?->getAuthIdentifier()));
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return to_route('plugins.index');
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => $ran === []
+            ? __(':name had no database changes waiting.', ['name' => $row->label])
+            : __(':name’s database changes ran.', ['name' => $row->label])]);
+
+        return to_route('plugins.index');
+    }
+
+    /**
+     * Drops a disabled plugin's recorded tables.
+     */
+    public function removeData(Request $request, string $code, PluginList $list, RemovePluginData $remove): RedirectResponse
+    {
+        $row = $this->row($list, $code);
+
+        try {
+            $tables = $remove->execute(new RemovePluginDataInput($row->name, (string) $request->user()?->getAuthIdentifier()));
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return to_route('plugins.index');
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __(':name’s data was removed (:n tables).', ['name' => $row->label, 'n' => count($tables)])]);
 
         return to_route('plugins.index');
     }

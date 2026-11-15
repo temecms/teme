@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Operations\DisablePlugin;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,6 +94,30 @@ it('says which hosts a new host marks as NEW', function (): void {
 
     expect($row['asks'][1])->toBe(['words' => 'Connect to services outside this site: api.example.com, files.other.example', 'new' => true])
         ->and($row['shown'])->toMatchArray(['version' => '1.1.0', 'hosts' => ['api.example.com', 'files.other.example']]);
+});
+
+it('does not offer Remove its data while the plugin is enabled with tables', function (): void {
+    PluginFixtures::use('tables');
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/tables',
+        '1.0.0',
+        ['content.read'],
+        [],
+        ['ContentPublished'],
+        null,
+    ));
+
+    $row = ($this->rows)()['tests/tables'];
+
+    expect($row['canRemoveData'])->toBeFalse()
+        ->and($row['tables'])->not->toBeEmpty();
+
+    // The page request restores the default Elevation; re-bind the operator.
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+
+    expect(($this->rows)()['tests/tables']['canRemoveData'])->toBeTrue();
 });
 
 it('offers the settings link only to a plugin that declares settings', function (): void {

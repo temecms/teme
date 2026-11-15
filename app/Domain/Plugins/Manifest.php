@@ -119,6 +119,19 @@ final readonly class Manifest
     }
 
     /**
+     * The tables the plugin declares under owns.tables, each once, in the file's order.
+     *
+     * @return list<string>
+     */
+    public function ownsTables(): array
+    {
+        $owns = $this->raw['owns'] ?? null;
+        $tables = is_array($owns) ? ($owns['tables'] ?? null) : null;
+
+        return is_array($tables) ? array_values(array_unique(array_filter($tables, is_string(...)))) : [];
+    }
+
+    /**
      * Who wrote the plugin, or ''.
      */
     public function author(): string
