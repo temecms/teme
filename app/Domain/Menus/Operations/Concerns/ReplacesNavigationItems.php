@@ -51,6 +51,8 @@ trait ReplacesNavigationItems
                 'label' => $item['label'],
                 // A heading opens nothing in a new tab.
                 'opens_new_tab' => $item['kind'] !== 'heading' && $item['opens_new_tab'],
+                // Only a switcher has options, always as an object.
+                'options' => $item['kind'] === 'languages' ? json_encode((object) ($item['options'] ?? []), JSON_THROW_ON_ERROR) : null,
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
@@ -73,7 +75,7 @@ trait ReplacesNavigationItems
      * @param  array<mixed>  $nodes
      * @param  list<int>  $path
      *
-     * @return list<array{key: string, parent: string|null, path: list<int>, position: int, kind: string, target_id: string|null, url: string|null, label: string|null, opens_new_tab: bool, children: int}>
+     * @return list<array{key: string, parent: string|null, path: list<int>, position: int, kind: string, target_id: string|null, url: string|null, label: string|null, opens_new_tab: bool, children: int, options: array<mixed>|null}>
      */
     private static function flatten(array $nodes, ?string $parent = null, array $path = []): array
     {
@@ -96,6 +98,7 @@ trait ReplacesNavigationItems
                 'label' => $label === '' ? null : $label,
                 'opens_new_tab' => filter_var($node['opens_new_tab'] ?? false, FILTER_VALIDATE_BOOLEAN),
                 'children' => is_array($node['children'] ?? null) ? count($node['children']) : 0,
+                'options' => is_array($node['options'] ?? null) ? $node['options'] : null,
             ];
 
             // One level past the limit is enough to report; deeper isn't walked.
