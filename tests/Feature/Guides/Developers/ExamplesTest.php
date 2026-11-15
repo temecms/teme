@@ -17,7 +17,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
-    config(['teme.version' => PluginFixtures::TEME]);
+    config(['teme.version' => '0.8.0-alpha.1']);
     app()->instance(Elevation::class, new OperatorElevation);
     $this->editor = User::factory()->create()->assignRole('editor');
 });
@@ -29,6 +29,8 @@ it('finds, validates, enables and runs the first-plugin example', function (): v
     // package itself, under docs/guides/developers/examples/plugins/.
     $path = base_path('docs/guides/developers/examples/plugins/first-plugin');
     PluginFixtures::use($path);
+    config(['teme.version' => '0.8.0-alpha.1']);
+    app(PluginRegistry::class)->flush();
 
     $found = app(PluginRegistry::class)->find('teme-examples/first-plugin');
 
