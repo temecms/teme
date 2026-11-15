@@ -3,27 +3,35 @@
 declare(strict_types=1);
 
 use App\Domain\Contents\Models\Content;
+use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportRun;
+use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportPhases;
+use App\Domain\Import\Phases\Languages\TranslationsStep;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Seo\SearchAndSocial;
 use App\Domain\Settings\Models\SettingsGroupRecord;
+use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Themes\ActiveTheme;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
+use Illuminate\Support\Str;
 use Tests\Fixtures\Import\PolylangSite;
 
 uses(RefreshDatabase::class);
@@ -225,4 +233,23 @@ it('says when two of the old site\'s languages become one language here, keeping
 
     expect($same->context)->toMatchArray(['prefix' => 'mx', 'first' => 'es'])
         ->and(app(SiteLanguages::class)->prefix('es'))->toBe('es');
+});
+
+it('reads the old site\'s translation maps once a run for each kind, not once for each batch of groups', function (): void {
+    $this->site->import($this->source);
+    $reads = 0;
+    DB::listen(function (QueryExecuted $query) use (&$reads): void {
+        $reads += str_contains($query->sql, "jsonb_typeof(facts -> 'translations')") ? 1 : 0;
+    });
+
+    scElevated(function (): void {
+        // A later run of the same source, whose groups nothing has kept yet.
+        $context = new ImportContext(strtolower((string) Str::ulid()), $this->source->id, ImportRunKind::Full, JobActor::operator(), null, 0, []);
+
+        foreach ([null, 'content:1', 'content:2'] as $cursor) {
+            app(TranslationsStep::class)->run($context, app(CompanionClients::class)->for($this->source), $cursor);
+        }
+    });
+
+    expect($reads)->toBe(1);
 });

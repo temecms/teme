@@ -16,6 +16,7 @@ use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
 use App\Domain\Import\Translations\ImportedLanguages;
 use App\Domain\Import\Translations\PolylangGroups;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -29,6 +30,9 @@ final readonly class TranslationsStep implements StepPhase
 {
     /** The kinds of map rows linked, in order: posts and pages, then terms. */
     private const array KINDS = ['content' => 'post', 'term' => 'term'];
+
+    /** How long a run's groups are kept between its jobs: as long as the languages are. */
+    private const int KEEP_SECONDS = 21600;
 
     public function __construct(private ImportedLanguages $imported) {}
 
@@ -63,7 +67,7 @@ final readonly class TranslationsStep implements StepPhase
         }
 
         [$kind, $batch] = self::at($cursor);
-        $groups = self::groups($context->sourceId, $kind);
+        $groups = self::kept($context, $kind);
         $slice = array_slice($groups, $batch * LinkImportedTranslations::BATCH, LinkImportedTranslations::BATCH);
         $messages = [];
 
@@ -99,6 +103,30 @@ final readonly class TranslationsStep implements StepPhase
         }
 
         return ['content', 0];
+    }
+
+    /**
+     * The run's groups of one kind: read once, the first job of the kind,
+     * and kept for the run's later jobs, so each batch doesn't read every
+     * map again; read afresh whenever they are no longer kept (I-261: the
+     * cache is disposable).
+     *
+     * @return list<list<string>>
+     */
+    private static function kept(ImportContext $context, string $kind): array
+    {
+        $key = "import.translation-groups.{$context->runId}.{$kind}";
+        $kept = Cache::get($key);
+
+        if (is_array($kept) && array_is_list($kept)) {
+            /** @var list<list<string>> $kept */
+            return $kept;
+        }
+
+        $groups = self::groups($context->sourceId, $kind);
+        Cache::put($key, $groups, self::KEEP_SECONDS);
+
+        return $groups;
     }
 
     /**
