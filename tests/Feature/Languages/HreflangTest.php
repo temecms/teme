@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Addresses\AddressSettings;
 use App\Domain\Contents\Models\Content;
 use App\Domain\Fields\BuiltInFields;
 use Database\Seeders\RoleSeeder;
@@ -80,4 +81,21 @@ it('counts only what a reader can open when it lists the languages on the home p
 
     expect(DB::table('contents')->where('id', $region->id)->value('status'))->toBe('published')
         ->and(hlLinks('/'))->toBe([]);
+});
+
+it('adds a language to the cached home page when that language gets its first item', function (): void {
+    addrChange($this->site->admin, ['patterns' => ['page' => '/{parent}/{slug}/'], 'frontShows' => AddressSettings::FRONT_PAGE, 'frontPageId' => $this->site->page]);
+    DB::table('contents')->where('id', $this->site->postFr)->update(['visibility' => 'private']);
+    $folder = cacheOn();
+
+    try {
+        expect(hlLinks('/'))->toBe([])
+            ->and(hlLinks('/'))->toBe([]);
+
+        LanguageSite::version($this->site->editor, 'Salut', 'fr', null, [], publish: true);
+
+        expect(hlLinks('/'))->toBe(['en-GB' => '/', 'fr' => '/fr/', 'x-default' => '/']);
+    } finally {
+        cacheOff($folder);
+    }
 });

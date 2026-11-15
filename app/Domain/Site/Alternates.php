@@ -144,12 +144,19 @@ final class Alternates
 
     /**
      * Each shown language's home that has something published, the page's
-     * own language always among them.
+     * own language always among them. Tagged with every public type's list,
+     * so a cached home page follows a language's first and last items.
      *
      * @return list<Alternate>
      */
     private function homes(): array
     {
+        $record = app(RenderRecord::class);
+
+        foreach (Live::types() as $type) {
+            $record->tag(PageTags::listOf($type));
+        }
+
         $entries = [];
 
         foreach ($this->withItems(null) as $tag) {
