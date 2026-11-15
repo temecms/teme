@@ -5,17 +5,26 @@ declare(strict_types=1);
 namespace App\Domain\Fediverse\Signatures;
 
 use Carbon\CarbonImmutable;
+use gapple\StructuredFields\Bytes;
+use gapple\StructuredFields\Dictionary;
+use gapple\StructuredFields\InnerList;
+use gapple\StructuredFields\Item;
+use gapple\StructuredFields\Parameters;
+use gapple\StructuredFields\Parser;
+use gapple\StructuredFields\Serializer;
 use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Routes\PublicRequest;
 use Throwable;
 
 /**
- * Verifies a signed request from another server, draft-cavage style
- * (proposal, Settled 5): the Signature header parses and covers the request
- * target, host, date and, for a POST, digest; the digest is the body's; the
- * date is within the window; the key belongs to the activity's actor; and
- * the signature opens with that key. A key that no longer matches is
- * fetched again, at most once in five minutes.
+ * Verifies a signed request from another server (proposal, Settled 5),
+ * draft-cavage or RFC 9421 by its headers. Draft-cavage: the Signature
+ * header parses and covers the request target, host, date and, for a POST,
+ * digest. RFC 9421: Signature-Input names the method, the target (or the
+ * authority and path) and, for a POST, content-digest, created within the
+ * window. Either way the digest is the body's, the key belongs to the
+ * activity's actor, and the signature opens with that key. A key that no
+ * longer matches is fetched again, at most once in five minutes.
  */
 final readonly class Verifier
 {
@@ -35,6 +44,11 @@ final readonly class Verifier
     public function verify(PublicRequest $request): VerifiedSender
     {
         $headers = array_change_key_case($request->headers, CASE_LOWER);
+
+        if (isset($headers['signature-input'])) {
+            return $this->verifyRfc9421($request, $headers);
+        }
+
         $signature = self::parse($headers['signature'] ?? '');
         $isPost = strtoupper($request->method) === 'POST';
 
@@ -53,12 +67,121 @@ final readonly class Verifier
         }
 
         $string = self::signingString($signature['headers'], $request, $headers);
-        $actor = $isPost ? self::activityActor($request->rawBody) : null;
-        $owner = $this->owners->owner($signature['keyId']);
+
+        return $this->opened($request, $signature['keyId'], $string, $signature['signature']);
+    }
+
+    /**
+     * RFC 9421's half: the first Signature-Input label the Signature header
+     * also carries, its covered components, created and expires, and the
+     * signature base rebuilt as the RFC writes it.
+     *
+     * @param  array<string, string>  $headers
+     *
+     * @throws SignatureRefused
+     */
+    private function verifyRfc9421(PublicRequest $request, array $headers): VerifiedSender
+    {
+        try {
+            $inputs = iterator_to_array(Parser::parseDictionary($headers['signature-input']));
+            $signatures = iterator_to_array(Parser::parseDictionary($headers['signature'] ?? ''));
+        } catch (Throwable) {
+            throw SignatureRefused::because('The signature header is missing or does not parse.');
+        }
+
+        $label = null;
+
+        foreach ($inputs as $name => $input) {
+            $signed = $signatures[$name] ?? null;
+
+            if ($input instanceof InnerList && $signed instanceof Item && $signed->getValue() instanceof Bytes) {
+                $label = (string) $name;
+
+                break;
+            }
+        }
+
+        if ($label === null) {
+            throw SignatureRefused::because('The signature header is missing or does not parse.');
+        }
+
+        /** @var InnerList $input */
+        $input = $inputs[$label];
+        /** @var Item $signed */
+        $signed = $signatures[$label];
+        $params = self::parameters($input);
+        $components = [];
+
+        foreach ($input->getValue() as $component) {
+            $name = $component instanceof Item ? $component->getValue() : null;
+
+            // A component with parameters (;sf, ;key, ;req) is not one Teme reads.
+            if (! is_string($name) || self::parameters($component) !== []) {
+                throw SignatureRefused::because('The signature header is missing or does not parse.');
+            }
+
+            $components[] = strtolower($name);
+        }
+
+        $alg = $params['alg'] ?? 'rsa-v1_5-sha256';
+
+        if ($alg !== 'rsa-v1_5-sha256') {
+            throw SignatureRefused::because('The signature algorithm is not one Teme verifies.');
+        }
+
+        $isPost = strtoupper($request->method) === 'POST';
+        $targeted = in_array('@target-uri', $components, true)
+            || (in_array('@authority', $components, true) && array_intersect(['@path', '@request-target'], $components) !== []);
+
+        if (! in_array('@method', $components, true) || ! $targeted || ($isPost && ! in_array('content-digest', $components, true))) {
+            throw SignatureRefused::because('The signature has not covered every component it must.');
+        }
+
+        if ($isPost && ! self::contentDigestMatches($headers['content-digest'] ?? '', $request->rawBody)) {
+            throw SignatureRefused::because('The digest is not the body’s.');
+        }
+
+        $created = $params['created'] ?? null;
+        $expires = $params['expires'] ?? null;
+
+        if (! is_int($created) || abs(now()->getTimestamp() - $created) > self::WINDOW_SECONDS || (is_int($expires) && $expires < now()->getTimestamp())) {
+            throw SignatureRefused::because('The date is outside the window.');
+        }
+
+        $keyId = $params['keyid'] ?? null;
+
+        if (! is_string($keyId) || $keyId === '') {
+            throw SignatureRefused::because('The signature header is missing or does not parse.');
+        }
+
+        $lines = [];
+
+        foreach ($components as $component) {
+            $lines[] = '"'.$component.'": '.self::componentValue($component, $request, $headers);
+        }
+
+        // The parameters line is the member as Structured Fields serialize it, without its label.
+        $member = Serializer::serializeDictionary(Dictionary::fromArray([$label => $input]));
+        $lines[] = '"@signature-params": '.substr($member, strlen($label) + 1);
+
+        return $this->opened($request, $keyId, implode("\n", $lines), (string) $signed->getValue());
+    }
+
+    /**
+     * The key's owner, fetched again once when the key no longer opens the
+     * signature; the sender once the owner is the activity's actor and the
+     * signature opens.
+     *
+     * @throws SignatureRefused
+     */
+    private function opened(PublicRequest $request, string $keyId, string $string, string $signature): VerifiedSender
+    {
+        $actor = strtoupper($request->method) === 'POST' ? self::activityActor($request->rawBody) : null;
+        $owner = $this->owners->owner($keyId);
 
         // A key that no longer opens the signature may have changed: asked for afresh, once in five minutes.
-        if ($owner !== null && ! $this->opens($string, $signature['signature'], $owner) && $this->mayFetchAgain($signature['keyId'])) {
-            $owner = $this->owners->owner($signature['keyId'], fresh: true);
+        if ($owner !== null && ! $this->opens($string, $signature, $owner) && $this->mayFetchAgain($keyId)) {
+            $owner = $this->owners->owner($keyId, fresh: true);
         }
 
         if ($owner === null) {
@@ -69,11 +192,73 @@ final readonly class Verifier
             throw SignatureRefused::because('The key does not belong to the activity’s actor.');
         }
 
-        if (! $this->opens($string, $signature['signature'], $owner)) {
+        if (! $this->opens($string, $signature, $owner)) {
             throw SignatureRefused::because('The signature does not open with the key.');
         }
 
         return new VerifiedSender($owner->keyId, $owner->ownerUri);
+    }
+
+    /**
+     * One covered component's value for RFC 9421's signature base. The
+     * scheme is https: Teme answers the fediverse only there (B-30).
+     *
+     * @param  array<string, string>  $headers
+     *
+     * @throws SignatureRefused
+     */
+    private static function componentValue(string $component, PublicRequest $request, array $headers): string
+    {
+        $query = http_build_query($request->query, '', '&', PHP_QUERY_RFC3986);
+        $query = $query === '' ? '' : '?'.$query;
+        $authority = strtolower(trim($headers['host'] ?? ''));
+
+        return match ($component) {
+            '@method' => strtoupper($request->method),
+            '@target-uri' => 'https://'.$authority.$request->path.$query,
+            '@authority' => $authority,
+            '@scheme' => 'https',
+            '@path' => $request->path,
+            '@query' => $query === '' ? '?' : $query,
+            '@request-target' => $request->path.$query,
+            default => str_starts_with($component, '@') || ! isset($headers[$component])
+                ? throw SignatureRefused::because('A covered header is missing.')
+                : trim($headers[$component]),
+        };
+    }
+
+    /**
+     * A member's or component's parameters, by name.
+     *
+     * @return array<string, mixed>
+     */
+    private static function parameters(InnerList|Item $tuple): array
+    {
+        $parameters = $tuple->getParameters();
+
+        return $parameters instanceof Parameters ? iterator_to_array($parameters) : [];
+    }
+
+    /**
+     * Whether the Content-Digest header's sha-256 or sha-512 is the body's.
+     */
+    private static function contentDigestMatches(string $header, string $body): bool
+    {
+        try {
+            $digests = iterator_to_array(Parser::parseDictionary($header));
+        } catch (Throwable) {
+            return false;
+        }
+
+        foreach (['sha-256' => 'sha256', 'sha-512' => 'sha512'] as $name => $algorithm) {
+            $digest = $digests[$name] ?? null;
+
+            if ($digest instanceof Item && $digest->getValue() instanceof Bytes) {
+                return hash_equals(hash($algorithm, $body, true), (string) $digest->getValue());
+            }
+        }
+
+        return false;
     }
 
     /**

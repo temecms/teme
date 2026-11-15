@@ -96,6 +96,20 @@ it('takes a Follow at the shared inbox: the follower is kept and an Accept is qu
         ->and([$delivery->activity_id, $delivery->inbox_url, $delivery->host, $delivery->state])->toBe([$accept->id, Inbox::ALICE.'/inbox', 'remote.example', 'queued']);
 });
 
+it('takes a Follow signed with RFC 9421, as Mastodon signs', function (): void {
+    Inbox::postRfc9421('/ap/inbox', Inbox::follow(url('/ap/blog')))->assertStatus(202);
+
+    expect(Follower::query()->where('local_actor_id', $this->blog->id)->count())->toBe(1);
+});
+
+it('refuses a blocked server’s RFC 9421 request with 403 by its key’s host, before anything is fetched', function (): void {
+    BlockedHost::query()->create(['host' => 'blocked.example', 'created_at' => now()]);
+
+    Inbox::postRfc9421('/ap/inbox', [], from: 'https://blocked.example/users/eve', body: str_repeat('a', 300_000))->assertForbidden();
+
+    Http::assertNothingSent();
+});
+
 it('takes a Follow at the actor’s own inbox', function (): void {
     Inbox::post('/ap/blog/inbox', Inbox::follow(url('/ap/blog')))->assertStatus(202);
 

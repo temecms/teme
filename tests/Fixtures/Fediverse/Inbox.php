@@ -36,6 +36,20 @@ final class Inbox
     }
 
     /**
+     * Posts the activity signed by $from with RFC 9421, as Mastodon signs.
+     *
+     * @param  array<string, mixed>  $activity
+     */
+    public static function postRfc9421(string $path, array $activity, string $from = self::ALICE, ?string $body = null): TestResponse
+    {
+        $body ??= json_encode($activity, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $host = (string) parse_url(url('/'), PHP_URL_HOST);
+        $signed = Rfc9421::sign('POST', 'https://'.$host.$path, ['host' => $host], $body, $from.'#main-key');
+
+        return Requests::post($path, $body, $signed);
+    }
+
+    /**
      * A Follow of the site's actor from $from.
      *
      * @return array<string, mixed>

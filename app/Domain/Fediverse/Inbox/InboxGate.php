@@ -112,9 +112,11 @@ final readonly class InboxGate
      */
     private static function claimedHost(PublicRequest $request): ?string
     {
-        $header = array_change_key_case($request->headers, CASE_LOWER)['signature'] ?? '';
+        $headers = array_change_key_case($request->headers, CASE_LOWER);
+        // Draft-cavage names it keyId in Signature, RFC 9421 keyid in Signature-Input.
+        $header = ($headers['signature'] ?? '').' '.($headers['signature-input'] ?? '');
 
-        if (preg_match('/keyId="([^"]+)"/', $header, $match) !== 1) {
+        if (preg_match('/keyid="([^"]+)"/i', $header, $match) !== 1) {
             return null;
         }
 
