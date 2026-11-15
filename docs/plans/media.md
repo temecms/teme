@@ -500,6 +500,12 @@ Stop, write why under Records, commit and push, then stop, when:
 
 On the maintainer's go-ahead, `docs/guides/editors/media.md` matches the new library: **Licence** became **License** (I-3439), "Choose **Save**" became the fields saving as they are left with **Saved.**, and the drawer became the panel. `EditorPagesTest` 91 passed; the Guides tests 289 passed; the quick check green (Architecture 105 passed). This clears the STOP above.
 
+### Follow-up X3-3
+
+- **B-16 (draft), the case's meaning restored.** With fields saving when left, `AltTextSuggestionTest`'s first case no longer proved that Use writes only the alt text. The caption is now changed in the database after the suggestion shows, and the case expects it unchanged after Use; the typed caption reads "Saved on leaving". Seen red with Use also saving the whole form (caption "Saved on leaving" where "Changed elsewhere" was expected), then restored. `b599306`.
+- Small fixes, `8d16cb3`: `UploadedForTest`'s duplicated `ufSettled` line removed. The details no longer save on closing while a field is refused or after a delete (`MediaSaver.forget()`, called once the delete succeeds). The picker's host keeps the opener, captured only when it goes from closed to open; "replaces its options…" now ends with Cancel and focus on the first opener — seen red with the old picker (timeout on focus). `tileOf` takes the grid to search, and the arrow keys pass their own list. The catalogue counts `onClose`; a new case checks it is called once each for Cancel, Esc and the close button, and not on insert (green on the old picker, which already called it once).
+- Checks, after `npm run build`: the quick check green (Architecture 105 passed); MediaPickerDialogTest 10, MediaScreenTest 11, AltTextSuggestionTest 5, MediaLibraryTest 12 passed; UploadedForTest 5 passed on two runs after one run where axe's own one-second network wait timed out on its last case (the plugin's wait, #238; nothing in the page changed).
+
 ### How to try it
 
 On a local site: `/admin/media` — pick a tile size, move with the arrows, Enter opens the details beside the library, change a field and leave it ("Saved."). `/admin/_catalogue#media-picker` — open the picker from each caller, choose with the keyboard or a double-click, tick a gallery in order and remove one from the tray, upload on the Upload tab.
