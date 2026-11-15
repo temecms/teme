@@ -27,12 +27,19 @@ final class GenerateHandbookIndex extends Command
         'concepts/manifest.md',
         'concepts/hooks.md',
         'concepts/operations.md',
+        'start/code-standards.md',
         'testing.md',
+        'plugins/settings.md',
+        'themes/regions.md',
         'for-agents.md',
         'plugins/content-write.md',
         'plugins/jobs.md',
         'plugins/public-routes.md',
         'plugins/import.md',
+        'plugins/insertions.md',
+        'plugins/fediverse.md',
+        'themes/languages.md',
+        'outside/management-api.md',
     ];
 
     /** @var string */
