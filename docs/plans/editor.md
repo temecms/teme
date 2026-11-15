@@ -611,3 +611,222 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: commits; each test seen red (task, file, case, the failure's first line); the lock entries added and the chunk sizes; the design-system and words counts before and after; the tests changed; differences from the plan as B-?? (draft); Task 12's outcome; changelog lines; any STOP. -->
+
+## Setup
+- Base origin/main 4b8cc3b. Editor chunk at base: edit-Djce2tUN.js 757.45 kB raw, 239.37 kB gzip.
+
+### Preconditions (Task 0)
+- design system commit e7f2af7 present; ui/combobox in log: 2.
+- 14 @tiptap at 3.32.0; no drag-handle.
+- npm view: drag-handle-react MIT, peers react ^16.8..^19, react-dom, @tiptap/pm, @tiptap/react, @tiptap/extension-drag-handle 3.32.0. drag-handle MIT, peers pm, core, y-tiptap ^3.0.7, node-range, collaboration 3.32.0.
+- combobox exports: ComboboxOption, ComboboxProps, matchesEveryWord, Combobox.
+- useUploadTarget: one line.
+- MediaModal in editor/pages/content: the six named, plus pages/content/index.tsx (the lists part's).
+- media-picker.tsx: absent.
+- search-panel: 5 lines. unpinnedPanels: one line; focus_mode_default one; maxItems present; savePreferences one.
+- block-ids transformPasted/dragging: 2 lines. ComboboxSourceTest slash-menu: one line.
+- editor-page.tsx absent; scanner R7 accepts EditorPage.
+- design-system baseline lines for owned files: 396; admin-words: 503.
+- dsCounts before: R1 114, R2 661, R3 149, R5 82, R6 41, R7 89, R8 34, R9 23, R10 14, R14 13, R15 8. AdminWords count 2350.
+
+### Commits
+- 65ab2ff build(deps) drag handle
+- 32965d1 refactor(editor): media picker adapter, pins, tab order
+
+### Red
+- Task 2 EditorSeamsTest: media picker case listed the six callers; pins and tab-order: ERR_MODULE_NOT_FOUND tools/pins.ts / search-social/tab-order.ts.
+
+### Lock
+- Added: @tiptap/extension-drag-handle 3.32.0, -react 3.32.0, extension-collaboration 3.32.0, extension-node-range 3.32.0, @tiptap/y-tiptap 3.3.0, yjs 13.6.33, y-protocols 1.0.7, lib0 0.2.120, isomorphic.js 0.2.5 (lib0's own dependency, not in the plan's list). All MIT. No existing entry changed; root name kept.
+
+### Decisions (B-?? draft)
+1. EditorSeamsTest's media-picker case scans components/editor/** and the two owned pages, not all of pages/content/: pages/content/index.tsx (lists part) uses MediaModal for its own featured-image chooser. Options: scan all pages/content (fails on another part's file), change index.tsx (another part's file: STOP), scan owned files only. Chose owned files. 32965d1.
+2. Adapter keeps the existing button words where a test pins them or where MediaModal cannot count: audio "Insert audio"/"Replace audio" (AudioVideoCardsTest clicks "Insert audio"), video "Insert video"/"Replace video" alongside, gallery "Insert gallery"/"Use these images" (MediaModal has no count for "Add :count images"). Others follow D2's words ("Insert image", "Replace", "Set featured image", "Use as :name", "Use as poster", "Add track", "Use as social image"). Options: plan's words everywhere (breaks AudioVideoCardsTest, a test the plan does not list), keep all old words, mix. Chose the mix; openMediaPicker brings D2's words in Task 12. 32965d1.
+3. useMediaPicker takes an optional first options, so a new card opens the library as it mounts, as built; keeps MediaModal mounted after closing so it closes as it opened. 32965d1.
+4. The rail stays 360 by default (DS: 344): EditorWritingAreaTest proves the column grows by 360 when the rail closes. 32965d1.
+5. WordingPassEditorTest's editor-shell needle pointed at patterns/editor-page.tsx and its translated form `__('The :noun’s settings', …)`: the same sentence, moved and through __(). 32965d1.
+- Task 3 EditorSurfaceTest on the old surface: 4 failed, 4 passed. Red: labels shown always; counts not under the body; no bubble slot (mouse); no More menu. Passed already: measure, touch (no bubble slot at all), axe light/dark.
+6. The 64px block gutter is not the prose's padding: EditorWritingAreaTest keeps paragraphs at 692 with the menu open at 1440 (column 768 inside its sides), so the prose keeps px-5 and the handle sits in the room before the block (the column's 24 plus the prose's 20, more beside a paragraph). Options: md:px-16 (paragraph 630, the test fails), pl-16 pr-2 (fits by 4px at 1440, lopsided), keep px-5. Chose px-5. 0c9cf83.
+7. EditorSurfaceTest types with type(), as EditorBarTest does; keys() takes key names only.
+
+### STOP (draft)
+- EditorWorkspaceTest "keeps the editor's header, its toolbar and its side panel in view…" scrolls aside[aria-label="Post settings"] itself. On the design system only ScrollArea scrolls (R8), and ScrollArea is a div with no way to render an aside; so the rail's aside holds a ScrollArea and the aside no longer scrolls: the case times out at its rail-scroll wait. Each fix is a STOP: give the aside overflow-y-auto again (adds an R8 baseline line), let ScrollArea render another element (changes components/ui), or read the rail's ScrollArea in the test (changes a test beyond "Tests that change"). Left red; every other task built.
+- Note: my parallel feature run (21:26-21:41) shared teme_test_test_N with the base check's parallel run; base failures in that window may be from the clash, rerun them.
+- 0c9cf83 feat(editor): the writing surface, toolbar and bubble on the design system
+- Task 4 EditorBlocksTest on the old editor: 10 failed. Red: no block keys (Alt Shift ↓ waits out, Ctrl D leaves three paragraphs), no handle, no block menu, no touch handle.
+- Task 4 plants: moveBlock inserting duplicateBlock's fresh copy: "moves a paragraph down…" red, first line "Failed asserting that two arrays are identical" (One's id became new). block-ids.ts `if (moved) return slice;` bypassed: "drags a block…" red, same first line (Three's id became new). Both put back.
+- Task 4 editor chunk: edit-CsCV8LhH.js 907.45 kB raw, 287.04 kB gzip (base 757.45 / 239.37): +150.00 raw, +47.67 gzip, with the drag handle and its collaboration peers bundled (Settled 4).
+- dfc05c1 feat(editor): block handles on Tiptap's drag handle, and the block menu
+8. The keyboard and touch handle is a second element in the same gutter, with the same buttons. Found: Tiptap's drag handle hides on every key press while the text has focus, so getReferencedVirtualElement cannot keep it on the caret. Options: patch the plugin (not ours), lock it while typing (it would stop following the pointer), a second element as the plan allows. Chose the second element. dfc05c1.
+9. The grip is a plain button beside a hidden menu anchor, not the menu's trigger. Found: a Radix trigger cancels pointerdown, and Chrome then never starts a drag. Options: open on pointerdown and give up dragging, cancel pointerdown ourselves (same result), anchor the menu beside the grip and open it on click or Enter/Space/↓. Chose the anchor. dfc05c1.
+10. The block menu is drawn in place and is not modal, as the bubble's More. Found: a portalled, modal menu leaves axe with content outside landmarks and the page hidden. Options: portal (axe fails), in place. Chose in place. dfc05c1.
+11. The handle is a row of two 28px buttons (stacked on touch), and the prose's padding is px-8, so the handle fits the 56px between the column's edge and a full-width card (revises 6). Found: a 64px gutter takes the reading measure under 692 at 1440 with the menu open (EditorWritingAreaTest); a stacked handle on a mouse sits beside the next block and drags it. Options: 64px (test fails), stacked always (wrong block dragged), a 56px row. Chose the row. dfc05c1.
+12. Tab reaches the grip outside lists, tables and code blocks: a table's Tab moves between cells. dfc05c1.
+13. Until the block picker exists, "+" adds an empty line below and puts the caret in it. dfc05c1.
+14. "Turn into" is offered on paragraphs, headings, quotes and lists; Heading is h2 and Subheading h3. dfc05c1.
+15. The drop line is StarterKit's drop cursor at 3px in the accent (an option, not a schema change); the dragged block is at 40% while it moves. dfc05c1.
+16. The "+" between blocks follows the pointer and is never in the tab order; the keyboard reaches the picker from the handle's "+", one ← from the grip (→ back, Shift Tab to the text), so Tab from the text still lands on the grip as the plan says. Options: a tab stop per gap (dozens of stops), "+" before the grip in the tab order (Shift Tab would no longer return to the text), arrows inside the handle. Chose the arrows. ef9ba3e.
+17. The 12px gap between blocks is not added: the "+" and its line are drawn over the existing paragraph spacing, so the reading rhythm and the writing-area test's measures stay as they are. ef9ba3e.
+18. The groups: Text holds the text blocks (paragraph to horizontal rule); Media holds the core image, gallery, audio, video and embed cards; Cards holds the other core cards; From plugins holds every entry a plugin owns. ef9ba3e.
+19. The horizontal rule gets its own toolbar control (it folds first into More), since EditorControlsTest wants every block on the toolbar's source and Insert is now only the picker. ef9ba3e.
+20. The toolbar's Insert is a plain button that opens the picker at the cursor, not a menu; its old filter field went with the menu. ef9ba3e.
+21. A new card is selected once inserted. An image card with no image opens its own library at once, so after "photo picture", Enter, focus is in that card's "Insert image" dialog with the card selected behind it; the test checks that, which is the plan's "focus is in the new card" for a card that asks for its image first. Options: keep the dialog (chosen), stop the card opening its library from the picker (changes the card's own behaviour, Task 6's file). ef9ba3e.
+22. The image's Focal point is not in its header: the image card has no focal point attribute (the library's focal point is the media item's, set in its drawer), and the plan forbids new attributes. Options: a button that opens the media drawer (another part's file), a new attribute (forbidden), leave it out. Chose to leave it out. 6279d51.
+23. The card's settings panel stays, reached from "…" › Edit; "…" also holds Delete. The header's warning chip stays for the other cards; the image's moves into its alt-text row. 6279d51.
+24. The header keeps its 40px while hidden (visibility, not display), so text does not jump as the pointer passes over a card. 6279d51.
+25. The alt-text row also stays while focus is in it, so it does not vanish under the first letter typed into a card that is not selected. 6279d51.
+26. "Collapse to one line" is also in the block menu for cards (DS 4.39); the menu sends the frame an event, so collapsing stays in the frame's view state. 6279d51.
+27. A selected card draws its own 2px accent outline; ProseMirror's selected-node outline is turned off for card frames only (`.teme-prose` rule). 6279d51.
+28. Ctrl K in the text opens the link editor and stops there, so the admin's palette (which also answers Ctrl K on the window) stays shut; Ctrl K anywhere else still opens the palette. Options: leave both opening (the panel is covered), change the palette (another part's file), stop the key in the editor once the link editor has taken it. Chose the last. 2b0093e.
+29. An option's value is the address the server already gives (`teme:content/…`, `teme:term/…`), not kind + ':' + id, since that address is what the link stores; an address option is `href:` + the address. 2b0093e.
+30. Typed text is offered as an address only when it has no spaces and holds a dot, a colon, a slash or a #, so a title search does not offer "Link to “https://harbour”". 2b0093e.
+31. LinkChoicesTest pins `placeholder="Search by title or name"` in link-popover.tsx, so the Combobox's button keeps those words as its placeholder, and that one words-baseline line stays (see STOP 3). The search field takes D8's "Search by title or name, or paste an address". 2b0093e.
+32. The selection bubble shows at once when the link editor opens (its plugin is told to show), and its shouldShow is one function for its life; it takes the panel's focus only once the bubble is on the page. 2b0093e.
+33. A pane's title takes focus as it opens, except when focus was in the text (a selected card's pane), so selecting a card never pulls the caret out of the writing. Options: always focus, never focus, focus unless from the text. Chose the last: DS 4.39 asks for the title focused and the writing must keep its caret. 8113830.
+34. Panes keep their own inner padding; the pane head adds none to their body. Options: a shared body padding, or none. Chose none: every pane already pads itself, and a second padding doubled it. 8113830.
+35. Only History offers Open larger (`openLarger` on RailPane, off by default). Options: every pane, or the panes that ask. Chose those that ask: the plan names History, and a card inspector larger serves nothing. 8113830.
+36. Open larger moves the pane's own DOM node between the rail and the dialog (a portal into a host element), so its state and scroll stay and History is not fetched again. Options: render twice, lift state, move the node. Chose moving the node: no pane needs to change. 8113830.
+37. EditorToolsTest's "no fold control" check looks at the Publish section's header only: the Visibility select inside it carries aria-expanded as every select trigger does. 8113830.
+38. The Publish section keeps its current summary rows and words; only its mark and the fold rule are new. Restyling its rows (96px key column, the order D13 lists) would change words EditorRailTest and VisibilityRowTest pin, so it is left as built. 8113830.
+39. Below 1360px wide the pinned icons stay; they leave only below 640px, as the panel icons did. Options: hide them below 1360, or keep today's 640. Chose 640: browser tests at the default 1280 width click Share and Assistant on the bar (EditorBarTest, AssistantPaneTest, MetadataSuggestionsTest), and every tool is in Tools anyway. 12ba153.
+40. Outline and History rows in Tools carry no pin toggle: they are always on the bar and the preference refuses them. An empty 28px space keeps the rows aligned. 12ba153.
+41. Enter in Tools' search opens the first tool shown; ↓ from the search goes to the first row's name. 12ba153.
+42. The list is aria-busy while a pin is being saved, which EditorToolsTest waits on before reading the stored row. 12ba153.
+43. Each tool gets a palette command ("Open the outline", "Open Share", "Open the assistant", beside today's "Open history"), shown only where the bar would offer the tool. 12ba153.
+44. "Document overview" is now "Outline", on the bar and as the pane's title, and its pane id is outline. 12ba153.
+45. EditorTool keeps the `available` flag the old panel list had: RevisionHistoryTest pins `id: 'history',[^}]*available: true` in editor-header.tsx. 12ba153.
+46. Tools' dialog is labelled by its search field's label, "Find a tool". 12ba153.
+47. The box takes the writing column's full width, not at most 760 centred: EditorWritingAreaTest proves the section is as wide as the title and the body (column less 48) at 1440 and 1920. Options: 760 centred (D12), or full width. Chose full width, so that test stays as it is. c70ce90.
+48. The search result sits above the tabs, shown folded and open, with the Result size switch shown when open; it is not inside the Search tab. Options: only in the Search tab (D12), or above the tabs. Chose above: SearchSectionTest's "says in the closed section where the page's description comes from" (unchanged) and the listed "starts closed…" both need the result shown folded, and one element keeps one data-test="serp". The social card is on the Social tab. c70ce90.
+49. The strip holds the name, the line "How this :noun appears in search results and when it's shared." (MetadataEditorTest pins its place) and the fold button; the check line is the row under the strip, so Tab from the fold button reaches its link as before. The result's title is not repeated in the strip, since the result is shown. c70ce90.
+50. The result's frame is a 1px ring, not a border, so the text inside it is exactly 600 (Desktop) or 400 (Mobile) wide and the frame stays 632, as SearchSectionTest measures. A phone starts on Mobile (under 640px). c70ce90.
+51. Rows go side by side from the @2xl container width (672px), Tailwind's nearest step to D12's 640; the 300px column is w-75. c70ce90.
+52. The tabs wrap on a narrow box instead of scrolling: four short names fit at 375, and only ScrollArea may scroll (R8). c70ce90.
+53. Panels are all mounted and the inactive ones hidden, so typed values, the half-typed canonical address and AI proposals survive a change of tab; the Advanced tab's trigger keeps the id editor-advanced, so EditorPublishingTest and FieldControlsTest reach it as before. c70ce90.
+54. Advanced keeps every field it had (Hide, the canonical, page and article type, snippet, cached copy) and its summary line (data-test="advanced-summary"), now at the top of the tab instead of on a fold's trigger. c70ce90.
+55. A search check's warning in the box is a button with the check's label (as in the rail's Checks), not a separate "Fix" word: description and title width lead to the Search tab's fields, Listing to Hide from search engines. The edit screen holds the tab state, so the rail's checks lead there too. c70ce90.
+56. Schema reads "Published as :type" with the type's main entity, or its page type, as stored; the structured-data check's own message says what the site leaves out; the link to Settings › Search and social shows only when the settings menu holds it. c70ce90.
+57. The SEO title's placeholder is the title the template makes, while it comes from the template; the social title's and description's are "Same as search: :value". TextControl gains an optional placeholder. c70ce90.
+58. SearchSectionTest's listed cases were changed for the tabs, with their meaning kept: the fold button's name is read from aria-label ("Open/Fold Search and social"); Social and Advanced are opened as tabs before their fields are typed in; the closed state shows the result, the check line and no tabs; the social card (280) is checked on the Social tab; Advanced is "active", not "open"; from the check line's link, Tab now passes the result size and the tabs before the SEO title. c70ce90.
+- The base check (started 21:09) clashed with my parallel run's databases and stalled; stopped at 22:5x. Base reds will be checked per test at the end instead.
+
+### Task 5 red (code stashed, base built)
+- inserts an image card from +: timed out waiting for "Add a block below" to take focus after ← (no picker from +).
+- turns an empty line into a heading by /hea: timed out waiting for [data-test="block-picker"] (the old slash menu).
+- offers in Insert everything the slash offers: timed out waiting for picker options after "/".
+- says No block matches. and closes with Esc: no toolbar button named "Insert" (the old Insert was a menu).
+- exposes the picker as a listbox: same, no toolbar button named "Insert".
+
+- Task 5 green twice (EditorBlocksTest 15/15); RewriteMenuTest 7, AddNewDraftTest 2, EditorControlsTest 26, ComboboxSourceTest 2; Architecture 109, features 2062. AdminWords 2265 → 2253. DS R2 643→641, R3 146→145, R5 76→75, R6 38→37, R8 31→30. Commit ef9ba3e.
+
+### STOP 2 (found after Task 5)
+AudioVideoCardsTest › "places an audio card from Insert, plays the chosen file in the editor, and saves its transcript (I-446)" clicks `[role="menuitem"]:has-text("A sound file from the library")` after Insert. D7 replaces the Insert menu with the one picker, whose items are `role="option"` (the plan's own words), so the case times out at that click. It is not listed under "Tests that change", so changing it is a STOP. The change that would keep its meaning: click `[data-test="block-picker"] [role="option"]:has-text("A sound file from the library")` and assert `[data-test="block-picker"]` is gone instead of `[role="menu"]`. The test is left unchanged and red; ef9ba3e and everything after are built as the plan says.
+
+### Task 6 red (Task 5 build)
+- shows a card's header on hover, when selected and while focus is inside: timed out waiting for the header (no data-slot="card-head").
+- collapses a card to one line: timed out waiting for the header (no Collapse).
+- types an image's caption in place: "Alt text missing" not in the card (it said "Alt missing", and no caption field in place).
+- passes axe with a card selected, light and dark: both timed out waiting for the header.
+- Task 6 green twice (EditorSurfaceTest 13/13); AltTextSuggestionTest 5, ImportImagesTest 5, EditorBlocksTest 15, ImportedContentCardTest 4; CardMediaTest 3, Feature/Cms/Cards 427; Architecture 109, features 2062. AdminWords 2253 → 2186. DS R1 103→100, R2 641→626, R3 145→141, R5 75→72, R6 37→34, R9 23→22, R14 13→12. Commit 6279d51.
+
+### Task 7 red (Task 6 build)
+- All four EditorLinkSearchTest cases timed out waiting for the link editor after Ctrl K: there was no Ctrl K and no panel (`data-test="link-editor"`).
+
+### Task 7 green
+- EditorLinkSearchTest 4/4 (twice), EditorSurfaceTest 13, RewriteMenuTest 7, EditLinkTest 2; LinkChoicesTest 5, LinkEditorTest 10; Architecture 109, features 2062. AdminWords 2186 → 2179. DS R1 100→99, R2 626→621, R3 141→138, R5 72→71, R8 30→29. Commit 2b0093e.
+- The worker restarted mid-task: the test PostgreSQL cluster (18/test, port 5433) and Valkey (port 6380) were started again.
+
+### STOP 3 (found in Task 7)
+LinkChoicesTest › "searches with the link box for everything a link can lead to by ID…" pins `placeholder="Search by title or name"` in link-popover.tsx as a raw attribute. Task 11 asks for no words-baseline line left in the editor's files, but that line can only go if the test's pinned string changes, which "Tests that change" does not list. The line is kept; Task 11 will end with this one line.
+
+### Task 8 red (Task 7 build)
+- opens History as a pane with Back: timed out waiting for the head's title to take focus (no pane head).
+- opens History larger and back: no "Open larger" in a pane head.
+- replaces the sections with a selected card's settings: timed out waiting for a pane head titled Image with Back.
+- keeps the Publish section open and the action bar in view: no `data-test="publish-section"` (the section had no mark to find it by).
+
+### Task 8 green
+- EditorToolsTest 4/4; EditorBarTest 11, EditorPublishingTest 7, AssistantPaneTest 5, VisibilityTest 4, DiscussionTest 5, MetadataSuggestionsTest 4; EditorRailTest, EditorSweepSourceTest, VisibilityRowTest 51 passed. AdminWords 2179 → 2178; DS R2 621 → 620, R6 34 → 33.
+
+### Task 9 red (Task 8 build, preference registered)
+- EditorToolPinsTest (before the registration): "pins Assistant and Share…" Undefined array key "editor.pinned_tools"; "keeps the pins in the order given" and "refuses a fourth pin" ValidationException on the save.
+- EditorToolsTest: all six new cases timed out (no `data-slot="editor-tools"`, no Tools button, no pin toggles, no palette commands for Outline or Share).
+
+### Task 9 green
+- EditorToolPinsTest 6/6; EditorToolsTest 11/11; EditorBarTest 11, AssistantPaneTest 5, MetadataSuggestionsTest 4, AiActivityScreenTest 6; PreferencesPageTest green. AdminWords 2178 → 2171.
+
+### STOP 4 (found in Task 9)
+PreferencesTest › "gives a person the declared defaults before they change anything" lists every preference's default exactly. D10 registers `editor.pinned_tools`, so that list gains `'editor.pinned_tools' => ['assistant', 'share']` after `editor.focus_mode_default`, and the case is red until it does. PreferencesTest is not in "Tests that change", so the line is not added here. The fix that keeps its meaning: add that one entry to the expected array. 12ba153.
+
+### Task 10 red (Task 9 build)
+- SearchAndSocialBoxTest: 10 of 11 failed (no tabs, no Result size, no social line, rows not side by side, no box checks list). The phone stacking case already held.
+
+### Task 10 green
+- SearchAndSocialBoxTest 11/11; SearchSectionTest 14/14 (listed cases changed); SearchAndSocialSettingsTest 5, EditorPublishingTest 7, EditorWritingAreaTest 3, DetailsSectionTest 7; SearchSectionWiringTest, tests/Feature/Ai/Metadata, ContentScreensTest 76 passed. AdminWords 2171 → 2160; DS R1 99 → 98, R2 620 → 617, R10 13 → 12.
+- MetadataSuggestionsTest 2 of 4 red: STOP 6. FieldControlsTest red since Task 3: STOP 5.
+
+### STOP 5 (found in Task 10)
+FieldControlsTest › "draws the twelve built-in fields exactly as before, empty and filled" compares each row's HTML with tests/Fixtures/Fields/built-in-controls.json. The excerpt's row changed with Task 3 (D4's writing surface), and Search and social's rows change with D12, so it is red. The fixture can be written again with FIELDS_RECORD=1, which keeps the test's other checks (every field drawn, Max snippet disabled when filled, alt missing on the featured image); but the fixture is outside this part's files and re-recording changes what the test compares, so it is left for the maintainer.
+
+### STOP 6 (found in Task 10)
+MetadataSuggestionsTest › "asks from Search and social and puts each proposal under its field…" (light and dark) reads the social title's and social description's proposals as visible right after asking from the Search tab. With D12's tabs they wait on the Social tab, under their fields. The fix that keeps the meaning is to show the Social tab before those two assertions; the test is not in "Tests that change", so it is left red. Product note: I-3124 says no proposal waits out of sight, and a proposal on another tab is out of sight; a count on the tab, or opening the tab that holds the first proposal, would answer it. Not built.
+
+### Task 11
+- Red (Task 10 build): EditorSurfaceTest's two new cases. "compares two revisions on the editor's page…" timed out waiting for `[data-slot="editor-shell"]` on the compare page (it was a plain page with its own padding). The tablet case, "opens the rail over the writing from the top bar on a tablet…", already held before any change, so it was never seen red.
+- Green: EditorSurfaceTest 15/15, SearchSectionTest 14, SearchAndSocialBoxTest 11, EditorPublishingTest 7, EditorBarTest 11, RewriteMenuTest 7, ImportedContentCardTest 4, EditorBlocksTest 15, EditorWritingAreaTest 3. AudioVideoCardsTest is 2 of 3, its red case being STOP 2. RevisionComparisonTest and RevisionHistoryTest are green in Feature/Cms/Contents. The Architecture suite passed 109, and the features (Admin, Cards, Contents, Ai, Seo) passed 2263. Commit 2803d58.
+59. The compare page's root is `EditorPage` without a rail, with a header holding "Back to the editor". Its Before and After selects drop their 34px height and take the control's own 36px. 2803d58.
+60. In the diff, every added and removed block carries its change in words as well as color: a text label before it, and an underline on the added text. 2803d58.
+61. The presence line is a `StatusPill` in the warn tone, with its count through `__n`. 2803d58.
+62. The two Restore labels are whole sentences, "Restore the before version" and "Restore the after version", so a translation never has to lower-case a word it was given. 2803d58.
+63. Words that are looked up while drawing: module constants of sentences became functions called in render (`shareWords`, `heldWords`, `visibilityChoices`, `visibilityNotes`, the video kinds, the rewrite words). No `__()` runs where a module loads. 2803d58.
+64. Raw controls became `Button` (ghost, or `TextButton` for link-style ones), `Input`, `Textarea` and `ScrollArea`, keeping their look with class overrides. The rewrite menu's `z-50` became `z-(--z-float)`, the layer the plan gives menus. 2803d58.
+65. Lines left in the baselines for this part's files: 34 design lines and 20 words lines. None can go without a STOP or a value the tokens do not name.
+    - Words pinned by source tests: `aria-label="Quick choices"`, `aria-label="Preview links"` and the share pane's `'a removed account'` (EditorSweepSourceTest); the stale dialog's title template and the canonical legend and paragraph (WordingPassEditorTest); `emptyLabel="Default"` (TemplateChoiceTest); the "History" term, "Immediately" and "At a set time…" (EditorSweepSourceTest); "Alt text for this {noun}" (EditorSweepSourceTest); the link button's placeholder (LinkChoicesTest, STOP 3); the seven rewrite labels, which RewriteTaskTest reads as plain literals. The menu already translates them as it draws.
+    - `template-choice.ts`: a Node fixture imports it directly, where `@/lib/i18n` does not resolve.
+    - Design lines kept because they are measures the tokens do not name: the true-size search result (Arial, 20px, 14px, line height 1.58), the social card's 132px image column and its 56px and 72px heights, three 34px row heights in the rail (`--ctl-h` is 36), and two-column grids sized to their content.
+    - Other design lines kept: `[data-ai-proposal]` is a selector string, not a class. The outline's indent is computed per level (R15). The writing surface has no ring while typing, because the caret shows focus (R10).
+    - Some raw `<textarea>` stay: the `Textarea` component forces 3 rows, and the callout and excerpt use 2. The canonical radio stays, because `RadioGroup` changes the element a browser test checks. The two warn-tinted chips, and the result's `role="note"` (R9), keep their wording, because changing their padding would make the scanner list a new line.
+66. `card-frame.tsx` and the search previews moved off `gap-1.5`, `text-xs` and `text-[11px]` to `gap-2` and `text-caption`. The search result's own text stays at true size. 2803d58.
+
+### Task 12
+- `git fetch origin` at 2a2652a: there is no `resources/js/components/media/media-picker.tsx` on `origin/main`, so `pick-media.tsx` keeps `MediaModal`. Switching to `openMediaPicker` is a follow-up, for when the media part merges. B-2's button words follow it.
+- The phone-overlays patterns (`patterns/responsive-dialog.tsx`, `responsive-sheet.tsx`, `responsive-menu.tsx`) are not on `origin/main` either. Opting the editor's dialogs and menus in is a follow-up.
+- `origin/main` was not merged into `ui/editor`, because neither step needed it.
+
+### Task 13
+- Full `composer check` at 2803d58:
+  - Pint, PHPStan, types, lint and the theme build passed.
+  - Architecture: 109 passed.
+  - Unit and Feature: 10495 passed, 2 skipped and 1 failed. The failure is PreferencesTest's defaults case (STOP 4).
+- Browser list, one file at a time after `npm run build`:
+  - Green: EditorSurfaceTest 15, EditorBlocksTest 15, EditorLinkSearchTest 4, EditorToolsTest 11, SearchAndSocialBoxTest 11, SearchSectionTest 14, EditorBarTest 11, EditorPublishingTest 7, EditorWritingAreaTest 3, EditorLeavingTest 11, BlockIdsTest 4, TwoEditorsTest 1, AssistantPaneTest 5, AltTextSuggestionTest 5, DetailsSectionTest 7, DiscussionTest 5, ImportImagesTest 5, RewriteMenuTest 7, UploadedForTest 5, VisibilityTest 4, AddNewDraftTest 2, ComboboxTest 21, FullPassTest 40.
+  - Red, each a recorded STOP: EditorWorkspaceTest, 4 of 5 (STOP 1); FieldControlsTest, 0 of 1 (STOP 5); MetadataSuggestionsTest, 2 of 4 (STOP 6); AudioVideoCardsTest, 2 of 3 (STOP 2).
+- Counts:
+
+  | Rule | Base | After |
+  |---|---|---|
+  | R1 | 114 | 82 |
+  | R2 | 661 | 447 |
+  | R3 | 149 | 86 |
+  | R5 | 82 | 56 |
+  | R6 | 41 | 31 |
+  | R7 | 89 | 84 |
+  | R8 | 34 | 27 |
+  | R9 | 23 | 21 |
+  | R10 | 14 | 12 |
+  | R14 | 13 | 6 |
+  | R15 | 8 | 7 |
+  | Admin words | 2350 | 1867 |
+
+  The base figures include other parts' merged work. This part's own lines went from 396 to 34 design lines, and from 503 to 20 words lines.
+- Editor chunk: base 757.45 kB raw, 239.37 kB gzip; now 933.5 kB raw, 301.8 kB gzip. The drag handle and its collaboration peers are bundled.
+- Tests changed: SearchSectionTest's listed cases (B-58); WordingPassEditorTest's editor-shell needle (B-5); EditorSurfaceTest, EditorBlocksTest, EditorLinkSearchTest, EditorToolsTest, SearchAndSocialBoxTest and EditorToolPinsTest are new.
+
+### Changelog lines
+- Blocks can be moved, duplicated and turned into another kind from a handle beside each one, by keyboard as well as by dragging.
+- One picker adds every kind of block, from +, / or Insert.
+- Search and social is a box under the article, with tabs and a result preview at true size.
+- Up to three editor tools can be pinned to the bar, and the pins follow you to any computer.
+
+### How to try it
+Open any post. Hover a block, use its grip's menu, or press Alt Shift ↑/↓ and Ctrl D. Type / on an empty line. Select text and press Ctrl K. Open Tools in the top bar and pin a tool. Open Search and social under the article and switch tabs. From History, compare two versions.
