@@ -182,7 +182,7 @@ private function tables(): array
 - `1febf02` feat(plugins): RemovePluginData drops a plugin’s recorded tables
 - `d203c86` feat(plugins): Plugins screen runs waiting migrations and removes data
 - `ccad52d` docs(plugins): record a plugin’s tables on its row
-- (this) docs(plans): Plugin tables' records
+- `f1e2ea5` docs(plans): Plugin tables' records
 
 ### Tests seen red (then green)
 
@@ -208,6 +208,33 @@ private function tables(): array
 ### Browser (Plugins screen file this part owns)
 
 - `tests/Browser/Plugins/PluginsScreenTest.php`: **17 passed** (includes the four new cases and axe light/dark).
+
+### Follow-up C1-2
+
+#### Commits
+
+- `3d7f5b4` fix(plugins): turn a failed plugin migration into a refusal
+- `828ca15` fix(plugins): ignore recorded tables that no longer exist
+- `fbb8874` fix(plugins): offer Remove its data only when the server allows it
+- `93db8b4` test(plugins): axe the remove-data dialog and waiting migrate row
+- `5670d8d` fix(plugins): harden remove-data and pending sign-in markers
+- (this) docs(plans): Follow-up C1-2 records
+
+#### Tests seen red
+
+- C1-2.1: `refuses a migration that fails` — `QueryException` / server error instead of ValidationException refusal (enable path).
+- C1-2.2: `removes data when a recorded table is already gone` — `DROP TABLE` included the missing name (`42P01`).
+- C1-2.3: `does not offer Remove its data while the plugin is enabled with tables` — undefined `canRemoveData` on the page props.
+- C1-2.4: axe cases — written as regression checks; passed once present (no product defect).
+- C1-2.5: `refuses RemovePluginData when a recorded table lacks the plugin’s prefix` — tried to DROP `users` (FK dependents) instead of refusing.
+
+#### Gate after Follow-up C1-2
+
+- Pint: passed; PHPStan: OK
+- Architecture: **115 passed**
+- Unit+Feature: **10555 passed**, 2 skipped, 54192 assertions
+- Exit: **0**
+- Browser `PluginsScreenTest.php`: **19 passed**
 
 ### Contract
 
