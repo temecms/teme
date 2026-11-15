@@ -61,4 +61,67 @@ An index never falls inside a node, so cards, lists, tables, quotes and code blo
 
 ## Records
 
-(The builder fills this.)
+### Commits on `render/insertion-points`
+
+- `f4a631b` feat(insertions): contract, registry and content.insert capability — Task 1
+- `94e1dea` feat(insertions): PlanBuilder maps positions to top-level indexes — Task 2
+- `961d196` feat(insertions): DocumentRenderer draws a plan between top-level blocks — Task 3
+- `3fe03d3` feat(insertions): draw plugin insertions on published article pages — Task 4
+- `a5107e3` feat(insertions): strip unsafe markup and purge on InsertionsChanged — Task 5
+- `eae62ea` feat(site-code): serve ads.txt from Settings › Site code — Task 6
+- `55e5c57` test(insertions): browser check that insertions sit between paragraphs — Task 7
+- `8e98961` fix(insertions): drop redundant array_values for author IDs — PHPStan
+- `578ad93` fix(insertions): satisfy Architecture checks for ads.txt UI
+- `0386408` test(fields): raise built-in field counts for insertions_off
+
+### Tests seen red (first line of the failure)
+
+| Task | File | First failure |
+|---|---|---|
+| 1 | `tests/Feature/Site/Insertions/InsertionPointsTest.php` | `Target class [App\Domain\Site\Insertions\InsertionPoints] does not exist` |
+| 2 | `tests/Feature/Site/Insertions/PlanBuilderTest.php` | `Class "App\Domain\Site\Insertions\PlanBuilder" not found` |
+| 3 | `tests/Feature/Site/Insertions/DocumentRendererInsertionsTest.php` | `Unknown named parameter $insertions` |
+| 4 | `tests/Feature/Site/Insertions/ArticleInsertionsTest.php` | `Class "App\Domain\Security\Elevation" not found` (wrong namespace while wiring; then missing draw path) |
+| 5 | `tests/Feature/Site/Insertions/InsertionSafetyTest.php` | `Call to undefined method App\Domain\Cache\PageCache::get()` then CSP origin assert |
+| 6 | `tests/Feature/Site/AdsTxtTest.php` | `Class "App\Domain\SiteCode\SiteCodeSettings" not found` |
+| 7 | `tests/Browser/InsertionPointsTest.php` | `1 Accessibility issues found` (`landmark-complementary-is-top-level` on `<aside>`) |
+
+### Architecture baselines
+
+Unchanged (no lines added, no counts raised):
+
+| Baseline | Before | After |
+|---|---|---|
+| design-system-baseline.txt | 222 | 222 |
+| dsCounts() | R1 43, R2 71, R3 26, R5 33, R6 10, R7 2, R8 14, R9 3, R10 11, R14 5, R15 4 | same |
+| admin-words-baseline.txt | 876 | 876 |
+
+### Gate
+
+`export PATH=/opt/node24/bin:$PATH && composer check` — exit 0
+
+- Pint: passed
+- PHPStan: OK, no errors
+- Architecture: **139 passed** (1316 assertions)
+- Unit+Feature (parallel): **10627 passed**, 2 skipped (54814 assertions)
+- Browser (this part): `InsertionPointsTest` **2 passed** (1280 and 375)
+- Note: an earlier full run once failed a flaky planner assert in `ListingViewTest` (`paths_one_current` vs `paths_target_type_target_id_index`); it passed twice alone and the gate re-run is green — unrelated to this part
+
+### B-?? (draft)
+
+1. **B-?? (draft)** Plan omitted `InsertionsServiceProvider` and binding contributors only when `content.insert` is granted; built like Placements / PluginLoader doors.
+2. **B-?? (draft)** Plan said PagePolicy takes insertion origins; PathResolver builds the article before `PublicPage::start()`, so origins are deferred via `InsertionOrigins` and applied in `PublicPage` after policy start.
+3. **B-?? (draft)** Plan named Capability / `PluginServices::OFFERED` only; also needed schema enum, PluginDoors/PluginWords, EnablePluginCommand, ManifestValidator, and PluginContractsTest updates so `content.insert` is a real granted capability.
+4. **B-?? (draft)** Plan said Paths / reserved addresses keep `ads.txt`; added `ads.txt` to `Paths::SITE_ROUTES` (additions only).
+5. **B-?? (draft)** Groups with `screen` refuse `UpdateSettings`; ads.txt saves through a dedicated `UpdateAdsTxt` Operation (as Discussion / Backups do).
+6. **B-?? (draft)** Fixture used `<aside>` which axe flags inside `article`; switched to `<div data-test="insertion">` so Task 7 passes without changing Settled meaning.
+7. **B-?? (draft)** `insertions_off` types use `CoreTypes::POST` / `CoreTypes::PAGE` (constants added) so NoTypeLiterals stays clean; editor/Fields/stored-field count tests raised by one for the new built-in.
+
+### STOP
+
+None.
+
+### Changelog lines for the maintainer
+
+- Insertion points inside published articles: plugins with `content.insert` contribute cleaned HTML between top-level blocks; `insertions_off` opts an item out; `InsertionsChanged` purges the `insertions` page-cache tag after commit.
+- `/ads.txt` from Settings › Site code (administrators); 404 while empty; plain UTF-8 when set.
