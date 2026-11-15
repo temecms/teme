@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Domain\Plugins\Operations\EnablePlugin;
-use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Security\Elevation;
@@ -38,15 +36,10 @@ it('finds, validates, enables and runs the first-plugin example', function (): v
         ->and($found->usable())->toBeTrue()
         ->and($found->problems)->toBe([]);
 
-    $manifest = $found->manifest;
-    app(EnablePlugin::class)->execute(new EnablePluginInput(
-        'teme-examples/first-plugin',
-        $manifest->version(),
-        $manifest->capabilities(),
-        $manifest->hosts(),
-        $manifest->hooks(),
-        null,
-    ));
+    $this->artisan('teme:plugins:enable', [
+        'name' => 'teme-examples/first-plugin',
+        '--agree' => true,
+    ])->assertSuccessful();
 
     require_once $path.'/src/FirstPlugin.php';
     FirstPlugin::$heard = [];

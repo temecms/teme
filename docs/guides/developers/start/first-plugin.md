@@ -56,7 +56,7 @@ Subscribe only inside `register()`. Do nothing slow there.
 Agree to what the manifest asks for, then enable:
 
 ```sh
-php artisan teme:plugins:enable teme-examples/first-plugin
+php artisan teme:plugins:enable teme-examples/first-plugin --agree
 ```
 
 Teme validates the manifest, checks capabilities against the hooks you named, and starts the plugin on the next request.

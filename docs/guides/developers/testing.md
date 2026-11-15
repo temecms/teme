@@ -12,14 +12,14 @@ Examples in this handbook are real packages under `docs/guides/developers/exampl
 
 ## Plugins
 
-Point `teme.plugin_paths` at the plugin’s own folder (the one that holds `teme-plugin.json`). Set Teme’s version to one the manifest’s `requires.teme` accepts. Enable through the enable Operation, load plugins, then publish an item and assert your listener ran.
+Point `teme.plugin_paths` at the plugin’s own folder (the one that holds `teme-plugin.json`). Set Teme’s version to one the manifest’s `requires.teme` accepts. Enable with `teme:plugins:enable` and `--agree` (the same command the handbook’s ExamplesTest runs), load plugins, then publish an item and assert your listener ran.
 
 The handbook’s own check lives in `tests/Feature/Guides/Developers/ExamplesTest.php`. Fixture helpers under `tests/Fixtures/Plugins` show how discovery, consent, and loading work for the core suite.
 
 Useful commands while you work:
 
 ```sh
-php artisan teme:plugins:enable your/package
+php artisan teme:plugins:enable your/package --agree
 php artisan test --compact tests/Feature/Guides/Developers/ExamplesTest.php
 ```
 
