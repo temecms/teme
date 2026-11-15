@@ -257,6 +257,11 @@ it('moves through a phone menu with the arrows, Home and End, past the disabled 
     poFocusOn(poPress($page, 'End'), 'Move to trash');
     poFocusOn(poPress($page, 'Home'), 'Edit');
     poFocusOn(poPress($page, 'ArrowUp'), 'Move to trash');
+
+    // Tab leaves the items for the sheet's Close button; Shift+Tab comes back to the item last on.
+    poPress($page, 'Tab');
+    cmWaitUntil($page, 'document.activeElement !== null && document.activeElement.getAttribute(\'role\') !== \'menuitem\' && document.querySelector(\'[data-slot="sheet-content"]\').contains(document.activeElement)');
+    poFocusOn(poPress($page, 'Shift+Tab'), 'Move to trash');
 });
 
 it('runs an item and closes on Enter, and closes on Esc with nothing run', function (): void {

@@ -140,6 +140,24 @@ function enabledItems(menu: HTMLElement): HTMLElement[] {
     ];
 }
 
+/**
+ * Keeps one item in the Tab order, the roving tabindex of the WAI-ARIA menu
+ * pattern: `current`, or else the one already in it, or else the first
+ * enabled item. So Shift+Tab from the sheet's Close button comes back.
+ */
+function rove(menu: HTMLElement, current?: HTMLElement): void {
+    const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+    const enabled = enabledItems(menu);
+    const kept =
+        current ??
+        enabled.find((item) => item.getAttribute('tabindex') === '0') ??
+        enabled[0];
+
+    for (const item of items) {
+        item.tabIndex = item === kept ? 0 : -1;
+    }
+}
+
 /** ↑ ↓ Home End move between the enabled items, wrapping (the WAI-ARIA menu pattern). */
 function moveFocus(event: KeyboardEvent<HTMLDivElement>): void {
     const items = enabledItems(event.currentTarget);
@@ -158,7 +176,13 @@ function moveFocus(event: KeyboardEvent<HTMLDivElement>): void {
     }
 
     event.preventDefault();
-    items[(next + items.length) % items.length]?.focus();
+
+    const target = items[(next + items.length) % items.length];
+
+    if (target) {
+        rove(event.currentTarget, target);
+        target.focus();
+    }
 }
 
 /**
@@ -212,11 +236,28 @@ export function ResponsiveMenuContent({
             </SheetHeader>
             <ScrollArea>
                 <div
-                    ref={menu}
+                    ref={(node) => {
+                        menu.current = node;
+
+                        if (node) {
+                            rove(node);
+                        }
+                    }}
                     role="menu"
                     aria-label={title}
                     aria-orientation="vertical"
                     onKeyDown={moveFocus}
+                    onFocus={(event) => {
+                        const item = (
+                            event.target as HTMLElement
+                        ).closest<HTMLElement>(
+                            '[role="menuitem"]:not([aria-disabled="true"])',
+                        );
+
+                        if (item) {
+                            rove(event.currentTarget, item);
+                        }
+                    }}
                     className="grid gap-0.5 px-2 pb-4"
                 >
                     {children}
@@ -271,7 +312,6 @@ export function ResponsiveMenuItem({
         <Item
             {...(asChild ? {} : { type: 'button' as const })}
             role="menuitem"
-            tabIndex={-1}
             aria-disabled={disabled || undefined}
             data-slot="responsive-menu-item"
             data-variant={variant}
