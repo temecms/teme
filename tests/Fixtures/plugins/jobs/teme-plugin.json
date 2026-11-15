@@ -1,0 +1,21 @@
+{
+    "manifest": 1,
+    "name": "tests/jobs",
+    "code": "jobs",
+    "label": "Jobs",
+    "description": "A plugin the tests enable, which declares background jobs.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Jobs\\JobsPlugin",
+    "capabilities": ["jobs", "http"],
+    "hosts": ["api.example.com"],
+    "jobs": [
+        { "key": "write-line", "label": "Write a line", "tries": 2, "backoff": [1, 2] },
+        { "key": "long-call", "label": "Long outbound call", "long": true, "tries": 1, "backoff": [1] },
+        { "key": "throw", "label": "Throw once", "tries": 2, "backoff": [1] }
+    ],
+    "schedules": [
+        { "job": "write-line", "every": "hour" }
+    ],
+    "owns": { "tables": ["jobs_lines"] }
+}

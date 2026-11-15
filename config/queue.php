@@ -56,7 +56,8 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => 'long',
-            'retry_after' => (int) env('DB_QUEUE_LONG_RETRY_AFTER', 360),
+            // Past a long plugin job's 30-minute timeout, with the Architecture suite's 15-second spare (I-3445).
+            'retry_after' => (int) env('DB_QUEUE_LONG_RETRY_AFTER', 1860),
             'after_commit' => false,
         ],
 
