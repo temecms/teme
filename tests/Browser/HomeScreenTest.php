@@ -217,7 +217,15 @@ it('moves a panel later from the keyboard, keeps focus on the button, announces 
         JS);
     $from = array_search('my_drafts', $before, true);
 
-    $page->click('[data-panel="my_drafts"] [data-control="move-later"]');
+    $page->assertScript(<<<'JS'
+        () => {
+            const button = document.querySelector('[data-panel="my_drafts"] [data-control="move-later"]');
+            button?.focus();
+
+            return document.activeElement === button;
+        }
+        JS);
+    $page->keys(':focus', 'Enter');
     cmWaitUntil($page, <<<'JS'
         document.querySelector('[data-test="home-announce"]')?.textContent?.includes('Your drafts moved to position') === true
         JS);
