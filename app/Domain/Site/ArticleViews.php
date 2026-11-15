@@ -18,10 +18,10 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\People\Credit;
 use App\Domain\People\Credits;
 use App\Domain\Site\Insertions\InsertionCleaner;
+use App\Domain\Site\Insertions\InsertionOrigins;
 use App\Domain\Site\Insertions\InsertionPlan;
 use App\Domain\Site\Insertions\InsertionPoints;
 use App\Domain\Site\Insertions\PlanBuilder;
-use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ItemLink;
@@ -212,11 +212,8 @@ final readonly class ArticleViews
         }
 
         app(RenderRecord::class)->tag(PageTags::INSERTIONS);
-        $policy = app(PagePolicy::class);
-
-        foreach ($origins as $directive => $hosts) {
-            $policy->allowOrigins($directive, $hosts);
-        }
+        // Origins wait for PublicPage to start the policy; PathResolver builds the article first.
+        app(InsertionOrigins::class)->add($origins);
 
         return new InsertionPlan($plan->at(), $origins);
     }
