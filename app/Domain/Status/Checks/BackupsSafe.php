@@ -26,6 +26,11 @@ final readonly class BackupsSafe implements StatusCheck
         return 'backups.manage';
     }
 
+    public function label(): string
+    {
+        return __('Backups');
+    }
+
     public function banner(): ?StatusBanner
     {
         $verdict = $this->status->verdict();

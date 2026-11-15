@@ -5,6 +5,7 @@ import { ConfirmAction } from '@/components/confirm-action';
 import { post } from '@/components/editor/editor-http';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import { FreshPasswordInline } from '@/components/patterns/fresh-password';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -15,9 +16,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/ui/field';
+import { __, __n } from '@/lib/i18n';
 import { names } from '@/lib/backup-words';
-import { store as confirmPassword } from '@/routes/password/confirm';
 import { check, create } from '@/routes/tools/backups/keys';
 import type { RecoveryKeyRow } from '@/types/backups';
 
@@ -37,7 +38,7 @@ function firstError(body: Record<string, unknown>, key: string): string {
 /**
  * Check my recovery key (I-359): a dialog that tries a typed key on every
  * place and says which it opens, keeping nothing of it. A lapsed password is
- * asked for in place, so the typed key isn't lost.
+ * asked for inside the dialog, so the typed key isn't lost.
  */
 function CheckKey() {
     const [open, setOpen] = useState(false);
@@ -46,8 +47,6 @@ function CheckKey() {
     const [error, setError] = useState('');
     const [answer, setAnswer] = useState<Checked | null>(null);
     const [askPassword, setAskPassword] = useState(false);
-    const [password, setPassword] = useState('');
-    const [passwordError, setPasswordError] = useState('');
 
     const close = (next: boolean) => {
         setOpen(next);
@@ -58,7 +57,6 @@ function CheckKey() {
             setAnswer(null);
             setError('');
             setAskPassword(false);
-            setPassword('');
         }
     };
 
@@ -76,33 +74,11 @@ function CheckKey() {
             } else if (reply.status >= 200 && reply.status < 300) {
                 setAnswer(reply.body as unknown as Checked);
             } else {
-                setError('The key could not be checked. Try again.');
+                setError(__('The key could not be checked. Try again.'));
             }
         } finally {
             setBusy(false);
         }
-    };
-
-    const confirmThenSend = async () => {
-        setBusy(true);
-        setPasswordError('');
-
-        try {
-            const reply = await post(confirmPassword.url(), { password });
-
-            if (reply.status === 422) {
-                setPasswordError(firstError(reply.body, 'password'));
-
-                return;
-            }
-
-            setAskPassword(false);
-            setPassword('');
-        } finally {
-            setBusy(false);
-        }
-
-        await send();
     };
 
     return (
@@ -113,83 +89,71 @@ function CheckKey() {
                 onClick={() => setOpen(true)}
                 data-test="backup-key-check"
             >
-                Check my recovery key
+                {__('Check my recovery key')}
             </Button>
             <Dialog open={open} onOpenChange={close}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Check my recovery key</DialogTitle>
+                        <DialogTitle>{__('Check my recovery key')}</DialogTitle>
                         <DialogDescription>
-                            Teme tries it on every place and forgets it straight
-                            away.
+                            {__(
+                                'Teme tries it on every place and forgets it straight away.',
+                            )}
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="grid gap-2">
-                        <Label htmlFor="check-recovery-key">Recovery key</Label>
+                    <Field
+                        htmlFor="check-recovery-key"
+                        label={__('Recovery key')}
+                        error={error || undefined}
+                    >
                         <PasswordInput
                             id="check-recovery-key"
                             value={typed}
                             onChange={(event) => setTyped(event.target.value)}
                             autoComplete="off"
-                            aria-describedby="check-recovery-key-error"
                         />
-                        <InputError
-                            id="check-recovery-key-error"
-                            message={error}
-                        />
-                    </div>
+                    </Field>
 
-                    {askPassword && (
-                        <div className="border-line space-y-3 rounded-md border p-4">
-                            <p className="text-sm">
-                                Type your password to carry on. What you typed
-                                stays here.
-                            </p>
-                            <div className="grid gap-2">
-                                <Label htmlFor="key-password">Password</Label>
-                                <PasswordInput
-                                    id="key-password"
-                                    value={password}
-                                    onChange={(event) =>
-                                        setPassword(event.target.value)
-                                    }
-                                    autoComplete="current-password"
-                                    aria-describedby="key-password-error"
-                                />
-                                <InputError
-                                    id="key-password-error"
-                                    message={passwordError}
-                                />
-                            </div>
-                            <Button
-                                type="button"
-                                disabled={busy}
-                                onClick={() => void confirmThenSend()}
-                                data-test="key-password-confirm"
-                            >
-                                Confirm password
-                            </Button>
-                        </div>
-                    )}
+                    <FreshPasswordInline
+                        open={askPassword}
+                        onOpenChange={setAskPassword}
+                        title={__('Confirm your password')}
+                        text={__(
+                            'Type your password to carry on. What you typed stays here.',
+                        )}
+                        onConfirmed={() => void send()}
+                    />
 
-                    <div role="status" className="space-y-1 text-sm">
+                    <div role="status" className="text-body grid gap-1">
                         {answer !== null && (
                             <>
                                 <p className="font-medium">
                                     {answer.label === null
-                                        ? 'This key isn’t one of this site’s recovery keys.'
-                                        : `This is ${answer.label}.`}
+                                        ? __(
+                                              'This key isn’t one of this site’s recovery keys.',
+                                          )
+                                        : __('This is :label.', {
+                                              label: answer.label,
+                                          })}
                                 </p>
-                                <ul className="space-y-1">
+                                <ul className="grid gap-1">
                                     {answer.opens.map((place) => (
                                         <li key={`opens-${place}`}>
-                                            Opens the backups at {place}.
+                                            {__(
+                                                'Opens the backups at :place.',
+                                                {
+                                                    place,
+                                                },
+                                            )}
                                         </li>
                                     ))}
                                     {answer.doesNotOpen.map((place) => (
                                         <li key={`closed-${place}`}>
-                                            Doesn’t open the backups at {place}.
+                                            {__(
+                                                'Doesn’t open the backups at :place.',
+                                                { place },
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -200,7 +164,7 @@ function CheckKey() {
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button type="button" variant="outline">
-                                Close
+                                {__('Close')}
                             </Button>
                         </DialogClose>
                         <Button
@@ -209,7 +173,7 @@ function CheckKey() {
                             onClick={() => void send()}
                             data-test="check-key-submit"
                         >
-                            {busy ? 'Checking…' : 'Check the key'}
+                            {busy ? __('Checking…') : __('Check the key')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -233,37 +197,36 @@ function ExtendKey({ places }: { places: string[] }) {
                 onClick={() => setOpen(true)}
                 data-test="backup-key-extend"
             >
-                Add my key to new places
+                {__('Add my key to new places')}
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Add your key to new places</DialogTitle>
+                        <DialogTitle>
+                            {__('Add your key to new places')}
+                        </DialogTitle>
                         <DialogDescription>
-                            {names(places)}{' '}
-                            {places.length === 1 ? 'was' : 'were'} added after
-                            some keys were made. Type your recovery key, and
-                            Teme adds it there too, then forgets it.
+                            {__n(
+                                ':places was added after some keys were made. Type your recovery key, and Teme adds it there too, then forgets it.|:places were added after some keys were made. Type your recovery key, and Teme adds it there too, then forgets it.',
+                                places.length,
+                                { places: names(places) },
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <Form {...RecoveryKeyController.extend.form()}>
                         {({ processing, errors }) => (
-                            <div className="space-y-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="extend-recovery-key">
-                                        Recovery key
-                                    </Label>
+                            <div className="grid gap-4">
+                                <Field
+                                    htmlFor="extend-recovery-key"
+                                    label={__('Recovery key')}
+                                    error={errors.recovery_key}
+                                >
                                     <PasswordInput
                                         id="extend-recovery-key"
                                         name="recovery_key"
                                         autoComplete="off"
-                                        aria-describedby="extend-recovery-key-error"
                                     />
-                                    <InputError
-                                        id="extend-recovery-key-error"
-                                        message={errors.recovery_key}
-                                    />
-                                </div>
+                                </Field>
                                 <InputError
                                     id="extend-place-error"
                                     message={errors.place}
@@ -271,7 +234,7 @@ function ExtendKey({ places }: { places: string[] }) {
                                 <DialogFooter>
                                     <DialogClose asChild>
                                         <Button type="button" variant="outline">
-                                            Cancel
+                                            {__('Cancel')}
                                         </Button>
                                     </DialogClose>
                                     <Button
@@ -279,7 +242,7 @@ function ExtendKey({ places }: { places: string[] }) {
                                         disabled={processing}
                                         aria-describedby="extend-place-error"
                                     >
-                                        Add my key
+                                        {__('Add my key')}
                                     </Button>
                                 </DialogFooter>
                             </div>
@@ -299,7 +262,7 @@ export function KeyActions({ keys }: { keys: RecoveryKeyRow[] }) {
         <div className="flex flex-wrap gap-2">
             <CheckKey />
             <Button asChild variant="outline" data-test="backup-key-add">
-                <Link href={create()}>Add another key</Link>
+                <Link href={create()}>{__('Add another key')}</Link>
             </Button>
             {lacking.length > 0 && <ExtendKey places={lacking} />}
         </div>
@@ -313,9 +276,12 @@ export function ReplaceKey({ label }: { label: string }) {
             <input type="hidden" name="label" value={label} />
             <input type="hidden" name="replace" value="1" />
             <ConfirmAction
-                title={`Replace ${label}?`}
-                description={`Teme makes a new key for ${label} and shows it once. The old one keeps working until you’ve typed part of the new one back, then it stops opening the backups.`}
-                confirmLabel={`Replace ${label}`}
+                title={__('Replace :label?', { label })}
+                description={__(
+                    'Teme makes a new key for :label and shows it once. The old one keeps working until you’ve typed part of the new one back, then it stops opening the backups.',
+                    { label },
+                )}
+                confirmLabel={__('Replace :label', { label })}
                 confirmVariant="default"
             >
                 <Button
@@ -323,7 +289,7 @@ export function ReplaceKey({ label }: { label: string }) {
                     variant="outline"
                     data-test="backup-key-replace"
                 >
-                    Replace
+                    {__('Replace')}
                     <span className="sr-only"> {label}</span>
                 </Button>
             </ConfirmAction>

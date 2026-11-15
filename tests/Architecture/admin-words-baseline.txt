@@ -54,150 +54,6 @@ components/app-shell.tsx	Skip to content
 components/app-sidebar-header.tsx	Open menu
 components/app-sidebar.tsx	, opens in a new tab
 components/app-sidebar.tsx	View site
-components/backups/back-up-now.tsx	Back up now
-components/backups/back-up-now.tsx	Cancel
-components/backups/back-up-now.tsx	is waiting to start. It starts within a minute, once nothing else is running.
-components/backups/checks-list.tsx	Every backup is checked where it lands. A seventh of every place is read back each night, and once a week a backup is restored into a spare database to prove it works.
-components/backups/checks-list.tsx	Failed
-components/backups/checks-list.tsx	Latest checks
-components/backups/checks-list.tsx	No checks yet.
-components/backups/checks-list.tsx	Passed
-components/backups/checks-list.tsx	at {}
-components/backups/key-actions.tsx	Add another key
-components/backups/key-actions.tsx	Add my key
-components/backups/key-actions.tsx	Add my key to new places
-components/backups/key-actions.tsx	Add your key to new places
-components/backups/key-actions.tsx	Cancel
-components/backups/key-actions.tsx	Check my recovery key
-components/backups/key-actions.tsx	Check my recovery key
-components/backups/key-actions.tsx	Check the key
-components/backups/key-actions.tsx	Checking…
-components/backups/key-actions.tsx	Close
-components/backups/key-actions.tsx	Confirm password
-components/backups/key-actions.tsx	Doesn’t open the backups at
-components/backups/key-actions.tsx	Opens the backups at
-components/backups/key-actions.tsx	Password
-components/backups/key-actions.tsx	Recovery key
-components/backups/key-actions.tsx	Recovery key
-components/backups/key-actions.tsx	Replace
-components/backups/key-actions.tsx	Replace {}
-components/backups/key-actions.tsx	Replace {}?
-components/backups/key-actions.tsx	Teme makes a new key for {} and shows it once. The old one keeps working until you’ve typed part of the new one back, then it stops opening the backups.
-components/backups/key-actions.tsx	Teme tries it on every place and forgets it straight away.
-components/backups/key-actions.tsx	This is {}.
-components/backups/key-actions.tsx	This key isn’t one of this site’s recovery keys.
-components/backups/key-actions.tsx	Type your password to carry on. What you typed stays here.
-components/backups/key-actions.tsx	added after some keys were made. Type your recovery key, and Teme adds it there too, then forgets it.
-components/backups/key-actions.tsx	was
-components/backups/key-actions.tsx	were
-components/backups/key-sheet.tsx	Group
-components/backups/key-sheet.tsx	I’ve kept it safe: continue
-components/backups/key-sheet.tsx	Keep this sheet somewhere other than the server: a safe, a drawer at home, or a sealed envelope with someone you trust.
-components/backups/key-sheet.tsx	Made
-components/backups/key-sheet.tsx	Print this key
-components/backups/key-sheet.tsx	Recovery key for
-components/backups/key-sheet.tsx	Recovery key, eight groups
-components/backups/key-sheet.tsx	Teme shows it once and keeps no copy.
-components/backups/key-sheet.tsx	for the backups at
-components/backups/keys-list.tsx	1 recovery key opens these backups.
-components/backups/keys-list.tsx	Recovery keys
-components/backups/keys-list.tsx	Teme keeps no copy of a recovery key. If this server and every recovery key are lost, nobody can open the backups, Teme included.
-components/backups/keys-list.tsx	yet.
-components/backups/keys-list.tsx	{} recovery keys open these backups.
-components/backups/keys-list.tsx	· Doesn’t open
-components/backups/place-fields.tsx	Access key ID
-components/backups/place-fields.tsx	Bucket
-components/backups/place-fields.tsx	Copied the public key.
-components/backups/place-fields.tsx	Copy
-components/backups/place-fields.tsx	Folder
-components/backups/place-fields.tsx	Folder in the bucket
-components/backups/place-fields.tsx	Folder on the server
-components/backups/place-fields.tsx	Name this place
-components/backups/place-fields.tsx	Port
-components/backups/place-fields.tsx	Public key
-components/backups/place-fields.tsx	Region
-components/backups/place-fields.tsx	Secret access key
-components/backups/place-fields.tsx	Server
-components/backups/place-fields.tsx	Storage address
-components/backups/place-fields.tsx	The public key could not be copied. Select it and copy it by hand.
-components/backups/place-fields.tsx	User
-components/backups/place-fields.tsx	Where should backups be kept?
-components/backups/places-list.tsx	Add a place
-components/backups/places-list.tsx	Add a place off this server, such as S3-compatible storage or an SFTP server, to keep a copy if this server is lost.
-components/backups/places-list.tsx	Change
-components/backups/places-list.tsx	Hasn’t answered yet
-components/backups/places-list.tsx	Last answered {}
-components/backups/places-list.tsx	Measure what it holds
-components/backups/places-list.tsx	Measuring…
-components/backups/places-list.tsx	Newest backup {}
-components/backups/places-list.tsx	No backup here yet
-components/backups/places-list.tsx	Remove
-components/backups/places-list.tsx	Remove {}
-components/backups/places-list.tsx	Remove {}?
-components/backups/places-list.tsx	Teme will stop keeping backups at {}. The backups already there stay there, and only a recovery key opens them.
-components/backups/places-list.tsx	Test
-components/backups/places-list.tsx	Testing…
-components/backups/places-list.tsx	Where backups are kept
-components/backups/schedule-form.tsx	. Choose an hour when few people visit.
-components/backups/schedule-form.tsx	Back up each night at
-components/backups/schedule-form.tsx	Cancel
-components/backups/schedule-form.tsx	Daily backups kept
-components/backups/schedule-form.tsx	In the site’s time zone,
-components/backups/schedule-form.tsx	Keep a backup from each of the last
-components/backups/schedule-form.tsx	Monthly backups kept
-components/backups/schedule-form.tsx	Older backups are removed once a week, never while a backup runs. Keeping fewer removes the extra ones at the next weekly removal.
-components/backups/schedule-form.tsx	Save
-components/backups/schedule-form.tsx	Weekly backups kept
-components/backups/schedule-form.tsx	days, then one from each of
-components/backups/schedule-form.tsx	months before those.
-components/backups/schedule-form.tsx	weeks before them, and one from each of
-components/backups/setup-steps.tsx	Setup steps
-components/backups/typed-back.tsx	Back to the key
-components/backups/typed-back.tsx	Confirm password
-components/backups/typed-back.tsx	Confirm the key
-components/backups/typed-back.tsx	Confirming…
-components/backups/typed-back.tsx	Four letters and digits, as printed. Upper or lower case.
-components/backups/typed-back.tsx	Group
-components/backups/typed-back.tsx	Password
-components/backups/typed-back.tsx	Type groups
-components/backups/typed-back.tsx	Type your password to carry on. The key stays on this page.
-components/backups/typed-back.tsx	and
-components/backups/typed-back.tsx	of your recovery key
-components/backups/verdict.tsx	All well
-components/backups/verdict.tsx	Backups are locked with a recovery key that Teme shows you once. With it and a copy of the backups, this site can be brought back on any server. Without it, nobody can open them, Teme included.
-components/backups/verdict.tsx	Backups are paused because this site was restored, until you say whether this server is now the site.
-components/backups/verdict.tsx	Backups aren’t set up yet: the recovery key shown for
-components/backups/verdict.tsx	Backups resume here, at {}. Make sure the old server no longer backs up into them: two sites must never back up into one place.
-components/backups/verdict.tsx	Change
-components/backups/verdict.tsx	Is this a copy of the site?
-components/backups/verdict.tsx	Is this server now the site?
-components/backups/verdict.tsx	It takes a minute. Have a pen and paper or a printer ready.
-components/backups/verdict.tsx	Needs a look
-components/backups/verdict.tsx	Needs attention
-components/backups/verdict.tsx	Needs attention.
-components/backups/verdict.tsx	Needs attention.
-components/backups/verdict.tsx	Nothing is backed up until it is.
-components/backups/verdict.tsx	Nothing on this site is backed up yet.
-components/backups/verdict.tsx	Remove
-components/backups/verdict.tsx	Remove these backup places
-components/backups/verdict.tsx	Remove {}
-components/backups/verdict.tsx	Remove {} and start again?
-components/backups/verdict.tsx	Set up backups
-components/backups/verdict.tsx	Set up backups
-components/backups/verdict.tsx	Show a new recovery key
-components/backups/verdict.tsx	Teme backs up the database and every media file each night, to a folder on this server, S3-compatible storage or an SFTP server, and checks every backup by reading it back.
-components/backups/verdict.tsx	Teme forgets {} and the key it showed. Anything Teme made there stays: choose an empty folder or bucket next time.
-components/backups/verdict.tsx	Teme removes {} from this site’s backup places. Their backups stay where they are, and you can set backups up for this copy afterwards.
-components/backups/verdict.tsx	The restored site’s places are the old site’s too, and two sites must never back up into one place.
-components/backups/verdict.tsx	The state of the backups
-components/backups/verdict.tsx	This is a copy: remove these backup places
-components/backups/verdict.tsx	This server is now the site
-components/backups/verdict.tsx	This server is now the site
-components/backups/verdict.tsx	Where setup stands
-components/backups/verdict.tsx	Where setup stands
-components/backups/verdict.tsx	and start again
-components/backups/verdict.tsx	wasn’t typed back.
-components/backups/verdict.tsx	when backups run and what’s kept
 components/comments/comment-details.tsx	A removed comment
 components/comments/comment-details.tsx	Approve
 components/comments/comment-details.tsx	Browser
@@ -742,7 +598,6 @@ components/fields/brand-colour-setting.tsx	Brand colour
 components/fields/brand-colour-setting.tsx	Only someone who may change the site’s design can change the brand colour.
 components/fields/brand-colour-setting.tsx	Pick the brand colour
 components/fields/brand-colour-setting.tsx	Sample button
-components/fields/brand-colour-setting.tsx	Save brand colour
 components/fields/brand-colour-setting.tsx	The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme.
 components/fields/brand-colour-setting.tsx	The theme sets no colour of its own.
 components/fields/brand-colour-setting.tsx	The theme’s own colour is used in each of its colour schemes.
@@ -762,10 +617,8 @@ components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page shows
 components/fields/home-page-setting.tsx	Only someone who may change the site’s addresses can change the home page.
-components/fields/home-page-setting.tsx	Save home page
 components/fields/home-page-setting.tsx	Search published pages
 components/fields/home-page-setting.tsx	What visitors see at the site’s own address.
-components/fields/home-page-setting.tsx	Your latest
 components/fields/home-page-setting.tsx	{} page
 components/fields/hours-setting.tsx	Add a second opening
 components/fields/hours-setting.tsx	Closed
@@ -803,118 +656,6 @@ components/header/jobs-button.tsx	Started
 components/header/jobs-button.tsx	Your jobs
 components/header/jobs-button.tsx	Your jobs
 components/header/jobs-button.tsx	Your jobs couldn’t be loaded. Try again in a moment.
-components/import/choices-form.tsx	1 image
-components/import/choices-form.tsx	1 page
-components/import/choices-form.tsx	Custom roles
-components/import/choices-form.tsx	Don’t place it
-components/import/choices-form.tsx	Images from other sites
-components/import/choices-form.tsx	Items whose author is gone
-components/import/choices-form.tsx	Menu locations
-components/import/choices-form.tsx	Page templates
-components/import/choices-form.tsx	Pause between requests
-components/import/choices-form.tsx	Posts and pages whose WordPress author was deleted belong to this person.
-components/import/choices-form.tsx	Posts show images kept on these sites. Tick a site to bring its images into the media library. The rest become links, with each image’s description as the words.
-components/import/choices-form.tsx	Start the import
-components/import/choices-form.tsx	Teme asks for your password first. The import runs in the background: you can leave this page, and the result reaches your inbox.
-components/import/choices-form.tsx	The old site stays live while Teme reads it. A pause keeps it quick for its readers.
-components/import/choices-form.tsx	The template each WordPress page template becomes.
-components/import/choices-form.tsx	The theme’s default
-components/import/choices-form.tsx	This theme has no places for menus. Menus come across, and you can place them later.
-components/import/choices-form.tsx	Where each menu goes in this site’s theme.
-components/import/choices-form.tsx	WordPress roles Teme doesn’t have. People with them get the role you choose, or stay behind.
-components/import/choices-form.tsx	{} images
-components/import/choices-form.tsx	{} pages
-components/import/connect-form.tsx	An administrator’s.
-components/import/connect-form.tsx	Application password
-components/import/connect-form.tsx	Connect
-components/import/connect-form.tsx	Connect a WordPress site
-components/import/connect-form.tsx	Connect again
-components/import/connect-form.tsx	Connecting can take up to two minutes if the site is slow to answer.
-components/import/connect-form.tsx	Connecting…
-components/import/connect-form.tsx	Download Teme Companion
-components/import/connect-form.tsx	First, on the WordPress site:
-components/import/connect-form.tsx	Install and activate the Teme Companion plugin, version
-components/import/connect-form.tsx	Open Tools › Teme site report and run it. Teme reads the report to show what comes across.
-components/import/connect-form.tsx	Open Users › Profile and add an application password named Teme. Copy it: WordPress shows it once.
-components/import/connect-form.tsx	Site address
-components/import/connect-form.tsx	Teme keeps it encrypted until you choose Forget this site, and never shows it again.
-components/import/connect-form.tsx	The address readers use, such as https://example.com.
-components/import/connect-form.tsx	To import from this site again, make a new application password in WordPress and enter it here.
-components/import/connect-form.tsx	WordPress user name
-components/import/connect-form.tsx	https://example.com
-components/import/connect-form.tsx	or later.
-components/import/import-steps.tsx	(current step)
-components/import/import-steps.tsx	(done)
-components/import/import-steps.tsx	Analyze
-components/import/import-steps.tsx	Choose
-components/import/import-steps.tsx	Connect
-components/import/import-steps.tsx	Import
-components/import/import-steps.tsx	Import steps
-components/import/import-steps.tsx	Report
-components/import/run-progress.tsx	(done)
-components/import/run-progress.tsx	(now)
-components/import/run-progress.tsx	Carry on
-components/import/run-progress.tsx	Carrying on picks up where it stopped. Teme asks for your password first.
-components/import/run-progress.tsx	Importing
-components/import/run-progress.tsx	Steps of this import
-components/import/run-progress.tsx	Stop the import
-components/import/run-progress.tsx	Stopped
-components/import/run-progress.tsx	You can leave this page. The import carries on in the background, and the result reaches your inbox.
-components/import/run-progress.tsx	created ·
-components/import/run-progress.tsx	failed ·
-components/import/run-progress.tsx	skipped ·
-components/import/run-progress.tsx	updated ·
-components/import/run-progress.tsx	with warnings
-components/import/run-report.tsx	: new and edited posts and pages, new comments and new redirects. Anything deleted on WordPress since is listed, never deleted here.
-components/import/run-report.tsx	Brings across what changed on WordPress since
-components/import/run-report.tsx	Catch up
-components/import/run-report.tsx	Catch up
-components/import/run-report.tsx	Download the full report
-components/import/run-report.tsx	Download what needs attention
-components/import/run-report.tsx	Finished
-components/import/run-report.tsx	Forget this site
-components/import/run-report.tsx	Forget this site
-components/import/run-report.tsx	Forget this site’s application password?
-components/import/run-report.tsx	No warnings or errors.
-components/import/run-report.tsx	Not ready to switch yet: {} attention. Fix them on WordPress or here, then catch up.
-components/import/run-report.tsx	Nothing came across in this import.
-components/import/run-report.tsx	Ready to switch: nothing failed and every old address answers on Teme.
-components/import/run-report.tsx	Report
-components/import/run-report.tsx	Report of the import started
-components/import/run-report.tsx	Report so far
-components/import/run-report.tsx	Show the latest import
-components/import/run-report.tsx	Teme deletes its copy of the application password. What was imported stays, and so does this site’s report. To import from it again, connect it again.
-components/import/run-report.tsx	The full report has a line for every item and what happened to it. The other has only what failed or has a warning.
-components/import/run-report.tsx	The full report lists the rest.
-components/import/run-report.tsx	Warnings and errors
-components/import/run-report.tsx	What came across
-components/import/run-report.tsx	When you’ve switched to Teme, forget this site, then revoke its application password in WordPress.
-components/import/run-report.tsx	created,
-components/import/run-report.tsx	failed,
-components/import/run-report.tsx	skipped,
-components/import/run-report.tsx	then
-components/import/run-report.tsx	updated,
-components/import/run-report.tsx	with warnings.
-components/import/site-analysis.tsx	. To count again, run Tools › Teme site report there, then choose Analyze again.
-components/import/site-analysis.tsx	Analyze again
-components/import/site-analysis.tsx	Counted from the site report made in WordPress
-components/import/site-analysis.tsx	Each post’s and page’s own SEO fields come from
-components/import/site-analysis.tsx	Every old address keeps working: at the same address, or through a permanent redirect to its new one.
-components/import/site-analysis.tsx	Most of this site’s addresses belong to custom types:
-components/import/site-analysis.tsx	Not imported
-components/import/site-analysis.tsx	Nothing: everything on this site comes across.
-components/import/site-analysis.tsx	Reading the site report…
-components/import/site-analysis.tsx	What comes across
-components/import/site-analysis.tsx	What comes across
-components/import/site-analysis.tsx	What comes across
-components/import/site-analysis.tsx	WordPress hasn’t made a site report yet. On the WordPress site, open Tools › Teme site report and run it, then choose Analyze again.
-components/import/site-analysis.tsx	of
-components/import/site-analysis.tsx	on {}
-components/import/site-analysis.tsx	published items. Teme can’t import custom types yet, so those addresses would answer “not found” after the switch. Move this site once Teme can import them.
-components/import/site-runs.tsx	Imports of this site
-components/import/site-runs.tsx	Report
-components/import/site-runs.tsx	Show its report
-components/import/site-runs.tsx	Show the report of the import started {}
 components/inbox/inbox-list.tsx	(unread)
 components/inbox/inbox-list.tsx	Inbox items
 components/inbox/inbox-list.tsx	Nothing new
@@ -943,92 +684,6 @@ components/list/pager.tsx	Pages
 components/list/row-actions.tsx	, opens in a new tab
 components/list/row-actions.tsx	More
 components/list/row-links.tsx	, opens in a new tab
-components/media-drawer.tsx	Click the preview to set the focal point, which square crops keep in view.
-components/media-drawer.tsx	Delete permanently
-components/media-drawer.tsx	Delete permanently
-components/media-drawer.tsx	Delete “{}” permanently?
-components/media-drawer.tsx	Deleted “{}” permanently.
-components/media-drawer.tsx	Download original
-components/media-drawer.tsx	In the trash since
-components/media-drawer.tsx	Items that use it show nothing in its place until you restore it.
-components/media-drawer.tsx	Move to trash
-components/media-drawer.tsx	Move to trash
-components/media-drawer.tsx	Move “{}” to the trash?
-components/media-drawer.tsx	Moved “{}” to the trash.
-components/media-drawer.tsx	Not uploaded for any item.
-components/media-drawer.tsx	Not used anywhere.
-components/media-drawer.tsx	Open the file
-components/media-drawer.tsx	Preparing the preview…
-components/media-drawer.tsx	Replace…
-components/media-drawer.tsx	Restore
-components/media-drawer.tsx	Save
-components/media-drawer.tsx	Saved.
-components/media-drawer.tsx	Saved. Its sizes are being made again around the new focal point.
-components/media-drawer.tsx	Set the focal point
-components/media-drawer.tsx	Show every file uploaded for “{}”
-components/media-drawer.tsx	Teme couldn’t make this image’s sizes.
-components/media-drawer.tsx	Try again
-components/media-drawer.tsx	Undo
-components/media-drawer.tsx	Untitled
-components/media-drawer.tsx	Uploaded for
-components/media-drawer.tsx	Used in
-components/media-drawer.tsx	live
-components/media/alt-text-suggestion.tsx	Cancel
-components/media/alt-text-suggestion.tsx	Dismiss
-components/media/alt-text-suggestion.tsx	Sent to
-components/media/alt-text-suggestion.tsx	Suggested alt text
-components/media/alt-text-suggestion.tsx	The image is sent to
-components/media/alt-text-suggestion.tsx	Working…
-components/media/attachment-details.tsx	Edit details
-components/media/attachment-details.tsx	Loading…
-components/media/attachment-details.tsx	place
-components/media/attachment-fields.tsx	Alt text
-components/media/attachment-fields.tsx	Caption
-components/media/attachment-fields.tsx	Credit
-components/media/attachment-fields.tsx	Dimensions
-components/media/attachment-fields.tsx	File
-components/media/attachment-fields.tsx	Licence
-components/media/attachment-fields.tsx	Size
-components/media/attachment-fields.tsx	Title
-components/media/attachment-fields.tsx	Type
-components/media/attachment-fields.tsx	Uploaded
-components/media/attachment-fields.tsx	by {}
-components/media/media-filters.tsx	All dates
-components/media/media-filters.tsx	All media
-components/media/media-filters.tsx	Audio
-components/media/media-filters.tsx	Date
-components/media/media-filters.tsx	Documents
-components/media/media-filters.tsx	Images
-components/media/media-filters.tsx	Remove this filter: Uploaded for “{}”
-components/media/media-filters.tsx	Search file names, titles, alt text
-components/media/media-filters.tsx	Search media
-components/media/media-filters.tsx	Type
-components/media/media-filters.tsx	Uploaded for this {}
-components/media/media-filters.tsx	Uploaded for “{}”
-components/media/media-filters.tsx	Video
-components/media/media-grid.tsx	Failed
-components/media/media-grid.tsx	Media
-components/media/media-grid.tsx	Preparing…
-components/media/media-grid.tsx	Selected
-components/media/media-modal.tsx	Cancel
-components/media/media-modal.tsx	Clear
-components/media/media-modal.tsx	Clear filters
-components/media/media-modal.tsx	Drop files to upload
-components/media/media-modal.tsx	File details
-components/media/media-modal.tsx	Library
-components/media/media-modal.tsx	Nothing has been uploaded for this {} yet.
-components/media/media-modal.tsx	Nothing here yet. Upload files, or drop them here.
-components/media/media-modal.tsx	Nothing in the library matches these filters.
-components/media/media-modal.tsx	Select a file to see its details.
-components/media/media-modal.tsx	Show more
-components/media/media-modal.tsx	Upload files
-components/media/page-drop.tsx	Drop files to upload
-components/media/upload-list.tsx	Already in the library as “
-components/media/upload-list.tsx	Retry
-components/media/upload-list.tsx	Upload anyway
-components/media/upload-list.tsx	Uploading {}
-components/media/upload-list.tsx	Use the existing one
-components/media/use-media-uploads.ts	The upload failed.
 components/nav-main.tsx	Main
 components/navigation/add-item-panel.tsx	A link to the front page of the site. The label starts as “Home”.
 components/navigation/add-item-panel.tsx	Add
@@ -1151,108 +806,6 @@ components/themes/theme-regions.tsx	Theme no longer installed
 components/themes/theme-regions.tsx	declares no regions.
 components/themes/theme-regions.tsx	puts the site’s own content, such as a box after each article.
 components/themes/theme-regions.tsx	{} regions
-components/tools/ai-activity-details.tsx	A deleted image
-components/tools/ai-activity-details.tsx	A deleted item
-components/tools/ai-activity-details.tsx	A removed person
-components/tools/ai-activity-details.tsx	Alt text after
-components/tools/ai-activity-details.tsx	Alt text before
-components/tools/ai-activity-details.tsx	Cost
-components/tools/ai-activity-details.tsx	Model
-components/tools/ai-activity-details.tsx	No price is set for this model, so this request isn’t counted in the month’s spend.
-components/tools/ai-activity-details.tsx	None
-components/tools/ai-activity-details.tsx	None
-components/tools/ai-activity-details.tsx	On
-components/tools/ai-activity-details.tsx	Person
-components/tools/ai-activity-details.tsx	Prompt
-components/tools/ai-activity-details.tsx	Read from the cache
-components/tools/ai-activity-details.tsx	Result
-components/tools/ai-activity-details.tsx	Task
-components/tools/ai-activity-details.tsx	The image had none. To put that back, clear its alt text in Media.
-components/tools/ai-activity-details.tsx	Time taken
-components/tools/ai-activity-details.tsx	To put it back, copy it into the image’s alt text in Media.
-components/tools/ai-activity-details.tsx	Tokens received
-components/tools/ai-activity-details.tsx	Tokens sent
-components/tools/ai-activity-details.tsx	When
-components/tools/ai-activity-details.tsx	Written to the cache
-components/tools/ai-activity-details.tsx	{} request
-components/tools/ai-activity-details.tsx	{}, in the trash
-components/tools/ai-activity-details.tsx	{}, version {}
-components/tools/import-redirects.tsx	CSV file
-components/tools/import-redirects.tsx	Cancel
-components/tools/import-redirects.tsx	Done
-components/tools/import-redirects.tsx	Each line is checked as one added here would be. Lines that fail are left out, and you’re told why.
-components/tools/import-redirects.tsx	Import redirects
-components/tools/import-redirects.tsx	Import redirects from a CSV file
-components/tools/import-redirects.tsx	One redirect a line: from, to, status, and a note if you like. To is a path on this site or a full address, and stays empty for 410 and 451. A fifth column, on, says yes or no, as an export writes it; without it, a redirect is on.
-components/tools/import-redirects.tsx	These lines weren’t imported. Fix them in the file, then import those lines again.
-components/tools/redirect-form.tsx	, not published
-components/tools/redirect-form.tsx	/news/new-address
-components/tools/redirect-form.tsx	/old-address
-components/tools/redirect-form.tsx	301 and 308 are for moves that last, 302 and 307 for moves that don’t. 410 and 451 send readers nowhere: 410 says the page is gone for good, and 451 that it’s withheld for legal reasons.
-components/tools/redirect-form.tsx	A path on this site, starting /, or a full address on another site, starting https://.
-components/tools/redirect-form.tsx	Add a redirect
-components/tools/redirect-form.tsx	Add redirect
-components/tools/redirect-form.tsx	An address on this site that no page answers. [name] stands for one part of an address and [...rest] for everything after it, as in /2019/05/[name], and To can use them again.
-components/tools/redirect-form.tsx	An address on this site, and where readers who ask for it should go.
-components/tools/redirect-form.tsx	Cancel
-components/tools/redirect-form.tsx	Choose a file
-components/tools/redirect-form.tsx	Chosen:
-components/tools/redirect-form.tsx	Chosen:
-components/tools/redirect-form.tsx	Edit the redirect from {}
-components/tools/redirect-form.tsx	Find the post or page
-components/tools/redirect-form.tsx	From
-components/tools/redirect-form.tsx	Linked to the file itself, so the redirect keeps working if the site moves its files.
-components/tools/redirect-form.tsx	Linked to the post or page itself, so the redirect follows it if its address changes.
-components/tools/redirect-form.tsx	Note
-components/tools/redirect-form.tsx	Nothing matches “
-components/tools/redirect-form.tsx	Save redirect
-components/tools/redirect-form.tsx	Search by title
-components/tools/redirect-form.tsx	Status
-components/tools/redirect-form.tsx	The address
-components/tools/redirect-form.tsx	To
-components/tools/redirect-form.tsx	Why it’s here, for whoever looks next.
-components/tools/redirects-head.tsx	404 log
-components/tools/redirects-head.tsx	Redirects
-components/tools/redirects-head.tsx	Redirects
-components/tools/redirects-head.tsx	Redirects and the 404 log
-components/tools/update-progress.tsx	, then choose that backup.
-components/tools/update-progress.tsx	. If the database needs it, restore it at the server:
-components/tools/update-progress.tsx	A backup was taken just before:
-components/tools/update-progress.tsx	Cancel the update
-components/tools/update-progress.tsx	Hide the steps
-components/tools/update-progress.tsx	No updater has looked for requests since {}. Without one, update by hand: see How to update.
-components/tools/update-progress.tsx	No updater has looked for requests yet. Without one, update by hand: see How to update.
-components/tools/update-progress.tsx	Roll back to {}
-components/tools/update-progress.tsx	Rolled back to Teme {} at {}.
-components/tools/update-progress.tsx	Rolling back
-components/tools/update-progress.tsx	Rolling back switches every part to
-components/tools/update-progress.tsx	See what happened
-components/tools/update-progress.tsx	So every part runs
-components/tools/update-progress.tsx	Started
-components/tools/update-progress.tsx	The
-components/tools/update-progress.tsx	The
-components/tools/update-progress.tsx	The database keeps
-components/tools/update-progress.tsx	The site runs
-components/tools/update-progress.tsx	Update to {}
-components/tools/update-progress.tsx	Updated to Teme {} at {}. It took {}{}
-components/tools/update-progress.tsx	Updating
-components/tools/update-progress.tsx	again.
-components/tools/update-progress.tsx	again. The database keeps
-components/tools/update-progress.tsx	of 7 steps
-components/tools/update-progress.tsx	php artisan teme:backup:restore
-components/tools/update-progress.tsx	runs beside.
-components/tools/update-progress.tsx	runs beside. Nothing else needs doing.
-components/tools/update-progress.tsx	so far. The site is down for a short while as the service deploys, then each part is checked on the new release.
-components/tools/update-progress.tsx	stopped:
-components/tools/update-progress.tsx	to Teme
-components/tools/update-progress.tsx	to Teme
-components/tools/update-progress.tsx	to Teme
-components/tools/update-progress.tsx	was switched back at
-components/tools/update-progress.tsx	{} of 7 steps
-components/tools/update-progress.tsx	{} to Teme {} requested at the server at {}. The updater starts it within a minute.
-components/tools/update-progress.tsx	{} to Teme {} requested by {} at {}. The updater starts it within a minute.
-components/tools/update-progress.tsx	’s additions, which
-components/tools/update-progress.tsx	’s additions, which
 components/types/builder-parts.tsx	Can’t be used
 components/types/builder-parts.tsx	Code
 components/types/builder-parts.tsx	Made here
@@ -1353,25 +906,6 @@ pages/inbox/index.tsx	Inbox
 pages/inbox/index.tsx	Mark all as read
 pages/inbox/index.tsx	Results of background work you started, such as imports. Each is kept for 90 days.
 pages/inbox/index.tsx	unread
-pages/media/index.tsx	Clear filters
-pages/media/index.tsx	Every file the site uses.
-pages/media/index.tsx	Files you move to the trash wait here. Restore one and every item that used it shows it again.
-pages/media/index.tsx	Grid
-pages/media/index.tsx	Layout
-pages/media/index.tsx	List
-pages/media/index.tsx	Media
-pages/media/index.tsx	Media
-pages/media/index.tsx	Missing
-pages/media/index.tsx	Newest first
-pages/media/index.tsx	No files yet
-pages/media/index.tsx	Nothing matches these filters
-pages/media/index.tsx	Oldest first
-pages/media/index.tsx	Order
-pages/media/index.tsx	The trash is empty
-pages/media/index.tsx	Upload files
-pages/media/index.tsx	Upload files
-pages/media/index.tsx	Upload images, video, audio and documents, or drop them anywhere on this page.
-pages/media/index.tsx	Views
 pages/navigation/edit.tsx	Add an item
 pages/navigation/edit.tsx	Add item
 pages/navigation/edit.tsx	Add the home page, pages, posts, categories, tags or any address.
@@ -1441,15 +975,12 @@ pages/settings/addresses.tsx	Numeric
 pages/settings/addresses.tsx	Old addresses keep working: visitors and search engines are sent to the new one.
 pages/settings/addresses.tsx	Other addresses
 pages/settings/addresses.tsx	Post name
-pages/settings/addresses.tsx	Save address settings
 pages/settings/addresses.tsx	The home page and the posts page are chosen in Reading.
 pages/settings/addresses.tsx	The public addresses of every public type, taxonomy and author.
 pages/settings/addresses.tsx	These would share an address:
-pages/settings/addresses.tsx	Updating addresses:
 pages/settings/addresses.tsx	Your newest
 pages/settings/addresses.tsx	address
 pages/settings/addresses.tsx	base
-pages/settings/addresses.tsx	of
 pages/settings/addresses.tsx	will share the root with other addresses.
 pages/settings/addresses.tsx	would be at
 pages/settings/addresses.tsx	{} address
@@ -1465,8 +996,6 @@ pages/settings/ai.tsx	How often one person may ask, and how much the site may sp
 pages/settings/ai.tsx	No AI task is installed yet.
 pages/settings/ai.tsx	No AI task is on yet.
 pages/settings/ai.tsx	Nobody is offered AI and nothing is sent to an AI service. These settings can’t be changed until your host switches it on again; they’re kept as they were.
-pages/settings/ai.tsx	Save AI settings
-pages/settings/ai.tsx	Saving may ask for your password. If it does, you’ll come back here to save again, and any key you typed must be typed again.
 pages/settings/ai.tsx	Set a key for one of the services below and save, then choose a model for each task under Models.
 pages/settings/discussion.tsx	Comments are an optional part of Teme, switched on or off for the whole site.
 pages/settings/discussion.tsx	Comments are off, so the settings for them are hidden. They’re kept, unchanged, for when comments are switched back on.
@@ -1474,10 +1003,6 @@ pages/settings/discussion.tsx	Comments on this site
 pages/settings/discussion.tsx	Discussion
 pages/settings/discussion.tsx	Discussion settings
 pages/settings/discussion.tsx	Only administrators can switch comments on or off.
-pages/settings/discussion.tsx	Save discussion settings
-pages/settings/discussion.tsx	Save the comments switch
-pages/settings/discussion.tsx	Saves this switch only.
-pages/settings/group.tsx	Save {} settings
 pages/settings/group.tsx	The default is {}.
 pages/settings/group.tsx	{} settings
 pages/settings/group.tsx	{}’s own number is {}.
@@ -1491,7 +1016,6 @@ pages/settings/search-and-social.tsx	It doesn’t change while search engines ar
 pages/settings/search-and-social.tsx	No verification tags.
 pages/settings/search-and-social.tsx	Open the 404 log
 pages/settings/search-and-social.tsx	Page 2 shows as:
-pages/settings/search-and-social.tsx	Save search and social settings
 pages/settings/search-and-social.tsx	Scripts belong in
 pages/settings/search-and-social.tsx	Search and social
 pages/settings/search-and-social.tsx	Search and social settings
@@ -1656,75 +1180,6 @@ pages/themes/index.tsx	The last change was not saved. Check the fields marked be
 pages/themes/index.tsx	The site’s name, tagline and brand colour stay when you change theme.
 pages/themes/index.tsx	Themes
 pages/themes/index.tsx	Themes
-pages/tools/ai-activity.tsx	1 request used a model with no price, so its cost is left out.
-pages/tools/ai-activity.tsx	A removed person
-pages/tools/ai-activity.tsx	AI activity
-pages/tools/ai-activity.tsx	AI activity
-pages/tools/ai-activity.tsx	AI activity
-pages/tools/ai-activity.tsx	AI is switched off on this server.
-pages/tools/ai-activity.tsx	AI is unavailable to everyone until the new month starts.
-pages/tools/ai-activity.tsx	Actions
-pages/tools/ai-activity.tsx	All tasks
-pages/tools/ai-activity.tsx	Any month
-pages/tools/ai-activity.tsx	Budget
-pages/tools/ai-activity.tsx	Change the budget
-pages/tools/ai-activity.tsx	Clear filters
-pages/tools/ai-activity.tsx	Cost is Teme’s own sum from each model’s price, in US dollars, so it can differ a little from an AI company’s invoice. Requests are removed after 12 months; the monthly totals stay.
-pages/tools/ai-activity.tsx	Details
-pages/tools/ai-activity.tsx	Details of the {} request on {}
-pages/tools/ai-activity.tsx	Every AI request, newest first. Teme keeps the figures, never the text sent or the answer; when AI’s alt text is used, it also keeps the image’s alt text from before and after. Requests are removed after 12 months.
-pages/tools/ai-activity.tsx	Everyone
-pages/tools/ai-activity.tsx	Filter
-pages/tools/ai-activity.tsx	Filter AI requests
-pages/tools/ai-activity.tsx	Month
-pages/tools/ai-activity.tsx	Months follow UTC, as the AI companies bill.
-pages/tools/ai-activity.tsx	No AI requests yet
-pages/tools/ai-activity.tsx	No requests match these filters
-pages/tools/ai-activity.tsx	Nobody can ask for a suggestion until the host switches it on again. The requests below stay.
-pages/tools/ai-activity.tsx	None
-pages/tools/ai-activity.tsx	None set
-pages/tools/ai-activity.tsx	Person
-pages/tools/ai-activity.tsx	Requests
-pages/tools/ai-activity.tsx	Requests are removed after 12 months.
-pages/tools/ai-activity.tsx	Set a budget
-pages/tools/ai-activity.tsx	Spent
-pages/tools/ai-activity.tsx	Task
-pages/tools/ai-activity.tsx	That request is gone.
-pages/tools/ai-activity.tsx	The budget is reached.
-pages/tools/ai-activity.tsx	This month: {}
-pages/tools/ai-activity.tsx	Tools
-pages/tools/ai-activity.tsx	When someone asks AI for a suggestion, the request appears here with what it cost.
-pages/tools/ai-activity.tsx	{} a month, {}
-pages/tools/ai-activity.tsx	{} requests used a model with no price, so their cost is left out.
-pages/tools/backups/index.tsx	A recovery key waiting to be finished
-pages/tools/backups/index.tsx	Backups
-pages/tools/backups/index.tsx	Backups
-pages/tools/backups/index.tsx	Backups
-pages/tools/backups/index.tsx	Cancelled {}
-pages/tools/backups/index.tsx	Encrypted copies of the database and the media, kept where you choose, and checked by reading them back.
-pages/tools/backups/index.tsx	If you wrote
-pages/tools/backups/index.tsx	Or add the key again from Recovery keys.
-pages/tools/backups/index.tsx	Restoring
-pages/tools/backups/index.tsx	Restoring is done at the server:
-pages/tools/backups/index.tsx	Show a new key instead
-pages/tools/backups/index.tsx	Tools
-pages/tools/backups/index.tsx	and
-pages/tools/backups/index.tsx	checks everything first, backs the site up as it is, then restores. Restoring from this screen comes in a later version.
-pages/tools/backups/index.tsx	down, type groups
-pages/tools/backups/index.tsx	php artisan teme:backup:restore
-pages/tools/backups/index.tsx	to finish. If you never saw it, show a new key instead.
-pages/tools/backups/index.tsx	{} failed: {}
-pages/tools/backups/index.tsx	{} finished
-pages/tools/backups/new-key.tsx	Add a recovery key
-pages/tools/backups/new-key.tsx	Add a recovery key
-pages/tools/backups/new-key.tsx	Add a recovery key
-pages/tools/backups/new-key.tsx	Another key that opens every place, for someone else to keep: a partner, a colleague, a sealed envelope.
-pages/tools/backups/new-key.tsx	Backups
-pages/tools/backups/new-key.tsx	Make the key
-pages/tools/backups/new-key.tsx	Making the key…
-pages/tools/backups/new-key.tsx	Name it after who keeps it, such as Sam’s key.
-pages/tools/backups/new-key.tsx	Name the key
-pages/tools/backups/new-key.tsx	Tools
 pages/tools/backups/place.tsx	Another place to keep backups, kept in step with the others.
 pages/tools/backups/place.tsx	Backups
 pages/tools/backups/place.tsx	Cancel
@@ -1733,65 +1188,6 @@ pages/tools/backups/place.tsx	Making the place can take a few minutes on a dista
 pages/tools/backups/place.tsx	Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.
 pages/tools/backups/place.tsx	Tools
 pages/tools/backups/place.tsx	Your recovery key
-pages/tools/backups/recovery-key.tsx	Backups
-pages/tools/backups/recovery-key.tsx	Tools
-pages/tools/backups/recovery-key.tsx	Your recovery key
-pages/tools/backups/recovery-key.tsx	Your recovery key
-pages/tools/backups/set-up.tsx	Backups
-pages/tools/backups/set-up.tsx	Choose where backups are kept. Teme then shows you a recovery key, once.
-pages/tools/backups/set-up.tsx	Continue
-pages/tools/backups/set-up.tsx	Have a pen and paper or a printer ready.
-pages/tools/backups/set-up.tsx	Making the place can take a few minutes on a distant server. Keep this page open.
-pages/tools/backups/set-up.tsx	Name it after who keeps it, such as Ada’s key. You can add more keys later.
-pages/tools/backups/set-up.tsx	Name the recovery key
-pages/tools/backups/set-up.tsx	Reading the server’s fingerprint…
-pages/tools/backups/set-up.tsx	Set up backups
-pages/tools/backups/set-up.tsx	Set up backups
-pages/tools/backups/set-up.tsx	Set up backups
-pages/tools/backups/set-up.tsx	Set up backups
-pages/tools/backups/set-up.tsx	Setting up…
-pages/tools/backups/set-up.tsx	Tools
-pages/tools/backups/sftp.tsx	Add the place
-pages/tools/backups/sftp.tsx	Add this key to the server
-pages/tools/backups/sftp.tsx	Add this place’s public key to {}’s authorized_keys on {}, as you did on the old server.
-pages/tools/backups/sftp.tsx	Add this public key to {}’s authorized_keys on {}. It lets Teme sign in to that server only.
-pages/tools/backups/sftp.tsx	Adding…
-pages/tools/backups/sftp.tsx	Backups
-pages/tools/backups/sftp.tsx	Check the new server
-pages/tools/backups/sftp.tsx	Check the server
-pages/tools/backups/sftp.tsx	Check the server
-pages/tools/backups/sftp.tsx	Check the server
-pages/tools/backups/sftp.tsx	Check the server’s fingerprint
-pages/tools/backups/sftp.tsx	Copied the public key.
-pages/tools/backups/sftp.tsx	Copy
-pages/tools/backups/sftp.tsx	Public key
-pages/tools/backups/sftp.tsx	Save changes
-pages/tools/backups/sftp.tsx	Saving…
-pages/tools/backups/sftp.tsx	Set up backups
-pages/tools/backups/sftp.tsx	Setting up…
-pages/tools/backups/sftp.tsx	Start again
-pages/tools/backups/sftp.tsx	Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.
-pages/tools/backups/sftp.tsx	Teme made this key for the server. Add it there, then check the fingerprint.
-pages/tools/backups/sftp.tsx	The key is added, and the fingerprint is the server’s
-pages/tools/backups/sftp.tsx	The public key could not be copied. Select it and copy it by hand.
-pages/tools/backups/sftp.tsx	Tools
-pages/tools/backups/sftp.tsx	Your recovery key
-pages/tools/backups/sftp.tsx	answered with the fingerprint below. Ask whoever runs it to check it’s theirs before you go on.
-pages/tools/import/index.tsx	Import
-pages/tools/import/index.tsx	Import
-pages/tools/import/index.tsx	Import
-pages/tools/import/index.tsx	Move a WordPress site into Teme: its posts, pages, media, people, comments and menus. Every old address keeps working.
-pages/tools/import/index.tsx	Password forgotten
-pages/tools/import/index.tsx	Sites
-pages/tools/import/index.tsx	Tools
-pages/tools/import/show.tsx	Import
-pages/tools/import/show.tsx	Teme uses these for this import and for each catch-up after it.
-pages/tools/import/show.tsx	Tools
-pages/tools/import/show.tsx	Your choices
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Tools
-pages/tools/index.tsx	Utilities for looking after the site.
 pages/tools/jobs.tsx	Actions
 pages/tools/jobs.tsx	Cancel
 pages/tools/jobs.tsx	Cancel {}
@@ -1806,176 +1202,6 @@ pages/tools/jobs.tsx	Retry
 pages/tools/jobs.tsx	Retry all failed (
 pages/tools/jobs.tsx	Retry {}
 pages/tools/jobs.tsx	Tools
-pages/tools/not-found.tsx	Actions
-pages/tools/not-found.tsx	Add a redirect
-pages/tools/not-found.tsx	Add a redirect from {}
-pages/tools/not-found.tsx	Addresses readers ask for that don’t exist appear here.
-pages/tools/not-found.tsx	Change log settings
-pages/tools/not-found.tsx	Keeps up to
-pages/tools/not-found.tsx	Mark as gone
-pages/tools/not-found.tsx	Mark {} as gone
-pages/tools/not-found.tsx	Not known
-pages/tools/not-found.tsx	Nothing logged
-pages/tools/not-found.tsx	One row per address. Only the site a reader came from is kept: no IP address and no browser.
-pages/tools/not-found.tsx	Redirected
-pages/tools/not-found.tsx	Redirects
-pages/tools/not-found.tsx	Redirects
-pages/tools/not-found.tsx	Tools
-pages/tools/not-found.tsx	addresses. When it’s full, the address seen least recently makes room. Bots probing for WordPress and server files, such as /wp-login.php, are ignored. Counts are written every minute, so the newest take a moment to appear.
-pages/tools/page-cache.tsx	, cleared with it
-pages/tools/page-cache.tsx	. A search’s page:
-pages/tools/page-cache.tsx	. A “not found” page:
-pages/tools/page-cache.tsx	A page:
-pages/tools/page-cache.tsx	Clear the page cache
-pages/tools/page-cache.tsx	How long pages live
-pages/tools/page-cache.tsx	In front of it
-pages/tools/page-cache.tsx	Kept in
-pages/tools/page-cache.tsx	Last cleared here
-pages/tools/page-cache.tsx	Never
-pages/tools/page-cache.tsx	Now
-pages/tools/page-cache.tsx	Off
-pages/tools/page-cache.tsx	On
-pages/tools/page-cache.tsx	Page cache
-pages/tools/page-cache.tsx	Page cache
-pages/tools/page-cache.tsx	Page cache
-pages/tools/page-cache.tsx	Saved copies of public pages. Readers who aren’t signed in get these, so each page is drawn once rather than on every visit.
-pages/tools/page-cache.tsx	Status
-pages/tools/page-cache.tsx	The page cache is off.
-pages/tools/page-cache.tsx	This server doesn’t save pages, so each is drawn on every visit, and there’s nothing to clear. The host switches it on with PAGE_CACHE_ENABLED.
-pages/tools/page-cache.tsx	Tools
-pages/tools/page-cache.tsx	When something is published, changed or taken down, Teme clears the pages that show it straight away. Clear everything only if a page still looks out of date, for example after a theme’s files change.
-pages/tools/page-cache.tsx	While you’re signed in you always see pages drawn afresh, never the saved copies. To see what readers get, open the page in a private window.
-pages/tools/page-cache.tsx	You rarely need to clear it.
-pages/tools/page-cache.tsx	{}, by {}
-pages/tools/redirects.tsx	, its old address keeps sending readers to it by itself. Add a redirect for an address Teme never had, such as one from the old site.
-pages/tools/redirects.tsx	A deleted file
-pages/tools/redirects.tsx	A deleted item
-pages/tools/redirects.tsx	A redirect answers only where no page does, so it can never hide a live page. One that goes to a post or page follows it when its address changes. Hits are counted every minute, so the newest take a moment to appear.
-pages/tools/redirects.tsx	A redirect sends readers on from an address this site no longer has.
-pages/tools/redirects.tsx	Actions for the redirect from {}
-pages/tools/redirects.tsx	Add a redirect
-pages/tools/redirects.tsx	Add a redirect
-pages/tools/redirects.tsx	Address or note
-pages/tools/redirects.tsx	Another site
-pages/tools/redirects.tsx	Changed addresses need no redirect.
-pages/tools/redirects.tsx	Delete
-pages/tools/redirects.tsx	Delete
-pages/tools/redirects.tsx	Edit
-pages/tools/redirects.tsx	Export
-pages/tools/redirects.tsx	Export as CSV
-pages/tools/redirects.tsx	Export for nginx
-pages/tools/redirects.tsx	Export redirects
-pages/tools/redirects.tsx	Import from CSV
-pages/tools/redirects.tsx	Never
-pages/tools/redirects.tsx	No redirects match “{}”
-pages/tools/redirects.tsx	No redirects yet
-pages/tools/redirects.tsx	Nowhere: it answers
-pages/tools/redirects.tsx	Pattern
-pages/tools/redirects.tsx	Redirects
-pages/tools/redirects.tsx	Redirects
-pages/tools/redirects.tsx	Search
-pages/tools/redirects.tsx	Search redirects
-pages/tools/redirects.tsx	Select all {} redirects shown
-pages/tools/redirects.tsx	Select the 1 redirect shown
-pages/tools/redirects.tsx	Select the redirect from {}
-pages/tools/redirects.tsx	Settings › Addresses
-pages/tools/redirects.tsx	Settings › Addresses
-pages/tools/redirects.tsx	Switch off
-pages/tools/redirects.tsx	Switch off
-pages/tools/redirects.tsx	Switch on
-pages/tools/redirects.tsx	Switch on
-pages/tools/redirects.tsx	The file
-pages/tools/redirects.tsx	Tools
-pages/tools/redirects.tsx	When a post or page gets a new address, in the editor or in
-pages/tools/updates.tsx	, published
-pages/tools/updates.tsx	, published
-pages/tools/updates.tsx	, the last time Teme could read it.
-pages/tools/updates.tsx	.env
-pages/tools/updates.tsx	All well.
-pages/tools/updates.tsx	Also after yours
-pages/tools/updates.tsx	Available
-pages/tools/updates.tsx	Backup failed
-pages/tools/updates.tsx	Busy
-pages/tools/updates.tsx	Channel
-pages/tools/updates.tsx	Checking for releases
-pages/tools/updates.tsx	Deployed
-pages/tools/updates.tsx	Deployed Teme {} on {}.
-pages/tools/updates.tsx	Deploys
-pages/tools/updates.tsx	Failed
-pages/tools/updates.tsx	Follows the version this site runs. To choose, set
-pages/tools/updates.tsx	Gets: every release, pre-releases too
-pages/tools/updates.tsx	Gets: releases only
-pages/tools/updates.tsx	How to update
-pages/tools/updates.tsx	Last checked
-pages/tools/updates.tsx	Last deploy
-pages/tools/updates.tsx	Last read the list
-pages/tools/updates.tsx	Migration failed
-pages/tools/updates.tsx	Needs maintenance mode
-pages/tools/updates.tsx	No deploy recorded yet. Each
-pages/tools/updates.tsx	No deploy recorded yet. Each
-pages/tools/updates.tsx	No release has been found yet.
-pages/tools/updates.tsx	Not checked yet. It runs within the hour, or now with
-pages/tools/updates.tsx	On Dokploy:
-pages/tools/updates.tsx	Once an hour Teme asks GitHub for its list of releases. It sends nothing about this site.
-pages/tools/updates.tsx	Pre-release
-pages/tools/updates.tsx	Problem:
-pages/tools/updates.tsx	Published
-pages/tools/updates.tsx	Read it on GitHub
-pages/tools/updates.tsx	Refused
-pages/tools/updates.tsx	Security fixes
-pages/tools/updates.tsx	See the backup
-pages/tools/updates.tsx	Set by
-pages/tools/updates.tsx	Show all {} lines
-pages/tools/updates.tsx	Show less
-pages/tools/updates.tsx	TEME_IMAGE
-pages/tools/updates.tsx	TEME_IMAGE
-pages/tools/updates.tsx	TEME_UPDATER_IMAGE
-pages/tools/updates.tsx	TEME_UPDATES_CHANNEL
-pages/tools/updates.tsx	TEME_UPDATES_CHANNEL
-pages/tools/updates.tsx	TEME_UPDATES_CHECK
-pages/tools/updates.tsx	Teme
-pages/tools/updates.tsx	Teme
-pages/tools/updates.tsx	Teme
-pages/tools/updates.tsx	Teme {} is available
-pages/tools/updates.tsx	The last ten, newest first.
-pages/tools/updates.tsx	The newest release is Teme
-pages/tools/updates.tsx	This build isn’t a release, so Teme doesn’t compare it with the releases.
-pages/tools/updates.tsx	This build isn’t a release, so Teme doesn’t compare it with the releases.
-pages/tools/updates.tsx	This list is from
-pages/tools/updates.tsx	This release changes the database in a way the one before can’t run beside. The site must be in maintenance mode while it deploys: see the release’s notes.
-pages/tools/updates.tsx	This site
-pages/tools/updates.tsx	This site runs the newest release it gets.
-pages/tools/updates.tsx	To update by hand instead:
-pages/tools/updates.tsx	Tools
-pages/tools/updates.tsx	Unfinished
-pages/tools/updates.tsx	Update checks are off on this server (
-pages/tools/updates.tsx	Update checks are off, so this list isn’t kept up to date.
-pages/tools/updates.tsx	Updates
-pages/tools/updates.tsx	Updates
-pages/tools/updates.tsx	Updates
-pages/tools/updates.tsx	Version
-pages/tools/updates.tsx	Which Teme this site runs, and the releases after it.
-pages/tools/updates.tsx	With Docker Compose:
-pages/tools/updates.tsx	and
-pages/tools/updates.tsx	and
-pages/tools/updates.tsx	brings them too.
-pages/tools/updates.tsx	carries security fixes. Updating to
-pages/tools/updates.tsx	change
-pages/tools/updates.tsx	docker compose pull
-pages/tools/updates.tsx	docker compose up --detach
-pages/tools/updates.tsx	in
-pages/tools/updates.tsx	is recorded from this release on.
-pages/tools/updates.tsx	is recorded from this release on.
-pages/tools/updates.tsx	php artisan teme:deploy
-pages/tools/updates.tsx	php artisan teme:deploy
-pages/tools/updates.tsx	php artisan teme:updates:check
-pages/tools/updates.tsx	set
-pages/tools/updates.tsx	to the new tag and Deploy.
-pages/tools/updates.tsx	to the new tag, then run
-pages/tools/updates.tsx	{} releases after yours · Teme {} is the newest
-pages/tools/updates.tsx	· Build
-pages/tools/updates.tsx	· Published
-pages/tools/updates.tsx	· took
 pages/types/fields.tsx	Actions for {}
 pages/types/fields.tsx	Add field
 pages/types/fields.tsx	Cancel

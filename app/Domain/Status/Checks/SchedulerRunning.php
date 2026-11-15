@@ -31,6 +31,11 @@ final readonly class SchedulerRunning implements StatusCheck
         return 'settings.general.manage';
     }
 
+    public function label(): string
+    {
+        return __('Scheduled tasks');
+    }
+
     public function banner(): ?StatusBanner
     {
         // Outside production nobody runs it as a service; the doctor reports it there.

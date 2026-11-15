@@ -32,6 +32,11 @@ function sstCheck(string $ability, ?StatusBanner $banner): StatusCheck
             return $this->ability;
         }
 
+        public function label(): string
+        {
+            return 'Testing';
+        }
+
         public function banner(): ?StatusBanner
         {
             return $this->banner;

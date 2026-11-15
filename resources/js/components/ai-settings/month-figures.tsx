@@ -30,12 +30,12 @@ export function MonthFigures({
             >
                 This month: {month.label}
             </h3>
-            <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[13px]">
+            <dl className="text-small mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2">
                 <dt className="text-ink-2">Spent</dt>
                 <dd>
                     {formatCost(month.costMicrounits)}
                     {month.unpricedRequests > 0 && (
-                        <span className="text-ink-2 block text-[12px]">
+                        <span className="text-ink-2 text-caption block">
                             {month.unpricedRequests === 1
                                 ? '1 request used a model with no price, so its cost is left out.'
                                 : `${month.unpricedRequests.toLocaleString()} requests used a model with no price, so their cost is left out.`}
@@ -54,18 +54,18 @@ export function MonthFigures({
                 </dd>
             </dl>
             {month.reached && (
-                <p role="status" className="mt-3 text-[13px]">
+                <p role="status" className="text-small mt-3">
                     <strong className="font-medium">
                         The budget is reached.
                     </strong>{' '}
                     AI is unavailable to everyone until the new month starts.
                 </p>
             )}
-            <p className="text-ink-2 mt-3 text-[12px]">
+            <p className="text-ink-2 text-caption mt-3">
                 Months follow UTC, as the AI companies bill.
             </p>
             {activityUrl !== null && (
-                <p className="mt-3 text-[13px]">
+                <p className="text-small mt-3">
                     <Link href={activityUrl} className="underline">
                         See every request in Tools › AI activity
                     </Link>

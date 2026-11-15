@@ -1,3 +1,5 @@
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { __, __n } from '@/lib/i18n';
 import type { RecoveryKeyRow } from '@/types/backups';
 import { KeyActions, ReplaceKey } from './key-actions';
 
@@ -14,48 +16,51 @@ export function KeysList({
     paused?: boolean;
 }) {
     return (
-        <section aria-labelledby="backup-keys" className="space-y-3">
-            <h2 id="backup-keys" className="text-base font-medium">
-                Recovery keys
-            </h2>
+        <Panel aria-labelledby="backup-keys">
+            <PanelHeader>
+                <h2 id="backup-keys" className="text-lead font-semibold">
+                    {__('Recovery keys')}
+                </h2>
+            </PanelHeader>
+            <PanelBody className="text-body">
+                <p className="text-small text-ink-2">
+                    {__(
+                        'Teme keeps no copy of a recovery key. If this server and every recovery key are lost, nobody can open the backups, Teme included.',
+                    )}
+                </p>
 
-            <p className="text-ink-2 text-[13px]">
-                Teme keeps no copy of a recovery key. If this server and every
-                recovery key are lost, nobody can open the backups, Teme
-                included.
-            </p>
+                <p>
+                    {__n(
+                        ':count recovery key opens these backups.|:count recovery keys open these backups.',
+                        keys.length,
+                    )}
+                </p>
 
-            <p className="text-sm">
-                {keys.length === 1
-                    ? '1 recovery key opens these backups.'
-                    : `${keys.length} recovery keys open these backups.`}
-            </p>
+                {!paused && <KeyActions keys={keys} />}
 
-            {!paused && <KeyActions keys={keys} />}
-
-            <ul className="border-line divide-line divide-y rounded-md border">
-                {keys.map((key) => (
-                    <li
-                        key={key.label}
-                        data-test="backup-key"
-                        className="flex flex-wrap items-center justify-between gap-2 p-4 text-sm"
-                    >
-                        <p>
-                            <span className="font-medium">{key.label}</span>
-                            {key.missingAt.length > 0 && (
-                                <span className="text-ink-2">
-                                    {' '}
-                                    · Doesn’t open {key.missingAt.join(
-                                        ', ',
-                                    )}{' '}
-                                    yet.
-                                </span>
-                            )}
-                        </p>
-                        {!paused && <ReplaceKey label={key.label} />}
-                    </li>
-                ))}
-            </ul>
-        </section>
+                <ul className="divide-line grid divide-y">
+                    {keys.map((key) => (
+                        <li
+                            key={key.label}
+                            data-test="backup-key"
+                            className="flex flex-wrap items-center justify-between gap-2 py-3"
+                        >
+                            <p>
+                                <span className="font-medium">{key.label}</span>
+                                {key.missingAt.length > 0 && (
+                                    <span className="text-ink-2">
+                                        {' · '}
+                                        {__('Doesn’t open :places yet.', {
+                                            places: key.missingAt.join(', '),
+                                        })}
+                                    </span>
+                                )}
+                            </p>
+                            {!paused && <ReplaceKey label={key.label} />}
+                        </li>
+                    ))}
+                </ul>
+            </PanelBody>
+        </Panel>
     );
 }

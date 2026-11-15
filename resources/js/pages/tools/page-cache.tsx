@@ -1,9 +1,14 @@
-import { Form, Head } from '@inertiajs/react';
-import { Info, RefreshCw } from 'lucide-react';
+import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { RefreshCw } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import PageCacheController from '@/actions/App/Http/Admin/Tools/PageCacheController';
 import InputError from '@/components/input-error';
-import { PageHeader } from '@/components/list/page-header';
+import { FormPage } from '@/components/patterns/form-page';
 import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { StatusPill } from '@/components/ui/status-pill';
+import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import { index } from '@/routes/tools';
 import { show } from '@/routes/tools/page-cache';
@@ -18,125 +23,162 @@ export default function PageCache({
     cleared,
     siteTimezone,
 }: PageCachePage) {
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Tools'), href: index() },
+            { title: __('Page cache'), href: show() },
+        ],
+    });
+
     return (
         <>
-            <Head title="Page cache" />
+            <Head title={__('Page cache')} />
 
-            <div className="max-w-3xl space-y-6 p-6">
-                <PageHeader
-                    title="Page cache"
-                    description="Saved copies of public pages. Readers who aren’t signed in get these, so each page is drawn once rather than on every visit."
-                    action={
-                        on && (
-                            <Form
-                                {...PageCacheController.clear.form()}
-                                options={{ preserveScroll: true }}
+            <FormPage
+                title={__('Page cache')}
+                description={__(
+                    'Saved copies of public pages. Readers who aren’t signed in get these, so each page is drawn once rather than on every visit.',
+                )}
+                actions={
+                    on && (
+                        <Form
+                            {...PageCacheController.clear.form()}
+                            options={{ preserveScroll: true }}
+                        >
+                            {({ processing, errors }) => (
+                                <div className="grid gap-2">
+                                    <Button
+                                        type="submit"
+                                        variant="outline"
+                                        data-test="page-cache-clear"
+                                        aria-describedby="page-cache-error"
+                                        disabled={processing}
+                                    >
+                                        <RefreshCw aria-hidden="true" />
+                                        {__('Clear the page cache')}
+                                    </Button>
+                                    <InputError
+                                        id="page-cache-error"
+                                        message={errors.cache}
+                                    />
+                                </div>
+                            )}
+                        </Form>
+                    )
+                }
+            >
+                <div className="grid gap-4">
+                    <Panel aria-labelledby="page-cache-now">
+                        <PanelHeader>
+                            <h2
+                                id="page-cache-now"
+                                className="text-lead font-semibold"
                             >
-                                {({ processing, errors }) => (
-                                    <div className="space-y-2">
-                                        <Button
-                                            type="submit"
-                                            variant="outline"
-                                            data-test="page-cache-clear"
-                                            aria-describedby="page-cache-error"
-                                            disabled={processing}
-                                        >
-                                            <RefreshCw aria-hidden="true" />
-                                            Clear the page cache
-                                        </Button>
-                                        <InputError
-                                            id="page-cache-error"
-                                            message={errors.cache}
-                                        />
-                                    </div>
+                                {__('Now')}
+                            </h2>
+                            <StatusPill
+                                tone={on ? 'ok' : 'neutral'}
+                                className="ms-auto"
+                            >
+                                {on ? __('On') : __('Off')}
+                            </StatusPill>
+                        </PanelHeader>
+                        <PanelBody>
+                            <dl
+                                className="text-body grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                                style={
+                                    {
+                                        '--facts-cols': 'max-content 1fr',
+                                    } as CSSProperties
+                                }
+                            >
+                                <dt className="text-small text-ink-2">
+                                    {__('Status')}
+                                </dt>
+                                <dd>{on ? __('On') : __('Off')}</dd>
+
+                                <dt className="text-small text-ink-2">
+                                    {__('Kept in')}
+                                </dt>
+                                <dd>{keptIn}</dd>
+
+                                <dt className="text-small text-ink-2">
+                                    {__('How long pages live')}
+                                </dt>
+                                <dd>
+                                    {__(
+                                        'A page: :any. A search’s page: :search. A “not found” page: :missing.',
+                                        {
+                                            any: lives.any,
+                                            search: lives.search,
+                                            missing: lives.notFound,
+                                        },
+                                    )}
+                                </dd>
+
+                                {cdn !== null && (
+                                    <>
+                                        <dt className="text-small text-ink-2">
+                                            {__('In front of it')}
+                                        </dt>
+                                        <dd>
+                                            {__(':cdn, cleared with it', {
+                                                cdn,
+                                            })}
+                                        </dd>
+                                    </>
                                 )}
-                            </Form>
-                        )
-                    }
-                />
 
-                <section
-                    aria-labelledby="page-cache-now"
-                    className="border-line rounded-md border p-4"
-                >
-                    <h2 id="page-cache-now" className="text-base font-medium">
-                        Now
-                    </h2>
-                    <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-[13px]">
-                        <dt className="text-ink-2">Status</dt>
-                        <dd>{on ? 'On' : 'Off'}</dd>
+                                <dt className="text-small text-ink-2">
+                                    {__('Last cleared here')}
+                                </dt>
+                                <dd>
+                                    {cleared === null
+                                        ? __('Never')
+                                        : __(':date, by :name', {
+                                              date: formatInZone(
+                                                  cleared.at,
+                                                  siteTimezone,
+                                              ),
+                                              name: cleared.by,
+                                          })}
+                                </dd>
+                            </dl>
+                        </PanelBody>
+                    </Panel>
 
-                        <dt className="text-ink-2">Kept in</dt>
-                        <dd>{keptIn}</dd>
-
-                        <dt className="text-ink-2">How long pages live</dt>
-                        <dd>
-                            A page: {lives.any}. A search’s page: {lives.search}
-                            . A “not found” page: {lives.notFound}.
-                        </dd>
-
-                        {cdn !== null && (
-                            <>
-                                <dt className="text-ink-2">In front of it</dt>
-                                <dd>{cdn}, cleared with it</dd>
-                            </>
-                        )}
-
-                        <dt className="text-ink-2">Last cleared here</dt>
-                        <dd>
-                            {cleared === null
-                                ? 'Never'
-                                : `${formatInZone(cleared.at, siteTimezone)}, by ${cleared.by}`}
-                        </dd>
-                    </dl>
-                </section>
-
-                <div
-                    role="note"
-                    data-test="page-cache-notice"
-                    className="border-line flex gap-3 rounded-md border p-4 text-sm"
-                >
-                    <Info
-                        aria-hidden="true"
-                        className="mt-0.5 size-4 shrink-0"
-                    />
-                    <div className="space-y-2">
-                        {on ? (
+                    <Notice
+                        tone="info"
+                        data-test="page-cache-notice"
+                        title={
+                            on
+                                ? __('You rarely need to clear it.')
+                                : __('The page cache is off.')
+                        }
+                    >
+                        <div className="grid gap-2">
+                            {on ? (
+                                <p>
+                                    {__(
+                                        'When something is published, changed or taken down, Teme clears the pages that show it straight away. Clear everything only if a page still looks out of date, for example after a theme’s files change.',
+                                    )}
+                                </p>
+                            ) : (
+                                <p>
+                                    {__(
+                                        'This server doesn’t save pages, so each is drawn on every visit, and there’s nothing to clear. The host switches it on with PAGE_CACHE_ENABLED.',
+                                    )}
+                                </p>
+                            )}
                             <p>
-                                <strong className="font-medium">
-                                    You rarely need to clear it.
-                                </strong>{' '}
-                                When something is published, changed or taken
-                                down, Teme clears the pages that show it
-                                straight away. Clear everything only if a page
-                                still looks out of date, for example after a
-                                theme’s files change.
+                                {__(
+                                    'While you’re signed in you always see pages drawn afresh, never the saved copies. To see what readers get, open the page in a private window.',
+                                )}
                             </p>
-                        ) : (
-                            <p>
-                                <strong className="font-medium">
-                                    The page cache is off.
-                                </strong>{' '}
-                                This server doesn’t save pages, so each is drawn
-                                on every visit, and there’s nothing to clear.
-                                The host switches it on with PAGE_CACHE_ENABLED.
-                            </p>
-                        )}
-                        <p>
-                            While you’re signed in you always see pages drawn
-                            afresh, never the saved copies. To see what readers
-                            get, open the page in a private window.
-                        </p>
-                    </div>
+                        </div>
+                    </Notice>
                 </div>
-            </div>
+            </FormPage>
         </>
     );
 }
-
-PageCache.layout = {
-    breadcrumbs: [
-        { title: 'Tools', href: index() },
-        { title: 'Page cache', href: show() },
-    ],
-};

@@ -21,6 +21,11 @@ final readonly class StoredTaxonomiesRefused implements StatusCheck
         return TypeAccess::MANAGE;
     }
 
+    public function label(): string
+    {
+        return __('Taxonomies');
+    }
+
     public function banner(): ?StatusBanner
     {
         $refused = app(TaxonomyRegistry::class)->refused();

@@ -53,8 +53,9 @@ final class StatusChecks
     }
 
     /**
-     * Every banner this person may act on, the most pressing first; among
-     * equals, in the order the checks were registered.
+     * Every banner this person may act on, each labelled with what its check
+     * is about and, for a plugin's, the plugin's name; the most pressing
+     * first, and among equals, in the order the checks were registered.
      *
      * @return list<StatusBanner>
      */
@@ -62,7 +63,7 @@ final class StatusChecks
     {
         $banners = [];
 
-        foreach ($this->checks as ['check' => $registered]) {
+        foreach ($this->checks as ['check' => $registered, 'owner' => $owner]) {
             $check = $registered instanceof StatusCheck ? $registered : app($registered);
 
             // Asked only for someone who may fix it.
@@ -73,7 +74,7 @@ final class StatusChecks
             $banner = $check->banner();
 
             if ($banner !== null) {
-                $banners[] = $banner;
+                $banners[] = $banner->labelled($check->label(), $owner === 'core' ? null : $check->label());
             }
         }
 

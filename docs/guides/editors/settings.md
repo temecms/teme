@@ -40,11 +40,11 @@ The time zone decides how dates are shown and when scheduled items go live. Chan
 
 ## To choose the site's colour
 
-The brand colour is on **Settings › General** too, with its own button, **Save brand colour**. It is used by the theme, so it can look different from theme to theme. The site's name, tagline and brand colour stay when you change theme.
+The brand colour is on **Settings › General** too, in its own panel, and **Save general settings** saves it with the rest of the page. It is used by the theme, so it can look different from theme to theme. The site's name, tagline and brand colour stay when you change theme.
 
 ## To choose the home page and how many items a list shows
 
-Open **Settings › Reading**. Choose what the home page shows: your latest posts, or a page you choose. Then set how many items each page of a list shows. Leaving it at 0 uses the theme's own number. Under **Types on the home page and in the main feed**, tick the kinds of item the latest list and the site's feed carry: only Posts are ticked until you change it, and a new kind of item is never added on its own. A category's or a tag's page always lists everything filed under it. Choose **Save reading settings**. The home page has its own button, **Save home page**.
+Open **Settings › Reading**. Choose what the home page shows: your latest posts, or a page you choose. Then set how many items each page of a list shows. Leaving it at 0 uses the theme's own number. Under **Types on the home page and in the main feed**, tick the kinds of item the latest list and the site's feed carry: only Posts are ticked until you change it, and a new kind of item is never added on its own. A category's or a tag's page always lists everything filed under it. Choose **Save reading settings**. That saves the home page too.
 
 ## To change how items are addressed
 
@@ -134,6 +134,6 @@ Type in **Find a setting** at the top of **Settings**, for example "time zone". 
 
 ## To save your changes
 
-Each page is a set of titled panels and ends in a bar that says what it saves. Its button is named after the page: **Save general settings**, **Save reading settings** and so on. Pages with their own forms say **Save address settings**, **Save AI settings**, **Save discussion settings** and **Save search and social settings**. On **Discussion**, the switch at the top has its own button, **Save the comments switch**.
+Each page is a set of titled panels. Once you change something, a bar appears that says what it saves. Its button is named after the page: **Save general settings**, **Save reading settings** and so on. Pages with their own forms say **Save address settings**, **Save AI settings**, **Save discussion settings** and **Save search and social settings**. On **Discussion**, the switch at the top acts at once, with no button; while the rules below have unsaved changes it waits until you save or discard them.
 
 If you leave a page with changes unsaved, the admin asks first.

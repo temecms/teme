@@ -33,6 +33,8 @@ export type AdminNavScreen = {
     href: string;
     /** A plugin's link to another site (I-3353); absent for Teme's own screens. */
     external?: boolean;
+    /** The plugin that added this screen (I-3353); absent for Teme's own. */
+    plugin?: string;
 };
 
 /** One entry of the admin's main menu, as the server shares it in `nav`. */

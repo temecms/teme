@@ -35,15 +35,15 @@ You can also upload from inside the editor, when you add an image to an item. Th
 
 ## To describe a file
 
-Open a file to see its details in a drawer. Describe it while you are there.
+Open a file to see its details in a panel beside the library. Describe it while you are there.
 
 - **Alt text** says what an image shows, for someone who cannot see it, such as a person using a screen reader. It is read aloud in place of the picture, so write what matters, not "image of". It is used wherever you place the image without alt text of its own. Where you place it you choose whether it is decorative.
 - **Caption** and **Credit** are shown with the image, if the place you use it shows them.
-- **Title** and **Licence** keep your own records.
+- **Title** and **License** keep your own records.
 
-Choose **Save**. The drawer may offer **Suggest alt text**, if the site has the assistant on; read the suggestion and save it only if it is right.
+Each field is saved when you leave it, and the page says **Saved.** The panel may offer **Suggest alt text**, if the site has the assistant on; read the suggestion and use it only if it is right.
 
-The drawer also shows **Uploaded for**: the item the file was first uploaded for. Use it to show every file uploaded for one item.
+The panel also shows **Uploaded for**: the item the file was first uploaded for. Use it to show every file uploaded for one item.
 
 ## To replace a file
 
@@ -60,12 +60,12 @@ Open the file. Under **Used in** it lists the items that use it, or says "Not us
 
 ## To move a file to the trash, restore it, or delete it for good
 
-1. Open the file and choose **Move to trash**. If live items use it, the drawer tells you what they will show instead. Items that use it show nothing in its place until you restore it.
+1. Open the file and choose **Move to trash**. If live items use it, the panel tells you what they will show instead. Items that use it show nothing in its place until you restore it.
 2. To bring it back, open the **Trash** view, open the file and choose **Restore**. Every item that used it shows it again.
 3. To remove it for good, choose **Delete permanently**. This deletes the file and every size made from it, and it can't be undone.
 
 ## If an image's sizes failed
 
-The drawer says "Teme couldn't make this image's sizes." Choose **Try again**. The sizes are made in the background, so a worker must be running. If **Try again** does not help, tell whoever runs the server.
+The panel says "Teme couldn't make this image's sizes." Choose **Try again**. The sizes are made in the background, so a worker must be running. If **Try again** does not help, tell whoever runs the server.
 
 The upload list has its own **Retry**. That is for a file that failed to upload, not for sizes.

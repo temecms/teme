@@ -116,7 +116,7 @@ it('uploads from the page header, one bar a file, and shows the file in the libr
     $page->script(($this->fakeUploads)($ferry));
 
     $page->attach('[data-test="media-upload-input"]', mediaJpeg(640, 480))
-        ->assertPresent('[data-test="media-uploads"] progress[aria-label^="Uploading "]')
+        ->assertPresent('[data-test="media-uploads"] [role="progressbar"][aria-label^="Uploading "]')
         ->assertSee('Uploaded 1 file. Add its alt text.')
         ->assertNotPresent('[data-test="media-uploads"] li')
         ->assertSeeIn('[role="listbox"]', 'ferry');
@@ -124,7 +124,7 @@ it('uploads from the page header, one bar a file, and shows the file in the libr
     expect($page->script('window.__uploads.length'))->toBe(1);
 });
 
-it('uploads files dropped anywhere on the screen, and nothing dropped while the drawer is open', function (): void {
+it('uploads files dropped anywhere on the screen, and nothing dropped while the details sheet is open', function (): void {
     $page = cmSignIn($this->editor)->navigate('/admin/media');
     $ferry = mediaUpload($this->editor, mediaJpeg(900, 600), 'ferry.jpg');
     $page->script(($this->fakeUploads)($ferry));
@@ -136,6 +136,8 @@ it('uploads files dropped anywhere on the screen, and nothing dropped while the 
         ->assertSee('Uploaded 1 file. Add its alt text.')
         ->assertSeeIn('[role="listbox"]', 'ferry');
 
+    // Below 1024 pixels a file's details are a sheet, which a drop never reaches through.
+    $page->resize(800, 900);
     shellSettled($page->click('[role="option"]:has-text("harbour")'), '[data-slot="sheet-content"]');
     $page->script(($this->drag)('dragenter'));
     $page->script(($this->drag)('drop'));
@@ -177,7 +179,7 @@ it('narrows the library by type, date, the boxes and a search, clears them, and 
         // The clear lands first: a layout click before it would keep the search, and the PDF with it out of the table.
         ->assertQueryStringMissing('search')
         ->click('[data-test="media-layout-list"]')
-        ->assertAttribute('[data-test="media-layout-list"]', 'aria-pressed', 'true')
+        ->assertAttribute('[data-test="media-layout-list"]', 'aria-checked', 'true')
         ->assertScript("[...document.querySelectorAll('table thead th')].map((cell) => cell.textContent.trim()).join('|')", 'File|Type|Alt text|Credit|Used in|Uploaded')
         // A bare tag isn't a selector to Pest's locator (it reads "table" as text), so the table is read in the page.
         ->assertScript("document.querySelector('table')?.innerText.includes('Boats at dawn') === true")
@@ -193,15 +195,15 @@ it('moves a file to the trash after naming the live page that shows it, and Undo
     listsPublish(refsDraft($this->editor, refsFeatured($this->harbour)), $this->editor);
 
     $page = cmSignIn($this->editor)->navigate('/admin/media');
-    shellSettled($page->click('[role="option"]:has-text("harbour")'), '[data-slot="sheet-content"]')
-        ->assertSeeIn('[data-test="media-drawer-footer"]', 'Save')
+    cmWaitUntil($page->click('[role="option"]:has-text("harbour")'), "document.querySelector('[data-test=\"media-detail\"]')?.innerText.includes('harbour') === true && document.querySelector('[data-test=\"media-trash\"]')?.disabled === false")
+        ->assertPresent('[data-test="media-trash"]')
         ->click('[data-test="media-trash"]');
     shellSettled($page, '[data-slot="dialog-content"]')
         ->assertSeeIn('[data-slot="dialog-content"]', 'Move “harbour” to the trash?')
         ->assertSeeIn('[data-slot="dialog-content"]', 'It appears on “Pictured”, which is live. That item shows nothing in its place until you restore it.')
         ->click('[data-slot="dialog-content"] button:text-is("Move to trash")')
         ->assertSee('Moved “harbour” to the trash.')
-        ->assertNotPresent('[data-slot="sheet-content"]');
+        ->assertNotPresent('[data-test="media-detail"]');
 
     expect(Media::onlyTrashed()->whereKey($this->harbour->id)->exists())->toBeTrue();
 
@@ -216,8 +218,8 @@ it('deletes a file permanently only after its dialog, which counts what still re
     app(TrashMedia::class)->execute(new MediaActionInput($this->harbour->id, (string) $this->editor->id));
 
     $page = cmSignIn($this->editor)->navigate('/admin/media?tab=trash');
-    shellSettled($page->click('[role="option"]:has-text("harbour")'), '[data-slot="sheet-content"]')
-        ->assertSeeIn('[data-slot="sheet-content"]', 'In the trash since')
+    cmWaitUntil($page->click('[role="option"]:has-text("harbour")'), "document.querySelector('[data-test=\"media-detail\"]')?.innerText.includes('harbour') === true && document.querySelector('[data-test=\"media-delete\"]')?.disabled === false")
+        ->assertSeeIn('[data-test="media-detail"]', 'In the trash since')
         ->click('[data-test="media-delete"]');
     shellSettled($page, '[data-slot="dialog-content"]')
         ->assertSeeIn('[data-slot="dialog-content"]', 'Delete “harbour” permanently?')
@@ -231,19 +233,20 @@ it('deletes a file permanently only after its dialog, which counts what still re
     shellSettled($page, '[data-slot="dialog-content"]')
         ->click('[data-slot="dialog-content"] button:text-is("Delete permanently")')
         ->assertSee('Deleted “harbour.jpg” permanently.')
-        ->assertNotPresent('[data-slot="sheet-content"]');
+        ->assertNotPresent('[data-test="media-detail"]');
 
     expect(Media::withTrashed()->whereKey($this->harbour->id)->exists())->toBeFalse();
 });
 
-it('saves the details and the licence from the drawer’s footer, closes it, and says so', function (): void {
+it('saves the details and the license as each field is left, and says so', function (): void {
     $page = cmSignIn($this->editor)->navigate('/admin/media');
-    shellSettled($page->click('[role="option"]:has-text("harbour")'), '[data-slot="sheet-content"]')
+    cmWaitUntil($page->click('[role="option"]:has-text("harbour")'), "document.querySelector('".($this->field)($this->harbour, 'credit')."') !== null")
         ->type(($this->field)($this->harbour, 'credit'), 'Photo: Kemi Adeyemi')
+        ->keys(($this->field)($this->harbour, 'credit'), 'Tab')
         ->type(($this->field)($this->harbour, 'licence'), 'Staff photo')
-        ->click('[data-test="media-save"]')
-        ->assertSee('Saved.')
-        ->assertNotPresent('[data-slot="sheet-content"]');
+        ->keys(($this->field)($this->harbour, 'licence'), 'Tab')
+        ->assertSee('Saved.');
+    cmWaitUntil($page, "[...document.querySelectorAll('[data-test=\"flash-toast\"]')].filter((toast) => toast.innerText.includes('Saved.')).length >= 2");
 
     expect($this->harbour->refresh()->only(['credit', 'licence']))->toBe(['credit' => 'Photo: Kemi Adeyemi', 'licence' => 'Staff photo']);
 });
@@ -293,32 +296,27 @@ it('chooses the file the library already has when an upload is a duplicate and �
         ->assertNotPresent('[data-slot="dialog-content"]');
 });
 
-it('reloads the modal’s details after a save in the drawer opened over it, so the modal’s own saves keep what the drawer wrote', function (): void {
+it('keeps a caption saved in the picker’s side when the title is saved after it', function (): void {
     $edit = '/admin/content/'.lifecycleDraft($this->editor, 'Harbour news')->id.'/edit';
     $this->actingAs($this->editor)->get($edit)->assertOk();
-    $licence = '[data-test="media-modal-details"] '.($this->field)($this->harbour, 'licence');
+    $side = fn (string $name): string => '[data-test="media-modal-details"] '.($this->field)($this->harbour, $name);
 
     // In one attempt: a slow editor left navigate()'s timed-out answer for the click to read (#265).
     $page = cmNavigate(cmSignIn($this->editor), $edit)->click('#editor-featured-choose');
     shellSettled($page, '[data-slot="dialog-content"]')
-        ->click('[role="dialog"] [role="option"]:has-text("harbour")')
-        ->assertValue($licence, '')
-        ->click('[data-test="media-modal-details"] button:text-is("Edit details")');
-    shellSettled($page, '[data-slot="sheet-content"]')
-        // The drawer and the window both draw the image's fields: name the drawer's.
-        ->type('[data-slot="sheet-content"] '.($this->field)($this->harbour, 'licence'), 'Staff photo')
-        ->click('[data-test="media-save"]')
-        ->assertNotPresent('[data-slot="sheet-content"]')
-        ->assertValue($licence, 'Staff photo')
-        // The window saves a field when it's left, from its own copy of the details.
-        ->type('[data-test="media-modal-details"] '.($this->field)($this->harbour, 'caption'), 'Boats at dawn')
-        ->click('[data-test="media-modal-details"] '.($this->field)($this->harbour, 'title'))
-        ->wait(2);
+        ->click('[role="dialog"] [role="option"]:has-text("harbour")');
+    cmWaitUntil($page, "document.querySelector('{$side('caption')}') !== null")
+        ->type($side('caption'), 'Boats at dawn')
+        ->keys($side('caption'), 'Tab');
+    cmWaitUntil($page, "[...document.querySelectorAll('[data-test=\"flash-toast\"]')].filter((toast) => toast.innerText.includes('Saved.')).length >= 1")
+        ->type($side('title'), 'Harbour at dawn')
+        ->keys($side('title'), 'Tab');
+    cmWaitUntil($page, "[...document.querySelectorAll('[data-test=\"flash-toast\"]')].filter((toast) => toast.innerText.includes('Saved.')).length >= 2");
 
-    expect($this->harbour->refresh()->only(['caption', 'licence']))->toBe(['caption' => 'Boats at dawn', 'licence' => 'Staff photo']);
+    expect($this->harbour->refresh()->only(['caption', 'title']))->toBe(['caption' => 'Boats at dawn', 'title' => 'Harbour at dawn']);
 });
 
-it('passes axe on the grid, the list, the drawer with its confirmation open, and the modal, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
+it('passes axe on the grid, the list, the details panel and sheet with the confirmation open, and the modal, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
     lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
     $edit = '/admin/content/'.lifecycleDraft($this->editor, 'Harbour news')->id.'/edit';
     $this->actingAs($this->editor)->get($edit)->assertOk();
@@ -334,13 +332,27 @@ it('passes axe on the grid, the list, the drawer with its confirmation open, and
         ->assertNoAccessibilityIssues(3);
     $list = cmSmallTargets($page);
 
-    shellSettled($page->click('table button:text-is("harbour")'), '[data-slot="sheet-content"]')
+    cmWaitUntil($page->click('table button:text-is("harbour")'), "document.querySelector('[data-test=\"media-trash\"]')?.disabled === false")
         ->click('[data-test="media-trash"]');
     // The dialog and its overlay fade in, and axe doesn't retry: it would read their colours mid-fade.
     shellSettled($page, '[data-slot="dialog-content"]')
         ->assertScript("[...document.querySelectorAll('[data-slot=\"dialog-overlay\"], [data-slot=\"dialog-content\"]')].map((element) => getComputedStyle(element).opacity).join(' ')", '1 1')
         ->assertNoAccessibilityIssues(3);
     $drawer = cmSmallTargets($page);
+
+    // Below 1024 pixels the same details are a sheet.
+    $page->resize(800, 900);
+    cmNavigate($page, '/admin/media?view=list');
+    $page->click('table button:text-is("harbour")');
+    shellSettled($page, '[data-slot="sheet-content"]');
+    shellSettled($page, '[data-slot="sheet-overlay"]');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"sheet-content\"] [data-test=\"media-trash\"]')?.disabled === false")
+        ->click('[data-slot="sheet-content"] [data-test="media-trash"]');
+    shellSettled($page, '[data-slot="dialog-content"]')
+        ->assertScript("[...document.querySelectorAll('[data-slot=\"dialog-overlay\"], [data-slot=\"dialog-content\"]')].map((element) => getComputedStyle(element).opacity).join(' ')", '1 1')
+        ->assertNoAccessibilityIssues(3);
+    $sheet = cmSmallTargets($page);
+    $page->resize(1280, 900);
 
     cmNavigate($page, $edit)->click('#editor-featured-choose');
     shellSettled($page, '[data-slot="dialog-content"]')
@@ -354,5 +366,7 @@ it('passes axe on the grid, the list, the drawer with its confirmation open, and
         ->and($list['checked'])->toBeGreaterThan(0)
         ->and($drawer['small'])->toBe([])
         ->and($drawer['checked'])->toBeGreaterThan(0)
+        ->and($sheet['small'])->toBe([])
+        ->and($sheet['checked'])->toBeGreaterThan(0)
         ->and(($this->axeIn)($page, '[data-slot="dialog-content"]'))->toBe([]);
 })->with(['light', 'dark']);

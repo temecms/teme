@@ -1,4 +1,4 @@
-import { Deferred, Head, usePoll } from '@inertiajs/react';
+import { Deferred, Head, setLayoutProps, usePoll } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { ChoicesForm } from '@/components/import/choices-form';
 import { ConnectForm } from '@/components/import/connect-form';
@@ -10,7 +10,9 @@ import {
     AnalysisSkeleton,
     SiteAnalysis,
 } from '@/components/import/site-analysis';
-import { PageHeader } from '@/components/list/page-header';
+import { ListPage } from '@/components/patterns/list-page';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import { index } from '@/routes/tools';
 import { index as importerIndex } from '@/routes/tools/importer';
@@ -31,7 +33,7 @@ function Plan({
     }
 
     return (
-        <div className="space-y-8">
+        <>
             <SiteAnalysis
                 siteId={siteId}
                 plan={plan}
@@ -39,30 +41,32 @@ function Plan({
             />
 
             {plan.form !== null && (
-                <section
-                    aria-labelledby="import-choices"
-                    className="max-w-[640px] space-y-4"
-                >
-                    <div className="space-y-1">
+                <Panel aria-labelledby="import-choices">
+                    <PanelHeader>
                         <h2
                             id="import-choices"
-                            className="text-base font-medium"
+                            className="text-lead font-semibold"
                         >
-                            Your choices
+                            {__('Your choices')}
                         </h2>
-                        <p className="text-ink-2 text-[13px]">
-                            Teme uses these for this import and for each
-                            catch-up after it.
-                        </p>
-                    </div>
-                    <ChoicesForm
-                        siteId={siteId}
-                        form={plan.form}
-                        remembered={plan.remembered}
-                    />
-                </section>
+                    </PanelHeader>
+                    <PanelBody>
+                        <div className="grid max-w-(--form-max) gap-6">
+                            <p className="text-body text-ink-2">
+                                {__(
+                                    'Teme uses these for this import and for each catch-up after it.',
+                                )}
+                            </p>
+                            <ChoicesForm
+                                siteId={siteId}
+                                form={plan.form}
+                                remembered={plan.remembered}
+                            />
+                        </div>
+                    </PanelBody>
+                </Panel>
             )}
-        </div>
+        </>
     );
 }
 
@@ -104,18 +108,30 @@ export default function ImportShow({
         }
     }, [running, start, stop]);
 
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Tools'), href: index() },
+            { title: __('Import'), href: importerIndex() },
+        ],
+    });
+
     const description = site.forgotten
-        ? 'Teme has forgotten this site’s application password.'
-        : `Connected as ${site.userName ?? ''} on ${formatInZone(site.connectedAt, siteTimezone)}. Teme Companion ${site.pluginVersion}.`;
+        ? __('Teme has forgotten this site’s application password.')
+        : __('Connected as :name on :date. Teme Companion :version.', {
+              name: site.userName ?? '',
+              date: formatInZone(site.connectedAt, siteTimezone),
+              version: site.pluginVersion,
+          });
 
     return (
         <>
             <Head title={site.host} />
 
-            <div className="space-y-8 p-6">
-                <PageHeader title={site.host} description={description} />
-
-                <ImportSteps step={step} />
+            <ListPage title={site.host} description={description}>
+                <ImportSteps
+                    step={step}
+                    choosing={plan != null && plan.form !== null}
+                />
 
                 {step === 'connect' && (
                     <ConnectForm
@@ -156,14 +172,7 @@ export default function ImportShow({
                         siteTimezone={siteTimezone}
                     />
                 )}
-            </div>
+            </ListPage>
         </>
     );
 }
-
-ImportShow.layout = {
-    breadcrumbs: [
-        { title: 'Tools', href: index() },
-        { title: 'Import', href: importerIndex() },
-    ],
-};

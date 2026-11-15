@@ -1,9 +1,15 @@
+import type { CSSProperties } from 'react';
 import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { FieldDefinition } from '@/types';
+
+/** A row's three columns from 640px: the name, the value at twice its width, then Remove. */
+const PAIR_COLUMNS = {
+    '--pair-cols': 'minmax(0, 1fr) minmax(0, 2fr) auto',
+} as CSSProperties;
 
 type Pair = { name: string; value: string };
 
@@ -72,7 +78,7 @@ export function PairsSetting({
                         value=""
                         disabled={disabled}
                     />
-                    <p className="text-ink-2 text-sm">{emptyLabel}</p>
+                    <p className="text-small text-ink-2">{emptyLabel}</p>
                 </>
             )}
             {rows.map((row, index) => (
@@ -81,7 +87,8 @@ export function PairsSetting({
                     role="group"
                     aria-label={rowLabel(index + 1)}
                     data-test="pairs-row"
-                    className="grid items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]"
+                    className="grid items-end gap-2 sm:grid-cols-(--pair-cols)"
+                    style={PAIR_COLUMNS}
                 >
                     <div className="grid gap-1">
                         <Label htmlFor={`${id}-${index}-name`}>

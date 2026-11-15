@@ -68,6 +68,9 @@ it('refuses every answer it can\'t use, in plain words, under the field it belon
     match ($case) {
         'wrong password' => $this->fake->answer('settings', 401, $forbidden(401, 'incorrect_password')),
         'not an administrator' => $this->fake->answer('settings', 403, $forbidden(403, 'teme_forbidden')),
+        'no capability' => $this->fake->answer('settings', 403, $forbidden(403, 'rest_forbidden')),
+        'a firewall page' => $this->fake->answer('settings', 403),
+        'cloudflare' => $this->fake->answer('settings', 403, $forbidden(403, 'teme_forbidden'), ['cf-mitigated' => 'challenge']),
         'plain http' => $this->fake->answer('settings', 403, $forbidden(403, 'teme_https_required')),
         'no plugin' => $this->fake->answer('probe', 404, $forbidden(404, 'rest_no_route'))->answer('probe', 404, $forbidden(404, 'rest_no_route')),
         'too old' => $this->fake->answer('probe', 200, ['name' => 'teme-companion', 'version' => '0.1.0', 'api' => 0, 'application_passwords' => true]),
@@ -90,6 +93,9 @@ it('refuses every answer it can\'t use, in plain words, under the field it belon
 })->with([
     'a wrong application password' => ['wrong password', 'credentials', 'application_password', false],
     'an account that isn\'t an administrator' => ['not an administrator', 'not-administrator', 'user_name', false],
+    'an account WordPress refuses the capability to' => ['no capability', 'not-administrator', 'user_name', false],
+    'a firewall\'s page, not WordPress\'s answer' => ['a firewall page', 'blocked', 'address', false],
+    'Cloudflare\'s bot check' => ['cloudflare', 'blocked', 'address', false],
     'a site that answers only over HTTPS' => ['plain http', 'https', 'address', false],
     'no companion plugin' => ['no plugin', 'not-companion', 'address', false],
     'a companion too old' => ['too old', 'too-old', 'address', false],

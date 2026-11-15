@@ -48,9 +48,20 @@ const applyTheme = (appearance: Appearance): void => {
     }
 
     const isDark = isDarkMode(appearance);
+    const root = document.documentElement;
 
-    document.documentElement.classList.toggle('dark', isDark);
-    document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+    // Every color changes at once: with transitions held off, no element
+    // fades between the schemes and is caught half-drawn.
+    root.classList.add('scheme-switching');
+    root.classList.toggle('dark', isDark);
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+
+    // Reading a computed style puts the new colors in place while the hold
+    // lasts, so lifting it on the next frame starts no transition.
+    void window.getComputedStyle(root).color;
+    window.requestAnimationFrame(() =>
+        root.classList.remove('scheme-switching'),
+    );
 };
 
 const subscribe = (callback: () => void) => {

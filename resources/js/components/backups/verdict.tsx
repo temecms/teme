@@ -1,11 +1,5 @@
 import { Form, Link } from '@inertiajs/react';
-import {
-    CircleCheck,
-    CircleX,
-    Loader2,
-    Pause,
-    TriangleAlert,
-} from 'lucide-react';
+import { CircleCheck, CircleX, Loader2, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import BackupPlacesController from '@/actions/App/Http/Admin/Tools/Backups/BackupPlacesController';
 import BackupSetupController from '@/actions/App/Http/Admin/Tools/Backups/BackupSetupController';
@@ -15,6 +9,9 @@ import {
 } from '@/components/backups/back-up-now';
 import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { __, __n } from '@/lib/i18n';
 import { names, sizeWords } from '@/lib/backup-words';
 import { setup as setupRoute } from '@/routes/tools/backups';
 import { restored } from '@/routes/tools/backups';
@@ -23,54 +20,63 @@ import { ScheduleForm } from './schedule-form';
 
 /** The newest backup's line: what it holds, what it added, how long it took. */
 function newestLine(newest: NewestBackup): string {
-    const media =
-        newest.mediaFiles > 0
-            ? ` and ${newest.mediaFiles.toLocaleString()} media ${newest.mediaFiles === 1 ? 'file' : 'files'} (${sizeWords(newest.mediaBytes)})`
-            : '';
+    const sizes = {
+        database: sizeWords(newest.databaseBytes),
+        added: sizeWords(newest.bytesAdded),
+        took: newest.took,
+    };
 
-    return `The newest backup holds the database (${sizeWords(newest.databaseBytes)})${media}. It added ${sizeWords(newest.bytesAdded)} and took ${newest.took}.`;
+    return newest.mediaFiles > 0
+        ? __n(
+              'The newest backup holds the database (:database) and :count media file (:media). It added :added and took :took.|The newest backup holds the database (:database) and :count media files (:media). It added :added and took :took.',
+              newest.mediaFiles,
+              {
+                  ...sizes,
+                  count: newest.mediaFiles.toLocaleString(),
+                  media: sizeWords(newest.mediaBytes),
+              },
+          )
+        : __(
+              'The newest backup holds the database (:database). It added :added and took :took.',
+              sizes,
+          );
 }
 
-/** Each level's icon, its text alternative and the left edge that carries its colour. */
+/** Each level's icon and its colour; the words are looked up as they are drawn. */
 const LEVELS = {
-    red: {
-        Icon: CircleX,
-        alt: 'Needs attention',
-        edge: 'border-l-danger',
-        colour: 'text-danger-ink',
-    },
-    amber: {
-        Icon: TriangleAlert,
-        alt: 'Needs a look',
-        edge: 'border-l-warn',
-        colour: 'text-warn-ink',
-    },
-    green: {
-        Icon: CircleCheck,
-        alt: 'All well',
-        edge: 'border-l-ok',
-        colour: 'text-ok-ink',
-    },
+    red: { Icon: CircleX, colour: 'text-danger-ink' },
+    amber: { Icon: TriangleAlert, colour: 'text-warn-ink' },
+    green: { Icon: CircleCheck, colour: 'text-ok-ink' },
 } as const;
+
+/** Each level's text alternative, said before its sentence. */
+function levelWords(level: keyof typeof LEVELS): string {
+    return {
+        red: __('Needs attention'),
+        amber: __('Needs a look'),
+        green: __('All well'),
+    }[level];
+}
 
 /** 1.12e's verdict, its sentence first and the lines under it (I-2409): an icon and words, never colour alone. */
 function VerdictSentence({ verdict }: { verdict: VerdictLine }) {
-    const { Icon, alt, colour } = LEVELS[verdict.level];
+    const { Icon, colour } = LEVELS[verdict.level];
 
     return (
-        <div className="space-y-1">
-            <p className="flex items-start gap-2 font-medium">
-                <Icon
-                    aria-hidden="true"
-                    className={`mt-0.5 size-4 shrink-0 ${colour}`}
-                />
+        <div className="grid gap-1">
+            <p className="flex items-start gap-2 font-semibold">
+                <span className="flex h-lh shrink-0 items-center">
+                    <Icon aria-hidden="true" className={`size-4 ${colour}`} />
+                </span>
                 <span>
-                    <span className="sr-only">{alt}. </span>
+                    <span className="sr-only">
+                        {levelWords(verdict.level)}.{' '}
+                    </span>
                     {verdict.sentence}
                 </span>
             </p>
             {verdict.more.length > 0 && (
-                <ul className="text-ink-2 space-y-1 pl-6 text-sm">
+                <ul className="text-ink-2 grid gap-1 ps-6">
                     {verdict.more.map((line) => (
                         <li key={line}>{line}</li>
                     ))}
@@ -113,89 +119,108 @@ export function Verdict({ page }: { page: BackupsPage }) {
 
     if (setup.state === 'none') {
         return (
-            <section
+            <Panel
                 aria-labelledby="backup-set-up-heading"
                 data-test="backup-verdict"
-                className="border-line space-y-3 rounded-md border p-4"
             >
-                <h2
-                    id="backup-set-up-heading"
-                    className="text-base font-medium"
-                >
-                    Set up backups
-                </h2>
-                <p className="font-medium">
-                    Nothing on this site is backed up yet.
-                </p>
-                <p className="text-sm">
-                    Teme backs up the database and every media file each night,
-                    to a folder on this server, S3-compatible storage or an SFTP
-                    server, and checks every backup by reading it back.
-                </p>
-                <p className="text-sm">
-                    Backups are locked with a recovery key that Teme shows you
-                    once. With it and a copy of the backups, this site can be
-                    brought back on any server. Without it, nobody can open
-                    them, Teme included.
-                </p>
-                <p className="text-sm">
-                    It takes a minute. Have a pen and paper or a printer ready.
-                </p>
-                <Button asChild data-test="backup-set-up">
-                    <Link href={setupRoute()}>Set up backups</Link>
-                </Button>
-            </section>
+                <PanelHeader>
+                    <h2
+                        id="backup-set-up-heading"
+                        className="text-lead font-semibold"
+                    >
+                        {__('Set up backups')}
+                    </h2>
+                </PanelHeader>
+                <PanelBody className="text-body justify-items-start">
+                    <p className="font-medium">
+                        {__('Nothing on this site is backed up yet.')}
+                    </p>
+                    <p>
+                        {__(
+                            'Teme backs up the database and every media file each night, to a folder on this server, S3-compatible storage or an SFTP server, and checks every backup by reading it back.',
+                        )}
+                    </p>
+                    <p>
+                        {__(
+                            'Backups are locked with a recovery key that Teme shows you once. With it and a copy of the backups, this site can be brought back on any server. Without it, nobody can open them, Teme included.',
+                        )}
+                    </p>
+                    <p>
+                        {__(
+                            'It takes a minute. Have a pen and paper or a printer ready.',
+                        )}
+                    </p>
+                    <Button asChild data-test="backup-set-up">
+                        <Link href={setupRoute()}>{__('Set up backups')}</Link>
+                    </Button>
+                </PanelBody>
+            </Panel>
         );
     }
 
     if (setup.state === 'unfinished') {
         return (
-            <section
-                aria-label="Where setup stands"
+            <Panel
+                aria-label={__('Where setup stands')}
                 data-test="backup-verdict"
-                className="border-danger space-y-3 rounded-md border border-l-4 p-4"
             >
-                <p className="font-medium">
-                    <span className="sr-only">Needs attention. </span>
-                    Backups aren’t set up yet: the recovery key shown for{' '}
-                    {setup.placeName} wasn’t typed back.
-                </p>
-                <p className="text-ink-2 text-sm">
-                    Nothing is backed up until it is.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                    <Form {...BackupSetupController.store.form()}>
-                        {({ processing }) => (
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                data-test="backup-again"
-                            >
-                                Show a new recovery key
-                            </Button>
-                        )}
-                    </Form>
-                    <Form
-                        {...BackupPlacesController.destroy.form({
-                            place: setup.placeId ?? '',
-                        })}
-                    >
-                        <ConfirmAction
-                            title={`Remove ${setup.placeName} and start again?`}
-                            description={`Teme forgets ${setup.placeName} and the key it showed. Anything Teme made there stays: choose an empty folder or bucket next time.`}
-                            confirmLabel={`Remove ${setup.placeName}`}
+                <PanelBody className="text-body pt-5">
+                    <Notice tone="danger">
+                        <p className="font-semibold">
+                            <span className="sr-only">
+                                {__('Needs attention.')}{' '}
+                            </span>
+                            {__(
+                                'Backups aren’t set up yet: the recovery key shown for :place wasn’t typed back.',
+                                { place: setup.placeName ?? '' },
+                            )}
+                        </p>
+
+                        <p>{__('Nothing is backed up until it is.')}</p>
+                    </Notice>
+                    <div className="flex flex-wrap gap-2">
+                        <Form {...BackupSetupController.store.form()}>
+                            {({ processing }) => (
+                                <Button
+                                    type="submit"
+                                    disabled={processing}
+                                    data-test="backup-again"
+                                >
+                                    {__('Show a new recovery key')}
+                                </Button>
+                            )}
+                        </Form>
+                        <Form
+                            {...BackupPlacesController.destroy.form({
+                                place: setup.placeId ?? '',
+                            })}
                         >
-                            <Button
-                                type="submit"
-                                variant="outline"
-                                data-test="backup-start-again"
+                            <ConfirmAction
+                                title={__('Remove :name and start again?', {
+                                    name: setup.placeName ?? '',
+                                })}
+                                description={__(
+                                    'Teme forgets :name and the key it showed. Anything Teme made there stays: choose an empty folder or bucket next time.',
+                                    { name: setup.placeName ?? '' },
+                                )}
+                                confirmLabel={__('Remove :name', {
+                                    name: setup.placeName ?? '',
+                                })}
                             >
-                                Remove {setup.placeName} and start again
-                            </Button>
-                        </ConfirmAction>
-                    </Form>
-                </div>
-            </section>
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    data-test="backup-start-again"
+                                >
+                                    {__('Remove :name and start again', {
+                                        name: setup.placeName ?? '',
+                                    })}
+                                </Button>
+                            </ConfirmAction>
+                        </Form>
+                    </div>
+                </PanelBody>
+            </Panel>
         );
     }
 
@@ -203,111 +228,125 @@ export function Verdict({ page }: { page: BackupsPage }) {
         const places = names(page.places.map((place) => place.name));
 
         return (
-            <section
-                aria-label="Where setup stands"
+            <Panel
+                aria-label={__('Where setup stands')}
                 data-test="backup-verdict"
-                className="border-danger space-y-3 rounded-md border border-l-4 p-4"
             >
-                <p className="flex items-start gap-2 font-medium">
-                    <Pause aria-hidden="true" className="mt-0.5 size-4" />
-                    <span>
-                        <span className="sr-only">Needs attention. </span>
-                        Backups are paused because this site was restored, until
-                        you say whether this server is now the site.
-                    </span>
-                </p>
-                <p className="text-ink-2 text-sm">
-                    The restored site’s places are the old site’s too, and two
-                    sites must never back up into one place.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                    <Form action={restored().url} method="post">
-                        <input type="hidden" name="answer" value="site" />
-                        <ConfirmAction
-                            title="Is this server now the site?"
-                            description={`Backups resume here, at ${places}. Make sure the old server no longer backs up into them: two sites must never back up into one place.`}
-                            confirmLabel="This server is now the site"
-                            confirmVariant="default"
-                        >
-                            <Button type="submit" data-test="restored-site">
-                                This server is now the site
-                            </Button>
-                        </ConfirmAction>
-                    </Form>
-                    <Form action={restored().url} method="post">
-                        <input type="hidden" name="answer" value="copy" />
-                        <ConfirmAction
-                            title="Is this a copy of the site?"
-                            description={`Teme removes ${places} from this site’s backup places. Their backups stay where they are, and you can set backups up for this copy afterwards.`}
-                            confirmLabel="Remove these backup places"
-                        >
-                            <Button
-                                type="submit"
-                                variant="outline"
-                                data-test="restored-copy"
+                <PanelBody className="text-body pt-5">
+                    <Notice tone="danger">
+                        <p className="font-semibold">
+                            <span className="sr-only">
+                                {__('Needs attention.')}{' '}
+                            </span>
+                            {__(
+                                'Backups are paused because this site was restored, until you say whether this server is now the site.',
+                            )}
+                        </p>
+
+                        <p>
+                            {__(
+                                'The restored site’s places are the old site’s too, and two sites must never back up into one place.',
+                            )}
+                        </p>
+                    </Notice>
+                    <div className="flex flex-wrap gap-2">
+                        <Form action={restored().url} method="post">
+                            <input type="hidden" name="answer" value="site" />
+                            <ConfirmAction
+                                title={__('Is this server now the site?')}
+                                description={__(
+                                    'Backups resume here, at :places. Make sure the old server no longer backs up into them: two sites must never back up into one place.',
+                                    { places },
+                                )}
+                                confirmLabel={__('This server is now the site')}
+                                confirmVariant="default"
                             >
-                                This is a copy: remove these backup places
-                            </Button>
-                        </ConfirmAction>
-                    </Form>
-                </div>
-            </section>
+                                <Button type="submit" data-test="restored-site">
+                                    {__('This server is now the site')}
+                                </Button>
+                            </ConfirmAction>
+                        </Form>
+                        <Form action={restored().url} method="post">
+                            <input type="hidden" name="answer" value="copy" />
+                            <ConfirmAction
+                                title={__('Is this a copy of the site?')}
+                                description={__(
+                                    'Teme removes :places from this site’s backup places. Their backups stay where they are, and you can set backups up for this copy afterwards.',
+                                    { places },
+                                )}
+                                confirmLabel={__('Remove these backup places')}
+                            >
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    data-test="restored-copy"
+                                >
+                                    {__(
+                                        'This is a copy: remove these backup places',
+                                    )}
+                                </Button>
+                            </ConfirmAction>
+                        </Form>
+                    </div>
+                </PanelBody>
+            </Panel>
         );
     }
 
     return (
-        <section
+        <Panel
             id={BACKUP_STATE_ID}
-            aria-label="The state of the backups"
+            aria-label={__('The state of the backups')}
             data-test="backup-verdict"
-            className={`border-line space-y-3 rounded-md border p-4 ${verdict ? `border-l-4 ${LEVELS[verdict.level].edge}` : ''}`}
         >
-            {verdict && <VerdictSentence verdict={verdict} />}
+            <PanelBody className="text-body justify-items-start pt-5">
+                {verdict && <VerdictSentence verdict={verdict} />}
 
-            {jobOpen ? (
-                <BackupJobLine job={backupJob} running={running} />
-            ) : (
-                running !== null && (
-                    <p className="flex items-center gap-2 text-sm font-medium">
-                        <Loader2
-                            aria-hidden="true"
-                            className="size-4 motion-safe:animate-spin"
-                        />
-                        {running}
-                    </p>
-                )
-            )}
-
-            {firstBackup !== null && <p className="text-sm">{firstBackup}</p>}
-
-            {newest !== null && <p className="text-sm">{newestLine(newest)}</p>}
-
-            {schedule !== null &&
-                (changing ? (
-                    <ScheduleForm
-                        schedule={schedule}
-                        onClose={() => setChanging(false)}
-                    />
+                {jobOpen ? (
+                    <BackupJobLine job={backupJob} running={running} />
                 ) : (
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <p className="text-sm">
-                            {schedule.next} {schedule.kept}
+                    running !== null && (
+                        <p className="flex items-center gap-2 font-medium">
+                            <Loader2
+                                aria-hidden="true"
+                                className="size-4 motion-safe:animate-spin"
+                            />
+                            {running}
                         </p>
-                        <Button
-                            ref={change}
-                            type="button"
-                            variant="outline"
-                            onClick={() => setChanging(true)}
-                            data-test="backup-schedule-change"
-                        >
-                            Change
-                            <span className="sr-only">
-                                {' '}
-                                when backups run and what’s kept
-                            </span>
-                        </Button>
-                    </div>
-                ))}
-        </section>
+                    )
+                )}
+
+                {firstBackup !== null && <p>{firstBackup}</p>}
+
+                {newest !== null && <p>{newestLine(newest)}</p>}
+
+                {schedule !== null &&
+                    (changing ? (
+                        <ScheduleForm
+                            schedule={schedule}
+                            onClose={() => setChanging(false)}
+                        />
+                    ) : (
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                            <p>
+                                {schedule.next} {schedule.kept}
+                            </p>
+                            <Button
+                                ref={change}
+                                type="button"
+                                variant="outline"
+                                onClick={() => setChanging(true)}
+                                data-test="backup-schedule-change"
+                            >
+                                {__('Change')}
+                                <span className="sr-only">
+                                    {' '}
+                                    {__('when backups run and what’s kept')}
+                                </span>
+                            </Button>
+                        </div>
+                    ))}
+            </PanelBody>
+        </Panel>
     );
 }

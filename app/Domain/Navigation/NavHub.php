@@ -24,7 +24,7 @@ interface NavHub
      * address, or a plugin's outside one marked external (I-3353). The
      * palette lists them as "{hub} › {page}" (I-220).
      *
-     * @return list<array{key: string, label: string, icon: string, description: string, href: string, external?: bool}>
+     * @return list<array{key: string, label: string, icon: string, description: string, href: string, external?: bool, plugin?: string}>
      */
     public function pagesFor(User $user): array;
 }

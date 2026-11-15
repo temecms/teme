@@ -147,6 +147,7 @@ final readonly class AdminNavigation
                     'href' => $screen['href'],
                     // A plugin's link to another site, which the palette opens in a new tab (I-3353).
                     ...(($screen['external'] ?? false) ? ['external' => true] : []),
+                    ...(isset($screen['plugin']) ? ['plugin' => $screen['plugin']] : []),
                 ], $screens),
             ];
         }

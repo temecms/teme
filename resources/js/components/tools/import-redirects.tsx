@@ -1,6 +1,5 @@
 import { Form } from '@inertiajs/react';
 import ImportRedirectsController from '@/actions/App/Http/Admin/Tools/ImportRedirectsController';
-import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -11,8 +10,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { __, __n } from '@/lib/i18n';
 import type { ImportReport } from '@/types';
 
 const SAMPLE = `from,to,status,note
@@ -23,13 +24,18 @@ const SAMPLE = `from,to,status,note
 function importTitle(report: ImportReport): string {
     const added =
         report.added === 0
-            ? 'No redirect'
-            : report.added === 1
-              ? '1 redirect'
-              : `${report.added.toLocaleString()} redirects`;
+            ? __('No redirect')
+            : __n(':count redirect|:count redirects', report.added, {
+                  count: report.added.toLocaleString(),
+              });
     const left = report.refused.length;
 
-    return `${added} imported, ${left === 1 ? '1 line' : `${left.toLocaleString()} lines`} left out`;
+    return __(':added imported, :lines left out', {
+        added,
+        lines: __n(':count line|:count lines', left, {
+            count: left.toLocaleString(),
+        }),
+    });
 }
 
 /**
@@ -47,19 +53,23 @@ export function ImportRedirects({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Import redirects from a CSV file</DialogTitle>
+                    <DialogTitle>
+                        {__('Import redirects from a CSV file')}
+                    </DialogTitle>
                     <DialogDescription>
-                        One redirect a line: from, to, status, and a note if you
-                        like. To is a path on this site or a full address, and
-                        stays empty for 410 and 451. A fifth column, on, says
-                        yes or no, as an export writes it; without it, a
-                        redirect is on.
+                        {__(
+                            'One redirect a line: from, to, status, and a note if you like. To is a path on this site or a full address, and stays empty for 410 and 451. A fifth column, on, says yes or no, as an export writes it; without it, a redirect is on.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
-                <pre className="bg-surface-2 overflow-x-auto rounded-md p-3 font-mono text-xs">
-                    {SAMPLE}
-                </pre>
+                <ScrollArea
+                    axis="x"
+                    label={__('Example lines')}
+                    className="bg-surface-2 rounded-md"
+                >
+                    <pre className="text-small p-3 font-mono">{SAMPLE}</pre>
+                </ScrollArea>
 
                 <Form
                     {...ImportRedirectsController.form()}
@@ -68,33 +78,26 @@ export function ImportRedirects({
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="redirects-file">CSV file</Label>
+                            <Field
+                                htmlFor="redirects-file"
+                                label={__('CSV file')}
+                                help={__(
+                                    'Each line is checked as one added here would be. Lines that fail are left out, and you’re told why.',
+                                )}
+                                error={errors.file ?? errors.csv}
+                            >
                                 <Input
                                     id="redirects-file"
                                     name="file"
                                     type="file"
                                     accept=".csv,text/csv"
-                                    aria-describedby="redirects-file-hint redirects-file-error"
                                 />
-                                <p
-                                    id="redirects-file-hint"
-                                    className="text-ink-2 text-xs"
-                                >
-                                    Each line is checked as one added here would
-                                    be. Lines that fail are left out, and you’re
-                                    told why.
-                                </p>
-                                <InputError
-                                    id="redirects-file-error"
-                                    message={errors.file ?? errors.csv}
-                                />
-                            </div>
+                            </Field>
 
                             <DialogFooter>
                                 <DialogClose asChild>
                                     <Button type="button" variant="outline">
-                                        Cancel
+                                        {__('Cancel')}
                                     </Button>
                                 </DialogClose>
                                 <Button
@@ -102,7 +105,7 @@ export function ImportRedirects({
                                     disabled={processing}
                                     data-test="redirects-import-submit"
                                 >
-                                    Import redirects
+                                    {__('Import redirects')}
                                 </Button>
                             </DialogFooter>
                         </>
@@ -132,20 +135,23 @@ export function ImportReportDialog({
                         {report === null ? '' : importTitle(report)}
                     </DialogTitle>
                     <DialogDescription>
-                        These lines weren’t imported. Fix them in the file, then
-                        import those lines again.
+                        {__(
+                            'These lines weren’t imported. Fix them in the file, then import those lines again.',
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
-                <ul className="max-h-80 list-disc space-y-1 overflow-y-auto pl-5 text-sm">
-                    {report?.refused.map((refused) => (
-                        <li key={refused.line}>{refused.reason}</li>
-                    ))}
-                </ul>
+                <ScrollArea className="max-h-80" label={__('Lines left out')}>
+                    <ul className="text-body grid list-disc gap-1 ps-5">
+                        {report?.refused.map((refused) => (
+                            <li key={refused.line}>{refused.reason}</li>
+                        ))}
+                    </ul>
+                </ScrollArea>
 
                 <DialogFooter>
                     <Button type="button" onClick={onClose}>
-                        Done
+                        {__('Done')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

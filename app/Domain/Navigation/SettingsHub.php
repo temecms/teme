@@ -25,9 +25,10 @@ final readonly class SettingsHub implements NavHub
 
     /**
      * The Settings pages this person may open, in the Settings menu's
-     * order, each drawn with the Settings icon. A page has no line of its own.
+     * order, each drawn with the Settings icon, a plugin's page with the
+     * plugin's label. A page has no line of its own.
      *
-     * @return list<array{key: string, label: string, icon: string, description: string, href: string}>
+     * @return list<array{key: string, label: string, icon: string, description: string, href: string, plugin?: string}>
      */
     public function pagesFor(User $user): array
     {
@@ -37,6 +38,7 @@ final readonly class SettingsHub implements NavHub
             'icon' => 'settings',
             'description' => '',
             'href' => $page['href'],
+            ...(str_starts_with($page['key'], 'plugin.') ? ['plugin' => $page['label']] : []),
         ], $this->settings->forUser($user->getKey()));
     }
 }
