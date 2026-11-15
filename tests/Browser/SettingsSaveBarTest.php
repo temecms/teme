@@ -133,6 +133,9 @@ it('puts a typed base back on Discard on Addresses, and a later Save leaves it a
 
     $page->click('[data-test="save-bar-discard"]');
     cmWaitUntil($page, 'document.querySelector("#base-tag").value === "tag" && document.querySelector(\'[data-test="save-bar"]\').hidden');
+    // Discard draws the form afresh, and it takes its starting point a frame later (useSettingsDirty):
+    // typing before then becomes the starting point, so nothing looks changed (#299).
+    $page->script('() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(true))))');
 
     $page->type('#author-base', 'writer');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
@@ -155,6 +158,8 @@ it('puts a typed separator back on Discard on Search and social, and a later Sav
 
     $page->click('[data-test="save-bar-discard"]');
     cmWaitUntil($page, 'document.querySelector("#field-title_separator").value === '.json_encode($shown).' && document.querySelector(\'[data-test="save-bar"]\').hidden');
+    // As on Addresses: the fresh form takes its starting point a frame later (#299).
+    $page->script('() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(() => done(true))))');
 
     $page->click('#field-discourage_search_engines');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === false');
