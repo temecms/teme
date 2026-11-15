@@ -83,8 +83,8 @@ class AppServiceProvider extends ServiceProvider
             $query = [];
 
             foreach ($request->query->all() as $name => $value) {
-                if (is_string($name) && is_string($value)) {
-                    $query[$name] = $value;
+                if (is_scalar($value)) {
+                    $query[(string) $name] = (string) $value;
                 }
             }
 
