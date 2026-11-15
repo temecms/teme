@@ -119,7 +119,7 @@ it('queues a scheduled run as the administrator who enabled the plugin, without 
         return true;
     });
 
-    expect(TrackedJob::query()->where('owner', 'jobs')->sole()->actor_id)->toBe((string) $this->admin->id);
+    expect(TrackedJob::query()->where('owner', 'jobs')->sole()->started_by)->toBe($this->admin->id);
 });
 
 it('queues nothing when jobs isn’t granted', function (): void {
