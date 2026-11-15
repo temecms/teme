@@ -164,6 +164,53 @@ it('passes axe on a finished import’s report, every target 24 pixels or more, 
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
+it('saves a suggested other address of this site, and passes axe at 1280 and 375 in light and dark', function (string $scheme): void {
+    lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
+    $this->fake->items('analyze', tiReport([
+        'content' => [
+            'html' => [
+                'links' => [
+                    'external_hosts' => [
+                        'stage.old.example' => 143,
+                        'other.org' => 50,
+                    ],
+                ],
+            ],
+        ],
+    ]));
+    $source = importSource($this->admin);
+
+    $page = cmSignIn($this->admin)->navigate("/admin/tools/import/{$source->id}");
+    tiWaitUntil($page, tiPresent('[data-test="import-other-hosts"]'));
+    $page->resize(1280, 800)
+        ->assertSee('Other addresses of this site')
+        ->assertSee('stage.old.example')
+        ->assertNoAccessibilityIssues(3);
+    $wide = cmSmallTargets($page);
+
+    $page->resize(375, 800)->assertNoAccessibilityIssues(3);
+    $narrow = cmSmallTargets($page);
+
+    $page->resize(1280, 800)
+        ->click('[data-test="import-other-host-stage.old.example"]')
+        ->click('[data-test="import-other-hosts-save"]');
+
+    tiWaitUntil($page, tiPresent('#password'));
+    $page->type('#password', 'password')
+        ->click('[data-test="confirm-password-button"]');
+
+    // After the password, back on the site page with the tick kept; save again.
+    tiWaitUntil($page, tiPresent('[data-test="import-other-hosts-save"]'));
+    $page->click('[data-test="import-other-hosts-save"]');
+
+    tiWaitUntil($page, tiPresent('[data-test="import-other-hosts-listed"]'));
+    $page->assertSeeIn('[data-test="import-other-hosts-listed"]', 'stage.old.example');
+
+    expect(ImportSource::query()->findOrFail($source->id)->other_hosts)->toBe(['stage.old.example'])
+        ->and($wide['small'])->toBe([])
+        ->and($narrow['small'])->toBe([]);
+})->with(['light', 'dark']);
+
 it('forgets a site after asking, and says to revoke its password in WordPress (I-1708)', function (): void {
     ['source' => $source] = ImportRecords::finishedImport($this->admin->id);
 

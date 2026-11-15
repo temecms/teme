@@ -1,0 +1,34 @@
+{
+    "blocks": [
+        {
+            "blockName": "canvas/section",
+            "attrs": {},
+            "innerBlocks": [
+                {
+                    "blockName": "core/paragraph",
+                    "attrs": {},
+                    "innerBlocks": [],
+                    "innerHTML": "<p>First canvas</p>",
+                    "innerContent": ["<p>First canvas</p>"]
+                }
+            ],
+            "innerHTML": "<div class=\"cnvs-block-section\"></div>",
+            "innerContent": ["<div class=\"cnvs-block-section\">", null, "</div>"]
+        },
+        {
+            "blockName": "canvas/posts",
+            "attrs": {},
+            "innerBlocks": [
+                {
+                    "blockName": "core/paragraph",
+                    "attrs": {},
+                    "innerBlocks": [],
+                    "innerHTML": "<p>Second canvas</p>",
+                    "innerContent": ["<p>Second canvas</p>"]
+                }
+            ],
+            "innerHTML": "<div class=\"cnvs-block-posts\"></div>",
+            "innerContent": ["<div class=\"cnvs-block-posts\">", null, "</div>"]
+        }
+    ]
+}

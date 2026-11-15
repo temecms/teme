@@ -79,4 +79,64 @@ Fill Records; `composer check` once; the import browser tests you touched after 
 
 ## Records
 
-(The builder fills this: commits; each test seen red; decisions as B-?? (draft) with options weighed; the gate's totals; changelog lines.)
+### Commits (`import/v1-fixes`)
+
+1. `f28e0e6` test(import): lasting proof a staging host is not the home today
+2. `ee6e998` feat(import): SetImportSourceHosts and other_hosts column
+3. `8948de0` feat(import): convert links and images on other hosts
+4. `c280ccd` feat(import): SuggestedHosts and other addresses screen
+5. `e0014dc` feat(import): recognize tagDiv tdm_ and tdc_ shortcode families
+6. `fd2bc2b` test(import): real-markup fixtures prove FAQ, TOC, Canvas, shortcodes
+7. `9b9b7ec` fix(import): clear PHPStan findings on other_hosts wiring
+8. `6c00f58` fix(import): keep other hosts across password confirmation
+9. `743e676` style(import): format OtherHostsForm after elevation remember
+10. (this) `docs(plans): Import fixes's records`
+
+### Task 1 — what main did today (file:line at confirm)
+
+- `ConversionSite::pageOf` / `ownPath` only home + uploads: `ConversionSite.php` (now `pageOf` :143, `ownPath` :176; then host checks used `$this->host`)
+- `ConversionSite` made in `ContentSite.php:59`, `CommentsPhase.php:334`, `MenusPhase.php:174`
+- `StartImportRun::OPTIONS` only `pause_ms`: `StartImportRun.php:42`
+- `ShortcodePass::FAMILIES` was without `tdm_`/`tdc_`: now `ShortcodePass.php:21` includes them
+- Analysis `external_hosts`: `SiteAnalysis.php:159` (images); links path in the companion report `sections.content.html.links.external_hosts`
+
+### Each test seen red (first failure line)
+
+1. Lasting `pageOf` null proof — green as written (today’s behaviour); goes green with other hosts in Task 3
+2. `Target class [App\Domain\Import\Operations\SetImportSourceHosts] does not exist.`
+3. `Unknown named parameter $otherHosts`
+4. `Failed asserting that two arrays are identical.` (`SuggestedHostsTest` expected suggestions, got `[]`)
+5. `Failed asserting that two arrays are identical.` (tdm_/tdc_ left as bracketed text)
+6. `file_get_contents(.../real-markup/yoast-faq.json): Failed to open stream: No such file or directory`
+7. Gate — PHPStan then formatting then full suite (see below)
+
+### B-?? (draft)
+
+- **B-01 (draft):** migration dated `2027_06_22_100000` so it runs after `create_import_sources` (`2026_11_21_…`). Weighed vs a same-day stamp that could sort before the create.
+- **B-02 (draft):** SuggestedHosts / browser fixtures use `stage.old.example` (FakeCompanion home is `old.example`), not the plan’s illustrative `example.com`. Settled meaning kept: subdomain of home.
+- **B-03 (draft):** `SuggestedHosts::for` reads cache only; `ImportAnalysis::read` calls `remember()`. Weighed vs re-calling analyze on the show page (would hit the old site twice / consume scripted failures).
+- **B-04 (draft):** remember submitted hosts across elevation and click Save again after password confirm — same pattern as starting a run. Weighed vs in-place password (header) for this form.
+
+### Architecture baselines
+
+- admin-words: **876 → 876** (unchanged)
+- design-system: **222 → 222** (unchanged)
+- No baseline lines or pinned counts raised.
+
+### Gate (`composer check`)
+
+- Pint: passed
+- PHPStan: OK (0 errors)
+- types / `vp check`: passed (after format fix)
+- Tests: **10621 passed**, **2 skipped** (54842 assertions); Architecture slice also **139 passed** in the gate log
+- Browser: other-hosts axe/save — **2 passed** (light/dark) after `npm run build`
+
+### Changelog lines (for the maintainer; CHANGELOG.md not edited)
+
+- Import: other old addresses of a site (`other_hosts`) convert links and images like the home host; set via elevated Operation; suggestions from analysis subdomains on the site’s import page.
+- Import: tagDiv `tdm_` and `tdc_` shortcode families unwrap like existing tagDiv rows.
+- Import: anonymized real-markup fixtures prove FAQ, TOC drop (no fidelity loss), Canvas flatten, WPBakery/tagDiv unwrap, registered app-store shortcode as Imported content, and `[State]` kept as text.
+
+### STOP
+
+None.

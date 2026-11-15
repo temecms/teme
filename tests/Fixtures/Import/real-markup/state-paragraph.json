@@ -1,0 +1,11 @@
+{
+    "blocks": [
+        {
+            "blockName": "core/paragraph",
+            "attrs": {},
+            "innerBlocks": [],
+            "innerHTML": "<p>See [State] and [mg] here.</p>",
+            "innerContent": ["<p>See [State] and [mg] here.</p>"]
+        }
+    ]
+}
