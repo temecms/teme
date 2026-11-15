@@ -503,7 +503,8 @@ Commits:
 6. `cd4a344` `test(admin): assert Home never paints a drop edge across sections`
 7. `fddf4c5` `chore(deps): restore the Windows Rollup optional in the lockfile`
 8. `7549578` `fix(admin): polish Home's plugin section, hide label and failed save`
-9. (this) failed-save test wait for reload + Records
+9. `295732d` `test(admin): wait for Home's layout reload after a failed save`
+10. `12feeac` `docs(plans): Home follow-up C1-2 records`
 
 Tests seen red:
 - **1:** `HomeLayoutTest` "gives a plugin's panel Small when it declares no size" — got `medium` (constructor default) until registry resolves null → Small for non-core.
