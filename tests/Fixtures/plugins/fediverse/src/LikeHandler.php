@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Plugins\Fediverse;
 
+use Illuminate\Support\Facades\Auth;
 use Teme\Contracts\Fediverse\ActivityHandler;
 
 /**
- * Handles Likes, and asks for Follows too, which Teme keeps for itself.
+ * Handles Likes, noting whom it runs for, and asks for Follows too,
+ * which Teme keeps for itself.
  */
 final class LikeHandler implements ActivityHandler
 {
@@ -21,6 +23,6 @@ final class LikeHandler implements ActivityHandler
 
     public function handle(array $activity, string $actorUri): void
     {
-        self::$handled[] = ($activity['type'] ?? '?').' from '.$actorUri;
+        self::$handled[] = ($activity['type'] ?? '?').' from '.$actorUri.' for '.(Auth::id() ?? 'nobody');
     }
 }

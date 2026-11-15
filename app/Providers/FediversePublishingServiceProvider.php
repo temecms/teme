@@ -6,7 +6,9 @@ namespace App\Providers;
 
 use App\Domain\Fediverse\Publishing\AlternateLinks;
 use App\Domain\Fediverse\Publishing\ContentActivities;
+use App\Domain\Fediverse\Sockets\ActivityHandlerJobKind;
 use App\Domain\Hooks\HookDispatcher;
+use App\Domain\Jobs\JobKinds;
 use App\Domain\Site\Document\DocumentMeta;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\ServiceProvider;
@@ -20,6 +22,7 @@ final class FediversePublishingServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->tag([AlternateLinks::class], DocumentMeta::CONTRIBUTORS);
+        $this->app->tag([ActivityHandlerJobKind::class], JobKinds::TAG);
     }
 
     public function boot(): void

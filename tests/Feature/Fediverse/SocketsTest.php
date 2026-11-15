@@ -14,11 +14,16 @@ use App\Domain\Fediverse\Publishing\DeliveryPost;
 use App\Domain\Fediverse\Publishing\Jobs\DeliverActivity;
 use App\Domain\Fediverse\Queries\FediverseDocuments;
 use App\Domain\Fediverse\Remote\RemoteFetcher;
+use App\Domain\Fediverse\Sockets\ActivityHandlerJobKind;
+use App\Domain\Fediverse\Sockets\Jobs\RunActivityHandler;
 use App\Domain\Fediverse\Sockets\Operations\Input\SendPluginActivityInput;
 use App\Domain\Fediverse\Sockets\Operations\SendPluginActivity;
 use App\Domain\Hooks\HookDispatcher;
+use App\Domain\Jobs\JobState;
+use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\People\Models\Person;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
@@ -30,6 +35,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Teme\Contracts\Content\ItemRef;
@@ -100,15 +106,24 @@ function fsockRun(array $activity, string $from): void
     (new ProcessInboxActivity($activity, $from.'#main-key', $from))->handle(app(FediverseDocuments::class), app(RemoteFetcher::class));
 }
 
-it('tells a plugin granted fediverse.read of a Like, and runs its handler for Like but never for Follow', function (): void {
+it('tells a plugin granted fediverse.read of a Like, and queues its handler for Like, never for Follow, as the administrator who enabled it', function (): void {
     fsockPlugin();
     $like = ['id' => $this->alice->uri.'#likes/1', 'type' => 'Like', 'actor' => $this->alice->uri, 'object' => url('/ap/objects/x')];
 
     fsockRun($like, $this->alice->uri);
     fsockRun(Inbox::follow($this->blog->uri, $this->alice->uri, $this->alice->uri.'#follows/2'), $this->alice->uri);
 
+    $tracked = TrackedJob::query()->sole();
+    $handledInline = LikeHandler::$handled;
+    Queue::assertPushed(RunActivityHandler::class, 1);
+    Queue::pushed(RunActivityHandler::class)->first()->handle();
+
     expect(FediversePlugin::$heard)->toBe(['Like from '.$this->alice->uri, 'Follow from '.$this->alice->uri])
-        ->and(LikeHandler::$handled)->toBe(['Like from '.$this->alice->uri])
+        ->and($handledInline)->toBe([])
+        ->and([$tracked->kind, $tracked->owner, $tracked->started_by])->toBe([ActivityHandlerJobKind::KEY, 'fediverse', $this->admin->id])
+        ->and(LikeHandler::$handled)->toBe(['Like from '.$this->alice->uri.' for '.$this->admin->id])
+        ->and($tracked->refresh()->state)->toBe(JobState::Finished)
+        ->and(Auth::id())->toBeNull()
         ->and(Follower::query()->count())->toBe(1);
 });
 
@@ -246,4 +261,15 @@ it('sends only for a plugin granted fediverse.send, for a person allowed to, wri
     }
 
     expect([Activity::query()->count(), Delivery::query()->count()])->toBe([0, 0]);
+});
+
+it('fails a queued handler’s job, running nothing, once its plugin is off', function (): void {
+    fsockPlugin();
+    fsockRun(['id' => $this->alice->uri.'#likes/1', 'type' => 'Like', 'actor' => $this->alice->uri, 'object' => url('/ap/objects/x')], $this->alice->uri);
+    PluginRecord::query()->where('name', 'tests/fediverse')->update(['state' => PluginRecord::DISABLED]);
+
+    Queue::pushed(RunActivityHandler::class)->first()->handle();
+
+    expect(LikeHandler::$handled)->toBe([])
+        ->and(TrackedJob::query()->sole()->state)->toBe(JobState::Failed);
 });
