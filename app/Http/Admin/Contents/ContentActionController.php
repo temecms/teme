@@ -33,7 +33,8 @@ use Teme\Contracts\Operations\OperationInput;
 /**
  * One item's actions from its list row — quick edit, trash, restore,
  * publish, revert to draft, delete permanently — each handed to its Operation.
- * After trashing a published item, it offers a redirect for its address (I-856).
+ * After trashing a published item, it offers a redirect for its address (I-856);
+ * after publishing or trashing otherwise, an Undo by the same route (I-3398).
  */
 final class ContentActionController extends Controller
 {
@@ -100,11 +101,20 @@ final class ContentActionController extends Controller
             $wasPublished = ($pointers->forIds([$content])[$content]['status'] ?? null) === 'published';
             app(TrashContent::class)->execute($input);
             $offer = $wasPublished && $request->user()?->can('redirects.manage') === true ? $trashed->of($content) : null;
+            $toast = self::trashed($offer);
 
-            Inertia::flash('toast', self::trashed($offer));
+            // The toast takes one action: a redirect offer keeps its link, and Restore in the trash is the way back.
+            if ($offer === null && ! $request->boolean('undo')) {
+                $toast['undo'] = self::undo($type, $content, 'restore');
+            }
+
+            Inertia::flash('toast', $toast);
 
             return back(fallback: route('content.index', ['type' => $type]));
         }
+
+        // Undo reverts to a draft, so it is offered only when the item was one: a scheduled or private item would lose its earlier state.
+        $wasDraft = ($pointers->forIds([$content])[$content]['status'] ?? null) === 'draft';
 
         $message = match ($action) {
             'unpublish' => $this->run(app(UnpublishContent::class), $input, __('Reverted to a draft.')),
@@ -120,7 +130,28 @@ final class ContentActionController extends Controller
             default => abort(404),
         };
 
+        if ($action === 'publish' && $wasDraft && ! $request->boolean('undo')) {
+            Inertia::flash('toast', ['type' => 'success', 'message' => $message, 'undo' => self::undo($type, $content, 'unpublish')]);
+
+            return back(fallback: route('content.index', ['type' => $type]));
+        }
+
         return $this->done($type, $message);
+    }
+
+    /**
+     * A toast's Undo: the same route with the opposite action, marked as an
+     * Undo so its own toast offers none (I-3398). The operation behind it
+     * decides as it always does.
+     *
+     * @return array{href: string, data: array{undo: true}}
+     */
+    private static function undo(string $type, string $content, string $action): array
+    {
+        return [
+            'href' => route('content.action', ['type' => $type, 'content' => $content, 'action' => $action], false),
+            'data' => ['undo' => true],
+        ];
     }
 
     public function destroy(Request $request, string $type, string $content, DeleteContentPermanently $delete, ContentPointers $pointers): RedirectResponse
@@ -166,7 +197,7 @@ final class ContentActionController extends Controller
      *
      * @param  array{address: string, redirectId: string|null}|null  $offer
      *
-     * @return array{type: string, message: string, link?: array{label: string, href: string}}
+     * @return array{type: string, message: string, link?: array{label: string, href: string}, undo?: array{href: string, data: array{undo: true}}}
      */
     private static function trashed(?array $offer): array
     {

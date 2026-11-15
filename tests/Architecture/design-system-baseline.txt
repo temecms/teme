@@ -53,8 +53,6 @@ R1	js/components/fields/hours-setting.tsx	sm:grid-cols-[7rem_8rem_8rem_auto_1fr]
 R1	js/components/heading.tsx	tracking-[-0.015em]
 R1	js/components/jobs/job-progress.tsx	min-w-[180px]
 R1	js/components/list/bulk-edit-dialog.tsx	max-h-[90vh]
-R1	js/components/list/data-table.tsx	leading-[18px]
-R1	js/components/list/data-table.tsx	py-[9px]
 R1	js/components/list/filter-button.tsx	[data-slot="popover-content"]
 R1	js/components/list/filter-button.tsx	max-h-[85vh]
 R1	js/components/list/page-header.tsx	max-w-[640px]
@@ -72,19 +70,14 @@ R1	js/components/ui/sidebar.tsx	peer-data-[variant=inset]:min-h-[calc(100svh-(--
 R1	js/pages/content/compare.tsx	h-[34px]
 R1	js/pages/content/compare.tsx	h-[34px]
 R1	js/pages/content/edit.tsx	min-h-[34px]
-R1	js/pages/content/index.tsx	sm:max-w-[480px]
-R1	js/pages/content/index.tsx	w-[72px]
 R1	js/pages/settings/search-and-social.tsx	md:grid-cols-[170px_minmax(0,1fr)]
 R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
 R1	js/pages/settings/site-code.tsx	[overflow-wrap:anywhere]
 R1	js/pages/settings/site-code.tsx	sm:max-w-[560px]
-R1	js/pages/terms/index.tsx	lg:grid-cols-[300px_minmax(0,1fr)]
-R1	js/pages/terms/index.tsx	sm:max-w-[480px]
 R10	js/components/app-content.tsx	outline-none
 R10	js/components/editor/editor-shell.tsx	outline-none
 R10	js/components/editor/rail/search-panel.tsx	outline-none
 R10	js/components/editor/use-teme-editor.ts	outline-none
-R10	js/components/list/date-filter.tsx	outline-none
 R10	js/components/list/filter-button.tsx	outline-none
 R10	js/components/palette/command-palette.tsx	outline-none
 R10	js/components/ui/dropdown-menu.tsx	outline-hidden
@@ -362,7 +355,6 @@ R2	js/components/heading.tsx	text-sm
 R2	js/components/heading.tsx	text-xl
 R2	js/components/input-error.tsx	text-sm
 R2	js/components/jobs/job-progress.tsx	text-xs
-R2	js/components/list/bulk-bar.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-sm
@@ -370,21 +362,10 @@ R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/bulk-edit-dialog.tsx	text-xs
 R2	js/components/list/confirm-items.tsx	text-[13px]
-R2	js/components/list/data-table.tsx	text-[11px]
-R2	js/components/list/data-table.tsx	text-[13px]
-R2	js/components/list/date-filter.tsx	text-[11px]
-R2	js/components/list/date-filter.tsx	text-[11px]
-R2	js/components/list/date-filter.tsx	text-[13px]
-R2	js/components/list/date-filter.tsx	text-[13px]
-R2	js/components/list/date-filter.tsx	text-xs
-R2	js/components/list/date-filter.tsx	text-xs
 R2	js/components/list/filter-button.tsx	text-[13px]
 R2	js/components/list/page-header.tsx	text-[13px]
 R2	js/components/list/page-header.tsx	text-[22px]
 R2	js/components/list/row-links.tsx	text-xs
-R2	js/components/list/screen-options.tsx	text-sm
-R2	js/components/list/screen-options.tsx	text-xs
-R2	js/components/list/screen-options.tsx	text-xs
 R2	js/components/list/tab-strip.tsx	text-[11px]
 R2	js/components/list/tab-strip.tsx	text-[13px]
 R2	js/components/personalise-menu-dialog.tsx	text-[11px]
@@ -394,28 +375,11 @@ R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-[13px]
 R2	js/components/term-tree-picker.tsx	text-xs
 R2	js/components/user-menu-content.tsx	text-sm
-R2	js/pages/comments/index.tsx	text-[11px]
-R2	js/pages/comments/index.tsx	text-[12px]
-R2	js/pages/comments/index.tsx	text-[12px]
 R2	js/pages/content/compare.tsx	text-[13px]
 R2	js/pages/content/compare.tsx	text-[13px]
 R2	js/pages/content/edit.tsx	text-[28px]
 R2	js/pages/content/edit.tsx	text-sm
 R2	js/pages/content/edit.tsx	text-xs
-R2	js/pages/content/index.tsx	text-[13px]
-R2	js/pages/content/index.tsx	text-[13px]
-R2	js/pages/content/index.tsx	text-[13px]
-R2	js/pages/content/index.tsx	text-[13px]
-R2	js/pages/content/index.tsx	text-[13px]
-R2	js/pages/content/index.tsx	text-sm
-R2	js/pages/content/index.tsx	text-sm
-R2	js/pages/content/index.tsx	text-xs
-R2	js/pages/content/index.tsx	text-xs
-R2	js/pages/content/index.tsx	text-xs
-R2	js/pages/content/index.tsx	text-xs
-R2	js/pages/content/index.tsx	text-xs
-R2	js/pages/content/index.tsx	text-xs
-R2	js/pages/content/index.tsx	text-xs
 R2	js/pages/dashboard.tsx	text-[13px]
 R2	js/pages/dashboard.tsx	text-sm
 R2	js/pages/settings/site-code.tsx	text-sm
@@ -434,11 +398,6 @@ R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/terms/index.tsx	text-[13px]
-R2	js/pages/terms/index.tsx	text-xs
-R2	js/pages/terms/index.tsx	text-xs
-R2	js/pages/terms/index.tsx	text-xs
-R2	js/pages/terms/index.tsx	text-xs
 R2	js/pages/tools/jobs.tsx	text-[13px]
 R2	js/pages/tools/jobs.tsx	text-xs
 R3	js/components/comments/comment-details.tsx	mt-0.5
@@ -521,7 +480,6 @@ R3	js/components/heading.tsx	mb-0.5
 R3	js/components/heading.tsx	space-y-0.5
 R3	js/components/list/bulk-edit-dialog.tsx	p-0.5
 R3	js/components/list/bulk-edit-dialog.tsx	py-0.5
-R3	js/components/list/date-filter.tsx	my-1.5
 R3	js/components/list/row-links.tsx	mt-0.5
 R3	js/components/list/tab-strip.tsx	gap-1.5
 R3	js/components/list/tab-strip.tsx	px-0.5
@@ -534,16 +492,7 @@ R3	js/components/user-menu-content.tsx	py-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
 R3	js/pages/content/compare.tsx	gap-1.5
-R3	js/pages/content/index.tsx	mt-0.5
-R3	js/pages/content/index.tsx	pr-0.5
-R3	js/pages/content/index.tsx	pr-0.5
-R3	js/pages/content/index.tsx	py-0.5
-R3	js/pages/content/index.tsx	py-0.5
 R3	js/pages/dashboard.tsx	mt-0.5
-R3	js/pages/terms/index.tsx	gap-1.5
-R3	js/pages/terms/index.tsx	gap-1.5
-R3	js/pages/terms/index.tsx	gap-1.5
-R3	js/pages/terms/index.tsx	gap-1.5
 R5	js/components/ai-settings/service-panel.tsx	<details>
 R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
@@ -585,16 +534,13 @@ R5	js/components/fields/field-control.tsx	<textarea>
 R5	js/components/fields/home-page-setting.tsx	<button type="button">
 R5	js/components/fields/media-setting.tsx	<button type="button">
 R5	js/components/list/bulk-edit-dialog.tsx	<button type="button">
-R5	js/components/list/data-table.tsx	<button type="button">
 R5	js/components/list/data-table.tsx	<table>
-R5	js/components/list/date-filter.tsx	<button type="button">
 R5	js/components/list/row-actions.tsx	<button type="button">
 R5	js/components/list/row-actions.tsx	<button type="submit">
 R5	js/components/list/row-links.tsx	<button type="button">
 R5	js/components/list/row-links.tsx	<button type="submit">
 R5	js/components/palette/command-palette.tsx	<input>
 R5	js/components/seo/who-publishes.tsx	<select>
-R5	js/pages/comments/index.tsx	<button type="button">
 R5	js/pages/content/edit.tsx	<textarea>
 R5	js/pages/settings/addresses.tsx	<input type="radio">
 R5	js/pages/settings/addresses.tsx	<input type="radio">
@@ -604,7 +550,6 @@ R5	js/pages/settings/site-code.tsx	<details>
 R5	js/pages/settings/site-code.tsx	<select>
 R5	js/pages/settings/site-code.tsx	<textarea>
 R5	js/pages/settings/site-code.tsx	<textarea>
-R5	js/pages/terms/index.tsx	<textarea>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
@@ -625,39 +570,19 @@ R6	js/components/editor/toolbar.tsx	z-10
 R6	js/components/fields/settings-save-bar.tsx	shadow-sm
 R6	js/components/fields/settings-save-bar.tsx	z-10
 R6	js/components/heading.tsx	tracking-tight
-R6	js/components/list/bulk-bar.tsx	rounded
 R6	js/components/list/bulk-edit-dialog.tsx	rounded
 R6	js/components/list/confirm-items.tsx	rounded
-R6	js/components/list/data-table.tsx	leading-5
 R6	js/components/ui/sidebar.tsx	z-20
 R6	js/components/ui/toggle-group.tsx	rounded-none
-R6	js/pages/content/index.tsx	rounded
-R7	js/pages/comments/index.tsx	frame:p-6
-R7	js/pages/comments/index.tsx	root:CommentDetailsDrawer
-R7	js/pages/comments/index.tsx	root:DeleteComments
-R7	js/pages/comments/index.tsx	root:div
-R7	js/pages/comments/index.tsx	root:QuickEdit
-R7	js/pages/comments/off.tsx	frame:p-6
-R7	js/pages/comments/off.tsx	root:div
-R7	js/pages/comments/refused.tsx	frame:p-6
-R7	js/pages/comments/refused.tsx	root:div
 R7	js/pages/content/compare.tsx	frame:px-4
 R7	js/pages/content/compare.tsx	frame:py-6
 R7	js/pages/content/compare.tsx	frame:sm:px-6
 R7	js/pages/content/compare.tsx	root:div
 R7	js/pages/content/edit.tsx	root:RailProvider
-R7	js/pages/content/index.tsx	frame:p-6
-R7	js/pages/content/index.tsx	frame:sm:max-w-[480px]
-R7	js/pages/content/index.tsx	root:div
-R7	js/pages/content/index.tsx	root:Sheet
 R7	js/pages/dashboard.tsx	frame:p-6
 R7	js/pages/dashboard.tsx	root:div
 R7	js/pages/settings/site-code.tsx	frame:sm:max-w-[560px]
 R7	js/pages/settings/site-code.tsx	root:Sheet
-R7	js/pages/terms/index.tsx	frame:p-6
-R7	js/pages/terms/index.tsx	frame:sm:max-w-[480px]
-R7	js/pages/terms/index.tsx	root:div
-R7	js/pages/terms/index.tsx	root:Sheet
 R8	css/app.css	.teme-prose pre { overflow-x: auto }
 R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
@@ -672,16 +597,12 @@ R8	js/components/header/header-panel.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/confirm-items.tsx	overflow-y-auto
-R8	js/components/list/data-table.tsx	overflow-x-auto
-R8	js/components/list/date-filter.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/list/filter-button.tsx	overflow-y-auto
 R8	js/components/personalise-menu-dialog.tsx	overflow-y-auto
 R8	js/components/term-tree-picker.tsx	overflow-y-auto
 R8	js/components/ui/popover.tsx	overflow-y-auto
 R8	js/components/ui/sidebar.tsx	overflow-auto
-R8	js/pages/content/index.tsx	overflow-x-auto
-R8	js/pages/content/index.tsx	overflow-y-auto
 R8	js/pages/settings/site-code.tsx	overflow-x-auto
 R8	js/pages/settings/site-code.tsx	overflow-y-auto
 R9	js/components/editor/cards/image-card.tsx	classes: bg-warn-soft px-1.5 py-0.5
@@ -689,5 +610,4 @@ R9	js/components/editor/editor-rail.tsx	classes: bg-warn-soft px-2 py-1.5
 R9	js/components/editor/fields/media-control.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/presence-line.tsx	classes: bg-warn-soft px-1.5 py-0.5
 R9	js/components/editor/rail/search-previews.tsx	role="note"
-R9	js/pages/content/index.tsx	classes: bg-warn-soft px-3 py-2
 R9	js/pages/dashboard.tsx	role="note"

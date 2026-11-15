@@ -8,8 +8,8 @@ use App\Domain\Comments\CommentStatus;
 
 /**
  * What one page of the Comments screen's list asks for (1.8c): who is
- * looking, the view, the item it's narrowed to, the search, a cursor either
- * way, and the person's page size.
+ * looking, the view, the item it's narrowed to, the search, a page number or a
+ * cursor either way, and the person's page size.
  */
 final readonly class CommentListRequest
 {
@@ -21,5 +21,7 @@ final readonly class CommentListRequest
         public ?string $after = null,
         public ?string $before = null,
         public int $perPage = 50,
+        /** The page asked for by number, 1 to ListPages::CAP; a cursor wins over it (I-3421). */
+        public int $page = 1,
     ) {}
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -44,7 +43,7 @@ it('gives every list screen exactly one h1', function (string $name, array $para
     'users' => ['users.index', [], 'users/index'],
 ]);
 
-it('shows each row\'s status after its title, not in a column of its own', function (): void {
+it('shows each row\'s status on a pill in its Status column, no longer after its title', function (): void {
     lifecycleDraft($this->admin, 'Drafted');
     $this->travel(1)->minutes();
     listsPublish(lifecycleDraft($this->admin, 'Published'), $this->admin);
@@ -57,9 +56,10 @@ it('shows each row\'s status after its title, not in a column of its own', funct
             ->where('rows.1.title', 'Drafted')
             ->where('rows.1.status', 'draft'));
 
-    // A source scan: the state follows the title (docs/architecture/admin-design.md).
-    expect(uiComponent('pages/content/index.tsx'))->not->toMatch("/id:\s*'status'/")
-        ->toContain('statusSuffix(row)');
+    // A source scan: the state is a pill in its own column (docs/proposals/content-lists.md).
+    expect(uiComponent('pages/content/index.tsx'))->toMatch("/id:\s*'status'/")
+        ->toContain('<StatusCell')
+        ->not->toContain('statusSuffix(row)');
 });
 
 it('offers a way back on every pager', function (string $name, array $parameters, string $component): void {
@@ -77,26 +77,18 @@ it('offers a way back on every pager', function (string $name, array $parameters
         ->get(route($name, [...$parameters, ...$query]))
         ->viewData('page')['props'];
 
-    DB::flushQueryLog();
-    DB::enableQueryLog();
-
     $first = $props();
-    $second = $props(['after' => $first['older']]);
-    $back = $props(['before' => $second['newer']]);
+    $second = $props(['page' => 2]);
+    $back = $props(['page' => $second['paging']['number'] - 1]);
 
-    $sql = implode("\n", array_column(DB::getQueryLog(), 'query'));
-
-    expect($first['newer'])->toBeNull()
-        ->and($first['older'])->not->toBeNull()
+    expect($first['paging'])->toMatchArray(['number' => 1, 'last' => 2])
         ->and($second['rows'])->toHaveCount(5)
-        ->and($second['newer'])->not->toBeNull()
+        ->and($second['paging'])->toMatchArray(['number' => 2, 'last' => 2])
         ->and(array_column($back['rows'], 'id'))->toBe(array_column($first['rows'], 'id'))
-        ->and($back['newer'])->toBeNull()
-        ->and($back['older'])->toBe($first['older'])
-        ->and($sql)->not->toMatch('/\boffset\b/i');
+        ->and($back['paging'])->toBe($first['paging']);
 
-    // A source scan: the page draws the shared Pager.
-    expect(uiComponent("pages/{$component}.tsx"))->toContain('<Pager');
+    // A source scan: the page draws the shared pager.
+    expect(uiComponent("pages/{$component}.tsx"))->toMatch('/<(?:NumberedPager|Pager)\b/');
 })->with([
     'posts' => ['content.index', ['type' => 'posts'], 'content/index'],
     'categories' => ['terms.index', ['taxonomy' => 'categories'], 'terms/index'],

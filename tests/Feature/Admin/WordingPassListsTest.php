@@ -38,7 +38,7 @@ it('puts Edit menus in the Menus panel’s header on Themes', function (): void 
 it('offers the way on as the header’s button when comments are switched off', function (): void {
     $source = ($this->flat)('pages/comments/off.tsx');
 
-    expect(($this->at)($source, 'action={'))->toBeLessThan(($this->at)($source, "'Switch comments on'"))
+    expect(($this->at)($source, 'actions={'))->toBeLessThan(($this->at)($source, "'Switch comments on'"))
         ->and($source)->toContain("'Go to Home'")
         ->toContain('asChild')
         ->not->toContain('<p>')
@@ -48,7 +48,7 @@ it('offers the way on as the header’s button when comments are switched off', 
 it('offers the comments a person looks after as the header’s button', function (): void {
     $source = ($this->flat)('pages/comments/refused.tsx');
 
-    expect(($this->at)($source, 'action={'))->toBeLessThan(($this->at)($source, '{back.label}'))
+    expect(($this->at)($source, 'actions={'))->toBeLessThan(($this->at)($source, '{back.label}'))
         ->and($source)->toContain('asChild')
         ->not->toContain('<p>');
 });
