@@ -97,10 +97,10 @@ it('chooses a page as the home page on Reading, and keeps it', function (): void
 
     cmWaitUntil($page, 'document.querySelector(\'[data-test="home-page"]\')?.textContent.includes("Chosen: Welcome")');
 
-    $page->click('[data-test="home-page-save"]');
+    $page->click('[data-test="settings-save"]');
 
-    // The toast says "Home page saved. Moving every address in the background."
-    cmWaitUntil($page, 'document.body.textContent.includes("Home page saved.")');
+    // The toast says "Settings saved. Moving every address in the background."
+    cmWaitUntil($page, 'document.body.textContent.includes("Settings saved.")');
 
     $page->assertPathIs('/admin/settings/reading')
         ->navigate('/admin/settings/reading');
@@ -139,9 +139,9 @@ it('reads the brand colour\'s contrast as it is typed, and saves it on General',
 
     cmWaitUntil($page, 'document.querySelector("#brand-colour-readout")?.textContent.includes("on light ✓")');
 
-    $page->click('[data-test="brand-colour-save"]');
+    $page->click('[data-test="settings-save"]');
 
-    cmWaitUntil($page, 'document.body.textContent.includes("Brand colour saved.")');
+    cmWaitUntil($page, 'document.body.textContent.includes("Settings saved.")');
 
     $page->assertPathIs('/admin/settings/general')
         ->navigate('/admin/settings/general');

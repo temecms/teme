@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useCardMedia } from '@/components/editor/use-card-media';
@@ -5,6 +6,11 @@ import { MediaModal } from '@/components/media/media-modal';
 import { Button } from '@/components/ui/button';
 import { largest, variant } from '@/lib/media-urls';
 import type { CardMedia, FieldDefinition } from '@/types';
+
+/** The chosen image's two columns from 640px: the picture, then its words. */
+const MEDIA_COLUMNS = {
+    '--media-cols': '160px minmax(0, 1fr)',
+} as CSSProperties;
 
 type Props = {
     field: FieldDefinition;
@@ -52,13 +58,16 @@ export function MediaSetting({ field, name, value, media, disabled }: Props) {
                     data-test="media-choose"
                     disabled={disabled}
                     onClick={() => setChoosing(true)}
-                    className="border-edge text-ink-2 hover:bg-surface-3 focus-visible:ring-ring flex h-24 items-center justify-center gap-2 rounded-md border border-dashed text-[13px] outline-none focus-visible:ring-2 [&_svg]:size-4"
+                    className="border-edge text-ink-2 hover:bg-surface-3 focus-visible:ring-ring text-small flex h-24 items-center justify-center gap-2 rounded-md border border-dashed outline-none focus-visible:ring-2 [&_svg]:size-4"
                 >
                     <ImageIcon />
                     Choose an image
                 </button>
             ) : (
-                <div className="border-edge bg-surface grid gap-3 rounded-md border p-3 sm:grid-cols-[160px_minmax(0,1fr)]">
+                <div
+                    className="border-edge bg-surface grid gap-3 rounded-md border p-3 sm:grid-cols-(--media-cols)"
+                    style={MEDIA_COLUMNS}
+                >
                     {item ? (
                         <img
                             data-test="media-preview"
@@ -78,7 +87,7 @@ export function MediaSetting({ field, name, value, media, disabled }: Props) {
                     ) : (
                         <p
                             data-test="media-gone"
-                            className="text-ink-2 text-[13px]"
+                            className="text-ink-2 text-small"
                         >
                             This image is no longer in the library.
                         </p>

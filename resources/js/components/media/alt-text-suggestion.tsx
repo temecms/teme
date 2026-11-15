@@ -1,3 +1,4 @@
+import { __ } from '@/lib/i18n';
 import { Sparkles } from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import AiRequestController from '@/actions/App/Http/Admin/Ai/AiRequestController';
@@ -27,13 +28,15 @@ type AltRequest = {
     slow: boolean;
 };
 
-/** The card's own words, beside the assistant's. */
-export const ALT_TEXT_WORDS = {
-    suggest: 'Suggest alt text',
-    heading: 'Suggested alt text',
-    ready: 'A suggestion is ready.',
-    used: 'Suggested alt text saved.',
-};
+/** The card's own words, beside the assistant's, looked up while drawing. */
+function altTextWords() {
+    return {
+        suggest: __('Suggest alt text'),
+        heading: __('Suggested alt text'),
+        ready: __('A suggestion is ready.'),
+        used: __('Suggested alt text saved.'),
+    };
+}
 
 /** After this long working the card adds the queue line; after the hand-off's 15 minutes the request has expired. */
 const SLOW_AFTER_MS = 75_000;
@@ -278,7 +281,7 @@ export function AltTextSuggestion({
                 }
 
                 onUsed(details);
-                showToast({ type: 'success', message: ALT_TEXT_WORDS.used });
+                showToast({ type: 'success', message: altTextWords().used });
                 window.requestAnimationFrame(() =>
                     document
                         .getElementById(`attachment-${item.id}-alt`)
@@ -352,25 +355,27 @@ export function AltTextSuggestion({
                     ref={suggestButton}
                     type="button"
                     size="sm"
-                    variant="outline"
+                    variant="neutral"
                     data-test="alt-text-suggest"
                     onClick={() => void ask()}
                 >
                     <Sparkles aria-hidden="true" />
-                    {ALT_TEXT_WORDS.suggest}
+                    {altTextWords().suggest}
                 </Button>
-                <span className="text-ink-2 text-xs">
-                    The image is sent to {providerList(offer.sentTo)}.
+                <span className="text-ink-2 text-small">
+                    {__('The image is sent to :providers.', {
+                        providers: providerList(offer.sentTo),
+                    })}
                 </span>
             </div>
             {request !== null && (
                 <section
                     aria-labelledby={heading}
                     data-test="alt-text-card"
-                    className="bg-surface-2 grid gap-2 rounded-md border p-3 text-sm"
+                    className="bg-surface-2 text-small grid gap-2 rounded-md border p-3"
                 >
-                    <h3 id={heading} className="text-xs font-medium">
-                        {ALT_TEXT_WORDS.heading}
+                    <h3 id={heading} className="text-caption font-medium">
+                        {altTextWords().heading}
                     </h3>
                     <p
                         aria-live="polite"
@@ -380,10 +385,10 @@ export function AltTextSuggestion({
                     >
                         {working ? (
                             <>
-                                <Spinner /> Working…
+                                <Spinner /> {__('Working…')}
                             </>
                         ) : proposing ? (
-                            ALT_TEXT_WORDS.ready
+                            altTextWords().ready
                         ) : (
                             ''
                         )}
@@ -393,16 +398,16 @@ export function AltTextSuggestion({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
+                                variant="neutral"
                                 data-test="ai-cancel"
                                 onClick={putAsideFromCard}
                             >
-                                Cancel
+                                {__('Cancel')}
                             </Button>
                         </div>
                     )}
                     {working && request.slow && (
-                        <p className="text-ink-2 text-xs">
+                        <p className="text-ink-2 text-small">
                             {ASSISTANT_WORDS.slow}
                         </p>
                     )}
@@ -425,17 +430,21 @@ export function AltTextSuggestion({
                             <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
+                                variant="neutral"
                                 data-test="ai-dismiss"
                                 onClick={putAsideFromCard}
                             >
-                                Dismiss
+                                {__('Dismiss')}
                             </Button>
                         </div>
                     )}
                     {request.sentTo.length > 0 && (
-                        <p className="text-ink-2 text-xs">
-                            Sent to {request.sentTo.join(' and ')}
+                        <p className="text-ink-2 text-small">
+                            {__('Sent to :providers', {
+                                providers: request.sentTo.join(
+                                    ` ${__('and')} `,
+                                ),
+                            })}
                         </p>
                     )}
                 </section>

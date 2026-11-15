@@ -3,9 +3,10 @@ import { useEffect } from 'react';
 import BackupScheduleController from '@/actions/App/Http/Admin/Tools/Backups/BackupScheduleController';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import type { BackupSchedule } from '@/types/backups';
 
 /**
@@ -29,7 +30,7 @@ export function ScheduleForm({
             {...BackupScheduleController.form()}
             options={{ preserveScroll: true }}
             onSuccess={onClose}
-            className="space-y-4"
+            className="grid w-full gap-4"
         >
             {({ processing, errors }) => (
                 <>
@@ -43,10 +44,16 @@ export function ScheduleForm({
                         message={errors.expected_version}
                     />
 
-                    <div className="grid max-w-xs gap-2">
-                        <Label htmlFor="schedule-hour">
-                            Back up each night at
-                        </Label>
+                    <Field
+                        htmlFor="schedule-hour"
+                        label={__('Back up each night at')}
+                        help={__(
+                            'In the site’s time zone, :zone. Choose an hour when few people visit.',
+                            { zone: schedule.zone },
+                        )}
+                        error={errors['values.hour']}
+                        className="max-w-80"
+                    >
                         <SelectField
                             id="schedule-hour"
                             name="values[hour]"
@@ -55,23 +62,11 @@ export function ScheduleForm({
                                 value: hour,
                                 label: hour,
                             }))}
-                            aria-describedby="schedule-hour-hint schedule-hour-error"
                         />
-                        <p
-                            id="schedule-hour-hint"
-                            className="text-ink-2 text-xs"
-                        >
-                            In the site’s time zone, {schedule.zone}. Choose an
-                            hour when few people visit.
-                        </p>
-                        <InputError
-                            id="schedule-hour-error"
-                            message={errors['values.hour']}
-                        />
-                    </div>
+                    </Field>
 
-                    <p className="text-sm leading-9">
-                        Keep a backup from each of the last{' '}
+                    <p className="text-body flex flex-wrap items-center gap-2">
+                        {__('Keep a backup from each of the last')}{' '}
                         <Input
                             id="schedule-daily"
                             name="values[keep_daily]"
@@ -79,11 +74,11 @@ export function ScheduleForm({
                             min={1}
                             max={90}
                             defaultValue={schedule.keepDaily}
-                            aria-label="Daily backups kept"
+                            aria-label={__('Daily backups kept')}
                             aria-describedby="schedule-daily-error"
                             className="inline-block w-20"
                         />{' '}
-                        days, then one from each of{' '}
+                        {__('days, then one from each of')}{' '}
                         <Input
                             id="schedule-weekly"
                             name="values[keep_weekly]"
@@ -91,11 +86,11 @@ export function ScheduleForm({
                             min={0}
                             max={52}
                             defaultValue={schedule.keepWeekly}
-                            aria-label="Weekly backups kept"
+                            aria-label={__('Weekly backups kept')}
                             aria-describedby="schedule-weekly-error"
                             className="inline-block w-20"
                         />{' '}
-                        weeks before them, and one from each of{' '}
+                        {__('weeks before them, and one from each of')}{' '}
                         <Input
                             id="schedule-monthly"
                             name="values[keep_monthly]"
@@ -103,11 +98,11 @@ export function ScheduleForm({
                             min={0}
                             max={120}
                             defaultValue={schedule.keepMonthly}
-                            aria-label="Monthly backups kept"
+                            aria-label={__('Monthly backups kept')}
                             aria-describedby="schedule-monthly-error"
                             className="inline-block w-20"
                         />{' '}
-                        months before those.
+                        {__('months before those.')}
                     </p>
                     <InputError
                         id="schedule-daily-error"
@@ -122,10 +117,10 @@ export function ScheduleForm({
                         message={errors['values.keep_monthly']}
                     />
 
-                    <p className="text-ink-2 text-xs">
-                        Older backups are removed once a week, never while a
-                        backup runs. Keeping fewer removes the extra ones at the
-                        next weekly removal.
+                    <p className="text-caption text-ink-3">
+                        {__(
+                            'Older backups are removed once a week, never while a backup runs. Keeping fewer removes the extra ones at the next weekly removal.',
+                        )}
                     </p>
 
                     <div className="flex flex-wrap gap-2">
@@ -135,14 +130,14 @@ export function ScheduleForm({
                             aria-describedby="schedule-version-error"
                             data-test="backup-schedule-save"
                         >
-                            Save
+                            {__('Save')}
                         </Button>
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
                         >
-                            Cancel
+                            {__('Cancel')}
                         </Button>
                     </div>
                 </>

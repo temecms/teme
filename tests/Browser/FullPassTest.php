@@ -147,9 +147,9 @@ it('opens every admin screen with its heading and no script error', function (st
             cmWaitUntil($page, "document.querySelector('p[aria-busy=\"true\"]') === null");
         }
     } elseif ($pane !== '') {
-        // A file's details open from its tile, in a sheet that slides in; wait until it has stopped.
+        // A file's details open from its tile, in the panel beside the library.
         $page->click('[role="option"]:has-text('.json_encode($pane, JSON_THROW_ON_ERROR).')');
-        cmWaitUntil($page, "(() => { const sheet = document.querySelector('[data-slot=\"sheet-content\"]'); return sheet !== null && sheet.getAnimations().length === 0 && sheet.innerText.includes(".json_encode($pane, JSON_THROW_ON_ERROR).'); })()');
+        cmWaitUntil($page, "(() => { const panel = document.querySelector('[data-test=\"media-detail\"]'); return panel !== null && panel.innerText.includes(".json_encode($pane, JSON_THROW_ON_ERROR).'); })()');
     }
 
     // The editor has settled above; one more script call on it can return the plugin's stale `true` frame (B-793).

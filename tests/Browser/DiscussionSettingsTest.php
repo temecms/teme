@@ -48,13 +48,11 @@ it('passes axe on Settings › Discussion, every target 24 pixels or more, in th
 it('switches comments off, leaving the switch alone on the page, and on again (E1)', function (): void {
     cmSignIn($this->admin)
         ->navigate('/admin/settings/discussion')
-        ->select('#field-comments', 'off')
-        ->click('#comments-switch button[type="submit"]')
+        ->click('#field-comments')
         ->assertSee('Comments switched off.')
         ->assertSee('Comments are off, so the settings for them are hidden.')
         ->assertDontSee('Where readers can comment')
-        ->select('#field-comments', 'on')
-        ->click('#comments-switch button[type="submit"]')
+        ->click('#field-comments')
         ->assertSee('Comments switched on.')
         ->assertSee('Where readers can comment');
 
