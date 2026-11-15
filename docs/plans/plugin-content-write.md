@@ -135,7 +135,8 @@ interface MediaWriter
 - `27cafad` feat(plugins): media.write door from agreed hosts
 - `98baa41` feat(cms): show through Writer on revision history
 - `47821d4` docs(plans): Plugins write content's records
-- Follow-up R1: `30e3448` `62494d8` `f51a1c7` `0795fe7` `24a012f` `04c27f8` (and this Records commit)
+- Follow-up R1: `30e3448` `62494d8` `f51a1c7` `0795fe7` `24a012f` `04c27f8` `825683a`
+- Follow-up R1b: `627ddeb` `571178f` `c627afc` `eefbf79` `f680ea9` (and this Records commit)
 
 ### Tests seen red (first failure line)
 
@@ -175,6 +176,20 @@ interface MediaWriter
 
 **Gate:** `composer check` green — Pint; PHPStan OK; types; vp check; Architecture **139 passed** (1309); feature **2 skipped, 10639 passed** (54865).
 
+### Follow-up R1b
+
+**Commits:** `627ddeb` CurrentJobActor · `571178f` term+draft transaction · `c627afc` media refuse-all · `eefbf79` scoped (I-087) · `f680ea9` import fix · (this) Records.
+
+**Tests seen red (first failure line):**
+
+- R1b.1 CurrentJobActor — `Target class [App\Domain\Plugins\Doors\CurrentJobActor] does not exist.`
+- R1b.2 rolls back a new term — `Failed asserting that 1 is identical to 0.`
+- R1b.3 turns every upload failure — `Failed asserting that two strings are identical.` (`'should have been WriteRefused'` vs `'The disk refused the write.'`)
+
+**B-04 (draft):** Follow-up asked for a singleton; `NoStaticStateTest` forbids a new process-wide singleton without widening its list (forbidden). Bound `scoped` instead so the holder is one job/request (I-087). Test meaning unchanged.
+
+**Gate:** `composer check` green — Pint; PHPStan OK; types; vp check; Architecture **139 passed** (1309); feature **2 skipped, 10642 passed** (54877).
+
 ### Changelog lines (for the maintainer)
 
 - Plugins granted `content.write` receive a `ContentWriter` door that creates, changes, publishes and schedules through existing Operations on behalf of a named person; revisions record the plugin code in `content_revisions.via`.
@@ -182,6 +197,7 @@ interface MediaWriter
 - History shows "through …" beside the author when a revision was written through a plugin.
 - `docs/architecture/plugins.md` Trust: paragraphs for the two write doors and the acting-person rule.
 - Follow-up R1: writes only for the current actor; ctype_digit IDs; alt/title limits before fetch; terms by name via CreateTerm; media up to upload limit; source_url without query.
+- Follow-up R1b: CurrentJobActor holder for job writes; term create + draft in one transaction; every media upload failure becomes WriteRefused.
 
 ### STOP
 
