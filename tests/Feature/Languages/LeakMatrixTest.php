@@ -37,7 +37,7 @@ beforeEach(function (): void {
  *
  * @return list<array{0: string, 1: string, 2: list<string>}>
  */
-function lmSurfaces(LanguageSite $site): array
+function langLeakSurfaces(LanguageSite $site): array
 {
     return [
         ['/', 'Hello', ['Bonjour']],
@@ -78,7 +78,7 @@ function lmSurfaces(LanguageSite $site): array
  *
  * @return list<string>
  */
-function lmNever(LanguageSite $site, string $private): array
+function langLeakNever(LanguageSite $site, string $private): array
 {
     return [
         'Hola', '/es/', $site->postEs,
@@ -93,7 +93,7 @@ function lmNever(LanguageSite $site, string $private): array
  *
  * @param  list<string>  $never
  */
-function lmCheck(TestResponse $response, string $address, string $shown, array $never): void
+function langLeakCheck(TestResponse $response, string $address, string $shown, array $never): void
 {
     $body = (string) $response->getContent();
 
@@ -106,8 +106,8 @@ function lmCheck(TestResponse $response, string $address, string $shown, array $
 }
 
 it('shows each language only where it should, with the page cache off', function (): void {
-    foreach (lmSurfaces($this->site) as [$address, $shown, $other]) {
-        lmCheck(addrGet($address), $address, $shown, [...lmNever($this->site, $this->private), ...$other]);
+    foreach (langLeakSurfaces($this->site) as [$address, $shown, $other]) {
+        langLeakCheck(addrGet($address), $address, $shown, [...langLeakNever($this->site, $this->private), ...$other]);
     }
 });
 
@@ -115,10 +115,10 @@ it('shows each language only where it should, with the page cache on, from the c
     $folder = cacheOn();
 
     try {
-        foreach (lmSurfaces($this->site) as [$address, $shown, $other]) {
-            $never = [...lmNever($this->site, $this->private), ...$other];
-            lmCheck(addrGet($address), $address, $shown, $never);
-            lmCheck(addrGet($address), $address, $shown, $never);
+        foreach (langLeakSurfaces($this->site) as [$address, $shown, $other]) {
+            $never = [...langLeakNever($this->site, $this->private), ...$other];
+            langLeakCheck(addrGet($address), $address, $shown, $never);
+            langLeakCheck(addrGet($address), $address, $shown, $never);
         }
     } finally {
         File::deleteDirectory($folder);
@@ -137,7 +137,7 @@ it('answers the hidden language, the draft and the private item as missing pages
 
 it('drops a version that is made private from its siblings\' answers at once', function (): void {
     cacheOn();
-    lmCheck(addrGet('/hello/'), '/hello/', '/fr/bonjour/', []);
+    langLeakCheck(addrGet('/hello/'), '/hello/', '/fr/bonjour/', []);
 
     Visibilities::change(Content::query()->findOrFail($this->site->postFr), 'private', $this->site->admin);
 
