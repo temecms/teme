@@ -1,13 +1,7 @@
-import { ChevronDown } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { BooleanControl } from '@/components/editor/fields/boolean-control';
 import { NumberControl } from '@/components/editor/fields/number-control';
 import { SelectControl } from '@/components/editor/fields/select-control';
-import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
 import type { EditorField, EditorSeo } from '@/types/editor';
 
@@ -71,9 +65,9 @@ function BoxRow({
 /**
  * Hide from search engines, the canonical address, what search engines are
  * told the item is, and how much of it they may quote (I-709, I-714,
- * I-3124), in a fold closed by default at the foot of Search and social
- * (I-879); its trigger names what is set, or what it holds when nothing is,
- * so a choice there is never out of sight. The first two arrive as `leading`.
+ * I-3124): Search and social's Advanced tab (I-3415). Its first line names
+ * what is set, or what it holds when nothing is, so a choice there is never
+ * out of sight. The first two arrive as `leading`.
  */
 export function AdvancedFold({
     fields,
@@ -170,27 +164,11 @@ export function AdvancedFold({
             : holds.charAt(0).toUpperCase() + holds.slice(1);
 
     return (
-        <Collapsible className="border-line rounded-md border">
-            <CollapsibleTrigger
-                id="editor-advanced"
-                className="group focus-visible:ring-ring flex min-h-10 w-full items-center gap-3 rounded-md px-3 text-left text-[13px] font-semibold outline-none focus-visible:ring-2"
-            >
-                Advanced
-                <span
-                    data-test="advanced-summary"
-                    className="text-ink-2 flex-1 text-xs font-normal"
-                >
-                    {summary}
-                </span>
-                <ChevronDown
-                    aria-hidden
-                    className="size-4 shrink-0 transition-transform group-data-[state=open]:rotate-180"
-                />
-            </CollapsibleTrigger>
-            <CollapsibleContent
-                forceMount
-                className="grid gap-x-6 gap-y-4 px-3 pb-4 data-[state=closed]:hidden @2xl:grid-cols-2"
-            >
+        <div className="@container grid gap-4">
+            <p data-test="advanced-summary" className="text-ink-2 text-xs">
+                {summary}
+            </p>
+            <div className="grid gap-x-6 gap-y-4 @2xl:grid-cols-2">
                 {leading !== null && (
                     <div className="grid content-start gap-4">
                         {leading.node}
@@ -290,7 +268,7 @@ export function AdvancedFold({
                         />
                     )}
                 </div>
-            </CollapsibleContent>
-        </Collapsible>
+            </div>
+        </div>
     );
 }

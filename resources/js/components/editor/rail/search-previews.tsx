@@ -21,33 +21,29 @@ function crumbs(address: string): string {
         .join(' › ');
 }
 
+/** How wide the result is drawn: as a desktop's results column, or a phone's. */
+export type ResultSize = 'desktop' | 'mobile';
+
 /**
- * How the item will look in a search result and as a shared card (I-290,
- * I-293), made by the page's own rules; text is cut by width, as results cut
- * it.
+ * How the item will look in a search result (I-290), at true size: 600
+ * pixels of text on a desktop, 400 on a phone, made by the page's own
+ * rules; text is cut by width, as results cut it.
  */
-export function SearchPreviews({
+export function SearchResult({
     search,
     address,
     canonicalNote,
-    media,
-    loading,
-    seo,
-    noun,
     plural,
     descriptionFrom,
+    size = 'desktop',
 }: {
     search: SearchPreview;
     address: string;
     canonicalNote: string | null;
-    media: Record<string, CardMedia>;
-    loading: string[];
-    seo: EditorSeo;
-    noun: string;
     plural: string;
     descriptionFrom: SearchPreview['description']['from'];
+    size?: ResultSize;
 }) {
-    const { card } = search;
     const note =
         search.listing === 'discouraged'
             ? 'Search engines are asked to stay away from the whole site, so it won’t appear in results.'
@@ -56,6 +52,71 @@ export function SearchPreviews({
               : search.listing === 'type-hidden'
                 ? `Search and social hides ${plural} from search engines, so it won’t appear in results.`
                 : canonicalNote;
+
+    return (
+        <div className="grid grid-cols-1 content-start gap-2">
+            <h3 className="text-ink-2 text-[11px] font-medium">
+                Search result
+            </h3>
+            {note !== null && (
+                <p
+                    role="note"
+                    data-test="serp-note"
+                    className="text-ink-2 flex gap-1.5 text-xs"
+                >
+                    <Info aria-hidden className="mt-px size-3.5 shrink-0" />
+                    <span>{note}</span>
+                </p>
+            )}
+            <div
+                data-test="serp"
+                data-size={size}
+                className={`ring-line grid max-w-full gap-0.5 rounded-md p-4 font-[Arial,Helvetica,sans-serif] ring-1 ${size === 'mobile' ? 'w-108' : 'w-158'}`}
+            >
+                <p className="text-ink-2 truncate text-xs">{crumbs(address)}</p>
+                <p
+                    data-test="serp-title"
+                    className="text-accent-ink text-[20px] leading-snug"
+                >
+                    {fitWidth(
+                        search.title.text,
+                        20,
+                        size === 'mobile' ? 400 : 580,
+                    )}
+                </p>
+                <p className="text-[14px] leading-[1.58]">
+                    {search.description.text === null
+                        ? 'No description. Search engines will pick text from the page.'
+                        : fitWidth(search.description.text, 14, 920)}
+                </p>
+            </div>
+            <p data-test="description-from" className="text-ink-2 text-xs">
+                {descriptionSource(descriptionFrom)}
+            </p>
+        </div>
+    );
+}
+
+/**
+ * How the item will look as a shared card (I-293), made by the page's own
+ * rules, and what it was made from.
+ */
+export function SocialCard({
+    search,
+    address,
+    media,
+    loading,
+    seo,
+    noun,
+}: {
+    search: SearchPreview;
+    address: string;
+    media: Record<string, CardMedia>;
+    loading: string[];
+    seo: EditorSeo;
+    noun: string;
+}) {
+    const { card } = search;
     const image =
         card.imageFrom === 'default'
             ? seo.defaultImage?.media
@@ -115,91 +176,44 @@ export function SearchPreviews({
     }
 
     return (
-        <div
-            role="group"
-            aria-label="Previews"
-            className="grid grid-cols-[minmax(0,1fr)] gap-5 @2xl:grid-cols-[minmax(0,632px)_minmax(0,280px)] @2xl:justify-start"
-        >
-            <div className="grid content-start gap-2">
-                <h3 className="text-ink-2 text-[11px] font-medium">
-                    Search result
-                </h3>
-                {note !== null && (
-                    <p
-                        role="note"
-                        data-test="serp-note"
-                        className="text-ink-2 flex gap-1.5 text-xs"
-                    >
-                        <Info aria-hidden className="mt-px size-3.5 shrink-0" />
-                        <span>{note}</span>
-                    </p>
-                )}
-                <div
-                    data-test="serp"
-                    className="border-line grid w-full gap-0.5 rounded-md border p-4 font-[Arial,Helvetica,sans-serif]"
-                >
-                    <p className="text-ink-2 truncate text-xs">
-                        {crumbs(address)}
-                    </p>
-                    <p
-                        data-test="serp-title"
-                        className="text-accent-ink text-[20px] leading-snug"
-                    >
-                        {fitWidth(search.title.text, 20, 580)}
-                    </p>
-                    <p className="text-[14px] leading-[1.58]">
-                        {search.description.text === null
-                            ? 'No description. Search engines will pick text from the page.'
-                            : fitWidth(search.description.text, 14, 920)}
-                    </p>
-                </div>
-                <p data-test="description-from" className="text-ink-2 text-xs">
-                    {descriptionSource(descriptionFrom)}
-                </p>
-            </div>
-            <div className="grid content-start gap-2">
-                <h3 className="text-ink-2 text-[11px] font-medium">
-                    Social card
-                </h3>
-                <div
-                    data-test="social-card"
-                    className="border-line grid grid-cols-[132px_minmax(0,1fr)] overflow-hidden rounded-md border"
-                >
-                    {source !== null ? (
-                        <img
-                            src={source}
-                            alt=""
-                            className="h-full min-h-[72px] w-full object-cover"
-                        />
-                    ) : waiting ? (
-                        <div
-                            aria-busy="true"
-                            className="bg-surface-2 min-h-[72px] w-full animate-pulse"
-                        />
-                    ) : (
-                        <div className="border-line text-ink-2 m-2 flex min-h-[56px] items-center justify-center rounded-sm border border-dashed text-xs">
-                            No image
-                        </div>
-                    )}
-                    <div className="grid content-start gap-0.5 px-3 py-2">
-                        <p className="text-ink-2 text-[11px] uppercase">
-                            {host}
-                        </p>
-                        <p className="line-clamp-2 text-xs font-semibold">
-                            {card.title}
-                        </p>
-                        {description !== null && (
-                            <p className="text-ink-2 line-clamp-2 text-[11px]">
-                                {description}
-                            </p>
-                        )}
+        <div className="grid w-70 max-w-full content-start gap-2">
+            <h3 className="text-ink-2 text-[11px] font-medium">Social card</h3>
+            <div
+                data-test="social-card"
+                className="border-line grid grid-cols-[132px_minmax(0,1fr)] overflow-hidden rounded-md border"
+            >
+                {source !== null ? (
+                    <img
+                        src={source}
+                        alt=""
+                        className="h-full min-h-[72px] w-full object-cover"
+                    />
+                ) : waiting ? (
+                    <div
+                        aria-busy="true"
+                        className="bg-surface-2 min-h-[72px] w-full animate-pulse"
+                    />
+                ) : (
+                    <div className="border-line text-ink-2 m-2 flex min-h-[56px] items-center justify-center rounded-sm border border-dashed text-xs">
+                        No image
                     </div>
+                )}
+                <div className="grid content-start gap-0.5 px-3 py-2">
+                    <p className="text-ink-2 text-[11px] uppercase">{host}</p>
+                    <p className="line-clamp-2 text-xs font-semibold">
+                        {card.title}
+                    </p>
+                    {description !== null && (
+                        <p className="text-ink-2 line-clamp-2 text-[11px]">
+                            {description}
+                        </p>
+                    )}
                 </div>
-                <p data-test="social-from" className="text-ink-2 text-xs">
-                    Made from {joined(made)}
-                    {lacks.length > 0 ? `, with ${joined(lacks)}.` : '.'}
-                </p>
             </div>
+            <p data-test="social-from" className="text-ink-2 text-xs">
+                Made from {joined(made)}
+                {lacks.length > 0 ? `, with ${joined(lacks)}.` : '.'}
+            </p>
         </div>
     );
 }

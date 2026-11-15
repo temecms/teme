@@ -10,13 +10,18 @@ export function TextControl({
     id,
     describedBy,
     invalid,
-}: FieldControlProps) {
+    placeholder,
+}: FieldControlProps & {
+    /** What shows while it is empty, such as the value used in its place. */
+    placeholder?: string;
+}) {
     return (
         <Input
             id={id}
             aria-describedby={describedBy}
             aria-invalid={invalid || undefined}
             maxLength={maxLengthOf(field)}
+            placeholder={placeholder}
             value={textOf(value)}
             onChange={(event) => onChange(event.target.value)}
         />

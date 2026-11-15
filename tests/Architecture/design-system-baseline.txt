@@ -25,7 +25,6 @@ R1	js/components/editor/rail/publish-panel.tsx	h-[34px]
 R1	js/components/editor/rail/publish-panel.tsx	h-[34px]
 R1	js/components/editor/rail/publish-when.tsx	h-[34px]
 R1	js/components/editor/rail/search-panel.tsx	min-h-[34px]
-R1	js/components/editor/rail/search-previews.tsx	@2xl:grid-cols-[minmax(0,632px)_minmax(0,280px)]
 R1	js/components/editor/rail/search-previews.tsx	font-[Arial,Helvetica,sans-serif]
 R1	js/components/editor/rail/search-previews.tsx	grid-cols-[132px_minmax(0,1fr)]
 R1	js/components/editor/rail/search-previews.tsx	leading-[1.58]
@@ -98,7 +97,6 @@ R1	js/pages/tools/page-cache.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R1	js/pages/tools/updates.tsx	grid-cols-[max-content_1fr]
 R10	js/components/app-content.tsx	outline-none
-R10	js/components/editor/rail/search-panel.tsx	outline-none
 R10	js/components/editor/use-teme-editor.ts	outline-none
 R10	js/components/list/date-filter.tsx	outline-none
 R10	js/components/list/filter-button.tsx	outline-none
@@ -301,7 +299,6 @@ R2	js/components/editor/meta-changes.tsx	text-[13px]
 R2	js/components/editor/pasted-image-view.tsx	text-[13px]
 R2	js/components/editor/presence-line.tsx	text-[11px]
 R2	js/components/editor/publish-confirmation.tsx	text-[13px]
-R2	js/components/editor/rail/advanced-fold.tsx	text-[13px]
 R2	js/components/editor/rail/advanced-fold.tsx	text-xs
 R2	js/components/editor/rail/advanced-fold.tsx	text-xs
 R2	js/components/editor/rail/advanced-fold.tsx	text-xs
@@ -362,8 +359,6 @@ R2	js/components/editor/rail/publish-panel.tsx	text-xs
 R2	js/components/editor/rail/publish-panel.tsx	text-xs
 R2	js/components/editor/rail/search-panel.tsx	text-[13px]
 R2	js/components/editor/rail/search-panel.tsx	text-[13px]
-R2	js/components/editor/rail/search-panel.tsx	text-[13px]
-R2	js/components/editor/rail/search-panel.tsx	text-[15px]
 R2	js/components/editor/rail/search-panel.tsx	text-xs
 R2	js/components/editor/rail/search-panel.tsx	text-xs
 R2	js/components/editor/rail/search-panel.tsx	text-xs

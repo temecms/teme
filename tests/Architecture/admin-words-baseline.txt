@@ -372,7 +372,6 @@ components/editor/publish-confirmation.tsx	, as it was just saved. Warnings don�
 components/editor/publish-confirmation.tsx	Cancel
 components/editor/publish-confirmation.tsx	It publishes
 components/editor/publish-confirmation.tsx	The checks on this
-components/editor/rail/advanced-fold.tsx	Advanced
 components/editor/rail/advanced-fold.tsx	Default for its type ({})
 components/editor/rail/advanced-fold.tsx	Default for its type ({})
 components/editor/rail/advanced-fold.tsx	No limit
@@ -478,11 +477,8 @@ components/editor/rail/publish-when.tsx	When you approve it
 components/editor/rail/publish-when.tsx	the scheduled publication
 components/editor/rail/publish-when.tsx	the scheduled update
 components/editor/rail/search-panel.tsx	Asks search engines not to list this
-components/editor/rail/search-panel.tsx	Done
-components/editor/rail/search-panel.tsx	Edit
 components/editor/rail/search-panel.tsx	Every check is in the side panel.
 components/editor/rail/search-panel.tsx	Every check is in the side panel.
-components/editor/rail/search-panel.tsx	How this
 components/editor/rail/search-panel.tsx	Leave empty and search engines choose their own.
 components/editor/rail/search-panel.tsx	Leave empty to use the excerpt, or else the site’s tagline.
 components/editor/rail/search-panel.tsx	Leave empty to use the excerpt.
@@ -490,21 +486,14 @@ components/editor/rail/search-panel.tsx	Leave empty to use the home page’s tit
 components/editor/rail/search-panel.tsx	Leave empty to use the meta description, or else the excerpt.
 components/editor/rail/search-panel.tsx	Leave empty to use the title template for {}.
 components/editor/rail/search-panel.tsx	Passed
-components/editor/rail/search-panel.tsx	Search
-components/editor/rail/search-panel.tsx	Search and social
-components/editor/rail/search-panel.tsx	Social
 components/editor/rail/search-panel.tsx	The summary search engines may show under the title.
 components/editor/rail/search-panel.tsx	The title on the card when it’s shared. Leave empty to use the SEO title, or else the title.
 components/editor/rail/search-panel.tsx	The title search engines show, exactly as you type it.
 components/editor/rail/search-panel.tsx	Warning
-components/editor/rail/search-panel.tsx	appears in search results and when it’s shared.
-components/editor/rail/search-panel.tsx	search and social
-components/editor/rail/search-panel.tsx	with search and social
 components/editor/rail/search-previews.tsx	, with {}.
 components/editor/rail/search-previews.tsx	Made from
 components/editor/rail/search-previews.tsx	No description. Search engines will pick text from the page.
 components/editor/rail/search-previews.tsx	No image
-components/editor/rail/search-previews.tsx	Previews
 components/editor/rail/search-previews.tsx	Search result
 components/editor/rail/search-previews.tsx	Social card
 components/editor/rail/search-previews.tsx	the {}’s title

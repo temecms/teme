@@ -181,6 +181,8 @@ export default function ContentEdit(page: ContentEditPage) {
     const [railOpen, setRailOpen] = useState(true);
     // Search and social starts closed on every visit (I-3124).
     const [searchOpen, setSearchOpen] = useState(false);
+    // The box's tab shown, so a check can lead to its field (I-3415).
+    const [searchTab, setSearchTab] = useState('search');
     const [focus, setFocus] = useState(
         preferences['editor.focus_mode_default'] === true,
     );
@@ -925,8 +927,11 @@ export default function ContentEdit(page: ContentEditPage) {
         } else if (check === 'featured') {
             document.getElementById('editor-featured-choose')?.focus();
         } else if (check === 'description' || check === 'title-width') {
-            // The field is in Search and social, which may be closed (I-3124).
-            flushSync(() => setSearchOpen(true));
+            // The field is on Search and social's Search tab, which may be folded (I-3124).
+            flushSync(() => {
+                setSearchOpen(true);
+                setSearchTab('search');
+            });
             document
                 .getElementById(
                     check === 'description'
@@ -1489,6 +1494,8 @@ export default function ContentEdit(page: ContentEditPage) {
                             open={searchOpen}
                             onOpenChange={setSearchOpen}
                             onGoToChecks={focus ? null : goToChecks}
+                            tab={searchTab}
+                            onTabChange={setSearchTab}
                         />
                     )}
                 </FieldControlContext.Provider>
