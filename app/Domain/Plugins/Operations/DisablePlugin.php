@@ -100,10 +100,15 @@ final class DisablePlugin extends BaseOperation
 
         try {
             foreach ($ids as $id) {
-                $this->cancel->execute(new CancelJobInput((string) $id, null));
+                try {
+                    $this->cancel->execute(new CancelJobInput((string) $id, null));
+                } catch (ValidationException) {
+                    // Another cancel or finish won the race; disable still finishes.
+                }
             }
         } finally {
             app()->instance(Elevation::class, $previous);
         }
     }
 }
+

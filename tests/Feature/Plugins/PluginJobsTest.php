@@ -276,6 +276,33 @@ it('cancels nothing when disable is refused', function (): void {
         ->and(PluginRecord::query()->where('name', 'tests/jobs')->value('state'))->toBe(PluginRecord::ENABLED);
 });
 
+it('still disables when a CancelJob finds the run already ended', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $id = ($this->jobs)()->queue('write-line', ['line' => 'race']);
+
+    // Between DisablePlugin listing the id and CancelJob's lock, end the row so
+    // CancelJob throws ValidationException — disable must still finish.
+    TrackedJob::retrieved(function (TrackedJob $job) use ($id): void {
+        static $ended = false;
+
+        if ($ended || (string) $job->getKey() !== $id) {
+            return;
+        }
+
+        $ended = true;
+        DB::table('tracked_jobs')->where('id', $id)->update([
+            'state' => JobState::Cancelled->value,
+            'message' => 'ended meanwhile',
+            'ended_at' => now(),
+        ]);
+    });
+
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/jobs', null));
+
+    expect(PluginRecord::query()->where('name', 'tests/jobs')->value('state'))->toBe(PluginRecord::DISABLED);
+});
+
 it('runs nothing after CancelJob ended the tracked job', function (): void {
     ($this->enable)();
     Queue::fake();
