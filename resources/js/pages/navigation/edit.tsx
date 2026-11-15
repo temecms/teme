@@ -38,6 +38,7 @@ export default function NavigationEdit({
     menus,
     types,
     taxonomies,
+    readers,
 }: NavigationEditPage) {
     const [tree, setTree] = useState<EditorItem[]>(() => withKeys(items));
     const [dirty, setDirty] = useState(false);
@@ -49,6 +50,16 @@ export default function NavigationEdit({
     // them: they go until the next save.
     const [showErrors, setShowErrors] = useState(true);
     const shownIn = slots.filter((slot) => slot.navigationId === navigation.id);
+    const readerLanguages = readers?.languages ?? [];
+    const defaultLanguage = readerLanguages[0]?.tag ?? '';
+    const [readersOf, setReadersOf] = useState(
+        readers?.language ?? defaultLanguage,
+    );
+    // The default language's readers see the places' own menus; another's, its words for them (I-3360).
+    const shownTo = (slot: { slot: string; navigationId: string | null }) =>
+        readersOf === defaultLanguage
+            ? slot.navigationId
+            : (readers?.bindings[readersOf]?.[slot.slot] ?? null);
 
     const change = (next: EditorItem[]) => {
         setTree(next);
@@ -79,7 +90,12 @@ export default function NavigationEdit({
     const bind = (slot: string, navigationId: string) =>
         router.put(
             NavigationController.updateSlots.url({ id: navigation.id }),
-            { theme: themeCode ?? '', slot, navigation_id: navigationId },
+            {
+                theme: themeCode ?? '',
+                slot,
+                navigation_id: navigationId,
+                language: readersOf === defaultLanguage ? '' : readersOf,
+            },
             { preserveState: true, preserveScroll: true },
         );
 
@@ -134,6 +150,39 @@ export default function NavigationEdit({
                         title="Show in"
                         description={`Where ${themeName ?? 'the site’s theme'} shows a menu. Each place shows one menu.`}
                     >
+                        {readerLanguages.length > 0 && (
+                            <div className="grid gap-2 sm:grid-cols-3 sm:items-center">
+                                <Label htmlFor="menu-readers-of">
+                                    {__('For readers of')}
+                                </Label>
+                                <div className="min-w-0 sm:col-span-2">
+                                    <SelectField
+                                        id="menu-readers-of"
+                                        value={readersOf}
+                                        options={readerLanguages.map(
+                                            (language) => ({
+                                                value: language.tag,
+                                                label: language.name,
+                                            }),
+                                        )}
+                                        onValueChange={setReadersOf}
+                                        aria-describedby="menu-readers-of-help"
+                                    />
+                                    <p
+                                        id="menu-readers-of-help"
+                                        className="text-caption text-ink-3 mt-1"
+                                    >
+                                        {readersOf === defaultLanguage
+                                            ? __(
+                                                  'The places below show these menus to readers of the default language.',
+                                              )
+                                            : __(
+                                                  'A place set to None shows readers of this language the default language’s menu.',
+                                              )}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         {slots.map((slot) => (
                             <div
                                 key={slot.slot}
@@ -145,7 +194,7 @@ export default function NavigationEdit({
                                 <div className="min-w-0 sm:col-span-2">
                                     <SelectField
                                         id={`slot-${slot.slot}`}
-                                        value={slot.navigationId ?? ''}
+                                        value={shownTo(slot) ?? ''}
                                         emptyLabel="None"
                                         options={menus.map((menu) => ({
                                             value: menu.id,
@@ -242,6 +291,7 @@ export default function NavigationEdit({
                 types={types}
                 taxonomies={taxonomies}
                 onAdd={(item) => change([...tree, newItem(item)])}
+                multilingual={readerLanguages.length > 0}
             />
 
             <Sheet open={renaming} onOpenChange={setRenaming}>

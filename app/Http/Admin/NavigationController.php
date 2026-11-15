@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Languages\Queries\MenuLanguages;
 use App\Domain\Menus\Operations\BindNavigationSlot;
 use App\Domain\Menus\Operations\CreateNavigation;
 use App\Domain\Menus\Operations\DeleteNavigation;
@@ -43,7 +44,13 @@ final class NavigationController extends Controller
 
     public function edit(string $id, NavigationScreens $screens): Response
     {
-        return Inertia::render('navigation/edit', $screens->editor($id) ?? abort(404));
+        $editor = $screens->editor($id) ?? abort(404);
+
+        return Inertia::render('navigation/edit', [
+            ...$editor,
+            // "For readers of" in Show in (docs/proposals/multilingual-screens.md, 5).
+            'readers' => MenuLanguages::for($id, $editor['themeCode'], array_column($editor['slots'], 'slot')),
+        ]);
     }
 
     public function update(Request $request, string $id, RenameNavigation $renameNavigation): RedirectResponse
@@ -73,6 +80,8 @@ final class NavigationController extends Controller
             $slot,
             $navigationId,
             $this->actor($request),
+            // Another language's readers, or null for the default language's.
+            $request->string('language')->trim()->toString() === '' ? null : $request->string('language')->trim()->toString(),
         ));
 
         $place = $screens->place($slot, $navigationId);
