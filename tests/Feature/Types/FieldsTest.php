@@ -18,7 +18,7 @@ it('gives a new type the built-in fields for the features it supports', function
 
     $handles = collect(app(FieldRegistry::class)->forType('event'))->pluck('handle')->sort()->values()->all();
 
-    expect($handles)->toBe(['article_type', 'canonical', 'max_snippet', 'meta_description', 'noarchive', 'noindex', 'nosnippet', 'page_type', 'primary_category', 'seo_title', 'social_description', 'social_image', 'social_title']);
+    expect($handles)->toBe(['article_type', 'canonical', 'insertions_off', 'max_snippet', 'meta_description', 'noarchive', 'noindex', 'nosnippet', 'page_type', 'primary_category', 'seo_title', 'social_description', 'social_image', 'social_title']);
 });
 
 it('lets two types each have a field called price', function (): void {

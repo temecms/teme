@@ -13,7 +13,6 @@ use App\Domain\Fields\Types\TermField;
 use App\Domain\Fields\Types\TextareaField;
 use App\Domain\Fields\Types\TextField;
 use App\Domain\StructuredData\TypeSchemas;
-use App\Domain\Types\CoreTypes;
 
 /**
  * The fields every post and page has from the start: what search engines
@@ -87,7 +86,7 @@ final class BuiltInFields
         // What search engines are told the item is, from closed lists, by whoever may edit it (I-709).
         $registry->register(new Field(self::PAGE_TYPE, 'page_type', 'Page type', 'What search engines are told this page is. Empty uses the default for its type.', new SelectField, [], '0.1.0', options: ['' => 'Default for its type', 'WebPage' => 'Web page', 'AboutPage' => 'About page', 'ContactPage' => 'Contact page', 'CollectionPage' => 'Collection page'], feature: 'seo', place: FieldPlace::Core));
         $registry->register(new Field(self::ARTICLE_TYPE, 'article_type', 'Article type', 'What kind of article search engines are told this is, if it is one. Empty uses the default for its type.', new SelectField, [], '0.1.0', options: ['' => 'Default for its type', 'Article' => 'Article', 'NewsArticle' => 'News article', 'BlogPosting' => 'Blog post', TypeSchemas::NONE => 'Not an article'], feature: 'seo', place: FieldPlace::Core));
-        // Turns every insertion off on this item (I-064); shown to anyone who may edit it.
-        $registry->register(new Field(self::INSERTIONS_OFF, 'insertions_off', 'No inserted content', 'Turns off ads and other content plugins place inside this item.', new BooleanField, [CoreTypes::POST, CoreTypes::PAGE], '0.8.0', place: FieldPlace::Core));
+        // Turns every insertion off on this item (I-064): every type with public pages search engines read has it.
+        $registry->register(new Field(self::INSERTIONS_OFF, 'insertions_off', 'No inserted content', 'Turns off ads and other content plugins place inside this item.', new BooleanField, [], '0.8.0', feature: 'seo', place: FieldPlace::Core));
     }
 }

@@ -67,7 +67,7 @@ it('shows Movies’ fields in order, then Teme’s, then removed ones, to a pers
             ->where('fields.0.settings', ['dateOnly' => true])->where('fields.0.required', true)
             ->where('fields.1.handle', 'runtime')->where('fields.1.holding', 0)->where('fields.1.position', 2)
             ->where('fromTeme.0.name', 'Excerpt')->where('fromTeme.0.where', 'Under the title')->where('fromTeme.0.fieldType', 'Long text')
-            ->where('fromTeme.1.name', 'Search and social')->where('fromTeme.1.handles', 'seo_title, meta_description and 11 more')->where('fromTeme.1.fieldType', 'Several')
+            ->where('fromTeme.1.name', 'Search and social')->where('fromTeme.1.handles', 'seo_title, meta_description and 12 more')->where('fromTeme.1.fieldType', 'Several')
             ->has('fromTeme', 2)
             ->where('removed.0.handle', 'trailer_url')->where('removed.0.holding', 1)
             ->where('unreadable', [])
@@ -82,13 +82,11 @@ it('shows Posts’ page too, with the built-ins as Teme’s', function (): void 
             ->where('fromTeme.0.name', 'Excerpt')
             ->where('fromTeme.1.name', 'Featured image')
             ->where('fromTeme.2.name', 'Search and social')
-            ->where('fromTeme.2.handles', 'seo_title, meta_description and 11 more')
+            ->where('fromTeme.2.handles', 'seo_title, meta_description and 12 more')
             ->where('fromTeme.3.name', 'Template')
             ->where('fromTeme.4.name', 'Pin to the top of the latest posts')
             ->where('fromTeme.4.where', 'On the list, not in the editor')
-            ->where('fromTeme.5.name', 'No inserted content')
-            ->where('fromTeme.5.handles', 'insertions_off')
-            ->has('fromTeme', 6));
+            ->has('fromTeme', 5));
 });
 
 it('lists a stored field that can’t be read in its own group, saying why (#324)', function (): void {
