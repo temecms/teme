@@ -7,6 +7,7 @@ use App\Domain\Contents\Operations\Input\TranslateContentInput;
 use App\Domain\Contents\Operations\TranslateContent;
 use App\Domain\Contents\Queries\ContentList;
 use App\Domain\Contents\Queries\ContentListRequest;
+use App\Domain\Preferences\Queries\PreferencesFor;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -110,4 +111,12 @@ it('gives the categories list each term\'s versions', function (): void {
             ->where('languages.1.tag', 'fr')
             ->where("versions.{$this->site->news}", ['en-GB' => 'there', 'fr' => 'there'])
             ->where("versions.{$this->site->newsFr}", ['en-GB' => 'there', 'fr' => 'there']));
+});
+
+it('offers the Languages column in the chooser, never on until someone turns it on', function (): void {
+    expect(PreferencesFor::user($this->site->editor)['lists.post.columns'])->not->toContain('languages');
+
+    lscrPrefer($this->site->editor, ['lists.post.columns' => ['languages', 'author', 'date']]);
+
+    expect(PreferencesFor::user($this->site->editor)['lists.post.columns'])->toBe(['languages', 'author', 'date']);
 });
