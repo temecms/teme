@@ -207,6 +207,29 @@ it('converts an HTML body to a Tiptap document, keeping its links as given', fun
         ->and($json)->not->toContain('<p>');
 });
 
+it('stores an HTML body’s links to this site by ID, never as the site’s own address (rule 9)', function (): void {
+    $secret = ManageApiFixture::key($this->editor, ['content.write', 'content.publish']);
+
+    $target = $this->postJson('/api/manage/v1/items', ['type' => 'post', 'title' => 'Harbour notes', 'body' => apiBody(), 'status' => 'published'], ManageApiFixture::headers($secret))
+        ->assertStatus(201);
+    $id = (string) $target->json('data.id');
+    $url = (string) $target->json('data.url');
+
+    $this->postJson('/api/manage/v1/items', [
+        'type' => 'post',
+        'title' => 'Linking',
+        'html' => '<p>See <a href="'.$url.'#boats">the notes</a> and <a href="'.rtrim(url('/'), '/').'/no-such-page/">a path</a>.</p>',
+        'status' => 'draft',
+    ], ManageApiFixture::headers($secret))->assertStatus(201);
+
+    $json = (string) json_encode(json_decode((string) DB::table('content_revisions')->latest('created_at')->orderByDesc('id')->value('document'), true), JSON_UNESCAPED_SLASHES);
+
+    expect($url)->toStartWith(rtrim(url('/'), '/'))
+        ->and($json)->toContain('"href":"teme:content/'.strtolower($id).'#boats"')
+        ->and($json)->toContain('"href":"/no-such-page/"')
+        ->and($json)->not->toContain(rtrim(url('/'), '/'));
+});
+
 it('refuses both a body and html at once', function (): void {
     $secret = ManageApiFixture::key($this->editor, ['content.write']);
 
