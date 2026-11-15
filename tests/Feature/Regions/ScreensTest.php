@@ -75,6 +75,7 @@ it('heads a region\'s editor in its column with its name, its theme and what it 
     expect(uiComponent('pages/content/edit.tsx'))
         ->toContain("title={__('Region: :label, used by :theme', {")
         ->toContain('theme: themeRegion.themeName,')
+        ->toContain('label: themeRegion.label,')
         ->toContain('description={themeRegion.takes}')
         ->and(uiComponent('components/editor/editor-header.tsx'))
         ->not->toContain('title?: string');
