@@ -65,7 +65,7 @@ it('fills the French title template on a French page', function (): void {
 
 it('reads translations only on a page in another language', function (): void {
     wplFrench($this->site->admin, 'general', ['site_title' => 'Le Port']);
-    $key = SettingsRepository::translationsKey('general');
+    $key = SettingsRepository::cacheKey('general', translations: true);
     Cache::forget($key);
 
     addrGet('/hello/')->assertOk();

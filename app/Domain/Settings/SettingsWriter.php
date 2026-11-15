@@ -257,7 +257,7 @@ final readonly class SettingsWriter
         $this->pruneHistory($group);
 
         // After commit, as write() does (rule 6).
-        DB::afterCommit(fn () => Cache::memo()->forget(SettingsRepository::translationsKey($group)));
+        DB::afterCommit(fn () => Cache::memo()->forget(SettingsRepository::cacheKey($group, translations: true)));
 
         if ($definition->cacheTags !== []) {
             app(PublicChanges::class)->add(new CacheKeysFor(CacheKeysFor::SETTINGS, $group, $definition->cacheTags));

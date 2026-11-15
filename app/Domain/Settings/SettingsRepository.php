@@ -26,17 +26,13 @@ final class SettingsRepository implements SettingsReader
 {
     public function __construct(private readonly SettingsRegistry $registry) {}
 
-    public static function cacheKey(string $group): string
-    {
-        return 'settings:'.$group;
-    }
-
     /**
-     * The cache key of a group's words in other languages (I-3360).
+     * The cache key of a group's values, or, with $translations, of its
+     * words in other languages (I-3360).
      */
-    public static function translationsKey(string $group): string
+    public static function cacheKey(string $group, bool $translations = false): string
     {
-        return self::cacheKey($group).':translations';
+        return 'settings:'.$group.($translations ? ':translations' : '');
     }
 
     public function group(string $group): array
@@ -152,7 +148,7 @@ final class SettingsRepository implements SettingsReader
     {
         /** @var array<string, array<string, mixed>> */
         return Cache::memo()->rememberForever(
-            self::translationsKey($group),
+            self::cacheKey($group, translations: true),
             fn (): array => SettingsGroupRecord::query()->find($group)->translations ?? [],
         );
     }
