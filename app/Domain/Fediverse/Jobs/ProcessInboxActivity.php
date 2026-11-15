@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Jobs;
 
+use App\Domain\Fediverse\BlockedHosts;
 use App\Domain\Fediverse\FediverseSwitch;
 use App\Domain\Fediverse\Models\RemoteActor;
 use App\Domain\Fediverse\Operations\AcceptFollow;
@@ -50,6 +51,11 @@ final class ProcessInboxActivity implements ShouldQueue
     {
         // Paused since it was queued: nothing is taken (proposal, Settled 4).
         if (! FediverseSwitch::on()) {
+            return;
+        }
+
+        // Its server blocked since it was queued: nothing is taken, and no plugin hears of it.
+        if (BlockedHosts::blocks((string) parse_url($this->actorUri, PHP_URL_HOST))) {
             return;
         }
 

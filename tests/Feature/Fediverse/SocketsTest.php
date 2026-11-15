@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Fediverse\Jobs\ProcessInboxActivity;
 use App\Domain\Fediverse\Models\Activity;
+use App\Domain\Fediverse\Models\BlockedHost;
 use App\Domain\Fediverse\Models\Delivery;
 use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\FediverseObject;
@@ -272,4 +273,17 @@ it('fails a queued handler’s job, running nothing, once its plugin is off', fu
 
     expect(LikeHandler::$handled)->toBe([])
         ->and(TrackedJob::query()->sole()->state)->toBe(JobState::Failed);
+});
+
+it('takes nothing from a server blocked after its activity was queued, telling no plugin', function (): void {
+    fsockPlugin();
+    BlockedHost::query()->create(['host' => 'solo.example', 'created_at' => now()]);
+
+    fsockRun(['id' => $this->alice->uri.'#likes/1', 'type' => 'Like', 'actor' => $this->alice->uri, 'object' => url('/ap/objects/x')], $this->alice->uri);
+    fsockRun(['id' => $this->alice->uri.'#undo/1', 'type' => 'Undo', 'actor' => $this->alice->uri, 'object' => ['type' => 'Follow', 'actor' => $this->alice->uri, 'object' => $this->blog->uri]], $this->alice->uri);
+
+    expect(FediversePlugin::$heard)->toBe([])
+        ->and(TrackedJob::query()->count())->toBe(0)
+        ->and(Follower::query()->count())->toBe(1);
+    Queue::assertNotPushed(RunActivityHandler::class);
 });
