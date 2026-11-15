@@ -75,18 +75,17 @@ it('keeps the chosen category in the filters, so the select shows it, and lists 
             ->where('rows', fn ($rows): bool => collect($rows)->pluck('title')->sort()->values()->all() === ['Harbour news', 'Market day']));
 });
 
-it('draws a filter for each nesting taxonomy, its terms in tree order, and links each term in its column to the same filter', function (): void {
+it('draws a filter for each nesting taxonomy, its terms in tree order, and shows each row\'s terms in its column', function (): void {
     $list = uiComponent('pages/content/index.tsx');
 
     // A source scan, written loosely where the formatter may break a line.
     expect($list)->toMatch('/\.filter\(\s*\(taxonomy\) => taxonomy\.hierarchical,?\s*\)/')
-        ->toContain('`All ${taxonomy.plural.toLowerCase()}`')
+        ->toContain("__('All :plural'")
         ->toContain('label={taxonomy.singular}')
         ->toContain('inTreeOrder(')
-        ->toMatch('/\[taxonomy\.key\]: term\.id/')
-        ->toContain('min-h-6')
-        ->toContain('min-w-6')
-        ->toContain('Later (I-1452)')
+        ->toMatch('/<ChoiceFilter\s/')
+        ->toContain('terms={row.terms[taxonomy.key] ?? []}')
+        ->toContain('<TermSearchFilter')
         ->and(uiComponent('components/ui/select-field.tsx'))->toContain('option.depth')
         ->and(uiComponent('lib/term-tree.ts'))->toContain('export function inTreeOrder(')
         ->and(uiComponent('components/list/bulk-edit-dialog.tsx'))->toContain('inTreeOrder(')

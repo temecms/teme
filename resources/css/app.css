@@ -527,13 +527,14 @@ html.editor-workspace #main-content {
     overflow: hidden;
 }
 
-/* The writing surface (slice 1.5c; admin-design.md, "The writing surface"):
-   16px serif at 1.6. Everything else on the screen is the interface face. */
+/* The writing surface (docs/architecture/design-system.md, 4.39): the
+   serif at the lead size and 1.7. Everything else on the screen is the
+   interface face. */
 .teme-prose {
     --editor-measure: 692px;
     font-family: var(--font-serif);
-    font-size: 16px;
-    line-height: 1.6;
+    font-size: var(--text-lead);
+    line-height: 1.7;
     color: var(--ink);
 }
 
@@ -561,22 +562,22 @@ html.editor-workspace #main-content {
 .teme-prose h2,
 .teme-prose h3,
 .teme-prose h4 {
-    font-family: var(--font-serif);
+    font-family: var(--font-sans);
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.3;
     margin-top: 1.4em;
 }
 
 .teme-prose h2 {
-    font-size: 1.5em;
+    font-size: var(--text-title);
 }
 
 .teme-prose h3 {
-    font-size: 1.25em;
+    font-size: var(--text-lead);
 }
 
 .teme-prose h4 {
-    font-size: 1.1em;
+    font-size: var(--text-body);
 }
 
 .teme-prose ul {
@@ -609,24 +610,25 @@ html.editor-workspace #main-content {
 }
 
 .teme-prose blockquote {
-    border-left: 3px solid var(--line);
-    padding-left: 1em;
+    border-inline-start: 3px solid var(--accent);
+    padding-inline-start: 1em;
+    font-style: italic;
     color: var(--ink-2);
 }
 
 .teme-prose code {
     font-family: var(--font-mono);
-    font-size: 0.875em;
+    font-size: var(--text-small);
     background: var(--surface-2);
-    border-radius: var(--radius-xs);
+    border-radius: var(--radius-md);
     padding: 0.1em 0.3em;
 }
 
 .teme-prose pre {
     font-family: var(--font-mono);
-    font-size: 0.875em;
+    font-size: var(--text-small);
     background: var(--surface-2);
-    border-radius: var(--radius-xs);
+    border-radius: var(--radius-md);
     padding: 0.75em 1em;
     overflow-x: auto;
 }
@@ -644,19 +646,24 @@ html.editor-workspace #main-content {
 .teme-prose a {
     color: var(--accent-ink);
     text-decoration: underline;
+    text-decoration-thickness: 1px;
 }
 
 .teme-prose hr {
     border: 0;
-    border-top: 1px solid var(--line);
-    margin: 1.5em 0;
+    width: 96px;
+    height: 2px;
+    background: var(--surface-4);
+    margin: 1.5em auto;
 }
 
 .teme-prose table {
     border-collapse: collapse;
     width: 100%;
     table-layout: fixed;
-    font-size: 0.95em;
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.5;
 }
 
 .teme-prose th,
@@ -672,7 +679,8 @@ html.editor-workspace #main-content {
     text-align: left;
 }
 
-.teme-prose p.is-editor-empty:first-child::before {
+/* The empty line the cursor is on says what it takes. */
+.teme-prose p.is-empty::before {
     content: attr(data-placeholder);
     color: var(--ink-3);
     float: left;
@@ -683,4 +691,9 @@ html.editor-workspace #main-content {
 .teme-prose .ProseMirror-selectednode {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+}
+
+/* A card draws its own ring when selected (design-system.md, 4.39). */
+.teme-prose .ProseMirror-selectednode:has([data-slot='card-head']) {
+    outline: none;
 }

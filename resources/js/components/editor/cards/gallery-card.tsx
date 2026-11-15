@@ -1,11 +1,16 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
-import { useRef, useState } from 'react';
-import { MediaModal } from '@/components/media/media-modal';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import { cn } from '@/lib/utils';
 import { CardField, CardFrame, TextSetting } from './card-frame';
-import { optionsFor, useCardEnvironment } from './card-environment';
+import {
+    optionsFor,
+    useCardEnvironment,
+    useUploadTarget,
+} from './card-environment';
+import { useMediaPicker } from '../pick-media';
+import type { MediaPickerOptions } from '../pick-media';
 import type { CardSettingsProps } from './card-environment';
 
 type GalleryAttrs = {
@@ -29,25 +34,39 @@ export function GalleryCard({
     const attrs = node.attrs as GalleryAttrs;
     const ids = attrs.mediaIds ?? [];
     const items = ids.flatMap((id) => (media[id] ? [media[id]] : []));
-    const [choosing, setChoosing] = useState(ids.length === 0);
-    const chose = useRef(false);
+    const uploadedFor = useUploadTarget();
+    const pick = (adding: boolean): MediaPickerOptions => ({
+        caller: 'gallery',
+        multi: true,
+        action: adding ? __('Insert gallery') : __('Use these images'),
+        uploadedFor,
+        onInsert: (chosen) => {
+            void addMedia(chosen);
+            updateAttributes({ mediaIds: chosen.slice(0, 24) });
+        },
+        // A new card closed without a choice is removed.
+        onClose: adding ? deleteNode : undefined,
+    });
+    const { open, picker } = useMediaPicker(
+        ids.length === 0 ? pick(true) : null,
+    );
     const tooFew = ids.length < 2;
 
     return (
         <>
             <CardFrame
-                label="Gallery"
+                label={__('Gallery')}
                 selected={selected}
                 warning={
                     tooFew
                         ? {
-                              label: 'Needs two images',
-                              onClick: () => setChoosing(true),
+                              label: __('Needs two images'),
+                              onClick: () => open(pick(ids.length === 0)),
                           }
                         : null
                 }
-                onReplace={() => setChoosing(true)}
-                replaceLabel="Choose the gallery's images"
+                onReplace={() => open(pick(ids.length === 0))}
+                replaceLabel={__("Choose the gallery's images")}
                 onRemove={deleteNode}
                 settings={
                     <GallerySettings
@@ -83,7 +102,7 @@ export function GalleryCard({
                             ))}
                         </ul>
                         {attrs.caption && (
-                            <figcaption className="text-ink-2 mt-1.5 text-[13px]">
+                            <figcaption className="text-ink-2 text-small mt-2">
                                 {attrs.caption}
                             </figcaption>
                         )}
@@ -91,42 +110,27 @@ export function GalleryCard({
                 ) : ids.some((id) => loading.includes(id)) ? (
                     <div
                         aria-busy="true"
-                        className="bg-surface-2 h-32 w-full animate-pulse rounded-sm"
+                        className="bg-surface-2 h-32 w-full rounded-sm motion-safe:animate-pulse"
                     />
                 ) : (
-                    <p className="text-ink-2 text-[13px]">
+                    <p className="text-ink-2 text-small">
                         {ids.length > 0
-                            ? 'These images are no longer in the library, so the site shows nothing here.'
-                            : 'Choose two or more images from the library.'}
+                            ? __(
+                                  'These images are no longer in the library, so the site shows nothing here.',
+                              )
+                            : __('Choose two or more images from the library.')}
                     </p>
                 )}
                 {items.length < ids.length && items.length > 0 && (
-                    <p className="text-ink-2 mt-1.5 text-xs">
-                        {ids.length - items.length} of the images are no longer
-                        in the library and are left out.
+                    <p className="text-ink-2 text-caption mt-2">
+                        {__(
+                            ':count of the images are no longer in the library and are left out.',
+                            { count: ids.length - items.length },
+                        )}
                     </p>
                 )}
             </CardFrame>
-            <MediaModal
-                open={choosing}
-                onOpenChange={(open) => {
-                    setChoosing(open);
-
-                    if (!open && !chose.current && ids.length === 0) {
-                        deleteNode();
-                    }
-
-                    chose.current = false;
-                }}
-                kinds={['image']}
-                multiple
-                action={ids.length > 0 ? 'Use these images' : 'Insert gallery'}
-                onChoose={(chosen) => {
-                    chose.current = true;
-                    void addMedia(chosen);
-                    updateAttributes({ mediaIds: chosen.slice(0, 24) });
-                }}
-            />
+            {picker}
         </>
     );
 }
@@ -142,18 +146,18 @@ export function GallerySettings({
     return (
         <>
             <TextSetting
-                label="Caption"
+                label={__('Caption')}
                 value={attrs.caption}
                 onChange={(caption) => updateAttributes({ caption })}
             />
-            <CardField label="Layout">
+            <CardField label={__('Layout')}>
                 {(props) => (
                     <SelectField
                         {...props}
                         value={attrs.layout ?? 'grid'}
                         onValueChange={(layout) => updateAttributes({ layout })}
                         options={optionsFor(manifest, 'gallery', 'layout')}
-                        className="h-[34px] w-full max-w-40"
+                        className="h-8.5 w-full max-w-40"
                     />
                 )}
             </CardField>

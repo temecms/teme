@@ -3,7 +3,7 @@ import { ulid } from '@/lib/ulid';
 import type { CardManifestEntry } from '@/types';
 import type { RegionEntry } from './region-entry';
 
-/** Inserts a new card of this kind, with a fresh ID and the manifest's defaults. */
+/** Inserts a new card of this kind, with a fresh ID and the manifest's defaults, and selects it. */
 export function insertCard(editor: Editor, card: CardManifestEntry): void {
     const attrs = Object.fromEntries(
         card.attributes.map((attribute) => [
@@ -12,11 +12,22 @@ export function insertCard(editor: Editor, card: CardManifestEntry): void {
         ]),
     );
 
+    const id = ulid();
+
     editor
         .chain()
         .focus()
-        .insertContent({ type: card.name, attrs: { ...attrs, id: ulid() } })
+        .insertContent({ type: card.name, attrs: { ...attrs, id } })
         .run();
+
+    // The new card is selected, so the person is in it, not on the line after.
+    editor.state.doc.descendants((node, pos) => {
+        if (node.attrs.id === id) {
+            editor.commands.setNodeSelection(pos);
+        }
+
+        return node.attrs.id !== id;
+    });
 }
 
 /**

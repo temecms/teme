@@ -47,6 +47,7 @@ beforeEach(function (): void {
             };
             const writing = document.querySelector('[data-slot="editor-writing"]');
             const rail = document.querySelector('aside[aria-label="Post settings"]');
+            const railScroller = rail?.querySelector(':scope > [data-slot="scroll-area"]') ?? null;
 
             return {
                 window: Math.round(window.scrollY),
@@ -58,7 +59,7 @@ beforeEach(function (): void {
                 rail: top('aside[aria-label="Post settings"]'),
                 writingScrolled: Math.round(writing.scrollTop),
                 writingAtEnd: writing.scrollTop + writing.clientHeight >= writing.scrollHeight - 1,
-                railScrolled: rail === null ? null : Math.round(rail.scrollTop),
+                railScrolled: railScroller === null ? null : Math.round(railScroller.scrollTop),
             };
         }
         JS);
@@ -84,8 +85,8 @@ it('keeps the editor\'s header, its toolbar and its side panel in view while a 1
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 640), $this->edit));
     ($this->columnScrolls)($page);
 
-    // The side panel holds more than it shows, so its scroll below is real.
-    cmWaitUntil($page, "(() => { const rail = document.querySelector('aside[aria-label=\"Post settings\"]'); return rail !== null && rail.scrollHeight > rail.clientHeight; })()");
+    // The side panel holds more than it shows, so its scroll below is real; its scroll area is what scrolls.
+    cmWaitUntil($page, "(() => { const rail = document.querySelector('aside[aria-label=\"Post settings\"] > [data-slot=\"scroll-area\"]'); return rail !== null && rail.scrollHeight > rail.clientHeight; })()");
 
     $before = ($this->where)($page);
 
@@ -110,8 +111,8 @@ it('keeps the editor\'s header, its toolbar and its side panel in view while a 1
     // Back to the middle; the side panel scrolls on its own, and the article stays where it was.
     ($this->scrollToMiddle)($page);
     $after = ($this->where)($page);
-    ($this->scrollToEnd)($page, 'aside[aria-label="Post settings"]');
-    cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"]').scrollTop > 0");
+    ($this->scrollToEnd)($page, 'aside[aria-label="Post settings"] > [data-slot="scroll-area"]');
+    cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"] > [data-slot=\"scroll-area\"]').scrollTop > 0");
     $railed = ($this->where)($page);
 
     expect($railed['writingScrolled'])->toBe($after['writingScrolled'])

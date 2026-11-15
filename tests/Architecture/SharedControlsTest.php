@@ -27,7 +27,7 @@ it('gives no page its own select styling', function (string $page): void {
     expect(uiComponent($page))->not->toContain('selectClass')
         ->and(uiComponent($page))->not->toContain('<select')
         ->and(uiComponent($page))->toContain("from '@/components/ui/select-field'");
-})->with(['pages/content/index.tsx', 'components/people/invite-dialog.tsx', 'components/people/role-dialog.tsx', 'components/people/delete-dialog.tsx', 'components/list/screen-options.tsx', 'components/list/bulk-edit-dialog.tsx', 'components/themes/design-field.tsx']);
+})->with(['pages/content/index.tsx', 'components/people/invite-dialog.tsx', 'components/people/role-dialog.tsx', 'components/people/delete-dialog.tsx', 'components/list/column-chooser.tsx', 'components/list/bulk-edit-dialog.tsx', 'components/themes/design-field.tsx']);
 
 it('keeps the empty choice\'s sentinel inside the select field', function (): void {
     $field = uiComponent('components/ui/select-field.tsx');
@@ -95,21 +95,24 @@ it('marks the current tab with the foreground and a 2px accent underline', funct
         ->and($tabs)->not->toContain('text-accent');
 });
 
-it('draws 44px rows separated by hairlines in one bordered region', function (): void {
+it('draws the table in a raised frame that scrolls sideways, with a 44px header and no lines between rows (DS 4.26)', function (): void {
     $table = uiComponent('components/list/data-table.tsx');
 
-    // 12px cells above and below a 20px line make the 44px row.
-    expect($table)->toContain('h-11')
-        ->and($table)->toContain('py-3')
-        ->and($table)->toContain('leading-5')
-        ->and($table)->toContain('border-b')
-        ->and(substr_count($table, '<Card'))->toBe(1);
+    expect($table)->toContain('rounded-lg')
+        ->and($table)->toContain('shadow-raised')
+        ->and($table)->toContain('axis="x"')
+        ->and($table)->toContain('h-11')
+        ->and($table)->toContain('hover:bg-surface-2')
+        ->and($table)->toContain('bg-accent-soft')
+        ->and($table)->not->toContain('<Card')
+        ->and($table)->not->toContain('border-b');
 });
 
-it('gives the bulk bar a muted background and a hairline, not the accent', function (): void {
+it('draws the bulk bar on the accent\'s soft ground as a labelled region (DS 4.26)', function (): void {
     $bar = uiComponent('components/list/bulk-bar.tsx');
 
-    expect($bar)->toContain('bg-surface-2')
-        ->and($bar)->toContain('border-edge')
-        ->and($bar)->not->toContain('bg-accent');
+    expect($bar)->toContain('bg-accent-soft')
+        ->and($bar)->toContain('text-on-accent-soft')
+        ->and($bar)->toContain('aria-label')
+        ->and($bar)->not->toContain('bg-accent ');
 });

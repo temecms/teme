@@ -9,6 +9,7 @@ import { FieldsProposed } from '@/components/editor/rail/fields-proposed';
 import { SuggestMetadataPane } from '@/components/editor/rail/suggest-metadata';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { __ } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 import type { EditorAi } from '@/types';
 
@@ -28,11 +29,12 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
     const { request, use, putAside } = useAssistant();
 
     return (
-        <div className="grid gap-4 text-sm">
+        <div className="text-small grid gap-4">
             {ai.tasks.some((task) => task.key === 'rewrite') && (
                 <p className="text-ink-2">
-                    To rewrite text, select it within one paragraph and choose
-                    Rewrite in the menu that appears.
+                    {__(
+                        'To rewrite text, select it within one paragraph and choose Rewrite in the menu that appears.',
+                    )}
                 </p>
             )}
 
@@ -40,9 +42,9 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
 
             {request === null ? (
                 <p className="text-ink-2">
-                    Ask for a suggestion and it appears here. Nothing changes
-                    until you choose Use, and using a suggestion is one change
-                    you can undo.
+                    {__(
+                        'Ask for a suggestion and it appears here. Nothing changes until you choose Use, and using a suggestion is one change you can undo.',
+                    )}
                 </p>
             ) : (
                 <RequestCard
@@ -52,8 +54,10 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
                 />
             )}
 
-            <p className="text-ink-2 text-xs">
-                What you ask about is sent to {providerList(ai.sentTo)}.
+            <p className="text-ink-2 text-caption">
+                {__('What you ask about is sent to :providers.', {
+                    providers: providerList(ai.sentTo),
+                })}
                 {ai.canManage && (
                     <>
                         {' '}
@@ -61,13 +65,13 @@ export function AssistantPanel({ ai }: { ai: EditorAi }) {
                             href={showSettings({ group: 'ai' }).url}
                             className="underline underline-offset-2"
                         >
-                            Change this in Settings › AI
+                            {__('Change this in Settings › AI')}
                         </Link>
                     </>
                 )}
             </p>
-            <p className="text-ink-2 text-xs">
-                Ctrl + J or ⌘ J opens and closes this pane.
+            <p className="text-ink-2 text-caption">
+                {__('Ctrl + J or ⌘ J opens and closes this pane.')}
             </p>
         </div>
     );
@@ -90,7 +94,7 @@ function RequestCard({
             aria-labelledby="assistant-request"
             className="bg-surface-2 grid gap-2 rounded-md border p-3"
         >
-            <h3 id="assistant-request" className="text-xs font-medium">
+            <h3 id="assistant-request" className="text-caption font-medium">
                 {request.scope}
             </h3>
             {working && (
@@ -100,7 +104,7 @@ function RequestCard({
                             aria-live="polite"
                             className="flex items-center gap-2"
                         >
-                            <Spinner /> Working…
+                            <Spinner /> {__('Working…')}
                         </p>
                         <Button
                             size="sm"
@@ -108,11 +112,11 @@ function RequestCard({
                             data-test="ai-cancel"
                             onClick={onPutAside}
                         >
-                            Cancel
+                            {__('Cancel')}
                         </Button>
                     </div>
                     {request.slow && (
-                        <p className="text-ink-2 text-xs">
+                        <p className="text-ink-2 text-caption">
                             {ASSISTANT_WORDS.slow}
                         </p>
                     )}
@@ -146,13 +150,15 @@ function RequestCard({
                         data-test="ai-dismiss"
                         onClick={onPutAside}
                     >
-                        Dismiss
+                        {__('Dismiss')}
                     </Button>
                 </div>
             )}
             {request.sentTo.length > 0 && (
-                <p className="text-ink-2 text-xs">
-                    Sent to {request.sentTo.join(' and ')}
+                <p className="text-ink-2 text-caption">
+                    {__('Sent to :providers', {
+                        providers: request.sentTo.join(' and '),
+                    })}
                 </p>
             )}
         </section>

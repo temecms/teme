@@ -1,5 +1,6 @@
 import type { Discussion } from '@/lib/discussion';
 import type { FeaturedImage } from './media';
+import type { ListPages } from './list-pages';
 
 export type TermChip = { id: string; name: string };
 
@@ -77,8 +78,8 @@ export type ContentIndexPage = {
     /** The URL segment, such as posts. */
     type: string;
     rows: ContentRow[];
-    newer: string | null;
-    older: string | null;
+    /** Its place among the pages (I-3421). */
+    paging: ListPages;
     tabs: ContentTab[];
     filtered: boolean;
     /** The sort and direction in force, after any fallback the tab makes. */

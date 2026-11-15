@@ -32,8 +32,8 @@ it('opens the Pending view for whoever looks after comments, with its views, its
         ->where('views.1', ['key' => 'pending', 'label' => 'Pending', 'count' => 1])
         ->where('item', null)
         ->where('details', null)
-        ->where('newer', null)
-        ->where('older', null));
+        ->where('paging.newer', null)
+        ->where('paging.older', null));
 
     cmScreen($this->editor)->assertInertia(fn (Assert $page) => $page
         ->where('own', false)
@@ -124,7 +124,7 @@ it('refuses a drawer for a comment on someone else\'s item, and 404 for one that
 it('says "Move to trash" in the row menu, as every screen does, and never a bare "Trash" (issue 89)', function (): void {
     $source = uiComponent('pages/comments/index.tsx');
 
-    expect($source)->not->toContain("label: 'Trash'")
-        ->and(substr_count($source, 'TRASH'))->toBeGreaterThanOrEqual(3)
-        ->and($source)->toContain("label: 'Move to trash'");
+    expect($source)->not->toContain("__('Trash')")
+        ->and($source)->toContain("label: __('Move to trash')")
+        ->and($source)->toContain('entry(row, trash)');
 });

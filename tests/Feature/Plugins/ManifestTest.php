@@ -47,7 +47,18 @@ it('refuses each broken manifest with its sentence', function (Closure $break, s
     'hosts' => [fn (array $m): array => [...$m, 'capabilities' => ['http'], 'hosts' => ['10.0.0.1']], 'hosts must be a list of host names, such as api.example.com or *.example.com.'],
     'http without hosts' => [fn (array $m): array => [...$m, 'capabilities' => ['content.read', 'http']], 'It asks for http but names no hosts.'],
     'hosts without http' => [fn (array $m): array => [...$m, 'hosts' => ['api.example.com']], 'It names hosts but doesn’t ask for http.'],
+    'owns not an object' => [fn (array $m): array => [...$m, 'owns' => []], 'owns must be an object whose only key is tables.'],
+    'owns with another key' => [fn (array $m): array => [...$m, 'owns' => ['tables' => ['hello_links'], 'files' => []]], 'owns must be an object whose only key is tables.'],
+    'owns.tables not a list' => [fn (array $m): array => [...$m, 'owns' => ['tables' => ['hello_links' => true]]], 'owns.tables must be a list of distinct table names.'],
+    'owns.tables duplicate' => [fn (array $m): array => [...$m, 'owns' => ['tables' => ['hello_links', 'hello_links']]], 'owns.tables must be a list of distinct table names.'],
+    'owns.tables pattern' => [fn (array $m): array => [...$m, 'owns' => ['tables' => ['Hello_links']]], 'owns.tables "Hello_links" must be a lower-case name of letters, digits and underscores, starting with a letter.'],
+    'owns.tables prefix' => [fn (array $m): array => [...$m, 'owns' => ['tables' => ['other_links']]], 'owns.tables "other_links" must start with the plugin’s prefix "hello_".'],
+    'owns.tables too long' => [fn (array $m): array => [...$m, 'owns' => ['tables' => ['hello_'.str_repeat('a', 58)]]], 'owns.tables "hello_'.str_repeat('a', 58).'" must be at most 63 characters.'],
 ]);
+
+it('accepts a valid owns.tables list', function (): void {
+    expect(($this->errors)(PluginFixtures::manifest('tables'), 'tables', PluginFixtures::composer('tables')))->toBe([]);
+});
 
 it('refuses a class that isn’t a plugin', function (): void {
     $manifest = [...PluginFixtures::manifest('greedy'), 'plugin' => 'Tests\\Fixtures\\Plugins\\Greedy\\NotAPlugin'];

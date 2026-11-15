@@ -19,18 +19,18 @@ beforeEach(function (): void {
     $this->author = User::factory()->create(['name' => 'Ada'])->assignRole('author');
 });
 
-it('writes each row\'s state after its title, as WordPress\'s post states do, and draws no Status column', function (): void {
+it('writes each row\'s state on a pill in its Status column, as WordPress\'s post states do', function (): void {
     $list = uiComponent('pages/content/index.tsx');
 
-    expect($list)->toContain("draft: 'Draft'")
-        ->toContain("review: 'In review'")
-        ->toContain("scheduled: 'Scheduled'")
-        ->toContain("'Update in review'")
-        ->toContain('data-test="status-suffix"')
-        ->toContain('` — ${suffix}`')
-        ->toContain("'Private'")
+    expect($list)->toContain("__('Draft')")
+        ->toContain("__('In review')")
+        ->toContain("__('Scheduled')")
+        ->toContain("__('Update in review')")
+        ->toContain('<StatusPill')
+        ->toContain("__('Private')")
         ->toContain('Later (I-1451)')
-        ->not->toMatch("/id:\s*'status'/")
+        ->toMatch("/id:\s*'status'/")
+        ->not->toContain('data-test="status-suffix"')
         ->not->toContain('StatusBadge');
 });
 
@@ -58,7 +58,7 @@ it('labels a row Published, with its published date, only while it is live', fun
     expect(uiComponent('pages/content/index.tsx'))
         ->toContain("const live = row.status === 'published' && !row.trashed;")
         ->toMatch('/live\s*\?\s*\(?row\.publishedAt \?\? row\.updatedAt\)?\s*:\s*row\.updatedAt/')
-        ->toMatch("/live\s*\?\s*'Published'\s*:\s*'Last modified'/");
+        ->toMatch("/live\s*\?\s*__\('Published'\)\s*:\s*__\('Last modified'\)/");
 })->with([
     'a live item' => ['a live item', true],
     'a reverted draft, which keeps its published date' => ['a reverted draft', false],
@@ -67,23 +67,23 @@ it('labels a row Published, with its published date, only while it is live', fun
 
 it('offers View at a live item\'s address and Preview otherwise, as plain links that open a new tab, and says so to screen readers', function (): void {
     expect(uiComponent('pages/content/index.tsx'))
-        ->toMatch("/id: 'preview',\s*owner: 'core',\s*label: 'Preview',\s*href: contentPreview\(row\.id\)\.url,\s*newTab: true/")
+        ->toMatch("/id: 'preview',\s*owner: 'core',\s*label: __\('Preview'\),\s*href: contentPreview\(row\.id\)\.url,\s*newTab: true/")
         ->not->toContain('Later (I-204)')
         ->not->toContain('Later (1.6)')
-        ->toMatch("/id: 'view',\s*owner: 'core',\s*label: 'View',\s*href: row\.viewUrl,\s*newTab: true/")
-        ->and(uiComponent('components/list/row-actions.tsx'))->toContain('target="_blank"')
+        ->toMatch("/id: 'view',\s*owner: 'core',\s*label: __\('View'\),\s*href: row\.viewUrl,\s*newTab: true/")
+        ->and(uiComponent('components/list/row-menu.tsx'))->toContain('target="_blank"')
         ->toContain('rel="noreferrer"')
         ->toContain(', opens in a new tab')
-        ->and(uiComponent('components/list/row-links.tsx'))->toContain('target="_blank"')
+        ->and(uiComponent('components/list/row-line.tsx'))->toContain('target="_blank"')
         ->toContain(', opens in a new tab');
 });
 
 it('asks before deleting one item permanently, saying its revisions go too (I-646)', function (): void {
     expect(uiComponent('pages/content/index.tsx'))
-        ->toContain("label: 'Delete permanently'")
-        ->toContain('title={`Delete “${titleOf(row)}” permanently?`}')
-        ->toContain('description={`“${titleOf(row)}” and all its revisions are deleted. This can’t be undone.`}')
-        ->toMatch("/action\('trash', 'Trash', true\)/");
+        ->toContain("label: __('Delete permanently')")
+        ->toContain("__('Delete “:title” permanently?'")
+        ->toContain("'“:title” and all its revisions are deleted. This can’t be undone.'")
+        ->toMatch("/action\('trash', __\('Trash'\), true\)/");
 });
 
 it('says "Deleted permanently." after a row is deleted permanently (I-646)', function (): void {

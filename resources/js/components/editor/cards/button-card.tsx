@@ -1,5 +1,8 @@
 import type { ReactNodeViewProps } from '@tiptap/react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { SelectField } from '@/components/ui/select-field';
 import { cn } from '@/lib/utils';
 import { useLinkTargets } from '../use-link-targets';
@@ -7,6 +10,7 @@ import { CardField, CardFrame, TextSetting } from './card-frame';
 import { optionsFor, useCardEnvironment } from './card-environment';
 import type { CardSettingsProps } from './card-environment';
 import { shownTitle } from '@/lib/titles';
+import { __ } from '@/lib/i18n';
 
 /**
  * A button: a label, and where it leads. An article is stored by its ID and
@@ -27,13 +31,13 @@ export function ButtonCard({
 
     return (
         <CardFrame
-            label="Button"
+            label={__('Button')}
             selected={selected}
             warning={
                 label.trim() === ''
-                    ? { label: 'Needs a label' }
+                    ? { label: __('Needs a label') }
                     : leadsNowhere
-                      ? { label: 'Needs a destination' }
+                      ? { label: __('Needs a destination') }
                       : null
             }
             onRemove={deleteNode}
@@ -51,12 +55,12 @@ export function ButtonCard({
                             : 'bg-accent text-on-accent',
                     )}
                 >
-                    {label || 'Button'}
+                    {label || __('Button')}
                 </span>
-                <span className="text-ink-2 truncate text-xs">
+                <span className="text-ink-2 text-caption truncate">
                     {contentId
-                        ? 'Leads to an item on this site'
-                        : url || 'Leads nowhere yet'}
+                        ? __('Leads to an item on this site')
+                        : url || __('Leads nowhere yet')}
                 </span>
             </div>
         </CardFrame>
@@ -81,54 +85,59 @@ export function ButtonSettings({
     return (
         <>
             <TextSetting
-                label="Label"
+                label={__('Label')}
                 value={label}
                 onChange={(next) => updateAttributes({ label: next })}
             />
             <CardField
-                label="Link to something on this site"
-                hint="The button follows it if its address changes."
+                label={__('Link to something on this site')}
+                hint={__('The button follows it if its address changes.')}
             >
                 {(props) => (
                     <div className="grid gap-1">
-                        <input
+                        <Input
                             {...props}
                             value={query}
-                            placeholder="Search by title"
+                            placeholder={__('Search by title')}
                             onFocus={() => setSearching(true)}
                             onChange={(event) => setQuery(event.target.value)}
-                            className="border-edge bg-surface focus-visible:ring-ring h-[34px] w-full rounded-md border px-3 text-[13px] outline-none focus-visible:ring-2"
+                            className="text-small h-8.5"
                         />
                         {searching && targets.length > 0 && (
-                            <ul className="border-line max-h-40 overflow-y-auto rounded-md border">
-                                {targets.map((target) => (
-                                    <li key={target.id}>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                updateAttributes({
-                                                    contentId: target.id,
-                                                    url: null,
-                                                });
-                                                setChosenTitle(target.title);
-                                                setSearching(false);
-                                            }}
-                                            className="hover:bg-surface-3 focus-visible:ring-ring w-full px-2 py-1.5 text-left text-[13px] outline-none focus-visible:ring-2"
-                                        >
-                                            {shownTitle(target.title)}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                            <ScrollArea className="border-line max-h-40 rounded-md border">
+                                <ul>
+                                    {targets.map((target) => (
+                                        <li key={target.id}>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    updateAttributes({
+                                                        contentId: target.id,
+                                                        url: null,
+                                                    });
+                                                    setChosenTitle(
+                                                        target.title,
+                                                    );
+                                                    setSearching(false);
+                                                }}
+                                                className="text-ink text-small h-auto w-full justify-start px-2 py-2 text-left font-normal whitespace-normal"
+                                            >
+                                                {shownTitle(target.title)}
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </ScrollArea>
                         )}
                     </div>
                 )}
             </CardField>
             <TextSetting
-                label="Or an address"
-                hint="An address on another site."
+                label={__('Or an address')}
+                hint={__('An address on another site.')}
                 value={contentId ? '' : url}
-                placeholder="https://"
+                placeholder={__('https://')}
                 onChange={(next) => {
                     updateAttributes({
                         url: next === '' ? null : next,
@@ -137,7 +146,7 @@ export function ButtonSettings({
                     setChosenTitle(null);
                 }}
             />
-            <CardField label="Style">
+            <CardField label={__('Style')}>
                 {(props) => (
                     <SelectField
                         {...props}
@@ -146,7 +155,7 @@ export function ButtonSettings({
                             updateAttributes({ style: next })
                         }
                         options={optionsFor(manifest, 'button', 'style')}
-                        className="h-[34px] w-full max-w-40"
+                        className="h-8.5 w-full max-w-40"
                     />
                 )}
             </CardField>

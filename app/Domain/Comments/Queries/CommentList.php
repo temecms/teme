@@ -9,6 +9,7 @@ use App\Domain\Comments\CommentStatusRegistry;
 use App\Domain\Comments\CommentText;
 use App\Domain\Contents\Queries\ContentAbilities;
 use App\Domain\Support\Queries\Cursor;
+use App\Domain\Support\Queries\ListPages;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -16,8 +17,8 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The Comments screen's list (1.8c): one keyset page of a view, newest
- * first, for the items the person looks after (CommentScope), items in the
+ * The Comments screen's list (1.8c): one page of a view, newest first, by
+ * number up to the cap and by keyset past it (I-3421), for the items the person looks after (CommentScope), items in the
  * trash left out; each view's count (C10); the item a list is narrowed to;
  * the order deleting many runs in; and what an Empty press covers (1.8c′).
  */
@@ -66,11 +67,11 @@ final class CommentList
     }
 
     /**
-     * One page of a view (D4, D6, D7): its rows newest first, the cursors
-     * either side of it, and the view in force, Pending when the request
-     * names none that exists.
+     * One page of a view (D4, D6, D7): its rows newest first, its place among
+     * the pages with a capped count (ListPages), and the view in force,
+     * Pending when the request names none that exists.
      *
-     * @return array{rows: list<array<string, mixed>>, newer: string|null, older: string|null, view: string}
+     * @return array{rows: list<array<string, mixed>>, paging: array{number: int|null, last: int, more: bool, from: int|null, to: int|null, total: int|null, newer: string|null, older: string|null}, view: string}
      */
     public function page(CommentListRequest $request): array
     {
@@ -95,8 +96,14 @@ final class CommentList
             // An address leaves the database only for those who see it (I-270 B, D14).
             ->selectRaw($scope->everyItem ? 'host(comments.ip) AS ip' : 'NULL AS ip');
 
+        // Counted up to the cap on every page, so every page costs the same.
+        $cappedCount = ListPages::count($query, $perPage);
+        $pageNumber = $cursor === null ? ListPages::requested($request->page) : null;
+
         if ($cursor !== null) {
             $query->where('comments.id', $backwards ? '>' : '<', (string) $cursor[0]);
+        } elseif ($pageNumber > 1) {
+            $query->offset(($pageNumber - 1) * $perPage);
         }
 
         $rows = $query->orderBy('comments.id', $backwards ? 'asc' : 'desc')->limit($perPage + 1)->get();
@@ -114,8 +121,15 @@ final class CommentList
 
         return [
             'rows' => $rows->map(fn (object $row): array => $this->row($row, $viewer, $replies))->values()->all(),
-            'newer' => $first !== null && ($backwards ? $hasMore : $cursor !== null) ? Cursor::encode([(string) $first->id]) : null,
-            'older' => $last !== null && ($backwards || $hasMore) ? Cursor::encode([(string) $last->id]) : null,
+            'paging' => ListPages::describe(
+                $pageNumber,
+                $perPage,
+                $rows->count(),
+                null,
+                $cappedCount,
+                $first !== null && ($backwards ? $hasMore : $cursor !== null) ? Cursor::encode([(string) $first->id]) : null,
+                $last !== null && ($backwards || $hasMore) ? Cursor::encode([(string) $last->id]) : null,
+            ),
             'view' => $view,
         ];
     }

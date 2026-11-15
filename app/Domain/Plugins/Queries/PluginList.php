@@ -13,6 +13,7 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
+use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Site\SiteDates;
 use App\Models\User;
 use Composer\Semver\Semver;
@@ -30,6 +31,7 @@ final readonly class PluginList
         private ManifestValidator $validator,
         private LoadedPlugins $loaded,
         private PluginLoader $loader,
+        private PluginMigrations $migrations,
     ) {}
 
     /**
@@ -115,6 +117,10 @@ final readonly class PluginList
 
         if (! Consent::covers($record->consent, $manifest)) {
             return [PluginState::Waiting, __('Update :version is blocked: it asks for more access than you agreed to.', ['version' => $manifest->version()])];
+        }
+
+        if ($this->migrations->waiting($plugin, $record->migrations) !== []) {
+            return [PluginState::Waiting, __('Version :version has database changes to run.', ['version' => $manifest->version()])];
         }
 
         $failure = $this->loaded->failure($name);

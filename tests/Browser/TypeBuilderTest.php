@@ -212,7 +212,8 @@ it('saves a type that isn’t public, has items and was saved as searchable, its
 
 it('preloads at most 48 files on the media screen, the whole icon set staying one lazy file', function (): void {
     // I-3311: lucide-react/dynamic split every icon into its own file and roughly doubled each admin page's
-    // preloads (media 34 to 64). One lazy file for the set measured 42 on /admin/media; 48 leaves a margin.
+    // preloads (media 34 to 64). One lazy file for the set measured 42 on /admin/media; 48 left a margin.
+    // Since the design system's components share one file (I-3443), /admin/media measures 22.
     $page = cmSignIn($this->admin)->navigate('/admin/media');
     cmWaitUntil($page, 'document.querySelector(\'a[data-slot="sidebar-menu-button"]\') !== null');
 

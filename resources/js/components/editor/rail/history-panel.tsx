@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import RevisionController from '@/actions/App/Http/Admin/Contents/RevisionController';
 import { Button } from '@/components/ui/button';
+import { __ } from '@/lib/i18n';
 import { compare } from '@/routes/content';
 import { index as aiActivity } from '@/routes/tools/ai-activity';
 import { RestoreButton } from '../restore-button';
@@ -47,7 +48,7 @@ function Assistant({ assistant }: { assistant: RevisionAssistant }) {
     return (
         <Link
             href={aiActivity({ query: { row: assistant.row } }).url}
-            aria-label={`${words}, in AI activity`}
+            aria-label={__(':words, in AI activity', { words })}
             className="text-accent-ink underline-offset-2 hover:underline"
         >
             {words}
@@ -129,7 +130,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
     return (
         <div className="grid gap-3 p-4">
             {problem && (
-                <p role="alert" className="text-danger-ink text-[13px]">
+                <p role="alert" className="text-danger-ink text-small">
                     {problem}
                 </p>
             )}
@@ -137,7 +138,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                 {rows.map((row, index) => (
                     <li
                         key={row.id}
-                        className="border-line grid gap-0.5 border-b py-2 text-[13px] last:border-b-0"
+                        className="border-line text-small grid gap-0.5 border-b py-2 last:border-b-0"
                     >
                         {/* Each row opens the comparison with the revision
                             before it; the first has nothing before it. */}
@@ -152,13 +153,13 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                                 })}
                             </time>
                             {row.isPublished && (
-                                <span className="text-ok-ink text-[11px] font-medium">
-                                    Live
+                                <span className="text-ok-ink text-caption font-medium">
+                                    {__('Live')}
                                 </span>
                             )}
                             {row.isWorking && (
-                                <span className="text-ink-2 text-[11px] font-medium">
-                                    Current
+                                <span className="text-ink-2 text-caption font-medium">
+                                    {__('Current')}
                                 </span>
                             )}
                         </span>
@@ -172,9 +173,9 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                                         },
                                     }).url
                                 }
-                                className="text-accent-ink justify-self-start text-xs underline-offset-2 hover:underline"
+                                className="text-accent-ink text-caption justify-self-start underline-offset-2 hover:underline"
                             >
-                                Compare with the version before
+                                {__('Compare with the version before')}
                             </Link>
                         )}
                         {!row.isWorking && (
@@ -189,8 +190,8 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                 ))}
             </ol>
             {loading && (
-                <p aria-busy="true" className="text-ink-2 text-xs">
-                    Loading…
+                <p aria-busy="true" className="text-ink-2 text-caption">
+                    {__('Loading…')}
                 </p>
             )}
             {older !== null && !loading && (
@@ -201,7 +202,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                     className="justify-self-start"
                     onClick={() => void load(older)}
                 >
-                    Load older
+                    {__('Load older')}
                 </Button>
             )}
         </div>

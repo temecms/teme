@@ -46,6 +46,12 @@ export default defineConfig({
                             test: /lucide-react[\\/]dist[\\/]esm[\\/]icons[\\/](?!index\.js)[^\\/]+\.js$/,
                             tags: ['$initial'],
                         },
+                        // The design system's components in one file, instead of a small file for each one two
+                        // screens share (I-3443). Each screen's own code still loads only when it opens.
+                        {
+                            name: 'ui',
+                            test: /resources[\\/]js[\\/]components[\\/]ui[\\/]/,
+                        },
                     ],
                 },
             },

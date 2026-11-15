@@ -15,6 +15,7 @@ import { Typography } from '@tiptap/extension-typography';
 import { Placeholder } from '@tiptap/extensions';
 import { StarterKit } from '@tiptap/starter-kit';
 import type { CardManifestEntry } from '@/types';
+import { __ } from '@/lib/i18n';
 import { blockIds } from './block-ids';
 import { cardExtension } from './cards/card-extension';
 import { linkTarget, normaliseHref } from './link-address';
@@ -89,7 +90,12 @@ export function temeExtensions(
     return [
         // Heading levels 2 to 4: the article's h1 is its title, a separate field.
         // StarterKit 3 already includes Underline.
-        StarterKit.configure({ heading: { levels: [2, 3, 4] }, link: false }),
+        StarterKit.configure({
+            heading: { levels: [2, 3, 4] },
+            link: false,
+            // Where a dragged block lands: a 3px line in the accent.
+            dropcursor: { width: 3, color: 'var(--accent)' },
+        }),
         Highlight,
         Subscript,
         Superscript,
@@ -112,7 +118,9 @@ export function temeExtensions(
                   closeSingleQuote: false,
               }),
         TemeLink,
-        Placeholder.configure({ placeholder: 'Write something…' }),
+        Placeholder.configure({
+            placeholder: () => __('Write, or type / for a block'),
+        }),
         ...cards.map(cardExtension),
     ];
 }

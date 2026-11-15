@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { __ } from '@/lib/i18n';
 import { addDays, nowIn, weekday, zonedToIso } from '@/lib/zoned-time';
 
 /** The field's own sentence. */
@@ -54,9 +55,12 @@ export function ScheduleControl({
     const evening = today.time < '18:00' ? today.date : addDays(today.date, 1);
     const monday = addDays(today.date, (8 - weekday(today.date)) % 7 || 7);
     const presets = [
-        { label: 'This evening', at: `${evening}T18:00` },
-        { label: 'Tomorrow morning', at: `${addDays(today.date, 1)}T09:00` },
-        { label: 'Next Monday', at: `${monday}T09:00` },
+        { label: __('This evening'), at: `${evening}T18:00` },
+        {
+            label: __('Tomorrow morning'),
+            at: `${addDays(today.date, 1)}T09:00`,
+        },
+        { label: __('Next Monday'), at: `${monday}T09:00` },
     ];
 
     // The zone's own name for itself, "West Africa Standard Time", beside
@@ -75,7 +79,7 @@ export function ScheduleControl({
             <div
                 role="group"
                 aria-label="Quick choices"
-                className="flex flex-wrap gap-1.5"
+                className="flex flex-wrap gap-2"
             >
                 {presets.map((preset) => (
                     <Button
@@ -100,14 +104,17 @@ export function ScheduleControl({
                 }
                 onChange={(event) => onChange(event.target.value)}
             />
-            <p id={`${id}-zone`} className="text-ink-2 text-xs">
-                Times are in the site’s zone: {zoneName} ({siteTimezone}).
+            <p id={`${id}-zone`} className="text-ink-2 text-caption">
+                {__('Times are in the site’s zone: :zone (:id).', {
+                    zone: zoneName,
+                    id: siteTimezone,
+                })}
             </p>
             {error !== null && (
                 <p
                     id={`${id}-error`}
                     role="alert"
-                    className="text-danger-ink text-xs"
+                    className="text-danger-ink text-caption"
                 >
                     {error}
                 </p>

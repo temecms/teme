@@ -1,3 +1,4 @@
+import { __ } from '@/lib/i18n';
 import type { FieldChange, TermChange } from '@/types';
 
 /** One field's change in words: before → after, or whichever side there is. */
@@ -41,10 +42,10 @@ export function MetaChanges({
     return (
         <section
             aria-labelledby="meta-changes-title"
-            className="border-line grid gap-2 rounded-md border px-4 py-3 text-[13px]"
+            className="border-line text-small grid gap-2 rounded-md border px-4 py-3"
         >
             <h2 id="meta-changes-title" className="font-semibold">
-                Fields and categories
+                {__('Fields and categories')}
             </h2>
             <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1">
                 {fields.map((change) => (

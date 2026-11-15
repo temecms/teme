@@ -117,8 +117,8 @@ it('asks before anything that cannot be undone', function (string $file, string 
     expect(uiComponent($file))->toMatch('/<ConfirmAction\b[^<]*?'.preg_quote($needle, '/').'/s')
         ->and(uiComponent('components/confirm-action.tsx'))->toContain("from '@/components/ui/dialog'");
 })->with([
-    'deleting permanently, from the row' => ['pages/content/index.tsx', 'confirmLabel="Delete permanently"'],
-    'deleting a term' => ['pages/terms/index.tsx', 'confirmLabel={`Delete ${singular}`}'],
+    'deleting permanently, from the row' => ['pages/content/index.tsx', "confirmLabel={__('Delete permanently')}"],
+    'deleting a term' => ['pages/terms/index.tsx', "confirmLabel={__('Delete :singular', { singular })}"],
     'disabling two-factor sign-in' => ['components/manage-two-factor.tsx', "'Turn off two-factor sign-in',"],
     'deleting redirects' => ['pages/tools/redirects.tsx', 'confirmLabel={deleteLabel('],
     'forgetting a site’s application password' => ['components/import/run-report.tsx', "confirmLabel={__('Forget this site')}"],
@@ -130,6 +130,6 @@ it('asks before anything that cannot be undone', function (string $file, string 
 ]);
 
 it('asks before deleting permanently in bulk, in a dialog that names each item', function (): void {
-    expect(uiComponent('pages/content/index.tsx'))->toMatch('/<ConfirmItems\b[^<]*?confirmLabel="Delete permanently"/s')
+    expect(uiComponent('pages/content/index.tsx'))->toMatch("/<ConfirmItems\\b[^<]*?confirmLabel=\\{__\\('Delete permanently'\\)\\}/s")
         ->and(uiComponent('components/list/confirm-items.tsx'))->toContain("from '@/components/ui/dialog'");
 });

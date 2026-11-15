@@ -29,6 +29,7 @@ it('gives a person the declared defaults before they change anything', function 
         'editor.smart_quotes' => true,
         'editor.rail_width' => 360,
         'editor.focus_mode_default' => false,
+        'editor.pinned_tools' => ['assistant', 'share'],
         'lists.per_page' => 50,
         'appearance.mode' => 'system',
         'dashboard.getting_started_hidden' => false,

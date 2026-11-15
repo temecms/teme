@@ -6,6 +6,7 @@ import { ListPage } from '@/components/patterns/list-page';
 import { ConsentDialog } from '@/components/plugins/consent-dialog';
 import { DetailsDialog } from '@/components/plugins/details-dialog';
 import { PluginRow } from '@/components/plugins/plugin-row';
+import { RemoveDataDialog } from '@/components/plugins/remove-data-dialog';
 import { Panel } from '@/components/ui/panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { __ } from '@/lib/i18n';
@@ -52,31 +53,62 @@ function tabLabel(key: Tab): string {
     }
 }
 
-/** Where an enable request waits while the person types their password on Fortify's screen. */
+/** Where a password-gated request waits while the person types their password. */
 const PENDING_KEY = 'teme.plugins.pending';
 
 /** A request is carried on only if it was asked for in the last ten minutes. */
 const PENDING_MINUTES = 10;
 
-type Pending = { code: string; post: PluginEnablePost; at: number };
+type Pending =
+    | { kind: 'enable'; code: string; post: PluginEnablePost; at: number }
+    | { kind: 'migrate' | 'remove-data'; code: string; at: number };
 
 /** Storage may be missing or refuse; the page then works as it does with no marker. */
 function readPending(): Pending | null {
     try {
         const raw = sessionStorage.getItem(PENDING_KEY);
 
-        return raw === null ? null : (JSON.parse(raw) as Pending);
+        if (raw === null) {
+            return null;
+        }
+
+        const parsed = JSON.parse(raw) as {
+            kind?: string;
+            code?: string;
+            post?: PluginEnablePost;
+            at?: number;
+        };
+
+        if (typeof parsed.code !== 'string' || typeof parsed.at !== 'number') {
+            return null;
+        }
+
+        if (parsed.kind === 'migrate' || parsed.kind === 'remove-data') {
+            return { kind: parsed.kind, code: parsed.code, at: parsed.at };
+        }
+
+        // A saved sign-in marker with no kind is enable when it has a post.
+        if (
+            (parsed.kind === 'enable' || parsed.kind === undefined) &&
+            parsed.post !== undefined
+        ) {
+            return {
+                kind: 'enable',
+                code: parsed.code,
+                post: parsed.post,
+                at: parsed.at,
+            };
+        }
+
+        return null;
     } catch {
         return null;
     }
 }
 
-function writePending(code: string, post: PluginEnablePost): void {
+function writePending(pending: Pending): void {
     try {
-        sessionStorage.setItem(
-            PENDING_KEY,
-            JSON.stringify({ code, post, at: Date.now() }),
-        );
+        sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
     } catch {
         // The person presses the button again, as without a marker.
     }
@@ -90,17 +122,27 @@ function removePending(): void {
     }
 }
 
+function pendingUrl(pending: Pending): string {
+    switch (pending.kind) {
+        case 'enable':
+            return PluginsController.enable.url({ code: pending.code });
+        case 'migrate':
+            return PluginsController.migrate.url({ code: pending.code });
+        case 'remove-data':
+            return PluginsController.removeData.url({ code: pending.code });
+    }
+}
+
 /**
  * Site › Plugins: every plugin with its state and why, enabled through a
- * consent dialog and disabled with one click. Enabling posts plainly; without
- * a recent password check the server sends the person to the password screen
- * and back, and the page then makes the request again from a marker kept in
- * sessionStorage (I-3342).
+ * consent dialog, migrated or cleared of data after the password screen, and
+ * disabled with one click (I-3353, I-3442, I-3342).
  */
 export default function Plugins({ plugins }: PluginsPage) {
     const [tab, setTab] = useState<Tab>('all');
     const [asking, setAsking] = useState<PluginRowPage | null>(null);
     const [details, setDetails] = useState<PluginRowPage | null>(null);
+    const [removing, setRemoving] = useState<PluginRowPage | null>(null);
     // What opened a dialog, so closing it puts focus back there.
     const [opener, setOpener] = useState<HTMLElement | null>(null);
 
@@ -110,10 +152,15 @@ export default function Plugins({ plugins }: PluginsPage) {
 
     // Closing a dialog gives focus back to the button that opened it.
     useEffect(() => {
-        if (asking === null && details === null && opener !== null) {
+        if (
+            asking === null &&
+            details === null &&
+            removing === null &&
+            opener !== null
+        ) {
             opener.focus();
         }
-    }, [asking, details, opener]);
+    }, [asking, details, removing, opener]);
 
     // Back from the password screen: the request is made again, once.
     useEffect(() => {
@@ -133,8 +180,8 @@ export default function Plugins({ plugins }: PluginsPage) {
         removePending();
 
         router.post(
-            PluginsController.enable.url({ code: pending.code }),
-            pending.post,
+            pendingUrl(pending),
+            pending.kind === 'enable' ? pending.post : {},
             {
                 headers: { 'X-Teme-Ask-In-Place': '1' },
                 onHttpException: (response) => {
@@ -152,9 +199,55 @@ export default function Plugins({ plugins }: PluginsPage) {
             PluginsController.enable.url({ code: plugin.code }),
             plugin.shown,
             {
-                onBefore: () => writePending(plugin.code, plugin.shown),
+                onBefore: () =>
+                    writePending({
+                        kind: 'enable',
+                        code: plugin.code,
+                        post: plugin.shown,
+                        at: Date.now(),
+                    }),
                 onSuccess: (page) => {
-                    // Straight through: nothing is pending.
+                    if (page.component === 'plugins/index') {
+                        removePending();
+                    }
+                },
+            },
+        );
+    };
+
+    const migrate = (plugin: PluginRowPage) => {
+        router.post(
+            PluginsController.migrate.url({ code: plugin.code }),
+            {},
+            {
+                onBefore: () =>
+                    writePending({
+                        kind: 'migrate',
+                        code: plugin.code,
+                        at: Date.now(),
+                    }),
+                onSuccess: (page) => {
+                    if (page.component === 'plugins/index') {
+                        removePending();
+                    }
+                },
+            },
+        );
+    };
+
+    const removeData = (plugin: PluginRowPage) => {
+        setRemoving(null);
+        router.post(
+            PluginsController.removeData.url({ code: plugin.code }),
+            {},
+            {
+                onBefore: () =>
+                    writePending({
+                        kind: 'remove-data',
+                        code: plugin.code,
+                        at: Date.now(),
+                    }),
+                onSuccess: (page) => {
                     if (page.component === 'plugins/index') {
                         removePending();
                     }
@@ -175,6 +268,11 @@ export default function Plugins({ plugins }: PluginsPage) {
     const onDetails = (row: PluginRowPage, button: HTMLElement | null) => {
         setOpener(button);
         setDetails(row);
+    };
+
+    const onRemoveData = (row: PluginRowPage, button: HTMLElement | null) => {
+        setOpener(button);
+        setRemoving(row);
     };
 
     return (
@@ -244,6 +342,10 @@ export default function Plugins({ plugins }: PluginsPage) {
                                                         onAsk={onAsk}
                                                         onDisable={disable}
                                                         onDetails={onDetails}
+                                                        onMigrate={migrate}
+                                                        onRemoveData={
+                                                            onRemoveData
+                                                        }
                                                     />
                                                 ))}
                                             </ul>
@@ -263,6 +365,11 @@ export default function Plugins({ plugins }: PluginsPage) {
                 <DetailsDialog
                     plugin={details}
                     onClose={() => setDetails(null)}
+                />
+                <RemoveDataDialog
+                    plugin={removing}
+                    onClose={() => setRemoving(null)}
+                    onConfirm={removeData}
                 />
             </ListPage>
         </>

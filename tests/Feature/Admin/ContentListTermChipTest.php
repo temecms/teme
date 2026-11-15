@@ -52,13 +52,12 @@ it('leaves out a tag filter whose term is not a tag, or has gone', function (str
             ->where('filters.tag', $id));
 })->with(['a category', 'one that has gone']);
 
-it('keeps a flat taxonomy\'s filter when another filter applies, and names it in a chip that removes it', function (): void {
+it('keeps a flat taxonomy\'s filter when another filter applies, and names it in its own filter, which removes it', function (): void {
     expect(uiComponent('pages/content/index.tsx'))
         ->toMatch('/\(taxonomy\) => !taxonomy\.hierarchical/')
-        ->toMatch('/flat\.flatMap\(\s*\(taxonomy\) =>/')
-        ->toContain('data-test="filter-chip"')
-        ->toContain('aria-label={`Remove the filter: ${chip.label}`}')
-        ->toContain("?? 'not found'")
-        ->toContain('termChips.length > 0')
-        ->toContain('size-6');
+        ->toMatch('/flat\.map\(\s*\(taxonomy\) =>\s*\(\s*<TermSearchFilter/')
+        ->toContain('valueName={page.chosenTerms[taxonomy.key]}')
+        ->and(uiComponent('components/list/filter-row.tsx'))
+        ->toContain("valueName ?? __('Not found')")
+        ->toContain('next.value === ALL ? null : next.value');
 });

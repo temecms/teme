@@ -13,6 +13,7 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Media\MediaUrls;
 use App\Domain\Site\SiteLanguage;
 use App\Domain\Support\Queries\Cursor;
+use App\Domain\Support\Queries\ListPages;
 use App\Domain\Taxonomy\Queries\TermTree;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
@@ -24,9 +25,9 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 
 /**
- * Every Posts and Pages list: one page of rows, paged by keyset in either
- * direction so page one and page twenty thousand cost the same (I-140), with
- * the tab counts from content_counts. Filters and search show no total.
+ * Every Posts and Pages list: one page of rows, by number up to the cap and
+ * by keyset past it, so a deep page costs what page one does (I-140, I-3421),
+ * with the tab counts from content_counts. A filtered list's total is capped.
  */
 final class ContentList
 {
@@ -74,8 +75,9 @@ final class ContentList
     public function __construct(private readonly TermTree $tree) {}
 
     /**
-     * One page of the list the request describes, the cursors either side of
-     * it, the tabs with their counts, whether a filter or search narrowed it,
+     * One page of the list the request describes, its place among the pages
+     * (ListPages; `newer` and `older` repeat its cursors for the bulk runs
+     * that walk a list by keyset), the tabs with their counts, whether a filter or search narrowed it,
      * and the sort and direction in force, which differ from the request's
      * when the tab does not offer the sort asked for. Each row's `comments`
      * is its approved and waiting counts when the request asks for them
@@ -83,7 +85,7 @@ final class ContentList
      * whether the person may publish it, by the same rule, else null. Each
      * row's `viewUrl` is its live address, or null for anything not live.
      *
-     * @return array{rows: list<array<string, mixed>>, newer: string|null, older: string|null, tabs: list<array{key: string, label: string, count: int}>, filtered: bool, sort: string, direction: string}
+     * @return array{rows: list<array<string, mixed>>, paging: array{number: int|null, last: int, more: bool, from: int|null, to: int|null, total: int|null, newer: string|null, older: string|null}, newer: string|null, older: string|null, tabs: list<array{key: string, label: string, count: int}>, filtered: bool, sort: string, direction: string}
      */
     public function page(ContentListRequest $request): array
     {
@@ -124,9 +126,18 @@ final class ContentList
         $this->applyTab($query, $tab, $request->viewerId);
         $filtered = $this->applyFilters($query, $request, $tab);
 
+        // A list narrowed by nothing but its tab has its exact total in the
+        // tab's count; a narrowed one is counted up to the cap, on every page.
+        $tabs = $this->tabs($request->type, $request->viewerId);
+        $exactTotal = $filtered ? null : (int) collect($tabs)->firstWhere('key', $tab)['count'];
+        $cappedCount = $filtered ? ListPages::count($query, $perPage) : 0;
+        $pageNumber = $cursor === null ? ListPages::requested($request->page) : null;
+
         if ($cursor !== null) {
             $operator = $scanDirection === 'asc' ? '>' : '<';
             $query->whereRaw("(contents.{$column}, contents.id) {$operator} (?, ?)", $cursor);
+        } elseif ($pageNumber > 1) {
+            $query->offset(($pageNumber - 1) * $perPage);
         }
 
         $rows = $this->fetch(
@@ -156,6 +167,8 @@ final class ContentList
         $first = $rows->first();
         $last = $rows->last();
         $languages = app(SiteLanguages::class);
+        $newer = $first !== null && ($backwards ? $hasMore : $cursor !== null) ? Cursor::encode([$first->{$column}, $first->id]) : null;
+        $older = $last !== null && ($backwards ? true : $hasMore) ? Cursor::encode([$last->{$column}, $last->id]) : null;
 
         return [
             'rows' => $rows->map(fn (object $row): array => [
@@ -186,9 +199,10 @@ final class ContentList
                     ? ['value' => (string) $row->comment_status, 'canSet' => $abilities->canPublish($row->author_id === null ? null : (int) $row->author_id, $request->viewerId)]
                     : null,
             ])->values()->all(),
-            'newer' => $first !== null && ($backwards ? $hasMore : $cursor !== null) ? Cursor::encode([$first->{$column}, $first->id]) : null,
-            'older' => $last !== null && ($backwards ? true : $hasMore) ? Cursor::encode([$last->{$column}, $last->id]) : null,
-            'tabs' => $this->tabs($request->type, $request->viewerId),
+            'paging' => ListPages::describe($pageNumber, $perPage, $rows->count(), $exactTotal, $cappedCount, $newer, $older),
+            'newer' => $newer,
+            'older' => $older,
+            'tabs' => $tabs,
             'filtered' => $filtered,
             'sort' => $sort,
             'direction' => $direction,

@@ -8,13 +8,15 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\Tables\PluginMigrations;
+use Illuminate\Support\Facades\DB;
 
 /**
- * What Site › Plugins shows (I-3353): every plugin from PluginList with its
- * badge, reason, the access it asks for in words and as the plain lists the
- * enable request posts back, what the person agreed to before, and which
- * action the row offers. It reads each plugin's files only as text and
- * runs none of its code.
+ * What Site › Plugins shows (I-3353, I-3442): every plugin from PluginList
+ * with its badge, reason, the access it asks for in words and as the plain
+ * lists the enable request posts back, what the person agreed to before,
+ * which action the row offers, and the tables recorded for removing data.
+ * It reads each plugin's files only as text and runs none of its code.
  */
 final readonly class PluginsScreen
 {
@@ -30,6 +32,7 @@ final readonly class PluginsScreen
     public function __construct(
         private PluginList $list,
         private PluginRegistry $registry,
+        private PluginMigrations $migrations,
     ) {}
 
     /**
@@ -46,6 +49,8 @@ final readonly class PluginsScreen
             $enabled = $record !== null && $record->state === PluginRecord::ENABLED;
             $hosts = $row->asks['hosts'];
             $manifest = $this->registry->find($row->name)?->manifest;
+
+            $tables = $record === null ? [] : $this->tables($record);
 
             return [
                 'name' => $row->name,
@@ -71,8 +76,34 @@ final readonly class PluginsScreen
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
                 'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [],
+                'tables' => $tables,
+                // Same rule as RemovePluginData: disabled (or code gone) and tables left.
+                'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
             ];
         }, $this->list->all());
+    }
+
+    /**
+     * The plugin's recorded tables with approximate row counts (-1 unknown).
+     *
+     * @return list<array{name: string, rows: int}>
+     */
+    private function tables(PluginRecord $record): array
+    {
+        $names = $this->migrations->existingOwnedTables($record->migrations);
+
+        if ($names === []) {
+            return [];
+        }
+
+        $estimates = DB::table('pg_class')->whereIn('relname', $names)->pluck('reltuples', 'relname');
+
+        return array_map(function (string $name) use ($estimates): array {
+            $estimate = $estimates[$name] ?? null;
+            $rows = is_numeric($estimate) && (float) $estimate >= 0 ? (int) round((float) $estimate) : -1;
+
+            return ['name' => $name, 'rows' => $rows];
+        }, $names);
     }
 
     /**
@@ -98,14 +129,16 @@ final readonly class PluginsScreen
     }
 
     /**
-     * The one button a row offers: enable, review access, disable, or none.
+     * The one button a row offers: enable, review access, run database
+     * changes, disable, or none.
      *
-     * @return 'enable'|'review'|'disable'|null
+     * @return 'enable'|'review'|'migrate'|'disable'|null
      */
     private function action(PluginRow $row, bool $enabled): ?string
     {
         if ($row->state === PluginState::Waiting) {
-            return 'review';
+            // Consent first: an update that asks for more access waits for that.
+            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] ? 'review' : 'migrate';
         }
 
         if ($enabled) {
