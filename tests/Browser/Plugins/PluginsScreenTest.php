@@ -269,10 +269,14 @@ it('moves between the views with the arrow keys', function (): void {
     ($this->seen)($page, 'Review access for 1.1.0');
 
     $page->click('[data-test="plugins-tab-all"]');
-    $page->page()->locator('[data-test="plugins-tab-all"]')->press('ArrowRight', ['delay' => 50]);
-    $page->page()->locator('[data-test="plugins-tab-enabled"]')->press('ArrowRight', ['delay' => 50]);
+    cmWaitUntil($page, "document.activeElement === document.querySelector('[data-test=\"plugins-tab-all\"]')");
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"plugins-tab-disabled\"]').getAttribute('aria-selected') === 'true' && document.activeElement === document.querySelector('[data-test=\"plugins-tab-disabled\"]')");
+    // Each press goes to whatever holds focus, so only the arrow keys can move it.
+    foreach (['enabled', 'disabled'] as $next) {
+        $page->page()->locator(':focus')->press('ArrowRight', ['delay' => 50]);
+        cmWaitUntil($page, "document.activeElement === document.querySelector('[data-test=\"plugins-tab-{$next}\"]') && document.activeElement.getAttribute('aria-selected') === 'true'");
+    }
+
     $page->assertScript("[...document.querySelectorAll('[role=\"tabpanel\"]:not([hidden]) [data-test=\"plugins-list\"] > li')].map((row) => row.getAttribute('data-test')).join('|') === 'plugin-hello'");
 });
 
