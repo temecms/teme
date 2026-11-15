@@ -189,3 +189,31 @@ Review fixes for five binding Settled rules and the later items (owner's message
 ```
 
 Try it: enable the inbound fixture; `curl -I /inbound/ping`; `curl -H 'Accept: application/activity+json' '/?author=0'`; `curl -X POST /hello-world` answers 405; enable a second plugin declaring `GET /` with `when.query.author` and see the refusal naming inbound's actor.
+
+## Follow-up R3b
+
+The review of R3 found one gap in item 1. Built in the same cloud container; `origin/main` not merged.
+
+### Each test seen red (against R3's code)
+
+- `PublicRouteCollisionsTest` "compares against an enabled plugin the server switches off" (`teme.plugins.disabled` = `tests/inbound`, then enable the rival): `-'This route collides with inbound’s actor.' +''`.
+- "refuses a literal path a parameter segment’s pattern matches, either way round" (`/{slug}` with `[a-z-]+` against `/about`): `-'This route collides with first’s note.' +''` and `-'This route collides with first’s about.' +''`.
+- "refuses running an update’s changes when its routes now collide" (an update widens `where` from `[0-9]+` to `[a-z-]+`; the consent line stays the same, so the update runs through `MigratePlugin` without new consent): `-'This route collides with second’s about.' +''`.
+- "allows a literal path the parameter’s pattern does not match" (`/2026` against `[a-z-]+`) passed before and after, as it should.
+
+### What changed
+
+- `PublicRouteRegistry::declaredBy(records)`: core's entries plus `DeclaredRoute::fromManifest` for every enabled row whose consent includes routes.public and whose manifest is found, past `skipReason` and the server switch. `EnablePlugin` and `MigratePlugin` (validate, before any write) compare against it, read from the table.
+- `RouteCollisions` compares paths segment by segment: two literals must be equal, a literal must match the other's `{name}` `where` pattern, and two parameters may meet. `DeclaredRoute::pathShape()` is gone because nothing used it.
+- B-06 stays open, as the owner said; the maintainer files it.
+
+### Commits
+
+- `fix(plugins): compare public routes against every enabled plugin's declarations`
+- `docs(plans): plugin public routes' records, follow-up R3b` (this commit)
+
+### Checks
+
+- Architecture 139 passed before and after; no baseline count raised and no baseline line added.
+- Full `composer check`: Pint, PHPStan, types and lint passed; Unit+Feature **10657** passed, **2** skipped (54895 assertions). No Browser test touched.
+- STOP: none.
