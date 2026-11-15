@@ -462,6 +462,15 @@ No STOP. No contract the plan names changed: `packages/teme-contracts` is untouc
 
 "The Plugins screen shows each plugin's icon and state at a glance, and what plugins add to the admin is marked as theirs. Every row of the site status panel now says what it is about."
 
+### Follow-up X5-2
+
+The review accepted the part; three fixes, one commit each, pushed after each.
+
+- `ff8f51a` test(admin): the plugins views move by arrow keys on the focused tab. The case clicks the All tab, waits for it to hold focus, then presses ArrowRight on `:focus` twice, checking after each press that focus and `aria-selected` moved to the next tab (Enabled, then Disabled). **Seen red:** with the arrow handling removed (each `TabsTrigger` given `onKeyDown={(event) => event.preventDefault()}`, so Radix's roving focus never runs), the case failed at the wait after the first press (`PluginsScreenTest.php:277`, `Timeout 5000ms exceeded`); the handling was put back and the case passed. Under the same plant the old case failed as well, but only because its second press landed on a tab it had focused itself; its first press proved nothing.
+- `0085676` style(admin): SaveBarDemo's docblock is back above `function SaveBarDemo`; the plugin area demo had been inserted between them.
+- `6de13b4` test(plugins): `PluginEntriesMarkedTest` reads `$screens['general']` with no fallback.
+- Checks: the quick check green (Pint, PHPStan, types, lint, the Architecture suite 105 passed, `PluginEntriesMarkedTest` 4 passed); after `npm run build`, `Plugins/PluginsScreenTest` 13 passed and `DesignCatalogueTest` 18 passed.
+
 ### How to try it
 
 On a local site with a plugin installed: Site › Plugins (each plugin's initials, its state as a pill, the views with ← and →, the 56px icon in Details and access and in the consent dialog); Tools (a plugin's links under From plugins with its mark; on Tools › Jobs, the menu's plug after a plugin's page); the site status button in the top bar (each row starts with its label, a plugin's with its plug); `/admin/_catalogue#plugin-area` (the area's head, seven pages with Exports and Logs under More, "Make this page fail" and Try again).
