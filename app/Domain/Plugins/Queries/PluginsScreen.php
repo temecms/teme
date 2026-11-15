@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use Illuminate\Support\Facades\DB;
+use Teme\Contracts\Plugins\Capability;
 
 /**
  * What Site › Plugins shows (I-3353, I-3442): every plugin from PluginList
@@ -69,13 +71,20 @@ final readonly class PluginsScreen
                 'hasSettings' => $this->labels($manifest?->contributes()['settings'] ?? null) !== [],
                 'adds' => [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)],
                 'agreedVersion' => $record?->version,
-                'agreed' => $this->words($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], []),
+                'agreed' => $this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], []),
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
-                'asks' => $this->words($row->asks['capabilities'], $hosts, $row->consent === [] ? [] : $row->added['capabilities'], $row->consent === [] ? [] : $row->added['hosts']),
+                'asks' => $this->accessLines(
+                    $row->asks['capabilities'],
+                    $hosts,
+                    $row->consent === [] ? [] : $row->added['capabilities'],
+                    $row->consent === [] ? [] : $row->added['hosts'],
+                    $manifest === null ? [] : Consent::routeLines($manifest),
+                    $row->consent === [] ? [] : $row->added['routes'],
+                ),
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
-                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [],
+                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [],
                 'tables' => $tables,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables left.
                 'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
@@ -138,7 +147,7 @@ final readonly class PluginsScreen
     {
         if ($row->state === PluginState::Waiting) {
             // Consent first: an update that asks for more access waits for that.
-            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] ? 'review' : 'migrate';
+            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] ? 'review' : 'migrate';
         }
 
         if ($enabled) {
@@ -149,20 +158,36 @@ final readonly class PluginsScreen
     }
 
     /**
-     * The sentences for a list of capabilities, each with whether it is new.
+     * The sentences for a list of capabilities, then each declared public
+     * route as `METHOD path`, each with whether it is new.
      *
      * @param  list<string>  $capabilities
      * @param  list<string>  $hosts
      * @param  list<string>  $newCapabilities
      * @param  list<string>  $newHosts
+     * @param  list<string>  $routes
+     * @param  list<string>  $newRoutes
      *
      * @return list<array{words: string, new: bool}>
      */
-    private function words(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = []): array
+    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = []): array
     {
-        return array_map(fn (string $capability): array => [
+        $lines = array_map(fn (string $capability): array => [
             'words' => PluginWords::capability($capability, $hosts),
             'new' => in_array($capability, $newCapabilities, true) || ($capability === 'http' && $newHosts !== []),
         ], $capabilities);
+
+        if (! in_array(Capability::RoutesPublic->value, $capabilities, true)) {
+            return $lines;
+        }
+
+        foreach ($routes as $route) {
+            $lines[] = [
+                'words' => $route,
+                'new' => in_array($route, $newRoutes, true),
+            ];
+        }
+
+        return $lines;
     }
 }

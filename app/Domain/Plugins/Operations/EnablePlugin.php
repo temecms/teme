@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -102,6 +103,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         $record = PluginRecord::query()->where('name', $input->name)->lockForUpdate()->sole();
         $found = $this->registry->find($input->name) ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
+        $manifest = $found->manifest ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
 
         try {
             $migrations = $this->migrations->run($found, $record->migrations);
@@ -116,7 +118,12 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'disabled_at' => null,
             'disabled_by' => null,
             'version' => $input->version,
-            'consent' => ['capabilities' => $input->capabilities, 'hosts' => $input->hosts, 'hooks' => $input->hooks],
+            'consent' => [
+                'capabilities' => $input->capabilities,
+                'hosts' => $input->hosts,
+                'hooks' => $input->hooks,
+                'routes' => Consent::routeLines($manifest),
+            ],
             'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
             'consented_at' => $now,
             'enabled_at' => $now,
