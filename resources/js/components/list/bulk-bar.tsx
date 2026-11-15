@@ -8,7 +8,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
 import type { RowAction } from './row-actions';
 import { useCards } from './use-cards';
 
@@ -41,9 +41,10 @@ export function BulkBar({
     const selectedWords =
         selectedLabel ??
         (noun
-            ? __(':count :noun selected', {
+            ? __n(':count :one selected|:count :many selected', count, {
                   count: count.toLocaleString(),
-                  noun: count === 1 ? noun.one : noun.many,
+                  one: noun.one,
+                  many: noun.many,
               })
             : __(':count selected', { count: count.toLocaleString() }));
 
