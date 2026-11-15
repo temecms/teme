@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Settings;
 
 use App\Domain\Cache\RenderRecord;
+use App\Domain\Languages\PageLanguage;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
@@ -17,8 +18,9 @@ use UnexpectedValueException;
  * Per-request memo, then the cache store, then one primary-key lookup — per
  * group a request touches. Never every group: that would be autoload again.
  * While a design preview is active, the design groups read their drafts
- * over their live values. A page that reads a group records the group's
- * declared page-cache tags.
+ * over their live values, and a page in another language reads that
+ * language's words over the default's (I-3360). A page that reads a group
+ * records the group's declared page-cache tags.
  */
 final class SettingsRepository implements SettingsReader
 {
@@ -63,6 +65,20 @@ final class SettingsRepository implements SettingsReader
             $values[$setting->key] = array_key_exists($setting->key, $overrides)
                 ? $overrides[$setting->key]
                 : $setting->default;
+        }
+
+        // On a page in another language, its words over the default's (I-3360).
+        // stored() reads nothing, so this never asks a settings group again.
+        $language = app(PageLanguage::class)->stored();
+
+        if ($language !== null) {
+            $translated = $this->translations($group)[$language] ?? [];
+
+            foreach ($translated as $key => $value) {
+                if (array_key_exists($key, $values) && TranslatableSettings::has($group, $key)) {
+                    $values[$key] = $value;
+                }
+            }
         }
 
         return $values;
@@ -123,6 +139,21 @@ final class SettingsRepository implements SettingsReader
             // find(), not value(): value() skips the model's casts and would
             // return the raw JSON string.
             fn (): array => SettingsGroupRecord::query()->find($group)->overrides ?? [],
+        );
+    }
+
+    /**
+     * Each other language's words in this group, by language tag; read once
+     * a request at most, and only on a page in another language.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function translations(string $group): array
+    {
+        /** @var array<string, array<string, mixed>> */
+        return Cache::memo()->rememberForever(
+            self::translationsKey($group),
+            fn (): array => SettingsGroupRecord::query()->find($group)->translations ?? [],
         );
     }
 
