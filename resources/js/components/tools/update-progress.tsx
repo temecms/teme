@@ -82,7 +82,7 @@ export function WithCode({
     return (
         <>
             {words
-                .split(/(:[a-z]+)/)
+                .split(/(:[A-Za-z]+)/)
                 .map((part, at) =>
                     part.startsWith(':') && part.slice(1) in codes ? (
                         <Code key={at}>{codes[part.slice(1)]}</Code>
