@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
 
+use App\Domain\Cache\RenderRecord;
 use App\Domain\Plugins\Faults\SpooledFaults;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\PluginRegistry;
@@ -65,6 +66,10 @@ final class RouteDispatcher
         try {
             $handler = $this->handler($route);
             $answer = $handler->handle($public);
+
+            if ($route->isCacheable() && $route->owner !== DeclaredRoute::OWNER_CORE) {
+                app(RenderRecord::class)->tag('plugin:'.$route->owner);
+            }
         } catch (Throwable $failure) {
             $this->faults->record(
                 $route->owner === DeclaredRoute::OWNER_CORE ? 'core' : 'plugin:'.$route->owner,

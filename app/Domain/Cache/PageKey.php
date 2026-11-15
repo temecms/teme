@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace App\Domain\Cache;
 
 use App\Domain\Api\ApiPaths;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
 use Illuminate\Http\Request;
 
 /**
  * The address a stored page answers (docs/studies/page-cache.md §3.2): the
- * scheme and host, the path exactly as asked, and of the query only `s`,
- * the one parameter a public page reads, so tracking parameters share a
- * page, or for an API address every parameter, sorted; cookies are never
- * part of it. The path keeps its case, because 1.6a answers an address in
- * capitals with a 301 to its one true form.
+ * scheme and host, the path exactly as asked, and of the query the names a
+ * public page or an enabled declared route depends on (plus `s`), so tracking
+ * parameters share a page; when a path varies by Accept, the key carries that
+ * type too. Cookies are never part of it. The path keeps its case, because
+ * 1.6a answers an address in capitals with a 301 to its one true form.
  */
 final readonly class PageKey
 {
-    /** The query parameters a public page's answer depends on: PathResolver reads `s` (1.6h), and nothing else; an API address keeps all of its own. */
+    /** The query parameters a public page's answer depends on without plugins: PathResolver reads `s` (1.6h). */
     public const array QUERY = ['s'];
 
     /**
@@ -32,7 +33,8 @@ final readonly class PageKey
     /**
      * The key for this request, or null when a parameter it keeps isn't
      * plain text, such as `s[]=` or an API address's `type[]=`, for which
-     * nothing is stored.
+     * nothing is stored; or when the query names a conditional uncacheable
+     * declared route's parameter (D4).
      */
     public static function of(Request $request): ?self
     {
@@ -40,9 +42,23 @@ final readonly class PageKey
         // over), so the two read one `s`.
         parse_str((string) $request->getQueryString(), $parameters);
         $path = $request->getPathInfo();
+        $stringQuery = [];
+
+        foreach ($parameters as $name => $value) {
+            if (is_string($name) && is_string($value)) {
+                $stringQuery[$name] = $value;
+            }
+        }
+
+        $registry = app(PublicRouteRegistry::class);
+
+        if ($registry->queryNamesConditionalUncacheable($path, $stringQuery)) {
+            return null;
+        }
+
         // An API answer depends on every parameter its route takes, and the
         // API refuses any other, so a stored answer is never one a typo made.
-        $names = ApiPaths::is($path) ? array_map(strval(...), array_keys($parameters)) : self::QUERY;
+        $names = ApiPaths::is($path) ? array_map(strval(...), array_keys($parameters)) : $registry->cacheQueryNames();
         $kept = [];
 
         foreach ($names as $name) {
@@ -59,8 +75,10 @@ final readonly class PageKey
 
         ksort($kept, SORT_STRING);
         $query = $kept === [] ? '' : '?'.http_build_query($kept, '', '&', PHP_QUERY_RFC3986);
+        $accept = self::acceptVariant($request, $registry->acceptTypesFor($path));
+        $suffix = $accept === null ? '' : '|accept:'.$accept;
 
-        return new self(strtolower($request->getSchemeAndHttpHost()).$path.$query, $path, $kept !== []);
+        return new self(strtolower($request->getSchemeAndHttpHost()).$path.$query.$suffix, $path, $kept !== []);
     }
 
     /**
@@ -81,5 +99,27 @@ final readonly class PageKey
     public function lockName(): string
     {
         return 'page-cache:'.hash('sha256', $this->url);
+    }
+
+    /**
+     * @param  list<string>  $declared
+     */
+    private static function acceptVariant(Request $request, array $declared): ?string
+    {
+        if ($declared === []) {
+            return null;
+        }
+
+        $header = (string) $request->headers->get('Accept', '');
+
+        foreach (explode(',', $header) as $part) {
+            $type = strtolower(trim(explode(';', $part)[0]));
+
+            if ($type !== '' && in_array($type, $declared, true)) {
+                return $type;
+            }
+        }
+
+        return null;
     }
 }

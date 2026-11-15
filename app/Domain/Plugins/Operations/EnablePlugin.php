@@ -18,6 +18,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
@@ -131,6 +132,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'capabilities' => $input->capabilities,
             'hosts' => $input->hosts,
         ]);
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
 
         DB::afterCommit(fn () => $this->records->changed());
 
