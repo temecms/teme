@@ -164,6 +164,36 @@ Every file below is **AI-prepared, AI-checked**. Core's files hold Teme's 123 ke
 - The fragments that join in English order (`By` … `and`, `Reply` + `to :name`, `Older` + `comments`) read stiffly in Japanese and Hindi; whole-sentence keys there would change the theme's markup and its tests.
 - The comments script fills a new count with `toLocaleString()` in the page's `lang`; its other words come from the page.
 
+### Follow-up R7
+
+The review's seven findings, each on `i18n/readers`, with no merge of `main` or any other part:
+
+- `ade5f4b` fix(site): the home page counts only items a reader can open as a language's (finding 1).
+- `6f6f134` fix(site): a cached home page follows a language's first and last items (finding 2).
+- `f91c7e3` fix(seo): leave noindex versions out of hreflang and sitemap alternates (finding 3).
+- `f0e4292` fix(themes): swap the theme's word folder when another theme is active (finding 5), then `4a393b6` fix(themes): find another theme's word folder by its manifest, not a static (the Architecture suite's `NoStaticStateTest` refused the first version's static).
+- `6e34031` refactor(languages): keep the reader words' source list with the tests (finding 6).
+- `319c78c` test(languages): give the leak matrix's sitemap and search rows their own forbidden lists (finding 7).
+
+**Tests seen red, each before its fix:**
+
+- `HreflangTest` "counts only what a reader can open…": a French region alone (the French post made private) still gave the home page `fr => /fr/`.
+- `HreflangTest` "adds a language to the cached home page…": with a static home page and the page cache on, the cached `/` kept no hreflang after the first French item was published.
+- `HreflangTest` and `SitemapAlternatesTest` "leaves a version search engines are told not to list…": with all three languages shown and the French post `noindex`, `/hello/` and its sitemap entry still listed `fr`. `LanguageSwitcherTest` "keeps a version … in the switcher" passed before and after, as it should: readers still get the link.
+- `ThemeWordsTest` "forgets the last theme's words…": after switching from a theme with French words to the default theme in one process, the 404 page still said "Passer au contenu".
+- `ReaderWordsTest`, pointed at `Tests\Fixtures\Languages\ReaderWords` before the move: every test failed, the class not found.
+- `LeakMatrixTest` (finding 7) changes a test only, so no code was red against it. To prove the new sitemap row bites, the sitemap's shown-language filter was switched off for one run: both matrix tests failed ("/sitemap-items-post.xml holds /es/hola/"), and the filter was put back. Note that the matrix's shared forbidden list already held `Hola` and `/es/` for every row. The new rows make it explicit, and the two search rows now check the search page is drawn ("Nothing matched", "Aucun résultat") instead of the query's echo.
+
+**Decisions:**
+
+- **B-?? (draft) Finding 4 skipped.** Giving the menu switcher's links `lang` and `hreflang` adds keys to `$navigation`'s items, a theme view data change that `ViewDataPinTest` holds to a `### Theme view data` line in `CHANGELOG.md`, which builders may not write. The I-?? draft above stands, and the review asks for it to be scheduled for the join: the change is two keys in `NavigationTree::switcher()` and the default theme's navigation view, plus that changelog line.
+- **B-?? (draft) noindex only, for finding 3.** Alternates and sitemap alternates now leave out a version whose own box says `noindex`. A version whose canonical points elsewhere is still listed. `ListedItems`'s full rule needs that row's ID and the site's address as bindings. The head reads `Alternates::listed()`, and the switcher and `$alternates` read `for()` as before.
+- **B-?? (draft) The home page's tags (finding 2)** are every public type's list (`Live::types()`), the same set that decides what counts as published. `app/Domain/Site` now reads `App\Domain\Api\Live`, as the API's own queries do.
+- **B-?? (draft) Dropping a theme's word folder (finding 5).** Laravel's `FileLoader` can add a path but not drop one, and no static may hold the last one added. So `ThemeWords` drops any loader path whose parent folder holds a `teme-theme.json`, other than the active theme's, by rebinding the loader's `paths` in a closure. Options: (a) per request, by re-resolving the translator, which would leave the old instance in every object that took it; (b) a decorator loader bound in a service provider, outside Owns; (c) the closure. Chose (c).
+- **B-?? (draft) `ReaderWords` moved to `tests/Fixtures/Languages`**, beside `LanguageSite`, rather than a new `tests/Support` folder, which the project has no other use for.
+
+**Checks:** the full `composer check` at `4a393b6` was green. Pint, PHPStan and the lint checks were clean. Architecture had 139 passed (1309 assertions). Unit and Feature had 10,778 passed and 2 skipped (56,601 assertions), 6 more than before R7: its six new tests. The admin-words baseline is 876 and the design-system baseline 222, both unchanged.
+
 ### How to try it
 
 Run `php artisan test --compact tests/Feature/Languages`. Or, on a seeded site with French added: open `/fr/` and a French post. You get `lang="fr" dir="ltr"`, `hreflang` links, French core and theme words, `/fr/feed/`, the item in `/sitemap-items-post.xml` with its alternates, and `/api/v1/items?language=fr`.
