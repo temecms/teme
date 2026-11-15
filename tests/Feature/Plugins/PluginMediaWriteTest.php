@@ -96,6 +96,22 @@ it('refuses a file over the upload limit and writes nothing', function (): void 
         ->and(Media::query()->count())->toBe($before);
 });
 
+it('stores a 2 MB file when the site upload limit is 2 MB', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    dlMediaLimits(['max_upload_mb' => 2]);
+    $bytes = 2 * 1024 * 1024;
+    // A minimal JPEG header so UploadMedia accepts the type, padded to 2 MB.
+    $jpeg = (string) file_get_contents(mediaJpeg(200, 150));
+    $body = $jpeg.str_repeat("\0", max(0, $bytes - strlen($jpeg)));
+    Http::fake(['https://cdn.example.com/large.jpg' => Http::response($body, 200, ['Content-Type' => 'image/jpeg'])]);
+
+    $media = ($this->door)()->fromAddress('https://cdn.example.com/large.jpg', (string) $editor->id);
+
+    expect(Media::query()->findOrFail($media->id)->size_bytes)->toBe($bytes)
+        ->and(Media::query()->count())->toBe(1);
+});
+
 it('refuses a type UploadMedia refuses and writes nothing', function (): void {
     $editor = User::factory()->create()->assignRole('editor');
     $this->actingAs($editor);

@@ -48,7 +48,8 @@ final readonly class PluginMediaWriter implements MediaWriter
             throw new WriteRefused(__('A title may be at most 255 characters.'));
         }
 
-        $http = new PluginHttp($this->hosts, $this->resolver);
+        $maxBytes = app(SettingsReader::class)->int('media', 'max_upload_mb') * 1024 * 1024;
+        $http = new PluginHttp($this->hosts, $this->resolver, $maxBytes);
         $temp = tempnam(sys_get_temp_dir(), 'teme-plugin-media-');
 
         if ($temp === false) {
@@ -65,8 +66,6 @@ final readonly class PluginMediaWriter implements MediaWriter
             if ($answer->status < 200 || $answer->status >= 300) {
                 throw new WriteRefused(__('The request to fetch that file failed.'));
             }
-
-            $maxBytes = app(SettingsReader::class)->int('media', 'max_upload_mb') * 1024 * 1024;
 
             if (strlen($answer->body) > $maxBytes) {
                 throw new WriteRefused(__('The file is larger than the :size MB limit.', [

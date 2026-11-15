@@ -42,8 +42,15 @@ final readonly class PluginHttp implements OutboundHttp
      */
     private const array SECURE_CONNECTION_ERRORS = [35, 51, 53, 54, 58, 59, 60, 64, 66, 77, 80, 82, 83, 90, 91];
 
-    /** @param  list<string>  $hosts  the hosts this plugin's consent covers */
-    public function __construct(private array $hosts, private HostResolver $resolver) {}
+    /**
+     * @param  list<string>  $hosts  the hosts this plugin's consent covers
+     * @param  int  $maxBytes  answer size cap; defaults to 1 MB for http, media may pass the upload limit
+     */
+    public function __construct(
+        private array $hosts,
+        private HostResolver $resolver,
+        private int $maxBytes = self::MOST_BYTES,
+    ) {}
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
@@ -69,7 +76,7 @@ final readonly class PluginHttp implements OutboundHttp
         }
 
         $host = $this->allowedHost($uri);
-        $body = $json === null ? null : self::jsonBody($json, $host);
+        $body = $json === null ? null : self::jsonBody($json, $host, $this->maxBytes);
         $address = $this->publicAddress($host);
         $seconds = max(1, min($timeoutSeconds, self::MOST_SECONDS));
 
@@ -78,7 +85,7 @@ final readonly class PluginHttp implements OutboundHttp
             ->withoutRedirecting()
             ->timeout($seconds)
             ->connectTimeout(min($seconds, 5))
-            ->withOptions(self::transport($host, $address));
+            ->withOptions(self::transport($host, $address, $this->maxBytes));
 
         try {
             $response = $method === 'GET' ? $request->get((string) $uri) : $request->withBody((string) $body, 'application/json')->post((string) $uri);
@@ -88,8 +95,8 @@ final readonly class PluginHttp implements OutboundHttp
 
         $body = $response->body();
 
-        if (strlen($body) > self::MOST_BYTES) {
-            throw new AnswerTooLarge(__('The answer from :host was larger than 1 MB.', ['host' => $host]));
+        if (strlen($body) > $this->maxBytes) {
+            throw new AnswerTooLarge(self::tooLargeWords($host, $this->maxBytes));
         }
 
         return new HttpAnswer($response->status(), $body, $response->headers());
@@ -102,15 +109,15 @@ final readonly class PluginHttp implements OutboundHttp
      * one curl option Guzzle lets through for it; https alone and no proxy,
      * whatever the environment names, through Guzzle's own options, which
      * set curl's; no answer decoded, so a small compressed one can't grow;
-     * and no answer past 1 MB, stopped as its headers say so or as it
+     * and no answer past $maxBytes, stopped as its headers say so or as it
      * arrives.
      *
      * @return array<string, mixed>
      */
-    public static function transport(string $host, string $address): array
+    public static function transport(string $host, string $address, int $maxBytes = self::MOST_BYTES): array
     {
         $pinned = str_contains($address, ':') ? "[{$address}]" : $address;
-        $tooLarge = fn (): AnswerTooLarge => new AnswerTooLarge(__('The answer from :host was larger than 1 MB.', ['host' => $host]));
+        $tooLarge = fn (): AnswerTooLarge => new AnswerTooLarge(self::tooLargeWords($host, $maxBytes));
 
         return [
             'allow_redirects' => false,
@@ -120,14 +127,14 @@ final readonly class PluginHttp implements OutboundHttp
             'protocols' => ['https'],
             'proxy' => ['no' => ['*']],
             'decode_content' => false,
-            'on_headers' => function (ResponseInterface $answer) use ($tooLarge): void {
-                if ((int) $answer->getHeaderLine('Content-Length') > self::MOST_BYTES) {
+            'on_headers' => function (ResponseInterface $answer) use ($tooLarge, $maxBytes): void {
+                if ((int) $answer->getHeaderLine('Content-Length') > $maxBytes) {
                     throw $tooLarge();
                 }
             },
             // Guzzle stops the transfer when this throws, and keeps what it threw.
-            'progress' => function (int $downloadTotal, int $downloaded) use ($tooLarge): bool {
-                if ($downloaded > self::MOST_BYTES) {
+            'progress' => function (int $downloadTotal, int $downloaded) use ($tooLarge, $maxBytes): bool {
+                if ($downloaded > $maxBytes) {
                     throw $tooLarge();
                 }
 
@@ -142,7 +149,7 @@ final readonly class PluginHttp implements OutboundHttp
      *
      * @param  array<string, mixed>  $json
      */
-    private static function jsonBody(array $json, string $host): string
+    private static function jsonBody(array $json, string $host, int $maxBytes = self::MOST_BYTES): string
     {
         try {
             $body = json_encode($json, JSON_THROW_ON_ERROR);
@@ -150,11 +157,22 @@ final readonly class PluginHttp implements OutboundHttp
             throw new RequestFailed(__('The request to :host failed.', ['host' => $host]));
         }
 
-        if (strlen($body) > self::MOST_BYTES) {
-            throw new RequestFailed(__('The request to :host was larger than 1 MB, so Teme didn’t send it.', ['host' => $host]));
+        if (strlen($body) > $maxBytes) {
+            throw new RequestFailed(__('The request to :host was larger than :size MB, so Teme didn’t send it.', [
+                'host' => $host,
+                'size' => max(1, intdiv($maxBytes, 1024 * 1024)),
+            ]));
         }
 
         return $body;
+    }
+
+    private static function tooLargeWords(string $host, int $maxBytes): string
+    {
+        return __('The answer from :host was larger than :size MB.', [
+            'host' => $host,
+            'size' => max(1, intdiv($maxBytes, 1024 * 1024)),
+        ]);
     }
 
     /**
@@ -171,7 +189,7 @@ final readonly class PluginHttp implements OutboundHttp
 
         for ($cause = $failure; $cause !== null; $cause = $cause->getPrevious()) {
             if ($cause instanceof AnswerTooLarge) {
-                return new AnswerTooLarge(__('The answer from :host was larger than 1 MB.', ['host' => $host]));
+                return new AnswerTooLarge($cause->getMessage() !== '' ? $cause->getMessage() : self::tooLargeWords($host, self::MOST_BYTES));
             }
 
             if ($errno === null && preg_match('/^cURL error (\d+):/', $cause->getMessage(), $match) === 1) {
