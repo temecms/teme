@@ -56,6 +56,7 @@ final class RoleSeeder extends Seeder
         'updates.manage',
         'plugins.manage',
         'privacy.manage',
+        'api.keys.manage',
     ];
 
     public const ROLES = [

@@ -62,6 +62,8 @@ enum SecurityEventType: string
     case PluginMigrated = 'plugin.migrated';
     case PluginDataRemoved = 'plugin.data_removed';
     case SiteSetUp = 'site.set_up';
+    case ApiKeyCreated = 'api_key.created';
+    case ApiKeyRevoked = 'api_key.revoked';
 
     /**
      * Counted per subject, address and hour instead of one row each.
