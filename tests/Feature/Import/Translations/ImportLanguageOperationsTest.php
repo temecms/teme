@@ -17,8 +17,10 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Sleep;
+use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Import\PolylangSite;
 
 uses(RefreshDatabase::class);
@@ -94,3 +96,21 @@ it('keeps a word this site already has in that language', function (): void {
     expect($written)->toBe(['written' => ['site_title'], 'kept' => ['tagline']])
         ->and(SettingsGroupRecord::query()->find('general')?->translations['es']['tagline'] ?? null)->toBe('Noticias del muelle');
 });
+
+it('says why it refuses in the site\'s language', function (Closure $refused, string $words): void {
+    // The words end in a full stop, which addLines() would read as a nested key.
+    app('translator')->setLoaded(['*' => ['*' => [app()->getLocale() => [$words => 'Translated: '.$words]]]]);
+
+    try {
+        scElevated($refused);
+        $said = null;
+    } catch (ValidationException $refusal) {
+        $said = Arr::first(Arr::flatten($refusal->errors()));
+    }
+
+    expect($said)->toBe('Translated: '.str_replace(':group', 'nowhere', $words));
+})->with([
+    'a kind it doesn’t link' => [fn () => app(LinkImportedTranslations::class)->execute(new LinkImportedTranslationsInput('source', 'media', [['1', '2']], null)), 'Link posts and pages, or terms.'],
+    'too many groups' => [fn () => app(LinkImportedTranslations::class)->execute(new LinkImportedTranslationsInput('source', 'content', array_fill(0, 501, ['1', '2']), null)), 'At most 500 groups at a time.'],
+    'a group Teme hasn’t' => [fn () => app(ImportTranslatedSettings::class)->execute(new ImportTranslatedSettingsInput('nowhere', 'es', ['a' => 'b'], null)), 'Teme has no settings group [:group].'],
+]);

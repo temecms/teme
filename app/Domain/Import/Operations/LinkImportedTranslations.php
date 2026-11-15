@@ -51,11 +51,11 @@ final class LinkImportedTranslations extends BaseOperation
     {
         /** @var LinkImportedTranslationsInput $input */
         if (! in_array($input->kind, ['content', 'term'], true)) {
-            throw ValidationException::withMessages(['kind' => 'Link posts and pages, or terms.']);
+            throw ValidationException::withMessages(['kind' => __('Link posts and pages, or terms.')]);
         }
 
         if (count($input->groups) > self::BATCH) {
-            throw ValidationException::withMessages(['groups' => 'At most 500 groups at a time.']);
+            throw ValidationException::withMessages(['groups' => __('At most 500 groups at a time.')]);
         }
     }
 

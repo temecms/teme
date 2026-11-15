@@ -38,7 +38,7 @@ final class ImportTranslatedSettings extends BaseOperation
     {
         /** @var ImportTranslatedSettingsInput $input */
         $definition = $this->registry->find($input->group)
-            ?? throw ValidationException::withMessages(['group' => "Teme has no settings group [{$input->group}]."]);
+            ?? throw ValidationException::withMessages(['group' => __('Teme has no settings group [:group].', ['group' => $input->group])]);
         $languages = app(SiteLanguages::class);
 
         if (! in_array($input->language, $languages->others(), true)) {
