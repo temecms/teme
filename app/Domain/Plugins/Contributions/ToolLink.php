@@ -6,8 +6,9 @@ namespace App\Domain\Plugins\Contributions;
 
 /**
  * One link a plugin adds to the Tools page (Q3: Tools only, I-3353): whose it
- * is, its id, its words and icon, and where it leads, `settings` for the
- * plugin's own settings page or an https address on another site.
+ * is, its id, its words and icon, where it leads, `settings` for the
+ * plugin's own settings page or an https address on another site, and the
+ * plugin's label, which marks the link as the plugin's.
  */
 final readonly class ToolLink
 {
@@ -19,5 +20,6 @@ final readonly class ToolLink
         public string $description,
         public string $icon,
         public string $to,
+        public string $plugin = '',
     ) {}
 }

@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { CommentDetailsDrawer } from '@/components/comments/comment-details';
@@ -16,94 +16,42 @@ import { BulkBar } from '@/components/list/bulk-bar';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
-import { PageHeader } from '@/components/list/page-header';
-import { Pager } from '@/components/list/pager';
-import { RowLinks } from '@/components/list/row-links';
+import { FilterRow } from '@/components/list/filter-row';
+import { NumberedPager } from '@/components/list/numbered-pager';
 import type { RowAction } from '@/components/list/row-actions';
-import { TabStrip } from '@/components/list/tab-strip';
-import { Badge } from '@/components/ui/badge';
+import { RowLine } from '@/components/list/row-line';
+import { RowMenu } from '@/components/list/row-menu';
+import { InPageNav } from '@/components/patterns/in-page-nav';
+import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Kbd } from '@/components/ui/kbd';
+import { StatusPill } from '@/components/ui/status-pill';
+import { __ } from '@/lib/i18n';
+import { shownTitle } from '@/lib/titles';
 import { formatInZone } from '@/lib/zoned-time';
 import { index, moderate } from '@/routes/comments';
 import { edit } from '@/routes/content';
 import type { CommentRow, CommentsIndexPage, CommentView } from '@/types';
-import { shownTitle } from '@/lib/titles';
 
-/** One move a button makes: the status it sends, or `delete` for the confirmation. */
+/** One move: the status it sends, or `delete` for the confirmation. */
 type Move = { label: string; to: string; destructive?: boolean };
 
-const SPAM: Move = { label: 'Mark as spam', to: 'spam' };
-const TRASH: Move = { label: 'Move to trash', to: 'trash', destructive: true };
-const DELETE: Move = {
-    label: 'Delete permanently',
-    to: 'delete',
-    destructive: true,
-};
-
-/** The bulk bar's buttons by view (v9's commentBulkActions). */
-const BULK: Record<CommentView, Move[]> = {
-    all: [
-        { label: 'Approve', to: 'approved' },
-        { label: 'Unapprove', to: 'pending' },
-        SPAM,
-        TRASH,
-    ],
-    pending: [{ label: 'Approve', to: 'approved' }, SPAM, TRASH],
-    approved: [{ label: 'Unapprove', to: 'pending' }, SPAM, TRASH],
-    spam: [{ label: 'Mark as not spam', to: 'restore' }, DELETE],
-    trash: [{ label: 'Restore', to: 'restore' }, DELETE],
-};
-
-/** What each view says when it has no comments (v9's EMPTY_COMMENTS; question 4). */
-const EMPTY: Record<CommentView, { title: string; line: string }> = {
-    all: {
-        title: 'No comments yet',
-        line: 'Readers’ comments appear here as they arrive.',
-    },
-    pending: {
-        title: 'Nothing is waiting',
-        line: 'Comments held for approval appear here.',
-    },
-    approved: {
-        title: 'No approved comments',
-        line: 'Comments readers can see appear here.',
-    },
-    spam: {
-        title: 'No spam',
-        line: 'Comments marked as spam wait here until you empty spam.',
-    },
-    // The trash's words carry its days (D18), so they are built where they're drawn.
-    trash: { title: 'The trash is empty', line: '' },
-};
-
-/** The keys' hint, a letter and what it does (C11; v9's #cm-keys): each letter a `<kbd>`. */
-const KEYS: [string, string][] = [
-    ['J', ' and '],
-    ['K', ' move between comments,'],
-    ['X', ' selects,'],
-    ['A', ' approves,'],
-    ['U', ' unapproves,'],
-    ['S', ' marks spam,'],
-    ['T', ' moves to trash,'],
-    ['R', ' replies,'],
-    ['Q', ' opens Quick edit'],
-];
-
 /**
- * The Comments screen (1.8c, v9's SCREENS.comments): views with counts, a
- * search, the list narrowed to an item, a page of comments to moderate one at
- * a time or in bulk, with Undo, and a drawer for one comment's details; Quick
- * edit, the inline reply, Empty spam and Empty trash, and the keys (1.8c′).
+ * The Comments screen (docs/proposals/content-lists.md): views with counts,
+ * a search, the list narrowed to an item, a page of comments to moderate one
+ * at a time or in bulk, with Undo, and a drawer for one comment's details;
+ * Quick edit, the inline reply, Empty spam and Empty trash, and the keys.
+ * A row's line holds its state action, Reply, Quick edit and Details; its
+ * menu holds the rest.
  */
 export default function CommentsIndex(page: CommentsIndexPage) {
     const {
         view,
         views,
         rows,
-        newer,
-        older,
+        paging,
         filters,
         item,
         own,
@@ -114,11 +62,39 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         emptying,
         trashDays,
     } = page;
+    const { preferences } = usePage().props;
+    const perPage = preferences['lists.per_page'];
     const [selected, setSelected] = useState<string[]>([]);
     const [deleting, setDeleting] = useState<string[] | null>(null);
     const [replying, setReplying] = useState<string | null>(null);
     const [editing, setEditing] = useState<QuickEditTarget | null>(null);
     const [emptyingOpen, setEmptyingOpen] = useState(false);
+
+    const approve: Move = { label: __('Approve'), to: 'approved' };
+    const unapprove: Move = { label: __('Unapprove'), to: 'pending' };
+    const spam: Move = { label: __('Mark as spam'), to: 'spam' };
+    const notSpam: Move = { label: __('Mark as not spam'), to: 'restore' };
+    const restore: Move = { label: __('Restore'), to: 'restore' };
+    const trash: Move = {
+        label: __('Move to trash'),
+        to: 'trash',
+        destructive: true,
+    };
+    const remove: Move = {
+        label: __('Delete permanently'),
+        to: 'delete',
+        destructive: true,
+    };
+
+    // The bulk bar's moves by view: the first three are buttons, the rest
+    // and Delete permanently are under More.
+    const bulkMoves: Record<CommentView, Move[]> = {
+        all: [approve, unapprove, spam, trash],
+        pending: [approve, spam, trash],
+        approved: [unapprove, spam, trash],
+        spam: [notSpam, remove],
+        trash: [restore, remove],
+    };
 
     // Only what the page holds stays selected, and a new view, item, search
     // or page starts with nothing selected.
@@ -126,8 +102,9 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         view,
         item?.id ?? '',
         filters.search ?? '',
-        older ?? '',
-        newer ?? '',
+        paging.number ?? '',
+        paging.older ?? '',
+        paging.newer ?? '',
     ].join('|');
     const [seenKey, setSeenKey] = useState(pageKey);
 
@@ -145,11 +122,15 @@ export default function CommentsIndex(page: CommentsIndexPage) {
     const visit = (query: Record<string, string>) =>
         router.get(index({ query }).url);
     const description = own
-        ? 'Readers’ comments on your posts and pages, newest first. Approving, marking as spam and moving to the trash can each be undone.'
-        : 'Readers’ comments, newest first. Approving, marking as spam and moving to the trash can each be undone.';
+        ? __(
+              'Readers’ comments on your posts and pages, newest first. Approving, marking as spam and moving to the trash can each be undone.',
+          )
+        : __(
+              'Readers’ comments, newest first. Approving, marking as spam and moving to the trash can each be undone.',
+          );
 
     // One request for a moves list; the server answers with the list as it
-    // was and a toast that offers Undo (D10, D11, D23).
+    // was and a toast that offers Undo.
     const move = (moves: { id: string; to: string }[]) =>
         router.post(
             moderate().url,
@@ -164,7 +145,7 @@ export default function CommentsIndex(page: CommentsIndexPage) {
             ? setDeleting(ids)
             : move(ids.map((id) => ({ id, to: action.to })));
 
-    // The keys act through the same requests as the menu (D14).
+    // The keys act through the same requests as the line and the menu.
     const keys = useCommentKeys(rows, {
         move: (row, to) => move([{ id: row.id, to }]),
         toggle: (row) =>
@@ -177,7 +158,7 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         quickEdit: (row) => setEditing(row),
     });
 
-    // The drawer is its own address (C7), read again alone (D13).
+    // The drawer is its own address, read again alone.
     const openDetails = (id: string | null) => {
         const url = new URL(window.location.href);
 
@@ -194,81 +175,79 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         );
     };
 
-    const rowMoves = (row: CommentRow): Move[] => {
-        switch (row.status) {
-            case 'pending':
-                return [
-                    { label: 'Approve', to: 'approved' },
-                    { label: 'Mark as spam', to: 'spam' },
-                    TRASH,
-                ];
-            case 'approved':
-                return [
-                    { label: 'Unapprove', to: 'pending' },
-                    { label: 'Mark as spam', to: 'spam' },
-                    TRASH,
-                ];
-            case 'spam':
-                return [{ label: 'Mark as not spam', to: 'restore' }, DELETE];
-            default:
-                return [{ label: 'Restore', to: 'restore' }, DELETE];
-        }
-    };
+    const entry = (row: CommentRow, action: Move): RowAction => ({
+        id: action.to,
+        owner: 'core',
+        label: action.label,
+        destructive: action.destructive,
+        onSelect: () => act([row.id], action),
+    });
 
-    // v9's order: the way forward, Details, then the rest (D26).
-    const rowActions = (row: CommentRow): RowAction[] => {
-        const [first, ...rest] = rowMoves(row);
-        const entry = (action: Move): RowAction => ({
-            id: action.to,
-            owner: 'core',
-            label: action.label,
-            destructive: action.destructive,
-            onSelect: () => act([row.id], action),
-        });
-
+    // The way forward, Reply and Quick edit where they apply, then Details.
+    const lineActions = (row: CommentRow): RowAction[] => {
+        const first =
+            row.status === 'pending'
+                ? approve
+                : row.status === 'approved'
+                  ? unapprove
+                  : row.status === 'spam'
+                    ? notSpam
+                    : restore;
         const writes: RowAction[] = takesReplyAndQuickEdit(row)
             ? [
                   {
                       id: 'reply',
                       owner: 'core',
-                      label: 'Reply',
+                      label: __('Reply'),
                       movesFocus: true,
                       onSelect: () => setReplying(row.id),
                   },
                   {
                       id: 'quick-edit',
                       owner: 'core',
-                      label: 'Quick edit',
+                      label: __('Quick edit'),
                       onSelect: () => setEditing(row),
                   },
               ]
             : [];
 
         return [
-            entry(first),
+            entry(row, first),
             ...writes,
             {
                 id: 'details',
                 owner: 'core',
-                label: 'Details',
+                label: __('Details'),
                 onSelect: () => openDetails(row.id),
             },
-            ...rest.map(entry),
         ];
     };
+
+    // Mark as spam and Move to trash, or in Spam and Trash, Delete permanently.
+    const menuActions = (row: CommentRow): RowAction[] =>
+        row.status === 'pending' || row.status === 'approved'
+            ? [entry(row, spam), entry(row, trash)]
+            : [entry(row, remove)];
+
+    const named = (row: CommentRow) =>
+        __('the comment by :name', { name: row.authorName });
+
+    const allShown =
+        rows.length === 1
+            ? __('Select the 1 comment shown')
+            : __('Select all :count comments shown', {
+                  count: rows.length.toLocaleString(),
+              });
 
     const columns: Column<CommentRow>[] = [
         {
             id: 'select',
             owner: 'core',
-            className: 'w-10 pr-0',
+            width: 48,
+            className: 'pe-0',
             header: (
                 <Checkbox
-                    aria-label={
-                        rows.length === 1
-                            ? 'Select the 1 comment shown'
-                            : `Select all ${rows.length.toLocaleString()} comments shown`
-                    }
+                    aria-label={allShown}
                     disabled={rows.length === 0}
                     checked={
                         rows.length > 0 &&
@@ -281,7 +260,9 @@ export default function CommentsIndex(page: CommentsIndexPage) {
             ),
             cell: (row) => (
                 <Checkbox
-                    aria-label={`Select the comment by ${row.authorName}`}
+                    aria-label={__('Select the comment by :name', {
+                        name: row.authorName,
+                    })}
                     checked={chosen.includes(row.id)}
                     onCheckedChange={(checked) =>
                         setSelected(
@@ -296,8 +277,8 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         {
             id: 'author',
             owner: 'core',
-            header: 'Author',
-            className: 'min-w-44',
+            header: __('Author'),
+            minWidth: 176,
             cell: (row) => (
                 <Commenter
                     row={row}
@@ -309,27 +290,27 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         {
             id: 'comment',
             owner: 'core',
-            header: 'Comment',
-            className: 'min-w-64',
+            header: __('Comment'),
+            minWidth: 256,
             cell: (row) => (
-                <div className="space-y-1">
+                <div className="grid gap-1">
                     {row.parent && (
-                        <p className="text-ink-2 text-[12px]">
+                        <p className="text-small text-ink-3">
                             {row.parent.removed ||
                             row.parent.authorName === null
-                                ? 'In reply to a removed comment'
-                                : `In reply to ${row.parent.authorName}`}
+                                ? __('In reply to a removed comment')
+                                : __('In reply to :name', {
+                                      name: row.parent.authorName,
+                                  })}
                         </p>
                     )}
                     {view === 'all' && row.status === 'pending' && (
-                        <Badge variant="secondary">Pending</Badge>
+                        <span>
+                            <StatusPill tone="info">{__('Pending')}</StatusPill>
+                        </span>
                     )}
                     <p className="whitespace-pre-line">{row.text}</p>
-                    <RowLinks
-                        label={`Actions for the comment by ${row.authorName}`}
-                        more={`More actions for the comment by ${row.authorName}`}
-                        items={rowActions(row)}
-                    />
+                    <RowLine title={named(row)} items={lineActions(row)} />
                     {replying === row.id && (
                         <InlineReply
                             row={row}
@@ -350,10 +331,13 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         {
             id: 'item',
             owner: 'core',
-            header: 'In response to',
+            header: __('In response to'),
             cell: (row) =>
                 row.item.editable ? (
-                    <Link href={edit(row.item.id)} className="hover:underline">
+                    <Link
+                        href={edit(row.item.id)}
+                        className="focus-visible:outline-ring rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    >
                         {shownTitle(row.item.title)}
                     </Link>
                 ) : (
@@ -363,79 +347,169 @@ export default function CommentsIndex(page: CommentsIndexPage) {
         {
             id: 'submitted',
             owner: 'core',
-            header: 'Submitted',
+            header: __('Submitted'),
             className: 'whitespace-nowrap',
             cell: (row) => formatInZone(row.createdAt, siteTimezone),
+        },
+        {
+            id: 'menu',
+            owner: 'core',
+            width: 56,
+            className: 'px-2',
+            header: <span className="sr-only">{__('Actions')}</span>,
+            cell: (row) => (
+                <RowMenu title={named(row)} items={menuActions(row)} />
+            ),
         },
     ];
 
     const filtered = filters.search !== undefined || item !== null;
-    const empty =
-        view === 'trash'
-            ? {
-                  ...EMPTY.trash,
-                  line: `Comments you move to the trash wait here for ${trashDays === 1 ? '1 day' : `${trashDays.toLocaleString()} days`}, so you can restore them.`,
-              }
-            : EMPTY[view];
+    const active = (filters.search !== undefined ? 1 : 0) + (item ? 1 : 0);
+
+    const empty: Record<CommentView, { title: string; line: string }> = {
+        all: {
+            title: __('No comments yet'),
+            line: __('Readers’ comments appear here as they arrive.'),
+        },
+        pending: {
+            title: __('Nothing is waiting'),
+            line: __('Comments held for approval appear here.'),
+        },
+        approved: {
+            title: __('No approved comments'),
+            line: __('Comments readers can see appear here.'),
+        },
+        spam: {
+            title: __('No spam'),
+            line: __('Comments marked as spam wait here until you empty spam.'),
+        },
+        trash: {
+            title: __('The trash is empty'),
+            line:
+                trashDays === 1
+                    ? __(
+                          'Comments you move to the trash wait here for 1 day, so you can restore them.',
+                      )
+                    : __(
+                          'Comments you move to the trash wait here for :days days, so you can restore them.',
+                          { days: trashDays.toLocaleString() },
+                      ),
+        },
+    };
+
+    // J and K, then each key and what it does.
+    const keyHints: [string, string][] = [
+        ['J', __('and')],
+        ['K', __('move between comments,')],
+        ['X', __('selects,')],
+        ['A', __('approves,')],
+        ['U', __('unapproves,')],
+        ['S', __('marks spam,')],
+        ['T', __('moves to trash,')],
+        ['R', __('replies,')],
+        ['Q', __('opens Quick edit.')],
+    ];
+
+    const [buttons, more] = (() => {
+        const moves = bulkMoves[view];
+        const kept = moves.filter((action) => action.to !== 'delete');
+
+        return [
+            kept.slice(0, 3),
+            [
+                ...kept.slice(3),
+                ...moves.filter((action) => action.to === 'delete'),
+            ],
+        ];
+    })();
+
+    const emptiable =
+        (view === 'spam' || view === 'trash') &&
+        emptying !== null &&
+        emptying.count > 0;
 
     return (
-        <>
-            <Head title="Comments" />
+        <ListPage
+            title={__('Comments')}
+            description={description}
+            actions={
+                emptiable && (
+                    <Button
+                        variant="danger"
+                        type="button"
+                        onClick={() => setEmptyingOpen(true)}
+                    >
+                        {view === 'spam' ? __('Empty spam') : __('Empty trash')}
+                    </Button>
+                )
+            }
+        >
+            <Head title={__('Comments')} />
 
-            <div className="space-y-4 p-6">
-                <PageHeader title="Comments" description={description} />
-
-                <TabStrip
-                    label="Views"
-                    current={view}
-                    tabs={views.map((tab) => ({
-                        key: tab.key,
+            {/* Its own grid cell may be narrower than its views, which then scroll sideways inside it (I-3422). */}
+            <div className="min-w-0">
+                <InPageNav
+                    label={__('Views')}
+                    items={views.map((tab) => ({
                         label: tab.label,
                         count: tab.count,
-                        href: index({ query: { ...keep, view: tab.key } }),
+                        current: tab.key === view,
+                        href: index({ query: { ...keep, view: tab.key } }).url,
                     }))}
                 />
+            </div>
 
-                <form
-                    role="search"
-                    className="flex flex-wrap items-center gap-2"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        const typed = new FormData(event.currentTarget).get(
-                            'search',
-                        );
-                        const search =
-                            typeof typed === 'string' ? typed.trim() : '';
+            <FilterRow
+                active={active}
+                search={
+                    <form
+                        role="search"
+                        className="flex w-full items-center gap-2 sm:w-auto"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            const typed = new FormData(event.currentTarget).get(
+                                'search',
+                            );
+                            const search =
+                                typeof typed === 'string' ? typed.trim() : '';
 
-                        visit({
-                            view,
-                            ...(item ? { item: item.id } : {}),
-                            ...(search ? { search } : {}),
-                        });
-                    }}
-                >
-                    <Input
-                        key={filters.search ?? ''}
-                        name="search"
-                        defaultValue={filters.search ?? ''}
-                        placeholder={
-                            seesAddresses
-                                ? 'Text, name, email or IP address'
-                                : 'Text, name or email'
-                        }
-                        aria-label="Search comments"
-                        className="w-72"
-                    />
-                    <Button variant="outline" type="submit">
-                        Search
-                    </Button>
-                    {item && (
-                        <Badge variant="secondary" className="h-7 gap-1 pr-1">
-                            {`On “${shownTitle(item.title)}”`}
-                            <button
+                            visit({
+                                view,
+                                ...(item ? { item: item.id } : {}),
+                                ...(search ? { search } : {}),
+                            });
+                        }}
+                    >
+                        <Input
+                            key={filters.search ?? ''}
+                            name="search"
+                            defaultValue={filters.search ?? ''}
+                            placeholder={
+                                seesAddresses
+                                    ? __('Text, name, email or IP address')
+                                    : __('Text, name or email')
+                            }
+                            aria-label={__('Search comments')}
+                            className="min-w-0 flex-1 sm:w-70 sm:flex-none"
+                        />
+                        <Button variant="neutral" type="submit">
+                            {__('Search')}
+                        </Button>
+                    </form>
+                }
+                filters={
+                    item ? (
+                        <div className="flex items-center gap-1">
+                            <StatusPill tone="neutral" flat>
+                                {__('On “:title”', {
+                                    title: shownTitle(item.title),
+                                })}
+                            </StatusPill>
+                            <Button
                                 type="button"
-                                aria-label="Show comments on every item"
-                                className="hover:bg-surface-3 focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+                                variant="ghost"
+                                size="icon-xs"
+                                aria-label={__('Show comments on every item')}
                                 onClick={() =>
                                     visit({
                                         view,
@@ -445,115 +519,109 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                                     })
                                 }
                             >
-                                <X aria-hidden className="size-3" />
-                            </button>
-                        </Badge>
-                    )}
-                    {filtered && (
+                                <X aria-hidden="true" />
+                            </Button>
+                        </div>
+                    ) : undefined
+                }
+                clear={
+                    filtered && (
                         <Button
                             variant="ghost"
                             type="button"
                             onClick={() => visit({ view })}
                         >
-                            Clear filters
+                            {__('Clear filters')}
                         </Button>
-                    )}
-                    {(view === 'spam' || view === 'trash') &&
-                        emptying !== null &&
-                        emptying.count > 0 && (
-                            <Button
-                                variant="destructive"
-                                type="button"
-                                className="ml-auto"
-                                onClick={() => setEmptyingOpen(true)}
-                            >
-                                {view === 'spam' ? 'Empty spam' : 'Empty trash'}
-                            </Button>
-                        )}
-                </form>
+                    )
+                }
+            />
 
-                <p id="cm-keys" className="text-ink-2 text-[12px]">
-                    {'Keyboard: '}
-                    {KEYS.map(([key, words], at) => (
-                        <span key={key}>
-                            <kbd className="border-line rounded-sm border px-1 font-mono text-[11px]">
-                                {key}
-                            </kbd>
-                            {words}
-                            {at === KEYS.length - 1
-                                ? '.'
-                                : words.endsWith(',')
-                                  ? ' '
-                                  : ''}
-                        </span>
+            {chosen.length > 0 && (
+                <BulkBar
+                    count={chosen.length}
+                    noun={{ one: __('comment'), many: __('comments') }}
+                    onClear={() => setSelected([])}
+                    more={more.map((action) => ({
+                        id: action.to,
+                        owner: 'core',
+                        label: action.label,
+                        destructive: action.destructive,
+                        onSelect: () => act(chosen, action),
+                    }))}
+                >
+                    {buttons.map((action) => (
+                        <Button
+                            key={action.to}
+                            type="button"
+                            size="sm"
+                            variant="neutral"
+                            className="bg-surface"
+                            onClick={() => act(chosen, action)}
+                        >
+                            {action.label}
+                        </Button>
                     ))}
-                </p>
+                </BulkBar>
+            )}
 
-                {chosen.length > 0 && (
-                    <BulkBar
-                        count={chosen.length}
-                        onClear={() => setSelected([])}
-                    >
-                        {BULK[view].map((action) => (
-                            <Button
-                                key={action.to}
-                                size="sm"
-                                variant={
-                                    action.destructive
-                                        ? 'destructive'
-                                        : 'outline'
-                                }
-                                onClick={() => act(chosen, action)}
-                            >
-                                {action.label}
-                            </Button>
-                        ))}
-                    </BulkBar>
-                )}
+            <DataTable
+                columns={columns}
+                rows={rows}
+                rowKey={(row) => row.id}
+                caption={__('Comments')}
+                describedBy="cm-keys"
+                rowProps={keys.rowProps}
+                selectedKeys={new Set(chosen)}
+                pinned={{ start: ['select', 'author'], end: ['menu'] }}
+                cards={{
+                    titleColumn: 'author',
+                    select: 'select',
+                    menu: 'menu',
+                    body: 'comment',
+                    facts: ['item', 'submitted'],
+                    selectLabel: allShown,
+                }}
+                footer={
+                    <NumberedPager
+                        pages={paging}
+                        perPage={perPage}
+                        href={(query) =>
+                            index({ query: { ...keep, view, ...query } }).url
+                        }
+                    />
+                }
+                empty={
+                    filtered ? (
+                        <EmptyState
+                            kind="nothing-matches"
+                            title={
+                                filters.search
+                                    ? __('No comments match “:search”', {
+                                          search: filters.search,
+                                      })
+                                    : __('No comments match these filters')
+                            }
+                            clearHref={index({ query: { view } }).url}
+                        />
+                    ) : (
+                        <EmptyState
+                            kind="nothing-yet"
+                            title={empty[view].title}
+                            description={empty[view].line}
+                        />
+                    )
+                }
+            />
 
-                <DataTable
-                    columns={columns}
-                    rows={rows}
-                    rowKey={(row) => row.id}
-                    caption="Comments"
-                    describedBy="cm-keys"
-                    rowProps={keys.rowProps}
-                    empty={
-                        filtered ? (
-                            <EmptyState
-                                kind="nothing-matches"
-                                title={
-                                    filters.search
-                                        ? `No comments match “${filters.search}”`
-                                        : 'No comments match these filters'
-                                }
-                                clearHref={index({ query: { view } }).url}
-                            />
-                        ) : (
-                            <EmptyState
-                                kind="nothing-yet"
-                                title={empty.title}
-                                description={empty.line}
-                            />
-                        )
-                    }
-                />
-
-                <Pager
-                    newer={
-                        newer
-                            ? index({ query: { ...keep, view, before: newer } })
-                                  .url
-                            : null
-                    }
-                    older={
-                        older
-                            ? index({ query: { ...keep, view, after: older } })
-                                  .url
-                            : null
-                    }
-                />
-            </div>
+            <p id="cm-keys" className="text-small text-ink-3">
+                {__('Keyboard:')}{' '}
+                {keyHints.map(([key, words]) => (
+                    <span key={key}>
+                        <Kbd>{key}</Kbd> {words}{' '}
+                    </span>
+                ))}
+            </p>
 
             <CommentDetailsDrawer
                 details={details}
@@ -597,6 +665,6 @@ export default function CommentsIndex(page: CommentsIndexPage) {
                 onOpenChange={(open) => !open && setDeleting(null)}
                 onDeleted={() => setSelected([])}
             />
-        </>
+        </ListPage>
     );
 }

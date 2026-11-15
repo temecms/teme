@@ -96,3 +96,25 @@ it('writes nothing when someone may not change the item', function (): void {
         ->and($media->refresh()->alt)->toBeNull()
         ->and($media->file_version)->toBe(1);
 });
+
+it('counts the people who use an image as their picture, and says nothing of who they are', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $portrait = mediaUpload($this->author, mediaJpeg());
+    $other = mediaUpload($this->author, mediaJpeg(900, 600));
+    $ada = User::factory()->create(['name' => 'Ada Pictured', 'email' => 'ada@example.test', 'picture_media_id' => $portrait->id]);
+    $ben = User::factory()->create(['name' => 'Ben Pictured', 'email' => 'ben@example.test', 'picture_media_id' => $portrait->id]);
+    User::factory()->create(['picture_media_id' => $other->id]);
+
+    $response = $this->actingAs($editor)->getJson(route('media.show', ['media' => $portrait->id]))->assertOk();
+
+    expect($response->json('pictureOf'))->toBe(2);
+
+    foreach ([$ada, $ben] as $person) {
+        expect($response->getContent())->not->toContain($person->name)
+            ->and($response->getContent())->not->toContain($person->email);
+    }
+
+    $unused = mediaUpload($this->author, mediaJpeg(640, 480));
+
+    expect($this->actingAs($editor)->getJson(route('media.show', ['media' => $unused->id]))->assertOk()->json('pictureOf'))->toBe(0);
+});

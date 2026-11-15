@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
     ArchiveIcon,
     ChevronDownIcon,
@@ -105,7 +105,7 @@ import { EmptyState } from '@/components/list/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Notice } from '@/components/ui/notice';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
 import { SaveBar } from '@/components/patterns/save-bar';
 import { DetailPage } from '@/components/patterns/detail-page';
@@ -123,8 +123,11 @@ import {
 } from '@/components/patterns/responsive-menu';
 import { ResponsiveSheetContent } from '@/components/patterns/responsive-sheet';
 import { ListPage } from '@/components/patterns/list-page';
+import { PluginAreaPage } from '@/components/patterns/plugin-area-page';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { __ } from '@/lib/i18n';
+import { openMediaPicker } from '@/components/media/media-picker';
+import type { MediaPickerCaller } from '@/components/media/media-picker';
 
 /** A colour token: its variable, the class that fills a ground with it, and the class of the words that sit on it, if any. */
 type Swatch = { token: string; ground: string; ink?: string };
@@ -320,6 +323,75 @@ function Section({
     );
 }
 
+/** Opens the media picker for each caller, and shows the IDs it hands back. */
+function MediaPickerDemo() {
+    const [chosen, setChosen] = useState<string[]>([]);
+    const [closed, setClosed] = useState(0);
+    const callers: {
+        caller: MediaPickerCaller;
+        test: string;
+        label: string;
+        multi?: boolean;
+        action?: string;
+    }[] = [
+        { caller: 'insert', test: 'insert', label: __('Insert an image') },
+        { caller: 'replace', test: 'replace', label: __('Replace the image') },
+        {
+            caller: 'featured',
+            test: 'featured',
+            label: __('Choose the featured image'),
+        },
+        {
+            caller: 'gallery',
+            test: 'gallery',
+            label: __('Add images to the gallery'),
+            multi: true,
+        },
+        {
+            caller: 'choose',
+            test: 'choose',
+            label: __('Choose a poster'),
+            action: __('Use as poster'),
+        },
+    ];
+
+    return (
+        <div className="grid gap-3">
+            <div className="flex flex-wrap gap-2">
+                {callers.map((each) => (
+                    <Button
+                        key={each.test}
+                        type="button"
+                        variant="neutral"
+                        data-test={`catalogue-picker-${each.test}`}
+                        onClick={() =>
+                            openMediaPicker({
+                                caller: each.caller,
+                                multi: each.multi ?? false,
+                                action: each.action,
+                                onInsert: (ids) => setChosen(ids),
+                                onClose: () => setClosed((count) => count + 1),
+                            })
+                        }
+                    >
+                        {each.label}
+                    </Button>
+                ))}
+            </div>
+            <p className="text-small text-ink-2">
+                {__('Chosen:')}{' '}
+                <output data-test="catalogue-picker-chosen">
+                    {chosen.join(',')}
+                </output>
+            </p>
+            <p className="text-small text-ink-2">
+                {__('Closed without a choice:')}{' '}
+                <output data-test="catalogue-picker-closed">{closed}</output>
+            </p>
+        </div>
+    );
+}
+
 /** The loading and failed states: a skeleton mounted on request, and a failure with Try again. */
 function StatesDemo() {
     const [loading, setLoading] = useState(false);
@@ -348,6 +420,80 @@ function StatesDemo() {
                 onRetry={() => setLoading(true)}
             />
         </div>
+    );
+}
+
+/** A page of the sample plugin's area that throws once asked to, as a plugin's page can. */
+function FailingAreaPage({ name, fail }: { name: string; fail: boolean }) {
+    if (fail) {
+        throw new Error(`The sample page ${name} failed.`);
+    }
+
+    return (
+        <p data-test="plugin-area-body" className="text-body text-ink-2">
+            {__('This is the :page page.', { page: name })}
+        </p>
+    );
+}
+
+/** A plugin's own area, its current page read from the address, with a page that can be made to fail. */
+function PluginAreaDemo() {
+    const { url } = usePage();
+    const [failing, setFailing] = useState(false);
+
+    // Fails once: by the time Try again is pressed, the page draws again.
+    useEffect(() => {
+        if (failing) {
+            setFailing(false);
+        }
+    }, [failing]);
+    const area =
+        new URLSearchParams(url.split('?')[1]?.split('#')[0] ?? '').get(
+            'area',
+        ) ?? 'overview';
+    const pages = [
+        { key: 'overview', label: __('Overview') },
+        { key: 'link-report', label: __('Link report') },
+        { key: 'orphaned-posts', label: __('Orphaned posts') },
+        { key: 'broken-links', label: __('Broken links'), count: 12 },
+        { key: 'settings', label: __('Settings') },
+        { key: 'exports', label: __('Exports') },
+        { key: 'logs', label: __('Logs') },
+    ].map(({ key, ...page }) => ({
+        ...page,
+        href: `?area=${key}#plugin-area`,
+        current: key === area,
+    }));
+    const current = pages.find((page) => page.current) ?? pages[0];
+
+    return (
+        <PluginAreaPage
+            titleAs="div"
+            plugin={{ name: __('Link checker') }}
+            title={__('Link checker')}
+            description={__(
+                'Finds links on the site that lead nowhere, and posts nothing links to.',
+            )}
+            actions={
+                <Button type="button" variant="neutral">
+                    {__('Check now')}
+                </Button>
+            }
+            pages={pages}
+        >
+            <div className="grid justify-items-start gap-3">
+                <FailingAreaPage name={current.label} fail={failing} />
+                <Button
+                    type="button"
+                    variant="neutral"
+                    size="sm"
+                    data-test="plugin-area-break"
+                    onClick={() => setFailing(true)}
+                >
+                    {__('Make this page fail')}
+                </Button>
+            </div>
+        </PluginAreaPage>
     );
 }
 
@@ -1816,6 +1962,16 @@ export default function Catalogue() {
                 </Section>
 
                 <Section
+                    id="plugin-area"
+                    title={__('A plugin’s own area')}
+                    description={__(
+                        'The plugin’s icon and mark at the head, its pages under it, and one sentence when a page fails.',
+                    )}
+                >
+                    <PluginAreaDemo />
+                </Section>
+
+                <Section
                     id="icon-tile"
                     title={__('Icon tiles')}
                     description={__('Small, medium and large.')}
@@ -1969,6 +2125,16 @@ export default function Catalogue() {
                     )}
                 >
                     <FreshPasswordDemo />
+                </Section>
+
+                <Section
+                    id="media-picker"
+                    title={__('Media picker')}
+                    description={__(
+                        'The one picker, as each screen opens it: the title and main button follow the caller.',
+                    )}
+                >
+                    <MediaPickerDemo />
                 </Section>
 
                 <Section

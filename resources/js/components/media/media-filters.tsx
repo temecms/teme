@@ -1,9 +1,11 @@
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import type { MediaKind, MediaMonth, UploadTarget } from '@/types';
 
 /** The filters' values: '' for a select's first choice, false for a box left clear. */
@@ -19,12 +21,17 @@ export type MediaFilterValues = {
 };
 
 /** The Type select's choices, in the order the library's tabs had them. */
-export const MEDIA_TYPES: { value: MediaKind; label: string }[] = [
-    { value: 'image', label: 'Images' },
-    { value: 'video', label: 'Video' },
-    { value: 'audio', label: 'Audio' },
-    { value: 'document', label: 'Documents' },
-];
+function mediaTypes(): { value: MediaKind; label: string }[] {
+    return [
+        { value: 'image', label: __('Images') },
+        { value: 'video', label: __('Video') },
+        { value: 'audio', label: __('Audio') },
+        { value: 'document', label: __('Documents') },
+    ];
+}
+
+/** Every kind the library holds. */
+const ALL_KINDS: MediaKind[] = ['image', 'video', 'audio', 'document'];
 
 type BoxKey = 'mine' | 'unused' | 'missingAlt';
 
@@ -37,7 +44,7 @@ export function MediaFilters({
     values,
     onChange,
     months,
-    kinds = MEDIA_TYPES.map((option) => option.value),
+    kinds = ALL_KINDS,
     showMine = true,
     idPrefix,
     openItem = null,
@@ -56,7 +63,7 @@ export function MediaFilters({
     /** The item the Media screen is narrowed to: draws its chip, whose button removes it. */
     chosenItem?: { id: string; title: string } | null;
 }) {
-    const types = MEDIA_TYPES.filter((option) => kinds.includes(option.value));
+    const types = mediaTypes().filter((option) => kinds.includes(option.value));
 
     const box = (key: BoxKey, label: string) => (
         <div className="flex min-h-6 items-center gap-2">
@@ -71,7 +78,7 @@ export function MediaFilters({
             />
             <Label
                 htmlFor={`${idPrefix}-${key}`}
-                className="text-[13px] font-normal"
+                className="text-small font-normal"
             >
                 {label}
             </Label>
@@ -85,16 +92,16 @@ export function MediaFilters({
         >
             {types.length > 1 && (
                 <SelectField
-                    aria-label="Type"
-                    emptyLabel="All media"
+                    aria-label={__('Type')}
+                    emptyLabel={__('All media')}
                     value={values.type}
                     onValueChange={(type) => onChange({ type })}
                     options={types}
                 />
             )}
             <SelectField
-                aria-label="Date"
-                emptyLabel="All dates"
+                aria-label={__('Date')}
+                emptyLabel={__('All dates')}
                 value={values.month}
                 onValueChange={(month) => onChange({ month })}
                 options={months}
@@ -104,8 +111,8 @@ export function MediaFilters({
                 type="search"
                 className="w-64"
                 defaultValue={values.search}
-                placeholder="Search file names, titles, alt text"
-                aria-label="Search media"
+                placeholder={__('Search file names, titles, alt text')}
+                aria-label={__('Search media')}
                 onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                         event.preventDefault();
@@ -127,30 +134,39 @@ export function MediaFilters({
                     />
                     <Label
                         htmlFor={`${idPrefix}-uploadedFor`}
-                        className="text-[13px] font-normal"
+                        className="text-small font-normal"
                     >
-                        {`Uploaded for this ${openItem.noun}`}
+                        {__('Uploaded for this :noun', { noun: openItem.noun })}
                     </Label>
                 </div>
             )}
-            {showMine && box('mine', 'Mine')}
-            {box('unused', 'Unused')}
-            {box('missingAlt', 'Missing alt text')}
+            {showMine && box('mine', __('Mine'))}
+            {box('unused', __('Unused'))}
+            {box('missingAlt', __('Missing alt text'))}
             {chosenItem && values.uploadedFor === chosenItem.id && (
                 <Badge
                     variant="secondary"
                     data-test="media-uploaded-for-chip"
                     className="h-7 gap-1 pr-1"
                 >
-                    {`Uploaded for “${chosenItem.title || 'Untitled'}”`}
-                    <button
+                    {__('Uploaded for “:title”', {
+                        title: chosenItem.title || __('Untitled'),
+                    })}
+                    <Button
                         type="button"
-                        aria-label={`Remove this filter: Uploaded for “${chosenItem.title || 'Untitled'}”`}
-                        className="hover:bg-surface-3 focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm focus-visible:ring-2 focus-visible:outline-none"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label={__(
+                            'Remove this filter: Uploaded for “:title”',
+                            {
+                                title: chosenItem.title || __('Untitled'),
+                            },
+                        )}
+                        className="size-6"
                         onClick={() => onChange({ uploadedFor: '' })}
                     >
                         <X aria-hidden className="size-3" />
-                    </button>
+                    </Button>
                 </Badge>
             )}
         </div>

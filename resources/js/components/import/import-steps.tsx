@@ -1,64 +1,45 @@
-import { Check } from 'lucide-react';
+import { StepBar } from '@/components/ui/step-bar';
+import { __ } from '@/lib/i18n';
 import type { ImportStep } from '@/types/import';
 
-const STEPS: { key: string; label: string }[] = [
-    { key: 'connect', label: 'Connect' },
-    { key: 'analyze', label: 'Analyze' },
-    { key: 'choose', label: 'Choose' },
-    { key: 'import', label: 'Import' },
-    { key: 'report', label: 'Report' },
+/** The five steps' words, looked up as they are drawn. */
+const steps = () => [
+    __('Connect'),
+    __('Analyze'),
+    __('Choose'),
+    __('Import'),
+    __('Report'),
 ];
 
-/** The first step the page's step stands at: Analyze and Choose share the plan step. */
-const POSITION: Record<ImportStep, number> = {
-    connect: 0,
-    plan: 1,
-    import: 3,
-    report: 4,
-};
+/**
+ * Where the step bar stands. Analyze and Choose share the server's plan step:
+ * Choose once the plan has arrived with choices to make, Analyze until then.
+ */
+function current(step: ImportStep, choosing: boolean): number {
+    if (step === 'plan') {
+        return choosing ? 2 : 1;
+    }
+
+    return { connect: 0, import: 3, report: 4 }[step];
+}
 
 /**
- * A site's five steps (I-227), the current one marked for screen readers,
- * never by colour alone.
+ * A site's five steps (I-227) on the shared step bar, exactly one of them
+ * current, marked for screen readers as well as by sight.
  */
-export function ImportSteps({ step }: { step: ImportStep }) {
-    const current = POSITION[step];
-
+export function ImportSteps({
+    step,
+    choosing = false,
+}: {
+    step: ImportStep;
+    choosing?: boolean;
+}) {
     return (
-        <ol
-            aria-label="Import steps"
+        <StepBar
+            steps={steps()}
+            current={current(step, choosing)}
+            aria-label={__('Import steps')}
             data-test="import-step"
-            className="flex flex-wrap gap-x-6 gap-y-2 text-[13px]"
-        >
-            {STEPS.map((item, index) => {
-                const done = index < current;
-                const now =
-                    index === current || (step === 'plan' && index === 2);
-
-                return (
-                    <li
-                        key={item.key}
-                        aria-current={now ? 'step' : undefined}
-                        className={
-                            now
-                                ? 'text-ink flex items-center gap-2 font-medium'
-                                : 'text-ink-2 flex items-center gap-2'
-                        }
-                    >
-                        <span
-                            aria-hidden="true"
-                            className="border-line inline-flex size-6 items-center justify-center rounded-full border tabular-nums"
-                        >
-                            {done ? <Check className="size-3.5" /> : index + 1}
-                        </span>
-                        {item.label}
-                        {done && <span className="sr-only"> (done)</span>}
-                        {now && (
-                            <span className="sr-only"> (current step)</span>
-                        )}
-                    </li>
-                );
-            })}
-        </ol>
+        />
     );
 }

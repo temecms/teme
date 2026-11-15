@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Contents\Queries;
 
 /**
- * What a content type's list asks for: the type, tab, sort, paging cursor and
+ * What a content type's list asks for: the type, tab, sort, page or paging cursor and
  * filters, and who is looking — the Mine tab needs to know.
  */
 final readonly class ContentListRequest
@@ -47,5 +47,7 @@ final readonly class ContentListRequest
         public bool $withComments = false,
         /** One of the site's languages, by its tag: its items only (I-3360). Anything else is ignored. */
         public ?string $language = null,
+        /** The page asked for by number, 1 to ListPages::CAP; a cursor wins over it (I-3421). */
+        public int $page = 1,
     ) {}
 }

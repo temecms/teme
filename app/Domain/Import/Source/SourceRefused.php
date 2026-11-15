@@ -31,6 +31,8 @@ final class SourceRefused extends RuntimeException
 
     public const string HTTPS_ONLY = 'https';
 
+    public const string BLOCKED = 'blocked';
+
     public const string BAD_ANSWER = 'bad-answer';
 
     private function __construct(
@@ -91,6 +93,11 @@ final class SourceRefused extends RuntimeException
     public static function notAdministrator(): self
     {
         return new self(self::NOT_ADMINISTRATOR, 'user_name', false, 'This WordPress account isn’t an administrator. Use an administrator’s user name, and an application password made for that account.');
+    }
+
+    public static function blocked(): self
+    {
+        return new self(self::BLOCKED, 'address', false, 'Something in front of WordPress, such as a firewall or Cloudflare’s bot check, blocked Teme before WordPress answered. Let Teme’s server through, then try again.');
     }
 
     public static function httpsOnly(): self

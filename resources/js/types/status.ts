@@ -4,4 +4,8 @@ export type StatusBanner = {
     message: string;
     actionLabel: string | null;
     actionUrl: string | null;
+    /** What the row is about: the check's area, or the plugin's name. */
+    label: string;
+    /** The plugin that raised it; null for Teme's own. */
+    plugin: string | null;
 };

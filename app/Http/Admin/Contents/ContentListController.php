@@ -12,6 +12,7 @@ use App\Domain\Contents\Queries\HeldSchedules;
 use App\Domain\Contents\Queries\SingleItem;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
+use App\Domain\Support\Queries\ListPages;
 use App\Domain\Taxonomy\Queries\TermPicker;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
@@ -57,8 +58,10 @@ final class ContentListController extends Controller
             after: $this->optional($request, 'after'),
             before: $this->optional($request, 'before'),
             withComments: $takesComments,
+            page: ListPages::requested($request->query('page')),
         );
-        $page = $list->page($listRequest);
+        // The cursors reach the screen inside `paging`, beside the page numbers (I-3421).
+        $page = array_diff_key($list->page($listRequest), ['newer' => true, 'older' => true]);
 
         return Inertia::render('content/index', [
             'type' => $type,

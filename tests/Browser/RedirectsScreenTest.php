@@ -127,7 +127,9 @@ it('offers a redirect just after a published post is trashed, and the form opens
 
     cmSignIn($this->editor)
         ->navigate('/admin/posts')
-        ->click('[aria-label="Actions for Harbour news"] [data-action="trash"]')
+        // Trash is in the row's menu (I-3398).
+        ->click('[aria-label="More actions for Harbour news"]')
+        ->click('[role="menu"] [data-action="trash"]')
         ->assertSee('Moved to the trash. Links to /harbour-news/ no longer reach it.')
         ->click('Add a redirect for its address')
         ->assertValue('#redirect-from', '/harbour-news/')

@@ -66,6 +66,7 @@ final readonly class Contributions implements PluginContributions
                 description: is_string($link['description'] ?? null) ? $link['description'] : __('Added by the :label plugin.', ['label' => $label]),
                 icon: is_string($link['icon'] ?? null) ? $link['icon'] : 'plug',
                 to: $link['to'],
+                plugin: $label,
             ));
         }
 

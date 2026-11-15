@@ -21,6 +21,11 @@ final readonly class StoredTypesRefused implements StatusCheck
         return TypeAccess::MANAGE;
     }
 
+    public function label(): string
+    {
+        return __('Types');
+    }
+
     public function banner(): ?StatusBanner
     {
         $refused = app(ContentTypeRegistry::class)->refused();

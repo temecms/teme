@@ -52,11 +52,11 @@ it('passes axe on the Comments screen and its drawer, every target 24 pixels or 
 
     $list = cmSmallTargets($page);
 
-    $page->click('[aria-label="Actions for the comment by Bola Ade"] [data-action="more"]')
-        ->click('[role="menu"] >> text="Details"')
-        ->assertSee('Comment by Bola Ade')
-        // The Actions menu fades out as the drawer opens; axe reads a fading item's colours as the page's own.
-        ->assertNotPresent('[role="menu"]')
+    $page->click('[aria-label="Actions for the comment by Bola Ade"] [data-action="details"]')
+        ->assertSee('Comment by Bola Ade');
+
+    // The drawer slides in, and axe doesn't retry.
+    shellSettled($page, '[data-slot="sheet-content"], [data-slot="sheet-overlay"]')
         ->assertNoAccessibilityIssues(3);
 
     $drawer = cmSmallTargets($page);
@@ -84,12 +84,13 @@ it('marks a selection as spam from the bulk bar, then deletes the spam permanent
     cmSignIn($this->editor)
         ->navigate('/admin/comments?view=approved')
         ->click('[aria-label="Select the comment by Bola Ade"]')
-        ->assertSee('1 selected')
+        ->assertSee('1 comment selected')
         ->click('[role="region"][aria-label="Bulk actions"] >> text="Mark as spam"')
         ->assertSee('Marked as spam: comment by Bola Ade.')
         ->navigate('/admin/comments?view=spam')
         ->click('[aria-label="Select all 2 comments shown"]')
-        ->click('[role="region"][aria-label="Bulk actions"] >> text="Delete permanently"')
+        ->click('[role="region"][aria-label="Bulk actions"] >> text="More"')
+        ->click('[role="menu"] >> text="Delete permanently"')
         ->assertSee('Delete 2 comments permanently?')
         ->assertSee('All 2 are deleted, with nothing kept. This can’t be undone.')
         ->click('[role="dialog"] >> text="Delete permanently"')
@@ -130,7 +131,8 @@ it('says what deleting permanently will do when replies keep a place, for a sele
         ->navigate('/admin/comments?view=spam')
         ->click('[aria-label="Select the comment by Dana Spam"]')
         ->click('[aria-label="Select the comment by Eli Spam"]')
-        ->click('[role="region"][aria-label="Bulk actions"] >> text="Delete permanently"')
+        ->click('[role="region"][aria-label="Bulk actions"] >> text="More"')
+        ->click('[role="menu"] >> text="Delete permanently"')
         ->assertSee('Delete 2 comments permanently?')
         ->assertSee('All 2 have replies, so each stays in the thread')
         ->click('[role="dialog"] >> text="Cancel"');
@@ -214,7 +216,7 @@ it('moderates from the keyboard only while a row itself has focus (C11, I-653, D
         ->keys('#cm-row-'.$this->ping->id, 'j')
         ->assertScript('document.activeElement?.id', 'cm-row-'.$this->shown->id)
         ->keys('#cm-row-'.$this->shown->id, 'x')
-        ->assertSee('1 selected')
+        ->assertSee('1 comment selected')
         ->keys('#cm-row-'.$this->held->id, 'a')
         ->assertSee('Approved: comment by Ada Guest.');
 
@@ -232,4 +234,53 @@ it('empties spam after a confirmation that says what stays (C4, D18)', function 
         ->assertSee('Comments marked as spam wait here until you empty spam.');
 
     expect($this->spam->fresh())->toBeNull();
+});
+
+it('shows Approve, Reply, Quick edit and Details under a pending comment, and Mark as spam and Move to trash in its menu', function (): void {
+    $page = cmSignIn($this->editor)->navigate('/admin/comments');
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"row-line\"][aria-label=\"Actions for the comment by Ada Guest\"]') !== null")
+        ->assertScript("[...document.querySelectorAll('[aria-label=\"Actions for the comment by Ada Guest\"] [data-action]')].map((action) => action.dataset.action).join('|')", 'approved|reply|quick-edit|details')
+        ->assertScript("getComputedStyle(document.querySelector('[aria-label=\"Actions for the comment by Ada Guest\"]')).opacity", '1')
+        ->click('[aria-label="More actions for the comment by Ada Guest"]');
+
+    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0")
+        ->assertScript("[...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim()).join('|')", 'Mark as spam|Move to trash');
+});
+
+it('keeps J, K, X and A working on the new table', function (): void {
+    $page = cmSignIn($this->editor)->navigate('/admin/comments?view=all');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"table-frame\"] #cm-row-{$this->ping->id}') !== null")
+        ->keys('#cm-row-'.$this->ping->id, 'j')
+        ->assertScript('document.activeElement?.id', 'cm-row-'.$this->shown->id)
+        ->keys('#cm-row-'.$this->shown->id, 'k')
+        ->assertScript('document.activeElement?.id', 'cm-row-'.$this->ping->id)
+        ->keys('#cm-row-'.$this->ping->id, 'x');
+
+    cmWaitUntil($page, "document.querySelector('[role=\"region\"][aria-label=\"Bulk actions\"]')?.textContent.includes('1 comment selected') === true");
+
+    $page->keys('#cm-row-'.$this->held->id, 'a')
+        ->assertSee('Approved: comment by Ada Guest.');
+
+    expect($this->held->refresh()->status)->toBe('approved');
+});
+
+it('approves a comment from its card by thumb on a phone and pins the bulk bar to the foot when one is ticked', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 812)->navigate('/admin/comments');
+
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"list-card\"]') !== null")
+        ->assertScript("document.querySelector('[data-slot=\"list-cards\"]').dataset.cardFacts", 'item submitted')
+        ->click('[aria-label="Actions for the comment by Ada Guest"] [data-action="approved"]')
+        ->assertSee('Approved: comment by Ada Guest.');
+
+    expect($this->held->refresh()->status)->toBe('approved');
+
+    $page->navigate('/admin/comments?view=all');
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"list-card\"]') !== null")
+        ->click('[aria-label="Select the comment by Bola Ade"]');
+
+    cmWaitUntil($page, "document.querySelector('[role=\"region\"][aria-label=\"Bulk actions\"]') !== null")
+        ->assertScript("Math.abs(document.querySelector('[role=\"region\"][aria-label=\"Bulk actions\"]').getBoundingClientRect().bottom - window.innerHeight) <= 24", true)
+        ->assertScript('document.documentElement.scrollWidth <= window.innerWidth', true);
 });

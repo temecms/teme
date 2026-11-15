@@ -1,3 +1,5 @@
+import type { ListPages } from './list-pages';
+
 /** A term on its taxonomy's screen. */
 export type TermRow = {
     id: string;
@@ -44,8 +46,8 @@ export type TermsIndexPage = {
     /** The listed types whose items the counts count: a column each. */
     types: { key: string; segment: string; singular: string; plural: string }[];
     rows: TermRow[];
-    newer: string | null;
-    older: string | null;
+    /** Its place among the pages (I-3421). */
+    paging: ListPages;
     search: string;
     /** A nesting taxonomy's every term, by name; empty for a flat one. */
     tree: { id: string; name: string; parentId: string | null }[];

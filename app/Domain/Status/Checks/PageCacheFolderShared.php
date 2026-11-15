@@ -25,6 +25,11 @@ final readonly class PageCacheFolderShared implements StatusCheck
         return 'settings.general.manage';
     }
 
+    public function label(): string
+    {
+        return __('Page cache');
+    }
+
     public function banner(): ?StatusBanner
     {
         $problem = Cache::get(FilePageStore::UNSHARED_KEY);

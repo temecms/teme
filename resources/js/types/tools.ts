@@ -7,6 +7,8 @@ export type ToolPage = {
     href: string;
     /** A plugin's link to another site, opened in a new tab (I-3353). */
     external: boolean;
+    /** The plugin that added this screen (I-3353); absent for Teme's own. */
+    plugin?: string;
 };
 
 export type ToolsIndexPage = {

@@ -24,6 +24,11 @@ final readonly class SearchLanguageRebuilding implements StatusCheck
         return 'settings.general.manage';
     }
 
+    public function label(): string
+    {
+        return __('Search');
+    }
+
     public function banner(): ?StatusBanner
     {
         $remaining = Cache::get(ReindexSearchJob::PROGRESS);

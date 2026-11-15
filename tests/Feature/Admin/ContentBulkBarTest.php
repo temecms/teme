@@ -74,9 +74,9 @@ it('gives the bulk bar buttons, not a select, and names the type in its count', 
 it('names each item before deleting permanently in bulk, an untitled one too, and never says "for good" (I-646)', function (): void {
     expect(uiComponent('pages/content/index.tsx'))
         ->toContain('All their revisions go with them. This can’t be undone.')
-        ->toContain('${plural} permanently?`')
-        ->toContain("'Untitled'")
-        ->toContain(' to delete`}')
+        ->toContain("__('Delete :count :plural permanently?'")
+        ->toContain("__('Untitled')")
+        ->toContain("__(':plural to delete'")
         ->not->toContain('for good')
         ->and(uiComponent('components/list/confirm-items.tsx'))
         ->toContain('data-test="confirm-items"')

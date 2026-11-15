@@ -27,6 +27,11 @@ final readonly class NavigationSlotsBound implements StatusCheck
         return 'navigation.manage';
     }
 
+    public function label(): string
+    {
+        return __('Navigation');
+    }
+
     public function banner(): ?StatusBanner
     {
         $theme = $this->active->get();

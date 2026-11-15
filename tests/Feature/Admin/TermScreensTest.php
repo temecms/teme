@@ -27,16 +27,16 @@ it('lists categories by name, 50 at a time, with a cursor to the next page', fun
         ->where('taxonomy', 'categories')
         ->has('rows', 50)
         ->where('rows.0.name', 'Category 01')
-        ->whereNot('older', null));
+        ->where('paging.last', 2));
 
-    $next = $first->viewData('page')['props']['older'];
+    $next = $first->viewData('page')['props']['paging']['older'];
 
     $this->actingAs($this->editor)
         ->get('/admin/categories?after='.$next)
         ->assertInertia(fn (Assert $page) => $page
             ->has('rows', 5)
             ->where('rows.0.name', 'Category 51')
-            ->where('older', null));
+            ->where('paging.older', null));
 });
 
 it('shows each category\'s path', function (): void {

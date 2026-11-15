@@ -1,15 +1,16 @@
-import { Form, Head } from '@inertiajs/react';
-import { Lock, Plus, ShieldCheck } from 'lucide-react';
+import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import SiteCodeController from '@/actions/App/Http/Admin/Settings/SiteCodeController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { SettingsPanel } from '@/components/fields/settings-panel';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { SettingsPage } from '@/components/patterns/settings-page';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Notice } from '@/components/ui/notice';
 import {
     Sheet,
     SheetContent,
@@ -30,16 +31,13 @@ const codeClass =
 /** What is open in the drawer: nothing, a new entry, or one being edited. */
 type Editing = null | 'new' | SiteCodeEntry;
 
-function Notice({ locked }: { locked: boolean }) {
-    const Icon = locked ? Lock : ShieldCheck;
-
+function SiteCodeNotice({ locked }: { locked: boolean }) {
     return (
-        <div
-            role="note"
+        <Notice
+            tone={locked ? 'warn' : 'info'}
             data-test="site-code-notice"
-            className="border-line flex gap-3 rounded-md border p-4 text-sm"
+            className="mb-4"
         >
-            <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
             {locked ? (
                 <p>
                     <strong className="font-medium">
@@ -60,7 +58,7 @@ function Notice({ locked }: { locked: boolean }) {
                     what it was before.
                 </p>
             )}
-        </div>
+        </Notice>
     );
 }
 
@@ -170,11 +168,7 @@ function EntryRow({
             <pre className={codeClass}>{entry.code}</pre>
 
             {entry.structuredData && (
-                <div
-                    role="note"
-                    data-test="site-code-structured-data"
-                    className="border-line rounded-md border p-3 text-sm"
-                >
+                <Notice tone="warn" data-test="site-code-structured-data">
                     <p>
                         <strong className="font-medium">
                             This code holds structured data.
@@ -184,7 +178,7 @@ function EntryRow({
                         description, which search engines read separately and
                         may find at odds with Teme’s.
                     </p>
-                </div>
+                </Notice>
             )}
 
             <p className="text-ink-2 text-xs">
@@ -482,18 +476,21 @@ export default function SiteCodeSettings({
 }: SiteCodePage) {
     const [editing, setEditing] = useState<Editing>(null);
 
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Site code'), href: SiteCodeController.show.url() },
+        ],
+    });
+
     return (
         <>
             <Head title="Site code settings" />
 
-            <div className="grid max-w-[960px] gap-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <Heading
-                        level={1}
-                        title="Site code"
-                        description="Code added to every public page, such as analytics. To show something from another site in one item, add an Embed card to that item instead."
-                    />
-                    {!locked && (
+            <SettingsPage
+                title="Site code"
+                description="Code added to every public page, such as analytics. To show something from another site in one item, add an Embed card to that item instead."
+                actions={
+                    !locked && (
                         <Button
                             type="button"
                             data-test="site-code-add"
@@ -502,54 +499,60 @@ export default function SiteCodeSettings({
                             <Plus aria-hidden="true" />
                             Add code
                         </Button>
-                    )}
-                </div>
+                    )
+                }
+            >
+                <SiteCodeNotice locked={locked} />
 
-                <Notice locked={locked} />
+                <div className="grid gap-4">
+                    {places.map((place) => (
+                        <SettingsPanel
+                            key={place.key}
+                            as="section"
+                            title={place.label}
+                            description={place.where}
+                        >
+                            {place.entries.length === 0 ? (
+                                <p className="text-ink-2 text-sm">
+                                    Nothing here.
+                                </p>
+                            ) : (
+                                place.entries.map((entry) => (
+                                    <EntryRow
+                                        key={entry.id}
+                                        entry={entry}
+                                        locked={locked}
+                                        siteTimezone={siteTimezone}
+                                        onEdit={setEditing}
+                                    />
+                                ))
+                            )}
+                        </SettingsPanel>
+                    ))}
 
-                {places.map((place) => (
                     <SettingsPanel
-                        key={place.key}
                         as="section"
-                        title={place.label}
-                        description={place.where}
+                        title="Changes"
+                        description="Newest first. The security log keeps each one for a year."
                     >
-                        {place.entries.length === 0 ? (
-                            <p className="text-ink-2 text-sm">Nothing here.</p>
+                        {changes.length === 0 ? (
+                            <p className="text-ink-2 text-sm">
+                                No changes yet.
+                            </p>
                         ) : (
-                            place.entries.map((entry) => (
-                                <EntryRow
-                                    key={entry.id}
-                                    entry={entry}
-                                    locked={locked}
-                                    siteTimezone={siteTimezone}
-                                    onEdit={setEditing}
-                                />
-                            ))
+                            <ul>
+                                {changes.map((change) => (
+                                    <ChangeRow
+                                        key={change.id}
+                                        change={change}
+                                        siteTimezone={siteTimezone}
+                                    />
+                                ))}
+                            </ul>
                         )}
                     </SettingsPanel>
-                ))}
-
-                <SettingsPanel
-                    as="section"
-                    title="Changes"
-                    description="Newest first. The security log keeps each one for a year."
-                >
-                    {changes.length === 0 ? (
-                        <p className="text-ink-2 text-sm">No changes yet.</p>
-                    ) : (
-                        <ul>
-                            {changes.map((change) => (
-                                <ChangeRow
-                                    key={change.id}
-                                    change={change}
-                                    siteTimezone={siteTimezone}
-                                />
-                            ))}
-                        </ul>
-                    )}
-                </SettingsPanel>
-            </div>
+                </div>
+            </SettingsPage>
 
             <Sheet
                 open={editing !== null}

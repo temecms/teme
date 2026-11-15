@@ -25,13 +25,13 @@ it('lists a view newest first, a page at a time, and pages back and forth by key
     $newestFirst = array_reverse($made);
 
     $first = cmList($this->editor, ['perPage' => 25]);
-    $second = cmList($this->editor, ['perPage' => 25, 'after' => $first['older']]);
-    $back = cmList($this->editor, ['perPage' => 25, 'before' => $second['newer']]);
+    $second = cmList($this->editor, ['perPage' => 25, 'after' => $first['paging']['older']]);
+    $back = cmList($this->editor, ['perPage' => 25, 'before' => $second['paging']['newer']]);
 
     expect(array_column($first['rows'], 'id'))->toBe(array_slice($newestFirst, 0, 25))
-        ->and($first['newer'])->toBeNull()
+        ->and($first['paging']['newer'])->toBeNull()
         ->and(array_column($second['rows'], 'id'))->toBe(array_slice($newestFirst, 25))
-        ->and($second['older'])->toBeNull()
+        ->and($second['paging']['older'])->toBeNull()
         ->and(array_column($back['rows'], 'id'))->toBe(array_slice($newestFirst, 0, 25));
 });
 
@@ -42,8 +42,8 @@ it('lists the first page for a before cursor it cannot decode, not the oldest ro
     $edited = cmList($this->editor, ['perPage' => 25, 'before' => 'not-a-cursor']);
 
     expect(array_column($edited['rows'], 'id'))->toBe(array_column($first['rows'], 'id'))
-        ->and($edited['newer'])->toBeNull()
-        ->and($edited['older'])->toBe($first['older']);
+        ->and($edited['paging']['newer'])->toBeNull()
+        ->and($edited['paging']['older'])->toBe($first['paging']['older']);
 });
 
 it('shows All as pending and approved, each status in a view of its own, never a tombstone, and Pending for a view that isn\'t one (D4, C10)', function (): void {

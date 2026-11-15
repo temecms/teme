@@ -105,3 +105,25 @@ it('counts an Imported content card’s words and a code block’s as readers se
 
     expect($fidelity->lost)->toBe(0);
 });
+
+it('leaves out what Teme drops on purpose: a table of contents, a listing of other posts, sharing and related boxes', function (string $dropped): void {
+    $article = '<h2>Where the boats go</h2><p>'.fidWords(40).'</p><h2>When the tide turns</h2><p>'.fidWords(40, 41).'</p>';
+
+    // WordPress's page holds the dropped part too; Teme's theme draws its own, or none.
+    $fidelity = Fidelity::compare($dropped.$article, $article);
+
+    expect($fidelity->total)->toBe(88)
+        ->and($fidelity->lost)->toBe(0)
+        ->and($fidelity->flagged())->toBeFalse();
+})->with([
+    'a contents block' => ['<div class="wp-block-yoast-seo-table-of-contents yoast-table-of-contents"><h2>Table of contents</h2><ul><li><a href="#a">Where the boats go</a></li><li><a href="#b">When the tide turns</a></li></ul></div>'],
+    'a contents plugin box' => ['<div id="ez-toc-container" class="ez-toc-v2_0 ez-toc-container"><p class="ez-toc-title">Contents</p><nav><ul><li>Where the boats go</li><li>When the tide turns</li></ul></nav></div>'],
+    'latest posts' => ['<ul class="wp-block-latest-posts__list wp-block-latest-posts"><li><a href="/x">Another story about harbors</a></li></ul>'],
+    'related posts' => ['<div id="jp-relatedposts" class="jp-relatedposts"><h3>Related</h3><p>Another story about harbors</p></div>'],
+]);
+
+it('still counts the words of an article that only mentions contents', function (): void {
+    $fidelity = Fidelity::compare('<div class="contents-note"><p>Table of contents follows here soon</p></div>', '<p>Nothing</p>');
+
+    expect($fidelity->lost)->toBe(6);
+});

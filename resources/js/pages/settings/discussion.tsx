@@ -1,19 +1,24 @@
-import { Form, Head } from '@inertiajs/react';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
 import { Info, Lock } from 'lucide-react';
+import { useState } from 'react';
 import DiscussionSettingsController from '@/actions/App/Http/Admin/Settings/DiscussionSettingsController';
 import { SettingsField } from '@/components/fields/settings-field';
+import { SettingsForm } from '@/components/fields/settings-form';
 import { SettingsPanel } from '@/components/fields/settings-panel';
-import { SettingsSaveBar } from '@/components/fields/settings-save-bar';
-import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
+import { SettingsPage } from '@/components/patterns/settings-page';
+import { Label } from '@/components/ui/label';
+import { Notice } from '@/components/ui/notice';
+import { Switch } from '@/components/ui/switch';
+import { __ } from '@/lib/i18n';
 import type { DiscussionSettingsPage } from '@/types';
 
 /**
- * Settings › Discussion (E1, E2; 1.8d's D2 to D4; v9's settingsForm): the
- * comments switch first, with its own Save, read-only without
- * settings.modules.manage and alone while comments are off; then the
- * Discussion settings in v9's fieldsets, saved together.
+ * Settings › Discussion: the comments switch first, acting at once
+ * (docs/architecture/design-system.md, 4.10), read-only without
+ * settings.modules.manage, held while the sections below have unsaved
+ * changes, and alone while comments are off; then the Discussion settings
+ * in their sections, saved together by the page's one save bar.
  */
 export default function DiscussionSettings({
     description,
@@ -22,91 +27,125 @@ export default function DiscussionSettings({
     values,
     version,
 }: DiscussionSettingsPage) {
+    const [switching, setSwitching] = useState(false);
+    const [unsaved, setUnsaved] = useState(false);
+    const [switchError, setSwitchError] = useState<string | undefined>();
+
+    setLayoutProps({
+        breadcrumbs: [
+            {
+                title: __('Discussion'),
+                href: DiscussionSettingsController.show.url(),
+            },
+        ],
+    });
+
+    const switchComments = (next: boolean) => {
+        router.put(
+            DiscussionSettingsController.switchComments.url(),
+            {
+                values: { comments: next ? 'on' : 'off' },
+                expected_version: comments.version,
+            },
+            {
+                preserveScroll: true,
+                onStart: () => setSwitching(true),
+                onFinish: () => setSwitching(false),
+                onError: (errors) => setSwitchError(Object.values(errors)[0]),
+                onSuccess: () => setSwitchError(undefined),
+            },
+        );
+    };
+
     return (
         <>
             <Head title="Discussion settings" />
 
-            <div className="grid max-w-[960px] gap-6">
-                <Heading
-                    level={1}
-                    title="Discussion"
-                    description={description}
-                />
-
-                <Form
+            <SettingsPage title="Discussion" description={description}>
+                <SettingsPanel
+                    as="section"
                     id="comments-switch"
-                    {...DiscussionSettingsController.switchComments.form()}
-                    options={{ preserveScroll: true }}
+                    title="Comments on this site"
+                    description="Comments are an optional part of Teme, switched on or off for the whole site."
+                    className="mb-4"
                 >
-                    {({ processing, errors }) => (
-                        <SettingsPanel
-                            title="Comments on this site"
-                            description="Comments are an optional part of Teme, switched on or off for the whole site."
-                            footer={
-                                comments.canSwitch ? (
-                                    <>
-                                        <Button
-                                            type="submit"
-                                            disabled={processing}
-                                        >
-                                            Save the comments switch
-                                        </Button>
-                                        <span className="text-ink-2 text-xs">
-                                            Saves this switch only.
-                                        </span>
-                                    </>
-                                ) : (
-                                    <p className="text-ink-2 flex items-center gap-2 text-sm">
-                                        <Lock
-                                            aria-hidden="true"
-                                            className="size-4"
-                                        />
-                                        Only administrators can switch comments
-                                        on or off.
-                                    </p>
-                                )
-                            }
+                    <div className="grid gap-1">
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                id="field-comments"
+                                checked={comments.value === 'on'}
+                                disabled={
+                                    !comments.canSwitch || switching || unsaved
+                                }
+                                onCheckedChange={switchComments}
+                                aria-describedby="field-comments-hint field-comments-error"
+                            />
+                            <Label
+                                htmlFor="field-comments"
+                                className="text-body text-ink"
+                            >
+                                {comments.field.label}
+                            </Label>
+                        </div>
+                        <p
+                            id="field-comments-hint"
+                            className="text-caption text-ink-3 flex items-center gap-2"
                         >
-                            <input
-                                type="hidden"
-                                name="expected_version"
-                                value={comments.version}
-                            />
-                            <InputError message={errors.expected_version} />
-
-                            <SettingsField
-                                field={comments.field}
-                                value={comments.value}
-                                disabled={!comments.canSwitch}
-                                error={errors['values.comments']}
-                            />
-                        </SettingsPanel>
-                    )}
-                </Form>
+                            {!comments.canSwitch ? (
+                                <>
+                                    <Lock
+                                        aria-hidden="true"
+                                        className="size-4"
+                                    />
+                                    Only administrators can switch comments on
+                                    or off.
+                                </>
+                            ) : unsaved ? (
+                                __('Save or discard the changes below first.')
+                            ) : (
+                                comments.field.description
+                            )}
+                        </p>
+                        <InputError
+                            id="field-comments-error"
+                            className="text-small"
+                            message={switchError}
+                        />
+                    </div>
+                </SettingsPanel>
 
                 {comments.value === 'off' && (
-                    <p className="text-sm">
+                    <Notice tone="info">
                         Comments are off, so the settings for them are hidden.
                         They’re kept, unchanged, for when comments are switched
                         back on.
-                    </p>
+                    </Notice>
                 )}
 
                 {fieldsets.length > 0 && (
-                    <Form
-                        {...DiscussionSettingsController.update.form()}
-                        options={{ preserveScroll: true }}
-                        className="grid gap-6"
+                    <SettingsForm
+                        action={DiscussionSettingsController.update.form()}
+                        saveLabel={__('Save discussion settings')}
+                        what={__(':page settings', {
+                            page: __('Discussion'),
+                        })}
+                        onDirtyChange={setUnsaved}
                     >
-                        {({ processing, errors }) => (
+                        {({ errors }) => (
                             <>
                                 <input
                                     type="hidden"
                                     name="expected_version"
                                     value={version}
                                 />
-                                <InputError message={errors.expected_version} />
-                                <InputError message={errors.values} />
+                                <InputError
+                                    id="expected-version-error"
+                                    message={errors.expected_version}
+                                />
+                                <InputError
+                                    id="values-error"
+                                    message={errors.values}
+                                />
 
                                 {fieldsets.map((fieldset) => (
                                     <SettingsPanel
@@ -115,16 +154,20 @@ export default function DiscussionSettings({
                                         description={fieldset.description}
                                     >
                                         {fieldset.info !== null && (
-                                            <div className="grid gap-1 text-sm">
-                                                <p className="font-medium">
+                                            <div className="grid gap-1">
+                                                <p className="text-small text-ink-2 font-medium">
                                                     {fieldset.info.label}
                                                 </p>
-                                                <p>{fieldset.info.value}</p>
-                                                <p className="text-ink-2 flex items-start gap-2">
-                                                    <Info
-                                                        aria-hidden="true"
-                                                        className="mt-0.5 size-4 shrink-0"
-                                                    />
+                                                <p className="text-body">
+                                                    {fieldset.info.value}
+                                                </p>
+                                                <p className="text-caption text-ink-3 flex items-start gap-2">
+                                                    <span className="flex h-lh shrink-0 items-center">
+                                                        <Info
+                                                            aria-hidden="true"
+                                                            className="size-4"
+                                                        />
+                                                    </span>
                                                     {fieldset.info.hint}
                                                 </p>
                                             </div>
@@ -144,17 +187,11 @@ export default function DiscussionSettings({
                                         ))}
                                     </SettingsPanel>
                                 ))}
-
-                                <SettingsSaveBar
-                                    label="Save discussion settings"
-                                    note="Saves every section below the comments switch."
-                                    processing={processing}
-                                />
                             </>
                         )}
-                    </Form>
+                    </SettingsForm>
                 )}
-            </div>
+            </SettingsPage>
         </>
     );
 }

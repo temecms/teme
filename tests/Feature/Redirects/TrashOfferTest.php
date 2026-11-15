@@ -48,5 +48,7 @@ it('offers nothing to someone who can\'t manage redirects, or after trashing wha
 
     ($this->trash)($actor, $item->id)
         ->assertRedirect('/admin/posts')
-        ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Moved to the trash.']);
+        ->assertInertiaFlash('toast.type', 'success')
+        ->assertInertiaFlash('toast.message', 'Moved to the trash.')
+        ->assertInertiaFlashMissing('toast.link');
 })->with(['an author trashing their own published post', 'an editor trashing a draft']);

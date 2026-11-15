@@ -381,3 +381,121 @@ Stop, write why under Records, commit and push, then stop, when:
 ## Records
 
 <!-- Filled in while building: setup; commits; each test seen red (task, file, case, the failure's first line); the design-system and admin-words counts before and after; every existing test changed, with its meaning kept; differences from the plan as B-?? (draft) with the options weighed; changelog lines; any STOP. -->
+
+### Setup
+
+- `cat /tmp/teme-cloud-setup.log`: "2026-11-14T20:55:01Z ran in /home/user/teme as root", "2026-11-14T21:06:10Z finished". `pwd`: /home/user/teme. PHP 8.4.27; `pg_isready -h 127.0.0.1 -p 5433` accepting connections; `valkey-cli -p 6380 ping` PONG; node v24.22.1.
+- Task 0: the branch was made from `origin/main` at `4b8cc3b`. The exports match the plan. The design-system baseline had 1,228 lines (the plan said 1,441), 119 of them in this part's files (as the plan says). The admin-words count was 2,350 (the plan said 2,373), 211 lines in this part's files (as the plan says). The other counts moved because other parts merged first; this part's own lines are as the plan has them.
+- The full `composer check` on the base: Architecture 105 passed (1,225 assertions); Unit and Feature 10,490 passed, 2 skipped (53,814 assertions), 1,694s.
+
+### Task 1
+
+- Seen red at the base, `ListPagesTest`: 11 failed, first lines "Undefined array key "pages"" and, on the deep page, "actual size 25 matches expected size 5".
+- Existing cases changed, meaning kept: `ContentListTest` "pages 50 at a time, older and newer, with no total" became "pages 50 at a time by number, with the total where it is known" (I-3421 replaces the no-total rule); "makes the same number of queries on every page" passes unchanged. `ListScreenTest` "offers a way back on every pager" now goes to page 2 and back by number and no longer asserts that no query uses an offset (I-3421 uses an offset for pages 1 to 50; the cost stays bounded by the cap, as `ListPagesTest` "goes past the cap by keyset, with the same number of queries on every page" proves). `ScreenOptionsTest` "remembers rows per page" reads `paging.last` (2 pages of 25, 1 of 30) where it read `older`. `TermScreenRowsTest` (three cases), `TermScreensTest` "lists categories by name", `CommentListTest` (two cases) and `CommentScreenTest` "opens the Pending view" read the cursors inside `paging` where they read them at the top level.
+- B-01 (draft): the plan names the prop `pages` with a `page` number. `NoTypeLiteralsTest` reads `'pages' =>` and `'page' =>` in PHP as the content types' names. Options: rename to `paging` with `number`; add these files to that test's allow-list (not this part's file, and it widens a check); build the arrays so the scan misses them (dodges the check). Chosen: `paging` and `number`, the same shape under other names. Commit `71c8603`.
+- B-02 (draft): `ContentList::page()` keeps its top-level `newer` and `older` beside `paging`, since the bulk runs (`StartBulkRun`, `AdvanceBulkRun`) and the benchmark read them and are not this part's files; the controller drops them from the props. Options: keep them; change those callers (not owned). Commit `71c8603`.
+- B-03 (draft): `ListPages::describe()` takes the page number as nullable (null past the cap) and the newer cursor as well as the older, so every list builds the whole `paging` in one call. Commit `71c8603`.
+- B-04 (draft): a nesting taxonomy's pages of branches are numbered exactly with no cap, since the whole tree is already read; its total counts terms, not branches. Options: cap them like the others (pointless when the tree is in memory); count branches (not what a person sees as rows). Commit `71c8603`.
+- Done to Task 1 at `71c8603`, the quick check green.
+
+### Task 2
+
+- Seen red at the base, `RowUndoTest`: 2 failed, first line "Failed asserting that false is true." (no `undo` in the toast after publishing and after trashing); its three refused cases passed at the base, as they should.
+- Existing case changed, meaning kept: `TrashOfferTest` "offers nothing to someone who can't manage redirects, or after trashing what was never published" compared the whole toast; it now checks the type and words and that there is no `link` (no redirect offer), since the toast now also carries Undo.
+- Done to Task 2 at `e8b8ec2`, the quick check green.
+
+### Task 3
+
+- Seen red at the base: `RowMenuOrderTest` 4 failed, first line "ERR_MODULE_NOT_FOUND" (`row-menu-order.ts` missing); `SharedControlsTest` the two rewritten cases failed against today's table and bulk bar; `ListPartsTest` "draws row actions with no hover rule" failed (`row-line.tsx` missing), and "keeps every export the other screens import" passed, as it should.
+- Counts: design-system baseline 1,228 to 1,219 lines (R1 114 to 112, R2 661 to 658, R5 82 to 81, R6 41 to 39, R8 34 to 33); admin words 2,350 to 2,348.
+- Other screens' browser files, after `npm run build`, one at a time, all green: MediaScreenTest 11, RedirectsScreenTest 6, JobsScreenTest 3, AiActivityScreenTest 6, PeopleScreenTest 14, TypeBuilderTest 15, TaxonomyBuilderTest 10, InboxScreenTest 4, ToolsScreensTest 3. NavigationScreensTest and RegionsScreenTest name neither a table nor a bulk bar, so they were not run.
+- B-05 (draft): `ListPartsTest` "pages these lists only through the numbered pager" is committed with each page's task (content in Task 4, terms in Task 5, comments in Task 6), one page added to its list each time, so the Architecture suite stays green after each task. Options: commit it here red (breaks the quick check); commit it with all three pages in Task 6 (no red seen for the first two). Commit `ecde2ff`.
+- B-06 (draft): `data-table.tsx` keeps its plain `<table>` (its R5 line stays): there is no table in `components/ui`, and this part adds none. Options: add one (a `components/ui` change, a STOP); wrap it under another name (dodges the check). Commit `ecde2ff`.
+- B-07 (draft): every cell is padded the same (`py-3`), so the first lines of all cells align, instead of the plan's taller top padding on the title cell; the row heights the browser test measures come from the title cell's two lines. Commit `ecde2ff`.
+- B-08 (draft): the header row sticks to the top of the table's own sideways scroll frame, not of the page, since a sticky header cannot stick outside its scroll container. Commit `ecde2ff`.
+- B-09 (draft): the column chooser measures the table frame by an ID that `data-table.tsx` exports (`TABLE_FRAME_ID`), not by a `[data-slot=…]` selector, which the design check reads as an arbitrary value. Commit `ecde2ff`.
+- Done to Task 3 at `ecde2ff`, the quick check green.
+
+### Task 4
+
+- Seen red at the base build, `ContentListPatternTest`: 12 failed, 2 passed (the Approve case and the bulk-bar case already held on the old page). `ListPartsTest` "pages these lists only through the numbered pager" with `pages/content/index.tsx`: red, the old page imported `@/components/list/pager`.
+- Counts: design-system baseline 1,219 to 1,188 lines (R1 112 to 110, R2 658 to 641, R3 149 to 145, R6 39 to 38, R7 89 to 85, R8 33 to 31, R9 23 to 22); admin words 2,348 to 2,261. `components/list/screen-options.tsx` is deleted, so `SharedControlsTest` names `column-chooser.tsx` in its place.
+- Browser files after `npm run build`, one at a time, all green: ContentListPatternTest 14, ContentListsTest 10, RowLinksTest, ListHeaderTest 13, SelectAllMatchingTest, DiscussionTest, ViewDataTest, MenuAndSettingsTest, FullPassTest, AccessibilityTest. Feature files green: ScreenOptionsTest, ListScreenTest, FeaturedImageColumnTest, ContentListRowsTest, ContentListTermChipTest, ContentBulkBarTest, BulkMatchingScreenTest, ContentListTabsAndFiltersTest, VisibilityRowTest.
+- Existing cases changed, meaning kept:
+  - `ListScreenTest`: "shows no Status column" became "shows each row's status on a pill in its Status column, no longer after its title" (D11 reverses it); the pager scan reads `NumberedPager` or `Pager`. `ContentListRowsTest`: the scans read the `__()` forms, `<StatusPill` and `id: 'status'`, and name `row-menu.tsx` and `row-line.tsx` where they named `row-actions` and `row-links`. `ContentListTermChipTest` names the flat taxonomy's filter in `TermSearchFilter`. `ContentListTabsAndFiltersTest` "links each term in its column to the filter" became "shows each row's terms in its column" (see B-11), with `<ChoiceFilter` and `<TermSearchFilter`. `VisibilityRowTest` and `ContentBulkBarTest` read the `__()` forms.
+  - `ContentListsTest`: the state case reads the Status column's pills, and reads the tabs past the fifth under More (B-18); Preview's name is "Preview: Market day, opens in a new tab"; the category filter is chosen through its Combobox, and the column shows the row's terms; the review chip's remove button is found by its name, not as a link.
+  - `RowLinksTest`: "shows a row's links on hover" became "draws a row's line under its title, shown without hovering", the line holding Edit, Quick edit and Preview; View's name is "View: Harbour news, opens in a new tab"; the menu holds Publish and Trash, and the confirmation and the trash go through it; the axe case no longer hovers.
+  - `ListHeaderTest`: Screen options became Columns (`[data-test="columns"]`, `[data-test="column-chooser"]`, Thumbnails where Featured image was); "puts Screen options and Add new on the title line" now finds Add new in the page header and Columns at the end of the one filter line (I-3129's meaning kept); the filters are read and chosen through their Combobox, and the line now holds the Tag filter too; "closes an open filter when another opens" reads the open popover by its search field; the phone case now opens the Date filter from the Filters (n) sheet and still applies a month with no sideways scroll.
+- B-10 (draft): the Status column (D11, the proposal's provisional item 3) reverses "no Status column" in `ListScreenTest`, `ContentListRowsTest` and `ContentListsTest`. Built as written. Commit `b7d90d3`.
+- B-11 (draft): `TermChips` in `components/ui` draws names, not links, so a row's terms no longer link to the filter; the filter row's Combobox does that job. Options: keep links in a page-drawn chip (a second chip beside the system's); change `TermChips` (a `components/ui` change, a STOP). Chosen: `TermChips` as the plan's design names it; for the maintainer to confirm. Commit `b7d90d3`.
+- B-12 (draft): the row menu is non-modal and drawn inside the main landmark, as the account menu is drawn inside the banner, since axe's region rule flagged it drawn at the end of the page, and a modal menu hid focused content from assistive technology. The container is found after the first draw. Commit `b7d90d3`.
+- B-13 (draft): the "…" button's tooltip never shows over its own open menu. Commit `b7d90d3`.
+- B-14 (draft): the Status column also shows "Update in review" (info) for a published item with a pending review and "Password protected" (neutral), the two states the title's suffix carried that D11 does not list. Commit `b7d90d3`.
+- B-15 (draft): Quick edit hands focus back to the control that opened it when it closes, as it did inside the old row; Radix had returned it to the page. Commit `b7d90d3`.
+- B-16 (draft): D12 keeps "the language tag" after the title, but the base has none; none is added. Commit `b7d90d3`.
+- B-17 (draft): the review filter's chip is a flat `StatusPill` with its own 24-pixel remove button beside it, since the pill's built-in remove button is 20 pixels and `ContentListsTest` (issue 99) holds it to 24. Options: the pill's own button (fails the target size); change `StatusPill` (a `components/ui` change, a STOP). Commit `b7d90d3`.
+- B-18 (draft): `InPageNav` shows five views and puts the rest under More, so Posts' In review, Scheduled and Trash are under More. Kept as the pattern draws it. Commit `b7d90d3`.
+- B-19 (draft): a nesting taxonomy's and the authors' filters are `ChoiceFilter`s and a flat taxonomy's is `TermSearchFilter`, both Combobox; the flat taxonomy's old chip is gone with them. Commit `b7d90d3`.
+- Done to Task 4 at `b7d90d3`, the quick check green.
+
+### Task 5
+
+- Seen red on the build before the terms page changed, `CategoriesAndTagsTest`: 4 failed, 6 passed; the three new cases failed (no `row-line`, no numbered pager, no cards), and "says what deleting each category does" failed (no "More actions for" button). `ListPartsTest` with `pages/terms/index.tsx` was added with the new page, so its red was not seen apart.
+- Counts: design-system baseline 1,188 to 1,172 lines (R1 110 to 108, R2 641 to 636, R3 145 to 141, R5 81 to 80, R7 85 to 81); admin words 2,261 to 2,234.
+- After `npm run build`, `CategoriesAndTagsTest` 10 passed and `RowLinksTest` green; feature files `TermScreensTest` and `TermScreenRowsTest` green.
+- Existing cases changed, meaning kept: `CategoriesAndTagsTest` "names a tag in a chip that another filter keeps and its link removes" now reads the tag on its Combobox filter and removes it with its "All tags" choice, the search kept; "says what deleting each category does" opens each term's menu for Delete; the edit and axe cases no longer wait for a menu to close, since Edit is on the line. `RowLinksTest`'s category row reads Edit and View on the line and Delete in the menu.
+- B-20 (draft): the plan names no views control for this page, so Categories and Tags keep their `TabStrip` between the two taxonomies, a part of the layout the page keeps; the add form stays in its panel beside the list. Options: `InPageNav` (not named; the two are separate pages, not views of one list). Commit `5e62ba2`.
+- Done to Task 5 at `5e62ba2`, the quick check green.
+
+### Task 6
+
+- Seen red on the build before the comments page changed, `CommentsScreenTest`: 3 failed, 13 passed; the three new cases failed (no `row-line` for a comment, no table frame, no cards).
+- Counts: design-system baseline 1,172 to 1,159 lines (R2 636 to 633, R5 80 to 79, R7 81 to 72); admin words 2,234 to 2,182.
+- After `npm run build`, one at a time, all green: CommentsScreenTest 16, CommentsTest, DiscussionTest, RowLinksTest. Feature files green: CommentScreenTest, CommentListTest, CommentsColumnTest, QuickEditDiscussionTest.
+- Existing cases changed, meaning kept: `CommentsScreenTest`'s first axe case opens Details from the line, where it opened it from More, and waits for the drawer to settle; "1 selected" reads "1 comment selected" (the bar names its noun); Delete permanently is chosen from the bulk bar's More, then confirmed as before. `RowLinksTest`'s comment row reads Approve, Reply, Quick edit and Details on the line and Mark as spam and Move to trash in the menu. `CommentScreenTest` "says Move to trash in the row menu, never a bare Trash" reads the `__()` forms.
+- B-21 (draft): `off.tsx` and `refused.tsx` are on `ListPage`, which is `Page` with the patterns' `PageHeader`, since the design check accepts only a page pattern as a page's root and `Page` is not one. Options: `Page` and `PageHeader` as the plan says (keeps an R7 line, against the rule that the baseline only shrinks). Commit `776c659`.
+- B-22 (draft): Empty spam and Empty trash sit in the page header's actions, not at the end of the filter row, since the filter row leaves its end out on a phone. Commit `776c659`.
+- B-23 (draft): the keys' hint keeps its words in short pieces through `__()`, each after its key drawn as `Kbd`, since the keys sit inside the sentence. Commit `776c659`.
+- B-24 (draft): the bulk bar shows the view's first three moves as buttons and puts the rest and Delete permanently under More, as D9 says for Delete permanently, in Spam and Trash too. Commit `776c659`.
+- B-25 (draft): the item chip is a flat `StatusPill` with a 24-pixel remove button beside it, as the review chip (B-17). Commit `776c659`.
+- Done to Task 6 at `776c659`, the quick check green.
+
+### Task 7
+
+- Run first on the Task 6 build, `ContentListPatternTest`: the sort case and both 44-pixel axe cases failed, the rest of the new cases passed. The sort case timed out on Reverse, which sat off the screen: `InPageNav`'s views gave the page's grid column their full width (561 pixels at 375), so the table frame was wider than the screen and clipped. The 44-pixel cases found each card's tick box (18 pixels), Edit and View on a card's line (narrower than 44), and, in the Filters sheet, the Date filter's 32-pixel button.
+- Fixed within this part's files: the content and comments pages put `InPageNav` in a cell that may be narrower than its views, which then scroll sideways inside it; a card's tick square is a label, so all 44 pixels tick it; a line action is at least as wide as it is tall on touch; the Date filter's button is 44 pixels on a phone. The 320-pixel case now also checks that the frame, views and filters end inside the screen.
+- Counts: the Date filter and Select all matching were changed, so their lines went too (the plan's Task 8 holds every changed `components/list` file at none): design-system baseline 1,159 to 1,149 lines (R2 633 to 627, R3 141 to 140, R5 79 to 78, R8 31 to 30, R10 14 to 13); admin words 2,182 to 2,162 (7 from `select-all-matching.tsx`, 13 from `date-filter.tsx`).
+- After `npm run build`, one at a time, all green: ContentListPatternTest 22, ListHeaderTest 13, SelectAllMatchingTest 2, CommentsScreenTest 16, CategoriesAndTagsTest 10, TaxonomyBuilderTest 10. Feature: BulkMatchingScreenTest (its source scan reads words that are still there in the `__()` forms).
+- B-26 (draft): the sort case presses an option only once the list's opening fade is over, since Radix's Select does not take a press during it. Commit `158d8ae`.
+- B-27 (draft): the 44-pixel check measures a tick box by the label around it and leaves out a title's text link, which is a line of words (WCAG 2.5.8's inline exception). Options: make each title 44 tall (breaks the 72 and 92 pixel rows). Commit `158d8ae`.
+- B-28 (draft): the Reverse button gives `desc` after Title, as the plan says, because Title's own default order is A to Z. Commit `158d8ae`.
+- Done to Task 7 at `158d8ae`, the quick check green.
+
+### Task 8
+
+- The first full `composer check` found 11 failures, all source scans that the plan's lists did not name, reading the old words: `ContentScreensTest` (2), `TermScreenFormsTest` (4), `WordingPassListsTest` (2), `AccessibilityTest` (Feature, 3). Each now reads the same words through `__()`, and the page header's `actions` where it read `action`; what each proves is unchanged. `ContentScreensTest` "leads from a row into the editor" now reads the line (Edit, Quick edit, then View or Preview) and the menu (the decisions, then Trash last) in the source's order. Commit `eb236fa`.
+- The full `composer check`, after that: Pint, PHPStan, the type check and the JS check pass; Architecture 123 passed (1,269 assertions); Unit and Feature 10,510 passed, 2 skipped (54,081 assertions), 1,585s.
+- After `npm run build`, one at a time, all green: ContentListPatternTest 22, CategoriesAndTagsTest 10, CommentsScreenTest 16, ContentListsTest 10, RowLinksTest 13, ListHeaderTest 13, SelectAllMatchingTest 2, DiscussionTest 5, ViewDataTest 1, MenuAndSettingsTest 16, FullPassTest 40, AccessibilityTest 24, CommentsTest 2, TaxonomyBuilderTest 10, MediaScreenTest 11, RedirectsScreenTest 6, JobsScreenTest 3, AiActivityScreenTest 6, PeopleScreenTest 14, TypeBuilderTest 15, InboxScreenTest 4, ToolsScreensTest 3.
+- `RedirectsScreenTest` "offers a redirect just after a published post is trashed" pressed Trash on the row's line; Trash is in the menu now, so it opens the menu first. Same meaning. Commit `6a42318`.
+- The last line naming a page, `R3 js/pages/content/index.tsx mt-0.5` (the row's tick box), went with its class. Commit `06b5dd5`.
+- `grep -c -E "js/(pages/content/index|pages/terms/index|pages/comments/)"`: 0 in both baselines. Of the `components/list` files this part changed or added, one line stays: `R5 js/components/list/data-table.tsx <table>` (B-06). `git diff --stat 4b8cc3b --` the forbidden paths: nothing. (Against today's `origin/main`, `components/patterns/settings-page.tsx` differs, from main's own later merge, not from this branch.)
+- Counts from the start to the end: design-system baseline 1,228 to 1,148 lines; admin words 2,350 to 2,162.
+- Environment: a restart of the build machine stopped PostgreSQL and Valkey mid-way; they were started again as `scripts/cloud-setup.sh` starts them (`pg_ctlcluster 18 test start`, `valkey-server --port 6380`). One browser run had failed because a feature run shared its database at the same moment; it was run again alone.
+- Changelog lines (for the maintainer to place):
+  - Every content type, categories and tags, and comments now list on one pattern: a line of actions under each title, always shown, the rest in a "…" menu, a Status column on content, numbered pages with a total, and cards on a phone.
+  - Columns replaces Screen options: choose, order and hide columns, show thumbnails, and set rows per page.
+  - Publishing or trashing from a list row offers Undo.
+  - The filters are searchable lists that apply at once; on a phone they fold into Filters (n).
+- How to try it: open Posts, Pages, Categories, Tags and Comments at full width and at phone width; tick rows for the bulk bar; open Columns; page through a long list.
+- Done at `06b5dd5`. No STOP.
+
+### Follow-up X1-2
+
+The review accepts the part, and every B-?? decision above is agreed.
+
+- B-29: the Status column is always shown and is not in Columns. Decided by the maintainer; provisional, the owner confirms. The code already did this, so nothing changed.
+- Columns' "Move :name earlier" and "Move :name later" are `aria-disabled` at the ends, and a press there does nothing, so focus stays on the button inside the popover. Seen red first: `ListHeaderTest` "keeps focus on a column's move button when the keyboard moves it to the first or last place" failed because focus had left the button. Commit `30143c2`. That commit was formatted with the wrong tool. `a242d68` puts it back in the project's formatting, with no change in behavior.
+- Undo after Publish is offered only when the item was a draft before. The toast's Undo comes from `ContentActionController`, not from the page, so the fix is there. Seen red first: `RowUndoTest` "offers no Undo after publishing a scheduled item" failed because the toast carried an `undo`. Commit `afec10e`.
+- The bulk bar's count is `__n(':count :one selected|:count :many selected', …)`. Commit `c535e4d`. The term list's screen-reader phrases are the whole-phrase keys "under :parent" and ":items in :name". The comma and space are outside the keys. `TermScreenFormsTest`'s source scan reads the new keys, and it proves the same thing. Commit `49442b4`.
+- `ListPartsTest`'s pager dataset now includes `pages/comments/index.tsx`, as B-05 said it would. It passed when added, because comments already page through `NumberedPager`. Commit `1608559`.
+- Quick check: Pint, PHPStan, the type check, `vp check` and Architecture (130 with the term scans) all pass. Feature: `ListPagesTest` and `RowUndoTest` 17 passed. After `npm run build`, run one at a time, all green: ListHeaderTest 14, ContentListPatternTest 22, ContentListsTest 10, CommentsScreenTest 16, CategoriesAndTagsTest 10.

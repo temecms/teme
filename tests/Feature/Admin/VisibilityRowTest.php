@@ -111,7 +111,7 @@ it('draws the Visibility row, the chip\'s Private and the list\'s words, with th
         ->toContain("'Private'")
         ->not->toContain('Later (I-1700)')
         ->and(uiComponent('pages/content/index.tsx'))
-        ->toContain("'Password protected'")
+        ->toContain("__('Password protected')")
         ->not->toContain('Later (I-342)')
         ->and(uiComponent('pages/content/edit.tsx'))
         ->toContain('ContentEditorController.visibility(session.id).url');
