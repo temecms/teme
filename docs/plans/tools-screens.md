@@ -435,6 +435,8 @@ The 298 design lines and 652 word lines Task 0 counted on owned files are all go
 - Decided: the redirect form's From, Status and Note use `Field` (their help ids become `-help`); the To blocks keep their hint and error lines with their ids; the title search's options are ghost `Button`s. The bulk delete's error got an id.
 - Decided: `ToolsFramesTest`'s rows were added task by task, the whole dataset kept aside to show it red at the base.
 
+- Decided: `components/backups/typed-back.tsx` keeps `Label` and `InputError` around its two group inputs rather than `Field`. Options: one `Field` per input, which would give each its own help and error lines. Chose to keep them, because the two inputs share one hint and one error, which `Field` doesn't model.
+
 ### Differences from the plan
 
 - B-?? (draft) 1. Task 0's `--grep` line finds two commits, not one: the feature commit `e7f2af7` and its merge `bd0e715`, whose message repeats the line. Options: STOP, or read it as the same change. Chose to continue, because both are the same change already on `main`. Commit `890afa7`.
@@ -454,3 +456,14 @@ On a local site, open Tools › Import and one site, Tools › Backups and its s
 ### For the changelog
 
 - The Tools screens (Import, Backups, Page cache, Updates, Redirects and AI activity) now share the admin's look, with clearer steps and notices, and can be translated.
+
+## Follow-up X4-2
+
+The review's fixes, each a commit pushed on its own:
+
+- `c26c680` fix(admin): name camel-case codes in full in Updates' sentences. `WithCode` split only on `/(:[a-z]+)/`, so `:checkNow` drew `php artisan teme:updates:check`'s place as `TEME_UPDATES_CHECK` and "Now", and `:updaterImage` drew the placeholder itself. It now splits on `/(:[A-Za-z]+)/`. Seen red first: `UpdatesScreenTest` "names the commands and settings in full inside their sentences", "Expected: set TEME_IMAGE and :updaterImage to the new tag and Deploy. To contain: TEME_UPDATER_IMAGE".
+- `15f751c` fix(admin): mark no step current on a stopped import. `StepBar` always marks one step current, so a stopped run's steps are now a plain list, the finished ones marked done and none current. Seen red first: `ToolsImportTest` "marks no step current on a stopped import, the steps it finished still done", "Failed asserting that 1 is identical to 0".
+- `a9db3ed` test(admin): the 404 log's needle is `actions={`, so it again proves the settings link is the header's action. It passes as the source stands; it was not seen red.
+- This commit: the Decided line for `typed-back.tsx` above, and this record.
+
+Checks: the quick check green; `UpdatesScreenTest`, `ToolsImportTest` and `ToolsFramesTest` green in the browser after `npm run build`.
