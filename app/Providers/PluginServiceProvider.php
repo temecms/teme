@@ -35,7 +35,8 @@ final class PluginServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PluginRegistry::class);
         $this->app->singleton(LoadedPlugins::class);
-        $this->app->singleton(CurrentJobActor::class);
+        // Scoped: holds the job actor for one job/request only (I-087).
+        $this->app->scoped(CurrentJobActor::class);
 
         $this->app->singleton(HookSubscriptions::class, DispatcherSubscriptions::class);
 

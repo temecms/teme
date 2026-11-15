@@ -8,8 +8,8 @@ use App\Domain\Support\Security\JobActor;
 
 /**
  * Holds the JobActor for the plugin job currently running, so write doors
- * act only for that person. RunPluginJob sets and clears it; tests may set
- * it directly.
+ * act only for that person. Bound scoped (I-087): one job or request.
+ * RunPluginJob sets and clears it; tests may set it directly.
  */
 final class CurrentJobActor
 {
