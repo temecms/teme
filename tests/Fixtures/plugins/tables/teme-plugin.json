@@ -1,0 +1,13 @@
+{
+    "manifest": 1,
+    "name": "tests/tables",
+    "code": "tables",
+    "label": "Tables",
+    "description": "A plugin the tests enable, which owns two tables of its own.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Tables\\Tables",
+    "capabilities": ["content.read"],
+    "hooks": ["ContentPublished"],
+    "owns": { "tables": ["tables_links", "tables_clicks"] }
+}
