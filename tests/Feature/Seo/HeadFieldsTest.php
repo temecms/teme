@@ -26,7 +26,7 @@ it('gives every type with the seo feature the social fields, the snippet control
     $canonical = $registry->find(BuiltInFields::CANONICAL);
 
     expect(array_map(fn (Field $field): string => $field->handle, $registry->forType('post')))
-        ->toBe(['seo_title', 'meta_description', 'excerpt', 'canonical', 'noindex', 'featured_image', 'template', 'sticky', 'social_title', 'social_description', 'social_image', 'nosnippet', 'max_snippet', 'noarchive', 'primary_category', 'page_type', 'article_type'])
+        ->toBe(['seo_title', 'meta_description', 'excerpt', 'canonical', 'noindex', 'featured_image', 'template', 'sticky', 'social_title', 'social_description', 'social_image', 'nosnippet', 'max_snippet', 'noarchive', 'primary_category', 'page_type', 'article_type', 'insertions_off'])
         ->and(BuiltInFields::CANONICAL)->toBe('01K5Z0F1ED00000000000000C4')
         ->and($canonical?->label)->toBe('Canonical address')
         ->and($canonical?->type->name())->toBe('canonical')

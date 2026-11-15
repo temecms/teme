@@ -19,6 +19,7 @@ use App\Providers\FortifyServiceProvider;
 use App\Providers\HeadServiceProvider;
 use App\Providers\HookServiceProvider;
 use App\Providers\ImportServiceProvider;
+use App\Providers\InsertionsServiceProvider;
 use App\Providers\JsonLdServiceProvider;
 use App\Providers\LanguageServiceProvider;
 use App\Providers\MediaServiceProvider;
@@ -65,6 +66,8 @@ return [
     FeedsServiceProvider::class,
 
     SiteCodeServiceProvider::class,
+
+    InsertionsServiceProvider::class,
 
     CrawlersServiceProvider::class,
 

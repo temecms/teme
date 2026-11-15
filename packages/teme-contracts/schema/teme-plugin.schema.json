@@ -73,7 +73,7 @@
             "type": "array",
             "description": "What the plugin asks to be allowed to do.",
             "items": {
-                "enum": ["content.read", "content.write", "media.read", "media.write", "http", "jobs"]
+                "enum": ["content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs"]
             }
         },
         "jobs": {

@@ -4,24 +4,28 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
 
+use App\Domain\Settings\Exceptions\StaleSettingsException;
 use App\Domain\SiteCode\Operations\DeleteSiteCode;
 use App\Domain\SiteCode\Operations\Input\DeleteSiteCodeInput;
 use App\Domain\SiteCode\Operations\Input\SaveSiteCodeInput;
 use App\Domain\SiteCode\Operations\Input\SwitchSiteCodeInput;
+use App\Domain\SiteCode\Operations\Input\UpdateAdsTxtInput;
 use App\Domain\SiteCode\Operations\SaveSiteCode;
 use App\Domain\SiteCode\Operations\SwitchSiteCode;
+use App\Domain\SiteCode\Operations\UpdateAdsTxt;
 use App\Domain\SiteCode\Queries\SiteCodeScreen;
 use App\Domain\SiteCode\SiteCode;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * Settings › Site code (I-863): the entries and their changes, each change
- * handed to its Operation, which asks for the password again. It changes
- * nothing itself.
+ * handed to its Operation, which asks for the password again; ads.txt through
+ * UpdateAdsTxt. It changes nothing itself.
  */
 final class SiteCodeController extends Controller
 {
@@ -60,6 +64,23 @@ final class SiteCodeController extends Controller
         $result = $delete->execute(new DeleteSiteCodeInput($entry, (string) $request->user()?->getAuthIdentifier()));
 
         return self::told(__('Code deleted. No page includes “:name” any more.', ['name' => $result['name']]));
+    }
+
+    public function updateAdsTxt(Request $request, UpdateAdsTxt $update): RedirectResponse
+    {
+        try {
+            $update->execute(new UpdateAdsTxtInput(
+                adsTxt: (string) $request->input('ads_txt', ''),
+                expectedVersion: $request->integer('expected_version'),
+                actorId: (string) $request->user()?->getAuthIdentifier(),
+            ));
+        } catch (StaleSettingsException) {
+            throw ValidationException::withMessages([
+                'expected_version' => __('These settings were changed by someone else while you had them open. Reload the page and try again.'),
+            ]);
+        }
+
+        return self::told(__('ads.txt saved.'));
     }
 
     private function save(Request $request, SaveSiteCode $save, ?string $entry): RedirectResponse

@@ -14,6 +14,7 @@ use ReflectionClass;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
@@ -246,6 +247,8 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for the media door, but the plugin doesn’t ask for media.write.";
             } elseif (strtolower((string) $type) === strtolower(Jobs::class) && ! in_array(Capability::Jobs->value, $read->capabilities(), true)) {
                 $errors[] = "{$class} asks for jobs, but the plugin doesn’t ask for jobs.";
+            } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! in_array(Capability::ContentInsert->value, $read->capabilities(), true)) {
+                $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
             }
         }
 

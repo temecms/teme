@@ -40,11 +40,20 @@ final readonly class DocumentRenderer
     {
         $context ??= new RenderContext(app(LinkResolver::class));
         // Rebuilt with the document's media: the page's record and lead go along, or no card would see them.
-        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId);
+        $context = new RenderContext($context->links, $context->target, $this->media->forDocument($document), $context->usage, $context->leadNodeId, $context->insertions);
         $html = '';
         $run = [];
+        $content = array_values((array) ($document['content'] ?? []));
+        $plan = $context->target === 'web' ? $context->insertions : null;
+        $at = $plan?->at() ?? [];
 
-        foreach ((array) ($document['content'] ?? []) as $node) {
+        foreach ($content as $index => $node) {
+            if (isset($at[$index])) {
+                $html .= $this->prose($run, $context);
+                $run = [];
+                $html .= implode('', $at[$index]);
+            }
+
             $card = is_array($node) ? $this->cards->find((string) ($node['type'] ?? '')) : null;
 
             if ($card === null) {
@@ -58,6 +67,14 @@ final readonly class DocumentRenderer
             // For the document shell, which links only the styles of cards drawn (I-248).
             $context->usage?->record($card->name());
             $html .= $card->renderHtml($this->withDefaults($card, (array) ($node['attrs'] ?? [])), $context);
+        }
+
+        $end = count($content);
+
+        if (isset($at[$end])) {
+            $html .= $this->prose($run, $context);
+            $run = [];
+            $html .= implode('', $at[$end]);
         }
 
         return $html.$this->prose($run, $context);

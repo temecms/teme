@@ -8,8 +8,10 @@ use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
@@ -18,9 +20,10 @@ use Teme\Contracts\Settings\SettingsReader;
 
 /**
  * What Teme offers a plugin's constructor: the settings reader, its own
- * secrets, the content and media write doors when granted, and the outbound
- * door to its hosts when it was granted http (I-3353). Bound as the
- * loader's PluginServices.
+ * secrets, the content and media write doors when granted, the outbound
+ * door to its hosts when it was granted http, and InsertionsChanged when it
+ * was granted content.insert (I-3353, I-064). Bound as the loader's
+ * PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
 {
@@ -30,6 +33,7 @@ final readonly class PluginDoors implements PluginServices
         private HostResolver $resolver,
         private StartJob $start,
         private PluginRegistry $registry,
+        private CoreInsertionsChanged $insertionsChanged,
     ) {}
 
     /**
@@ -63,6 +67,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
             $offered[Jobs::class] = new PluginJobs($name, $code, $this->start, $this->registry);
+        }
+
+        if (in_array(Capability::ContentInsert->value, $capabilities, true)) {
+            $offered[InsertionsChanged::class] = $this->insertionsChanged;
         }
 
         return $offered;

@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Sheet,
     SheetContent,
@@ -473,6 +474,8 @@ export default function SiteCodeSettings({
     siteTimezone,
     places,
     changes,
+    adsTxt,
+    adsTxtVersion,
 }: SiteCodePage) {
     const [editing, setEditing] = useState<Editing>(null);
 
@@ -505,6 +508,65 @@ export default function SiteCodeSettings({
                 <SiteCodeNotice locked={locked} />
 
                 <div className="grid gap-4">
+                    <SettingsPanel
+                        as="section"
+                        title={__('ads.txt')}
+                        description={__(
+                            'Shown at /ads.txt for advertising buyers. Leave empty for a 404.',
+                        )}
+                    >
+                        <Form
+                            {...SiteCodeController.updateAdsTxt.form()}
+                            options={{ preserveScroll: true }}
+                            className="grid gap-3"
+                        >
+                            {({ processing, errors }) => (
+                                <>
+                                    <input
+                                        type="hidden"
+                                        name="expected_version"
+                                        value={adsTxtVersion}
+                                    />
+                                    <Label htmlFor="site-code-ads-txt">
+                                        {__('ads.txt')}
+                                    </Label>
+                                    <Textarea
+                                        id="site-code-ads-txt"
+                                        name="ads_txt"
+                                        rows={6}
+                                        spellCheck={false}
+                                        defaultValue={adsTxt}
+                                        data-test="site-code-ads-txt"
+                                        aria-describedby="site-code-ads-txt-hint site-code-ads-txt-error"
+                                        className="font-mono"
+                                    />
+                                    <p
+                                        id="site-code-ads-txt-hint"
+                                        className="text-ink-2 text-small"
+                                    >
+                                        {__(
+                                            'One record a line, as the ads.txt specification asks.',
+                                        )}
+                                    </p>
+                                    <InputError
+                                        id="site-code-ads-txt-error"
+                                        message={
+                                            errors.ads_txt ??
+                                            errors.expected_version
+                                        }
+                                    />
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        data-test="site-code-ads-txt-save"
+                                    >
+                                        {__('Save ads.txt')}
+                                    </Button>
+                                </>
+                            )}
+                        </Form>
+                    </SettingsPanel>
+
                     {places.map((place) => (
                         <SettingsPanel
                             key={place.key}

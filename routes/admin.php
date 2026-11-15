@@ -258,6 +258,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::middleware('can:site-code.manage')->group(function (): void {
             Route::get('settings/site-code', [SiteCodeController::class, 'show'])->name('settings.site-code');
             Route::post('settings/site-code', [SiteCodeController::class, 'store'])->name('settings.site-code.store');
+            Route::put('settings/site-code/ads-txt', [SiteCodeController::class, 'updateAdsTxt'])->name('settings.site-code.ads-txt');
             Route::put('settings/site-code/{entry}', [SiteCodeController::class, 'update'])
                 ->where('entry', '[0-9a-hjkmnp-tv-z]{26}')
                 ->name('settings.site-code.update');

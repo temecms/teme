@@ -17,12 +17,19 @@ use App\Domain\Design\SiteDesign;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\People\Credit;
 use App\Domain\People\Credits;
+use App\Domain\Site\Insertions\InsertionCleaner;
+use App\Domain\Site\Insertions\InsertionOrigins;
+use App\Domain\Site\Insertions\InsertionPlan;
+use App\Domain\Site\Insertions\InsertionPoints;
+use App\Domain\Site\Insertions\PlanBuilder;
 use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ItemLink;
 use App\Domain\Site\ViewModels\TermLink;
 use App\Domain\Taxonomy\PrimaryCategory;
 use App\Domain\Types\ContentTypeRegistry;
+use Teme\Contracts\Insertions\ArticleFacts;
+use Teme\Contracts\Insertions\Insertion;
 
 /**
  * Articles as their templates see them (I-250): built from the published
@@ -53,7 +60,7 @@ final readonly class ArticleViews
      */
     public function published(Content $content): ArticleView
     {
-        return $this->build($content, ContentRevision::query()->findOrFail($content->published_revision_id), true);
+        return $this->build($content, ContentRevision::query()->findOrFail($content->published_revision_id), true, true);
     }
 
     /**
@@ -65,7 +72,7 @@ final readonly class ArticleViews
         $content = Content::withTrashed()->findOrFail($contentId);
 
         // A preview is of a revision; comments belong to the published item (D20).
-        return $this->build($content, ContentRevision::query()->where('content_id', $contentId)->findOrFail($revisionId), false);
+        return $this->build($content, ContentRevision::query()->where('content_id', $contentId)->findOrFail($revisionId), false, false);
     }
 
     /**
@@ -82,7 +89,7 @@ final readonly class ArticleViews
         return ['title' => (string) $revision->title, 'kicker' => $this->terms((string) $content->type, array_map('strval', (array) $revision->terms), ((array) $revision->fields)[BuiltInFields::PRIMARY_CATEGORY] ?? null)[0]];
     }
 
-    private function build(Content $content, ContentRevision $revision, bool $withComments): ArticleView
+    private function build(Content $content, ContentRevision $revision, bool $withComments, bool $drawInsertions): ArticleView
     {
         app(RenderRecord::class)->tag(PageTags::content((string) $content->id));
         $fields = (array) $revision->fields;
@@ -91,10 +98,14 @@ final readonly class ArticleViews
 
         // No featured lead when the theme's featured_image_style is hidden.
         $lead = $this->leads->for($content, $document, $this->design->showsFeaturedImage(), $fields);
+        // One read of the credits serves the byline, the comments' author mark and insertion facts (I-3366, I-064).
+        $credits = app(Credits::class)->shown([(string) $content->id])[(string) $content->id] ?? [];
+        $plan = $this->insertionPlan($content, $revision, $document, $language, $credits, $fields, $drawInsertions);
         $body = $this->renderer->html($document, new RenderContext(
             app(LinkResolver::class),
             usage: app(CardUsage::class),
             leadNodeId: $lead['nodeId'],
+            insertions: $plan,
         ));
 
         // A draft never published has no first publication yet: the revision's own time stands in.
@@ -105,8 +116,6 @@ final readonly class ArticleViews
         [$kicker, $tags, $section] = $this->terms((string) $content->type, array_map('strval', (array) $revision->terms), $fields[BuiltInFields::PRIMARY_CATEGORY] ?? null);
         $url = Addresses::relativeUrl($content) ?? '';
         [$ancestors, $parent, $children] = $this->family($content);
-        // One read of the credits serves the byline and the comments' author mark (I-3366).
-        $credits = app(Credits::class)->shown([(string) $content->id])[(string) $content->id] ?? [];
 
         return new ArticleView(
             id: (string) $content->id,
@@ -139,6 +148,76 @@ final readonly class ArticleViews
             ancestors: $ancestors,
             children: $children,
         );
+    }
+
+    /**
+     * The cleaned insertion plan for a published article page, or null when
+     * previews, opt-out, or no contributor gave anything (I-064).
+     *
+     * @param  array<mixed>  $document
+     * @param  list<object>  $credits
+     * @param  array<string, mixed>  $fields
+     */
+    private function insertionPlan(Content $content, ContentRevision $revision, array $document, string $language, array $credits, array $fields, bool $drawInsertions): ?InsertionPlan
+    {
+        if (! $drawInsertions || ($fields[BuiltInFields::INSERTIONS_OFF] ?? false) === true) {
+            return null;
+        }
+
+        // Tagged before any contributor is asked, drawn or not: a plugin enabled, or rules changed, later purges it too.
+        app(RenderRecord::class)->tag(PageTags::INSERTIONS);
+
+        $termIds = array_map('strval', (array) $revision->terms);
+        $byTaxonomy = [];
+
+        foreach ($this->listings->termLinks($termIds) as $id => $link) {
+            $byTaxonomy[$link->taxonomy][] = $id;
+        }
+
+        $paragraphs = 0;
+
+        foreach ((array) ($document['content'] ?? []) as $node) {
+            if (is_array($node) && ($node['type'] ?? null) === 'paragraph') {
+                $paragraphs++;
+            }
+        }
+
+        $facts = new ArticleFacts(
+            contentId: (string) $content->id,
+            type: (string) $content->type,
+            termIdsByTaxonomy: $byTaxonomy,
+            language: $language,
+            authorIds: array_map(fn (object $person): string => (string) $person->id, $credits),
+            words: (int) $revision->word_count,
+            paragraphs: $paragraphs,
+        );
+
+        $cleaned = [];
+        $origins = [];
+
+        foreach (app(InsertionPoints::class)->for($facts) as $insertion) {
+            $result = InsertionCleaner::clean($insertion->html);
+            $cleaned[] = new Insertion($insertion->key, $insertion->at, $result['html']);
+
+            foreach ($result['origins'] as $directive => $hosts) {
+                $origins[$directive] = array_values(array_unique([...($origins[$directive] ?? []), ...$hosts]));
+            }
+        }
+
+        if ($cleaned === []) {
+            return null;
+        }
+
+        $plan = PlanBuilder::for($document, $facts, $cleaned);
+
+        if ($plan->empty()) {
+            return null;
+        }
+
+        // Origins wait for PublicPage to start the policy; PathResolver builds the article first.
+        app(InsertionOrigins::class)->add($origins);
+
+        return new InsertionPlan($plan->at(), $origins);
     }
 
     /**

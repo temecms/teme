@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Queries;
 
+use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\SiteCode\Models\SiteCodeEntry;
 use App\Domain\SiteCode\SiteCode;
 use App\Domain\SiteCode\SiteCodePolicy;
+use App\Domain\SiteCode\SiteCodeSettings;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +47,7 @@ final readonly class SiteCodeScreen
      * and `changes` (the eight newest, newest first, each side with its
      * declared hosts).
      *
-     * @return array{locked: bool, siteTimezone: string, places: list<array<string, mixed>>, changes: list<array<string, mixed>>}
+     * @return array{locked: bool, siteTimezone: string, places: list<array<string, mixed>>, changes: list<array<string, mixed>>, adsTxt: string, adsTxtVersion: int}
      */
     public function data(): array
     {
@@ -103,6 +105,8 @@ final readonly class SiteCodeScreen
                     'afterOrigins' => self::declared($context, 'after'),
                 ];
             })->values()->all(),
+            'adsTxt' => $this->settings->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT),
+            'adsTxtVersion' => (int) (SettingsGroupRecord::query()->whereKey(SiteCodeSettings::KEY)->value('version') ?? 0),
         ];
     }
 
