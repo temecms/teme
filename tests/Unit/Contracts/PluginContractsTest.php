@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Operations\Input\PublishRevisionInput;
+use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
+use Teme\Contracts\Content\ItemChanges;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
@@ -67,6 +70,12 @@ it('gives every new contract its @since and nothing from a framework', function 
     AnswerTooLarge::class,
     RequestFailed::class,
 ]);
+
+it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
+    expect((new ReflectionClass(ItemChanges::class))->hasProperty('language'))->toBeFalse()
+        ->and((new ReflectionClass(PublishRevisionInput::class))->hasProperty('via'))->toBeFalse()
+        ->and((new ReflectionClass(SchedulePublicationInput::class))->hasProperty('via'))->toBeFalse();
+});
 
 it('names the five capabilities a plugin can ask for in the first release', function (): void {
     expect(array_column(Capability::cases(), 'value'))->toBe([

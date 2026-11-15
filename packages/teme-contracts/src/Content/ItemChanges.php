@@ -27,6 +27,5 @@ final readonly class ItemChanges
         public ?array $fields = null,
         public ?array $terms = null,
         public ?MediaRef $featuredImage = null,
-        public ?string $language = null,
     ) {}
 }

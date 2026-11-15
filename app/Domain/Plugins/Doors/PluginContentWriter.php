@@ -123,7 +123,6 @@ final readonly class PluginContentWriter implements ContentWriter
                 contentId: (string) $content->id,
                 revisionId: (string) $content->working_revision_id,
                 actorId: $actingPersonId,
-                via: $this->code,
             ));
         } catch (Throwable $failure) {
             $this->refuse($failure);
@@ -148,7 +147,6 @@ final readonly class PluginContentWriter implements ContentWriter
                 action: $content->status === 'published' ? 'update' : 'publish',
                 runAt: $at->format(DateTimeImmutable::ATOM),
                 actorId: $actingPersonId,
-                via: $this->code,
             ));
         } catch (Throwable $failure) {
             $this->refuse($failure);

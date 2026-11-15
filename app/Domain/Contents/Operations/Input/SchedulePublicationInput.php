@@ -13,16 +13,12 @@ use Teme\Contracts\Operations\OperationInput;
  */
 final readonly class SchedulePublicationInput implements OperationInput
 {
-    /**
-     * @param  string|null  $via  the plugin code that asked to schedule, or null for a person
-     */
     public function __construct(
         public string $contentId,
         public string $revisionId,
         public string $action,
         public string $runAt,
         public ?string $actorId,
-        public ?string $via = null,
     ) {}
 
     public function actorId(): ?string
