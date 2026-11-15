@@ -2,9 +2,11 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Home's panel grid: 12 columns, gap 16, dense flow. A panel spans 4, 6, 8 or
- * 12 by size from 1024; from 640 to 1023 small and medium span 6, large and
- * full 12; under 640 every panel spans 12.
+ * Home's panel grid: 12 columns, gap 16. A panel spans 4, 6, 8 or 12 by size
+ * from 1024; from 768 to 1023 small and medium span 6, large and full 12;
+ * under 768 every panel spans 12. Dense packing is not used: the visual order
+ * must match the saved order Tab, announcements and Move follow (WCAG 1.3.2,
+ * 2.4.3).
  */
 export function PanelGrid({
     children,
@@ -16,7 +18,7 @@ export function PanelGrid({
     return (
         <div
             data-test="home-grid"
-            className={cn('grid grid-flow-dense grid-cols-12 gap-4', className)}
+            className={cn('grid grid-cols-12 gap-4', className)}
         >
             {children}
         </div>
