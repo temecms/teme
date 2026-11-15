@@ -17,6 +17,25 @@ it('has every page the guide names and no other', function (): void {
     expect(DeveloperGuide::foundPages())->toEqualCanonicalizing(DeveloperGuide::PAGES);
 });
 
+it('lists every handbook page in the README in guide order', function (): void {
+    preg_match_all('/\]\(([^)#]+\.md)(?:#[^)]*)?\)/', DeveloperGuide::page('README.md')->body(), $found);
+
+    $listed = [];
+
+    foreach ($found[1] as $target) {
+        if (str_contains($target, '..')) {
+            continue;
+        }
+
+        $listed[] = $target;
+    }
+
+    expect($listed)->toBe(array_values(array_filter(
+        DeveloperGuide::PAGES,
+        fn (string $name): bool => $name !== 'README.md',
+    )));
+});
+
 it('opens with front matter for title, type, audience, summary and rests_on', function (GuideFile $page): void {
     $front = $page->frontMatter();
 

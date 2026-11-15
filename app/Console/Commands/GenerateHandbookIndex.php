@@ -15,11 +15,12 @@ final class GenerateHandbookIndex extends Command
 {
     /**
      * Pages under docs/guides/developers/, in the README's reading order.
-     * The README itself is the index, not a listed entry.
+     * The README itself is the index, not a listed entry. DeveloperGuide
+     * and the handbook-index command share this list.
      *
      * @var list<string>
      */
-    private const array PAGES = [
+    public const array PAGES = [
         'start/plugin-or-theme.md',
         'start/first-plugin.md',
         'start/first-theme.md',

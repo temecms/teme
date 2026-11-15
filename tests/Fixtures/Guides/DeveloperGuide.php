@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Guides;
 
+use App\Console\Commands\GenerateHandbookIndex;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -24,18 +25,7 @@ final class DeveloperGuide
     /** Every page, by its path under docs/guides/developers/, in README order. */
     public const array PAGES = [
         'README.md',
-        'start/plugin-or-theme.md',
-        'start/first-plugin.md',
-        'start/first-theme.md',
-        'concepts/manifest.md',
-        'concepts/hooks.md',
-        'concepts/operations.md',
-        'testing.md',
-        'for-agents.md',
-        'plugins/content-write.md',
-        'plugins/jobs.md',
-        'plugins/public-routes.md',
-        'plugins/import.md',
+        ...GenerateHandbookIndex::PAGES,
     ];
 
     public const array TYPES = ['tutorial', 'how-to', 'concept', 'reference', 'stub'];
