@@ -15,6 +15,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Fixtures\Fediverse\Actors;
 
@@ -85,4 +86,21 @@ it('lets the operator prune, and prunes nothing for anyone else', function (): v
 
     app()->instance(Elevation::class, new OperatorElevation);
     expect(app(PruneFediverse::class)->execute(new PruneFediverseInput))->toBe(1);
+});
+
+it('prunes through teme:fediverse:prune, as the operator', function (): void {
+    $quiet = Actors::remote('https://remote.example/users/quiet', ['fetched_at' => now()->subDays(31)]);
+
+    $this->artisan('teme:fediverse:prune')->expectsOutput('Removed 1 remote fediverse account.')->assertSuccessful();
+
+    expect(RemoteActor::query()->whereKey($quiet->id)->exists())->toBeFalse()
+        ->and(RemoteActor::query()->whereKey($this->alice->id)->exists())->toBeTrue();
+});
+
+it('has teme:fediverse:prune on the daily schedule', function (): void {
+    $this->artisan('schedule:list')->expectsOutputToContain('teme:fediverse:prune')->assertSuccessful();
+
+    $event = collect(app(Schedule::class)->events())->first(fn ($event): bool => str_contains((string) $event->command, 'teme:fediverse:prune'));
+
+    expect($event?->expression)->toBe('0 0 * * *');
 });
