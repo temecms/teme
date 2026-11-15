@@ -362,14 +362,7 @@ components/editor/fields/media-control.tsx	Remove
 components/editor/fields/media-control.tsx	Replace…
 components/editor/fields/media-control.tsx	The library has no alt text for this image, so write one here.
 components/editor/fields/media-control.tsx	This image is no longer in the library.
-components/editor/link-popover.tsx	A post, page or other item, a category or tag, an author or a file. The link keeps working when its address changes.
-components/editor/link-popover.tsx	An address on another site, mailto: or tel:, a page on this site (/…) or a place on this page (#…).
-components/editor/link-popover.tsx	Apply
-components/editor/link-popover.tsx	Link to something on this site
-components/editor/link-popover.tsx	Or an address
-components/editor/link-popover.tsx	Remove link
 components/editor/link-popover.tsx	Search by title or name
-components/editor/link-popover.tsx	https://
 components/editor/meta-changes.tsx	Fields and categories
 components/editor/pasted-image-view.tsx	1 pasted image isn’t in the media library yet, so it isn’t saved until it is. Import it only if you have the right to use it.
 components/editor/pasted-image-view.tsx	Import

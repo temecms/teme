@@ -14,7 +14,6 @@ R1	js/components/editor/cards/video-card.tsx	h-[34px]
 R1	js/components/editor/fields/media-control.tsx	h-[34px]
 R1	js/components/editor/fields/media-control.tsx	sm:grid-cols-[190px_minmax(0,1fr)]
 R1	js/components/editor/fields/textarea-control.tsx	min-h-[34px]
-R1	js/components/editor/link-popover.tsx	h-[34px]
 R1	js/components/editor/meta-changes.tsx	grid-cols-[auto_minmax(0,1fr)]
 R1	js/components/editor/rail/checks-panel.tsx	pl-[22px]
 R1	js/components/editor/rail/document-panel.tsx	grid-cols-[1fr_auto]
@@ -299,11 +298,6 @@ R2	js/components/editor/fields/media-control.tsx	text-[13px]
 R2	js/components/editor/fields/media-control.tsx	text-[13px]
 R2	js/components/editor/fields/media-control.tsx	text-xs
 R2	js/components/editor/fields/textarea-control.tsx	text-[13px]
-R2	js/components/editor/link-popover.tsx	text-[12px]
-R2	js/components/editor/link-popover.tsx	text-[13px]
-R2	js/components/editor/link-popover.tsx	text-xs
-R2	js/components/editor/link-popover.tsx	text-xs
-R2	js/components/editor/link-popover.tsx	text-xs
 R2	js/components/editor/meta-changes.tsx	text-[13px]
 R2	js/components/editor/pasted-image-view.tsx	text-[13px]
 R2	js/components/editor/presence-line.tsx	text-[11px]
@@ -798,9 +792,6 @@ R3	js/components/editor/fields/entry-control.tsx	gap-1.5
 R3	js/components/editor/fields/entry-control.tsx	px-1.5
 R3	js/components/editor/fields/media-control.tsx	px-1.5
 R3	js/components/editor/fields/media-control.tsx	py-0.5
-R3	js/components/editor/link-popover.tsx	gap-1.5
-R3	js/components/editor/link-popover.tsx	gap-1.5
-R3	js/components/editor/link-popover.tsx	py-1.5
 R3	js/components/editor/pasted-image-view.tsx	py-2.5
 R3	js/components/editor/pasted-image-view.tsx	py-2.5
 R3	js/components/editor/presence-line.tsx	px-1.5
@@ -914,7 +905,6 @@ R5	js/components/editor/fields/entry-control.tsx	<button type="button">
 R5	js/components/editor/fields/media-control.tsx	<button type="button">
 R5	js/components/editor/fields/media-control.tsx	<input>
 R5	js/components/editor/fields/textarea-control.tsx	<textarea>
-R5	js/components/editor/link-popover.tsx	<button type="button">
 R5	js/components/editor/rail/canonical-choice.tsx	<button type="button">
 R5	js/components/editor/rail/canonical-choice.tsx	<input type="radio">
 R5	js/components/editor/rail/checks-panel.tsx	<button type="button">
@@ -1096,7 +1086,6 @@ R8	js/components/comments/comment-details.tsx	overflow-y-auto
 R8	js/components/comments/quick-edit.tsx	overflow-y-auto
 R8	js/components/editor/cards/button-card.tsx	overflow-y-auto
 R8	js/components/editor/cards/imported-content-card.tsx	overflow-auto
-R8	js/components/editor/link-popover.tsx	overflow-y-auto
 R8	js/components/header/header-panel.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
 R8	js/components/list/bulk-edit-dialog.tsx	overflow-y-auto
