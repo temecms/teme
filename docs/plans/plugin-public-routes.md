@@ -131,3 +131,61 @@ Draft numbers: B-01 upward (plan gave no block).
 ```
 
 Try it: enable the inbound fixture with `routes.public`, `GET /inbound/ping`, `GET /?author=0` with `Accept: application/activity+json`, and a signed `POST /inbound/callback`.
+
+## Follow-up R3
+
+Review fixes for five binding Settled rules and the later items (owner's message R3), on `plugins/public-routes`, built in a Claude cloud container (`pwd` `/home/user/teme`; PHP 8.4.27, PostgreSQL 18 on 5433, Valkey on 6380, after `scripts/cloud-setup.sh`).
+
+### Each test seen red (against the branch's code before the fix)
+
+1. Collisions across plugins and core (`PublicRouteCollisionsTest`, "across enabled plugins and core"): `-'This route collides with inbound’s actor.' +''`, `-'The .well-known name shared-name belongs to first.' +''`, `-'This route collides with core’s actor.' +''` (enable went through). The "conditions cannot overlap" case passed before and after, as it should.
+2. Registry from loadable plugins only (`PublicRoutesTest`): server switch by name and `*`: `Expected response status code [404] but received 200.`; update adding a route: `Expected response status code [404] but received 200.`
+3. Every match dispatched (`PublicRoutesTest`, conditional GET on `/hello-world` and conditional POST `/hello-world?inbox=1`): `Expected response status code [200] but received 404.`
+4. Cache key and validation: `DeclaredRouteCacheTest` uncacheable Accept-conditional entry on `/`: `Expecting 'HIT' not to be 'HIT'.`; `PublicRouteCollisionsTest`: `Failed asserting that an array contains 'A cached route that matches on Accept needs cache.varyAccept.'` and `… 'cache.query must name every when.query parameter; it leaves out page.'`
+5. Rate limits (`PublicRouteLimitsTest`, `/?author=0` with the activity Accept after 120 hits): `Expected response status code [429] but received 200.`
+6. Non-GET with no match (`PublicRoutesTest`, POST `/hello-world` and `/inbound/nothing`): `Failed asserting that true is false.` (a page with `X-Teme-Template` was drawn). POST `/` already answered 405 from the router.
+7. Body cap (`PublicRouteVerifiersTest`, `Content-Length: 65` with a one-byte body): `Expected response status code [413] but received 200.` The form-field test now sends a real `application/x-www-form-urlencoded` body; a wrong field is refused 401.
+8. Later items: version purge (`DeclaredRouteCacheTest`, MigratePlugin with nothing to run): `Header [X-Teme-Cache] … [HIT] does not match [MISS].`; header dropped: `Failed asserting that true is false.`; throwing handler: `Header [X-Teme-Template] not present on response.`; `preg_quote` (`tests/Unit/PublicRoutes/DeclaredRouteTest.php`): `Error` (no `pathParameters()`); HEAD: `Expected response status code [200] but received 404.`; consent line: `Failed asserting that an array contains 'GET / (query author: ^[0-9]+$; Accept: application/activity+json)'.`
+
+### What changed
+
+- `PluginLoader::skipReason()` is the one rule (server switch incl. `*`, code gone, live errors, `Consent::covers`, waiting migrations); `load()` and `PublicRouteRegistry` both use it.
+- `RouteCollisions::against(enabled, manifest)`, called in `EnablePlugin::validate()` before any write, against `PublicRouteRegistry::from()` of the enabled rows read from the table (not the cached list). Conditions overlap unless both name query parameters and share none, or both name Accept types and share none; paths compare by shape (`{name}` → `{}`).
+- `MatchDeclaredRoutes` and `DeclaredRouteController` dispatch whatever `match()` returns; fall through only on null. A non-GET miss answers a bare 405 with `Allow: GET, HEAD`. A new `POST /` route (`declared.home`) reaches the registry.
+- `PageKey::of` returns null when an uncacheable conditional entry on the path reads one of the request's query names or Accept types. `RouteCollisions` refuses a cacheable entry with `when.accept` but no `varyAccept`, and a `cache.query` that leaves out a `when.query` name.
+- Home, fallback, feeds and `.md` routes put `throttle:declared-routes` before `MatchDeclaredRoutes`; with no match the limiter counts `?s=` as `site-search` does.
+- Body: `Content-Length` over `maxBody` answers 413 before the body is read; the raw-body rebuild is gone.
+- `MigratePlugin` purges `plugin:{code}` whenever it runs; the fall-through cacheable mark and `X-Teme-Declared-Cacheable` are gone; a throwing handler is recorded and answered by `PublicPage::error(500)`; literal path parts are `preg_quote`d (`DeclaredRoute::pathParameters()`); HEAD matches a declared GET; the consent line carries the condition; contracts say `@since 0.9.0`.
+
+### Decisions (drafts)
+
+- **B-06 (draft):** a version update that needs neither new consent nor migrations runs no Operation, and rule 1 lets only an Operation purge. Options: purge from boot when a version changes (breaks rule 1), put the plugin version in the page key, or purge in every Operation an update runs. Chose the last: `EnablePlugin` already purged; `MigratePlugin` now purges even when nothing ran. Left open: an update that runs neither keeps its stored answers until they expire. Commit `fix(plugins): dispatch every declared match, throttle first, cap bodies by length`.
+- **B-07 (draft):** the error page for a throwing handler. Throwing an `HttpException` would be reported a second time. Chose: `RouteDispatcher::dispatch()` takes a closure the HTTP layer gives (`PublicPage::error(new HttpException(500))`), so the Domain doesn't reach into `App\Http`. Same commit.
+- **B-08 (draft):** the consent line's form for a condition: `GET / (query author: ^[0-9]+$; Accept: application/activity+json)`. Technical notation like `METHOD path`, not translated, because consent compares the stored lines. The consent-screen test's expected `GET /` line changed to this, as the owner's item asks. A changed condition now asks again. Same commit.
+- **B-09 (draft):** "on any path": `MatchDeclaredRoutes` also sits on the feeds and `.md` fallbacks, so a conditional entry on such a path answers too. Same commit.
+- **B-10 (draft):** `EnablePlugin`'s collision check reads the enabled rows from the table, not the cached list: an existing test seeds the cache with a placeholder to prove it isn't forgotten before commit, and the check must not depend on it. Commit `fix(plugins): refuse public routes that collide across plugins and core`.
+
+### Commits
+
+- `fix(plugins): build declared routes only from plugins that may load`
+- `fix(plugins): refuse public routes that collide across plugins and core`
+- `fix(plugins): dispatch every declared match, throttle first, cap bodies by length`
+- `docs(contracts): public route contracts arrive in 0.9.0`
+- `docs(plans): plugin public routes' records, follow-up R3` (this commit)
+
+### Checks
+
+- Architecture suite: 139 passed (1309 assertions) before and after; no baseline count raised and no baseline line added.
+- Full `composer check` at the end: Pint passed; PHPStan OK; types and lint passed; Architecture 139 passed; Unit+Feature **10652** passed, **2** skipped (54885 assertions), against 10630 and 2 before this follow-up. No Browser test touched, so no Browser run.
+- STOP: none.
+
+### Changelog lines for the maintainer
+
+```
+### Fixed
+- A plugin's public route is refused at enable when it collides with another enabled plugin's or core's, and answers only while the plugin may load (server switch, consent, waiting migrations).
+- Conditional declared routes answer on any path; non-GET requests that match nothing answer 405; declared routes are throttled before they answer.
+- The page cache never serves a stored page to a request an uncacheable conditional route reads; bodies are capped by Content-Length first; HEAD answers a declared GET; a failing handler shows the site's error page.
+```
+
+Try it: enable the inbound fixture; `curl -I /inbound/ping`; `curl -H 'Accept: application/activity+json' '/?author=0'`; `curl -X POST /hello-world` answers 405; enable a second plugin declaring `GET /` with `when.query.author` and see the refusal naming inbound's actor.
