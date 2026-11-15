@@ -55,6 +55,7 @@ A plugin is a Composer package of type `teme-plugin` with a `teme-plugin.json` m
 | `provides` | A service interface it offers to other plugins ([Plugins together](#plugins-together)) |
 | `contributes` | Entries for core's registries and admin surfaces; on the public site, region card types (with categories), overridable views (each with a `contract` version), assets keyed per output, and document fragments (capability-gated) — see *Plugins and themes* |
 | `owns` | Tables it creates, so uninstall can list and remove them exactly |
+| `imports` | What it brings across when Teme imports a WordPress site: its importer class and the WordPress options, post types with their meta keys, people's meta keys and terms' meta keys it reads, behind `import.wordpress` ([Bringing a plugin's data from WordPress](#bringing-a-plugins-data-from-wordpress)) |
 
 The exact capability names and contribution kinds are fixed in phase 5. The manifest's shape is fixed now so that the admin screens built in phase 1 read entries of the same shape.
 
@@ -195,6 +196,27 @@ Overrides run theme, then plugin, then core. Every overridable view declares a `
 - **Secrets** use the `secret` setting type (`docs/architecture/settings.md`): encrypted, write-only, never cached, never sent to the browser.
 - **Files a plugin writes** (exports, logs) go to private storage behind a permission check, never to a public folder.
 - **Inbound webhooks** are a core route kind that requires a signature verifier. There is no way to declare one without it.
+
+### Bringing a plugin's data from WordPress
+
+A site moving from WordPress carries data that belongs to its plugins: a fediverse plugin's keys and followers, a form plugin's entries, a plugin's own settings. A Teme plugin brings its share across through the import, never on its own (`docs/proposals/plugin-import-socket.md`).
+
+```json
+"capabilities": ["import.wordpress"],
+"imports": {
+    "importer": "Acme\\Social\\Importer",
+    "options": ["acme_actor_mode"],
+    "postTypes": { "acme_actor": ["_acme_inbox", "_acme_following"] },
+    "userMeta": ["acme_also_known_as"],
+    "termMeta": []
+}
+```
+
+- **Declared before read.** Only the names under `imports` are ever asked for: option names and meta keys of WordPress's shape (`^[A-Za-z0-9_\-:.]{1,191}$`), post types as WordPress names them, at most 50 names in all. `user_pass`, `session_tokens`, `_application_passwords` and `wp_user_roles` are refused by the validator and again by the companion. `imports` needs `import.wordpress`, which the consent screen words with the declared names.
+- **Core runs it; the plugin receives it.** The importer implements `Teme\Contracts\Import\WordPressImporter` and is built as the plugin's class is, with only what its granted capabilities offer. Three core phases do the work, for each enabled plugin holding the capability, in the order of their codes: `plugin-options` (540) hands the options over once a run; `plugin-data` (550), after core's people, terms and content and before the second pass, hands each record of the declared post types, people's meta and terms' meta to `record()` inside that record's own transaction with its map row (`plugin:<code>:<kind>:<type>:<id>`, I-332); `plugin-data-gone` (560) lists, on a catch-up, the records WordPress no longer has, and deletes nothing. `ImportScope` tells the importer what core's import made of a WordPress post or person.
+- **Like core's lists:** a catch-up hands over only a record whose hash changed; a record the importer fails, or that throws, is reported with its sentence and the run goes on; the run's report has a row for each plugin. A serialized value arrives decoded, and one holding a PHP object as null, reported (rule 4).
+- **Secrets it brings stay secret:** a plugin stores imported keys through the `secret` setting type, never in a plain column.
+- The companion's side is `docs/specs/companion-extension-route.md`; it needs the companion's export API 2, and an older companion is reported and skipped. A plugin's own WordPress tables are not read in this version.
 
 ## Plugins together
 
