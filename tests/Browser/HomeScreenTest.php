@@ -369,26 +369,49 @@ it('resets to the site default', function (): void {
         ->and(PreferencesFor::user($this->editor)['dashboard.sizes'])->toBe([]);
 });
 
-it('puts Home back and says so when a save fails', function (): void {
-    Route::patch('admin/account/preferences', fn () => response()->json(['message' => 'Server Error'], 500));
-
+it('puts Home back from the server and says so when a save fails', function (): void {
     $page = cmSignIn($this->editor)->resize(1280, 900);
     shellSettled($page, '[data-test="home-customize"]');
     $page->click('[data-test="home-customize"]');
     shellSettled($page, '[data-panel="my_drafts"]');
 
-    $before = $page->script(<<<'JS'
+    $page->assertAttribute(
+        '[data-panel="my_drafts"] [data-control="hide"]',
+        'aria-label',
+        'Hide Your drafts',
+    );
+
+    // Preference the page has not loaded: reload must pick this up, not the
+    // pre-move client layout.
+    lscrPrefer($this->editor, [
+        'dashboard.order' => ['my_recent_edits', 'my_drafts', 'scheduled', 'quick_draft', 'waiting_for_my_review', 'returned_to_me', 'my_items_in_review'],
+    ]);
+
+    Route::patch('admin/account/preferences', fn () => response()->json(['message' => 'Server Error'], 500));
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const button = document.querySelector('[data-panel="my_drafts"] [data-control="move-later"]');
+            button?.focus();
+
+            return document.activeElement === button;
+        }
+        JS);
+    $page->keys(':focus', 'Enter');
+
+    cmWaitUntil($page, <<<'JS'
+        document.body.innerText.includes("Couldn't save your Home. Try again.") === true
+        JS);
+
+    cmWaitUntil($page, <<<'JS'
+        document.querySelector('[data-test="home-your-work"] [data-panel]')?.getAttribute('data-panel') === 'my_recent_edits'
+        JS);
+
+    $order = $page->script(<<<'JS'
         () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
         JS);
 
-    $page->click('[data-panel="my_drafts"] [data-control="move-later"]');
-    cmWaitUntil($page, 'document.querySelector(\'[data-test="flash-toast"]\')?.textContent?.includes("Couldn\'t save your Home") === true');
-
-    $after = $page->script(<<<'JS'
-        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
-        JS);
-
-    expect($after)->toBe($before);
+    expect($order[0] ?? null)->toBe('my_recent_edits');
 });
 
 it('keeps Customize usable on a phone', function (): void {
@@ -609,51 +632,6 @@ it('never drops a core panel among plugins\' panels', function (): void {
         ->and($after)->toBe($before);
     $this->editor->refresh();
     expect(PreferencesFor::user($this->editor)['dashboard.order'])->toBe([]);
-});
-
-it('reloads the layout from the server when a Customize save fails', function (): void {
-    $page = cmSignIn($this->editor)->resize(1280, 900);
-    shellSettled($page, '[data-test="home-customize"]');
-    $page->click('[data-test="home-customize"]');
-    shellSettled($page, '[data-panel="my_drafts"]');
-
-    $page->assertAttribute(
-        '[data-panel="my_drafts"] [data-control="hide"]',
-        'aria-label',
-        'Hide Your drafts',
-    );
-
-    // Server order the page has not loaded yet — reload must pick this up, not the
-    // pre-move client layout.
-    lscrPrefer($this->editor, [
-        'dashboard.order' => ['my_recent_edits', 'my_drafts', 'scheduled', 'quick_draft', 'waiting_for_my_review', 'returned_to_me', 'my_items_in_review'],
-    ]);
-
-    Route::patch('admin/account/preferences', fn () => response()->json(['message' => 'Server Error'], 500));
-
-    $page->assertScript(<<<'JS'
-        () => {
-            const button = document.querySelector('[data-panel="my_drafts"] [data-control="move-later"]');
-            button?.focus();
-
-            return document.activeElement === button;
-        }
-        JS);
-    $page->keys(':focus', 'Enter');
-
-    cmWaitUntil($page, <<<'JS'
-        document.body.innerText.includes("Couldn't save your Home. Try again.") === true
-        JS);
-
-    cmWaitUntil($page, <<<'JS'
-        document.querySelector('[data-test="home-your-work"] [data-panel]')?.getAttribute('data-panel') === 'my_recent_edits'
-        JS);
-
-    $order = $page->script(<<<'JS'
-        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
-        JS);
-
-    expect($order[0] ?? null)->toBe('my_recent_edits');
 });
 
 it('doesn\'t drag outside Customize', function (): void {
