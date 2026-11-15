@@ -9,8 +9,6 @@ use App\Domain\Fediverse\Publishing\Operations\Input\QueueActivityInput;
 use App\Domain\Fediverse\Publishing\Operations\QueueActivity;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Import\ImportMode;
-use App\Domain\Support\Security\Elevation;
-use App\Domain\Support\Security\OperatorElevation;
 use Teme\Contracts\Content\ContentDeleted;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Content\ContentTrashed;
@@ -21,8 +19,8 @@ use WeakMap;
 
 /**
  * Core's listener on the content hooks (docs/plans/fediverse-publishing.md,
- * D1): each change to an item goes to QueueActivity, which the site runs as
- * its own work, whoever made the change. The hooks come after commit and
+ * D1): each change to an item goes to QueueActivity as the site's own work
+ * (a SiteWork token, never the operator), whoever made the change. The hooks come after commit and
  * never during an import run. Core listens only once the fediverse is on,
  * checked as each request, command or queued job starts, so a site that
  * never turns it on builds no hook for it; nothing is asked while paused.
@@ -92,13 +90,6 @@ final class ContentActivities
             return;
         }
 
-        $previous = app(Elevation::class);
-        app()->instance(Elevation::class, new OperatorElevation);
-
-        try {
-            app(QueueActivity::class)->execute(new QueueActivityInput($contentId, $change));
-        } finally {
-            app()->instance(Elevation::class, $previous);
-        }
+        app(QueueActivity::class)->execute(new QueueActivityInput($contentId, $change, siteWork: SiteWork::issue()));
     }
 }

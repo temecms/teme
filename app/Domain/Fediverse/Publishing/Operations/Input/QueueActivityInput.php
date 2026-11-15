@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing\Operations\Input;
 
+use App\Domain\Fediverse\Publishing\SiteWork;
 use Teme\Contracts\Operations\OperationInput;
 
 /**
@@ -20,6 +21,7 @@ final readonly class QueueActivityInput implements OperationInput
         public string $contentId,
         public string $change,
         public ?string $actorId = null,
+        public ?SiteWork $siteWork = null,
     ) {}
 
     public function actorId(): ?string

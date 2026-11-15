@@ -18,12 +18,14 @@ use App\Domain\Fediverse\Models\RemoteActor;
 use App\Domain\Fediverse\Publishing\ContentActivities;
 use App\Domain\Fediverse\Publishing\Operations\Input\QueueActivityInput;
 use App\Domain\Fediverse\Publishing\Operations\QueueActivity;
+use App\Domain\Fediverse\Publishing\SiteWork;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
+use App\Domain\Support\Security\Operator;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -34,6 +36,8 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Content\ContentTrashed;
+use Teme\Contracts\Fediverse\ActivitySent;
+use Teme\Contracts\Fediverse\ObjectBuilt;
 use Tests\Fixtures\Fediverse\Actors;
 use Tests\Fixtures\Fediverse\Inbox;
 
@@ -191,4 +195,36 @@ it('listens to content only once the fediverse is on, from the next queued job',
     expect($off)->toBeFalse()
         ->and($dispatcher->wants(ContentPublished::class))->toBeTrue()
         ->and($dispatcher->wants(ContentTrashed::class))->toBeTrue();
+});
+
+it('runs plugins’ object and sent listeners without the operator’s power', function (): void {
+    $seen = [];
+    $hooks = app(HookDispatcher::class)->subscriber('acme/watch', ['fediverse.read']);
+    $hooks->on(ObjectBuilt::class, function (array $object) use (&$seen): array {
+        $seen[] = 'built '.(Operator::isPresent() ? 'as operator' : 'as nobody');
+
+        return $object;
+    });
+    $hooks->on(ActivitySent::class, function () use (&$seen): void {
+        $seen[] = 'sent '.(Operator::isPresent() ? 'as operator' : 'as nobody');
+    });
+
+    addrPublished($this->author, 'Harbour news');
+
+    expect($seen)->toBe(['built as nobody', 'sent as nobody'])
+        ->and(Operator::isPresent())->toBeFalse();
+});
+
+it('refuses a forged token for the site’s own work, writing nothing', function (): void {
+    Inbox::switch(false);
+    $item = addrPublished($this->author, 'Harbour news');
+    Inbox::switch(true);
+    $forged = (new ReflectionClass(SiteWork::class))->newInstanceWithoutConstructor();
+
+    expect(fn () => app(QueueActivity::class)->execute(new QueueActivityInput($item->id, QueueActivityInput::PUBLISHED, siteWork: $forged)))->toThrow(AuthorizationException::class)
+        ->and([Activity::query()->count(), Delivery::query()->count(), FediverseObject::query()->count()])->toBe([0, 0, 0]);
+});
+
+it('issues the site’s own work only to core’s content listener', function (): void {
+    expect(fn () => SiteWork::issue())->toThrow(LogicException::class);
 });

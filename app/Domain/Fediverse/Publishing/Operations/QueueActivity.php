@@ -18,6 +18,7 @@ use App\Domain\Fediverse\Publishing\ObjectDocuments;
 use App\Domain\Fediverse\Publishing\Operations\Input\QueueActivityInput;
 use App\Domain\Fediverse\Publishing\PublishingSettings;
 use App\Domain\Fediverse\Publishing\QueuedActivities;
+use App\Domain\Fediverse\Publishing\SiteWork;
 use App\Domain\Fediverse\Sockets\SentActivities;
 use App\Domain\Import\ImportMode;
 use App\Domain\Support\Operations\BaseOperation;
@@ -40,6 +41,11 @@ final class QueueActivity extends BaseOperation
 
     protected function authorize(OperationInput $input): void
     {
+        /** @var QueueActivityInput $input */
+        if ($input->actorId === null && SiteWork::issued($input->siteWork)) {
+            return;
+        }
+
         $this->authorizeFediverseWork($input, 'Not permitted to send to the fediverse.');
     }
 
