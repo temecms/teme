@@ -12,8 +12,9 @@ use Teme\Contracts\Routes\PublicRoute;
 
 /**
  * Answers a fediverse document (an actor, its outbox, followers or
- * following) at the full address asked for, new or imported; 404 when the
- * site has none there.
+ * following, a post's object) at the full address asked for, new or
+ * imported; 410 with a Tombstone for a post taken back, 404 when the site
+ * has none there.
  */
 final readonly class DocumentRoute implements PublicRoute
 {
@@ -27,6 +28,8 @@ final readonly class DocumentRoute implements PublicRoute
             return new PublicResponse(404, ActivityPub::CONTENT_TYPE, '{}');
         }
 
-        return new PublicResponse(200, ActivityPub::CONTENT_TYPE, json_encode($document, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+        $status = ($document['type'] ?? null) === 'Tombstone' ? 410 : 200;
+
+        return new PublicResponse($status, ActivityPub::CONTENT_TYPE, json_encode($document, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
     }
 }
