@@ -165,6 +165,8 @@ final readonly class PluginMediaWriter implements MediaWriter
             throw new WriteRefused(is_string($first) && $first !== '' ? $first : __('The change was refused.'), previous: $failure);
         }
 
-        throw $failure;
+        $message = $failure->getMessage();
+
+        throw new WriteRefused($message !== '' ? $message : __('The change was refused.'), previous: $failure);
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Media\Models\Media;
+use App\Domain\Media\Operations\UploadMedia;
 use App\Domain\Plugins\Doors\HostResolver;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\Doors\PluginHttp;
@@ -10,6 +11,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Media\MediaWriter;
 use Tests\Fixtures\Plugins\Lists\FakeResolver;
@@ -180,6 +182,29 @@ it('strips the query string from the stored source URL', function (): void {
     $media = ($this->door)()->fromAddress('https://cdn.example.com/harbour.jpg?token=secret', (string) $editor->id);
 
     expect(Media::query()->findOrFail($media->id)->source_url)->toBe('https://cdn.example.com/harbour.jpg');
+});
+
+it('turns every upload failure into WriteRefused', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+    $this->actingAs($editor);
+    Http::fake(['https://cdn.example.com/harbour.jpg' => Http::response(($this->jpeg)(), 200, ['Content-Type' => 'image/jpeg'])]);
+    app()->instance(UploadMedia::class, new class
+    {
+        public function execute(mixed $input): never
+        {
+            throw new RuntimeException('The disk refused the write.');
+        }
+    });
+    $before = Media::query()->count();
+
+    try {
+        ($this->door)()->fromAddress('https://cdn.example.com/harbour.jpg', (string) $editor->id);
+        expect(false)->toBeTrue();
+    } catch (WriteRefused $refused) {
+        expect($refused->getMessage())->toBe('The disk refused the write.')
+            ->and($refused->getPrevious())->toBeInstanceOf(RuntimeException::class)
+            ->and(Media::query()->count())->toBe($before);
+    }
 });
 
 it('refuses alt text over 1000 characters before fetching, and writes nothing', function (): void {
