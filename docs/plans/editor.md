@@ -830,3 +830,40 @@ MetadataSuggestionsTest › "asks from Search and social and puts each proposal 
 
 ### How to try it
 Open any post. Hover a block, use its grip's menu, or press Alt Shift ↑/↓ and Ctrl D. Type / on an empty line. Select text and press Ctrl K. Open Tools in the top bar and pin a tool. Open Search and social under the article and switch tabs. From History, compare two versions.
+
+### Follow-up X2-2
+
+The review accepted the part. The maintainer approved the test changes proposed for STOPs 1, 2, 4, 5 and 6, as keeping what each test proves.
+
+1. **Approved test changes**, approved by the maintainer (bfba3f7):
+   - PreferencesTest's declared defaults gain `'editor.pinned_tools' => ['assistant', 'share']` (STOP 4).
+   - EditorWorkspaceTest scrolls and reads the rail's `> [data-slot="scroll-area"]` (STOP 1).
+   - AudioVideoCardsTest places the audio card through the block picker's option (STOP 2).
+   - FieldControlsTest's fixture was recorded again with `FIELDS_RECORD=1` (STOP 5).
+   - MetadataSuggestionsTest opens the Social tab before the two social proposals (STOP 6).
+   - All four browser files are green: EditorWorkspaceTest 5, AudioVideoCardsTest 3, MetadataSuggestionsTest 4, FieldControlsTest 1. PreferencesTest has 12 passing.
+   - STOP 3 (LinkChoicesTest's placeholder) was not in the approval and is left as it was.
+2. **EditorWorkspaceTest's other cases**: in this build all of them pass, both in Task 13's run and now. That covers the site notice case, the phone case and both menu-fold cases; the file has five cases in all. Only the first case was ever red, for the reason STOP 1 gives, and each of the others found the elements it reads where it expects them. No code or selector change was needed, and no cause was found to report.
+3. **A hidden tab with a waiting proposal** (I-3124, e495c41):
+   - A tab that is not shown, and holds a proposal under one of its fields, shows an accent dot.
+   - The tab's `aria-describedby` names a hidden "proposal waiting", so the tab's text stays its name.
+   - Red first: SearchAndSocialBoxTest's "marks a tab whose fields hold a proposal…" failed with `mark: false` for Social while the proposals waited.
+   - B-67: the words are a description and not text inside the tab, because the tests (and people) find a tab by its exact name.
+4. **D9's type** (7083a16):
+   - `EditorTool` is now D9's own: `size` is `'pane' | 'dialog' | 'workspace'`, with `openLarger`, `fixed` and `render`. The core tools come from `coreTools(panes, …)` in `editor-header.tsx`, and the edit page opens a pane from the tool's own `render`.
+   - `offeredTools()` in `tools/pins.ts` leaves out unavailable tools, and refuses a workspace tool with one console warning. EditorSeamsTest has a new case for it, written with the code.
+   - Nothing made D9 wrong.
+5. **The Outline tool's id** is `overview` again, with the label "Outline" (b1da0fc). The palette command's own id, `editor.outline`, is unchanged.
+6. **Duplicate** builds the copy with `freshPastedIds([node.toJSON()], blockIdsIn(doc.toJSON(), cards), cards)` (3a9cdef).
+   - `blockIds()` keeps its cards in the extension's storage, and `idCarryingCards()` reads them.
+   - The card case, "duplicates an image card from the block menu…", already passed, so a plant was used to see it red: an empty card list failed it with "Expecting '01K5Z9P2QH7N3X4C8V6B0M1T3D' not to be in Array".
+7. **The Tools groups** take their ids from their index (5bd7709). Red first: EditorToolsTest's "names each group of Tools by its heading" got `null` for "Pinned to the bar", whose id held spaces.
+8. **Small fixes**:
+   - ScreensTest also reads `label: themeRegion.label,` (6e4e84c). The needle changed because the heading moved into `__('Region: :label, used by :theme', …)`.
+   - `package-lock.json`'s root `dependencies` has `@rollup/rollup-win32-x64-msvc` back, as on main (baeae32). The drag handle's install had dropped it.
+   - EditorToolPinsTest's "refuses a fourth pin" is now "refuses four pins that include tools which can't be pinned" (5bb7afe). The server's cap of three can't be reached with two pinnable tools, so any list of four holds a tool that can't be pinned.
+   - The block handle (aba8c6d):
+     - It is `role="toolbar"`, labelled "Block: :name", or "Block" when no block is under it.
+     - Move up and Move down read ⌥⇧ on Apple and Alt+Shift+ elsewhere, and Delete shows its `Kbd` Del.
+     - A new EditorBlocksTest case checks all three. It was written with the code, so it was not seen red.
+- **Checks**: the quick check passed after each item. The full `composer check` passed with Pint, PHPStan, types, lint and the theme build all clean; Architecture had 110 passing, and Unit and Feature had 10496 passing, 2 skipped and none failing. After `npm run build`, these browser files passed, one at a time: EditorWorkspaceTest 5, AudioVideoCardsTest 3, MetadataSuggestionsTest 4, FieldControlsTest 1, SearchAndSocialBoxTest 12, EditorToolsTest 12, EditorBlocksTest 16, EditorBarTest 11, AssistantPaneTest 5, BlockIdsTest 4.
