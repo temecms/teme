@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Cache\PageWarmer;
 use App\Domain\Contents\Operations\Input\SaveDraftInput;
 use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Fields\BuiltInFields;
@@ -106,4 +107,13 @@ it('records the insertions tag on the page when anything was drawn', function ()
     addrGet('/insertion-story/')->assertOk();
 
     expect(cacheEntry('/insertion-story/')?->tags)->toContain(PageTags::INSERTIONS);
+});
+
+it('draws the fixture plugin\'s insertion on a page warmed through PageWarmer, which starts a fresh scope', function (): void {
+    // Core's theme accepts the fixtures' Teme version, which the fresh scope reads again; the good theme asks for ^0.1.
+    config(['teme.theme_paths' => []]);
+    themeActivate('default');
+
+    expect(app(PageWarmer::class)->warm('http://localhost/insertion-story/'))->toBe('MISS')
+        ->and(cacheEntry('/insertion-story/')?->body)->toContain('<div data-test="insertion">Inserted</div>');
 });

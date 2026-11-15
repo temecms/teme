@@ -18,7 +18,8 @@ final class InsertionsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->scoped(InsertionPoints::class);
+        // Plugins bind their contributors once a process, at boot; a fresh scope, such as PageWarmer's, keeps them.
+        $this->app->singleton(InsertionPoints::class);
         $this->app->scoped(InsertionOrigins::class);
         $this->app->scoped(CoreInsertionsChanged::class);
         $this->app->bind(InsertionsChanged::class, CoreInsertionsChanged::class);
