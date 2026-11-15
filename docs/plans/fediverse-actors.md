@@ -84,6 +84,7 @@
 - T5: every `InboxTest` case `… but received 404` (no inbox route). `InboxOperationsTest` was written after its Operations: seen red by planting `return;` at the top of each `authorize()` (3 failed), then restored.
 - T6: 3 failed (neither condition nor the guide's paragraph there).
 - T8: 4 failed, `Target class [ForgetRemoteActor] does not exist`.
+- T7: `FediverseSettingsTest` 21 failed (no `settings.fediverse` route, no Operations); after the backend, 1 failed: `Inertia page component file [settings/fediverse] does not exist`. The Browser file was written before the page was built and ran green once it was.
 
 ### Commits
 
@@ -95,22 +96,34 @@
 - `feat(fediverse): serve no stored page to fediverse requests`
 - `feat(fediverse): forget a remote account and prune unneeded ones`
 - `fix(fediverse): answer a stored page with no query and let the people table drop`
-- `docs(plans): fediverse actors' records` (this one)
+- `docs(plans): fediverse actors' records`
+- Merge of `origin/plugins/public-routes` (R5: `c70cdb8`, `1c4280b`, `8d8e2aa`, `42b11b9`)
+- `feat(fediverse): add Settings › Fediverse with its switch` (T7)
+- `docs(plans): fediverse actors' records, with T7` (this one)
 
 ### Checks
 
 - Full `composer check`, first run: 2 failed, 2 skipped, 10694 passed. `BenchmarkSmokeTest` (a cache hit made one query: `SiteActors::exist()` asked the table while the site had no account) and `People/ReleaseBeforeTest` (B-21). Both fixed in the `fix(fediverse)` commit.
 - Full `composer check`, final: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1316 assertions); Unit+Feature **10696** passed, **2** skipped (55255 assertions).
-- No Browser suite: this part has no Browser test and changes no screen.
+- Full `composer check` after the R5 merge and T7: Pint passed; PHPStan no errors; types, lint and theme build passed; Architecture **139** passed (1324 assertions); Unit+Feature **10739** passed, **2** skipped (55511 assertions).
+- Browser: `tests/Browser/FediverseSettingsTest.php` alone, after `npm run build`: 6 passed (53 assertions).
 - Baselines: `admin-words-baseline.txt` 876 lines and `design-system-baseline.txt` 222 lines before and after; no line added, no count raised.
 
 ### STOP
 
 - **RFC 9421 verification is not built.** `gapple/structured-fields` **2.3.4** does not exist: Packagist's newest is v2.3.3 (2026-06-12), and `composer require gapple/structured-fields:2.3.4` finds no such version. Another version would be a dependency the plan doesn't name, so `composer.json` and `composer.lock` are untouched. Draft-cavage is verified as D2 says (Mastodon's default). Needs: the maintainers' word on a version that exists (v2.3.3?), then `Verifier` gains the `Signature-Input`/`Content-Digest` branch.
 
+### T7 built from the approved drawing
+
+The maintainers approved the Settings › Fediverse drawing on 2026-11-15, after the first records; T7 was built then, as part of this part.
+
+- The switch (`modules.fediverse`, off by default) at the top, acting at once, with **Who can be followed** (the blog, each author, or both) under it, saved by the save bar. Then three aligned tables, one row each with one action: **Accounts** (handle `@blog@host`, followers; an author is turned on or off), **Servers not answering** (Block) and **Blocked servers** (Unblock, and a form to block one by name); then the import's status.
+- Operations, each with a refusal test that writes nothing: `SwitchFediverse` (settings.modules.manage; switching on makes the blog's and the application's accounts with new 2048-bit keys, once), `ChangeFediverseSettings`, `EnableAuthorActor`, `DisableAuthorActor`, `BlockHost`, `UnblockHost` (settings.fediverse.manage, or the operator).
+- Switching purges every page after commit (the modules group's tag); paused, the inboxes answer 503 with `Retry-After: 3600` and the documents still answer; followers and keys are kept.
+- Tests: `tests/Feature/Fediverse/FediverseSettingsTest.php` (21) and `tests/Browser/FediverseSettingsTest.php` (axe at 1280 and 375 in the light and dark schemes, targets of 24 pixels or more, nothing scrolling sideways at 375; switch, block, unblock and an author turned on; the locked switch, whose refused PUT writes nothing).
+
 ### Left for a follow-up (not a STOP)
 
-- **T7, the switch and settings page**, waits for the maintainers' approval of its drawing, as the task said: `SwitchFediverse`, `ChangeFediverseSettings`, `EnableAuthorActor`, `DisableAuthorActor`, `BlockHost`, `UnblockHost`, the `modules.fediverse` setting with `managedBy`, `FediverseSettingsController` and `settings/fediverse.tsx`. Until then the fediverse is off (paused, B-16), and nothing makes the blog and application actors or their keys.
 - Prune has no schedule or console command (`routes/console.php` isn't in Owns). Pruning sent activities after 90 days (P3) is not in T8 and is left with F2's deliveries.
 
 ### Decisions (B-?? drafts)
@@ -130,12 +143,21 @@
 - **B-13 (draft):** "Runs as the system actor": JobActor can't carry the operator from a job queued by a web request (I-392), so the inbox-driven Operations (RecordRemoteActor, AcceptFollow, RemoveFollower) authorize a null actor only with a VerifiedSender that is the account concerned; RemoveFollower also lets settings.fediverse.manage remove one (for the settings page). A person actor is refused by the inbox-driven ones.
 - **B-14 (draft):** settings.fediverse.manage needs a permission migration (2027_07_15_100100_add_fediverse_permission.php) and one RoleSeeder line, as every earlier permission did; the plan names neither file.
 - **B-15 (draft):** "queues an Accept": AcceptFollow writes the Accept activity and a queued fediverse_deliveries row; sending it is F2's DeliverActivity (signpost Later (I-058)).
-- **B-16 (draft):** The switch (modules.fediverse) is registered by T7. Until then FediverseSwitch::on() reads it if registered, else off (paused): the inboxes answer 503. Tests register it with Tests\Fixtures\Fediverse\Inbox::switch().
+- **B-16 (draft, superseded by T7):** The switch (modules.fediverse) is registered by T7. Until then FediverseSwitch::on() reads it if registered, else off (paused): the inboxes answer 503. Tests register it with Tests\Fixtures\Fediverse\Inbox::switch(), which now writes the stored setting (B-29).
 - **B-17 (draft):** Blocked servers match the host or any domain above it (sub.blocked.example is blocked by blocked.example). The claimed host is the Signature keyId's, read before verifying; the verified actor's host is checked again after. A verified body that isn't an activity (no id or type) answers 400.
 - **B-18 (draft):** No config/teme.php fediverse block: the limits are constants on InboxGate/FediverseDocuments/RemoteFetcher/Verifier (the proposal's values); F2 may add deliver_outside_production there.
 - **B-19 (draft):** The cases are in tests/Feature/Fediverse/StaticRulesTest.php, not tests/Feature/Cache/StaticSettingsTest.php (not in Owns). nginx: the old map now yields $teme_static_page and a new map on $http_accept yields $teme_static_file ("/.teme-none" for activity/ld+json), so the site template and StaticSettingsTest's lines stay as they are. Caddy: one `not header_regexp Accept (?i)(activity\+json|ld\+json)`. Neither server was run here (no nginx or Caddy in the container); `teme:cache:check-static` on a real server is the check.
 - **B-20 (draft):** Forget deletes the fediverse_remote_actors row (its follows cascade, its objects keep their addresses with remote_actor_id null) and clears the replies' author_name, author_url and author_email; purges each item whose replies changed, after commit. Prune: fetched_at older than 30 days, no follow, no reply object. Both: settings.fediverse.manage or the operator. No schedule or console command for prune (routes/console.php isn't in Owns): left open.
 - **B-21 (draft):** ReleaseBeforeTest (outside Owns) now drops people with CASCADE, which removes only later tables' foreign keys to it (the release before had none); what it proves is unchanged. The other option was no foreign key on fediverse_actors.person_id, against the plan's schema.
+
+- **B-22 (draft):** No `managedBy`. The plan's "first managedBy consumer" would add a property to `Teme\Contracts\Settings\Setting` (packages/teme-contracts, not in Owns), and v1's switch needs no more than the group's purge. Options: add managedBy to the contract / use the existing placement. Chose the placement: `modules.fediverse` is one line in `Modules::group()` and one line in `SettingsPlacement::PLACED`, so Find a setting lands on Settings › Fediverse, while the generic modules address still leads to Discussion.
+- **B-23 (draft):** Shared files outside Owns, lines added only: `Modules.php` (the setting and its constant), `SettingsPlacement.php` (one line), `routes/admin.php` (the page's route group, before settings/{group} as the other pages'), `docs/guides/editors/settings.md` (a `### Fediverse` section and the screen, which `EditorCompletenessTest` asks of every Settings page), and `tests/Feature/Admin/SettingsPageTest.php` (one menu line, Fediverse after Languages: the test still proves the menu's order and contents). The settings group is registered from `FediverseServiceProvider`.
+- **B-24 (draft):** `since` is `0.9.0` for both settings, following part E's `42b11b9` ("public route contracts arrive in 0.9.0").
+- **B-25 (draft) — R5:** merged `origin/plugins/public-routes` before T7 (collisions, the shared load rule, conditional dispatch on any path, the cache key, rate limits). Nothing in F1 relied on the old behaviour: the conditional entries stay registered only once the site has an account (B-07), and the inboxes stay outside the dispatcher (B-12). The fediverse tests and E's public-route tests passed on the merge (139) with no change.
+- **B-26 (draft):** The page's tables are ARIA tables (`role="table"`, rows of fixed-width columns shared by all three) rather than `<table>`: there is no table component, the design-system check counts a raw `<table>` (R5), and a new one under `components/ui/**` isn't mine. The blog's row shows its state as its one entry, since **Who can be followed** governs it; each author's row turns that author on or off. Authors are listed while authors can be followed (every person, by the name and slug their author page shows); an author's account is `/ap/people/{person}`, named by their author slug, refused when another account has that name. The plan's "deliveries summary" is the failed-deliveries count per host in **Servers not answering**, as the drawing has no other place for it. The import's status counts the accounts whose address isn't under this site's `/ap/`, and their followers.
+- **B-27 (draft):** Choosing the blog alone turns every author's account off (followers and keys kept); choosing authors again leaves each off until turned on, so no author is made followable without a person deciding.
+- **B-28 (draft):** The page is behind settings.fediverse.manage; the switch also needs settings.modules.manage (D6) and is shown locked otherwise, as Discussion's is. The operator can't switch (as `SwitchComments`), but can run the other T7 Operations.
+- **B-29 (draft):** `Tests\Fixtures\Fediverse\Inbox::switch()` writes the stored `modules.fediverse` value (cmSettings) now that the setting is registered, and `Inbox::followable()` the group's value; the tests that used it keep their meaning.
 
 No contract the plan names changed: E's `Teme\Contracts\Routes` is used as it is. No I-?? ideas drafted.
 
@@ -148,8 +170,11 @@ No contract the plan names changed: E's `Teme\Contracts\Routes` is used as it is
 - Remote documents are fetched over https only, with every address checked public and pinned.
 - nginx and Caddy serve no stored page to a request asking for activity+json or ld+json; the Cloudflare guide adds the matching rule.
 - settings.fediverse.manage for administrators; forgetting a remote account and pruning unneeded ones.
+- Settings › Fediverse: switch the fediverse on or pause it, choose who can be followed (the blog, each author, or both), see the accounts and their followers, the servers not answering and what the import brought, and block or unblock servers.
 ```
+
+For the maintainer: `docs/reference/settings.md` needs `php artisan teme:docs:settings` for `modules.fediverse` and the `fediverse` group (generated, not mine to write).
 
 ### Try it
 
-`php artisan test --compact tests/Feature/Fediverse` and `tests/Unit/Fediverse`. By hand, after making a blog actor (`Tests\Fixtures\Fediverse\Actors::blog()` in tinker, until T7): `curl -H 'Accept: application/activity+json' https://<site>/ap/blog`, `curl 'https://<site>/.well-known/webfinger?resource=acct:blog@<host>'`, `curl https://<site>/nodeinfo/2.1`. The inbox answers 503 until T7 registers the switch.
+`php artisan test --compact tests/Feature/Fediverse` and `tests/Unit/Fediverse`. By hand: Settings › Fediverse, switch it on (as an administrator), then `curl -H 'Accept: application/activity+json' https://<site>/ap/blog`, `curl 'https://<site>/.well-known/webfinger?resource=acct:blog@<host>'`, `curl https://<site>/nodeinfo/2.1`. Switch it off and the inbox answers 503 while those documents still answer.
