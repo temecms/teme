@@ -573,6 +573,32 @@ it('refuses RemovePluginData when the plugin has no tables', function (): void {
         ->toThrow(ValidationException::class, 'It has no tables to remove.');
 });
 
+it('removes data when a recorded table is already gone', function (): void {
+    PluginFixtures::use('tables');
+    ($this->enable)();
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+    Schema::drop('tables_clicks');
+
+    $dropped = app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+    expect($dropped)->toEqualCanonicalizing(['tables_links'])
+        ->and(Schema::hasTable('tables_links'))->toBeFalse()
+        ->and(Schema::hasTable('tables_clicks'))->toBeFalse()
+        ->and(PluginRecord::query()->sole()->migrations)->toBe([]);
+
+    // Both already gone: still empties the record.
+    PluginFixtures::use('tables');
+    ($this->enable)();
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+    Schema::drop('tables_clicks');
+    Schema::drop('tables_links');
+
+    $dropped = app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+    expect($dropped)->toBe([])
+        ->and(PluginRecord::query()->sole()->migrations)->toBe([]);
+});
+
 it('drops both tables for a disabled plugin, empties the record, and keeps consent', function (): void {
     PluginFixtures::use('tables');
     ($this->enable)();

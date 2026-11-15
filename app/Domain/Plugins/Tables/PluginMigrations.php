@@ -116,6 +116,26 @@ final readonly class PluginMigrations
     }
 
     /**
+     * Recorded tables that still exist in the current schema (plan T3).
+     *
+     * @param  array<string, array{tables?: list<string>}>  $record
+     *
+     * @return list<string>
+     */
+    public function existingOwnedTables(array $record): array
+    {
+        $owned = $this->ownedTables($record);
+
+        if ($owned === []) {
+            return [];
+        }
+
+        $present = array_flip($this->tables());
+
+        return array_values(array_filter($owned, fn (string $table): bool => isset($present[$table])));
+    }
+
+    /**
      * The tables in Teme's schema now, by name.
      *
      * @return list<string>

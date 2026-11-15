@@ -75,15 +75,18 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => ['Disable it before you remove its data.']]);
         }
 
-        $tables = $this->migrations->ownedTables($record->migrations);
-
-        if ($tables === []) {
+        if ($this->migrations->ownedTables($record->migrations) === []) {
             throw ValidationException::withMessages(['plugin' => ['It has no tables to remove.']]);
         }
 
-        $grammar = DB::connection()->getQueryGrammar();
-        $quoted = array_map(fn (string $table): string => $grammar->wrapTable($table), $tables);
-        DB::statement('DROP TABLE '.implode(', ', $quoted));
+        // Only tables that still exist: a recorded name that is gone never blocks removal (T3).
+        $tables = $this->migrations->existingOwnedTables($record->migrations);
+
+        if ($tables !== []) {
+            $grammar = DB::connection()->getQueryGrammar();
+            $quoted = array_map(fn (string $table): string => $grammar->wrapTable($table), $tables);
+            DB::statement('DROP TABLE '.implode(', ', $quoted));
+        }
 
         $record->fill(['migrations' => []])->save();
 

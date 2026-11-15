@@ -86,7 +86,7 @@ final readonly class PluginsScreen
      */
     private function tables(PluginRecord $record): array
     {
-        $names = $this->migrations->ownedTables($record->migrations);
+        $names = $this->migrations->existingOwnedTables($record->migrations);
 
         if ($names === []) {
             return [];
