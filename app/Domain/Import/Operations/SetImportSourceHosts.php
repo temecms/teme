@@ -55,10 +55,6 @@ final class SetImportSourceHosts extends BaseOperation implements RequiresElevat
         $bare = [];
 
         foreach ($input->hosts as $raw) {
-            if (! is_string($raw)) {
-                throw ValidationException::withMessages(['hosts' => 'Enter a host name only, such as stage.example.com.']);
-            }
-
             $host = self::normalize($raw);
 
             if ($host === null) {

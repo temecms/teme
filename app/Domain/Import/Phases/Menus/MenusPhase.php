@@ -167,10 +167,10 @@ final readonly class MenusPhase implements ListPhase
     private function site(ImportContext $context): ConversionSite
     {
         $source = $this->sources->find($context->sourceId);
+        $otherHosts = $source === null
+            ? []
+            : array_values(array_filter((array) ($source->other_hosts ?? []), is_string(...)));
 
-        return new ConversionSite(
-            (string) $source?->address,
-            otherHosts: array_values(array_filter((array) ($source?->other_hosts ?? []), is_string(...))),
-        );
+        return new ConversionSite((string) $source?->address, otherHosts: $otherHosts);
     }
 }
