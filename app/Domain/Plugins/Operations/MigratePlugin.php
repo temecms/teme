@@ -12,6 +12,8 @@ use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -35,6 +37,8 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
         private readonly PluginRecords $records,
         private readonly PluginMigrations $migrations,
         private readonly SecurityLog $log,
+        private readonly PublicRouteRegistry $publicRoutes,
+        private readonly RouteCollisions $routeCollisions,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -66,6 +70,13 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
 
         if (! Consent::covers($record->consent, $manifest)) {
             throw ValidationException::withMessages(['plugin' => ['Look again before you run its changes.']]);
+        }
+
+        // An update's routes meet every other enabled plugin's, loading now or not (docs/proposals/plugin-public-routes.md).
+        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
+
+        if ($collisions !== []) {
+            throw ValidationException::withMessages(['plugin' => $collisions]);
         }
     }
 

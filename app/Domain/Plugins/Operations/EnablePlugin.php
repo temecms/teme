@@ -78,7 +78,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         }
 
         // Two owners never answer one request: refused before anything is written (docs/proposals/plugin-public-routes.md).
-        $collisions = $this->routeCollisions->against($this->publicRoutes->from(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
+        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
 
         if ($collisions !== []) {
             throw ValidationException::withMessages(['plugin' => $collisions]);

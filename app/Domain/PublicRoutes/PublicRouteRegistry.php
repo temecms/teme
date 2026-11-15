@@ -229,9 +229,39 @@ final class PublicRouteRegistry
     }
 
     /**
+     * Core's entries and every entry these enabled rows declare, whether or
+     * not the plugin may load now: each row whose consent includes
+     * routes.public and whose manifest is found, past the server's switch,
+     * waiting consent or migrations and live errors. What a plugin's routes
+     * are compared against, so one that loads later never makes two owners
+     * answer one request.
+     *
+     * @param  list<PluginRecord>  $records
+     *
+     * @return list<DeclaredRoute>
+     */
+    public function declaredBy(array $records): array
+    {
+        $routes = $this->core;
+
+        foreach ($records as $record) {
+            if (! in_array(Capability::RoutesPublic->value, $record->consent['capabilities'] ?? [], true)) {
+                continue;
+            }
+
+            $manifest = $this->plugins->find($record->name)?->manifest;
+
+            foreach ($manifest?->routes() ?? [] as $raw) {
+                $routes[] = DeclaredRoute::fromManifest($manifest, $raw);
+            }
+        }
+
+        return $routes;
+    }
+
+    /**
      * Core's entries and those of these enabled plugins that may load now,
-     * read from the rows given rather than the cached list: what EnablePlugin
-     * compares a new plugin against, inside its transaction.
+     * read from the rows given rather than the cached list.
      *
      * @param  list<PluginRecord>  $records
      *

@@ -88,8 +88,9 @@ final class RouteCollisions
 
     /**
      * Every collision between this manifest's routes and the entries that
-     * answer now, core's and other enabled plugins': the same method and
-     * path with conditions that can overlap, or a `.well-known` name
+     * are declared, core's and every other enabled plugin's, loading now or
+     * not: the same method on a path both could match, with conditions that
+     * can overlap, or a `.well-known` name
      * another owner holds. The plugin's own entries are left out, so
      * enabling it again after an update compares only against others.
      *
@@ -116,7 +117,7 @@ final class RouteCollisions
                     continue;
                 }
 
-                if ($other->method === $candidate->method && $other->pathShape() === $candidate->pathShape() && $this->conditionsOverlap($candidate, $other)) {
+                if ($other->method === $candidate->method && $this->pathsOverlap($candidate, $other) && $this->conditionsOverlap($candidate, $other)) {
                     $errors[] = __('This route collides with :owner’s :id.', ['owner' => $other->owner, 'id' => $other->id]);
                 }
             }
@@ -148,6 +149,52 @@ final class RouteCollisions
         $acceptB = $b->conditionAcceptTypes();
 
         return ! ($acceptA !== [] && $acceptB !== [] && array_intersect($acceptA, $acceptB) === []);
+    }
+
+    /**
+     * Whether one path could be both entries': segment by segment, two
+     * literals are equal, a literal is one the other's parameter pattern
+     * matches, and two parameters may meet.
+     */
+    private function pathsOverlap(DeclaredRoute $a, DeclaredRoute $b): bool
+    {
+        $segmentsA = explode('/', $a->resolvedPath());
+        $segmentsB = explode('/', $b->resolvedPath());
+
+        if (count($segmentsA) !== count($segmentsB)) {
+            return false;
+        }
+
+        foreach ($segmentsA as $index => $segmentA) {
+            $segmentB = $segmentsB[$index];
+            $patternA = $this->parameterPattern($a, $segmentA);
+            $patternB = $this->parameterPattern($b, $segmentB);
+
+            $meets = match (true) {
+                $patternA !== null && $patternB !== null => true,
+                $patternA !== null => preg_match('#^(?:'.$patternA.')$#', $segmentB) === 1,
+                $patternB !== null => preg_match('#^(?:'.$patternB.')$#', $segmentA) === 1,
+                default => $segmentA === $segmentB,
+            };
+
+            if (! $meets) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * The segment's pattern when it is a whole `{name}` parameter, or null for a literal.
+     */
+    private function parameterPattern(DeclaredRoute $route, string $segment): ?string
+    {
+        if (preg_match('/^\{([a-zA-Z_][a-zA-Z0-9_]*)\}$/', $segment, $named) !== 1) {
+            return null;
+        }
+
+        return str_replace('#', '\#', $route->where[$named[1]] ?? '[^/]+');
     }
 
     private function wellKnownName(DeclaredRoute $route): ?string

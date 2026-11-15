@@ -142,15 +142,6 @@ final readonly class DeclaredRoute
     }
 
     /**
-     * The path as a shape, each `{name}` written `{}`, so two entries that
-     * differ only in parameter names compare equal.
-     */
-    public function pathShape(): string
-    {
-        return (string) preg_replace('/\{[a-zA-Z_][a-zA-Z0-9_]*\}/', '{}', $this->resolvedPath());
-    }
-
-    /**
      * How the consent screen shows it: `METHOD path`, and its condition
      * when it has one (I-3353).
      */

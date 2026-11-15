@@ -6,6 +6,8 @@ use App\Domain\Plugins\ManifestValidator;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\MigratePluginInput;
+use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\PublicRoutes\DeclaredRoute;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Support\Security\Elevation;
@@ -254,5 +256,60 @@ describe('across enabled plugins and core', function (): void {
 
         expect(($this->refusal)(fn () => ($this->enableNamed)('tests/inbound', PluginFixtures::path('inbound'))))->toBe('This route collides with core’s actor.')
             ->and(PluginRecord::query()->where('name', 'tests/inbound')->exists())->toBeFalse();
+    });
+
+    it('compares against an enabled plugin the server switches off, and writes nothing', function (): void {
+        $rival = ($this->rival)('rival', [[
+            'id' => 'person',
+            'method' => 'GET',
+            'path' => '/',
+            'when' => ['query' => ['author' => '^[0-9]+$']],
+            'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor',
+        ]]);
+        PluginFixtures::use(PluginFixtures::path('inbound'), $rival);
+        ($this->enableNamed)('tests/inbound', PluginFixtures::path('inbound'));
+        config(['teme.plugins.disabled' => 'tests/inbound']);
+        app(PublicRouteRegistry::class)->flush();
+
+        expect(($this->refusal)(fn () => ($this->enableNamed)('tests/rival', $rival)))->toBe('This route collides with inbound’s actor.')
+            ->and(PluginRecord::query()->where('name', 'tests/rival')->exists())->toBeFalse();
+    });
+
+    it('refuses a literal path a parameter segment’s pattern matches, either way round', function (bool $parameterFirst): void {
+        $parameter = ['id' => 'note', 'method' => 'GET', 'path' => '/{slug}', 'where' => ['slug' => '[a-z-]+'], 'when' => ['accept' => ['application/activity+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor'];
+        $literal = ['id' => 'about', 'method' => 'GET', 'path' => '/about', 'when' => ['accept' => ['application/activity+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor'];
+        $first = ($this->rival)('first', [$parameterFirst ? $parameter : $literal]);
+        $second = ($this->rival)('second', [$parameterFirst ? $literal : $parameter]);
+        PluginFixtures::use($first, $second);
+        ($this->enableNamed)('tests/first', $first);
+
+        expect(($this->refusal)(fn () => ($this->enableNamed)('tests/second', $second)))->toBe('This route collides with first’s '.($parameterFirst ? 'note' : 'about').'.')
+            ->and(PluginRecord::query()->where('name', 'tests/second')->exists())->toBeFalse();
+    })->with(['parameter enabled first' => true, 'literal enabled first' => false]);
+
+    it('allows a literal path the parameter’s pattern does not match', function (): void {
+        $first = ($this->rival)('first', [['id' => 'note', 'method' => 'GET', 'path' => '/{slug}', 'where' => ['slug' => '[a-z-]+'], 'when' => ['accept' => ['application/activity+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor']]);
+        $second = ($this->rival)('second', [['id' => 'year', 'method' => 'GET', 'path' => '/2026', 'when' => ['accept' => ['application/activity+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor']]);
+        PluginFixtures::use($first, $second);
+        ($this->enableNamed)('tests/first', $first);
+        ($this->enableNamed)('tests/second', $second);
+
+        expect(PluginRecord::query()->where('name', 'tests/second')->value('state'))->toBe(PluginRecord::ENABLED);
+    });
+
+    it('refuses running an update’s changes when its routes now collide, and writes nothing', function (): void {
+        $note = ['id' => 'note', 'method' => 'GET', 'path' => '/{slug}', 'where' => ['slug' => '[0-9]+'], 'when' => ['accept' => ['application/activity+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor'];
+        $first = ($this->rival)('first', [$note]);
+        $second = ($this->rival)('second', [['id' => 'about', 'method' => 'GET', 'path' => '/about', 'when' => ['accept' => ['application/activity+json']], 'handler' => 'Tests\\Fixtures\\Plugins\\Inbound\\Actor']]);
+        PluginFixtures::use($first, $second);
+        ($this->enableNamed)('tests/first', $first);
+        ($this->enableNamed)('tests/second', $second);
+        $before = PluginRecord::query()->where('name', 'tests/first')->sole()->getAttributes();
+
+        $updated = PluginFixtures::copy('inbound', ['name' => 'tests/first', 'code' => 'first', 'label' => 'First', 'version' => '1.1.0', 'routes' => [[...$note, 'where' => ['slug' => '[a-z-]+']]]], ['name' => 'tests/first']);
+        PluginFixtures::use($updated, $second);
+
+        expect(($this->refusal)(fn () => app(MigratePlugin::class)->execute(new MigratePluginInput('tests/first', null))))->toBe('This route collides with second’s about.')
+            ->and(PluginRecord::query()->where('name', 'tests/first')->sole()->getAttributes())->toBe($before);
     });
 });
