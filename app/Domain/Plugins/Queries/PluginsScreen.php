@@ -98,14 +98,16 @@ final readonly class PluginsScreen
     }
 
     /**
-     * The one button a row offers: enable, review access, disable, or none.
+     * The one button a row offers: enable, review access, run database
+     * changes, disable, or none.
      *
-     * @return 'enable'|'review'|'disable'|null
+     * @return 'enable'|'review'|'migrate'|'disable'|null
      */
     private function action(PluginRow $row, bool $enabled): ?string
     {
         if ($row->state === PluginState::Waiting) {
-            return 'review';
+            // Consent first: an update that asks for more access waits for that.
+            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] ? 'review' : 'migrate';
         }
 
         if ($enabled) {

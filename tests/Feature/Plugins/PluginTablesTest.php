@@ -2,22 +2,37 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\MigratePluginInput;
+use App\Domain\Plugins\Operations\MigratePlugin;
+use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\PluginState;
+use App\Domain\Plugins\Queries\PluginList;
+use App\Domain\Plugins\Seams\HookSubscriptions;
+use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\ElevationRequiredException;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Plugins\PluginFixtures;
+use Tests\Fixtures\Plugins\RecordingSubscriptions;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    $this->seed(RoleSeeder::class);
     app()->instance(Elevation::class, new OperatorElevation);
 
     $this->enable = function (string $name = 'tests/tables'): string {
@@ -32,6 +47,39 @@ beforeEach(function (): void {
             $manifest?->hooks() ?? [],
             null,
         ));
+    };
+
+    $this->withWaiting = function (): string {
+        $waiting = PluginFixtures::copy('tables', [
+            'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']],
+        ], files: [
+            'database/migrations/2026_01_03_000000_create_tables_notes.php' => <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tables_notes', function (Blueprint $table): void {
+            $table->id();
+        });
+    }
+};
+PHP,
+        ]);
+        PluginFixtures::use($waiting);
+        ($this->enable)();
+        $record = PluginRecord::query()->sole();
+        $migrations = $record->migrations;
+        unset($migrations['2026_01_03_000000_create_tables_notes']);
+        $record->fill(['migrations' => $migrations])->save();
+        Schema::dropIfExists('tables_notes');
+
+        return $waiting;
     };
 });
 
@@ -282,4 +330,164 @@ it('enabling again with nothing waiting runs no further migrations', function ()
 
     expect(PluginRecord::query()->sole()->migrations)->toBe($before)
         ->and(Schema::hasTable('tables_links'))->toBeTrue();
+});
+
+it('holds back an enabled plugin with a new migration until MigratePlugin runs it', function (): void {
+    $third = <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tables_notes', function (Blueprint $table): void {
+            $table->id();
+        });
+    }
+};
+PHP;
+
+    $copy = PluginFixtures::copy('tables', [
+        'version' => '1.1.0',
+        'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']],
+    ]);
+    PluginFixtures::use($copy);
+    ($this->enable)();
+
+    file_put_contents($copy.'/database/migrations/2026_01_03_000000_create_tables_notes.php', $third);
+    file_put_contents($copy.'/teme-plugin.json', json_encode([
+        ...json_decode((string) file_get_contents($copy.'/teme-plugin.json'), true),
+        'version' => '1.1.0',
+        'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']],
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+    app(PluginRegistry::class)->flush();
+
+    $subscriptions = new RecordingSubscriptions;
+    app()->instance(HookSubscriptions::class, $subscriptions);
+    app(PluginLoader::class)->load();
+
+    expect(app(LoadedPlugins::class)->state('tests/tables'))->toBe(PluginState::Waiting)
+        ->and(app(PluginList::class)->all()[0]->state)->toBe(PluginState::Waiting)
+        ->and(app(PluginList::class)->all()[0]->reason)->toBe('Version 1.1.0 has database changes to run.');
+
+    $ran = app(MigratePlugin::class)->execute(
+        new MigratePluginInput('tests/tables', null),
+    );
+
+    expect($ran)->toBe(['2026_01_03_000000_create_tables_notes'])
+        ->and(Schema::hasTable('tables_notes'))->toBeTrue()
+        ->and(array_keys(PluginRecord::query()->sole()->migrations))->toContain('2026_01_03_000000_create_tables_notes');
+
+    app(PluginLoader::class)->load();
+
+    expect(app(LoadedPlugins::class)->state('tests/tables'))->toBe(PluginState::Enabled);
+});
+
+it('a refused MigratePlugin run leaves the record and tables as they were', function (): void {
+    $copy = PluginFixtures::copy('tables', [
+        'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_notes']],
+    ]);
+    PluginFixtures::use($copy);
+    ($this->enable)();
+    $before = PluginRecord::query()->sole()->migrations;
+
+    file_put_contents($copy.'/database/migrations/2026_01_03_000000_create_tables_notes.php', <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('notes', function (Blueprint $table): void {
+            $table->id();
+        });
+    }
+};
+PHP);
+    app(PluginRegistry::class)->flush();
+
+    expect(fn () => app(MigratePlugin::class)->execute(
+        new MigratePluginInput('tests/tables', null),
+    ))->toThrow(ValidationException::class, 'doesn’t start with its prefix');
+
+    expect(PluginRecord::query()->sole()->migrations)->toBe($before)
+        ->and(Schema::hasTable('notes'))->toBeFalse()
+        ->and(Schema::hasTable('tables_links'))->toBeTrue();
+});
+
+it('writes nothing when someone without plugins.manage tries to migrate a plugin', function (?string $role): void {
+    ($this->withWaiting)();
+
+    $before = PluginRecord::query()->sole()->migrations;
+    $events = DB::table('security_events')->where('type', 'plugin.migrated')->count();
+    $actorId = $role === null ? null : (string) User::factory()->create()->assignRole($role)->id;
+    $role === null && app()->instance(Elevation::class, new DeniedElevation);
+
+    expect(fn () => app(MigratePlugin::class)->execute(
+        new MigratePluginInput('tests/tables', $actorId),
+    ))->toThrow(AuthorizationException::class);
+
+    expect(PluginRecord::query()->sole()->migrations)->toBe($before)
+        ->and(Schema::hasTable('tables_notes'))->toBeFalse()
+        ->and(DB::table('security_events')->where('type', 'plugin.migrated')->count())->toBe($events);
+})->with(['editor', 'author', 'nobody at the shell' => null]);
+
+it('asks for the password when MigratePlugin is run without elevation', function (): void {
+    ($this->withWaiting)();
+    $admin = User::factory()->create()->assignRole('administrator');
+    app()->instance(Elevation::class, new DeniedElevation);
+
+    expect(fn () => app(MigratePlugin::class)->execute(
+        new MigratePluginInput('tests/tables', (string) $admin->id),
+    ))->toThrow(ElevationRequiredException::class);
+
+    expect(Schema::hasTable('tables_notes'))->toBeFalse();
+});
+
+it('runs waiting migrations from the console as the operator, and ends non-zero on a refusal', function (): void {
+    ($this->withWaiting)();
+
+    $exit = Artisan::call('teme:plugins:migrate', ['name' => 'tests/tables']);
+
+    expect($exit)->toBe(0)
+        ->and(Artisan::output())->toContain('2026_01_03_000000_create_tables_notes')
+        ->and(Schema::hasTable('tables_notes'))->toBeTrue();
+
+    $bad = PluginFixtures::copy('tables', [
+        'owns' => ['tables' => ['tables_links', 'tables_clicks', 'tables_extra']],
+    ], files: [
+        'database/migrations/2026_01_04_000000_create_tables_extra.php' => <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('extra', function (Blueprint $table): void {
+            $table->id();
+        });
+    }
+};
+PHP,
+    ]);
+    PluginFixtures::use($bad);
+    app(PluginRegistry::class)->flush();
+
+    $exit = Artisan::call('teme:plugins:migrate', ['name' => 'tests/tables']);
+
+    expect($exit)->toBe(1)
+        ->and(Artisan::output())->toContain('doesn’t start with its prefix')
+        ->and(Schema::hasTable('extra'))->toBeFalse();
 });

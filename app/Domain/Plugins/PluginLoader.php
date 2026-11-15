@@ -9,6 +9,7 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Plugins\Tables\PluginMigrations;
 use Composer\Autoload\ClassLoader;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -32,6 +33,7 @@ final readonly class PluginLoader
         private PluginServices $services,
         private PluginContributions $contributions,
         private SpooledFaults $faults,
+        private PluginMigrations $migrations,
     ) {}
 
     /**
@@ -69,6 +71,7 @@ final readonly class PluginLoader
                 $plugin === null => PluginState::CodeGone,
                 ! $plugin->usable() || $plugin->manifest === null || $this->validator->liveErrors($plugin) !== [] => PluginState::CantBeUsed,
                 ! Consent::covers($record->consent, $plugin->manifest) => PluginState::Waiting,
+                $this->migrations->waiting($plugin, $record->migrations) !== [] => PluginState::Waiting,
                 default => null,
             };
 
