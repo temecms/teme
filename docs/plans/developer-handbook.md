@@ -113,3 +113,32 @@ None.
 - `php artisan teme:docs:hooks` / `teme:docs:manifest` / `teme:docs:handbook-index`
 - Read `docs/guides/developers/README.md` and `llms.txt`
 - `php artisan test --compact tests/Feature/Guides/Developers tests/Feature/Console/GenerateHooksReferenceTest.php tests/Feature/Console/GenerateManifestReferenceTest.php tests/Feature/Console/GenerateHandbookIndexTest.php`
+
+### Follow-up R2
+
+#### Commits
+
+- `3a8ba0d` fix(docs): enable handbook example with --agree
+- `2ed38ec` fix(docs): require Teme ^0.8 for handbook examples
+- `40d7f2b` test(docs): fail on invented hook and manifest key names
+- `0b3953f` test(docs): bind handbook page order to one list
+- `072b23c` docs(guides): use American English behavior in handbook
+- (this) `docs(plans): developer handbook's records, follow-up R2`
+
+#### Each test seen failing
+
+1. Enable without `--agree`: `Expected status code 0 but received 1.`
+2. Version `0.8.0-alpha.1` vs manifests `^0.5`: `Failed asserting that false is true.` (`usable()`)
+3. Planted `` `NotARealHook` ``: `NotARealHook isn't a known hook or contracts class.`
+4. Planted `` `notASchemaKey` ``: `notASchemaKey isn't a plugin or theme manifest key.`
+5. README link renamed: listed path no longer equals `GenerateHandbookIndex::PAGES`
+6. Spelling before regenerate: llms.txt still had `behaviour` while the page summary said `behavior`
+
+#### Gate
+
+- `composer check`: Pint passed; PHPStan OK; Architecture **139 passed**; full suite **10717 passed**, **2 skipped** (55151 assertions). Exit 0.
+- Architecture baselines: design-system **222**, admin-words **876** (unchanged).
+
+#### STOP
+
+None.
