@@ -164,6 +164,9 @@ final readonly class ArticleViews
             return null;
         }
 
+        // Tagged before any contributor is asked, drawn or not: a plugin enabled, or rules changed, later purges it too.
+        app(RenderRecord::class)->tag(PageTags::INSERTIONS);
+
         $termIds = array_map('strval', (array) $revision->terms);
         $byTaxonomy = [];
 
@@ -211,7 +214,6 @@ final readonly class ArticleViews
             return null;
         }
 
-        app(RenderRecord::class)->tag(PageTags::INSERTIONS);
         // Origins wait for PublicPage to start the policy; PathResolver builds the article first.
         app(InsertionOrigins::class)->add($origins);
 

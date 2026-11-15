@@ -18,8 +18,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
+use Teme\Contracts\Plugins\Capability;
 
 /**
  * Enables a plugin (I-3353, I-3442): a person who holds plugins.manage, after
@@ -131,6 +133,11 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'capabilities' => $input->capabilities,
             'hosts' => $input->hosts,
         ]);
+
+        // Article pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
+        if (in_array(Capability::ContentInsert->value, $input->capabilities, true)) {
+            app(InsertionsChanged::class)->notify();
+        }
 
         DB::afterCommit(fn () => $this->records->changed());
 

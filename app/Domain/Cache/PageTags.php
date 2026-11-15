@@ -31,7 +31,7 @@ final class PageTags
     /** Search and social's settings, which every page the document shell draws reads, its robots meta at least. */
     public const string SEO = 'seo';
 
-    /** Every article page that drew insertions from contributors (I-064). */
+    /** Every published article page that asks contributors for insertions, drawn or not (I-064). */
     public const string INSERTIONS = 'insertions';
 
     /**

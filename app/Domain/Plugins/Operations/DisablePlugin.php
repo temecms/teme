@@ -14,7 +14,9 @@ use App\Domain\Support\Operations\BaseOperation;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Operations\OperationInput;
+use Teme\Contracts\Plugins\Capability;
 
 /**
  * Disables an enabled plugin (I-3353): a person who holds plugins.manage, or
@@ -58,6 +60,11 @@ final class DisablePlugin extends BaseOperation
         ])->save();
 
         $this->log->record(SecurityEventType::PluginDisabled, $input->actorId(), context: ['plugin' => $input->name]);
+
+        // Its insertions leave the article pages that drew them, after commit (I-064).
+        if (in_array(Capability::ContentInsert->value, $record->consent['capabilities'] ?? [], true)) {
+            app(InsertionsChanged::class)->notify();
+        }
 
         DB::afterCommit(fn () => $this->records->changed());
 

@@ -7,7 +7,9 @@ use App\Domain\Cache\PageWarmer;
 use App\Domain\Contents\Operations\Input\SaveDraftInput;
 use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Fields\BuiltInFields;
+use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
@@ -131,6 +133,32 @@ it('purges insertions pages after a plugin\'s settings are saved, and not when t
         ->and(cacheEntry('/insertion-story/'))->not->toBeNull();
 
     app(UpdateSettings::class)->execute(new UpdateSettingsInput('plugin.inserts', ['label' => 'Ad'], [], [], 0, (string) $admin->id));
+
+    expect(cacheEntry('/insertion-story/'))->toBeNull();
+});
+
+it('tags a published article page with insertions whenever contributors were asked, even when none drew anything', function (): void {
+    pageArticleFromDocument($this->author, 'Short story', [docText('Only one paragraph.')]);
+
+    $html = (string) addrGet('/short-story/')->assertOk()->getContent();
+
+    expect($html)->not->toContain('data-test="insertion"')
+        ->and(cacheEntry('/short-story/')?->tags)->toContain(PageTags::INSERTIONS);
+});
+
+it('purges insertions pages after a plugin holding content.insert is disabled, and again after it is enabled', function (): void {
+    addrGet('/insertion-story/')->assertOk();
+    expect(cacheEntry('/insertion-story/'))->not->toBeNull();
+
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/inserts', null));
+
+    expect(cacheEntry('/insertion-story/'))->toBeNull();
+
+    addrGet('/insertion-story/')->assertOk();
+    expect(cacheEntry('/insertion-story/'))->not->toBeNull();
+
+    $manifest = app(PluginRegistry::class)->all()['tests/inserts']->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/inserts', $manifest->version(), $manifest->capabilities(), $manifest->hosts(), $manifest->hooks(), null));
 
     expect(cacheEntry('/insertion-story/'))->toBeNull();
 });
