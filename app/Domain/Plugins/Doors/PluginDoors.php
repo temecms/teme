@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Plugins\Seams\PluginServices;
+use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\SecretReader;
@@ -12,8 +13,9 @@ use Teme\Contracts\Settings\SettingsReader;
 
 /**
  * What Teme offers a plugin's constructor: the settings reader, its own
- * secrets, and the outbound door to its hosts when it was granted http
- * (I-3353). Bound as the loader's PluginServices.
+ * secrets, the content write door when granted, and the outbound door to
+ * its hosts when it was granted http (I-3353). Bound as the loader's
+ * PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
 {
@@ -38,6 +40,10 @@ final readonly class PluginDoors implements PluginServices
             SettingsReader::class => $this->settings,
             SecretReader::class => new PluginSecrets($code, $this->secrets),
         ];
+
+        if (in_array(Capability::ContentWrite->value, $capabilities, true)) {
+            $offered[ContentWriter::class] = new PluginContentWriter($code);
+        }
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
             $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver);

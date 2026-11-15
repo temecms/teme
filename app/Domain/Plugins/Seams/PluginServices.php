@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
 
+use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -16,7 +17,7 @@ use Teme\Contracts\Settings\SettingsReader;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, OutboundHttp::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, OutboundHttp::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

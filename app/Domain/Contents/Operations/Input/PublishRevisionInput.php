@@ -17,6 +17,9 @@ use Teme\Contracts\Operations\OperationInput;
  */
 final readonly class PublishRevisionInput implements OperationInput
 {
+    /**
+     * @param  string|null  $via  the plugin code that asked to publish, or null for a person
+     */
     public function __construct(
         public string $contentId,
         public string $revisionId,
@@ -24,6 +27,7 @@ final readonly class PublishRevisionInput implements OperationInput
         public bool $clearAutosave = true,
         public bool $checkRequired = true,
         public bool $keepClashingChildren = false,
+        public ?string $via = null,
     ) {}
 
     public function actorId(): ?string

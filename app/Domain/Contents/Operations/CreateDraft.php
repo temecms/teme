@@ -129,6 +129,7 @@ final class CreateDraft extends BaseOperation
             $input->terms,
             (string) $input->actorId(),
             $language,
+            via: $input->via,
         );
     }
 
@@ -215,8 +216,9 @@ final class CreateDraft extends BaseOperation
      * @param  string|null  $language  as a row stores it: null for the default language
      * @param  string|null  $group  its translation group, for a translation (I-3360)
      * @param  string|null  $sourceRevisionId  the revision a translation was copied from, kept on its first revision
+     * @param  string|null  $via  the plugin code that wrote this revision, or null for a person
      */
-    public static function start(string $type, string $slug, string $title, array $document, array $fields, array $terms, string $actorId, ?string $language = null, ?string $group = null, ?string $sourceRevisionId = null): Content
+    public static function start(string $type, string $slug, string $title, array $document, array $fields, array $terms, string $actorId, ?string $language = null, ?string $group = null, ?string $sourceRevisionId = null, ?string $via = null): Content
     {
         $content = Content::create([
             'type' => $type,
@@ -245,6 +247,7 @@ final class CreateDraft extends BaseOperation
             'origin' => 'human',
             'terms' => array_values(array_unique($terms)),
             'source_revision_id' => $sourceRevisionId,
+            'via' => $via,
         ]);
 
         $content->update(['working_revision_id' => $revision->id]);
