@@ -253,9 +253,9 @@ final class ListedItems
     }
 
     /**
-     * Every live, public version of these groups in a shown language, each
-     * with its current address, by group, for a sitemap page's alternates:
-     * one statement.
+     * Every live, public version of these groups in a shown language that
+     * search engines aren't told not to list, each with its current address,
+     * by group, for a sitemap page's alternates: one statement.
      *
      * @param  list<string>  $groups
      *
@@ -274,8 +274,9 @@ final class ListedItems
             JOIN paths p ON p.target_type = 'content' AND p.target_id = c.id::text AND p.is_current
             WHERE c.translation_group = ANY(?::text[])
                 AND c.status = 'published' AND c.deleted_at IS NULL AND c.visibility = 'public' AND c.published_at <= ?{$shown}
+                AND (c.fields -> ?) IS DISTINCT FROM 'true'::jsonb
             ORDER BY c.id
-            SQL, ['{'.implode(',', $groups).'}', now(), ...$bindings]);
+            SQL, ['{'.implode(',', $groups).'}', now(), ...$bindings, BuiltInFields::NOINDEX]);
 
         $versions = [];
 

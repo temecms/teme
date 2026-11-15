@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Models\Content;
+use App\Domain\Fields\BuiltInFields;
 use App\Domain\Languages\TranslationGroups;
 use App\Domain\Sitemaps\Queries\ListedItems;
 use App\Domain\Sitemaps\SitemapXml;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Fixtures\Languages\Languages;
 use Tests\Fixtures\Languages\LanguageSite;
 
 uses(RefreshDatabase::class);
@@ -93,4 +96,15 @@ it('lists only the default language\'s items where nothing names a language', fu
     expect(array_column($items->latestListed('post', 10), 'id'))->toContain($this->site->post)->not->toContain($this->site->postFr)
         ->and($items->any('film'))->toBeFalse()
         ->and($items->any('film', 'fr'))->toBeTrue();
+});
+
+it('leaves a version search engines are told not to list out of the other versions\' alternates', function (): void {
+    Languages::set(['fr', 'es']);
+    $postFr = Content::query()->findOrFail($this->site->postFr);
+    docSave($postFr, $this->site->editor, docWith(docText()), [BuiltInFields::NOINDEX => true]);
+    listsPublish($postFr, $this->site->editor);
+    $xml = (string) addrGet('/sitemap-items-post.xml')->assertOk()->getContent();
+
+    expect(saAlternates($xml, 'http://localhost/hello/'))->toBe(['en-GB' => 'http://localhost/hello/', 'es' => 'http://localhost/es/hola/', 'x-default' => 'http://localhost/hello/'])
+        ->and(smLocs($xml))->not->toContain('http://localhost/fr/bonjour/');
 });

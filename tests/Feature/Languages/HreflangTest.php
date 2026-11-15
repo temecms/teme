@@ -99,3 +99,13 @@ it('adds a language to the cached home page when that language gets its first it
         cacheOff($folder);
     }
 });
+
+it('leaves a version search engines are told not to list out of the other versions\' hreflang', function (): void {
+    Languages::set(['fr', 'es']);
+    $postFr = Content::query()->findOrFail($this->site->postFr);
+    docSave($postFr, $this->site->editor, docWith(docText()), [BuiltInFields::NOINDEX => true]);
+    listsPublish($postFr, $this->site->editor);
+
+    expect(hlLinks('/hello/'))->toBe(['en-GB' => '/hello/', 'es' => '/es/hola/', 'x-default' => '/hello/'])
+        ->and(hlLinks('/es/hola/'))->toBe(['en-GB' => '/hello/', 'es' => '/es/hola/', 'x-default' => '/hello/']);
+});

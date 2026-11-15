@@ -56,7 +56,7 @@ final class HeadTags implements HeadContributor
 
         if ($values->canonical !== null) {
             $entries[] = new LinkTag(LinkRelation::Canonical, $values->canonical);
-            $entries = [...$entries, ...self::hreflang($alternates)];
+            $entries = [...$entries, ...self::hreflang($this->alternates->listed($page))];
         }
 
         if ($values->prev !== null) {

@@ -10,6 +10,7 @@ use App\Domain\Addresses\TypeArchives;
 use App\Domain\Api\Live;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
+use App\Domain\Fields\BuiltInFields;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\Document\DocumentPage;
@@ -41,6 +42,9 @@ final class Alternates
     /** @var list<Alternate>|null */
     private ?array $alternates = null;
 
+    /** @var list<string> The page's versions, by tag, that search engines are told not to list. */
+    private array $unlisted = [];
+
     public function __construct(private readonly SiteLanguages $languages, private readonly PageLanguage $page) {}
 
     /**
@@ -59,8 +63,23 @@ final class Alternates
 
         $this->model = $page->model;
         $this->path = $path;
+        $this->unlisted = [];
 
         return $this->alternates = $this->resolve($page);
+    }
+
+    /**
+     * The page's versions for search engines, in its head's hreflang: as
+     * for(), less the versions search engines are told not to list, which
+     * the switcher still offers readers; [] when only one is left.
+     *
+     * @return list<Alternate>
+     */
+    public function listed(DocumentPage $page): array
+    {
+        $listed = array_values(array_filter($this->for($page), fn (Alternate $alternate): bool => ! in_array($alternate->tag, $this->unlisted, true)));
+
+        return count($listed) < 2 ? [] : $listed;
     }
 
     /**
@@ -79,19 +98,20 @@ final class Alternates
     /**
      * An item's live, public versions in shown languages, each at its
      * current address, the item itself among them; [] when it is alone or
-     * isn't one a reader can open. One statement.
+     * isn't one a reader can open, each saying whether search engines are
+     * told not to list it. One statement.
      *
-     * @return list<array{id: string, language: string, path: string, type: string}>
+     * @return list<array{id: string, language: string, path: string, type: string, noindex: bool}>
      */
     public function ofItem(string $id): array
     {
         $rows = DB::select(<<<'SQL'
-            SELECT c.id, c.language, c.type, c.translation_group, p.path
+            SELECT c.id, c.language, c.type, c.translation_group, p.path, (c.fields -> ?) IS NOT DISTINCT FROM 'true'::jsonb AS noindex
             FROM contents c
             JOIN paths p ON p.target_type = 'content' AND p.target_id = c.id::text AND p.is_current
             WHERE c.translation_group = (SELECT translation_group FROM contents WHERE id = ?)
                 AND c.status = 'published' AND c.deleted_at IS NULL AND c.visibility = 'public' AND c.published_at <= ?
-            SQL, [$id, now()]);
+            SQL, [BuiltInFields::NOINDEX, $id, now()]);
 
         return $this->members($rows, $id, 'content');
     }
@@ -100,12 +120,12 @@ final class Alternates
      * A term's versions in shown languages that have an address, the term
      * itself among them; [] when it is alone. One statement.
      *
-     * @return list<array{id: string, language: string, path: string, type: string}>
+     * @return list<array{id: string, language: string, path: string, type: string, noindex: bool}>
      */
     public function ofTerm(string $id): array
     {
         $rows = DB::select(<<<'SQL'
-            SELECT t.id, t.language, '' AS type, t.translation_group, p.path
+            SELECT t.id, t.language, '' AS type, t.translation_group, p.path, false AS noindex
             FROM terms t
             JOIN paths p ON p.target_type = 'term' AND p.target_id = t.id::text AND p.is_current
             WHERE t.translation_group = (SELECT translation_group FROM terms WHERE id = ?)
@@ -231,7 +251,7 @@ final class Alternates
      *
      * @param  array<int, object>  $rows
      *
-     * @return list<array{id: string, language: string, path: string, type: string}>
+     * @return list<array{id: string, language: string, path: string, type: string, noindex: bool}>
      */
     private function members(array $rows, string $id, string $kind): array
     {
@@ -247,7 +267,7 @@ final class Alternates
             }
 
             $tag = $this->languages->of($row->language === null ? null : (string) $row->language);
-            $byLanguage[$tag] = ['id' => (string) $row->id, 'language' => $tag, 'path' => (string) $row->path, 'type' => (string) $row->type];
+            $byLanguage[$tag] = ['id' => (string) $row->id, 'language' => $tag, 'path' => (string) $row->path, 'type' => (string) $row->type, 'noindex' => (bool) $row->noindex];
         }
 
         if ($group !== null) {
@@ -273,7 +293,7 @@ final class Alternates
     /**
      * Rows of a group as the page's alternates, this page's marked current.
      *
-     * @param  list<array{id: string, language: string, path: string, type: string}>  $members
+     * @param  list<array{id: string, language: string, path: string, type: string, noindex: bool}>  $members
      *
      * @return list<Alternate>
      */
@@ -282,6 +302,10 @@ final class Alternates
         $entries = [];
 
         foreach ($members as $member) {
+            if ($member['noindex']) {
+                $this->unlisted[] = $member['language'];
+            }
+
             $entries[$member['language']] = Addresses::toUrl($member['path'], $member['type'] === '' ? null : $member['type']);
         }
 

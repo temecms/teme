@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Contents\Models\Content;
+use App\Domain\Fields\BuiltInFields;
 use App\Domain\Menus\Operations\BindNavigationSlot;
 use App\Domain\Menus\Operations\Input\BindNavigationSlotInput;
 use Database\Seeders\RoleSeeder;
@@ -94,4 +96,17 @@ it('follows the switcher\'s options: short codes, the current one left out, and 
 
     expect(lsLinks($html, 'data-menu'))->toBe([['FR', '/fr/bonjour/', false], ['ES', '/es/hola/', false]])
         ->and(headValue(dtDom($html), '//div[@data-menu]//button[@data-teme-heading]'))->toBe('English (United Kingdom)');
+});
+
+it('keeps a version search engines are told not to list in the switcher', function (): void {
+    lsMenu($this->site);
+    $postFr = Content::query()->findOrFail($this->site->postFr);
+    docSave($postFr, $this->site->editor, docWith(docText()), [BuiltInFields::NOINDEX => true]);
+    listsPublish($postFr, $this->site->editor);
+
+    expect(lsLinks((string) addrGet('/hello/')->assertOk()->getContent(), 'data-menu'))->toBe([
+        ['English (United Kingdom)', '/hello/', true],
+        ['Français', '/fr/bonjour/', false],
+        ['Español', '/es/hola/', false],
+    ]);
 });
