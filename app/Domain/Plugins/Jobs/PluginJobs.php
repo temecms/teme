@@ -65,7 +65,7 @@ final readonly class PluginJobs implements Jobs
     }
 
     /**
-     * @param  array<string, mixed>  $payload
+     * @param  array<array-key, mixed>  $payload
      *
      * @return array<string, mixed>
      */

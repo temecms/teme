@@ -19,6 +19,7 @@ use App\Domain\Plugins\SafeMode;
 use App\Domain\Support\Security\JobActor;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Jobs\JobStopped;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Throwable;
@@ -87,9 +88,10 @@ final class RunPluginJob implements ShouldQueue
             || $manifest === null
             || ! $granted
             || $safeMode->active()) {
-            // DisablePlugin may already have cancelled waiting runs after commit.
-            if (! $tracked->state->ended()) {
+            try {
                 $cancel->execute(new CancelJobInput($this->trackedJobId, $this->actor->userId));
+            } catch (ValidationException) {
+                // DisablePlugin or another cancel may have ended it after we loaded the row.
             }
 
             return;
