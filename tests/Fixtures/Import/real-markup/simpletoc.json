@@ -1,0 +1,12 @@
+{
+    "blocks": [
+        {
+            "blockName": "simpletoc/toc",
+            "attrs": {},
+            "innerBlocks": [],
+            "innerHTML": "<nav class=\"wp-block-simpletoc-toc\"><h2>Contents</h2><ul><li><a href=\"#a\">Where boats go</a></li></ul></nav>",
+            "innerContent": ["<nav class=\"wp-block-simpletoc-toc\"><h2>Contents</h2><ul><li><a href=\"#a\">Where boats go</a></li></ul></nav>"]
+        }
+    ],
+    "wordpress_html": "<nav class=\"wp-block-simpletoc-toc\"><h2>Contents</h2><ul><li><a href=\"#a\">Where boats go</a></li></ul></nav>"
+}

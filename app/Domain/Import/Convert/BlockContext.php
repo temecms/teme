@@ -351,6 +351,12 @@ final class BlockContext
             return $this->outsideLink($img);
         }
 
+        $imageHost = $this->site->hostOf(ImageTrace::source($img));
+
+        if ($imageHost !== null && $this->site->hostKind($imageHost) === 'other') {
+            $this->report->count('images.other-host', $imageHost);
+        }
+
         if ($link !== null && trim($link) !== '' && ! $this->linksToItself($link, $img, $linkDestination)) {
             $this->report->count('image.link');
         }

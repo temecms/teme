@@ -28,6 +28,10 @@ export type ImportSite = {
     /** ISO 8601, in UTC. */
     connectedAt: string;
     forgotten: boolean;
+    /** Other old hosts kept on the source, bare. */
+    otherHosts: string[];
+    /** Subdomain hosts suggested from the companion’s analysis. */
+    suggestedHosts: { host: string; links: number }[];
 };
 
 export type ImportStep = 'connect' | 'plan' | 'import' | 'report';
@@ -97,6 +101,8 @@ export type ImportPlan = {
     problem: string | null;
     form: ChoicesForm | null;
     remembered: RememberedChoices | null;
+    rememberedHosts: string[] | null;
+    suggestedHosts: { host: string; links: number }[];
 };
 
 /** One of a site's imports, as the list under its report draws it. */
@@ -145,5 +151,7 @@ export type ImportShowPage = {
     runs: ImportRunRow[];
     report: RunReport | null;
     downloads: { everything: string; attention: string } | null;
+    /** Hosts kept across the password confirmation; null when none. */
+    rememberedHosts: string[] | null;
     siteTimezone: string;
 };

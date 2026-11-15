@@ -1,0 +1,19 @@
+{
+    "id": 502,
+    "registered": ["app_store"],
+    "shortcodes": [
+        {
+            "open": "[app_store id=\"1\"]",
+            "html": "<div class=\"app-store-badge\"><a href=\"https://apps.example/app/1\">Get the app</a></div>"
+        }
+    ],
+    "blocks": [
+        {
+            "blockName": "core/shortcode",
+            "attrs": {},
+            "innerBlocks": [],
+            "innerHTML": "[app_store id=\"1\"]",
+            "innerContent": ["[app_store id=\"1\"]"]
+        }
+    ]
+}

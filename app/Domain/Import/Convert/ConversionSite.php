@@ -6,13 +6,20 @@ namespace App\Domain\Import\Convert;
 
 /**
  * The old site's own addresses, so the converter can tell its files from
- * other sites': its home, and where WordPress keeps its uploads
- * (`wp_upload_dir()`'s `baseurl`, on the same host or another). Hosts are
- * compared without case and without a leading `www.`.
+ * other sites': its home, its other old hosts (staging and former domains),
+ * and where WordPress keeps its uploads (`wp_upload_dir()`'s `baseurl`, on
+ * the same host or another). Hosts are compared without case and without a
+ * leading `www.`.
  */
 final readonly class ConversionSite
 {
     private string $host;
+
+    /** @var list<string> */
+    private array $ownHosts;
+
+    /** @var list<string> */
+    private array $otherHosts;
 
     private string $uploadsHost;
 
@@ -22,11 +29,14 @@ final readonly class ConversionSite
      * @param  string  $home  WordPress's `home`, as the companion's probe gives it
      * @param  string|null  $uploads  the uploads folder's address; by default {home}/wp-content/uploads
      * @param  list<string>  $shortcodes  the shortcode names registered on the old site at export (I-336)
+     * @param  list<string>  $otherHosts  other old hosts of this site, bare (docs/proposals/import-v1-fixes.md)
      */
-    public function __construct(public string $home, ?string $uploads = null, public array $shortcodes = [])
+    public function __construct(public string $home, ?string $uploads = null, public array $shortcodes = [], array $otherHosts = [])
     {
         $uploads ??= rtrim($home, '/').'/wp-content/uploads';
         $this->host = self::bare((string) parse_url($home, PHP_URL_HOST));
+        $this->otherHosts = array_values(array_unique(array_map(self::bare(...), $otherHosts)));
+        $this->ownHosts = array_values(array_unique([$this->host, ...$this->otherHosts]));
         $this->uploadsHost = self::bare((string) parse_url($uploads, PHP_URL_HOST)) ?: $this->host;
         $path = trim(self::fileKey((string) parse_url($uploads, PHP_URL_PATH)), '/');
         $this->uploadsPath = $path === '' ? '/' : "/{$path}/";
@@ -63,7 +73,7 @@ final readonly class ConversionSite
 
     /**
      * Whether the address is this site's: a path on it, an address on its
-     * home or uploads host, or Jetpack's copy of one.
+     * home, other, or uploads host, or Jetpack's copy of one.
      */
     public function isOwn(string $src): bool
     {
@@ -79,6 +89,21 @@ final readonly class ConversionSite
         $host = parse_url(str_starts_with(trim($src), '//') ? 'https:'.trim($src) : trim($src), PHP_URL_HOST);
 
         return is_string($host) && $host !== '' ? self::bare($host) : null;
+    }
+
+    /**
+     * Whether a bare host is this site's home, another of its old addresses,
+     * or neither.
+     */
+    public function hostKind(string $host): ?string
+    {
+        $bare = self::bare($host);
+
+        if ($bare === $this->host) {
+            return 'home';
+        }
+
+        return in_array($bare, $this->otherHosts, true) ? 'other' : null;
     }
 
     /**
@@ -110,8 +135,8 @@ final readonly class ConversionSite
 
     /**
      * The path, query (without `?`) and place (with `#`) of an address on
-     * the old site's home host, over http or https, with or without `www.`,
-     * or of a path on it; null for any other address.
+     * the old site's home or other hosts, over http or https, with or
+     * without `www.`, or of a path on it; null for any other address.
      *
      * @return array{path: string, query: string, place: string}|null
      */
@@ -125,7 +150,7 @@ final readonly class ConversionSite
 
         $parts = parse_url($href);
 
-        if (! is_array($parts) || isset($parts['user']) || (isset($parts['host']) && self::bare($parts['host']) !== $this->host)) {
+        if (! is_array($parts) || isset($parts['user']) || (isset($parts['host']) && ! in_array(self::bare($parts['host']), $this->ownHosts, true))) {
             return null;
         }
 
@@ -175,7 +200,7 @@ final readonly class ConversionSite
             [$host, $path] = [self::bare($copy[1]), $copy[2]];
         }
 
-        return in_array($host, [$this->host, $this->uploadsHost], true) ? $path : null;
+        return in_array($host, [...$this->ownHosts, $this->uploadsHost], true) ? $path : null;
     }
 
     private static function bare(string $host): string
