@@ -10,18 +10,15 @@ use Illuminate\Translation\FileLoader;
 /**
  * The active theme's own words (I-3360): its `lang/{locale}.json` files,
  * read after core's, so a theme may word core's keys its own way. Added
- * only when a public page is drawn, never in the admin, and swapped when
- * another theme is active in the same process.
+ * only when a public page is drawn, never in the admin, and in place of
+ * another theme's when the active theme changes in the same process.
  */
 final class ThemeWords
 {
-    /** The theme word folder this process added to the translator, if any. */
-    private static ?string $added = null;
-
     /**
-     * Adds the active theme's word folder, in place of a theme's folder
-     * added before it, and forgets what the translator read, so the active
-     * theme's words, and no other theme's, count from now on.
+     * Adds the active theme's word folder, drops any other theme's, and
+     * forgets what the translator read, so the active theme's words, and
+     * no other theme's, count from now on.
      */
     public static function use(): void
     {
@@ -35,20 +32,19 @@ final class ThemeWords
         }
 
         $paths = $loader->paths();
+        $others = array_filter($paths, fn (string $path): bool => $path !== $words && is_file(dirname($path).'/teme-theme.json'));
 
-        if ($words === self::$added && ($words === null || in_array($words, $paths, true))) {
+        if ($others === [] && ($words === null || in_array($words, $paths, true))) {
             return;
         }
 
-        if (self::$added !== null) {
-            $kept = array_values(array_filter($paths, fn (string $path): bool => $path !== self::$added));
+        if ($others !== []) {
+            $kept = array_values(array_diff($paths, $others));
             // FileLoader can add a path but not drop one.
             Closure::bind(function (array $kept): void {
                 $this->paths = $kept;
             }, $loader, FileLoader::class)($kept);
         }
-
-        self::$added = $words;
 
         // A path, not a JSON path: JSON paths are read before core's lang/,
         // paths after it, and the later file's word wins.
