@@ -97,10 +97,9 @@ Each task: tests first, each seen red for the reason given; the quick check; com
 - B-11 (draft). Adding, changing or removing a language reordered the others: `WritesSiteLanguages::current()` read `others` in the config's order and wrote the prefixes' rows, the switcher's order, from it. Options: leave it (the order the screen sets would not survive an Edit); or read `others` in the prefixes' order in `current()`. Chosen: the one line in `current()`, with its test. Outside "Owns". Commit 8179756.
 - B-12 (draft). The Languages column. The columns preference refused `languages`. Options: no column; or allow it as Featured image is allowed, off until turned on. Chosen: one more allowed id in `BuiltInPreferences` (outside "Owns"), with its test. Commit d601491.
 - B-13 (draft). The language switcher item's options are not drawn in the item's row; the item saves as a bare `languages` item, as ML-1 accepts it. Commit da0f46a.
+- B-14 (draft). `docs/guides/editors/settings.md` said Settings › Languages "only shows them". The maintainer added that guide to Owns for this one change: only the Languages page's description is rewritten to say what the page now does; nothing else in the guide changed. Commit: the `docs(guides)` commit after the records.
 
 **STOP.** None.
-
-**Open for the maintainer.** `docs/guides/editors/settings.md` still says Settings › Languages "only shows them"; not this part's file.
 
 **Changelog lines.**
 

@@ -126,7 +126,7 @@ The AI services Teme may use, the model each task uses, and how much people may 
 
 ### Languages
 
-The language your site is written in, and the other languages it publishes in. For now this page only shows them: adding a language, and translating, come in a later release.
+The language your site is written in, and the other languages it publishes in, in one table: each language's address prefix, whether readers see it, and how much is written in it. The default language comes first; change it on **General**. **Add a language** adds another, and **Edit** changes its prefix or hides it from readers while it is translated. The menu at the end of a row moves it up or down, which is the order the language switcher lists, or removes it once nothing is written in it. Under the table, **Translated content** says which content types and taxonomies have versions in other languages. Administrators change it.
 
 ## To find a setting
 
