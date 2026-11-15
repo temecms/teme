@@ -93,7 +93,17 @@ final class ReceiveFediverseReply extends BaseOperation
             throw ValidationException::withMessages(['object' => 'The reply holds no words, or too many.']);
         }
 
-        // Counted in the cache store, as a guest's comments are.
+        self::count($remote);
+    }
+
+    /**
+     * Counts one reply or edit from the account, refusing it past MAX in an
+     * hour; counted in the cache store, as a guest's comments are.
+     *
+     * @throws ValidationException
+     */
+    public static function count(RemoteActor $remote): void
+    {
         $key = 'comments:fediverse:'.sha1($remote->uri);
 
         if (RateLimiter::tooManyAttempts($key, self::MAX)) {
@@ -203,7 +213,7 @@ final class ReceiveFediverseReply extends BaseOperation
     /**
      * The account's page, kept as the commenter's website when it fits.
      */
-    private static function website(RemoteActor $remote): ?string
+    public static function website(RemoteActor $remote): ?string
     {
         $url = $remote->profile_url ?: $remote->uri;
 
@@ -213,7 +223,7 @@ final class ReceiveFediverseReply extends BaseOperation
     /**
      * Whether the account had a reply approved here before.
      */
-    private static function returning(RemoteActor $remote): bool
+    public static function returning(RemoteActor $remote): bool
     {
         return FediverseObject::query()
             ->join('comments', 'comments.id', '=', 'fediverse_objects.comment_id')
@@ -225,7 +235,7 @@ final class ReceiveFediverseReply extends BaseOperation
     /**
      * The verdict, when it names a status a moderator may give; otherwise the reply is held.
      */
-    private static function known(string $by, ModerationVerdict $verdict): ModerationVerdict
+    public static function known(string $by, ModerationVerdict $verdict): ModerationVerdict
     {
         if (in_array($verdict->status, [ModerationVerdict::APPROVED, ModerationVerdict::PENDING, ModerationVerdict::SPAM], true)) {
             return $verdict;

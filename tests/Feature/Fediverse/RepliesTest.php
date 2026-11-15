@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Comments\CommentStats;
 use App\Domain\Comments\CommentText;
 use App\Domain\Comments\Models\Comment;
 use App\Domain\Contents\Models\Content;
@@ -80,7 +81,9 @@ it('takes a reply to a post as a comment through the moderation queue, named fro
 
 it('takes a reply to a reply under the comment it answers', function (): void {
     frepRun(frepCreate($this->post, 'https://remote.example/statuses/1'));
-    Comment::query()->update(['status' => 'approved']);
+    $held = Comment::query()->sole();
+    $held->forceFill(['status' => 'approved'])->save();
+    CommentStats::apply($held, 'pending', 'approved');
     frepRun(frepCreate('https://remote.example/statuses/1', 'https://remote.example/statuses/2', '<p>Agreed.</p>'));
 
     $first = FediverseObject::query()->whereKey('https://remote.example/statuses/1')->value('comment_id');
@@ -165,3 +168,31 @@ it('takes a reply only from the account that wrote it, writing nothing otherwise
     expect([Comment::query()->count(), FediverseObject::query()->count(), Comment::query()->sole()->status, Comment::query()->sole()->body])->toBe($before)
         ->and(RemoteActor::query()->count())->toBe(1);
 })->with([ReceiveFediverseReply::class, UpdateFediverseReply::class, RemoveFediverseReply::class]);
+
+it('holds an approved reply for moderation again when an edit adds a link, and keeps it shown when the words alone change', function (): void {
+    frepRun(frepCreate($this->post, 'https://remote.example/statuses/1'));
+    $held = Comment::query()->sole();
+    $held->forceFill(['status' => 'approved'])->save();
+    CommentStats::apply($held, 'pending', 'approved');
+    $update = fn (string $html): array => [...frepCreate($this->post, 'https://remote.example/statuses/1', $html), 'type' => 'Update'];
+
+    frepRun($update('<p>Lovely harbour, truly.</p>'));
+    $plain = Comment::query()->sole()->status;
+    frepRun($update('<p>Cheap boats at <a href="https://spam.example/">spam.example</a></p>'));
+    $comment = Comment::query()->sole();
+
+    expect($plain)->toBe('approved')
+        ->and($comment->status)->toBe('pending')
+        ->and(CommentText::plain($comment->body))->toContain('Cheap boats')
+        ->and($comment->moderation['status'] ?? null)->toBe('pending');
+});
+
+it('counts edits toward the ten replies an hour one account may send', function (): void {
+    frepRun(frepCreate($this->post, 'https://remote.example/statuses/1'));
+
+    foreach (range(1, 10) as $n) {
+        frepRun([...frepCreate($this->post, 'https://remote.example/statuses/1', '<p>Edit '.$n.'.</p>'), 'type' => 'Update']);
+    }
+
+    expect(CommentText::plain(Comment::query()->sole()->body))->toBe('Edit 9.');
+});
