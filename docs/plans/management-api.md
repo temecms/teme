@@ -104,3 +104,85 @@ Deleting the person deletes their keys (a key never outlives its actor). A check
 ## Records
 
 <!-- Filled in while building: commits; each test seen red; B-?? decisions with the options weighed; the full gate's totals; changelog lines. -->
+
+---
+
+## Records (the builder's)
+
+**Setup.** `/tmp/teme-cloud-setup.log`: "2026-11-15T15:23:34Z ran in /home/user/teme as root", "2026-11-15T15:34:33Z finished". `pwd`: `/home/user`, then `/home/user/teme`. Branch `api/manage-foundation`, built on `origin/plugins/content-write` (at `47821d4`, "docs(plans): Plugins write content's records") merged with `origin/main` (`64895ca`).
+
+**Commits.**
+
+| Task | Commit | Message |
+|---|---|---|
+| 1 | `bbc00a3` | feat(api): management API keys, abilities and their Operations |
+| 2 | `a9c68c9` | feat(api): sign in to the management API with a key |
+| 3 | `fc62d13` | feat(api): look up terms and people through the management API |
+| 4 | `ae2a18a` | feat(api): upload media and change its details through the management API |
+| 5 | `4baac01` | feat(api): create, publish and schedule items through the management API |
+| 6 | `c9dc3df` | feat(settings): Settings › Management API |
+| 7 | `8dfb7aa` | docs(guides): the management API for operators |
+| 7 | `e4d49d0` | docs(guides): name Settings › Management API in the editors' settings page |
+
+**Tests seen red.**
+
+| Task | File | Case(s) | First line of the failure |
+|---|---|---|---|
+| 1 | `ApiKeysTest` | all 13 written then | the ManageApi classes did not exist (`Class … not found`) |
+| 2 | `ManageApiAuthTest` | all 9 | `Class "App\Domain\ManageApi\ManageApiSettings" not found` |
+| 3 | `ManageApiLookupTest` | 3 of 4 (the case that expects a refusal passed on a 404) | "Expected response status code [200] but received 404" |
+| 4 | `ManageApiMediaTest` | 3 of 7 (the refusal cases passed on a 404) | "Expected response status code [200] but received 404" |
+| 5 | `ManageApiItemsTest` | not kept: the transcript holds the later failures only (two cases answering 500, fixed in the same task: `UpdateContentDetails` answers a result, not the item) | — |
+| 6 | `ManagementApiScreenTest` | all 7, with the page's routes taken out | "Route [settings.management-api] not defined." |
+| 6 | `ManagementApiSettingsTest` (Browser) | the flow case, with the routes taken out | "Route [settings.management-api] not defined." |
+
+**Counts.** `DesignSystemTest` baseline 222 lines and `AdminWordsTest` baseline 876 lines, base → end: unchanged. No count raised, no line added. (The page first drew its dialog beside the settings pattern, an R7 offence; the dialog moved inside the pattern instead.)
+
+**Browser files** after `npm run build`, one at a time, each to a file: `ManagementApiSettingsTest` 5 passed (the flow, and axe with the 24-pixel targets at 1280 and 375 in light and dark).
+
+**Full `composer check`** (exit 0). Pint, PHPStan (no errors), types, formatting (429 files) and lint (427 files, none) pass. Architecture: 139 passed. Unit and Feature: 10689 passed, 2 skipped, 0 failed. A whole-base run was started for comparison but stopped: an orphaned earlier run shared its test databases (no totals kept).
+
+**STOP.** None.
+
+### Differences from the plan (B-?? drafts)
+
+- **B-?? (draft) 01: the API's problems are its own.** Found: `ProblemCode`, `Problems` and `ApiWords` belong to the delivery API, outside Owns, and hold none of D4's codes. Options: (a) add codes there; (b) a `ManageApiProblem` of this part's own, in the same RFC 9457 shape, rendered before the `/api` callback; Chose (b): no shared file changes. Codes: `unauthorized` 401 (with `WWW-Authenticate: Bearer`), `forbidden` 403, `api_off` 404, `not_found` 404, `invalid_parameter` 422 (with `errors`), `not_supported_yet` 422, `duplicate` 409. Words in `ManageApiWords`. `bbc00a3`, `a9c68c9`.
+- **B-?? (draft) 02: `too_many_requests` is the existing `rate_limited`.** Options: (a) a new code; (b) the code clients of `/api` already handle. Chose (b). `a9c68c9`.
+- **B-?? (draft) 03: `SecurityEventType` gains two lines,** `api_key.created` and `api_key.revoked`, which D6 needs; the file is outside Owns, so only those lines. `bbc00a3`.
+- **B-?? (draft) 04: the permission reaches existing sites in the one migration,** which creates `api.keys.manage` and grants it to administrators, adding only; plus the `RoleSeeder` line. Options: (a) that; (b) a second migration (the plan says one). Chose (a). `bbc00a3`.
+- **B-?? (draft) 05: a provider of its own.** `app/Providers/ManageApiServiceProvider.php` registers the settings group, with one line at the end of `bootstrap/providers.php`. Options: (a) that; (b) a line in `SettingsServiceProvider` (another part's). Chose (a). `a9c68c9`.
+- **B-?? (draft) 06: the settings group.** Key `management_api` (a group key can't hold a hyphen), so the page is at `/admin/settings/management_api`, drawn by this part's own routes before `settings/{group}`. It has no `SettingsPage` entry, because `UpdateSettings` refuses a group with a screen. `since` is `0.9.0`, a guess for the maintainers to correct. The group is not sensitive; making a key is, and asks for the password. `a9c68c9`, `c9dc3df`.
+- **B-?? (draft) 07: `SettingsPageTest`'s exact settings menu gains the new entry** (one line; the test still proves the whole list). `a9c68c9`.
+- **B-?? (draft) 08: the address limit counts failed sign-ins only** (30 a minute, checked before the key is read). Options: (a) every request; (b) failures only. Chose (b): counting every request would cap a busy tool at 30 a minute, below its key's own limit of 60. `a9c68c9`.
+- **B-?? (draft) 09: `AnswerManageApi` is outermost, and the group drops `AnswerAsApi` and `MarkCacheable`.** Options: (a) `no-store` added last, inside; (b) outermost. Chose (b): a problem (`api_off` included) carries `no-store, private` too, so the page cache never keeps one, and no ETag is sent. `a9c68c9`.
+- **B-?? (draft) 10: a suspended person's key answers `unauthorized`,** as a wrong key does. `a9c68c9`.
+- **B-?? (draft) 11: `last_used_at` is touched in `ApiKeys` by one query, at most once a minute,** not through an Operation (D5: bookkeeping, not a change of state). No architecture test asked for an allow-list line. `a9c68c9`.
+- **B-?? (draft) 12: a name is unique among live keys, ignoring case,** by a partial unique index on `lower(name)`; a revoked key's name can be used again. `bbc00a3`.
+- **B-?? (draft) 13: media has no description.** Found: D9 and Task 4 name `description`; media has title, alt, caption and credit. Options: (a) map description onto caption; (b) take the fields media has. Chose (b): `PATCH` takes `title`, `alt`, `caption`, `credit`, and the answer carries them. `ae2a18a`.
+- **B-?? (draft) 14: D8 holds.** `BlockConverter` runs with no import run (one freeform chunk, a site of `https://management-api.invalid`, no known media). Images from elsewhere become links, with the converter's note in the answer's `notes`; links are kept as given, so an absolute link to the site's own address is stored as written (open item 1). `4baac01`.
+- **B-?? (draft) 15: an upload the library already holds answers 409 `duplicate`** with the existing item's ID; `allow_duplicate=1` uploads it anyway, as the library's own upload allows. `ae2a18a`.
+- **B-?? (draft) 16: `/people` lists the people the key's person may credit,** the same list the editor's author field offers, at most 500. `fc62d13`.
+- **B-?? (draft) 17: "an elevated Operation reached through a key is refused" is proved on the binding.** No endpoint calls an elevated Operation, so the test checks that a key's request holds the default `DeniedElevation`. `a9c68c9`.
+- **B-?? (draft) 18: the editors' settings page names the new page.** Found: `EditorCompletenessTest` asks `docs/guides/editors/settings.md` to describe every Settings page an administrator can open; that file is outside Owns. Options: (a) one short section; (b) leave the test red. Chose (a). `e4d49d0`.
+- **B-?? (draft) 19: the operators' guide lists the page.** `OperatorPagesTest` asks for every page in `OperatorGuide::PAGES` and in the guide's README table; one line in each. `8dfb7aa`.
+
+### Open items
+
+1. Rule 9: an `html` body's absolute links to the site's own address are stored as given (B-14). Turning them into internal links needs the import's address matching, which this part does not own.
+2. `docs/reference/settings.md` is not regenerated for the new group; this part may not write it.
+3. A wrong method on a management route (such as `PUT /items`) answers the delivery API's `method_not_allowed` problem, whose words say the API only reads. `ApiWords` is outside Owns.
+4. `since: 0.9.0` on the group and its settings is a guess (B-06).
+
+### Changelog lines
+
+- Added: the management API at `/api/manage/v1`, off until an administrator turns it on. Outside tools sign in with a key and can look up terms and people, upload media and change its details, and create posts and pages as drafts, published or scheduled, each through the same checks as the admin.
+- Added: Settings › Management API, to turn the API on, set the requests a key may make each minute, and make and revoke keys. A key acts as one person with the abilities chosen for it; its secret is shown once.
+- Added: revisions written through a key are marked with the key's name.
+- Added: the operators' guide's page on the management API.
+
+### How to try it
+
+1. Sign in as an administrator, open Settings › Management API, and switch it on.
+2. Create a key for yourself with every ability, and copy it.
+3. `curl -H "Authorization: Bearer <key>" http://<site>/api/manage/v1/me`, then post an item: `curl -H "Authorization: Bearer <key>" -H 'Content-Type: application/json' -d '{"type":"post","title":"Hello","html":"<p>Hi</p>","status":"draft"}' http://<site>/api/manage/v1/items`. The draft appears under Posts, its revision marked with the key's name.
+4. Revoke the key, and the same request answers 401.
