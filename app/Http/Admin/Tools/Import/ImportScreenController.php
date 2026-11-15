@@ -45,6 +45,9 @@ final class ImportScreenController extends Controller
         $step = $runId !== $latestId ? 'report' : (string) $screen->step($source);
         $person = (string) $request->user()?->getAuthIdentifier();
 
+        $keptHosts = $request->session()->get(ImportSourceController::REMEMBERED_HOSTS.$source);
+        $rememberedHosts = is_array($keptHosts) ? array_values(array_filter($keptHosts, is_string(...))) : null;
+
         return Inertia::render('tools/import/show', [
             'site' => $site,
             'step' => $step,
@@ -59,6 +62,8 @@ final class ImportScreenController extends Controller
             ],
             // Deferred, so a slow site never holds the page (I-227).
             'plan' => $step === 'plan' ? Inertia::defer(fn (): array => self::plan($request, $source, $person, $analysis, $choices, $screen)) : null,
+            // Report (and any step) can restore ticks after the password confirm.
+            'rememberedHosts' => $rememberedHosts,
             'siteTimezone' => $settings->string('general', 'timezone'),
         ]);
     }

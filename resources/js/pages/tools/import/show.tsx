@@ -91,6 +91,7 @@ export default function ImportShow({
     runs,
     report,
     downloads,
+    rememberedHosts,
     siteTimezone,
 }: ImportShowPage) {
     const { start, stop } = usePoll(
@@ -155,6 +156,7 @@ export default function ImportShow({
                         siteId={site.id}
                         listed={site.otherHosts}
                         suggested={site.suggestedHosts}
+                        remembered={rememberedHosts}
                     />
                 )}
 

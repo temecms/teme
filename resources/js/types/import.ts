@@ -151,5 +151,7 @@ export type ImportShowPage = {
     runs: ImportRunRow[];
     report: RunReport | null;
     downloads: { everything: string; attention: string } | null;
+    /** Hosts kept across the password confirmation; null when none. */
+    rememberedHosts: string[] | null;
     siteTimezone: string;
 };

@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Fixtures\Import\FakeCompanion;
+use Tests\Fixtures\Import\ImportRecords;
 
 uses(RefreshDatabase::class);
 
@@ -320,6 +321,21 @@ it('refuses to forget a site while it is being imported, saying why', function (
         ->assertInertiaFlash('toast.message', 'Stop the import that’s running first: it needs the application password.');
 
     expect($source->fresh()->credential)->not->toBeNull();
+});
+
+it('keeps other hosts across the password confirmation on the report step', function (): void {
+    ['source' => $sourceId] = ImportRecords::finishedImport($this->admin->id);
+    $source = ImportSource::query()->findOrFail($sourceId);
+
+    $this->actingAs($this->admin)->from(($this->show)($source))
+        ->post(($this->show)($source).'/hosts', ['hosts' => ['stage.example.com']])
+        ->assertRedirect(route('password.confirm'))
+        ->assertSessionHas('import.other-hosts.'.$source->id, ['stage.example.com']);
+
+    $this->get(($this->show)($source))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('step', 'report')
+            ->where('rememberedHosts', ['stage.example.com']));
 });
 
 it('refuses every action to someone who may not import, changing nothing (I-1707)', function (): void {

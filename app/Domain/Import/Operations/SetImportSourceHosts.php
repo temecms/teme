@@ -71,8 +71,9 @@ final class SetImportSourceHosts extends BaseOperation implements RequiresElevat
                 throw ValidationException::withMessages(['hosts' => 'That is this site’s own address already.']);
             }
 
+            // B-05: drop duplicates after normalizing rather than refusing them.
             if (in_array($host, $bare, true)) {
-                throw ValidationException::withMessages(['hosts' => 'Enter a host name only, such as stage.example.com.']);
+                continue;
             }
 
             $bare[] = $host;

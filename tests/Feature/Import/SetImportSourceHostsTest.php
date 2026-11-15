@@ -86,13 +86,22 @@ it('refuses each invalid host by its sentence', function (array $hosts, string $
     'no dot' => [['localhost'], 'Enter a host name only, such as stage.example.com.'],
     'the home host' => [['old.example'], 'That is this site’s own address already.'],
     'the home host with www' => [['www.old.example'], 'That is this site’s own address already.'],
-    'a duplicate' => [['stage.example.com', 'Stage.Example.com'], 'Enter a host name only, such as stage.example.com.'],
     'more than ten' => [[
         'a.example.com', 'b.example.com', 'c.example.com', 'd.example.com', 'e.example.com',
         'f.example.com', 'g.example.com', 'h.example.com', 'i.example.com', 'j.example.com',
         'k.example.com',
     ], 'Ten other addresses at most.'],
 ]);
+
+it('drops duplicate hosts after normalizing rather than refusing them', function (): void {
+    scElevated(fn () => app(SetImportSourceHosts::class)->execute(new SetImportSourceHostsInput(
+        $this->source->id,
+        ['stage.example.com', 'Stage.Example.com', 'www.stage.example.com'],
+        (string) $this->admin->id,
+    )));
+
+    expect($this->source->fresh()->other_hosts)->toBe(['stage.example.com']);
+});
 
 it('writes nothing when the person may not import', function (): void {
     $before = DB::table('import_sources')->orderBy('id')->get()->toJson();
