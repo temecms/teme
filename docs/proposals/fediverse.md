@@ -19,12 +19,12 @@ A site can be followed from Mastodon and other fediverse software: its blog and,
 9. **The import never federates**: content written in import mode fires no content hook. A staging copy never sends: delivery happens only when the site's host is the actors' host.
 10. **Replies use the comments table unchanged**; the link to the remote actor lives in `fediverse_objects`. Remote HTML becomes the restricted comment document (rule 7).
 
-## Provisional (built as written unless the owner changes them)
+## Provisional (built as written unless the maintainers change them)
 
 - P1. Retries: at once, then 1 min, 5 min, 30 min, 2 h, 6 h, 12 h, 24 h, 24 h (about three days); a host failing for 7 days is skipped until it answers again; at most 4 deliveries to one host at a time.
 - P2. Inbox limits: 120 requests a minute per address and per remote host; bodies over 256 KB refused; replies also 10 an hour per remote account.
 - P3. The outbox shows the latest 20 activities; sent activities are kept 90 days (the latest 20 per actor always).
-- P4. Settings › Fediverse is drawn from the settings-page pattern and shown to the owner before F1 builds it.
+- P4. Settings › Fediverse is drawn from the settings-page pattern and shown to the maintainers before F1 builds it.
 
 ## After v1 (in core, small)
 

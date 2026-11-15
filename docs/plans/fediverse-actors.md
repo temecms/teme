@@ -57,7 +57,7 @@
 - [ ] **T4. Documents and discovery.** Blog actor at `/ap/blog`, WebFinger for `acct:{username}@{host}` (subject, aliases, `links[rel=self]`), NodeInfo, outbox (latest 20, from `fediverse_activities`), followers (`totalItems` only), following (empty). A conditional `/?author=0` with the activity `Accept` answers JSON; without it, the home page; with a cached home page present, still JSON (E's D4).
 - [ ] **T5. Inbox.** The D8 order, each step its own test; Follow creates a follower and queues an Accept; Undo removes it; actor Delete marks it gone; a duplicate id is accepted once.
 - [ ] **T6. Static rules and guide.** `StaticSettingsTest` cases for both servers.
-- [ ] **T7. Switch and settings page** (after the owner approves the drawing): the switch purges pages after commit; paused inboxes answer 503; the page shows actors, followers count, unreachable hosts, blocked servers (add, remove), deliveries summary; refusal tests for every Operation.
+- [ ] **T7. Switch and settings page** (after the maintainers approve the drawing): the switch purges pages after commit; paused inboxes answer 503; the page shows actors, followers count, unreachable hosts, blocked servers (add, remove), deliveries summary; refusal tests for every Operation.
 - [ ] **T8. Forget and prune.** Forget removes follower rows, the cached profile and the author details of that account's replies; prune removes remote actors unseen for 30 days that follow nothing and wrote no comment.
 
 **Quick check:** `php artisan test --compact tests/Feature/Fediverse tests/Unit/Fediverse` and `vendor/bin/phpstan analyse app/Domain/Fediverse`.

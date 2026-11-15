@@ -29,7 +29,7 @@ An authenticated API that lets an outside tool **write** to a Teme site: sign in
 | `PATCH /api/manage/v1/media/{id}` | `media.write` | Alt text, caption, description through `UpdateMediaDetails` |
 | `POST /api/manage/v1/items` | `content.write` (+ `content.publish` to publish or schedule) | Create an item of a type: title, body, slug, terms, featured media, author, fields; status `draft`, `published` or `scheduled` with a date |
 
-## Provisional (built as written unless the owner changes it)
+## Provisional (built as written unless the maintainers change it)
 
 - **P1. Body formats:** `body` as a Tiptap document (rule 7), or `html`, converted by the import's HTML converter with links and images kept as given. If that converter cannot run outside an import, `html` is refused with a plain problem in this release and comes next.
 - **P2. Fields by handle.** `fields` takes any registered field by its handle (for example `meta_description`, `seo_title`, `excerpt`), validated by the field registry. Teme has no "focus keyword" field; a tool's own extra values need a registered field (core or a plugin's).
