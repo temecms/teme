@@ -245,19 +245,18 @@ export function HomePanel({
                                 variant="ghost"
                                 size="icon-sm"
                                 className="h-11 w-11"
-                                aria-label={__('Hide')}
+                                aria-label={__('Hide :name', { name })}
                                 data-control="hide"
                                 onClick={onHide}
                             >
                                 <EyeOff aria-hidden="true" />
-                                <span className="sr-only">{__('Hide')}</span>
                             </Button>
                         </div>
                     )}
                 </PanelHeader>
                 <PanelBody>
                     {entry.kind === 'quick-draft' ? (
-                        <QuickDraft bare />
+                        <QuickDraft />
                     ) : retrying ? (
                         <div className="grid gap-2">
                             <Skeleton className="h-4 w-3/4" />

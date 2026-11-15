@@ -1,4 +1,4 @@
-import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import { LayoutDashboard } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ContentListController from '@/actions/App/Http/Admin/Contents/ContentListController';
@@ -111,13 +111,13 @@ export default function Dashboard({
         </Form>
     );
 
-    const persist = (next: Layout, previous: Layout) => {
+    const persist = (next: Layout) => {
         setLayout(next);
         saveChain.current = saveChain.current.then(async () => {
             const saved = await savePreferences(toPreferences(next, declared));
 
             if (!saved) {
-                setLayout(previous);
+                router.reload({ only: ['layout'] });
                 showToast({
                     type: 'error',
                     message: __("Couldn't save your Home. Try again."),
@@ -171,7 +171,7 @@ export default function Dashboard({
 
         const next = { ...previous, order };
 
-        void persist(next, previous).then((saved) => {
+        void persist(next).then((saved) => {
             if (saved) {
                 sayMove(key, next);
             }
@@ -205,7 +205,7 @@ export default function Dashboard({
 
         const next = { ...previous, order };
 
-        void persist(next, previous).then((saved) => {
+        void persist(next).then((saved) => {
             if (saved) {
                 sayMove(key, next);
             }
@@ -222,7 +222,7 @@ export default function Dashboard({
         };
         const entry = catalogue.find((item) => item.key === key);
 
-        void persist(next, previous).then((saved) => {
+        void persist(next).then((saved) => {
             if (saved) {
                 setAnnounce(
                     __(':name is now :size.', {
@@ -244,7 +244,7 @@ export default function Dashboard({
             hidden: [...previous.hidden, key],
         };
 
-        void persist(next, previous).then((saved) => {
+        void persist(next).then((saved) => {
             if (!saved) {
                 return;
             }
@@ -256,15 +256,12 @@ export default function Dashboard({
                     label: __('Undo'),
                     onClick: () => {
                         const current = layoutRef.current;
-                        void persist(
-                            {
-                                ...current,
-                                hidden: current.hidden.filter(
-                                    (item) => item !== key,
-                                ),
-                            },
-                            current,
-                        );
+                        void persist({
+                            ...current,
+                            hidden: current.hidden.filter(
+                                (item) => item !== key,
+                            ),
+                        });
                     },
                 },
             });
@@ -289,7 +286,7 @@ export default function Dashboard({
             shownIn(unhidden, owners, sectionOf(owners[key])).length,
         );
 
-        void persist({ ...unhidden, order: atEnd }, previous).then((saved) => {
+        void persist({ ...unhidden, order: atEnd }).then((saved) => {
             if (saved) {
                 showToast({
                     type: 'success',
@@ -302,7 +299,6 @@ export default function Dashboard({
     };
 
     const resetLayout = () => {
-        const previous = layoutRef.current;
         const next: Layout = {
             order: catalogue.map((entry) => entry.key),
             hidden: [],
@@ -318,7 +314,7 @@ export default function Dashboard({
             });
 
             if (!saved) {
-                setLayout(previous);
+                router.reload({ only: ['layout'] });
                 showToast({
                     type: 'error',
                     message: __("Couldn't save your Home. Try again."),
@@ -389,6 +385,10 @@ export default function Dashboard({
     const hasPluginCatalogue = catalogue.some(
         (entry) => sectionOf(entry.owner) === 'plugins',
     );
+    // Outside Customize, empty plugin panels stay out of the way (I-161); Customize
+    // still shows the section so empty ones can be arranged.
+    const showFromPlugins =
+        pluginKeys.length > 0 || (customizing && hasPluginCatalogue);
     const nothingWaiting =
         !customizing &&
         coreKeys.every((key) => {
@@ -515,7 +515,7 @@ export default function Dashboard({
                     )}
                 </section>
 
-                {hasPluginCatalogue && (
+                {showFromPlugins && (
                     <section
                         aria-labelledby="home-from-plugins"
                         data-test="home-from-plugins"

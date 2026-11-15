@@ -13,6 +13,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -22,6 +23,8 @@ beforeEach(function (): void {
     $this->editor = User::factory()->create(['name' => 'Ngozi Editor'])->assignRole('editor');
     $this->contributor = User::factory()->create(['name' => 'Tamuno Contributor'])->assignRole('contributor');
 });
+
+afterEach(fn () => PluginFixtures::forget());
 
 it('sends every panel the person may see in the catalogue, empty ones too, with its declared size and kind', function (): void {
     $page = app(Dashboard::class)->forUser($this->author);
@@ -131,6 +134,8 @@ it('gives a plugin\'s panel Small when it declares no size', function (): void {
 });
 
 it('names a plugin\'s panel\'s plugin and keeps it out of core\'s section', function (): void {
+    PluginFixtures::installed(['tests/hello' => 'hello']);
+
     app(DashboardRegistry::class)->register(new DashboardPanel(
         'plugin_visits',
         'Visits',
@@ -145,8 +150,7 @@ it('names a plugin\'s panel\'s plugin and keeps it out of core\'s section', func
     $entry = collect(app(Dashboard::class)->forUser($this->author)['catalogue'])->firstWhere('key', 'plugin_visits');
 
     expect($entry['owner'])->toBe('tests/hello')
-        ->and($entry['ownerName'])->not->toBeNull()
-        ->and($entry['ownerName'])->not->toBe('');
+        ->and($entry['ownerName'])->toBe('Hello');
 });
 
 it('refuses a panel with a size or kind it doesn\'t know, or a rows panel with no query', function (): void {

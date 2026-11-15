@@ -8,10 +8,10 @@ import { __ } from '@/lib/i18n';
 
 /**
  * Quick draft (I-240): a title and a few lines, saved as a draft without
- * opening the editor. When `bare`, the form alone sits inside HomePanel.
+ * opening the editor. HomePanel wraps it in the panel frame.
  */
-export function QuickDraft({ bare = false }: { bare?: boolean }) {
-    const form = (
+export function QuickDraft() {
+    return (
         <Form
             {...QuickDraftController.form()}
             options={{ preserveScroll: true }}
@@ -55,10 +55,4 @@ export function QuickDraft({ bare = false }: { bare?: boolean }) {
             )}
         </Form>
     );
-
-    if (bare) {
-        return form;
-    }
-
-    return form;
 }
