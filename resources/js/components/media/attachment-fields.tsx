@@ -77,6 +77,8 @@ export type MediaSaver = {
     set: <K extends keyof DetailValues>(key: K, value: DetailValues[K]) => void;
     /** Takes details changed elsewhere (a suggested alt text used) as saved. */
     accept: (details: MediaDetailsData) => void;
+    /** The file is deleted: nothing more is sent for it. */
+    forget: () => void;
     /** The server's message under each refused field. */
     errors: Partial<Record<DetailField, string>>;
 };
@@ -98,6 +100,8 @@ export function useMediaSaver(
     const saved = useRef<DetailValues>(fromDetails(item));
     const queue = useRef<Promise<void>>(Promise.resolve());
     const latest = useRef(onSaved);
+    const gone = useRef(false);
+    const refused = useRef(false);
     const id = item.id;
 
     const send = useCallback(
@@ -123,7 +127,7 @@ export function useMediaSaver(
             // Every field and the focal point, read when this save runs, not when it was asked for.
             const read = { ...values.current };
 
-            if (same(read, saved.current)) {
+            if (gone.current || same(read, saved.current)) {
                 return;
             }
 
@@ -156,13 +160,30 @@ export function useMediaSaver(
         values.current = { ...values.current, alt: details.alt ?? '' };
     }, []);
 
-    // Closing, or moving to another file, saves what is left unsaved.
-    useEffect(() => () => saveNow(), [saveNow]);
+    const forget = useCallback(() => {
+        gone.current = true;
+    }, []);
+
+    useEffect(() => {
+        refused.current = Object.keys(errors).length > 0;
+    }, [errors]);
+
+    // Closing, or moving to another file, saves what is left unsaved; not while a field is
+    // refused, whose message would go with the panel, and never for a deleted file.
+    useEffect(
+        () => () => {
+            if (!refused.current && !gone.current) {
+                saveNow();
+            }
+        },
+        [saveNow],
+    );
 
     return {
         saveNow,
         set,
         accept,
+        forget,
         errors: errors as Partial<Record<DetailField, string>>,
     };
 }

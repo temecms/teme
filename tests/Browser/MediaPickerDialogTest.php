@@ -236,7 +236,31 @@ it('replaces its options when opened again from another caller', function (): vo
     // A second caller while the first is open, as a script would.
     $page->script("document.querySelector('[data-test=\"catalogue-picker-gallery\"]').click()");
     cmWaitUntil($page, "document.querySelectorAll('[data-slot=\"dialog-content\"]').length === 1 && document.querySelector('[role=\"dialog\"] h2')?.textContent === 'Add images to the gallery'");
-    cmWaitUntil($page, "document.querySelector('[data-test=\"media-modal-tray\"]') === null && document.querySelector('[data-test=\"media-modal-status\"]').textContent.startsWith('Select one or more files')");
+    cmWaitUntil($page, "document.querySelector('[data-test=\"media-modal-tray\"]') === null && document.querySelector('[data-test=\"media-modal-status\"]').textContent.startsWith('Select one or more files')")
+        ->click('[data-test="media-modal-cancel"]');
+
+    // Focus goes back to what opened the first picker, not to whatever the replaced one held.
+    cmWaitUntil($page, "document.querySelector('[data-slot=\"dialog-content\"]') === null && document.activeElement?.dataset.test === 'catalogue-picker-featured'");
+});
+
+it('calls onClose once on Cancel, on Esc and on the close button, and not on insert', function (): void {
+    $closed = "document.querySelector('[data-test=\"catalogue-picker-closed\"]').textContent";
+    $gone = "document.querySelector('[data-slot=\"dialog-content\"]') === null";
+
+    $page = mpOpen(mpCatalogue($this->editor), 'featured')->click('[data-test="media-modal-cancel"]');
+    cmWaitUntil($page, "{$gone} && {$closed} === '1'");
+
+    mpOpen($page, 'featured')->click(mpTile($this->harbour));
+    $page->keys(':focus', 'Escape');
+    cmWaitUntil($page, "{$gone} && {$closed} === '2'");
+
+    mpOpen($page, 'featured')
+        ->script("[...document.querySelectorAll('[role=\"dialog\"] button')].find((button) => button.textContent.trim() === 'Close').click()");
+    cmWaitUntil($page, "{$gone} && {$closed} === '3'");
+
+    mpOpen($page, 'featured')->click(mpTile($this->ferry))->click('[data-test="media-modal-use"]');
+    cmWaitUntil($page, "{$gone} && ".mpChosen()." === '{$this->ferry->id}'")
+        ->assertScript($closed, '3');
 });
 
 it('passes axe on both tabs, every target 24 pixels or more, and fills the screen at 375 pixels, in both schemes', function (string $scheme): void {

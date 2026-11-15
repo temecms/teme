@@ -312,6 +312,7 @@ function Section({
 /** Opens the media picker for each caller, and shows the IDs it hands back. */
 function MediaPickerDemo() {
     const [chosen, setChosen] = useState<string[]>([]);
+    const [closed, setClosed] = useState(0);
     const callers: {
         caller: MediaPickerCaller;
         test: string;
@@ -355,6 +356,7 @@ function MediaPickerDemo() {
                                 multi: each.multi ?? false,
                                 action: each.action,
                                 onInsert: (ids) => setChosen(ids),
+                                onClose: () => setClosed((count) => count + 1),
                             })
                         }
                     >
@@ -367,6 +369,10 @@ function MediaPickerDemo() {
                 <output data-test="catalogue-picker-chosen">
                     {chosen.join(',')}
                 </output>
+            </p>
+            <p className="text-small text-ink-2">
+                {__('Closed without a choice:')}{' '}
+                <output data-test="catalogue-picker-closed">{closed}</output>
             </p>
         </div>
     );

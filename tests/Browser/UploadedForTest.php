@@ -221,8 +221,6 @@ it('passes axe on the library’s chip, the drawer’s line and the modal’s bo
 
     $page->click('[role="option"]:has-text("harbour")');
     ufSettled($page, '[data-test="media-detail"]');
-    // The panel beside the library has no overlay to fade in; its own line is what axe reads.
-    ufSettled($page, '[data-test="media-detail"]');
     cmWaitUntil($page, "document.querySelector('[data-test=\"media-uploaded-for\"] a') !== null");
     $page->assertNoAccessibilityIssues(3);
     $drawer = cmSmallTargets($page);

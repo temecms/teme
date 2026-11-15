@@ -124,7 +124,16 @@ type DialogProps = {
     uploadedFor: UploadTarget | null;
     /** The main button, Enter or a double-click: the caller hears the choice, then closes the picker. */
     onInsert: (ids: string[], rows: MediaRow[]) => void;
+    /** Where focus returns on closing; what had focus when the dialog mounted when left out. */
+    opener?: HTMLElement | null;
 };
+
+/** The element with focus, if any. */
+function focusedElement(): HTMLElement | null {
+    return document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+}
 
 /**
  * The one media picker (docs/architecture/design-system.md, section 4.38;
@@ -143,6 +152,7 @@ export function MediaPickerDialog({
     action,
     uploadedFor,
     onInsert,
+    opener,
 }: DialogProps) {
     const { submit } = useHttp();
     const [tab, setTab] = useState<'library' | 'upload'>('library');
@@ -159,11 +169,8 @@ export function MediaPickerDialog({
     const input = useRef<HTMLInputElement>(null);
     // What had focus when the picker opened: Radix returns focus only to a
     // DialogTrigger, and the picker is opened by a call, not by a trigger.
-    const [opener] = useState(() =>
-        document.activeElement instanceof HTMLElement
-            ? document.activeElement
-            : null,
-    );
+    const [mountedFrom] = useState(focusedElement);
+    const returnTo = opener === undefined ? mountedFrom : opener;
     // Callers write their kinds inline, a new array each render: the request depends on their names.
     const kindNames = kinds.join(',');
     const imagesOnly = kinds.length === 1 && kinds[0] === 'image';
@@ -366,7 +373,7 @@ export function MediaPickerDialog({
                 className="gap-0 p-0"
                 onCloseAutoFocus={(event) => {
                     event.preventDefault();
-                    opener?.focus();
+                    returnTo?.focus();
                 }}
                 onDragOver={(event) => {
                     event.preventDefault();
@@ -721,6 +728,8 @@ function MediaPickerHost() {
     const [opened, setOpened] = useState<{
         options: MediaPickerOptions;
         key: number;
+        /** What had focus when the picker went from closed to open, kept while options are replaced. */
+        opener: HTMLElement | null;
     } | null>(() => {
         // Built before waiting is cleared: the minifier folds a copy read
         // after the clear into the cleared value.
@@ -728,18 +737,22 @@ function MediaPickerHost() {
             return null;
         }
 
-        const first = { options: waiting, key: 1 };
+        const first = { options: waiting, key: 1, opener: focusedElement() };
         waiting = null;
 
         return first;
     });
 
     useEffect(() => {
-        show = (options) =>
+        show = (options) => {
+            const focused = focusedElement();
+
             setOpened((current) => ({
                 options,
                 key: (current?.key ?? 0) + 1,
+                opener: current === null ? focused : current.opener,
             }));
+        };
 
         return () => {
             show = null;
@@ -761,6 +774,7 @@ function MediaPickerHost() {
         <MediaPickerDialog
             key={opened.key}
             open
+            opener={opened.opener}
             onOpenChange={(open) => !open && close()}
             onInsert={(ids, rows) => {
                 opened.options.onInsert(ids, rows);

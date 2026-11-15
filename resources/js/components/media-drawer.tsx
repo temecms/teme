@@ -480,6 +480,7 @@ function DetailBody({
             return;
         }
 
+        saver.forget();
         onChanged?.(null);
         onClose();
         showToast({

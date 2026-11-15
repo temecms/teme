@@ -64,9 +64,12 @@ const drawnColumns = (list: HTMLElement) => {
     return Math.max(1, tiles.filter((tile) => tile.offsetTop === top).length);
 };
 
-/** The tile of a file in a grid, by its ID, so focus can be put back on it. */
-export function tileOf(id: string): HTMLElement | null {
-    return document.querySelector<HTMLElement>(
+/** The tile of a file, by its ID, in one grid or the page, so focus can be put back on it. */
+export function tileOf(
+    id: string,
+    within: ParentNode = document,
+): HTMLElement | null {
+    return within.querySelector<HTMLElement>(
         `[role="option"][data-media-id="${CSS.escape(id)}"]`,
     );
 }
@@ -290,7 +293,8 @@ export function MediaGrid({
             event.preventDefault();
             const target = rows[next];
             setCurrent(target.id);
-            tileOf(target.id)?.focus();
+            // In this grid: the picker's grid and the library's can show the same file.
+            tileOf(target.id, list.current)?.focus();
 
             return;
         }
