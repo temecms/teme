@@ -78,7 +78,9 @@
                     "media.read",
                     "http",
                     "routes.public",
-                    "jobs"
+                    "jobs",
+                    "fediverse.read",
+                    "fediverse.send"
                 ]
             }
         },

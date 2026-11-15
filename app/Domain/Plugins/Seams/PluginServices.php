@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
 
+use Teme\Contracts\Fediverse\FediverseFollowers;
+use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Settings\SecretReader;
@@ -17,7 +19,7 @@ use Teme\Contracts\Settings\SettingsReader;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, OutboundHttp::class, Jobs::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, OutboundHttp::class, Jobs::class, FediverseFollowers::class, FediverseSender::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

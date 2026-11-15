@@ -9,7 +9,9 @@ namespace Teme\Contracts\Plugins;
  * ContentRead unlocks the content-reading hooks, MediaRead the media-reading
  * hooks, Http the outbound door to the hosts the plugin names, RoutesPublic
  * the door that answers the plugin's declared public addresses, and Jobs the
- * door that queues the plugin's declared background work.
+ * door that queues the plugin's declared background work. FediverseRead
+ * unlocks the fediverse hooks and who follows the site's accounts, and
+ * FediverseSend the door that sends activities to those followers.
  *
  * @since 0.5.0
  */
@@ -20,4 +22,6 @@ enum Capability: string
     case Http = 'http';
     case RoutesPublic = 'routes.public';
     case Jobs = 'jobs';
+    case FediverseRead = 'fediverse.read';
+    case FediverseSend = 'fediverse.send';
 }

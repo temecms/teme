@@ -90,7 +90,7 @@ it('lists every hook class the contracts package has, and no other', function ()
 it('gives every hook a unique short name', function (): void {
     $names = array_map(fn (string $hook): string => (new ReflectionClass($hook))->getShortName(), HookCatalogue::HOOKS);
 
-    expect($names)->toHaveCount(12)->and(array_unique($names))->toBe($names);
+    expect($names)->toHaveCount(18)->and(array_unique($names))->toBe($names);
 });
 
 it('gives an item reference its values in this order, its language last (I-3360)', function (): void {

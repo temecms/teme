@@ -8,6 +8,8 @@ use App\Domain\Contents\Operations\TrashContent;
 use App\Domain\Fediverse\Models\Activity;
 use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\FediverseObject;
+use App\Domain\Fediverse\Publishing\ContentActivities;
+use App\Domain\Hooks\HookDispatcher;
 use App\Domain\People\Models\Person;
 use App\Domain\Settings\Modules;
 use App\Domain\Settings\SettingsRegistry;
@@ -29,6 +31,7 @@ beforeEach(function (): void {
     $this->author = User::factory()->create(['name' => 'Ada Writer'])->assignRole('editor');
     $this->blog = Actors::blog();
     Inbox::switch(true);
+    ContentActivities::listen(app(HookDispatcher::class));
 });
 
 /**

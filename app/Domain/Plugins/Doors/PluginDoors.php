@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
 
+use App\Domain\Fediverse\Sockets\PluginFollowers;
+use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
+use Teme\Contracts\Fediverse\FediverseFollowers;
+use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Plugins\Capability;
@@ -16,8 +20,9 @@ use Teme\Contracts\Settings\SettingsReader;
 
 /**
  * What Teme offers a plugin's constructor: the settings reader, its own
- * secrets, and the outbound door to its hosts when it was granted http
- * (I-3353). Bound as the loader's PluginServices.
+ * secrets, the outbound door to its hosts when it was granted http, and
+ * the other doors its capabilities open (I-3353). Bound as the loader's
+ * PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
 {
@@ -52,6 +57,14 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
             $offered[Jobs::class] = new PluginJobs($name, $code, $this->start, $this->registry);
+        }
+
+        if (in_array(Capability::FediverseRead->value, $capabilities, true)) {
+            $offered[FediverseFollowers::class] = new PluginFollowers;
+        }
+
+        if (in_array(Capability::FediverseSend->value, $capabilities, true)) {
+            $offered[FediverseSender::class] = new PluginSender($name);
         }
 
         return $offered;

@@ -16,8 +16,8 @@ use App\Domain\Fediverse\Queries\FediverseDocuments;
 use App\Domain\Fediverse\Remote\FetchedKeyOwners;
 use App\Domain\Fediverse\Remote\FetchRefused;
 use App\Domain\Fediverse\Remote\RemoteFetcher;
-use App\Domain\Fediverse\Replies\InboxReplies;
 use App\Domain\Fediverse\Signatures\VerifiedSender;
+use App\Domain\Fediverse\Sockets\InboxActivities;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Validation\ValidationException;
@@ -54,12 +54,13 @@ final class ProcessInboxActivity implements ShouldQueue
         }
 
         $sender = new VerifiedSender($this->keyId, $this->actorUri);
+        app(InboxActivities::class)->received($this->activity, $sender);
 
         match ($this->activity['type'] ?? null) {
             'Follow' => $this->follow($sender, $documents, $fetcher),
             'Undo' => $this->undo($sender),
             'Delete' => $this->delete($sender),
-            default => app(InboxReplies::class)->handle($this->activity, $sender),
+            default => app(InboxActivities::class)->other($this->activity, $sender),
         };
     }
 
@@ -97,7 +98,7 @@ final class ProcessInboxActivity implements ShouldQueue
     {
         // An account's Delete of itself ends its follows; any other is a reply's.
         if (self::id($this->activity['object'] ?? null) !== $sender->actorUri) {
-            app(InboxReplies::class)->handle($this->activity, $sender);
+            app(InboxActivities::class)->other($this->activity, $sender);
 
             return;
         }

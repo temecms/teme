@@ -15,8 +15,10 @@ use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\FediverseObject;
 use App\Domain\Fediverse\Models\Follower;
 use App\Domain\Fediverse\Models\RemoteActor;
+use App\Domain\Fediverse\Publishing\ContentActivities;
 use App\Domain\Fediverse\Publishing\Operations\Input\QueueActivityInput;
 use App\Domain\Fediverse\Publishing\Operations\QueueActivity;
+use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
@@ -25,9 +27,13 @@ use App\Domain\Import\Models\ImportSource;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Queue\Job;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
+use Teme\Contracts\Content\ContentPublished;
+use Teme\Contracts\Content\ContentTrashed;
 use Tests\Fixtures\Fediverse\Actors;
 use Tests\Fixtures\Fediverse\Inbox;
 
@@ -39,6 +45,7 @@ beforeEach(function (): void {
     $this->author = User::factory()->create()->assignRole('editor');
     $this->blog = Actors::blog();
     Inbox::switch(true);
+    ContentActivities::listen(app(HookDispatcher::class));
 
     // Two followers on one server, which has a shared inbox, and one on a server without.
     foreach (['https://remote.example/users/alice', 'https://remote.example/users/bob'] as $uri) {
@@ -168,4 +175,20 @@ it('queues nothing for a person without the fediverse permission, writing nothin
     app(QueueActivity::class)->execute(new QueueActivityInput($item->id, QueueActivityInput::PUBLISHED, (string) $admin->id));
 
     expect(fpubActivities()[1][0])->toBe('Update');
+});
+
+it('listens to content only once the fediverse is on, from the next queued job', function (): void {
+    $dispatcher = new HookDispatcher;
+    Inbox::switch(false);
+
+    ContentActivities::listen($dispatcher);
+    $off = $dispatcher->wants(ContentPublished::class);
+
+    Inbox::switch(true);
+    app()->instance(HookDispatcher::class, $dispatcher);
+    event(new JobProcessing('database', Mockery::mock(Job::class)->shouldIgnoreMissing()));
+
+    expect($off)->toBeFalse()
+        ->and($dispatcher->wants(ContentPublished::class))->toBeTrue()
+        ->and($dispatcher->wants(ContentTrashed::class))->toBeTrue();
 });

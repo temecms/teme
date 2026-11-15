@@ -74,7 +74,7 @@ it('gives every new contract its @since and nothing from a framework', function 
 ]);
 
 it('names the capabilities a plugin can ask for in the first release', function (): void {
-    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http', 'routes.public', 'jobs']);
+    expect(array_column(Capability::cases(), 'value'))->toBe(['content.read', 'media.read', 'http', 'routes.public', 'jobs', 'fediverse.read', 'fediverse.send']);
 });
 
 it('gives every jobs contract its @since 0.9.0 and nothing from a framework', function (string $class): void {

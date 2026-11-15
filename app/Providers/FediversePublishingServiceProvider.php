@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Domain\Fediverse\Publishing\ContentActivities;
 use App\Domain\Hooks\HookDispatcher;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -14,8 +15,9 @@ use Illuminate\Support\ServiceProvider;
  */
 final class FediversePublishingServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    public function boot(): void
     {
-        ContentActivities::subscribe($this->app->make(HookDispatcher::class));
+        $this->app->booted(fn () => ContentActivities::listen($this->app->make(HookDispatcher::class)));
+        $this->app->make('events')->listen(JobProcessing::class, fn () => ContentActivities::listen($this->app->make(HookDispatcher::class)));
     }
 }
