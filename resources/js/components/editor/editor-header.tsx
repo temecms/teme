@@ -19,7 +19,7 @@ import { ToolsLauncher } from './tools/tools-launcher';
 
 /** What each of Teme's own tools draws in its pane. */
 export type ToolPanes = {
-    outline: () => ReactNode;
+    overview: () => ReactNode;
     history: () => ReactNode;
     assistant: () => ReactNode;
     share: () => ReactNode;
@@ -35,14 +35,14 @@ export function coreTools(
 ): EditorTool[] {
     return [
         {
-            id: 'outline',
+            id: 'overview',
             owner: 'core',
             label: __('Outline'),
             icon: ListTree,
             size: 'pane',
             fixed: true,
             available: true,
-            render: panes.outline,
+            render: panes.overview,
         },
         {
             id: 'history',

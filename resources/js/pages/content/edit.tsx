@@ -1016,7 +1016,7 @@ export default function ContentEdit(page: ContentEditPage) {
 
     // What each tool draws in its pane, and the tools this item offers.
     const panes: ToolPanes = {
-        outline: () =>
+        overview: () =>
             editor === null ? null : <DocumentOverview editor={editor} />,
         history: () => <HistoryPanel contentId={session.id} />,
         assistant: () => (ai === null ? null : <AssistantPanel ai={ai} />),
@@ -1094,7 +1094,7 @@ export default function ContentEdit(page: ContentEditPage) {
             openAssistant();
         } else if (id === 'share') {
             openToolPane(id);
-        } else if (id !== 'outline' || editor !== null) {
+        } else if (id !== 'overview' || editor !== null) {
             openToolPane(id);
         }
     };
@@ -1134,7 +1134,7 @@ export default function ContentEdit(page: ContentEditPage) {
                 order: 201,
                 keywords: ['outline', 'overview', 'headings', 'blocks'],
                 when: (context) => context.contentId !== null,
-                run: () => openToolRef.current('outline'),
+                run: () => openToolRef.current('overview'),
             },
             {
                 id: 'editor.share',
