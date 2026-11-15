@@ -11,8 +11,10 @@ use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
@@ -26,6 +28,7 @@ uses(RefreshDatabase::class);
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     app()->instance(Elevation::class, new OperatorElevation);
+    $this->admin = User::factory()->create()->assignRole('administrator');
 
     PluginFixtures::use('jobs');
     PluginFixtures::installed(['tests/jobs' => 'jobs']);
@@ -40,7 +43,7 @@ beforeEach(function (): void {
             $manifest?->capabilities() ?? [],
             $manifest?->hosts() ?? [],
             $manifest?->hooks() ?? [],
-            null,
+            (string) $this->admin->id,
         ));
     };
 });
@@ -86,11 +89,37 @@ it('queues nothing for a disabled plugin, and resumes when enabled again', funct
         ['jobs', 'http'],
         ['api.example.com'],
         [],
-        null,
+        (string) $this->admin->id,
     ));
     $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
 
     expect(TrackedJob::query()->where('owner', 'jobs')->count())->toBe(1);
+});
+
+it('queues a scheduled run as the administrator who enabled the plugin, without elevation', function (): void {
+    ($this->enable)();
+    Queue::fake();
+    $this->travelTo('2026-11-15 12:00:00');
+
+    $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
+
+    $record = PluginRecord::query()->where('name', 'tests/jobs')->sole();
+
+    expect($record->consented_by)->toBe($this->admin->id);
+
+    Queue::assertPushed(RunPluginJob::class, function (RunPluginJob $job): bool {
+        expect($job->actor->userId)->toBe((string) $this->admin->id)
+            ->and($job->actor->isOperator())->toBeFalse();
+
+        app()->instance(Elevation::class, new DeniedElevation);
+        $job->actor->bind();
+
+        expect(app(Elevation::class))->toBeInstanceOf(DeniedElevation::class);
+
+        return true;
+    });
+
+    expect(TrackedJob::query()->where('owner', 'jobs')->sole()->actor_id)->toBe((string) $this->admin->id);
 });
 
 it('queues nothing when jobs isn’t granted', function (): void {

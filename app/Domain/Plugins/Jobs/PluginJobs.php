@@ -31,6 +31,7 @@ final readonly class PluginJobs implements Jobs
         private string $code,
         private StartJob $start,
         private PluginRegistry $registry,
+        private ?JobActor $as = null,
     ) {}
 
     public function queue(string $key, array $payload = [], ?string $label = null): string
@@ -125,6 +126,10 @@ final readonly class PluginJobs implements Jobs
 
     private function actor(): JobActor
     {
+        if ($this->as !== null) {
+            return $this->as;
+        }
+
         $id = Auth::id();
 
         if ($id !== null) {
@@ -138,3 +143,4 @@ final readonly class PluginJobs implements Jobs
         throw new InvalidArgumentException('Only a person or the operator queues a plugin job.');
     }
 }
+
