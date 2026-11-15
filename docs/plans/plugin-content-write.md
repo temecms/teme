@@ -134,7 +134,8 @@ interface MediaWriter
 - `98cec10` feat(plugins): content.write door through Operations
 - `27cafad` feat(plugins): media.write door from agreed hosts
 - `98baa41` feat(cms): show through Writer on revision history
-- (this commit) docs(plans): Plugins write content's records
+- `47821d4` docs(plans): Plugins write content's records
+- Follow-up R1: `30e3448` `62494d8` `f51a1c7` `0795fe7` `24a012f` `04c27f8` (and this Records commit)
 
 ### Tests seen red (first failure line)
 
@@ -155,9 +156,24 @@ interface MediaWriter
 
 ### B-?? (draft)
 
-1. **B-01 (draft)** `PublishRevision` / `SchedulePublication` take optional `via` on their inputs (plan D5) but do not stamp a revision: publishing is a pointer assignment and scheduling does not create a revision row. The draft/save revisions already carry `via` from create/change. Options: drop `via` from those two inputs; stamp somehow on a side table; leave unused. Chose leave unused so the doors can pass the code uniformly and History still shows the plugin on the revision that was written.
-2. **B-02 (draft)** Plan D6 says fetch with a cap of `UploadMedia`'s own size limit. `PluginHttp` still hard-caps answers at 1 MB, so a site whose upload limit is higher cannot pull a larger file through this door. Options: raise `PluginHttp` for media only; stream to disk outside `PluginHttp`; keep the 1 MB fetch cap. Chose keep: reuse the guarded HTTP door as written; oversized files refuse before `UploadMedia`. Maintainer may want a media-specific fetch later.
+1. **B-01 (draft)** Resolved in Follow-up R1: removed unused `via` on `PublishRevisionInput` / `SchedulePublicationInput`.
+2. **B-02 (draft)** Resolved in Follow-up R1: `PluginHttp` optional `maxBytes`; media door passes the upload limit.
 3. **B-03 (draft)** Task 4's History panel assertion: the word "through" lives in the translated `via` string from PHP, not in the TSX source. The panel renders `row.via`. Options: hardcode "through" in the component; assert `row.via` in the source. Chose assert `row.via` so the test proves the view change without duplicating the translation.
+
+### Follow-up R1
+
+**Commits:** `30e3448` current actor + digits · `62494d8` alt/title before fetch + transaction · `f51a1c7` drop language/via · `0795fe7` media fetch size · `24a012f` terms by name · `04c27f8` query strip + contracts · (this) Records.
+
+**Tests seen red (first failure line):**
+
+- R1.1 contributor acting for admin — `Exception [Teme\Contracts\Content\WriteRefused] not thrown.`
+- R1.3 alt of 1001 — `Failed asserting that an instance of class Illuminate\Validation\ValidationException is an instance of class Teme\Contracts\Content\WriteRefused.`
+- R1.4 ItemChanges/via — `Failed asserting that true is false.`
+- R1.5 2 MB file — `The answer from cdn.example.com was larger than 1 MB.`
+- R1.6 terms by name — `There is no category term “Harbour News”.`
+- R1.7 strip query — failed asserting `source_url` equals URL without query (still had `?token=secret`).
+
+**Gate:** `composer check` green — Pint; PHPStan OK; types; vp check; Architecture **139 passed** (1309); feature **2 skipped, 10639 passed** (54865).
 
 ### Changelog lines (for the maintainer)
 
@@ -165,6 +181,7 @@ interface MediaWriter
 - Plugins granted `media.write` receive a `MediaWriter` door that fetches from agreed hosts and stores via `UploadMedia` on behalf of a named person.
 - History shows "through …" beside the author when a revision was written through a plugin.
 - `docs/architecture/plugins.md` Trust: paragraphs for the two write doors and the acting-person rule.
+- Follow-up R1: writes only for the current actor; ctype_digit IDs; alt/title limits before fetch; terms by name via CreateTerm; media up to upload limit; source_url without query.
 
 ### STOP
 
