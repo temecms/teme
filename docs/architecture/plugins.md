@@ -99,6 +99,10 @@ Capabilities still matter, and core enforces them where it hands things out:
 - This stops honest plugins from overreaching and keeps the consent screen truthful. **It does not stop a malicious plugin**, which can reach anything in the PHP process. The defences there are the installer's integrity checks, the future signed repository, and people choosing what to install.
 - A **sandboxed tier** for untrusted authors is parked (I-213). The manifest is designed so a sandboxed plugin could use it unchanged.
 
+**`content.write`** hands the plugin a `ContentWriter` door. The door creates drafts, saves revisions, publishes and schedules through Teme's content Operations; it never touches models. Every call names an acting person — the person's own permissions decide what succeeds, and the capability only decides whether the plugin may try. With no person, or a person who may not do that work, the call is refused and nothing is written. Revisions the door creates record the plugin's code (`via`), shown in History as "through …" beside the author.
+
+**`media.write`** hands the plugin a `MediaWriter` door. The door fetches a file only from hosts the plugin declared and the administrator agreed to (the same guarded path as `http`: no private or local addresses, a size cap, the type checked by `UploadMedia`), then stores it through `UploadMedia` on behalf of a named acting person. With no person, a host not agreed to, or a file `UploadMedia` refuses, the call is refused and nothing is written.
+
 ## Lifecycle
 
 Study C Decision 3 is the lifecycle: present → installed → enabled ⇄ disabled → uninstalled; `disabled` with a reason; `plugins` and `plugin_history`; safe routes; quarantine of failing listeners. This document adds only that **present** is reached through the installer, and that **consent is given when the install is requested, before anything is downloaded**. The agreement is recorded against that exact version, so enabling it does not ask again; an update whose access widens asks again before it is enabled (the 2026-09-21 prototype showed asking first is clearer).
