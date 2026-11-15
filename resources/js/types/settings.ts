@@ -93,7 +93,13 @@ export type SettingsGroupPage = {
     heading: { key: string; label: string; description: string };
     /** The heading the group's form sits under, such as People's "Sign-in rules", or null. */
     section: string | null;
-    group: { key: string; label: string; description: string };
+    /** `sensitive`: saving asks for a fresh password confirmation. */
+    group: {
+        key: string;
+        label: string;
+        description: string;
+        sensitive: boolean;
+    };
     fields: FieldDefinition[];
     values: Record<string, unknown>;
     secrets: Record<string, SecretStatus>;

@@ -63,7 +63,7 @@ Open the item and use the **Discussion** row in its panel. See [publishing](publ
 
 This is an administrator's job, under **Settings › Discussion**.
 
-1. At the top, the switch **Comments on this site** turns comments on or off for the whole site. It has its own button, **Save the comments switch**, which saves that switch only.
+1. At the top, the switch **Comments on this site** turns comments on or off for the whole site. It acts at once, with no button. While the rules below have unsaved changes, save or discard them first.
 2. Below it, the rules say who may comment, how comments are held and what emails are sent. Choose **Save discussion settings** to save them.
 
 When comments are off, the rules are hidden but kept, so they are there when you switch comments back on. For every setting and its default, see the [settings reference](../../reference/settings.md).

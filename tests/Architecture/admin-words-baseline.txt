@@ -598,7 +598,6 @@ components/fields/brand-colour-setting.tsx	Brand colour
 components/fields/brand-colour-setting.tsx	Only someone who may change the site’s design can change the brand colour.
 components/fields/brand-colour-setting.tsx	Pick the brand colour
 components/fields/brand-colour-setting.tsx	Sample button
-components/fields/brand-colour-setting.tsx	Save brand colour
 components/fields/brand-colour-setting.tsx	The colour of links and buttons on the public site. Themes read it but don’t own it, so it stays when you change theme.
 components/fields/brand-colour-setting.tsx	The theme sets no colour of its own.
 components/fields/brand-colour-setting.tsx	The theme’s own colour is used in each of its colour schemes.
@@ -618,10 +617,8 @@ components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page
 components/fields/home-page-setting.tsx	Home page shows
 components/fields/home-page-setting.tsx	Only someone who may change the site’s addresses can change the home page.
-components/fields/home-page-setting.tsx	Save home page
 components/fields/home-page-setting.tsx	Search published pages
 components/fields/home-page-setting.tsx	What visitors see at the site’s own address.
-components/fields/home-page-setting.tsx	Your latest
 components/fields/home-page-setting.tsx	{} page
 components/fields/hours-setting.tsx	Add a second opening
 components/fields/hours-setting.tsx	Closed
@@ -718,92 +715,6 @@ components/list/select-all-matching.tsx	Move all {} to the trash?
 components/list/select-all-matching.tsx	Restore all {}?
 components/list/select-all-matching.tsx	Select all {}
 components/list/select-all-matching.tsx	{} {} You can restore them from the trash.
-components/media-drawer.tsx	Click the preview to set the focal point, which square crops keep in view.
-components/media-drawer.tsx	Delete permanently
-components/media-drawer.tsx	Delete permanently
-components/media-drawer.tsx	Delete “{}” permanently?
-components/media-drawer.tsx	Deleted “{}” permanently.
-components/media-drawer.tsx	Download original
-components/media-drawer.tsx	In the trash since
-components/media-drawer.tsx	Items that use it show nothing in its place until you restore it.
-components/media-drawer.tsx	Move to trash
-components/media-drawer.tsx	Move to trash
-components/media-drawer.tsx	Move “{}” to the trash?
-components/media-drawer.tsx	Moved “{}” to the trash.
-components/media-drawer.tsx	Not uploaded for any item.
-components/media-drawer.tsx	Not used anywhere.
-components/media-drawer.tsx	Open the file
-components/media-drawer.tsx	Preparing the preview…
-components/media-drawer.tsx	Replace…
-components/media-drawer.tsx	Restore
-components/media-drawer.tsx	Save
-components/media-drawer.tsx	Saved.
-components/media-drawer.tsx	Saved. Its sizes are being made again around the new focal point.
-components/media-drawer.tsx	Set the focal point
-components/media-drawer.tsx	Show every file uploaded for “{}”
-components/media-drawer.tsx	Teme couldn’t make this image’s sizes.
-components/media-drawer.tsx	Try again
-components/media-drawer.tsx	Undo
-components/media-drawer.tsx	Untitled
-components/media-drawer.tsx	Uploaded for
-components/media-drawer.tsx	Used in
-components/media-drawer.tsx	live
-components/media/alt-text-suggestion.tsx	Cancel
-components/media/alt-text-suggestion.tsx	Dismiss
-components/media/alt-text-suggestion.tsx	Sent to
-components/media/alt-text-suggestion.tsx	Suggested alt text
-components/media/alt-text-suggestion.tsx	The image is sent to
-components/media/alt-text-suggestion.tsx	Working…
-components/media/attachment-details.tsx	Edit details
-components/media/attachment-details.tsx	Loading…
-components/media/attachment-details.tsx	place
-components/media/attachment-fields.tsx	Alt text
-components/media/attachment-fields.tsx	Caption
-components/media/attachment-fields.tsx	Credit
-components/media/attachment-fields.tsx	Dimensions
-components/media/attachment-fields.tsx	File
-components/media/attachment-fields.tsx	Licence
-components/media/attachment-fields.tsx	Size
-components/media/attachment-fields.tsx	Title
-components/media/attachment-fields.tsx	Type
-components/media/attachment-fields.tsx	Uploaded
-components/media/attachment-fields.tsx	by {}
-components/media/media-filters.tsx	All dates
-components/media/media-filters.tsx	All media
-components/media/media-filters.tsx	Audio
-components/media/media-filters.tsx	Date
-components/media/media-filters.tsx	Documents
-components/media/media-filters.tsx	Images
-components/media/media-filters.tsx	Remove this filter: Uploaded for “{}”
-components/media/media-filters.tsx	Search file names, titles, alt text
-components/media/media-filters.tsx	Search media
-components/media/media-filters.tsx	Type
-components/media/media-filters.tsx	Uploaded for this {}
-components/media/media-filters.tsx	Uploaded for “{}”
-components/media/media-filters.tsx	Video
-components/media/media-grid.tsx	Failed
-components/media/media-grid.tsx	Media
-components/media/media-grid.tsx	Preparing…
-components/media/media-grid.tsx	Selected
-components/media/media-modal.tsx	Cancel
-components/media/media-modal.tsx	Clear
-components/media/media-modal.tsx	Clear filters
-components/media/media-modal.tsx	Drop files to upload
-components/media/media-modal.tsx	File details
-components/media/media-modal.tsx	Library
-components/media/media-modal.tsx	Nothing has been uploaded for this {} yet.
-components/media/media-modal.tsx	Nothing here yet. Upload files, or drop them here.
-components/media/media-modal.tsx	Nothing in the library matches these filters.
-components/media/media-modal.tsx	Select a file to see its details.
-components/media/media-modal.tsx	Show more
-components/media/media-modal.tsx	Upload files
-components/media/page-drop.tsx	Drop files to upload
-components/media/upload-list.tsx	Already in the library as “
-components/media/upload-list.tsx	Retry
-components/media/upload-list.tsx	Upload anyway
-components/media/upload-list.tsx	Uploading {}
-components/media/upload-list.tsx	Use the existing one
-components/media/use-media-uploads.ts	The upload failed.
 components/nav-main.tsx	Main
 components/navigation/add-item-panel.tsx	A link to the front page of the site. The label starts as “Home”.
 components/navigation/add-item-panel.tsx	Add
@@ -1156,25 +1067,6 @@ pages/inbox/index.tsx	Inbox
 pages/inbox/index.tsx	Mark all as read
 pages/inbox/index.tsx	Results of background work you started, such as imports. Each is kept for 90 days.
 pages/inbox/index.tsx	unread
-pages/media/index.tsx	Clear filters
-pages/media/index.tsx	Every file the site uses.
-pages/media/index.tsx	Files you move to the trash wait here. Restore one and every item that used it shows it again.
-pages/media/index.tsx	Grid
-pages/media/index.tsx	Layout
-pages/media/index.tsx	List
-pages/media/index.tsx	Media
-pages/media/index.tsx	Media
-pages/media/index.tsx	Missing
-pages/media/index.tsx	Newest first
-pages/media/index.tsx	No files yet
-pages/media/index.tsx	Nothing matches these filters
-pages/media/index.tsx	Oldest first
-pages/media/index.tsx	Order
-pages/media/index.tsx	The trash is empty
-pages/media/index.tsx	Upload files
-pages/media/index.tsx	Upload files
-pages/media/index.tsx	Upload images, video, audio and documents, or drop them anywhere on this page.
-pages/media/index.tsx	Views
 pages/navigation/edit.tsx	Add an item
 pages/navigation/edit.tsx	Add item
 pages/navigation/edit.tsx	Add the home page, pages, posts, categories, tags or any address.
@@ -1244,15 +1136,12 @@ pages/settings/addresses.tsx	Numeric
 pages/settings/addresses.tsx	Old addresses keep working: visitors and search engines are sent to the new one.
 pages/settings/addresses.tsx	Other addresses
 pages/settings/addresses.tsx	Post name
-pages/settings/addresses.tsx	Save address settings
 pages/settings/addresses.tsx	The home page and the posts page are chosen in Reading.
 pages/settings/addresses.tsx	The public addresses of every public type, taxonomy and author.
 pages/settings/addresses.tsx	These would share an address:
-pages/settings/addresses.tsx	Updating addresses:
 pages/settings/addresses.tsx	Your newest
 pages/settings/addresses.tsx	address
 pages/settings/addresses.tsx	base
-pages/settings/addresses.tsx	of
 pages/settings/addresses.tsx	will share the root with other addresses.
 pages/settings/addresses.tsx	would be at
 pages/settings/addresses.tsx	{} address
@@ -1268,8 +1157,6 @@ pages/settings/ai.tsx	How often one person may ask, and how much the site may sp
 pages/settings/ai.tsx	No AI task is installed yet.
 pages/settings/ai.tsx	No AI task is on yet.
 pages/settings/ai.tsx	Nobody is offered AI and nothing is sent to an AI service. These settings can’t be changed until your host switches it on again; they’re kept as they were.
-pages/settings/ai.tsx	Save AI settings
-pages/settings/ai.tsx	Saving may ask for your password. If it does, you’ll come back here to save again, and any key you typed must be typed again.
 pages/settings/ai.tsx	Set a key for one of the services below and save, then choose a model for each task under Models.
 pages/settings/discussion.tsx	Comments are an optional part of Teme, switched on or off for the whole site.
 pages/settings/discussion.tsx	Comments are off, so the settings for them are hidden. They’re kept, unchanged, for when comments are switched back on.
@@ -1277,10 +1164,6 @@ pages/settings/discussion.tsx	Comments on this site
 pages/settings/discussion.tsx	Discussion
 pages/settings/discussion.tsx	Discussion settings
 pages/settings/discussion.tsx	Only administrators can switch comments on or off.
-pages/settings/discussion.tsx	Save discussion settings
-pages/settings/discussion.tsx	Save the comments switch
-pages/settings/discussion.tsx	Saves this switch only.
-pages/settings/group.tsx	Save {} settings
 pages/settings/group.tsx	The default is {}.
 pages/settings/group.tsx	{} settings
 pages/settings/group.tsx	{}’s own number is {}.
@@ -1294,7 +1177,6 @@ pages/settings/search-and-social.tsx	It doesn’t change while search engines ar
 pages/settings/search-and-social.tsx	No verification tags.
 pages/settings/search-and-social.tsx	Open the 404 log
 pages/settings/search-and-social.tsx	Page 2 shows as:
-pages/settings/search-and-social.tsx	Save search and social settings
 pages/settings/search-and-social.tsx	Scripts belong in
 pages/settings/search-and-social.tsx	Search and social
 pages/settings/search-and-social.tsx	Search and social settings

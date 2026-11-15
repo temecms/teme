@@ -42,7 +42,7 @@ final class SettingsForm
      * field carries its `visibleWhen`: the other settings' values it shows for.
      *
      * @return array{
-     *     group: array{key: string, label: string, description: string},
+     *     group: array{key: string, label: string, description: string, sensitive: bool},
      *     ability: string,
      *     screen: string|null,
      *     fields: list<array<string, mixed>>,
@@ -85,6 +85,7 @@ final class SettingsForm
                 'key' => $definition->key,
                 'label' => $definition->label,
                 'description' => $definition->description,
+                'sensitive' => $definition->sensitive,
             ],
             'ability' => $definition->ability,
             'screen' => $definition->screen,
