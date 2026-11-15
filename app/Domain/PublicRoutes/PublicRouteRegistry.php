@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
 
-use App\Domain\Plugins\Manifest;
+use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\SafeMode;
+use Illuminate\Http\Request;
 use Teme\Contracts\Plugins\Capability;
 
 /**
@@ -27,6 +29,7 @@ final class PublicRouteRegistry
         private readonly PluginRegistry $plugins,
         private readonly PluginRecords $records,
         private readonly SafeMode $safeMode,
+        private readonly PluginLoader $loader,
     ) {}
 
     /**
@@ -57,6 +60,43 @@ final class PublicRouteRegistry
     }
 
     /**
+     * The entry that answers this request, or null: its method, path, plain
+     * query values and Accept types, as match() reads them.
+     */
+    public function matchRequest(Request $request): ?DeclaredRoute
+    {
+        $query = [];
+
+        foreach ($request->query->all() as $name => $value) {
+            if (is_scalar($value)) {
+                $query[(string) $name] = (string) $value;
+            }
+        }
+
+        return $this->match($request->getMethod(), $request->getPathInfo(), $query, self::acceptTypes($request));
+    }
+
+    /**
+     * The request's Accept types, lower-cased, without parameters or the wildcard.
+     *
+     * @return list<string>
+     */
+    public static function acceptTypes(Request $request): array
+    {
+        $types = [];
+
+        foreach (explode(',', (string) $request->headers->get('Accept', '')) as $part) {
+            $type = strtolower(trim(explode(';', $part)[0]));
+
+            if ($type !== '' && $type !== '*/*') {
+                $types[] = $type;
+            }
+        }
+
+        return $types;
+    }
+
+    /**
      * The first matching entry for this method and path, or null.
      *
      * @param  array<string, string>  $query
@@ -65,6 +105,12 @@ final class PublicRouteRegistry
     public function match(string $method, string $path, array $query = [], array $acceptTypes = []): ?DeclaredRoute
     {
         $method = strtoupper($method);
+
+        // HEAD is a GET without its body: a declared GET answers it.
+        if ($method === 'HEAD') {
+            $method = 'GET';
+        }
+
         $pluginMatch = null;
 
         foreach ($this->all() as $route) {
@@ -142,22 +188,28 @@ final class PublicRouteRegistry
     }
 
     /**
-     * Whether the request's query names a conditional entry's parameter whose
-     * entry is not cacheable — such a request must never be served from cache.
+     * Whether an uncacheable conditional entry on this path reads something
+     * this request carries: one of its query names, or one of its Accept
+     * types. Such a request is never answered from, or stored in, the cache.
      *
      * @param  array<string, string>  $query
+     * @param  list<string>  $acceptTypes
      */
-    public function queryNamesConditionalUncacheable(string $path, array $query): bool
+    public function uncacheableConditionTouches(string $path, array $query, array $acceptTypes): bool
     {
+        $accept = array_map(strtolower(...), $acceptTypes);
+
         foreach ($this->all() as $route) {
             if ($route->isCacheable() || ! $route->isConditional() || ! $this->pathMatches($route, $path)) {
                 continue;
             }
 
-            foreach (array_keys($route->when['query'] ?? []) as $name) {
-                if (array_key_exists((string) $name, $query)) {
-                    return true;
-                }
+            if (array_intersect($route->conditionQueryNames(), array_map(strval(...), array_keys($query))) !== []) {
+                return true;
+            }
+
+            if (array_intersect($route->conditionAcceptTypes(), $accept) !== []) {
+                return true;
             }
         }
 
@@ -169,13 +221,32 @@ final class PublicRouteRegistry
      */
     private function build(): array
     {
-        if ($this->safeMode->active()) {
+        if ($this->safeMode->active() || $this->loader->disabledOnServer() === true) {
             return $this->core;
         }
 
-        $routes = $this->core;
+        return $this->from($this->records->enabled());
+    }
 
-        foreach ($this->records->enabled() as $record) {
+    /**
+     * Core's entries and those of these enabled plugins that may load now,
+     * read from the rows given rather than the cached list: what EnablePlugin
+     * compares a new plugin against, inside its transaction.
+     *
+     * @param  list<PluginRecord>  $records
+     *
+     * @return list<DeclaredRoute>
+     */
+    public function from(array $records): array
+    {
+        $routes = $this->core;
+        $disabledOnServer = $this->loader->disabledOnServer();
+
+        if ($disabledOnServer === true) {
+            return $routes;
+        }
+
+        foreach ($records as $record) {
             $capabilities = $record->consent['capabilities'] ?? [];
 
             if (! in_array(Capability::RoutesPublic->value, $capabilities, true)) {
@@ -184,54 +255,22 @@ final class PublicRouteRegistry
 
             $found = $this->plugins->find($record->name);
 
-            if ($found?->manifest === null || $found->problems !== []) {
+            // The one rule that decides whether a plugin starts decides whether its routes answer.
+            if ($found?->manifest === null || $this->loader->skipReason($record, $found, $disabledOnServer) !== null) {
                 continue;
             }
 
             foreach ($found->manifest->routes() as $raw) {
-                $routes[] = $this->fromManifest($found->manifest, $raw);
+                $routes[] = DeclaredRoute::fromManifest($found->manifest, $raw);
             }
         }
 
         return $routes;
     }
 
-    /**
-     * @param  array<string, mixed>  $raw
-     */
-    private function fromManifest(Manifest $manifest, array $raw): DeclaredRoute
-    {
-        $when = is_array($raw['when'] ?? null) ? $raw['when'] : null;
-        $verify = is_array($raw['verify'] ?? null) ? $raw['verify'] : null;
-        $cache = is_array($raw['cache'] ?? null) ? $raw['cache'] : null;
-        $where = is_array($raw['where'] ?? null) ? array_filter($raw['where'], is_string(...)) : [];
-
-        return new DeclaredRoute(
-            owner: $manifest->code(),
-            id: (string) ($raw['id'] ?? ''),
-            method: strtoupper((string) ($raw['method'] ?? 'GET')),
-            path: (string) ($raw['path'] ?? ''),
-            handler: ltrim((string) ($raw['handler'] ?? ''), '\\'),
-            when: $when,
-            verify: $verify,
-            cache: $cache,
-            maxBody: is_int($raw['maxBody'] ?? null) ? min(10_485_760, max(1, $raw['maxBody'])) : 1_048_576,
-            throttle: is_int($raw['throttle'] ?? null) ? $raw['throttle'] : null,
-            where: $where,
-        );
-    }
-
     private function pathMatches(DeclaredRoute $route, string $path): bool
     {
-        $pattern = $route->resolvedPath();
-        $regex = preg_replace_callback('/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/', function (array $m) use ($route): string {
-            $name = $m[1];
-            $rule = $route->where[$name] ?? '[^/]+';
-
-            return '(?P<'.$name.'>'.$rule.')';
-        }, $pattern);
-
-        return preg_match('#^'.str_replace('#', '\#', (string) $regex).'$#', $path) === 1;
+        return $route->pathParameters($path) !== null;
     }
 
     /**
@@ -251,7 +290,7 @@ final class PublicRouteRegistry
                 return false;
             }
 
-            if (preg_match('/'.$pattern.'/', $query[$key]) !== 1) {
+            if (preg_match('#'.str_replace('#', '\#', $pattern).'#', $query[$key]) !== 1) {
                 return false;
             }
         }

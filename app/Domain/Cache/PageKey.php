@@ -33,8 +33,9 @@ final readonly class PageKey
     /**
      * The key for this request, or null when a parameter it keeps isn't
      * plain text, such as `s[]=` or an API address's `type[]=`, for which
-     * nothing is stored; or when the query names a conditional uncacheable
-     * declared route's parameter (D4).
+     * nothing is stored; or when an uncacheable conditional declared route
+     * on the path reads one of the request's query names or Accept types
+     * (docs/plans/plugin-public-routes.md).
      */
     public static function of(Request $request): ?self
     {
@@ -52,7 +53,7 @@ final readonly class PageKey
 
         $registry = app(PublicRouteRegistry::class);
 
-        if ($registry->queryNamesConditionalUncacheable($path, $stringQuery)) {
+        if ($registry->uncacheableConditionTouches($path, $stringQuery, PublicRouteRegistry::acceptTypes($request))) {
             return null;
         }
 
