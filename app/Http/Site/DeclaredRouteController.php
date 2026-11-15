@@ -11,29 +11,31 @@ use App\Http\Controllers\Controller;
 use App\Http\Site\Feeds\FeedController;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Serves an unconditional declared public route looked up from the registry
- * by method and path. The fixed `{code}/{path?}` shape also matches ordinary
- * public addresses, so a miss falls through to the feed handler (which itself
- * hands non-feeds to PublicController); `/.well-known/{name}` stays a 404.
+ * Serves a declared public route looked up from the registry by method,
+ * path and condition. The fixed `{code}/{path?}` shape also matches
+ * ordinary public addresses, so a GET that matches no entry falls through
+ * to the feed handler (which hands non-feeds to PublicController); any other
+ * method that matches nothing is answered 405, never with a page, and
+ * `/.well-known/{name}` stays a 404.
  */
 final class DeclaredRouteController extends Controller
 {
     public function __invoke(Request $request, PublicRouteRegistry $registry, RouteDispatcher $dispatcher, FeedController $feeds): Response
     {
-        $accept = $this->acceptTypes($request);
-        $query = $this->stringQuery($request);
-        $route = $registry->match($request->getMethod(), $request->getPathInfo(), $query, $accept);
+        $route = $registry->matchRequest($request);
 
-        if ($route === null || $route->isConditional()) {
+        if ($route === null) {
             if (str_starts_with($request->getPathInfo(), '/.well-known/')) {
                 throw new NotFoundHttpException;
             }
 
-            // Feeds need the mark; HTML pages ignore it (StoreRules).
-            $request->attributes->set(PageCache::CACHEABLE, true);
+            if (! $request->isMethodSafe()) {
+                return new Response('', 405, ['Allow' => 'GET, HEAD']);
+            }
 
             return $feeds($request);
         }
@@ -42,41 +44,6 @@ final class DeclaredRouteController extends Controller
             $request->attributes->set(PageCache::CACHEABLE, true);
         }
 
-        return $dispatcher->dispatch($route, $request);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function acceptTypes(Request $request): array
-    {
-        $header = (string) $request->headers->get('Accept', '');
-        $types = [];
-
-        foreach (explode(',', $header) as $part) {
-            $type = strtolower(trim(explode(';', $part)[0]));
-
-            if ($type !== '' && $type !== '*/*') {
-                $types[] = $type;
-            }
-        }
-
-        return $types;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function stringQuery(Request $request): array
-    {
-        $query = [];
-
-        foreach ($request->query->all() as $name => $value) {
-            if (is_scalar($value)) {
-                $query[(string) $name] = (string) $value;
-            }
-        }
-
-        return $query;
+        return $dispatcher->dispatch($route, $request, fn (): Response => PublicPage::error(new HttpException(500)));
     }
 }

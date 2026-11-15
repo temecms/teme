@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\PublicRoutes\DeclaredRoute;
+
 /**
  * What a person agreed to a plugin doing, against what its manifest asks for
  * now (I-3353): an update that asks for nothing more starts at once, and one
@@ -73,7 +75,9 @@ final readonly class Consent
 
     /**
      * Each declared public route as `METHOD path`, with `{code}` replaced by
-     * the plugin's code, in the file's order. The consent screen lists these.
+     * the plugin's code and its condition, when it has one, in brackets, in
+     * the file's order. The consent screen lists these, so a changed
+     * condition asks again too.
      *
      * @return list<string>
      */
@@ -81,15 +85,14 @@ final readonly class Consent
     {
         $lines = [];
 
-        foreach ($manifest->routes() as $route) {
-            $method = strtoupper((string) ($route['method'] ?? ''));
-            $path = (string) ($route['path'] ?? '');
+        foreach ($manifest->routes() as $raw) {
+            $route = DeclaredRoute::fromManifest($manifest, $raw);
 
-            if ($method === '' || $path === '') {
+            if (! is_string($raw['method'] ?? null) || $route->path === '') {
                 continue;
             }
 
-            $lines[] = $method.' '.str_replace('{code}', $manifest->code(), $path);
+            $lines[] = $route->consentLine();
         }
 
         return $lines;

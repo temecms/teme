@@ -12,6 +12,8 @@ use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -27,7 +29,8 @@ use Teme\Contracts\Operations\RequiresElevation;
  * Enables a plugin (I-3353, I-3442): a person who holds plugins.manage, after
  * their password, or the operator. Its manifest is checked and its code
  * scanned afresh, never from the cache, and what the person agreed to must
- * be what it asks for now. Runs its waiting migrations inside the same
+ * be what it asks for now; none of its public routes may collide with one
+ * that answers already. Runs its waiting migrations inside the same
  * transaction, records that consent, for this exact version and by whom,
  * and clears its faults and stopped parts. Returns its name.
  */
@@ -40,6 +43,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly PluginRecords $records,
         private readonly PluginMigrations $migrations,
         private readonly SecurityLog $log,
+        private readonly PublicRouteRegistry $publicRoutes,
+        private readonly RouteCollisions $routeCollisions,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -70,6 +75,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         if (! $same) {
             throw ValidationException::withMessages(['plugin' => ['It asks for something different now. Look again before you enable it.']]);
+        }
+
+        // Two owners never answer one request: refused before anything is written (docs/proposals/plugin-public-routes.md).
+        $collisions = $this->routeCollisions->against($this->publicRoutes->from(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
+
+        if ($collisions !== []) {
+            throw ValidationException::withMessages(['plugin' => $collisions]);
         }
 
         $taken = PluginRecord::query()->where('code', $plugin->code)->where('name', '!=', $plugin->name)->value('name');

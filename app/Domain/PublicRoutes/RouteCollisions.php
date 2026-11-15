@@ -7,7 +7,7 @@ namespace App\Domain\PublicRoutes;
 use App\Domain\Plugins\Manifest;
 
 /**
- * The D3 refusals for a plugin's declared public routes: reserved paths,
+ * The refusals (docs/plans/plugin-public-routes.md) for a plugin's declared public routes: reserved paths,
  * unconditional paths outside /{code}/ and /.well-known/, core .well-known
  * names and public addresses, missing POST verifiers, unknown secret
  * settings, and two entries that could match one request.
@@ -71,6 +71,8 @@ final class RouteCollisions
                 array_push($errors, ...$this->verifyErrors($manifest, $route));
             }
 
+            array_push($errors, ...$this->cacheErrors($route));
+
             $resolved = str_replace('{code}', $manifest->code(), $path);
             $key = $method.' '.$resolved.' '.$this->conditionKey($route);
 
@@ -79,6 +81,117 @@ final class RouteCollisions
             } elseif ($id !== '') {
                 $seen[$key] = $id;
             }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Every collision between this manifest's routes and the entries that
+     * answer now, core's and other enabled plugins': the same method and
+     * path with conditions that can overlap, or a `.well-known` name
+     * another owner holds. The plugin's own entries are left out, so
+     * enabling it again after an update compares only against others.
+     *
+     * @param  list<DeclaredRoute>  $enabled
+     *
+     * @return list<string>
+     */
+    public function against(array $enabled, Manifest $manifest): array
+    {
+        $errors = [];
+
+        foreach ($manifest->routes() as $raw) {
+            $candidate = DeclaredRoute::fromManifest($manifest, $raw);
+            $wellKnown = $this->wellKnownName($candidate);
+
+            foreach ($enabled as $other) {
+                if ($other->owner === $candidate->owner) {
+                    continue;
+                }
+
+                if ($wellKnown !== null && $wellKnown === $this->wellKnownName($other)) {
+                    $errors[] = __('The .well-known name :name belongs to :owner.', ['name' => $wellKnown, 'owner' => $other->owner]);
+
+                    continue;
+                }
+
+                if ($other->method === $candidate->method && $other->pathShape() === $candidate->pathShape() && $this->conditionsOverlap($candidate, $other)) {
+                    $errors[] = __('This route collides with :owner’s :id.', ['owner' => $other->owner, 'id' => $other->id]);
+                }
+            }
+        }
+
+        return array_values(array_unique($errors));
+    }
+
+    /**
+     * Whether one request could meet both entries' conditions: an entry with
+     * no condition meets every request, and two conditions overlap unless
+     * both name query parameters and share none, or both name Accept types
+     * and share none.
+     */
+    private function conditionsOverlap(DeclaredRoute $a, DeclaredRoute $b): bool
+    {
+        if (! $a->isConditional() || ! $b->isConditional()) {
+            return true;
+        }
+
+        $queryA = $a->conditionQueryNames();
+        $queryB = $b->conditionQueryNames();
+
+        if ($queryA !== [] && $queryB !== [] && array_intersect($queryA, $queryB) === []) {
+            return false;
+        }
+
+        $acceptA = $a->conditionAcceptTypes();
+        $acceptB = $b->conditionAcceptTypes();
+
+        return ! ($acceptA !== [] && $acceptB !== [] && array_intersect($acceptA, $acceptB) === []);
+    }
+
+    private function wellKnownName(DeclaredRoute $route): ?string
+    {
+        $path = $route->resolvedPath();
+
+        if (! str_starts_with($path, '/.well-known/')) {
+            return null;
+        }
+
+        $name = explode('/', substr($path, strlen('/.well-known/')))[0];
+
+        return $name === '' ? null : $name;
+    }
+
+    /**
+     * A cacheable entry's key must carry everything its condition reads:
+     * varyAccept when it matches on Accept, and every condition query name.
+     *
+     * @param  array<string, mixed>  $route
+     *
+     * @return list<string>
+     */
+    private function cacheErrors(array $route): array
+    {
+        $cache = $route['cache'] ?? null;
+        $when = $route['when'] ?? null;
+
+        if (! is_array($cache) || ! is_array($when) || strtoupper(is_string($route['method'] ?? null) ? $route['method'] : '') !== 'GET') {
+            return [];
+        }
+
+        $errors = [];
+        $accept = $when['accept'] ?? null;
+
+        if (is_array($accept) && $accept !== [] && ($cache['varyAccept'] ?? false) !== true) {
+            $errors[] = __('A cached route that matches on Accept needs cache.varyAccept.');
+        }
+
+        $named = is_array($cache['query'] ?? null) ? $cache['query'] : [];
+        $missing = array_values(array_diff(array_map(strval(...), array_keys(is_array($when['query'] ?? null) ? $when['query'] : [])), array_map(strval(...), array_filter($named, is_string(...)))));
+
+        if ($missing !== []) {
+            $errors[] = __('cache.query must name every when.query parameter; it leaves out :names.', ['names' => implode(', ', $missing)]);
         }
 
         return $errors;

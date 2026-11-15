@@ -7,14 +7,16 @@ namespace App\Http\Site\Middleware;
 use App\Domain\Cache\PageCache;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\PublicRoutes\RouteDispatcher;
+use App\Http\Site\PublicPage;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Checks conditional declared routes (query or Accept) in front of the home
- * and fallback public routes: a match is answered by the entry's handler;
- * no match passes through unchanged.
+ * Checks declared routes in front of the public site's own routes: whatever
+ * entry the registry matches, conditional or not, answers; only when none
+ * matches does the request pass through unchanged.
  */
 final class MatchDeclaredRoutes
 {
@@ -25,11 +27,9 @@ final class MatchDeclaredRoutes
 
     public function handle(Request $request, Closure $next): Response
     {
-        $accept = $this->acceptTypes($request);
-        $query = $this->stringQuery($request);
-        $route = $this->registry->match($request->getMethod(), $request->getPathInfo(), $query, $accept);
+        $route = $this->registry->matchRequest($request);
 
-        if ($route === null || ! $route->isConditional()) {
+        if ($route === null) {
             return $next($request);
         }
 
@@ -37,41 +37,6 @@ final class MatchDeclaredRoutes
             $request->attributes->set(PageCache::CACHEABLE, true);
         }
 
-        return $this->dispatcher->dispatch($route, $request);
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function acceptTypes(Request $request): array
-    {
-        $header = (string) $request->headers->get('Accept', '');
-        $types = [];
-
-        foreach (explode(',', $header) as $part) {
-            $type = strtolower(trim(explode(';', $part)[0]));
-
-            if ($type !== '' && $type !== '*/*') {
-                $types[] = $type;
-            }
-        }
-
-        return $types;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function stringQuery(Request $request): array
-    {
-        $query = [];
-
-        foreach ($request->query->all() as $name => $value) {
-            if (is_scalar($value)) {
-                $query[(string) $name] = (string) $value;
-            }
-        }
-
-        return $query;
+        return $this->dispatcher->dispatch($route, $request, fn (): Response => PublicPage::error(new HttpException(500)));
     }
 }

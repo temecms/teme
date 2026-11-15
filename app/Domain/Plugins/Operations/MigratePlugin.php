@@ -98,8 +98,10 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
                 'plugin' => $input->name,
                 'migrations' => $ran,
             ]);
-            $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code]));
         }
+
+        // Run after an update, so what the plugin's public routes stored may be another version's.
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code]));
 
         DB::afterCommit(fn () => $this->records->changed());
 
