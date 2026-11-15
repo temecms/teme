@@ -243,3 +243,22 @@ it('sends the Accept of a Follow', function (): void {
     $accept = Delivery::query()->where('host', 'remote.example')->sole();
     Queue::assertPushed(DeliverActivity::class, fn (DeliverActivity $job): bool => $job->deliveryId === $accept->id);
 });
+
+it('gives a delivery’s job a day to run, not a count of tries, and puts a delivery still queued back when its job gives up', function (): void {
+    $delivery = fpubDelivery($this->author);
+    $job = new DeliverActivity($delivery->id, $delivery->host);
+    Queue::fake();
+
+    expect($job->tries ?? null)->toBeNull()
+        ->and($job->retryUntil()->timestamp)->toBe(now()->addDay()->timestamp);
+
+    $job->failed(new RuntimeException('Gave up waiting for the host’s lock.'));
+
+    Queue::assertPushed(DeliverActivity::class, fn (DeliverActivity $again): bool => $again->deliveryId === $delivery->id && $again->delay !== null);
+
+    $delivery->forceFill(['state' => 'sent'])->save();
+    Queue::fake();
+    $job->failed(new RuntimeException('Gave up.'));
+
+    Queue::assertNotPushed(DeliverActivity::class);
+});

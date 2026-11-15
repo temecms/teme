@@ -22,15 +22,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 /**
  * Delivers one activity to one inbox (docs/plans/fediverse-publishing.md,
  * D3), as the site's own work: skipped for a blocked server, a server
  * failing for 7 days (tried once a day to learn it answers again); left
  * queued, untried, by a copy of the site at another address or outside
- * production; otherwise signed and posted, and RecordDelivery keeps what came of it, putting a
- * fresh job on the queue for the next try. At most four deliveries reach
- * one server at a time: each takes one of four locks named for its host.
+ * production; otherwise signed and posted, and RecordDelivery keeps what
+ * came of it, putting a fresh job on the queue for the next try. At most
+ * four deliveries reach one server at a time: each takes one of four locks
+ * named for its host. A job may wait a day for its lock; one that gives up
+ * puts its delivery back on the queue.
  */
 final class DeliverActivity implements ShouldQueue
 {
@@ -39,8 +42,8 @@ final class DeliverActivity implements ShouldQueue
     /** How many deliveries reach one server at once. */
     public const int PER_HOST = 4;
 
-    /** A job waiting for its host's lock goes back on the queue many times; each try is its own job. */
-    public int $tries = 100;
+    /** Minutes before a delivery whose job gave up is put back on the queue. */
+    public const int REQUEUE_MINUTES = 15;
 
     public int $timeout = 30;
 
@@ -59,6 +62,26 @@ final class DeliverActivity implements ShouldQueue
         $slot = crc32($this->deliveryId) % self::PER_HOST;
 
         return [(new WithoutOverlapping('fediverse-host:'.$this->host.':'.$slot))->shared()->releaseAfter(5)->expireAfter(60)];
+    }
+
+    /**
+     * How long the job may keep going back on the queue for its host's
+     * lock: a day, after which failed() puts the delivery back.
+     */
+    public function retryUntil(): CarbonImmutable
+    {
+        return CarbonImmutable::now()->addDay();
+    }
+
+    /**
+     * Puts a delivery still queued back on the queue a little later, so a
+     * job that gave up never leaves it waiting forever.
+     */
+    public function failed(?Throwable $exception = null): void
+    {
+        if (Deliveries::environmentDelivers() && Delivery::query()->whereKey($this->deliveryId)->where('state', 'queued')->exists()) {
+            self::dispatch($this->deliveryId, $this->host)->delay(now()->addMinutes(self::REQUEUE_MINUTES));
+        }
     }
 
     public function handle(DeliveryPost $post, Deliveries $deliveries): void
