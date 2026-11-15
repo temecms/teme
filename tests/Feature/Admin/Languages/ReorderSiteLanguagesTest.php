@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Languages\Operations\AddSiteLanguage;
+use App\Domain\Languages\Operations\ChangeSiteLanguage;
+use App\Domain\Languages\Operations\Input\AddSiteLanguageInput;
+use App\Domain\Languages\Operations\Input\ChangeSiteLanguageInput;
 use App\Domain\Languages\Operations\Input\ReorderSiteLanguagesInput;
 use App\Domain\Languages\Operations\ReorderSiteLanguages;
 use App\Domain\Languages\SiteLanguages;
@@ -115,4 +119,13 @@ it('purges the pages that draw the language switcher after commit', function ():
     } finally {
         cacheOff($folder);
     }
+});
+
+it('keeps the order when a language is added or changed: an added one goes last', function (): void {
+    reorderAs($this->admin, ['de', 'fr', 'es']);
+    app(AddSiteLanguage::class)->execute(new AddSiteLanguageInput('it', 'it', true, reorderVersion(), (string) $this->admin->id));
+    app(ChangeSiteLanguage::class)->execute(new ChangeSiteLanguageInput('fr', 'francais', true, reorderVersion(), (string) $this->admin->id));
+    app()->forgetInstance(SiteLanguages::class);
+
+    expect(app(SiteLanguages::class)->others())->toBe(['de', 'fr', 'es', 'it']);
 });
