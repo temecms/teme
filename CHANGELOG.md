@@ -2,9 +2,9 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
-## [Unreleased]
+## [0.8.0-alpha.1] — 2026-11-15
 
-The admin's new look, part one: one design system for every screen, and the frame every screen sits in. Screens not yet rebuilt take the new colours, type and controls in their old layouts; they are rebuilt in later parts (`docs/proposals/`).
+The admin's new look: one design system for every screen and the frame every screen sits in, then every screen rebuilt on it, Home arranged by each person, and a plugin's own database tables (slice 5.2's first release). **Update to 0.7.0-alpha.2 before this one.**
 
 ### Added
 
@@ -15,12 +15,33 @@ The admin's new look, part one: one design system for every screen, and the fram
 - Page patterns for lists, forms, settings, hubs and details; Tools › Jobs, a backup place, Settings › Languages and Tools are on them
 - A design catalogue at `/admin/_catalogue` on local and test sites only
 - A check that holds the admin to its design system, with a list of today's exceptions that may only shrink
+- Every screen rebuilt on the design system: settings, people and your account, the sign-in pages, content lists, the editor, the media library, the Tools screens, plugins' own areas, and dialogs and menus that open from the foot of a phone's screen
+- One choice-and-search control for tags, people and other lists; typing a new tag creates it where you may
+- Content lists: numbered pages (to page 50, then Next and Previous), each row's actions in one menu with Undo after Publish, Trash and Restore, a column chooser, and cards on a phone
+- The editor: a handle beside each block to move, duplicate or delete it, a block picker, Tools with up to three pinned to the bar for each person, Search and social as a box with tabs under the article, a compare page, and one media picker shared with every screen
+- The media library on one page, with a details panel that saves as you leave each field
+- Home, arranged by each person: in Customize, panels move by their grip or with Move earlier and Move later from the keyboard, take one of four sizes, and can be hidden; plugins' panels sit in their own section
+- People's pictures, each person choosing their own; someone who manages people can remove one
+- Plugins can have their own database tables: their migrations run in one transaction when the plugin is enabled, checked against the plugin's prefix and the tables it declares, and recorded on its row. A plugin with new migrations waits until someone runs Run database changes (or `php artisan teme:plugins:migrate`), and Remove its data… drops exactly the tables recorded for a disabled plugin, or one whose code is gone
 
 ### Changed
 
 - The three looks and the high-contrast setting are gone; a look someone chose is no longer read
 - Toasts sit at the foot of the page, in the middle
 - The admin's icons that pages use at first load share one file, so a screen loads fewer files; the full icon set still loads only when the icon picker or an unknown icon needs it
+- The design system's components share one file, so each screen loads far fewer files: the media screen 52 to 22
+- Every word a person reads in the admin goes through translation, in American English
+- Signing in with the dark scheme no longer fades the admin from light to dark (#283)
+
+### Fixed
+
+- The import no longer counts a dropped table of contents, a listing of other posts, or sharing and related-posts boxes as lost words (#287)
+- The import names a refusal from a firewall or Cloudflare's bot check instead of blaming the account (#289)
+- Removing a site's comments page by page no longer skips rows on large sites (#265)
+
+### Deploy
+
+- The deploy runs two migrations, after its backup: they add a picture column to accounts and a column recording plugins' migrations, and change no existing row
 
 ## [0.7.0-alpha.2] — 2026-11-14
 
