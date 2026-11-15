@@ -1,0 +1,12 @@
+{
+    "name": "teme-examples/first-plugin",
+    "type": "teme-plugin",
+    "require": {
+        "teme/contracts": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "TemeExamples\\FirstPlugin\\": "src/"
+        }
+    }
+}

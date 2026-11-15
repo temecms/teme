@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "teme-examples/first-plugin",
+    "code": "first-plugin",
+    "label": "First plugin",
+    "description": "The handbook's first plugin: listens when a post is published.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "TemeExamples\\FirstPlugin\\FirstPlugin",
+    "capabilities": ["content.read"],
+    "hooks": ["ContentPublished"]
+}
