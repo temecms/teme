@@ -8,6 +8,8 @@ use App\Domain\Import\Operations\ConnectImportSource;
 use App\Domain\Import\Operations\ForgetImportSource;
 use App\Domain\Import\Operations\Input\ConnectImportSourceInput;
 use App\Domain\Import\Operations\Input\ForgetImportSourceInput;
+use App\Domain\Import\Operations\Input\SetImportSourceHostsInput;
+use App\Domain\Import\Operations\SetImportSourceHosts;
 use App\Domain\Import\Planning\ImportAnalysis;
 use App\Domain\Import\Queries\ImportScreen;
 use App\Http\Controllers\Controller;
@@ -62,6 +64,22 @@ final class ImportSourceController extends Controller
         }
 
         return self::told("Teme has forgotten the application password for {$site['address']}. Revoke it in WordPress too: Users › Profile › Application Passwords.");
+    }
+
+    public function hosts(Request $request, string $source, ImportScreen $screen, SetImportSourceHosts $set): RedirectResponse
+    {
+        abort_if($screen->site($source) === null, 404);
+
+        $hosts = $request->input('hosts', []);
+        $hosts = is_array($hosts) ? array_values(array_filter($hosts, is_string(...))) : [];
+
+        try {
+            $set->execute(new SetImportSourceHostsInput($source, $hosts, self::actor($request)));
+        } catch (ValidationException $refused) {
+            return back()->withErrors($refused->errors());
+        }
+
+        return self::told('Saved the other addresses of this site.');
     }
 
     /**

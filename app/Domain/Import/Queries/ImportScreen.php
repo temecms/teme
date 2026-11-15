@@ -79,7 +79,7 @@ final readonly class ImportScreen
     /**
      * Returns one site as its page draws it: its address, who it is connected as, when it was last probed and whether its password is forgotten; null when Teme has no such site.
      *
-     * @return array{id: string, address: string, host: string, userName: string|null, pluginVersion: string, connectedAt: string, forgotten: bool}|null
+     * @return array{id: string, address: string, host: string, userName: string|null, pluginVersion: string, connectedAt: string, forgotten: bool, otherHosts: list<string>, suggestedHosts: list<array{host: string, links: int}>}|null
      */
     public function site(string $sourceId): ?array
     {
@@ -97,6 +97,10 @@ final readonly class ImportScreen
             'pluginVersion' => $source->plugin_version,
             'connectedAt' => $source->probed_at->utc()->toIso8601String(),
             'forgotten' => $source->forgotten_at !== null,
+            'otherHosts' => array_values(array_filter((array) ($source->other_hosts ?? []), is_string(...))),
+            'suggestedHosts' => $source->forgotten_at !== null || $source->credential === null
+                ? []
+                : app(SuggestedHosts::class)->for($source),
         ];
     }
 
