@@ -479,3 +479,12 @@ None changed. No `ui/` file, existing pattern, token, scanner or `tests/Pest.php
 ### How to try it
 
 On a local site, in a window 375px wide: People › Invite fills the screen with Send invitation in reach; Invited › a row's Revoke invitation asks from the foot of the screen; the account button at the top end opens its menu from the foot; Account › any page › the pages button does the same. `/admin/_catalogue#phone-overlays` draws each overlay; widen the window past 640px to see them as before.
+
+### Follow-up X6-2
+
+The review's two fixes, each its own commit.
+
+- `7317ffe` fix(admin): a phone menu's items can be reached again after Tab. Every phone item had `tabIndex={-1}`, so once Tab reached the sheet's Close button, Shift+Tab could not come back (Radix keeps focus inside the sheet). The phone menu now keeps a roving tabindex: the focused item, or else the first enabled one, is 0 and the others -1. It is set when the list mounts, in `moveFocus` and on focus. Test first: "moves through a phone menu…" now presses Tab (focus leaves the items but stays in the sheet), then Shift+Tab, and expects focus on Move to trash, the item it left. Seen red before the fix: `Timeout 5000ms exceeded` in `cmWaitUntil` waiting for that focus.
+- `6b817ac` fix(admin): the customize menu dialog's words go through the translation helper. The dialog's description (`:count` for the pinned limit), "Show :label", "Move :label up", "Move :label down", "Pin", "Pinned", "Reset to default" and "Save" go through `__()`. "Customise menu" keeps its existing key. Seen red: `AdminWordsTest` listed those 9 lines as gone. Removed them; the admin-words count goes from 2,345 to 2,336.
+- **B-14 (draft), the container was set up again.** The session's container had restarted, so PostgreSQL and Valkey were down. `bash scripts/cloud-setup.sh` ran once more before the red run.
+- Checks: the quick check is green (Pint, PHPStan, types, lint, Architecture 105 passed), `PersonaliseMenuTest` passed 5, and after `npm run build`, `PhoneOverlaysTest` passed 20 (260 assertions).
