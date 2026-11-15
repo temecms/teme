@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
+import { Textarea } from '@/components/ui/textarea';
 import {
     Sheet,
     SheetContent,
@@ -509,8 +510,10 @@ export default function SiteCodeSettings({
                 <div className="grid gap-4">
                     <SettingsPanel
                         as="section"
-                        title="ads.txt"
-                        description="Shown at /ads.txt for advertising buyers. Leave empty for a 404."
+                        title={__('ads.txt')}
+                        description={__(
+                            'Shown at /ads.txt for advertising buyers. Leave empty for a 404.',
+                        )}
                     >
                         <Form
                             {...SiteCodeController.updateAdsTxt.form()}
@@ -525,9 +528,9 @@ export default function SiteCodeSettings({
                                         value={adsTxtVersion}
                                     />
                                     <Label htmlFor="site-code-ads-txt">
-                                        ads.txt
+                                        {__('ads.txt')}
                                     </Label>
-                                    <textarea
+                                    <Textarea
                                         id="site-code-ads-txt"
                                         name="ads_txt"
                                         rows={6}
@@ -536,14 +539,15 @@ export default function SiteCodeSettings({
                                         disabled={locked}
                                         data-test="site-code-ads-txt"
                                         aria-describedby="site-code-ads-txt-hint site-code-ads-txt-error"
-                                        className={`${controlClass} font-mono`}
+                                        className="font-mono"
                                     />
                                     <p
                                         id="site-code-ads-txt-hint"
-                                        className="text-ink-2 text-xs"
+                                        className="text-ink-2 text-small"
                                     >
-                                        One record a line, as the ads.txt
-                                        specification asks.
+                                        {__(
+                                            'One record a line, as the ads.txt specification asks.',
+                                        )}
                                     </p>
                                     <InputError
                                         id="site-code-ads-txt-error"
@@ -558,7 +562,7 @@ export default function SiteCodeSettings({
                                             disabled={processing}
                                             data-test="site-code-ads-txt-save"
                                         >
-                                            Save ads.txt
+                                            {__('Save ads.txt')}
                                         </Button>
                                     )}
                                 </>
