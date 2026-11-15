@@ -109,3 +109,35 @@ Each task: tests first, each seen red for the reason given; the quick check; com
 - Added: a menu's Show in card chooses the menus for each language's readers, and the item picker adds the language switcher.
 - Added: an "In other languages" table for a settings group's words, falling back to the default language's.
 - Fixed: adding, changing or removing a language no longer changes the order of the others.
+
+### Follow-up R7
+
+The review's five findings, each fixed on this branch (no merge of `main` or other parts).
+
+**Commits.**
+
+- 3c0c37b fix(settings): save every language's words together, or none
+- a1d0805 feat(menus): set a menu's own language from For readers of
+- 62edcbe fix(translations): offer every post a person may link, however few they may change
+- 9bae208 test(browser): axe and phone widths for the words table, For readers of and the list marks
+- fbe8882 docs(languages): say why the term marks read every term
+
+**Tests seen red.**
+
+- Finding 1: `SettingsWordsTest` "keeps no language's words when another's are refused" failed: Igbo's tagline was saved and logged (version 3, one more change) while French's was refused. Green after the new `SaveSettingsWords` Operation, which runs `TranslateSettings` per language inside its one transaction. Its "writes nothing when refused" test (an editor) was written with it.
+- Finding 2: `MenuReadersTest` "sets a menu's own language from For readers of" failed (the toast still said "Renamed to"), and "refuses a language the site doesn't have, or a person who may not manage menus" failed (no language was checked). Green after `RenameNavigation` takes an optional language. The Browser test "sets a menu's own language from For readers of, kept on reload" was added with it.
+- Finding 3: `EditorTranslationsTest` "finds the items a person may change however many newer ones they may not" failed: an author got `[]` with 21 newer French posts by others ahead of their own. Green after the edit rule moved into SQL (`ContentAbilities::canEditSql`).
+- Finding 4: new Browser coverage, not a fix: axe and no sideways scroll at 1280 and 375 (1440 and 375 for the list), light and dark, on General's words table, a menu's Show in card with For readers of, and the posts list with its marks. They passed the first time: nothing was broken there.
+- Finding 5: skipped as a code change. Terms have no `deleted_at` or status column (they are deleted outright), so there is no filter to add and no test that could fail; adding the column would be a migration this part doesn't own. A comment in `TermVersions` says so.
+
+**Decisions (draft).**
+
+- B-15 (draft). Finding 1. Options: `DB::transaction` in the controller (forbidden there); a service class; or a small Operation. Chosen: `SaveSettingsWords` (new, `app/Domain/Languages/Operations`), the group's ability and elevation as `TranslateSettings`, each language a nested `TranslateSettings` (a savepoint). Commit 3c0c37b.
+- B-16 (the maintainer's decision on finding 2, replacing B-09's limit). `RenameNavigation` (outside "Owns", added by the maintainer's decision) takes an optional language: null leaves it, a tag sets it, the default stored as null. "For readers of" now saves the menu's own language through it, keeping the name, and the places below still bind for that language as built. Commit a1d0805.
+
+**Full check.** Pint, PHPStan, types and lint clean; Architecture 139 passed; tests 10813 passed, 2 skipped, 1 failed. The one failure is `Feature/Media/MediaFiltersTest` "finds each month that has media", a query-plan assertion (the planner chose another plan under the parallel run's load); this part doesn't touch media, and the file run alone passes (7 passed). Browser files run one at a time: MultilingualScreensTest 26 passed, NavigationScreensTest 19 passed, ContentListsTest 17 passed. Baselines unchanged: 876 and 222.
+
+**Changelog line.**
+
+- Added: For readers of on a menu's Show in card sets the menu's own language.
+- Fixed: saving words in other languages keeps none when one language is refused.
