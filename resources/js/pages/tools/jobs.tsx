@@ -2,6 +2,7 @@ import { Form, Head, Link, usePoll } from '@inertiajs/react';
 import { RefreshCw } from 'lucide-react';
 import { useEffect } from 'react';
 import JobsController from '@/actions/App/Http/Admin/Tools/JobsController';
+import { JobLabel } from '@/components/jobs/job-label';
 import { JobProgress } from '@/components/jobs/job-progress';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
@@ -68,7 +69,7 @@ export default function Jobs({
             id: 'job',
             owner: 'core',
             header: 'Job',
-            cell: (row) => <span className="font-medium">{row.label}</span>,
+            cell: (row) => <JobLabel job={row} />,
         },
         {
             id: 'progress',
