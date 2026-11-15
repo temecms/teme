@@ -5,12 +5,14 @@ declare(strict_types=1);
 use App\Domain\Dashboard\DashboardPanel;
 use App\Domain\Dashboard\DashboardPanelQuery;
 use App\Domain\Dashboard\DashboardRegistry;
+use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Types\ContentType;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Route;
 
 uses(RefreshDatabase::class);
 
@@ -189,6 +191,199 @@ it('is one column on a phone', function (): void {
             return panels.every((panel) => Math.abs(panel.getBoundingClientRect().width - width) < 2);
         }
         JS);
+});
+
+it('opens Customize, shows every panel with its controls, empty ones too, and leaves with Done', function (): void {
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+
+    $page->assertMissing('[data-panel="returned_to_me"]')
+        ->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-test="home-customize-bar"]');
+    $page->assertPresent('[data-panel="returned_to_me"] [data-control="move-earlier"]')
+        ->click('[data-test="home-customize-done"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="home-customize-bar"]\') === null');
+    $page->assertScript('document.activeElement?.getAttribute("data-test") === "home-customize"');
+});
+
+it('moves a panel later from the keyboard, keeps focus on the button, announces it, and saves it', function (): void {
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-panel="my_drafts"]');
+
+    $before = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+    $from = array_search('my_drafts', $before, true);
+
+    $page->click('[data-panel="my_drafts"] [data-control="move-later"]');
+    cmWaitUntil($page, <<<'JS'
+        document.querySelector('[data-test="home-announce"]')?.textContent?.includes('Your drafts moved to position') === true
+        JS);
+
+    $after = $page->script(<<<'JS'
+        () => ({
+            order: [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel')),
+            focus: document.activeElement?.getAttribute('aria-label') ?? '',
+            announce: document.querySelector('[data-test="home-announce"]')?.textContent ?? '',
+        })
+        JS);
+    $to = array_search('my_drafts', $after['order'], true);
+
+    expect($after['focus'])->toContain('Move Your drafts later')
+        ->and($after['announce'])->toContain('Your drafts moved to position')
+        ->and($from)->not->toBeFalse()
+        ->and($to)->toBe($from + 1);
+
+    $this->editor->refresh();
+    $saved = PreferencesFor::user($this->editor)['dashboard.order'];
+    $shownSaved = array_values(array_filter(
+        $saved,
+        fn (string $key): bool => in_array($key, $after['order'], true),
+    ));
+    expect($shownSaved)->toBe($after['order']);
+
+    $page->click('[data-test="home-customize-done"]');
+    cmNavigate($page, '/admin');
+    shellSettled($page, '[data-test="home-grid"]');
+    $reloaded = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+    expect(array_search('my_drafts', $reloaded, true))->toBe(
+        array_search('my_drafts', array_values(array_filter(
+            $after['order'],
+            fn (string $key): bool => in_array($key, $reloaded, true),
+        )), true),
+    );
+});
+
+it('keeps focus on Move earlier at the first place', function (): void {
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-test="home-grid"]');
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const first = document.querySelector('[data-test="home-your-work"] [data-panel]');
+            const button = first?.querySelector('[data-control="move-earlier"]');
+            button?.focus();
+            button?.click();
+            return document.activeElement === button
+                && button?.getAttribute('aria-disabled') === 'true'
+                && first?.getAttribute('data-panel') === document.querySelector('[data-test="home-your-work"] [data-panel]')?.getAttribute('data-panel');
+        }
+        JS);
+});
+
+it('resizes a panel and saves only a size that differs', function (): void {
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-panel="scheduled"]');
+
+    $page->click('[data-panel="scheduled"] [data-control="size"] [aria-label="Full width"]');
+    cmWaitUntil($page, <<<'JS'
+        Math.abs(document.querySelector('[data-panel="scheduled"]').getBoundingClientRect().width
+            - document.querySelector('[data-test="home-grid"]').getBoundingClientRect().width) < 2
+        JS);
+
+    $this->editor->refresh();
+    expect(PreferencesFor::user($this->editor)['dashboard.sizes'])->toBe(['scheduled:full']);
+
+    $page->click('[data-panel="scheduled"] [data-control="size"] [aria-label="Small"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="home-announce"]\')?.textContent?.includes("Scheduled is now") === true');
+    $this->editor->refresh();
+    expect(PreferencesFor::user($this->editor)['dashboard.sizes'])->toBe([]);
+});
+
+it('hides a panel with Undo, and adds it back from Add a panel', function (): void {
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-panel="my_drafts"]');
+
+    $page->click('[data-panel="my_drafts"] [data-control="hide"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="flash-toast"]\') !== null');
+    $page->assertMissing('[data-panel="my_drafts"]')
+        ->click('[data-test="flash-toast"] button:not([data-test="flash-toast-dismiss"])');
+    cmWaitUntil($page, 'document.querySelector(\'[data-panel="my_drafts"]\') !== null');
+
+    $page->click('[data-panel="my_drafts"] [data-control="hide"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-panel="my_drafts"]\') === null');
+    $page->click('[data-test="home-customize-bar"] >> text="Add a panel"');
+    cmWaitUntil($page, 'document.querySelector(\'[role="menu"]\') !== null');
+    $page->assertSee('Teme')
+        ->click('[role="menuitem"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-panel="my_drafts"]\') !== null');
+});
+
+it('resets to the site default', function (): void {
+    lscrPrefer($this->editor, [
+        'dashboard.order' => ['my_recent_edits', 'my_drafts', 'scheduled'],
+        'dashboard.hidden' => ['scheduled'],
+        'dashboard.sizes' => ['my_drafts:full'],
+    ]);
+
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-test="home-customize-bar"]');
+    $page->click('[data-test="home-customize-reset"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="flash-toast"]\') !== null');
+
+    $this->editor->refresh();
+    expect(PreferencesFor::user($this->editor)['dashboard.order'])->toBe([])
+        ->and(PreferencesFor::user($this->editor)['dashboard.hidden'])->toBe([])
+        ->and(PreferencesFor::user($this->editor)['dashboard.sizes'])->toBe([]);
+});
+
+it('puts Home back and says so when a save fails', function (): void {
+    Route::patch('admin/account/preferences', fn () => response()->json(['message' => 'Server Error'], 500));
+
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-panel="my_drafts"]');
+
+    $before = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+
+    $page->click('[data-panel="my_drafts"] [data-control="move-later"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="flash-toast"]\')?.textContent?.includes("Couldn\'t save your Home") === true');
+
+    $after = $page->script(<<<'JS'
+        () => [...document.querySelectorAll('[data-test="home-your-work"] [data-panel]')].map((node) => node.getAttribute('data-panel'))
+        JS);
+
+    expect($after)->toBe($before);
+});
+
+it('keeps Customize usable on a phone', function (): void {
+    $page = cmSignIn($this->editor)->resize(375, 900);
+    shellSettled($page, '[data-test="home-customize"]');
+    $page->click('[data-test="home-customize"]');
+    shellSettled($page, '[data-test="home-customize-bar"]');
+
+    $page->assertPresent('[data-panel="my_drafts"] [data-control="move-earlier"]')
+        ->assertPresent('[data-panel="my_drafts"] [data-control="move-later"]')
+        ->assertPresent('[data-panel="my_drafts"] [data-control="hide"]')
+        ->assertMissing('[data-panel="my_drafts"] [data-control="size"]');
+
+    $sizes = $page->script(<<<'JS'
+        () => {
+            const buttons = ['move-earlier', 'move-later', 'hide'].map((control) => {
+                const node = document.querySelector(`[data-panel="my_drafts"] [data-control="${control}"]`);
+                const box = node?.getBoundingClientRect();
+                return box ? Math.min(box.width, box.height) : 0;
+            });
+            return buttons;
+        }
+        JS);
+
+    expect(min($sizes))->toBeGreaterThanOrEqual(44);
 });
 
 /**

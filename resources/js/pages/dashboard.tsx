@@ -1,30 +1,47 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { LayoutDashboard } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ContentListController from '@/actions/App/Http/Admin/Contents/ContentListController';
+import { CustomizeBar } from '@/components/dashboard/customize-bar';
 import { todayLine } from '@/components/dashboard/greeting';
 import { GettingStarted } from '@/components/dashboard/getting-started';
-import { sectionOf } from '@/components/dashboard/home-layout';
+import {
+    moveBy,
+    moveTo,
+    sectionOf,
+    shownIn,
+    toPreferences,
+    type Layout,
+} from '@/components/dashboard/home-layout';
 import { HomePanel } from '@/components/dashboard/home-panel';
 import { PanelGrid } from '@/components/dashboard/panel-grid';
 import { SiteFigures } from '@/components/dashboard/site-figures';
+import { showToast } from '@/components/flash-toast';
 import { DashboardPage } from '@/components/patterns/dashboard-page';
 import { Button } from '@/components/ui/button';
 import { Notice } from '@/components/ui/notice';
 import { __ } from '@/lib/i18n';
+import { savePreferences } from '@/lib/preferences';
 import { dashboard } from '@/routes';
 import { index as mediaIndex } from '@/routes/media';
-import type { DashboardPage as HomeProps } from '@/types';
+import type { DashboardPage as HomeProps, PanelSize } from '@/types';
+
+const SIZE_WORDS: Record<PanelSize, string> = {
+    small: 'Small',
+    medium: 'Medium',
+    large: 'Large',
+    full: 'Full width',
+};
 
 /**
  * Home (I-161, I-210, I-3401): greeting and actions, the site's figures as
- * tiles, then Your work and From plugins in a grid of four sizes. Empty
- * panels stay out of the way outside Customize.
+ * tiles, then Your work and From plugins in a grid of four sizes. Customize
+ * saves each change at once as the person's preferences.
  */
 export default function Dashboard({
     panels,
     catalogue,
-    layout,
+    layout: initialLayout,
     figures,
     mainType,
     gettingStarted,
@@ -34,6 +51,32 @@ export default function Dashboard({
 }: HomeProps) {
     const { auth, i18n } = usePage().props;
     const [customizing, setCustomizing] = useState(false);
+    const [layout, setLayout] = useState<Layout>(initialLayout);
+    const [announce, setAnnounce] = useState('');
+    const customizeButton = useRef<HTMLButtonElement | null>(null);
+    const saveChain = useRef(Promise.resolve(true));
+    const layoutRef = useRef(layout);
+    layoutRef.current = layout;
+
+    useEffect(() => {
+        setLayout(initialLayout);
+    }, [initialLayout]);
+
+    const owners = useMemo(
+        () =>
+            Object.fromEntries(
+                catalogue.map((entry) => [entry.key, entry.owner]),
+            ),
+        [catalogue],
+    );
+
+    const declared = useMemo(
+        () =>
+            Object.fromEntries(
+                catalogue.map((entry) => [entry.key, entry.size]),
+            ) as Record<string, PanelSize>,
+        [catalogue],
+    );
 
     const panelsByKey = useMemo(
         () => Object.fromEntries(panels.map((panel) => [panel.key, panel])),
@@ -67,6 +110,199 @@ export default function Dashboard({
         </Form>
     );
 
+    const persist = (next: Layout, previous: Layout) => {
+        setLayout(next);
+        saveChain.current = saveChain.current.then(async () => {
+            const saved = await savePreferences(toPreferences(next, declared));
+
+            if (!saved) {
+                setLayout(previous);
+                showToast({
+                    type: 'error',
+                    message: __("Couldn't save your Home. Try again."),
+                });
+
+                return false;
+            }
+
+            return true;
+        });
+
+        return saveChain.current;
+    };
+
+    const focusControl = (key: string, control: string) => {
+        queueMicrotask(() => {
+            const node = document.querySelector(
+                `[data-panel="${key}"] [data-control="${control}"]`,
+            );
+
+            if (node instanceof HTMLElement) {
+                node.focus();
+            }
+        });
+    };
+
+    const sayMove = (key: string, order: string[]) => {
+        const entry = catalogue.find((item) => item.key === key);
+        const section = sectionOf(owners[key] ?? 'core');
+        const shown = shownIn(
+            { ...layout, order, hidden: layout.hidden },
+            owners,
+            section,
+        );
+        const position = shown.indexOf(key) + 1;
+
+        setAnnounce(
+            __(':name moved to position :position of :count.', {
+                name: __(entry?.label ?? key),
+                position,
+                count: shown.length,
+            }),
+        );
+    };
+
+    const movePanel = (key: string, step: -1 | 1) => {
+        const previous = layoutRef.current;
+        const order = moveBy(previous, owners, key, step);
+
+        if (order === previous.order) {
+            focusControl(key, step === -1 ? 'move-earlier' : 'move-later');
+
+            return;
+        }
+
+        void persist({ ...previous, order }, previous).then((saved) => {
+            if (saved) {
+                sayMove(key, order);
+            }
+
+            focusControl(key, step === -1 ? 'move-earlier' : 'move-later');
+        });
+    };
+
+    const resizePanel = (key: string, size: PanelSize) => {
+        const previous = layoutRef.current;
+        const next = {
+            ...previous,
+            sizes: { ...previous.sizes, [key]: size },
+        };
+        const entry = catalogue.find((item) => item.key === key);
+
+        void persist(next, previous).then((saved) => {
+            if (saved) {
+                setAnnounce(
+                    __(':name is now :size.', {
+                        name: __(entry?.label ?? key),
+                        size: __(SIZE_WORDS[size]),
+                    }),
+                );
+            }
+
+            focusControl(key, 'size');
+        });
+    };
+
+    const hidePanel = (key: string) => {
+        const previous = layoutRef.current;
+        const entry = catalogue.find((item) => item.key === key);
+        const next = {
+            ...previous,
+            hidden: [...previous.hidden, key],
+        };
+
+        void persist(next, previous).then((saved) => {
+            if (!saved) {
+                return;
+            }
+
+            showToast({
+                type: 'success',
+                message: __(':name hidden', { name: __(entry?.label ?? key) }),
+                action: {
+                    label: __('Undo'),
+                    onClick: () => {
+                        const current = layoutRef.current;
+                        void persist(
+                            {
+                                ...current,
+                                hidden: current.hidden.filter(
+                                    (item) => item !== key,
+                                ),
+                            },
+                            current,
+                        );
+                    },
+                },
+            });
+        });
+    };
+
+    const addPanel = (key: string) => {
+        const previous = layoutRef.current;
+        const entry = catalogue.find((item) => item.key === key);
+        const order = previous.order.includes(key)
+            ? previous.order
+            : [...previous.order, key];
+        const unhidden: Layout = {
+            ...previous,
+            order,
+            hidden: previous.hidden.filter((item) => item !== key),
+        };
+        const atEnd = moveTo(
+            unhidden,
+            owners,
+            key,
+            shownIn(unhidden, owners, sectionOf(owners[key])).length,
+        );
+
+        void persist({ ...unhidden, order: atEnd }, previous).then((saved) => {
+            if (saved) {
+                showToast({
+                    type: 'success',
+                    message: __(':name added', {
+                        name: __(entry?.label ?? key),
+                    }),
+                });
+            }
+        });
+    };
+
+    const resetLayout = () => {
+        const previous = layoutRef.current;
+        const next: Layout = {
+            order: catalogue.map((entry) => entry.key),
+            hidden: [],
+            sizes: { ...declared },
+        };
+
+        setLayout(next);
+        saveChain.current = saveChain.current.then(async () => {
+            const saved = await savePreferences({
+                'dashboard.order': [],
+                'dashboard.hidden': [],
+                'dashboard.sizes': [],
+            });
+
+            if (!saved) {
+                setLayout(previous);
+                showToast({
+                    type: 'error',
+                    message: __("Couldn't save your Home. Try again."),
+                });
+
+                return false;
+            }
+
+            showToast({
+                type: 'success',
+                message: __('Home is back to the site default'),
+            });
+
+            return true;
+        });
+    };
+
     const actions = !customizing && (
         <>
             {create}
@@ -76,8 +312,10 @@ export default function Dashboard({
                 </Button>
             )}
             <Button
+                ref={customizeButton}
                 variant="ghost"
                 aria-pressed={customizing}
+                data-test="home-customize"
                 onClick={() => setCustomizing(true)}
             >
                 <LayoutDashboard aria-hidden="true" />
@@ -118,7 +356,6 @@ export default function Dashboard({
     const hasPluginCatalogue = catalogue.some(
         (entry) => sectionOf(entry.owner) === 'plugins',
     );
-    // As today: the empty line is about rows panels; Quick draft still shows (I-161).
     const nothingWaiting =
         !customizing &&
         coreKeys.every((key) => {
@@ -126,6 +363,30 @@ export default function Dashboard({
 
             return entry?.kind !== 'rows';
         });
+
+    const renderPanel = (key: string) => {
+        const entry = catalogue.find((item) => item.key === key)!;
+        const section = sectionOf(entry.owner);
+        const keys = section === 'core' ? coreKeys : pluginKeys;
+        const index = keys.indexOf(key);
+
+        return (
+            <HomePanel
+                key={key}
+                entry={entry}
+                panel={panelsByKey[key] ?? null}
+                size={layout.sizes[key] ?? entry.size}
+                customizing={customizing}
+                section={section}
+                canMoveEarlier={index > 0}
+                canMoveLater={index >= 0 && index < keys.length - 1}
+                onMoveEarlier={() => movePanel(key, -1)}
+                onMoveLater={() => movePanel(key, 1)}
+                onResize={(size) => resizePanel(key, size)}
+                onHide={() => hidePanel(key)}
+            />
+        );
+    };
 
     return (
         <>
@@ -142,6 +403,29 @@ export default function Dashboard({
                 }
                 actions={actions}
             >
+                <div
+                    role="status"
+                    className="sr-only"
+                    data-test="home-announce"
+                >
+                    {announce}
+                </div>
+
+                {customizing && (
+                    <CustomizeBar
+                        catalogue={catalogue}
+                        hidden={layout.hidden}
+                        onAdd={addPanel}
+                        onReset={resetLayout}
+                        onDone={() => {
+                            setCustomizing(false);
+                            queueMicrotask(() =>
+                                customizeButton.current?.focus(),
+                            );
+                        }}
+                    />
+                )}
+
                 {searchEngines !== null && (
                     <Notice
                         tone="warn"
@@ -194,23 +478,7 @@ export default function Dashboard({
                         </div>
                     )}
                     {coreKeys.length > 0 && (
-                        <PanelGrid>
-                            {coreKeys.map((key) => {
-                                const entry = catalogue.find(
-                                    (item) => item.key === key,
-                                )!;
-
-                                return (
-                                    <HomePanel
-                                        key={key}
-                                        entry={entry}
-                                        panel={panelsByKey[key] ?? null}
-                                        size={layout.sizes[key] ?? entry.size}
-                                        customizing={customizing}
-                                    />
-                                );
-                            })}
-                        </PanelGrid>
+                        <PanelGrid>{coreKeys.map(renderPanel)}</PanelGrid>
                     )}
                 </section>
 
@@ -232,25 +500,7 @@ export default function Dashboard({
                             )}
                         </p>
                         {pluginKeys.length > 0 && (
-                            <PanelGrid>
-                                {pluginKeys.map((key) => {
-                                    const entry = catalogue.find(
-                                        (item) => item.key === key,
-                                    )!;
-
-                                    return (
-                                        <HomePanel
-                                            key={key}
-                                            entry={entry}
-                                            panel={panelsByKey[key] ?? null}
-                                            size={
-                                                layout.sizes[key] ?? entry.size
-                                            }
-                                            customizing={customizing}
-                                        />
-                                    );
-                                })}
-                            </PanelGrid>
+                            <PanelGrid>{pluginKeys.map(renderPanel)}</PanelGrid>
                         )}
                     </section>
                 )}
