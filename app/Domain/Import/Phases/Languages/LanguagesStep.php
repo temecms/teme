@@ -91,6 +91,15 @@ final readonly class LanguagesStep implements StepPhase
             }
 
             $words['language'] = $site->label($language['language']);
+
+            // Two old languages that become one here: the first keeps its prefix, the second's items share it.
+            if (isset($named[$language['language']])) {
+                $words['first'] = $named[$language['language']]['prefix'];
+                $messages[] = new ImportMessage('languages.same-tag', __('The old site’s :name (:locale) is :language here, as /:first/ is, so it wasn’t added again: its posts and pages come across in :language at /:first/, and translations with a version in both aren’t linked.', $words), $words);
+
+                continue;
+            }
+
             $named[$language['language']] = $words;
 
             if ($language['language'] === $site->defaultTag()) {

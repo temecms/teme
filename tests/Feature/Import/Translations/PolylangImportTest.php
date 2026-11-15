@@ -214,3 +214,15 @@ it('stops rather than create items in the default language when the old site\'s 
         ->and($run->phase)->toBe('content')
         ->and(Content::query()->count())->toBe(0);
 });
+
+it('says when two of the old site\'s languages become one language here, keeping the first one\'s prefix', function (): void {
+    $answer = PolylangSite::languages();
+    $answer['languages'][] = ['slug' => 'mx', 'locale' => 'es_MX', 'name' => 'Español de México', 'rtl' => false, 'order' => 7];
+    $this->site->with('languages', $answer);
+
+    $run = $this->site->import($this->source);
+    $same = ImportMessageRecord::query()->where('run_id', $run->id)->where('code', 'languages.same-tag')->sole();
+
+    expect($same->context)->toMatchArray(['prefix' => 'mx', 'first' => 'es'])
+        ->and(app(SiteLanguages::class)->prefix('es'))->toBe('es');
+});
