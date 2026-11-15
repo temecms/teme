@@ -12,8 +12,9 @@ use Throwable;
 /**
  * Whether the site has any fediverse account of its own, made or imported:
  * until it has, the WordPress plugin's addresses on the home page stay the
- * home page's. Kept in the cache, forgotten after the commit that adds or
- * removes an account (rule 6).
+ * home page's. Kept in the cache either way, so a stored page is answered
+ * with no query, and forgotten after the commit that adds or removes an
+ * account (rule 6).
  */
 final class SiteActors
 {
@@ -24,21 +25,11 @@ final class SiteActors
      */
     public static function exist(): bool
     {
-        if (Cache::get(self::KEY) === true) {
-            return true;
-        }
-
         try {
-            $exist = FediverseActor::query()->exists();
+            return (bool) Cache::memo()->rememberForever(self::KEY, fn (): bool => FediverseActor::query()->exists());
         } catch (Throwable) {
             return false;
         }
-
-        if ($exist) {
-            Cache::forever(self::KEY, true);
-        }
-
-        return $exist;
     }
 
     /**
@@ -46,6 +37,6 @@ final class SiteActors
      */
     public static function changed(): void
     {
-        DB::afterCommit(fn () => Cache::forget(self::KEY));
+        DB::afterCommit(fn () => Cache::memo()->forget(self::KEY));
     }
 }
