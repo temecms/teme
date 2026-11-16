@@ -377,7 +377,7 @@ final class InstallerRunner
         app(EndExtensionRequest::class)->execute(new EndExtensionRequestInput(
             $request->id,
             RequestStatus::Done,
-            report: $this->report($request),
+            report: $this->scrub($this->report($request)),
             plugins: $plugins,
             themes: $themes,
         ));
@@ -413,7 +413,55 @@ final class InstallerRunner
             // The request ends below whatever this step's record says.
         }
 
-        app(EndExtensionRequest::class)->execute(new EndExtensionRequestInput($request->id, RequestStatus::Failed, $reason, $this->report($request)));
+        app(EndExtensionRequest::class)->execute(new EndExtensionRequestInput($request->id, RequestStatus::Failed, $this->scrub($reason), $this->scrub($this->report($request))));
+    }
+
+    /**
+     * Text the installer records, with every saved source's key replaced:
+     * a request's reason, steps and report reach the browser, and Composer
+     * or a source may repeat a key it was given.
+     *
+     * @template T of string|array<mixed>|null
+     *
+     * @param  T  $value
+     *
+     * @return T
+     */
+    private function scrub(string|array|null $value): string|array|null
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $secrets = [];
+
+        foreach (ExtensionSourceRecord::query()->whereNotNull('credential')->get() as $record) {
+            $key = (string) $record->credential;
+
+            // A key too short to hide would blank ordinary words instead.
+            if (strlen($key) >= 4) {
+                $secrets[$key] = '[hidden]';
+                $secrets[trim((string) json_encode($key), '"')] = '[hidden]';
+            }
+        }
+
+        if ($secrets === []) {
+            return $value;
+        }
+
+        uksort($secrets, fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+
+        if (is_string($value)) {
+            return strtr($value, $secrets);
+        }
+
+        array_walk_recursive($value, function (mixed &$item) use ($secrets): void {
+            if (is_string($item)) {
+                $item = strtr($item, $secrets);
+            }
+        });
+
+        return $value;
     }
 
     /** Deletes the request's release when it never went live. */
@@ -605,7 +653,9 @@ final class InstallerRunner
         ?string $toRelease = null,
         ?RequestStep $step = null,
     ): void {
-        app(RecordExtensionStep::class)->execute(new RecordExtensionStepInput($request->id, $current, $state, $detail, $needs, $status, $fromRelease, $toRelease));
+        app(RecordExtensionStep::class)->execute(new RecordExtensionStepInput(
+            $request->id, $current, $state, $this->scrub($detail), $this->scrub($needs), $status, $fromRelease, $toRelease,
+        ));
 
         if ($step !== null) {
             app(RecordExtensionStep::class)->execute(new RecordExtensionStepInput($request->id, $step, RequestStep::PENDING));

@@ -2,14 +2,21 @@
 
 declare(strict_types=1);
 
+use App\Domain\Extensions\Installer\InstallerFailed;
+use App\Domain\Extensions\Models\ExtensionSourceRecord;
 use App\Domain\Extensions\Operations\BeginExtensionRequest;
 use App\Domain\Extensions\Operations\EndExtensionRequest;
 use App\Domain\Extensions\Operations\Input\BeginExtensionRequestInput;
 use App\Domain\Extensions\Operations\Input\EndExtensionRequestInput;
 use App\Domain\Extensions\Operations\Input\RecordExtensionStepInput;
 use App\Domain\Extensions\Operations\RecordExtensionStep;
+use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Extensions\RequestStatus;
 use App\Domain\Extensions\RequestStep;
+use App\Domain\Extensions\Sources\ExtensionRequest;
+use App\Domain\Extensions\Sources\ExtensionSource;
+use App\Domain\Extensions\Sources\SourceKind;
+use App\Domain\Extensions\Sources\SourceKinds;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -250,3 +257,57 @@ describe('the installer’s Operations', function (): void {
         }
     });
 });
+
+it('records no saved key in a failed request’s reason, steps or report, nor on the screens that show it', function (): void {
+    $this->seed(RoleSeeder::class);
+    app()->instance('tests.leaky-source', new ExtJoinLeakySource);
+    app()->tag('tests.leaky-source', SourceKinds::TAG);
+    $source = strtolower((string) Str::ulid());
+    DB::table('extension_sources')->insert([
+        'id' => $source, 'kind' => 'leaky', 'label' => 'Vendor', 'url' => 'https://vendor.example.com', 'username' => null,
+        'credential' => encrypt('secret-key-123', false), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $id = ($this->ask)('install', 'acme/paid', '1.0.0', ['source_kind' => 'leaky', 'source_id' => $source]);
+
+    $row = ($this->settle)($id);
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toContain('The vendor refused the key')
+        ->and(json_encode($row))->not->toContain('secret-key-123');
+
+    config(['teme.extensions.path' => $this->folder->root]);
+    $admin = User::factory()->create()->assignRole('administrator');
+    $shown = $this->actingAs($admin)->getJson("/admin/extensions/requests/{$id}")->assertOk();
+
+    expect((string) $shown->getContent())->toContain('The vendor refused the key')->not->toContain('secret-key-123')
+        ->and(json_encode(app(ExtensionsScreen::class)->data()))->toContain($id)->not->toContain('secret-key-123');
+});
+
+/**
+ * A vendor's source whose prepare() repeats its key in the reason it fails,
+ * as a careless message or Composer's own output might.
+ */
+final readonly class ExtJoinLeakySource implements SourceKind
+{
+    public function key(): string
+    {
+        return 'leaky';
+    }
+
+    public function repositories(?ExtensionSource $source, string $extensionsPath): array
+    {
+        return [];
+    }
+
+    public function auth(?ExtensionSource $source): array
+    {
+        return $source?->credential === null ? [] : ['bearer' => ['vendor.example.com' => $source->credential]];
+    }
+
+    public function prepare(ExtensionRequest $request, string $releasePath, string $extensionsPath): void
+    {
+        $key = ExtensionSourceRecord::query()->findOrFail($request->sourceId)->toSource()->credential;
+
+        throw new InstallerFailed("The vendor refused the key {$key} for {$request->package}.");
+    }
+}
