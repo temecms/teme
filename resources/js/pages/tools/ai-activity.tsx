@@ -1,5 +1,5 @@
 import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
-import type { CSSProperties, FormEvent } from 'react';
+import type { CSSProperties, FormEvent, HTMLAttributes } from 'react';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Notice } from '@/components/ui/notice';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { SelectField } from '@/components/ui/select-field';
 import {
     costWords,
@@ -26,7 +27,12 @@ import { __, __n } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 import { index as toolsIndex } from '@/routes/tools';
 import { index } from '@/routes/tools/ai-activity';
-import type { AiActivityPage, AiActivityRow, AiMonthSummary } from '@/types';
+import type {
+    AiActivityPage,
+    AiActivityRow,
+    AiMonthSummary,
+    AiPluginMonth,
+} from '@/types';
 
 /** The summary's two columns from the small breakpoint up. */
 const FACTS = { '--facts-cols': 'max-content 1fr' } as CSSProperties;
@@ -153,6 +159,112 @@ function Summary({
 }
 
 /**
+ * The month's spend by who asked: Teme's own requests, then each plugin by
+ * its own name and mark, with its requests, cost and, this month, its budget.
+ */
+function ByPlugin({
+    rows,
+    current,
+}: {
+    rows: AiPluginMonth[];
+    current: boolean;
+}) {
+    const columns: Column<AiPluginMonth>[] = [
+        {
+            id: 'who',
+            owner: 'core',
+            header: __('Who asked'),
+            cell: (row) =>
+                row.code === 'teme' ? (
+                    <>
+                        {row.label}
+                        <span className="text-ink-2 text-caption block">
+                            {__('People’s own requests')}
+                        </span>
+                    </>
+                ) : (
+                    <PluginMark
+                        name={row.label}
+                        className="text-small text-ink"
+                    />
+                ),
+        },
+        {
+            id: 'requests',
+            owner: 'core',
+            header: __('Requests'),
+            className: 'text-right',
+            cell: (row) => row.requests.toLocaleString(),
+        },
+        {
+            id: 'cost',
+            owner: 'core',
+            header: __('Cost'),
+            className: 'text-right',
+            cell: (row) => formatCost(row.costMicrounits),
+        },
+        ...(current
+            ? [
+                  {
+                      id: 'budget',
+                      owner: 'core',
+                      header: __('Budget'),
+                      cell: (row: AiPluginMonth) =>
+                          row.budget === null
+                              ? __('No limit')
+                              : row.budget.reached
+                                ? __(':spent of :limit, used up', {
+                                      spent: formatCost(
+                                          row.budget.countedMicrounits,
+                                      ),
+                                      limit: formatCost(
+                                          row.budget.limitMicrounits,
+                                      ),
+                                  })
+                                : __(':spent of :limit', {
+                                      spent: formatCost(
+                                          row.budget.countedMicrounits,
+                                      ),
+                                      limit: formatCost(
+                                          row.budget.limitMicrounits,
+                                      ),
+                                  }),
+                  },
+              ]
+            : []),
+    ];
+
+    return (
+        <Panel
+            aria-labelledby="ai-activity-by-plugin"
+            data-test="ai-activity-by-plugin"
+        >
+            <PanelHeader>
+                <h2
+                    id="ai-activity-by-plugin"
+                    className="text-lead font-semibold"
+                >
+                    {__('By plugin')}
+                </h2>
+            </PanelHeader>
+            <PanelBody>
+                <DataTable
+                    columns={columns}
+                    rows={rows}
+                    rowKey={(row) => row.code}
+                    caption={__('AI spend by who asked')}
+                    rowProps={(row) =>
+                        ({
+                            'data-test': `ai-activity-plugin-month-${row.code}`,
+                        }) as HTMLAttributes<HTMLTableRowElement>
+                    }
+                />
+            </PanelBody>
+        </Panel>
+    );
+}
+
+/**
  * Tools › AI activity (I-1307): every AI request in the record, newest first,
  * a page at a time, narrowed by person, task and month, with the month's
  * spend above it and a drawer that has its own address.
@@ -166,7 +278,9 @@ export default function AiActivity(page: AiActivityPage) {
         people,
         tasks,
         months,
+        plugins,
         summary,
+        pluginMonths,
         details,
         missing,
         siteTimezone,
@@ -183,12 +297,16 @@ export default function AiActivity(page: AiActivityPage) {
     const filtered =
         filters.person !== null ||
         filters.task !== null ||
-        filters.month !== null;
+        filters.month !== null ||
+        filters.plugin !== null;
     const keep: Record<string, string> = {
         ...(filters.person === null ? {} : { person: String(filters.person) }),
         ...(filters.task === null ? {} : { task: filters.task }),
         ...(filters.month === null ? {} : { month: filters.month }),
+        ...(filters.plugin === null ? {} : { plugin: filters.plugin }),
     };
+    // Teme only is no choice until a plugin has asked.
+    const askedBy = plugins.length > 1 || filters.plugin !== null;
 
     // A filter starts a list afresh: no cursor, no drawer.
     const filter = (event: FormEvent<HTMLFormElement>) => {
@@ -196,7 +314,7 @@ export default function AiActivity(page: AiActivityPage) {
         const data = new FormData(event.currentTarget);
         const query: Record<string, string> = {};
 
-        for (const name of ['person', 'task', 'month'] as const) {
+        for (const name of ['person', 'task', 'month', 'plugin'] as const) {
             const value = data.get(name);
 
             if (typeof value === 'string' && value !== '') {
@@ -254,6 +372,14 @@ export default function AiActivity(page: AiActivityPage) {
             cell: (row) => (
                 <>
                     {row.task.label}
+                    {row.plugin !== null && (
+                        <span
+                            className="block"
+                            data-test={`ai-row-plugin-${row.id}`}
+                        >
+                            <PluginMark name={row.plugin.label} />
+                        </span>
+                    )}
                     {row.variant !== null && (
                         <span className="text-ink-2 text-caption block">
                             {row.variant.label}
@@ -383,6 +509,10 @@ export default function AiActivity(page: AiActivityPage) {
                     canChangeSettings={canChangeSettings}
                 />
 
+                {pluginMonths.length > 0 && (
+                    <ByPlugin rows={pluginMonths} current={summary.current} />
+                )}
+
                 <form
                     role="search"
                     aria-label={__('Filter AI requests')}
@@ -435,6 +565,22 @@ export default function AiActivity(page: AiActivityPage) {
                             className="w-44"
                         />
                     </Field>
+                    {askedBy && (
+                        <Field
+                            key={`plugin-${filters.plugin ?? ''}`}
+                            htmlFor="ai-plugin"
+                            label={__('Asked by')}
+                        >
+                            <SelectField
+                                id="ai-plugin"
+                                name="plugin"
+                                defaultValue={filters.plugin ?? ''}
+                                emptyLabel={__('Teme and plugins')}
+                                options={plugins}
+                                className="w-52"
+                            />
+                        </Field>
+                    )}
                     <Button
                         type="submit"
                         variant="outline"

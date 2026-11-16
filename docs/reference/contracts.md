@@ -22,6 +22,57 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Site\SiteInfo` | always | 0.9.0 |
 | `Teme\Contracts\Settings\PluginSettingsWriter` | its manifest declares `contributes.settings` | 0.9.0 |
 | `Teme\Contracts\Insertions\InlineScripts` | granted `content.insert` | 0.9.0 |
+| `Teme\Contracts\Content\ContentReader` | granted `content.read` | 0.9.0 |
+| `Teme\Contracts\People\PeopleReader` | granted `people.read` | 0.9.0 |
+| `Teme\Contracts\Ai\SiteAi` | granted `ai` and its manifest declares `contributes.aiTasks` | 0.9.0 |
+| `Teme\Contracts\Hooks\HookSender` | its manifest declares `contributes.hooks` | 0.9.0 |
+| `Teme\Contracts\Notices\Notices` | granted `notices.send` | 0.5.0 |
+
+## Teme\Contracts\Ai
+
+### AiAnswer
+
+`Teme\Contracts\Ai\AiAnswer`, class. Since 0.9.0.
+
+The answer: text, or data when a schema was sent; the model; the tokens; the cost when known; and the ID of the request's record.
+
+- `__construct(string $model, ?string $text, ?array $data, int $inputTokens, int $outputTokens, ?int $costMicrodollars, string $requestId)`. Since 0.9.0.
+
+### AiAsk
+
+`Teme\Contracts\Ai\AiAsk`, class. Since 0.9.0.
+
+One request: the plugin's instructions, its named inputs (each fenced by core), an optional JSON schema.
+
+- `MOST_INSTRUCTIONS` — The longest the instructions may be, in characters. Since 0.9.0.
+- `MOST_SECONDS` — The longest a request may wait for its answer outside a long job, in seconds. Since 0.9.0.
+- `MOST_LONG_SECONDS` — The longest a request may wait for its answer inside a long job, in seconds. Since 0.9.0.
+- `__construct(string $task, string $instructions, array $inputs, ?array $schema = null, int $maxOutputTokens = 4096, int $timeoutSeconds = 55, ?string $itemId = null)`. Since 0.9.0.
+
+### AiRefused
+
+`Teme\Contracts\Ai\AiRefused`, class. Since 0.9.0.
+
+Refused before sending (reason as AiStanding's, or no-person, no-permission, in-transaction, no-task, too-many-tokens, no-schema, too-long), or failed after (unavailable, rate-limited, invalid-output, timeout, refused). Its message is one plain sentence, never the AI service's own words.
+
+- `__construct(string $reason, string $sentence)`. Since 0.9.0.
+
+### AiStanding
+
+`Teme\Contracts\Ai\AiStanding`, class. Since 0.9.0.
+
+Whether a task can be asked now, why not in plain words, and this plugin's month.
+
+- `__construct(bool $available, string $reason, string $sentence, int $monthCostMicrodollars, int $monthRequests, ?int $monthBudgetMicrodollars)`. Since 0.9.0.
+
+### SiteAi
+
+`Teme\Contracts\Ai\SiteAi`, interface. Since 0.9.0.
+
+Asks the site's AI connection for one of the calling plugin's declared tasks, for a named person. The plugin never holds a provider key: core sends the request through the model chosen for the task in Settings › AI, fences the plugin's inputs, and records the request's figures under the plugin, never its words.
+
+- `standing(string $task): AiStanding` — Whether this task can be asked now, and this plugin's AI spending this month. Since 0.9.0.
+- `ask(AiAsk $ask, string $actingPersonId): AiAnswer` — Sends one request through the model chosen for this task in Settings › AI, its fallback once if the first can't be reached, and records it under this plugin for $actingPersonId. Since 0.9.0.
 
 ## Teme\Contracts\Cache
 
@@ -80,6 +131,14 @@ A moderator's answer for one comment: approved, held for a person to decide, or 
 
 ## Teme\Contracts\Content
 
+### ArticleLinks
+
+`Teme\Contracts\Content\ArticleLinks`, class. Since 0.9.0.
+
+Asked once each time an article is drawn, on the site, in a feed or by the API, with the links it draws: a listener returns, by each link's place in $links, the LinkAttributes Teme writes on it. A value outside LinkAttributes' rules fails that listener, which is recorded and skipped.
+
+A hook: its parameters are in the [hooks reference](hooks.md#articlelinks).
+
 ### ContentDeleted
 
 `Teme\Contracts\Content\ContentDeleted`, class. Since 0.5.0.
@@ -95,6 +154,16 @@ A hook: its parameters are in the [hooks reference](hooks.md#contentdeleted).
 An item became public, or its public revision changed: published by a person, or by its schedule, acting for whoever scheduled it. Sent after the change is saved, never during an import run.
 
 A hook: its parameters are in the [hooks reference](hooks.md#contentpublished).
+
+### ContentReader
+
+`Teme\Contracts\Content\ContentReader`, interface. Since 0.9.0.
+
+Reads the site's content for a plugin granted content.read: published items for anyone, and drafts and the queue of unpublished items for a person who may edit them.
+
+- `published(ItemQuery $query): ItemPage` — Published, public items, newest first, one page at a time: what a visitor can open. Since 0.9.0.
+- `draft(string $itemId, string $actingPersonId): ItemSnapshot` — The item's working revision, as the editor holds it, for a person who may edit it. Since 0.9.0.
+- `queue(QueueQuery $query, string $actingPersonId): QueuePage` — Unpublished items by status, draft, in review or scheduled, that the person may edit, oldest first, one page at a time: the queue as it stands, including what was there before the plugin was enabled. Since 0.9.0.
 
 ### ContentRestored
 
@@ -148,12 +217,13 @@ A hook: its parameters are in the [hooks reference](hooks.md#contentvisibilitych
 
 `Teme\Contracts\Content\ContentWriter`, interface. Since 0.9.0.
 
-How a plugin granted content.write creates and changes items, publishes and schedules them, always on behalf of a named person.
+How a plugin granted content.write creates and changes items, publishes and schedules them, and links language versions, always on behalf of a named person.
 
 - `create(NewItem $item, string $actingPersonId): ItemRef` — Creates a draft and returns it. Since 0.9.0.
 - `change(ItemRef $item, ItemChanges $changes, string $actingPersonId): ItemRef` — Saves a new revision of the item's draft with these changes. Since 0.9.0.
 - `publish(ItemRef $item, string $actingPersonId): ItemRef` — Publishes the item's latest revision now. Since 0.9.0.
 - `schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef` — Schedules the item's latest revision. Since 0.9.0.
+- `linkTranslations(array $itemIds, string $actingPersonId): void` — Links existing items as language versions of one another: every version each already has joins one group. Since 0.9.0.
 
 ### ItemChanges
 
@@ -161,7 +231,23 @@ How a plugin granted content.write creates and changes items, publishes and sche
 
 What a plugin asks ContentWriter::change() to save on an item's draft. Each null field leaves that part as it is.
 
-- `__construct(?string $title = null, ?array $body = null, ?array $fields = null, ?array $terms = null, ?MediaRef $featuredImage = null)`. Since 0.9.0.
+- `__construct(?string $title = null, ?array $body = null, ?array $fields = null, ?array $terms = null, ?MediaRef $featuredImage = null, ?string $slug = null, ?array $credits = null)`. Since 0.9.0.
+
+### ItemPage
+
+`Teme\Contracts\Content\ItemPage`, class. Since 0.9.0.
+
+One page of ContentReader::published(): its items, and the cursor for the next page.
+
+- `__construct(array $items, ?string $next)`. Since 0.9.0.
+
+### ItemQuery
+
+`Teme\Contracts\Content\ItemQuery`, class. Since 0.9.0.
+
+Which published items ContentReader::published() lists, and from where.
+
+- `__construct(array $types = [], ?string $language = null, array $terms = [], ?DateTimeImmutable $publishedSince = null, ?string $after = null, int $limit = 100)`. Since 0.9.0.
 
 ### ItemRef
 
@@ -171,13 +257,69 @@ A content item as a hook tells of it: plain values read after the change was sav
 
 - `__construct(string $id, string $type, string $title, string $status, ?string $url, string $language, bool $indexable = true)`. Since 0.9.0.
 
+### ItemSnapshot
+
+`Teme\Contracts\Content\ItemSnapshot`, class. Since 0.9.0.
+
+One item's working revision: its parts by handle and slug, never a model.
+
+- `__construct(ItemRef $item, string $revisionId, string $slug, array $body, array $fields, array $terms, array $credits, array $translations, ?DateTimeImmutable $scheduledFor = null)`. Since 0.9.0.
+
+### LinkAttributes
+
+`Teme\Contracts\Content\LinkAttributes`, class. Since 0.9.0.
+
+What a plugin asks Teme to write on one link an article draws: rel values from a closed list, whether it opens in a new tab, and at most two class names the theme declares for links. Teme writes the attributes; a plugin never writes markup. A link to this site is changed only when $host names its host.
+
+- `REL` — The rel values a plugin may ask for. Since 0.9.0.
+- `MOST_CLASSES` — At most this many class names. Since 0.9.0.
+- `__construct(array $rel = [], ?bool $newTab = null, array $classes = [], ?string $host = null)`. Since 0.9.0.
+
 ### NewItem
 
 `Teme\Contracts\Content\NewItem`, class. Since 0.9.0.
 
-What a plugin asks ContentWriter::create() to make: a draft of this type with this title, body, fields and terms.
+What a plugin asks ContentWriter::create() to make: a draft of this type with this title, body, fields and terms, and when given its slug, the people it credits and the item it is a translation of.
 
-- `__construct(string $type, string $title, array $body, array $fields = [], array $terms = [], ?MediaRef $featuredImage = null, ?string $language = null)`. Since 0.9.0.
+- `__construct(string $type, string $title, array $body, array $fields = [], array $terms = [], ?MediaRef $featuredImage = null, ?string $language = null, ?string $slug = null, ?string $translationOf = null, array $credits = [])`. Since 0.9.0.
+
+### OutboundLink
+
+`Teme\Contracts\Content\OutboundLink`, class. Since 0.9.0.
+
+One link an article draws, as ArticleLinks hands it to plugins: its absolute address, its host, whether it leads outside the site, and the words it is drawn on.
+
+- `__construct(string $href, string $host, bool $external, string $text)`. Since 0.9.0.
+
+### QueuePage
+
+`Teme\Contracts\Content\QueuePage`, class. Since 0.9.0.
+
+One page of ContentReader::queue(): its items, and the cursor for the next page.
+
+- `__construct(array $items, ?string $next)`. Since 0.9.0.
+
+### QueueQuery
+
+`Teme\Contracts\Content\QueueQuery`, class. Since 0.9.0.
+
+Which unpublished items ContentReader::queue() lists, and from where.
+
+- `__construct(array $statuses = …, array $types = [], ?string $after = null, int $limit = 100)`. Since 0.9.0.
+
+### QueuedItem
+
+`Teme\Contracts\Content\QueuedItem`, class. Since 0.9.0.
+
+One unpublished item in ContentReader::queue(): the item, whose status says where it waits, and when it is scheduled for.
+
+- `__construct(ItemRef $item, ?DateTimeImmutable $scheduledFor)`. Since 0.9.0.
+
+### ReadRefused
+
+`Teme\Contracts\Content\ReadRefused`, class. Since 0.9.0.
+
+Thrown when a plugin's read of a draft is refused. Its message is one plain sentence; nothing was read.
 
 ### WriteRefused
 
@@ -332,6 +474,16 @@ The rules core declares on a hook's class: what a plugin must have been granted 
 
 Thrown when a plugin subscribes to something it may not: a class that isn't a hook, a hook its teme-plugin.json doesn't list, a hook whose capability it wasn't granted, or any hook once its register() is over.
 
+### HookSender
+
+`Teme\Contracts\Hooks\HookSender`, interface. Since 0.9.0.
+
+Sends the calling plugin's own declared hooks to the plugins that listen: each a class in the plugin's own namespace, named in its manifest's `contributes.hooks`. Listeners are called as for Teme's own hooks: a listener's failure, the order and the failure rules are the same.
+
+- `notify(Notification $hook): void` — Tells every listener; waits for the outermost commit when a transaction is open, as Teme's own notifications do, and is never told if it rolls back. Since 0.9.0.
+- `transform(Transform $hook): mixed` — Returns the value as the last good listener left it. Since 0.9.0.
+- `collect(Collect $hook): array` — Returns every good item, in listener order. Since 0.9.0.
+
 ### Hooks
 
 `Teme\Contracts\Hooks\Hooks`, interface. Since 0.5.0.
@@ -429,7 +581,7 @@ What a remote host answered: its status, its body and its headers.
 
 `Teme\Contracts\Http\OutboundHttp`, interface. Since 0.5.0.
 
-The only way out for a plugin granted http: https, to the hosts agreed to, no redirect followed, at most 10 seconds and 1 MB.
+The only way out for a plugin granted http: https, to the hosts agreed to, no redirect followed, at most 10 seconds and 1 MB, or 300 seconds and 16 MB for an answer inside a long job.
 
 - `get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A GET request. Since 0.5.0.
 - `postJson(string $url, array $json, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a JSON body. Since 0.5.0.
@@ -612,6 +764,7 @@ What a running job may read and report.
 - `payload(): array` — The payload that was queued with the job. Since 0.9.0.
 - `attempt(): int` — The attempt number, starting at 1. Since 0.9.0.
 - `progress(int $done, int $total, string $message = ''): void` — Reports progress. Since 0.9.0.
+- `personId(): string` — The account ID this run acts for: the person who queued it, or for a schedule the administrator who enabled the plugin. Since 0.9.0.
 
 ### JobHandler
 
@@ -805,13 +958,39 @@ An Operation that sometimes needs a fresh proof of identity before it runs. Decl
 
 - `requiresElevation(OperationInput $input): bool`. Since 0.1.0.
 
+## Teme\Contracts\People
+
+### PeopleReader
+
+`Teme\Contracts\People\PeopleReader`, interface. Since 0.9.0.
+
+Names the people who write on the site, for a plugin granted people.read: each one's account ID and display name, never an email address or anything else about them.
+
+- `writers(?string $after = null, int $limit = 100): PersonPage` — The active people who may write content, one page at a time. Since 0.9.0.
+
+### PersonPage
+
+`Teme\Contracts\People\PersonPage`, class. Since 0.9.0.
+
+One page of PeopleReader::writers(): its people, and the cursor for the next page.
+
+- `__construct(array $people, ?string $next)`. Since 0.9.0.
+
+### PersonRef
+
+`Teme\Contracts\People\PersonRef`, class. Since 0.9.0.
+
+One person as a plugin may know them: their account ID and display name.
+
+- `__construct(string $id, string $name)`. Since 0.9.0.
+
 ## Teme\Contracts\Plugins
 
 ### Capability
 
 `Teme\Contracts\Plugins\Capability`, enum. Since 0.9.0`)..
 
-What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 0.9.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge.
+What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 0.9.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks the plugin declares (0.9.0). PeopleRead opens the door that names the people who write on the site. NoticesSend opens the Notices door, for the kinds of notice the plugin declares, and ContentLinks the hook that sets attributes on the links an article draws.
 
 - case `ContentRead`. Since 0.5.0.
 - case `ContentWrite`. Since 0.9.0.
@@ -826,6 +1005,10 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `FediverseSend`. Since 0.9.0.
 - case `FeedsLinks`. Since 0.9.0.
 - case `PagesInsert`. Since 0.9.0.
+- case `Ai`. Since 0.9.0.
+- case `PeopleRead`. Since 0.9.0.
+- case `NoticesSend`. Since 0.9.0.
+- case `ContentLinks`. Since 0.9.0.
 
 ### Plugin
 
@@ -999,6 +1182,8 @@ One setting's declaration: its type, its default, its constraints and the docume
 - `urls(string $key, string $label, string $description, string $since): self` — Addresses on other sites, one a line, stored as a list, empty by default: each http or https, never one on the site's own host, which the site makes itself. Since 0.1.0.
 - `person(string $key, string $label, string $description, string $since): self` — Someone with an account, stored as their ID in digits, or `''` when nobody is chosen. Since 0.1.0.
 - `hours(string $key, string $label, string $description, string $since): self` — A week of opening hours, saying nothing by default. Since 0.1.0.
+- `term(string $key, string $label, string $description, string $since, string $taxonomy, bool $multiple = false): self` — Terms of one taxonomy, stored as their slugs: one slug, or `''` when none is chosen; with $multiple, a list of slugs, empty by default. Since 0.9.0.
+- `contentType(string $key, string $label, string $description, string $since): self` — One of the site's content types with public addresses, stored as its key, or `''` when none is chosen. Since 0.9.0.
 - `default(mixed $value): self`. Since 0.1.0.
 - `min(int $min): self`. Since 0.1.0.
 - `max(int $max): self`. Since 0.1.0.
@@ -1032,6 +1217,8 @@ The kinds of value a setting can hold. Each has one form control.
 - case `Urls`. Since 0.1.0.
 - case `Person`. Since 0.1.0.
 - case `Hours`. Since 0.1.0.
+- case `Term`. Since 0.9.0.
+- case `ContentType`. Since 0.9.0.
 
 ### SettingsChanged
 

@@ -14,7 +14,8 @@ use Teme\Contracts\Hooks\Subscription;
 /**
  * One owner's way to listen (I-3353): bound to its name, what it was
  * granted, the hooks it declared and its quarantined subscriptions, open
- * until close(). It adds to the dispatcher as on() is called.
+ * until close(). It adds to the dispatcher as on() is called. A plugin's
+ * own hook is named `{code}:{name}`, as its listeners declare it.
  */
 final class OwnedHooks implements Hooks
 {
@@ -38,7 +39,7 @@ final class OwnedHooks implements Hooks
 
     public function on(string $hook, callable $listener, ?Order $order = null): Subscription
     {
-        $name = HookDispatcher::shortName($hook);
+        $name = $this->declared === null ? HookDispatcher::shortName($hook) : $this->dispatcher->nameOf($hook);
 
         if ($this->closed) {
             throw new HookRefused("It listens for {$name} after it finished starting: subscribe in register().");

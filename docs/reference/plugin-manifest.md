@@ -13,8 +13,9 @@
 | `version` | string | yes | The plugin's own version. | ^\d+\.\d+\.\d+(-(alpha\|beta\|rc)\.\d+)?$ |
 | `requires` | object | yes | What the plugin needs to run. |  |
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
+| `requires.plugins` | object | no | Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -24,6 +25,8 @@
 | `schedules` | array | no | How often a declared job runs, counted from its last queued run. |  |
 | `schedules[].job` | string | yes | The key of a job the plugin declares under jobs. | ^[a-z][a-z0-9-]{0,47}$ |
 | `schedules[].every` | string | yes | How often it runs. | "minute", "five-minutes", "fifteen-minutes", "hour", "day", "week" |
+| `schedules[].enabledBy` | string | no | One of the plugin's boolean settings, which switches the schedule on and off. |  |
+| `schedules[].everyFrom` | string | no | One of the plugin's select settings whose options are all intervals above; how often the schedule runs, every when unset. |  |
 | `routes` | array | no | Public addresses the plugin answers when granted routes.public. |  |
 | `routes[].id` | string | yes | The route's id, unique in the plugin: lower-case letters, digits, hyphens and underscores. | ^[a-z][a-z0-9_-]*$ |
 | `routes[].method` | string | yes | The one method it answers; a GET also answers HEAD. | "GET", "POST" |
@@ -34,10 +37,10 @@
 | `routes[].when.accept` | array | no | Media types, one of which the request's Accept header must name. |  |
 | `routes[].verify` | object | no | How a POST proves it is genuine; every POST route needs one. |  |
 | `routes[].verify.kind` | string | no | secret compares a value the request carries with the secret setting; hmac checks a header holding the body's SHA-256 HMAC under that secret; custom asks the class named in class. | "secret", "hmac", "custom" |
-| `routes[].verify.secret` | string | no | The key of one of the plugin's own settings of type secret; needed for secret and hmac. |  |
+| `routes[].verify.secret` | string | no | The key of one of the plugin's own settings of type secret; needed for secret and hmac, optional for custom, whose class is given an empty secret without it. |  |
 | `routes[].verify.from` | string | no | For secret: where the request carries the value, as header:, field: or query: and a name. | ^(header\|field\|query):.+$ |
 | `routes[].verify.header` | string | no | For hmac: the header that holds the signature. |  |
-| `routes[].verify.class` | string | no | For custom: the class that checks the request, implementing the InboundVerifier contract, built with no constructor arguments and given the secret's value. |  |
+| `routes[].verify.class` | string | no | For custom: the class that checks the request, implementing the InboundVerifier contract, built with no constructor arguments and given the secret's value, or an empty string when secret is left out. |  |
 | `routes[].cache` | object | no | For a GET: lets the page cache keep its answer. The key must carry everything the condition reads. |  |
 | `routes[].cache.lifetime` | integer | no | The most seconds a shared cache in front of the site may keep the answer: it is told this, at most 60, and 60 when it is left out. |  |
 | `routes[].cache.query` | array | no | The query parameters the cached answer varies by; every query parameter in the condition must be named. |  |
@@ -57,12 +60,12 @@
 | `imports.termMeta` | array | no |  |  |
 | `hosts` | array | no | The hosts the plugin asks to reach, when it asks for http. |  |
 | `hostsFrom` | array | no | Up to 3 of the plugin's own url or urls settings whose hosts it may reach once a person agrees, at enable or when saving the setting. Needs http. |  |
-| `hooks` | array | no | The hooks the plugin listens to, by name. |  |
+| `hooks` | array | no | The hooks the plugin listens to, by name: a Teme hook's, or another plugin's as code:Name. |  |
 | `contributes` | object | no | What the plugin adds to the admin. |  |
 | `contributes.fixedLabel` | string | no | The label core draws on the plugin's fixed insertions; Advertisement when absent. |  |
 | `contributes.settings` | array | no | Settings the plugin declares. |  |
 | `contributes.settings[].key` | string | yes | The setting's key. | ^[a-z][a-z0-9_]{1,40}$ |
-| `contributes.settings[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "secret", "color" |
+| `contributes.settings[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "secret", "color", "person", "term", "type" |
 | `contributes.settings[].label` | string | yes | The name people see. |  |
 | `contributes.settings[].description` | string | yes | What the setting does. |  |
 | `contributes.settings[].default` |  | no | The value before anyone changes it; any JSON value. |  |
@@ -73,6 +76,8 @@
 | `contributes.settings[].required` | boolean | no | Whether the setting must be filled in. |  |
 | `contributes.settings[].example` | string | no | An example value shown as a hint. |  |
 | `contributes.settings[].unit` | string | no | The unit shown beside a number. |  |
+| `contributes.settings[].taxonomy` | string | no | For a term: the taxonomy its terms come from. | ^[a-z][a-z0-9_]{0,31}$ |
+| `contributes.settings[].multiple` | boolean | no | For a term: whether several may be chosen. |  |
 | `contributes.admin` | array | no | Entries the plugin adds to the admin. |  |
 | `contributes.admin[].surface` | enum | yes |  | "tools" |
 | `contributes.admin[].id` | string | yes | The entry's id. | ^[a-z][a-z0-9-]{1,39}$ |
@@ -110,6 +115,23 @@
 | `contributes.csp.connect` | array | no |  |  |
 | `contributes.csp.frame` | array | no |  |  |
 | `contributes.csp.script` | array | no |  |  |
+| `contributes.aiTasks` | array | no | The AI tasks the plugin asks the site's AI connection for, through SiteAi. Needs the ai capability. |  |
+| `contributes.aiTasks[].id` | string | yes | The task's id, as SiteAi::ask() names it. | ^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$ |
+| `contributes.aiTasks[].label` | string | yes | The task's name in the consent and on Settings › AI. |  |
+| `contributes.aiTasks[].description` | string | no | What the task does. |  |
+| `contributes.aiTasks[].needs` | array | yes | What a model must be able to do for this task. | "text", "images-in", "structured-output" |
+| `contributes.aiTasks[].sends` | enum | yes | What it sends: only what the plugin writes itself, published text, or an item's unpublished text. | "brief", "published", "draft" |
+| `contributes.aiTasks[].maxOutputTokens` | integer | yes | The most tokens one answer may hold. |  |
+| `contributes.notices` | array | no | Kinds of notice the plugin sends through Notices, with notices.send; never required. |  |
+| `contributes.notices[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
+| `contributes.notices[].label` | string | yes | The choice as Account › Notifications words it. |  |
+| `contributes.notices[].audience` | enum | yes | Who may receive it: only the person the plugin's work acts for, or those who manage plugins. | "starter", "plugins.manage" |
+| `contributes.notices[].channels` | array | yes |  | "mail", "inbox" |
+| `contributes.notices[].defaults` | array | no | The channels on until the person chooses; some of its channels. | "mail", "inbox" |
+| `contributes.hooks` | array | no | Hooks the plugin declares for other plugins, which it sends through HookSender. |  |
+| `contributes.hooks[].name` | string | yes | Its name; other plugins list it as code:Name. | ^[A-Z][A-Za-z]{2,47}$ |
+| `contributes.hooks[].class` | string | yes | Its class, in the plugin's own namespace: a Notification, Transform or Collect hook with #[HookContract]. |  |
+| `contributes.hooks[].description` | string | yes | What it is for, in one sentence. |  |
 | `owns` | object | no | Tables this plugin creates. Each name starts with the plugin’s code as a prefix (hyphens become underscores). |  |
 | `owns.tables` | array | yes | Table names the plugin’s migrations create: lower-case letters, digits and underscores, starting with the prefix, at most 63 characters. |  |
 | `author` | string | no | Who wrote the plugin. |  |

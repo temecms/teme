@@ -8,15 +8,21 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Contents\Operations\CreateDraft;
 use App\Domain\Contents\Operations\Input\CreateDraftInput;
+use App\Domain\Contents\Operations\Input\LinkTranslationsInput;
 use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\Input\SaveDraftInput;
 use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
+use App\Domain\Contents\Operations\Input\UpdateContentDetailsInput;
+use App\Domain\Contents\Operations\LinkTranslations;
 use App\Domain\Contents\Operations\PublishRevision;
 use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Contents\Operations\SchedulePublication;
+use App\Domain\Contents\Operations\UpdateContentDetails;
 use App\Domain\Fields\BuiltInFields;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Hooks\Payloads;
+use App\Domain\People\Operations\Input\SetBylinesInput;
+use App\Domain\People\Operations\SetBylines;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Taxonomy\Operations\CreateTerm;
 use App\Domain\Taxonomy\Operations\Input\SaveTermInput;
@@ -34,7 +40,8 @@ use Throwable;
 
 /**
  * A plugin's content.write door: creates, changes, publishes and schedules
- * items through Teme's Operations, always on behalf of a named person
+ * items, sets their slugs and credits and links language versions, through
+ * Teme's Operations, always on behalf of a named person
  * (docs/proposals/plugin-content-write.md).
  */
 final readonly class PluginContentWriter implements ContentWriter
@@ -45,9 +52,11 @@ final readonly class PluginContentWriter implements ContentWriter
     {
         $this->person($actingPersonId);
 
+        $credits = self::creditKeys($item->credits);
+
         try {
-            $content = DB::transaction(function () use ($item, $actingPersonId) {
-                return app(CreateDraft::class)->execute(new CreateDraftInput(
+            $content = DB::transaction(function () use ($item, $actingPersonId, $credits) {
+                $content = app(CreateDraft::class)->execute(new CreateDraftInput(
                     type: $item->type,
                     title: $item->title,
                     document: $item->body,
@@ -57,6 +66,14 @@ final readonly class PluginContentWriter implements ContentWriter
                     language: $item->language,
                     via: $this->code,
                 ));
+
+                $this->details((string) $content->id, $item->slug, $item->credits === [] ? null : $credits, $actingPersonId);
+
+                if ($item->translationOf !== null) {
+                    $this->link([$item->translationOf, (string) $content->id], $actingPersonId);
+                }
+
+                return $content->refresh();
             });
         } catch (Throwable $failure) {
             $this->refuse($failure);
@@ -81,6 +98,7 @@ final readonly class PluginContentWriter implements ContentWriter
             throw new WriteRefused(__('That item has no draft to change.'));
         }
 
+        $credits = $changes->credits === null ? null : self::creditKeys($changes->credits);
         $title = $changes->title ?? (string) $revision->title;
         $body = $changes->body ?? (array) $revision->document;
         $currentFields = (array) $revision->fields;
@@ -93,12 +111,12 @@ final readonly class PluginContentWriter implements ContentWriter
                 $currentFields,
             );
         try {
-            $content = DB::transaction(function () use ($content, $revision, $changes, $title, $body, $fields, $actingPersonId) {
+            $content = DB::transaction(function () use ($content, $revision, $changes, $title, $body, $fields, $actingPersonId, $credits) {
                 $terms = $changes->terms === null
                     ? array_map('strval', (array) $revision->terms)
                     : $this->terms($changes->terms, $actingPersonId);
 
-                return app(SaveDraft::class)->execute(new SaveDraftInput(
+                $saved = app(SaveDraft::class)->execute(new SaveDraftInput(
                     contentId: (string) $content->id,
                     title: $title,
                     document: $body,
@@ -108,12 +126,27 @@ final readonly class PluginContentWriter implements ContentWriter
                     terms: $terms,
                     via: $this->code,
                 ));
+
+                $this->details((string) $saved->id, $changes->slug, $credits, $actingPersonId);
+
+                return $saved->refresh();
             });
         } catch (Throwable $failure) {
             $this->refuse($failure);
         }
 
         return Payloads::item($content);
+    }
+
+    public function linkTranslations(array $itemIds, string $actingPersonId): void
+    {
+        $this->person($actingPersonId);
+
+        try {
+            $this->link($itemIds, $actingPersonId);
+        } catch (Throwable $failure) {
+            $this->refuse($failure);
+        }
     }
 
     public function publish(ItemRef $item, string $actingPersonId): ItemRef
@@ -160,6 +193,67 @@ final readonly class PluginContentWriter implements ContentWriter
         }
 
         return Payloads::item($content->fresh());
+    }
+
+    /**
+     * Sets the item's slug through UpdateContentDetails and the people it
+     * credits through SetBylines, when given, inside the caller's
+     * transaction, so a refusal of either writes nothing at all.
+     *
+     * @param  list<string>|null  $credits  credit keys, or null to leave them
+     */
+    private function details(string $contentId, ?string $slug, ?array $credits, string $actingPersonId): void
+    {
+        if ($slug !== null) {
+            $content = Content::query()->findOrFail($contentId);
+
+            app(UpdateContentDetails::class)->execute(new UpdateContentDetailsInput(
+                contentId: $contentId,
+                expectedRevisionId: (string) $content->working_revision_id,
+                actorId: $actingPersonId,
+                slug: $slug,
+            ));
+        }
+
+        if ($credits !== null) {
+            app(SetBylines::class)->execute(new SetBylinesInput($actingPersonId, $contentId, $credits));
+        }
+    }
+
+    /**
+     * Joins these items, the first named first, into one translation group
+     * through LinkTranslations.
+     *
+     * @param  list<string>  $itemIds
+     */
+    private function link(array $itemIds, string $actingPersonId): void
+    {
+        app(LinkTranslations::class)->execute(new LinkTranslationsInput($itemIds, $actingPersonId));
+    }
+
+    /**
+     * Account IDs as SetBylines' credit keys; refused before anything is
+     * written when one isn't an account's ID.
+     *
+     * @param  list<string>  $accountIds
+     *
+     * @return list<string>
+     *
+     * @throws WriteRefused
+     */
+    private static function creditKeys(array $accountIds): array
+    {
+        $keys = [];
+
+        foreach ($accountIds as $id) {
+            if (preg_match('/^[1-9][0-9]{0,18}$/', $id) !== 1) {
+                throw new WriteRefused(__('A credit names an account by its ID.'));
+            }
+
+            $keys[] = 'user:'.$id;
+        }
+
+        return $keys;
     }
 
     /**
