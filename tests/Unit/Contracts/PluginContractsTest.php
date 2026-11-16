@@ -8,6 +8,7 @@ use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
+use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Content\NewItem;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Http\AnswerTooLarge;
@@ -83,6 +84,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [HostRefused::class, '0.5.0'],
     [AnswerTooLarge::class, '0.5.0'],
     [RequestFailed::class, '0.5.0'],
+    [ItemRef::class, '0.5.0'],
     [ContentWriter::class, '0.9.0'],
     [NewItem::class, '0.9.0'],
     [ItemChanges::class, '0.9.0'],

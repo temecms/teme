@@ -10,6 +10,7 @@ use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\PublicRoutes\RootFile;
 use Composer\Autoload\ClassLoader;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -124,7 +125,7 @@ final readonly class PluginLoader
             $instance = $this->build($plugin, $record);
             $instance->register($hooks);
             $jobs = $manifest->raw()['jobs'] ?? [];
-            $problems = $this->contributions->add($plugin->name, $plugin->code, $manifest->label(), $manifest->version(), $manifest->contributes(), $instance, is_array($jobs) ? array_values($jobs) : []);
+            $problems = $this->contributions->add($plugin->name, $plugin->code, $manifest->label(), $manifest->version(), $manifest->contributes(), $instance, is_array($jobs) ? array_values($jobs) : [], rootFiles: RootFile::declaredIn($manifest) !== []);
 
             if ($problems !== []) {
                 throw new PluginRefused($problems[0]);

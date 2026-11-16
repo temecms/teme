@@ -203,3 +203,28 @@ it('carries no internal labels in what a reader sees', function (GuideFile $page
 it('has no pictures, which would go stale where nothing could notice', function (GuideFile $page): void {
     expect($page->text())->not->toContain('![');
 })->with(DeveloperGuide::allPages());
+
+it('names the No inserted content field by ID on the insertions page, and the contracts from 0.9.0', function (): void {
+    $page = DeveloperGuide::page('plugins/insertions.md')->text();
+
+    expect($page)->toContain('01K5Z0F1ED00000000000000XF')
+        ->and($page)->toContain('insertions_off')
+        ->and($page)->toContain('from Teme 0.9.0')
+        ->and($page)->not->toContain('from Teme 0.8.0');
+});
+
+it('tells no reader that something lands later', function (GuideFile $page): void {
+    preg_match_all('/\blands\b|until then|join\/v1/i', $page->prose(), $found);
+
+    expect($found[0])->toBe([])
+        ->and($page->frontMatter()['type'] ?? null)->not->toBe('stub');
+})->with(DeveloperGuide::allPages());
+
+it('knows the testing kit’s classes as it knows the contracts, and nothing made up', function (): void {
+    expect(DeveloperGuide::contractBasenames())->toContain('TemeTestCase', 'InteractsWithTeme', 'FakeOutbound')
+        ->not->toContain('TemeTestKase');
+});
+
+it('lists the contracts reference among the generated pages', function (): void {
+    expect(DeveloperGuide::page('README.md')->body())->toContain('| [Contracts](../../reference/contracts.md) |');
+});

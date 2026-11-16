@@ -7,6 +7,7 @@ import { RequestsList } from '@/components/extensions/requests-list';
 import { ListPage } from '@/components/patterns/list-page';
 import { ConsentDialog } from '@/components/plugins/consent-dialog';
 import { DetailsDialog } from '@/components/plugins/details-dialog';
+import { ForgetDialog } from '@/components/plugins/forget-dialog';
 import { PluginRow } from '@/components/plugins/plugin-row';
 import { RemoveDataDialog } from '@/components/plugins/remove-data-dialog';
 import { Button } from '@/components/ui/button';
@@ -78,7 +79,12 @@ const PENDING_MINUTES = 10;
 
 type Pending =
     | { kind: 'enable'; code: string; post: PluginEnablePost; at: number }
-    | { kind: 'migrate' | 'remove-data'; code: string; at: number };
+    | {
+          kind: 'migrate' | 'remove-data' | 'forget';
+          code: string;
+          name?: string;
+          at: number;
+      };
 
 /** Storage may be missing or refuse; the page then works as it does with no marker. */
 function readPending(): Pending | null {
@@ -100,8 +106,20 @@ function readPending(): Pending | null {
             return null;
         }
 
-        if (parsed.kind === 'migrate' || parsed.kind === 'remove-data') {
-            return { kind: parsed.kind, code: parsed.code, at: parsed.at };
+        if (
+            parsed.kind === 'migrate' ||
+            parsed.kind === 'remove-data' ||
+            parsed.kind === 'forget'
+        ) {
+            return {
+                kind: parsed.kind,
+                code: parsed.code,
+                name:
+                    typeof (parsed as { name?: string }).name === 'string'
+                        ? (parsed as { name?: string }).name
+                        : undefined,
+                at: parsed.at,
+            };
         }
 
         // A saved sign-in marker with no kind is enable when it has a post.
@@ -147,6 +165,8 @@ function pendingUrl(pending: Pending): string {
             return PluginsController.migrate.url({ code: pending.code });
         case 'remove-data':
             return PluginsController.removeData.url({ code: pending.code });
+        case 'forget':
+            return PluginsController.forget.url({ code: pending.code });
     }
 }
 
@@ -172,6 +192,7 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
     const [asking, setAsking] = useState<PluginRowPage | null>(null);
     const [details, setDetails] = useState<PluginRowPage | null>(null);
     const [removing, setRemoving] = useState<PluginRowPage | null>(null);
+    const [forgetting, setForgetting] = useState<PluginRowPage | null>(null);
     // What opened a dialog, so closing it puts focus back there.
     const [opener, setOpener] = useState<HTMLElement | null>(null);
 
@@ -185,11 +206,12 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
             asking === null &&
             details === null &&
             removing === null &&
+            forgetting === null &&
             opener !== null
         ) {
             opener.focus();
         }
-    }, [asking, details, removing, opener]);
+    }, [asking, details, removing, forgetting, opener]);
 
     // Back from the password screen: the request is made again, once.
     useEffect(() => {
@@ -210,7 +232,11 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
 
         router.post(
             pendingUrl(pending),
-            pending.kind === 'enable' ? pending.post : {},
+            pending.kind === 'enable'
+                ? pending.post
+                : pending.kind === 'forget'
+                  ? { name: pending.name ?? '' }
+                  : {},
             {
                 headers: { 'X-Teme-Ask-In-Place': '1' },
                 onHttpException: (response) => {
@@ -285,6 +311,28 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
         );
     };
 
+    const forget = (plugin: PluginRowPage) => {
+        setForgetting(null);
+        router.post(
+            PluginsController.forget.url({ code: plugin.code }),
+            { name: plugin.name },
+            {
+                onBefore: () =>
+                    writePending({
+                        kind: 'forget',
+                        code: plugin.code,
+                        name: plugin.name,
+                        at: Date.now(),
+                    }),
+                onSuccess: (page) => {
+                    if (page.component === 'plugins/index') {
+                        removePending();
+                    }
+                },
+            },
+        );
+    };
+
     const disable = (plugin: PluginRowPage) => {
         router.post(PluginsController.disable.url({ code: plugin.code }), {});
     };
@@ -304,6 +352,10 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
         setRemoving(row);
     };
 
+    const onForget = (row: PluginRowPage, button: HTMLElement | null) => {
+        setOpener(button);
+        setForgetting(row);
+    };
     return (
         <>
             <Head title={__('Plugins')} />
@@ -406,6 +458,7 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
                                                                 ? undefined
                                                                 : installer.openChange
                                                         }
+                                                        onForget={onForget}
                                                     />
                                                 ))}
                                             </ul>
@@ -440,6 +493,11 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
                     onConfirm={removeData}
                 />
                 {installer.sheets}
+                <ForgetDialog
+                    plugin={forgetting}
+                    onClose={() => setForgetting(null)}
+                    onConfirm={forget}
+                />
             </ListPage>
         </>
     );

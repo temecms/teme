@@ -105,19 +105,21 @@ function RowAction({
 }
 
 /**
- * The ⋯ menu: Details and access, Settings, Remove its data… when allowed,
- * and Update… and Remove… for a plugin installed here (I-211).
+ * The ⋯ menu: Details and access, Settings, Remove its data… and Forget…
+ * when allowed, and Update… and Remove… for a plugin installed here (I-211).
  */
 function RowMenu({
     plugin,
     onDetails,
     onRemoveData,
     onChange,
+    onForget,
 }: {
     plugin: PluginRowPage;
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     onChange?: (change: Change) => void;
+    onForget: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
     const change = (action: Change['action']) =>
         onChange?.({
@@ -202,6 +204,22 @@ function RowMenu({
                         </DropdownMenuItem>
                     </>
                 )}
+                {plugin.canForget && (
+                    <DropdownMenuItem
+                        data-test="plugin-forget"
+                        variant="destructive"
+                        onSelect={() =>
+                            onForget(
+                                plugin,
+                                document.querySelector<HTMLElement>(
+                                    `[data-plugin-menu="${plugin.name}"]`,
+                                ),
+                            )
+                        }
+                    >
+                        {__('Forget…')}
+                    </DropdownMenuItem>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -220,6 +238,7 @@ export function PluginRow({
     onMigrate,
     onRemoveData,
     onChange,
+    onForget,
 }: {
     plugin: PluginRowPage;
     onAsk: (plugin: PluginRowPage, opener: HTMLElement) => void;
@@ -229,6 +248,7 @@ export function PluginRow({
     onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     /** Asks for an update or a removal; only for someone who may install. */
     onChange?: (change: Change) => void;
+    onForget: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
     const tone = TONES[plugin.state];
 
@@ -309,6 +329,7 @@ export function PluginRow({
                     onDetails={onDetails}
                     onRemoveData={onRemoveData}
                     onChange={onChange}
+                    onForget={onForget}
                 />
             </div>
         </li>

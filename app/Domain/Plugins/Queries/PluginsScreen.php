@@ -109,6 +109,8 @@ final readonly class PluginsScreen
                 // Installed from the admin, or part of the site's build (I-211).
                 'origin' => $origins[$row->name]['origin'] ?? 'image',
                 'source' => $origins[$row->name]['source'] ?? null,
+                // Same rule as ForgetPlugin: disabled, package gone, and no tables left.
+                'canForget' => ! $enabled && ($manifest === null) && ($record === null || $this->migrations->ownedTables($record->migrations) === []),
             ];
         }, $rows);
     }

@@ -11,7 +11,7 @@ lands_with: render/insertion-points
 
 A plugin can place its own markup inside published articles: an ad after the second paragraph, a newsletter box before the last one, a related link after the first subheading. Core decides where each piece can go, cleans it, and leaves it out wherever it doesn't belong. The plugin never edits the article.
 
-This page describes the code on the `render/insertion-points` branch, which joins `main` with v1. The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.8.0.
+This page describes the code on the `render/insertion-points` branch, which joins `main` with v1. The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0.
 
 ## Ask for content.insert
 
@@ -61,7 +61,7 @@ A `<script src>`, an `<iframe>` and an `<img>` are kept. Their `https` origins a
 
 Insertions are drawn only on the public web page of a published article. A preview, the feeds, the Markdown version of a page and the read API never carry them.
 
-Editors can turn them off on one item with the built-in field **No inserted content**, handle `insertions_off`, which every content type that supports search and social has. On such an item no contributor is asked at all.
+Editors can turn them off on one item with the built-in field **No inserted content**, handle `insertions_off`. Stored values use the field's ID, `01K5Z0F1ED00000000000000XF`. Every content type that supports search and social has it. On such an item no contributor is asked at all.
 
 ## When your rules change
 

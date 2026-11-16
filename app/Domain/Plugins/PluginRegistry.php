@@ -510,11 +510,31 @@ final class PluginRegistry
         $found = [];
 
         foreach (is_array($paths) ? $paths : [] as $path) {
-            if (is_string($path) && is_file($path.'/teme-plugin.json')) {
-                $found[] = realpath($path) ?: $path;
+            if (! is_string($path) || $path === '') {
+                continue;
+            }
+
+            // Relative entries are against the project root, not the process cwd
+            // (public/ under a web server): issue #339.
+            $resolved = self::absolutePath($path);
+
+            if (is_file($resolved.'/teme-plugin.json')) {
+                $found[] = realpath($resolved) ?: $resolved;
             }
         }
 
         return array_values(array_unique($found));
+    }
+
+    /**
+     * An absolute folder path: absolute entries unchanged, relative ones from base_path().
+     */
+    private static function absolutePath(string $path): string
+    {
+        if (str_starts_with($path, '/') || str_starts_with($path, '\\') || (strlen($path) > 1 && $path[1] === ':')) {
+            return $path;
+        }
+
+        return base_path($path);
     }
 }

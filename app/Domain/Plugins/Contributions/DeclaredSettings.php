@@ -22,12 +22,13 @@ final class DeclaredSettings
      * Returns the plugin's settings group, `plugin.{code}`, built with the
      * contract's own constructors; sensitive when any setting is a secret.
      * A plugin that inserts content in articles purges the pages that asked
-     * it when its settings are saved. Throws InvalidArgumentException for a
+     * it when its settings are saved, and one with root files the stored
+     * "not found" pages at root-file addresses. Throws InvalidArgumentException for a
      * setting Teme can't build.
      *
      * @param  list<mixed>  $settings  as the manifest declares them
      */
-    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false): SettingsGroup
+    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false, bool $rootFiles = false): SettingsGroup
     {
         $key = "plugin.{$code}";
         $built = [];
@@ -46,7 +47,11 @@ final class DeclaredSettings
             since: $version,
             sensitive: array_any($built, fn (Setting $setting): bool => $setting->type === SettingType::Secret),
             // Its settings may change what it inserts in articles (I-064).
-            cacheTags: $inserts ? [PageTags::INSERTIONS] : [],
+            cacheTags: [
+                ...($inserts ? [PageTags::INSERTIONS] : []),
+                // Its settings may fill a root file's name (docs/guides/developers/plugins/root-files.md).
+                ...($rootFiles ? [PageTags::ROOT_FILES] : []),
+            ],
         );
     }
 

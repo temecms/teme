@@ -193,7 +193,34 @@ final class ThemeRegistry
     private function configuredPaths(): array
     {
         $paths = config('teme.theme_paths');
+        $found = [];
 
-        return array_values(array_filter(is_array($paths) ? $paths : [], fn (mixed $path): bool => is_string($path) && is_file($path.'/teme-theme.json')));
+        foreach (is_array($paths) ? $paths : [] as $path) {
+            if (! is_string($path) || $path === '') {
+                continue;
+            }
+
+            // Relative entries are against the project root, not the process cwd
+            // (public/ under a web server): issue #339.
+            $resolved = self::absolutePath($path);
+
+            if (is_file($resolved.'/teme-theme.json')) {
+                $found[] = realpath($resolved) ?: $resolved;
+            }
+        }
+
+        return array_values(array_unique($found));
+    }
+
+    /**
+     * An absolute folder path: absolute entries unchanged, relative ones from base_path().
+     */
+    private static function absolutePath(string $path): string
+    {
+        if (str_starts_with($path, '/') || str_starts_with($path, '\\') || (strlen($path) > 1 && $path[1] === ':')) {
+            return $path;
+        }
+
+        return base_path($path);
     }
 }

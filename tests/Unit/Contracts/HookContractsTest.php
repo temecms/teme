@@ -93,9 +93,12 @@ it('gives every hook a unique short name', function (): void {
     expect($names)->toHaveCount(18)->and(array_unique($names))->toBe($names);
 });
 
-it('gives an item reference its values in this order, its language last (I-3360)', function (): void {
+it('gives an item reference its first values in this order, and anything added later at the end with a default (I-3360, contracts rule)', function (): void {
     $parameters = (new ReflectionMethod(ItemRef::class, '__construct'))->getParameters();
+    $first = array_slice($parameters, 0, 6);
+    $later = array_slice($parameters, 6);
 
-    expect(array_map(fn (ReflectionParameter $parameter): string => $parameter->getName(), $parameters))->toBe(['id', 'type', 'title', 'status', 'url', 'language'])
-        ->and(array_filter($parameters, fn (ReflectionParameter $parameter): bool => $parameter->isDefaultValueAvailable()))->toBe([]);
+    expect(array_map(fn (ReflectionParameter $parameter): string => $parameter->getName(), $first))->toBe(['id', 'type', 'title', 'status', 'url', 'language'])
+        ->and(array_filter($first, fn (ReflectionParameter $parameter): bool => $parameter->isDefaultValueAvailable()))->toBe([])
+        ->and(array_filter($later, fn (ReflectionParameter $parameter): bool => ! $parameter->isDefaultValueAvailable()))->toBe([]);
 });

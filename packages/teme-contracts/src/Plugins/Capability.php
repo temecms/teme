@@ -21,15 +21,36 @@ namespace Teme\Contracts\Plugins;
  */
 enum Capability: string
 {
+    /** @since 0.5.0 */
     case ContentRead = 'content.read';
+
+    /** @since 0.9.0 */
     case ContentWrite = 'content.write';
+
+    /** @since 0.5.0 */
     case MediaRead = 'media.read';
+
+    /** @since 0.9.0 */
     case MediaWrite = 'media.write';
+
+    /** @since 0.9.0 */
     case ContentInsert = 'content.insert';
+
+    /** @since 0.5.0 */
     case Http = 'http';
+
+    /** @since 0.9.0 */
     case Jobs = 'jobs';
+
+    /** @since 0.9.0 */
     case RoutesPublic = 'routes.public';
+
+    /** @since 0.9.0 */
     case ImportWordPress = 'import.wordpress';
+
+    /** @since 0.9.0 */
     case FediverseRead = 'fediverse.read';
+
+    /** @since 0.9.0 */
     case FediverseSend = 'fediverse.send';
 }

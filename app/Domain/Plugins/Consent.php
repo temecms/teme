@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins;
 
 use App\Domain\PublicRoutes\DeclaredRoute;
+use App\Domain\PublicRoutes\RootFile;
 
 /**
  * What a person agreed to a plugin doing, against what its manifest asks for
@@ -86,8 +87,9 @@ final readonly class Consent
     /**
      * Each declared public route as `METHOD path`, with `{code}` replaced by
      * the plugin's code and its condition, when it has one, in brackets, in
-     * the file's order. The consent screen lists these, so a changed
-     * condition asks again too.
+     * the file's order, then each root file it declares as `GET /name`. The
+     * consent screen lists these, so a changed condition or a new root file
+     * asks again too.
      *
      * @return list<string>
      */
@@ -103,6 +105,10 @@ final readonly class Consent
             }
 
             $lines[] = $route->consentLine();
+        }
+
+        foreach (RootFile::declaredIn($manifest) as $file) {
+            $lines[] = $file->consentLine($manifest);
         }
 
         return $lines;

@@ -56,6 +56,7 @@ export type PluginRowPage = {
     origin: ExtensionOrigin;
     /** The source kind it was installed from, when installed here. */
     source: string | null;
+    canForget: boolean;
 };
 
 export type PluginsPage = {
