@@ -56,6 +56,7 @@ final class RoleSeeder extends Seeder
         'types.manage',
         'updates.manage',
         'plugins.manage',
+        'extensions.install',
         'privacy.manage',
         'api.keys.manage',
     ];

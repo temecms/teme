@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/composer-plugin-dependency",
+    "code": "composer-plugin-dependency",
+    "label": "Composer Plugin Dependency",
+    "description": "A plugin the installer's tests install.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\ComposerPluginDependency\\ComposerPluginDependency",
+    "capabilities": [],
+    "hooks": []
+}

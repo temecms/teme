@@ -36,7 +36,7 @@ final readonly class SafeMode
     public const array COMMANDS = [
         'migrate', 'migrate:', 'db:', 'teme:plugins', 'teme:plugins:', 'teme:docs:', 'teme:themes:', 'package:discover',
         'optimize', 'optimize:', 'config:', 'route:', 'view:', 'event:', 'cache:clear', 'queue:restart', 'list', 'help',
-        'teme:deploy', 'teme:updater', 'teme:updates:', 'down', 'up',
+        'teme:deploy', 'teme:updater', 'teme:updates:', 'teme:installer', 'teme:extensions:', 'down', 'up',
     ];
 
     public function __construct(private Application $app) {}

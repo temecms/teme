@@ -1,0 +1,226 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Domain\Extensions\Operations\BeginExtensionRequest;
+use App\Domain\Extensions\Operations\EndExtensionRequest;
+use App\Domain\Extensions\Operations\Input\BeginExtensionRequestInput;
+use App\Domain\Extensions\Operations\Input\EndExtensionRequestInput;
+use App\Domain\Extensions\Operations\Input\RecordExtensionStepInput;
+use App\Domain\Extensions\Operations\RecordExtensionStep;
+use App\Domain\Extensions\RequestStatus;
+use App\Domain\Extensions\RequestStep;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Teme\Contracts\Operations\OperationInput;
+use Tests\Fixtures\Extensions\ExtensionsFolder;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    config(['teme.version' => '0.5.0']);
+    app()->instance(Elevation::class, new OperatorElevation);
+    $this->folder = ExtensionsFolder::make();
+    $this->runner = $this->folder->runner();
+
+    /** Records a request as the admin would, and returns its id. */
+    $this->ask = function (string $action, ?string $package = null, ?string $constraint = null, array $values = []): string {
+        $id = strtolower((string) Str::ulid());
+        DB::table('extension_requests')->insert([
+            'id' => $id, 'action' => $action, 'kind' => 'plugin', 'package' => $package, 'constraint' => $constraint,
+            'source_kind' => ExtensionsFolder::SOURCE, 'status' => 'requested', 'requested_at' => now(), ...$values,
+        ]);
+
+        return $id;
+    };
+
+    /** Runs passes until the request stops moving, at most 20. */
+    $this->settle = function (string $id): object {
+        for ($pass = 0; $pass < 20; $pass++) {
+            $this->runner->tick();
+            $row = DB::table('extension_requests')->where('id', $id)->first();
+
+            if (in_array($row->status, ['done', 'failed', 'cancelled', 'waiting'], true)) {
+                return $row;
+            }
+        }
+
+        return DB::table('extension_requests')->where('id', $id)->first();
+    };
+});
+
+afterEach(function (): void {
+    $this->folder->delete();
+});
+
+it('carries a request from requested to done, step by step, and switches to the new release', function (): void {
+    $upload = strtolower((string) Str::ulid());
+    DB::table('extension_uploads')->insert(['id' => $upload, 'file_name' => 'hello.zip', 'size' => 3, 'sha256' => str_repeat('a', 64), 'package' => 'fixtures/hello-extension', 'version' => '1.0.0', 'bytes' => 'zip', 'created_at' => now()]);
+    $id = ($this->ask)('install', 'fixtures/hello-extension', '1.0.0', ['upload_id' => $upload]);
+    $restarted = Cache::get('illuminate:queue:restart');
+
+    $row = ($this->settle)($id);
+    $steps = json_decode((string) $row->steps, true);
+
+    expect($row->status)->toBe('done', (string) $row->error)
+        ->and(array_column($steps, 'step'))->toBe(array_map(fn (RequestStep $step): string => $step->value, RequestStep::cases()))
+        ->and(array_unique(array_column($steps, 'state')))->toBe(['done'])
+        ->and($this->folder->store->current())->toBe($row->to_release)
+        ->and($this->folder->store->path($row->to_release).'/compat/'.ExtensionsFolder::pins()['hash'])->toBeFile()
+        ->and($this->folder->store->path($row->to_release).'/cache/'.ExtensionsFolder::pins()['hash'].'/teme-plugins.php')->toBeFile()
+        ->and(Cache::get('illuminate:queue:restart'))->not->toBe($restarted)
+        ->and(DB::table('extension_uploads')->count())->toBe(0)
+        ->and(json_decode((string) $row->report, true)['packages'][0]['name'])->toBe('fixtures/hello-extension');
+})->group('composer');
+
+it('leaves current as it was and deletes its release when a request fails', function (): void {
+    $before = $this->folder->install('fixtures/hello-extension', '1.0.0');
+    $id = ($this->ask)('install', 'fixtures/wants-new-laravel', '1.0.0');
+
+    $row = ($this->settle)($id);
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toContain('laravel/framework')
+        ->and($this->folder->store->current())->toBe($before)
+        ->and($this->folder->store->all())->toBe([$before]);
+})->group('composer');
+
+it('waits for agreement, then goes on once what was found is agreed to', function (): void {
+    $id = ($this->ask)('install', 'fixtures/files-dependency', '1.0.0');
+
+    $row = ($this->settle)($id);
+    $needs = json_decode((string) $row->needs, true);
+
+    expect($row->status)->toBe('waiting')
+        ->and($row->step)->toBe('validating')
+        ->and($needs)->toBe(['files' => ['fixtures/with-files' => ['helpers.php']]])
+        ->and($this->folder->store->current())->toBeNull();
+
+    $this->runner->tick();
+    expect(DB::table('extension_requests')->where('id', $id)->value('status'))->toBe('waiting');
+
+    DB::table('extension_requests')->where('id', $id)->update(['agreed' => json_encode($needs)]);
+    $row = ($this->settle)($id);
+
+    expect($row->status)->toBe('done', (string) $row->error)
+        ->and($this->folder->store->current())->toBe($row->to_release);
+})->group('composer');
+
+it('cancels a request that waited over a day, and deletes its release', function (): void {
+    $id = ($this->ask)('install', 'fixtures/files-dependency', '1.0.0');
+    $row = ($this->settle)($id);
+
+    $this->travel(25)->hours();
+    $this->runner->tick();
+
+    $row = DB::table('extension_requests')->where('id', $id)->first();
+
+    expect($row->status)->toBe('cancelled')
+        ->and($row->error)->toBe('Nobody agreed within a day, so the request was cancelled.')
+        ->and($this->folder->store->all())->toBe([]);
+})->group('composer');
+
+it('leaves a request waiting while an update of Teme is open', function (): void {
+    DB::table('teme_updates')->insert(['id' => strtolower((string) Str::ulid()), 'kind' => 'update', 'from_version' => '0.5.0', 'to_version' => '0.6.0', 'status' => 'requested', 'requested_at' => now()]);
+    $id = ($this->ask)('install', 'fixtures/hello-extension', '1.0.0');
+
+    $this->runner->tick();
+    $this->runner->tick();
+
+    expect(DB::table('extension_requests')->where('id', $id)->value('status'))->toBe('requested');
+});
+
+it('fails a request when current moved while it was being built', function (): void {
+    $id = ($this->ask)('install', 'fixtures/hello-extension', '1.0.0');
+
+    for ($pass = 0; $pass < 20 && DB::table('extension_requests')->where('id', $id)->value('step') !== 'switching'; $pass++) {
+        $this->runner->tick();
+    }
+
+    $elsewhere = $this->folder->stage();
+    $this->folder->store->swap($elsewhere);
+    $row = ($this->settle)($id);
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toContain('changed while this request was being built')
+        ->and($this->folder->store->current())->toBe($elsewhere);
+})->group('composer');
+
+it('rolls back to the kept release checked against this core, and refuses with none', function (): void {
+    $first = $this->folder->install('fixtures/hello-extension', '1.0.0');
+    $this->folder->install('fixtures/hello-extension', '1.1.0');
+
+    $row = ($this->settle)(($this->ask)('rollback'));
+
+    expect($row->status)->toBe('done', (string) $row->error)
+        ->and($this->folder->store->current())->toBe($first);
+
+    $row = ($this->settle)(($this->ask)('rollback'));
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toContain('nothing to roll back to')
+        ->and($this->folder->store->current())->toBe($first);
+})->group('composer');
+
+describe('the installer’s Operations', function (): void {
+    beforeEach(function (): void {
+        $this->seed(RoleSeeder::class);
+        $this->admin = User::factory()->create()->assignRole('administrator');
+    });
+
+    it('refuses a person, even an administrator, and writes nothing', function (Closure $call): void {
+        $id = ($this->ask)('install', 'fixtures/hello-extension', '1.0.0');
+        $before = DB::table('extension_requests')->get()->toArray();
+
+        expect(fn () => $call($id, (string) $this->admin->id))->toThrow(AuthorizationException::class, 'Only the installer');
+
+        app()->instance(Elevation::class, new class implements Elevation
+        {
+            public function isOperator(): bool
+            {
+                return false;
+            }
+
+            public function ensure(OperationInput $input): void {}
+        });
+
+        expect(fn () => $call($id, null))->toThrow(AuthorizationException::class, 'Only the installer')
+            ->and(DB::table('extension_requests')->get()->toArray())->toEqual($before);
+    })->with([
+        'begin' => [fn (string $id, ?string $actor) => app(BeginExtensionRequest::class)->execute(new BeginExtensionRequestInput($id, actorId: $actor))],
+        'record' => [fn (string $id, ?string $actor) => app(RecordExtensionStep::class)->execute(new RecordExtensionStepInput($id, RequestStep::Checking, RequestStep::RUNNING, actorId: $actor))],
+        'end' => [fn (string $id, ?string $actor) => app(EndExtensionRequest::class)->execute(new EndExtensionRequestInput($id, RequestStatus::Failed, actorId: $actor))],
+    ]);
+
+    it('purges the page cache after commit for an enabled plugin’s update, not for a new install, and not on rollback', function (): void {
+        $folder = cacheOn();
+
+        try {
+            DB::table('plugins')->insert(['id' => strtolower((string) Str::ulid()), 'name' => 'fixtures/hello-extension', 'code' => 'hello-extension', 'state' => 'enabled', 'version' => '1.0.0', 'consent' => '{}', 'consented_at' => now()]);
+            $end = fn (array $plugins) => app(EndExtensionRequest::class)->execute(new EndExtensionRequestInput(
+                DB::table('extension_requests')->whereIn('status', ['requested', 'running', 'waiting'])->value('id'), RequestStatus::Done, plugins: $plugins,
+            ));
+
+            ($this->ask)('install', 'fixtures/other', '1.0.0');
+            cachePage('/');
+            $end(['other']);
+            expect(cacheKept('/'))->toBe(['/']);
+
+            ($this->ask)('update', 'fixtures/hello-extension', '1.1.0');
+            cacheRolledBack(fn () => $end(['hello-extension']));
+            expect(cacheKept('/'))->toBe(['/']);
+
+            $end(['hello-extension']);
+            expect(cacheKept('/'))->toBe([]);
+        } finally {
+            cacheOff($folder);
+        }
+    });
+});
