@@ -9,6 +9,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Hooks](concepts/hooks.md): The five verbs, the after-commit rule, capabilities, and where the generated hook list lives.
 - [Operations](concepts/operations.md): Every change goes through an Operation; what a plugin may and may not touch.
 - [Testing a plugin or theme](testing.md): How to test a plugin or theme with Pest and Teme’s fixture helpers.
+- [List columns](plugins/list-columns.md): How a plugin adds a column to the admin's content lists.
 - [For agents](for-agents.md): How agents should read this handbook, llms.txt, and an AGENTS.md to put in a plugin.
 - [Plugins writing content](plugins/content-write.md): How a plugin will create and change content through Operations.
 - [Jobs and schedules](plugins/jobs.md): How a plugin will declare queue jobs and schedules in its manifest.

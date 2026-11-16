@@ -28,6 +28,7 @@ final class GenerateHandbookIndex extends Command
         'concepts/hooks.md',
         'concepts/operations.md',
         'testing.md',
+        'plugins/list-columns.md',
         'for-agents.md',
         'plugins/content-write.md',
         'plugins/jobs.md',

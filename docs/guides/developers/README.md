@@ -17,7 +17,8 @@ It does not cover running a server or writing content. Those have their own guid
 1. [Plugin or theme?](start/plugin-or-theme.md), then [Your first plugin](start/first-plugin.md) or [Your first theme](start/first-theme.md).
 2. [The manifest](concepts/manifest.md) and [Hooks](concepts/hooks.md).
 3. [Operations](concepts/operations.md), then [Testing a plugin or theme](testing.md).
-4. [For agents](for-agents.md) if you are building with an agent.
+4. [List columns](plugins/list-columns.md) when adding a column to the content lists.
+5. [For agents](for-agents.md) if you are building with an agent.
 
 ## Pages that land with later work
 

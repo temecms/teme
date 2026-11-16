@@ -1,10 +1,9 @@
 ---
 title: List columns
-type: guide
+type: how-to
 audience: plugin
 summary: How a plugin adds a column to the admin's content lists.
-rests_on: [docs/architecture/plugins.md]
-lands_with: plugins/list-columns
+rests_on: [docs/architecture/plugins.md, docs/guides/developers/examples/plugins/list-columns, packages/teme-contracts/src/Lists]
 ---
 
 # List columns
@@ -20,8 +19,9 @@ A plugin can add its own column to the admin's Posts, Pages and other content li
 ## The manifest entry
 
 ```json
-{
+// docs/guides/developers/examples/plugins/list-columns/teme-plugin.json
     "capabilities": ["content.read"],
+    "hooks": ["ContentSaved"],
     "contributes": {
         "columns": [
             {
@@ -33,7 +33,6 @@ A plugin can add its own column to the admin's Posts, Pages and other content li
             }
         ]
     }
-}
 ```
 
 - `id`: lower-case letters, digits and hyphens, starting with a letter (2 to 40 characters). Unique within the plugin.
@@ -49,17 +48,14 @@ The preference key is `plugin:{code}:{id}`.
 ## The contract
 
 ```php
-use Teme\Contracts\Lists\Cell;
-use Teme\Contracts\Lists\HasListColumns;
-use Teme\Contracts\Lists\ListColumn;
-use Teme\Contracts\Lists\ListRows;
-
+// docs/guides/developers/examples/plugins/list-columns/src/SeoPlugin.php
 final class SeoPlugin implements HasListColumns, Plugin
 {
     public function listColumns(): array
     {
         return [
-            'score' => new class implements ListColumn {
+            'score' => new class implements ListColumn
+            {
                 public function cells(ListRows $rows): array
                 {
                     $cells = [];
@@ -73,6 +69,11 @@ final class SeoPlugin implements HasListColumns, Plugin
                 }
             },
         ];
+    }
+
+    public function register(Hooks $hooks): void
+    {
+        // Fill the plugin's own table on ContentSaved.
     }
 }
 ```
