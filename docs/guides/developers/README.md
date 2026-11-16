@@ -30,6 +30,7 @@ It does not cover running a server or writing content. Those have their own guid
 | [Public routes](plugins/public-routes.md) | plugin public routes |
 | [The plugin import socket](plugins/import.md) | plugin import socket |
 | [Content inside articles](plugins/insertions.md) | render/insertion-points |
+| [Content on every page](plugins/page-insertions.md) | sockets2/inserts |
 | [The fediverse](plugins/fediverse.md) | fediverse/actors and fediverse/publishing |
 | [List columns](plugins/list-columns.md) | plugins/list-columns |
 | [Languages in a theme](themes/languages.md) | i18n/readers and i18n/screens |
