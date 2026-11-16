@@ -22,6 +22,7 @@ use App\Domain\Site\Insertions\InsertionOrigins;
 use App\Domain\Site\Insertions\InsertionPlan;
 use App\Domain\Site\Insertions\InsertionPoints;
 use App\Domain\Site\Insertions\PlanBuilder;
+use App\Domain\Site\Links\ArticleLinkAttributes;
 use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ItemLink;
@@ -101,11 +102,13 @@ final readonly class ArticleViews
         // One read of the credits serves the byline, the comments' author mark and insertion facts (I-3366, I-064).
         $credits = app(Credits::class)->shown([(string) $content->id])[(string) $content->id] ?? [];
         $plan = $this->insertionPlan($content, $revision, $document, $language, $credits, $fields, $drawInsertions);
+        $links = app(LinkResolver::class);
         $body = $this->renderer->html($document, new RenderContext(
-            app(LinkResolver::class),
+            $links,
             usage: app(CardUsage::class),
             leadNodeId: $lead['nodeId'],
             insertions: $plan,
+            linkAttributes: app(ArticleLinkAttributes::class)->for($document, $links),
         ));
 
         // A draft never published has no first publication yet: the revision's own time stands in.
