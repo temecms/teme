@@ -476,6 +476,22 @@ Fixes #334: a plugin with schedules can no longer be enabled from the console wi
 - Enable one from the console on `main` before this part (no `consented_by`), then open Site › Plugins: the row says its schedules don't run and how to fix it; `php artisan teme:plugins` says the same under Why.
 - `php artisan test --compact tests/Feature/Plugins/Sockets` runs the workbench fixture through settings writes, queue options, lists, actions and the console.
 
+#### Follow-up R1
+
+The review's verdict was "merge after fixes"; this round fixes Finding 1 and corrects Finding 2's wording. Findings 3 to 6 are left, as the owner asked.
+
+- Commits: `c95e3c1` fix(jobs): retrying a failed keyed run while another waits is refused, not a database error; then the commit that adds this section.
+- B-13: `app/Domain/Jobs/Operations/RetryJob.php` is outside this part's Owns; the maintainers approved changing it for this fix only. Under the job's row lock, before setting it waiting, `RetryJob` refuses with `A run of this job is already waiting.` when the job has a `unique_key` and another run with the same owner, job and key already waits. Without it, the update broke `tracked_jobs_waiting_unique` and the person got a database error (500) instead of a plain refusal. A job without a key retries as before.
+- Tests seen red:
+
+| File | Test | First failure |
+|---|---|---|
+| `tests/Feature/Plugins/Sockets/QueueOptionsTest.php` | `it refuses to retry a failed keyed run while another with its key waits, writing nothing` | `Expected: SQLSTATE[23505]: Unique violation: 7 ERROR:  duplicate key value violates unique constraint "tracked_jobs_waiting_unique"` |
+
+  The companion test `it retries a failed keyed run when nothing with its key waits` passed before and after: it guards that the refusal is only for a waiting sibling.
+- Correction to B1's wording (Finding 2): B1 says "Scheduled work runs as the enabling administrator, so a key generated in a scheduled job is saved". That holds for the door, but not yet for a real plugin: `JobContext` gives a handler no person ID, so a scheduled job's handler can't name the administrator to `PluginSettingsWriter::write()`. `WritePluginSettingsTest` passes the ID in from outside the job. Read B1 as: a plugin's write from a job is saved when it names the person the job runs as, and a handler can learn that person once round 3 adds `JobContext::personId()`. Until then the handbook's "the person a job runs as" has no source in the job itself; round 3 documents where it comes from. Not built here, as the owner asked.
+- Gate: `composer check` on `c95e3c1`: Pint, PHPStan, types, lint and the themes' build green; Architecture 139 passed (1,358 assertions); Unit and Feature 1 failed, 11,788 passed, 2 skipped (60,579 assertions, 1,847 s). The one failure is `GenerateManifestReferenceTest`, expected as before (the join regenerates `docs/reference/plugin-manifest.md`). `DatabaseDownTest` and `DiscoveryTest` passed in this run. Baselines unchanged (222, 876).
+
 ---
 
 ## Part C: files at the site's root, the indexable flag, and CI (`sockets/root-files`)
