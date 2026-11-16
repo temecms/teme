@@ -181,6 +181,34 @@
                 }
             }
         },
+        "rootFiles": {
+            "type": "array",
+            "description": "Plain-text files at the site's root that core serves for the plugin when it is granted routes.public, such as a verification key: at most 2, each never stored and never indexed.",
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "required": ["id", "name", "body"],
+                "additionalProperties": false,
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_-]*$",
+                        "description": "The file's id, once per plugin."
+                    },
+                    "name": {
+                        "type": "string",
+                        "pattern": "^(?:[A-Za-z0-9-]{8,128}\\.txt|\\{[a-z][a-z0-9_]*\\}\\.txt)$",
+                        "description": "The file's name: 8 to 128 letters, digits and hyphens, then .txt, or {key}.txt to take it from one of the plugin's own text settings."
+                    },
+                    "body": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1024,
+                        "description": "What the file says: at most 1,024 bytes, or {key} to take it from one of the plugin's own text settings."
+                    }
+                }
+            }
+        },
         "imports": {
             "type": "object",
             "description": "What the plugin brings across from the WordPress site an import reads, when granted import.wordpress.",

@@ -1,0 +1,119 @@
+name: plugins
+
+# First-party plugins' own tests and analysis (docs/guides/developers/testing.md):
+# only when a plugin, the contracts or the code their sockets stand on changes,
+# so an unrelated push waits on nothing new. Not a required check: a required
+# workflow that its paths filter skips would never report.
+on:
+  push:
+    branches:
+      - main
+      - 'slice/[0-9].[0-9]'
+      - 'slice/[0-9].[0-9][0-9]'
+      - 'base/**'
+    paths:
+      - 'plugins/**'
+      - 'packages/teme-contracts/**'
+      - 'app/Domain/Plugins/**'
+      - 'app/Domain/PublicRoutes/**'
+      - 'app/Domain/Hooks/**'
+      - 'app/Domain/Jobs/**'
+      - 'app/Domain/Settings/**'
+      - 'app/Domain/Feeds/**'
+      - 'app/Domain/Site/**'
+      - 'app/Http/Site/**'
+      - 'routes/public.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpunit.xml'
+      - 'phpstan-plugins.neon'
+      - '.github/workflows/plugins.yml'
+      - '.github/actions/prepare/**'
+  pull_request:
+    paths:
+      - 'plugins/**'
+      - 'packages/teme-contracts/**'
+      - 'app/Domain/Plugins/**'
+      - 'app/Domain/PublicRoutes/**'
+      - 'app/Domain/Hooks/**'
+      - 'app/Domain/Jobs/**'
+      - 'app/Domain/Settings/**'
+      - 'app/Domain/Feeds/**'
+      - 'app/Domain/Site/**'
+      - 'app/Http/Site/**'
+      - 'routes/public.php'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'phpunit.xml'
+      - 'phpstan-plugins.neon'
+      - '.github/workflows/plugins.yml'
+      - '.github/actions/prepare/**'
+  workflow_dispatch:
+
+concurrency:
+  group: plugins-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  plugins:
+    name: plugins
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: teme_test
+          POSTGRES_USER: teme
+          POSTGRES_PASSWORD: teme
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U teme -d teme_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      valkey:
+        image: valkey/valkey:9.1-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Before anything is installed: with no plugin's tests in the repository there is nothing to run.
+      - name: Look for plugins' tests
+        id: found
+        shell: bash
+        run: |
+          if compgen -G 'plugins/*/tests' > /dev/null; then
+            echo "tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No plugins/*/tests folder: nothing to run."
+            echo "tests=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.found.outputs.tests == 'true'
+        uses: ./.github/actions/prepare
+
+      - name: The plugins' tests
+        if: steps.found.outputs.tests == 'true'
+        env:
+          TEME_REQUIRE_VALKEY: '1'
+        run: vendor/bin/pest --parallel --testsuite=Plugins
+
+      - name: The plugins' analysis
+        if: steps.found.outputs.tests == 'true'
+        run: vendor/bin/phpstan analyse -c phpstan-plugins.neon --memory-limit=2G --no-progress

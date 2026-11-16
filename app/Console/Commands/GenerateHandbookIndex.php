@@ -37,6 +37,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/content-write.md',
         'plugins/jobs.md',
         'plugins/public-routes.md',
+        'plugins/root-files.md',
         'plugins/import.md',
         'plugins/insertions.md',
         'plugins/fediverse.md',

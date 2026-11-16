@@ -489,67 +489,91 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 #### Commits on `sockets/root-files`
 
--
+Setup: `/tmp/teme-cloud-setup.log` "2026-11-16T07:45:31Z ran in /home/user/teme as root … 07:57:53Z finished"; `pwd` /home/user/teme. Built on `origin/main` at `9b29abb` (the m0 merge `ca95093` and the list-columns join).
+
+- `47f1d54` feat(plugins): root files a plugin declares, served by core (Task 1)
+- `050abf0` ci(plugins): run first-party plugins' tests and analysis when they change (Task 3)
+- `17f9ead` docs(guides): running a first-party plugin's tests, and a link to root files (Task 4)
+- `5dbd555` docs(plans): root files part's records
+- `8876f99` feat(contracts): ItemRef says whether its page is indexable (Task 2, follow-up R1)
+- this commit: docs(plans): root files part's records, follow-up R1
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | tests/Feature/Plugins/Sockets/RootFilesTest.php | `Unknown named parameter $rootFiles` (12 tests); the manifest refusals `Failed asserting that an array contains 'It declares root files but doesn’t ask for routes.public.'`; the consent lines `Failed asserting that two arrays are identical`; the console `Output does not contain "GET /{site_key}.txt …"` |
+| 2 | tests/Feature/Plugins/Sockets/ItemIndexableTest.php | `Undefined property: Teme\Contracts\Content\ItemRef::$indexable` (6 tests) |
+| 2 (R1) | tests/Unit/Contracts/HookContractsTest.php | `Failed asserting that two arrays are identical`, with a parameter without a default planted after `language` in `ItemRef` (removed before the commit) |
 
 #### Task 0
 
--
+- V = `0.9.0` (`git tag -l 'v0.9.0*'` lists nothing).
+- The class the head asks for an item page's robots: `App\Domain\Site\Head\RobotsMeta::directives($kind, $hidden, $fields)`, called by `PageHead::article()` with `$hidden` = the revision's `BuiltInFields::NOINDEX`, or `TitlesAndListing::hidesType($type)` when the item isn't the home page; kind `single`, or `protected` for core's password form; `WholeSite::discouraged()` is checked inside.
+- `StoreRules::refusal()` stores 200 and 404 answers (`! in_array($status, [200, 404])` refuses the rest); a `Cache-Control: no-store` answer is refused as `private`.
+- Fallback order in `routes/public.php`: `feeds.show` (`{path}` matching `FeedPath::ROUTE`), `markdown.show` (`{path}.md`), `declared.plugin` (`{code}/{path?}`, code `[a-z0-9][a-z0-9-]{1,39}`, no dot), then `public.path` with `throttle:declared-routes`, `MatchDeclaredRoutes`. A root-file-shaped path (`/name.txt`) reaches only `public.path`, so `ServeRootFiles` sits there, before `MatchDeclaredRoutes`.
+- PHPUnit expands `plugins/*/tests`: with a throwaway `plugins/zz/tests/ExampleTest.php`, `php artisan test --testsuite=Plugins` and `vendor/bin/pest --parallel --testsuite=Plugins` each ran 1 test; with no `plugins/` folder the suite says "No tests found." and exits 0. `phpstan analyse -c phpstan-plugins.neon` said no errors on a clean class and found the planted `return.type` error. Removed, never committed.
+- `actionlint` isn't installed: the workflow is checked by its first run on the `plugins/pings` branch (its YAML parses).
+- The Plugins screen needs no change: `PluginsScreen::accessLines()` lists `Consent::routeLines()` under routes.public, so root-file lines reach the consent dialog through it; `PluginWords` and `plugins/index.tsx` are unchanged.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Before (base `9b29abb`): Architecture 139 passed (1358 assertions); Unit and Feature 11,711 passed, 2 skipped (60,333 assertions).
+- After: Pint, PHPStan, types and `npm run check` pass; Architecture 139 passed (1358 assertions); Unit and Feature 11,740 passed, 2 skipped, **2 failed** (60,427 assertions):
+  - `GenerateManifestReferenceTest` "keeps the committed reference in step": the new `rootFiles` rows are missing from `docs/reference/plugin-manifest.md`, which this plan says the join regenerates, once. Expected; not regenerated here.
+  - `MediaFiltersTest` "finds each month…" (a query plan under parallel load): passes alone (7 passed). Not touched by this part.
+- No Browser test (the plan names none).
 
 #### Drafts (B-numbers from this block)
 
-- B-01:
-- B-02:
-- B-03:
-- B-04:
-- B-05:
-- B-06:
-- B-07:
-- B-08:
-- B-09:
-- B-10:
-- B-11:
-- B-12:
-- B-13:
-- B-14:
-- B-15:
-- B-16:
-- B-17:
-- B-18:
-- B-19:
-- B-20:
+- B-01: How a starting plugin's settings group learns it has root files. `rootFiles` is a top-level manifest key, not under `contributes`, so `Contributions::add()` never sees it. Options: a lookup inside the static `DeclaredSettings::group()`; or a last parameter `bool $rootFiles = false` on `PluginContributions::add()` and `Contributions::add()`, passed by `PluginLoader` from the manifest. Chose the parameter (explicit, no hidden read). `Contributions` gains a `Container` to register the per-group check, and the test fixture `RecordingContributions` takes the same parameter so it still implements the seam. `47f1d54`.
+- B-02: `RootFileNames` must be one `SettingsCheck` per plugin group, and `UpdateSettings` reads checks from a container tag. `RootFileNames::register()` binds `RootFileNames:{code}` (a plain binding, not a singleton) and tags it, once a process, from `Contributions::add()` when the plugin declares root files. `47f1d54`.
+- B-03: `EnablePlugin` and `DisablePlugin` aren't in this part's Owns, but C1 says both purge the root-files tag. Added one tag to each one's existing after-commit purge; `DisablePlugin` gains a `PluginRegistry` to read the manifest and purges when the plugin declares root files or its code is gone. `EnablePlugin::validate()` also refuses a literal name another enabled plugin declares, through `RouteCollisions::rootFilesAgainst()`. `47f1d54`.
+- B-04: The consent line (`GET /{key}.txt (named by its setting “Label”)`) is stored in `consent.routes` and compared by `Consent::covers()`, so it is built untranslated, as `DeclaredRoute::consentLine()` is; translating it would make the stored consent depend on the enabling person's language. `47f1d54`.
+- B-05: The handbook page `plugins/root-files.md` was written in Task 1, not Task 4, because the new code cites it and `DocumentationTest` refuses a citation of a missing document; adding a page also needs its line in `GenerateHandbookIndex::PAGES`, a row in the handbook README and `llms.txt` regenerated. `47f1d54`.
+- B-06: A setting value is trimmed; a filled body that is empty or over 1,024 bytes serves nothing, as a too-long literal is refused (the plan sizes only the literal). `47f1d54`.
+- B-07: Outside production, `NoindexOutsideProduction` turns the answer's `X-Robots-Tag` into `noindex, nofollow`; the test checks it contains `noindex`. In production the header is `noindex`. `47f1d54`.
+- B-08: The "two still meet" test writes the second plugin's value straight to the settings table (`cmSettings`), as a value saved before the first plugin took the name would stand; `SettingsWriter` outside an Operation refuses a group with cache tags. `47f1d54`.
+- B-09: The workflow checks for `plugins/*/tests` before installing anything, so a run with no plugin tests takes seconds; analysis passes `--memory-limit=2G` as `composer check:plugins` does. `050abf0`.
+- B-11: ItemRef grows at the end, per .ai/rules/contracts.md. The maintainers' decision (follow-up R1): the order test, renamed "gives an item reference its first values in this order, and anything added later at the end with a default (I-3360, contracts rule)", proves the first six parameters are exactly `id, type, title, status, url, language`, none of them has a default, and every later parameter has one. `indexable = true` passes it; a later parameter without a default fails it. `8876f99`.
+- B-10: `testing.md` shows `vendor/bin/pest --testsuite=Plugins` rather than `php artisan test --testsuite=Plugins`: the guides' check reads artisan's own options and refuses `--testsuite`. `17f9ead`.
 
 #### Contract changes
 
--
+- `packages/teme-contracts/schema/teme-plugin.schema.json`: `rootFiles` added (the plan names it). `Teme\Contracts\Content\ItemRef` gains a last parameter `public bool $indexable = true` (`@since 0.9.0`), and joins the `PluginContractsTest` list at `@since 0.5.0` (`8876f99`).
 
 #### STOP
 
--
+- **Resolved by follow-up R1 (B-11); Task 2 is committed as `8876f99`.** Was: **Task 2 (indexable) is not committed.** `tests/Unit/Contracts/HookContractsTest.php` "gives an item reference its values in this order, its language last (I-3360)" asserts `ItemRef`'s parameters are exactly `id, type, title, status, url, language` and that none has a default. Adding `indexable = true` last, as C2 and the contracts rule require, makes it fail, and making it pass changes what it proves (language last, no defaults). The brief makes that a STOP. The work is ready: `ItemRef` gains `public bool $indexable = true` (`@since 0.9.0`); `Payloads::item()` sets it to `$url !== null && ! in_array('noindex', RobotsMeta::directives($kind, $hidden, $fields))`, with the published revision's fields, `hidesType()` except for the home page and its language versions, and kind `protected` for a protected item; `ItemIndexableTest` (6 tests: published true; own box, type hidden, site discouraged false and agreeing with the page's robots meta; a draft false; the parameter last with its default and `@since 0.9.0`) passed with it. Needs the maintainers' word on the HookContractsTest line (for example, the six in order with no default, then `indexable` last with one). Task 3 and Task 4 don't depend on it and are done.
 
 #### Changelog lines for the maintainers
 
--
+- Added: a plugin granted routes.public can declare up to two `rootFiles`, plain-text files at the site's root (such as an IndexNow key), named and filled literally or from its own text settings; core serves them with noindex, nosniff and no-store, never stores them, and refuses a name another plugin or core already answers.
+- Added: the consent lists each root file, and an update that adds one asks again.
+- Added: `ItemRef::$indexable`, whether search engines may list the item's page, as its robots meta says.
+- Added: a `Plugins` test suite, `phpstan-plugins.neon` and a `plugins` workflow that run first-party plugins' tests and analysis only when plugin or socket code changes.
+
+#### Follow-up R1
+
+- Decision: B-11, ItemRef grows at the end, per .ai/rules/contracts.md. The order test was reshaped as the maintainers set out, then Task 2 was finished as written.
+- Seen red: `HookContractsTest` (the reshaped test) `Failed asserting that two arrays are identical` with a planted parameter without a default; `ItemIndexableTest` `Undefined property: Teme\Contracts\Content\ItemRef::$indexable` (6 failed), before the code.
+- Quick check: Pint, PHPStan, Architecture 139 passed (1358 assertions); `tests/Feature/Plugins` 626, `tests/Unit/Contracts` 130, `tests/Feature/Hooks` 78, `tests/Feature/Cache` 322, `tests/Feature/Seo` 195, all passed.
+- `composer check`: Pint, PHPStan, types and `npm run check` pass; Architecture 139 passed (1358 assertions); Unit and Feature 11,747 passed, 2 skipped, **2 failed** (60,450 assertions):
+  - `GenerateManifestReferenceTest` "keeps the committed reference in step": as before, the join regenerates `docs/reference/plugin-manifest.md`.
+  - `DiscoveryTest` "finds the configured folders…": under parallel load it found a third fixture, `tests/jobs`, which another test had configured; it passes alone (8 passed). Not touched by this part. (`MediaFiltersTest` passed this run.)
+- Baselines unchanged: design-system 222, admin-words 876.
 
 #### Try it
 
--
+- Point `TEME_PLUGIN_PATHS` at `tests/Fixtures/plugins/keyfile` (the fixture requires Teme ^0.5, which an untagged build reports as 0.1.0, so set `teme.version` as `PluginFixtures` does), run `php artisan teme:plugins:enable tests/keyfile` (it lists `GET /{site_key}.txt (named by its setting “Site key”)` and `GET /keyfile-literal.txt`), then again with `--agree`. Open `/keyfile-literal.txt`; set "Site key" to `abcd1234ef` on the plugin's settings page and open `/abcd1234ef.txt`: plain text, `X-Robots-Tag: noindex`, `Cache-Control: no-store`.
+- `vendor/bin/pest tests/Feature/Plugins/Sockets/RootFilesTest.php`.
 
 ---
 

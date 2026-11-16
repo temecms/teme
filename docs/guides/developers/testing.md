@@ -3,7 +3,7 @@ title: Testing a plugin or theme
 type: how-to
 audience: both
 summary: How to test a plugin or theme with Pest and Teme’s fixture helpers.
-rests_on: [tests/Feature/Guides/Developers, tests/Fixtures/Plugins, docs/guides/developers/examples]
+rests_on: [tests/Feature/Guides/Developers, tests/Fixtures/Plugins, docs/guides/developers/examples, phpunit.xml, phpstan-plugins.neon, .github/workflows/plugins.yml]
 ---
 
 # Testing a plugin or theme
@@ -22,6 +22,17 @@ Useful commands while you work:
 php artisan teme:plugins:enable your/package --agree
 php artisan test --compact tests/Feature/Guides/Developers/ExamplesTest.php
 ```
+
+### A first-party plugin's own tests
+
+A plugin kept in Teme's repository, under `plugins/<code>/`, keeps its tests in `plugins/<code>/tests`. They run in a test suite of their own, named Plugins, apart from Teme's, with its analysis at level 6 over `plugins/` alone:
+
+```sh
+vendor/bin/pest --testsuite=Plugins
+vendor/bin/phpstan analyse -c phpstan-plugins.neon --no-progress
+```
+
+`composer check:plugins` runs both. On GitHub, the plugins workflow runs them only when a plugin, the contracts or the core code the plugin sockets stand on changes, and only when some plugin has a `tests` folder. Teme's own suite and `composer check` never run them.
 
 ## Themes
 
