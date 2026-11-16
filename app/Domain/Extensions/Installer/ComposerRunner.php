@@ -24,7 +24,7 @@ class ComposerRunner
     public const int TIMEOUT = 900;
 
     /** What every run adds: nothing interactive, and no package code runs. */
-    public const array ALWAYS = ['--no-interaction', '--no-scripts', '--no-plugins', '--no-progress'];
+    public const array ALWAYS = ['--no-interaction', '--no-scripts', '--no-plugins'];
 
     public function __construct(
         private readonly string $binary,
@@ -45,7 +45,7 @@ class ComposerRunner
             ExtensionAction::Rollback => throw new LogicException('A rollback runs no Composer.'),
         };
 
-        return $this->run([...$command, '--prefer-dist', '--optimize-autoloader'], $release, $auth);
+        return $this->run([...$command, '--no-progress', '--prefer-dist', '--optimize-autoloader'], $release, $auth);
     }
 
     /** Checks that the lock matches composer.json. */
