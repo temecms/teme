@@ -9,6 +9,7 @@ use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\ForgetPluginInput;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -19,9 +20,9 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
 /**
- * Forgets a disabled plugin whose package is gone: a person who holds
- * plugins.manage, after their password, or the operator. Deletes the row so
- * its code is free for a renamed package. Returns its name.
+ * Forgets a disabled plugin whose package is gone and that owns no tables: a
+ * person who holds plugins.manage, after their password, or the operator.
+ * Deletes the row so its code is free for a renamed package. Returns its name.
  */
 final class ForgetPlugin extends BaseOperation implements RequiresElevation
 {
@@ -30,6 +31,7 @@ final class ForgetPlugin extends BaseOperation implements RequiresElevation
     public function __construct(
         private readonly PluginRegistry $registry,
         private readonly PluginRecords $records,
+        private readonly PluginMigrations $migrations,
         private readonly SecurityLog $log,
     ) {}
 
@@ -54,6 +56,10 @@ final class ForgetPlugin extends BaseOperation implements RequiresElevation
         if (! $this->packageGone($input->name)) {
             throw ValidationException::withMessages(['plugin' => ['Its package is still installed.']]);
         }
+
+        if ($this->migrations->ownedTables($record->migrations) !== []) {
+            throw ValidationException::withMessages(['plugin' => ['Remove its data first.']]);
+        }
     }
 
     protected function perform(OperationInput $input): string
@@ -71,6 +77,10 @@ final class ForgetPlugin extends BaseOperation implements RequiresElevation
 
         if (! $this->packageGone($input->name)) {
             throw ValidationException::withMessages(['plugin' => ['Its package is still installed.']]);
+        }
+
+        if ($this->migrations->ownedTables($record->migrations) !== []) {
+            throw ValidationException::withMessages(['plugin' => ['Remove its data first.']]);
         }
 
         $code = $record->code;
