@@ -40,12 +40,23 @@ final class PluginFixtures
     public static function use(string ...$folders): void
     {
         config([
-            'teme.plugin_paths' => array_map(fn (string $folder): string => str_starts_with($folder, '/') ? $folder : self::path($folder), $folders),
+            'teme.plugin_paths' => array_map(fn (string $folder): string => self::absolute($folder) ? $folder : self::path($folder), $folders),
             'teme.plugin_cache' => '',
             'teme.version' => self::TEME,
         ]);
 
         app(PluginRegistry::class)->flush();
+    }
+
+    /**
+     * Whether $path is absolute on Unix (/…), a Windows drive (C:\… or C:/…),
+     * or a UNC share (\\server\…).
+     */
+    private static function absolute(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\')
+            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
     }
 
     /**
@@ -125,7 +136,7 @@ final class PluginFixtures
         $json = [];
 
         foreach ($packages as $name => $folder) {
-            $path = str_starts_with($folder, '/') ? $folder : self::path($folder);
+            $path = self::absolute($folder) ? $folder : self::path($folder);
             $versions[$name] = ['pretty_version' => '1.0.0', 'version' => '1.0.0.0', 'reference' => $references[$name] ?? null, 'type' => 'teme-plugin', 'install_path' => $path, 'aliases' => [], 'dev_requirement' => false];
             $own = is_file($path.'/composer.json') ? json_decode((string) file_get_contents($path.'/composer.json'), true) : [];
             $json[] = [...(is_array($own) ? $own : []), 'name' => $name, 'version' => '1.0.0', 'type' => 'teme-plugin', 'install-path' => $path, ...($installed[$name] ?? [])];
