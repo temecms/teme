@@ -149,6 +149,7 @@ it('refuses an unsafe archive and writes nothing', function (Closure $archive, s
     'no composer.json' => [fn () => uploadZip(files: ['composer.json' => null]), 'The archive has no composer.json.'],
     'composer.json that isn\'t JSON' => [fn () => uploadZip(files: ['composer.json' => '{"name": ']), 'The archive’s composer.json isn’t valid JSON.'],
     'the wrong type' => [fn () => uploadZip(files: ['composer.json' => json_encode(['name' => 'fixtures/hello-extension', 'version' => '1.0.0', 'type' => 'library'])]), 'The archive’s composer.json must give the type teme-plugin.'],
+    'a composer.json over 1 MB' => [fn () => uploadZip(files: ['composer.json' => json_encode(['name' => 'fixtures/hello-extension', 'version' => '1.0.0', 'type' => 'teme-plugin', 'description' => str_repeat('a', 1_048_576)])]), 'The archive’s composer.json is larger than 1 MB.'],
     'no manifest' => [fn () => uploadZip(files: ['teme-plugin.json' => null]), 'The archive has no teme-plugin.json beside its composer.json.'],
     'a name differing from the upload' => [fn () => uploadZip(files: ['composer.json' => json_encode(['name' => 'fixtures/other', 'version' => '1.0.0', 'type' => 'teme-plugin'])]), 'The archive’s composer.json names fixtures/other, not fixtures/hello-extension.'],
     'a version differing from the upload' => [fn () => uploadZip(files: ['composer.json' => json_encode(['name' => 'fixtures/hello-extension', 'version' => '2.0.0', 'type' => 'teme-plugin'])]), 'The archive’s composer.json gives version 2.0.0, not 1.0.0.'],

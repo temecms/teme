@@ -25,6 +25,9 @@ final readonly class ArchiveReader
     /** The most bytes an archive may unpack to. */
     public const int MOST_BYTES = 268_435_456;
 
+    /** The most bytes the package's composer.json may hold, read into memory. */
+    public const int MOST_COMPOSER_BYTES = 1_048_576;
+
     /** Composer's pattern for a package name. */
     private const string PACKAGE = '{^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$}';
 
@@ -187,7 +190,17 @@ final readonly class ArchiveReader
      */
     private function checkPackage(ZipArchive $zip, string $root, string $package, string $version, ExtensionKind $kind): void
     {
-        $json = $zip->getFromName($root.'composer.json');
+        $stat = $zip->statName($root.'composer.json');
+
+        if ($stat === false) {
+            throw self::refused(__('The archive has no composer.json.'));
+        }
+
+        if ((int) $stat['size'] > self::MOST_COMPOSER_BYTES) {
+            throw self::refused(__('The archive’s composer.json is larger than :size MB.', ['size' => intdiv(self::MOST_COMPOSER_BYTES, 1_048_576)]));
+        }
+
+        $json = $zip->getFromName($root.'composer.json', self::MOST_COMPOSER_BYTES);
 
         if ($json === false) {
             throw self::refused(__('The archive has no composer.json.'));
