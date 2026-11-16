@@ -59,6 +59,18 @@ location @teme_app {
     try_files $uri $uri/ /index.php?$query_string;
 }
 
+# Themes installed from the admin: the image's own public/themes first,
+# then the current release's (docs/architecture/plugins.md).
+location ^~ /themes/ {
+    location ~ \.php$ { return 404; }
+    try_files $uri @teme_extension_themes;
+}
+
+location @teme_extension_themes {
+    root /var/teme/extensions/current/public;
+    try_files $uri =404;
+}
+
 # Block PHP execution in storage directory to prevent uploaded malicious PHP files from running
 # Reference: Livewire arbitrary file upload (GHSA-29cq-5w36-x7w3)
 location ~* ^/storage/.*\.php$ {

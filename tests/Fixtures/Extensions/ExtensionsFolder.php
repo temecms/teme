@@ -64,6 +64,24 @@ final class ExtensionsFolder
     }
 
     /**
+     * This checkout's pins with core libraries at the versions given, as an
+     * image that ships them would have them.
+     *
+     * @param  array<string, string>  $replace
+     *
+     * @return array{replace: array<string, string>, provide: array<string, string>, hash: string}
+     */
+    public static function pinsWith(array $replace): array
+    {
+        $pins = self::pins();
+        $pins['replace'] = [...$pins['replace'], ...$replace];
+        ksort($pins['replace']);
+        $pins['hash'] = substr(hash('sha256', (string) json_encode([$pins['replace'], $pins['provide']])), 0, 16);
+
+        return $pins;
+    }
+
+    /**
      * Writes the pins to a file, as the image's bootstrap/cache has them.
      */
     public function pinsFile(): string

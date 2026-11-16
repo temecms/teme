@@ -11,22 +11,6 @@ use Tests\Fixtures\Extensions\ExtensionsFolder;
 
 uses(RefreshDatabase::class);
 
-/**
- * This checkout's pins with a core library at a version, as an image that
- * ships it would have them.
- *
- * @return array{replace: array<string, string>, provide: array<string, string>, hash: string}
- */
-function pinsWith(array $replace): array
-{
-    $pins = ExtensionsFolder::pins();
-    $pins['replace'] = [...$pins['replace'], ...$replace];
-    ksort($pins['replace']);
-    $pins['hash'] = substr(hash('sha256', json_encode([$pins['replace'], $pins['provide']])), 0, 16);
-
-    return $pins;
-}
-
 beforeEach(function (): void {
     config(['teme.version' => '0.5.0']);
     app()->instance(Elevation::class, new OperatorElevation);
@@ -38,10 +22,10 @@ afterEach(function (): void {
 });
 
 it('stamps a release that still fits the new image, without Composer', function (): void {
-    $old = pinsWith(['fixtures/core-lib' => '1.2.0']);
+    $old = ExtensionsFolder::pinsWith(['fixtures/core-lib' => '1.2.0']);
     $id = $this->folder->install('fixtures/adapts', '1.0.0', pins: $old);
     $lock = file_get_contents($this->folder->store->path($id).'/composer.lock');
-    $new = pinsWith(['fixtures/core-lib' => '1.3.0']);
+    $new = ExtensionsFolder::pinsWith(['fixtures/core-lib' => '1.3.0']);
 
     expect($this->folder->runner($new)->prepare())->toBeNull()
         ->and($this->folder->store->all())->toBe([$id])
@@ -52,7 +36,7 @@ it('stamps a release that still fits the new image, without Composer', function 
 })->group('composer');
 
 it('rebuilds with minimal changes a release the new image’s versions no longer fit', function (): void {
-    $old = pinsWith(['fixtures/core-lib' => '1.2.0']);
+    $old = ExtensionsFolder::pinsWith(['fixtures/core-lib' => '1.2.0']);
     $this->folder->install('fixtures/hello-extension', '1.0.0', pins: $old);
     $id = $this->folder->install('fixtures/adapts', '1.0.0', pins: $old);
     $versions = fn (string $release): array => array_column(json_decode((string) file_get_contents($this->folder->store->path($release).'/composer.lock'), true)['packages'], 'version', 'name');
@@ -62,7 +46,7 @@ it('rebuilds with minimal changes a release the new image’s versions no longer
     $project['require'] = ['fixtures/adapts' => '^1.0', 'fixtures/hello-extension' => '^1.0'];
     file_put_contents($this->folder->store->path($id).'/composer.json', json_encode($project));
 
-    $new = pinsWith(['fixtures/core-lib' => '2.0.0']);
+    $new = ExtensionsFolder::pinsWith(['fixtures/core-lib' => '2.0.0']);
 
     expect($this->folder->runner($new)->prepare())->toBeNull();
 
@@ -79,7 +63,7 @@ it('rebuilds with minimal changes a release the new image’s versions no longer
 
 it('rebuilds a release holding a package the image now ships', function (): void {
     $id = $this->folder->install('fixtures/files-dependency', '1.0.0');
-    $new = pinsWith(['fixtures/with-files' => '1.0.0']);
+    $new = ExtensionsFolder::pinsWith(['fixtures/with-files' => '1.0.0']);
 
     expect($this->folder->runner($new)->prepare())->toBeNull();
 
@@ -90,8 +74,8 @@ it('rebuilds a release holding a package the image now ships', function (): void
 })->group('composer');
 
 it('holds the release and says which package blocks when the rebuild fails', function (): void {
-    $id = $this->folder->install('fixtures/adapts', '1.0.0', pins: pinsWith(['fixtures/core-lib' => '1.2.0']));
-    $new = pinsWith(['fixtures/core-lib' => '3.0.0']);
+    $id = $this->folder->install('fixtures/adapts', '1.0.0', pins: ExtensionsFolder::pinsWith(['fixtures/core-lib' => '1.2.0']));
+    $new = ExtensionsFolder::pinsWith(['fixtures/core-lib' => '3.0.0']);
 
     $held = $this->folder->runner($new)->prepare();
 
