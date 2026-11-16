@@ -11,6 +11,10 @@ use App\Domain\Cards\ChangeList;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RegionCard;
 use App\Domain\Cards\RenderContext;
+use App\Domain\Site\Policy\PagePolicy;
+use App\Domain\SiteCode\SiteCode;
+use App\Domain\SiteCode\SiteCodeEntries;
+use App\Domain\SiteCode\SiteCodeWithheld;
 
 /**
  * Custom HTML in a theme's region: a Settings › Site code entry placed by
@@ -60,6 +64,29 @@ final class SiteCodeCard implements CardType, RegionCard
      */
     public function renderHtml(array $attrs, RenderContext $context): string
     {
+        if ($context->target !== 'web' || SiteCode::disallowed() || app(SiteCodeWithheld::class)->isWithheld()) {
+            return '';
+        }
+
+        $entryId = (string) ($attrs['entryId'] ?? '');
+
+        foreach (SiteCodeEntries::on()[SiteCode::PLACED] ?? [] as $entry) {
+            if ($entry['id'] !== $entryId) {
+                continue;
+            }
+
+            $policy = app(PagePolicy::class);
+            $policy->allowScriptHashes($entry['policy']['scripts']);
+            $policy->allowHandlerHashes($entry['policy']['handlers']);
+
+            foreach ($entry['policy']['origins'] as $directive => $origins) {
+                $policy->allowOrigins($directive, $origins);
+            }
+
+            // A change to the entry purges every stored page already (ChangesSiteCode).
+            return '<div class="card-site-code">'.$entry['code'].'</div>';
+        }
+
         return '';
     }
 
