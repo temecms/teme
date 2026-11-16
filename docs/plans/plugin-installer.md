@@ -454,16 +454,16 @@ Extends the existing screens, reusing `components/ui` unchanged and the v10 demo
 ### Tasks (tests first; each seen red for the reason given)
 
 - [ ] **A0. Confirm the start.** Each line of *What main does today*, with file and line, into the records. Build the image locally (`docker build`), run it as `--user 9990:9990` with `--entrypoint php ... artisan teme:installer --prepare-only` against the development database, and record whether Laravel boots with nothing to write, and whether a new named volume mounted at `/var/teme/extensions` starts owned by 9990. Record `composer --version` in the image (it must be 2.7 or later for `--minimal-changes`; **unverified**). STOP if it isn't.
-- [ ] **A1. The seam** (pushed first; B and C start here). The migrations, the three models, the enums, `ExtensionsAccess`, `SourceKind`/`SourceKinds`/`ExtensionSource`/`ExtensionRequest`/`PackagistSource`, the `EncryptedValues` line, the `config/teme.php` key, `Heartbeats::INSTALLER`, the fixture packages (below). Tests: the checks refuse a second open request, a rollback with a package, a bad kind; a new encrypted column is listed (`EncryptedValuesTest` passes); `extensions.install` reaches administrators and no one else; `SourceKinds` resolves a tagged kind and refuses an unknown key. Red: tables and classes missing.
-- [ ] **A2. Core pins.** `CorePins::build()` (as written) and `teme:extensions:pins`. Tests: every package and every `replace`/`provide` of the fixture `installed.json` is pinned, `self.version` is resolved, dev packages are left out with `--no-dev`, the hash changes when one version changes and not when the order does. Red.
-- [ ] **A3. Loading.** `bootstrap/extensions.php`, `ActiveRelease`, the registries' release cache, `InstalledPackages` reading both files. Tests run PHP in a child process (`Process`, `php -r` requiring `vendor/autoload.php` then `bootstrap/extensions.php`) against a fixture extensions folder built by the test: a fixture plugin there is listed by `InstalledVersions::getInstalledPackagesByType('teme-plugin')` and by `PluginRegistry::all()`; a fixture theme by `ThemeRegistry::all()`; with no stamp for this core it is **held** (not listed, `TEME_EXTENSIONS_HELD` defined); with `TEME_EXTENSIONS_ROLE=installer` nothing is loaded; after the link is switched, the next child process loads the new release (readlink, not the realpath cache); a class under `App\` in the folder never replaces core's class (prepend off). Red.
-- [ ] **A4. Releases and the swap.** `ReleaseStore`: create, swap (as written), previous, prune to three, delete an unswapped one; refuses an id that isn't a lowercase ULID. Tests: the link is relative and replaced in one rename; a failed swap leaves the old link; pruning never deletes `current` or the one before. Red.
-- [ ] **A5. Composer in the stage.** `ComposerRunner` with the exact flags. Tests use only local fixtures: a release whose `composer.json` disables Packagist (`{"packagist.org": false}`) and adds a `path` repository to `tests/Fixtures/Extensions/packages/*` with `"options": {"symlink": false}`. Install `fixtures/hello-extension` (requires `teme/contracts: *`): resolved against the pins, nothing from the image copied into the release's `vendor/`; a fixture requiring `laravel/framework: ^99` fails with Composer's reason; the child environment holds no `APP_KEY` and no `DB_PASSWORD` (a fixture `path` package can't see them: assert on the `Process` env); a fixture with a `composer-plugin` dependency installs without running it (its plugin writes a marker file if run; assert absent). Mark these tests `->group('composer')`; they take seconds each. Red.
-- [ ] **A6. Verification and validation.** `StageValidator` (D6) and the verifying step. One test per refusal and per wait in D6, each on a fixture (`autoloads-app` declares `App\\Extra\\`, `files-dependency`, `duplicate-code`, `wrong-type`, `needs-ext-nonexistent`); the lock-mismatch case edits `composer.json` after the lock. `composer audit` is replaced by a fake in these tests (`ComposerRunner` is an injected class). Red.
-- [ ] **A7. The runner and its Operations.** `BeginExtensionRequest`, `RecordExtensionStep`, `EndExtensionRequest` (operator only; each test proves a person, even an administrator, is refused and nothing is written), `InstallerRunner::tick()`: one fixture request from `requested` to `done`, the steps recorded in order, `current` switched, `queue:restart` called, the upload row deleted; a failing request leaves `current` and deletes its release; a request needing agreement stops at `waiting` with `needs`, and continues after `agreed` covers it; a request waiting over 24 hours is cancelled; a request while a Teme update is open waits; `current` moved meanwhile fails the request; `EndExtensionRequest` purges the page cache after commit for an enabled plugin's update and not for a new install, and not on rollback of the transaction. Red.
-- [ ] **A8. Rollback and the start check.** Rollback swaps to the kept release with a stamp; refuses with none. `prepare()`: a release compatible with new pins gets its stamp and caches without Composer; one whose lock needs a version the pins no longer satisfy is rebuilt with `--minimal-changes` (a sibling fixture plugin's locked version doesn't move); one whose lock holds a package the image now has is rebuilt; a failed rebuild leaves the release held and the ready file written. Red.
-- [ ] **A9. The command and the stack.** `teme:installer` loop (heartbeat, lock, `--once`, `--prepare-only`, SIGTERM ends the pass in hand), `teme:extensions:request` / `:cancel` (operator), `SafeMode::COMMANDS` lines. The compose files, the Dockerfile lines, nginx, `build-checks.sh`. Tests: `LayeringTest` passes (commands call Operations only); `docker compose -f docker/compose.yml config` and the Dokploy file parse (CI already runs compose checks: add the service to what they assert). Red: command missing.
-- [ ] **A10. Documents and records.** `docs/guides/operators/extensions.md` (the volume, the service, the fallback commands, what a Teme update does to installed extensions, how to back up the folder by hand until the proposal's Q3 is decided), `configure.md`'s variables, the operator README link. Records.
+- [x] **A1. The seam** (pushed first; B and C start here). The migrations, the three models, the enums, `ExtensionsAccess`, `SourceKind`/`SourceKinds`/`ExtensionSource`/`ExtensionRequest`/`PackagistSource`, the `EncryptedValues` line, the `config/teme.php` key, `Heartbeats::INSTALLER`, the fixture packages (below). Tests: the checks refuse a second open request, a rollback with a package, a bad kind; a new encrypted column is listed (`EncryptedValuesTest` passes); `extensions.install` reaches administrators and no one else; `SourceKinds` resolves a tagged kind and refuses an unknown key. Red: tables and classes missing.
+- [x] **A2. Core pins.** `CorePins::build()` (as written) and `teme:extensions:pins`. Tests: every package and every `replace`/`provide` of the fixture `installed.json` is pinned, `self.version` is resolved, dev packages are left out with `--no-dev`, the hash changes when one version changes and not when the order does. Red.
+- [x] **A3. Loading.** `bootstrap/extensions.php`, `ActiveRelease`, the registries' release cache, `InstalledPackages` reading both files. Tests run PHP in a child process (`Process`, `php -r` requiring `vendor/autoload.php` then `bootstrap/extensions.php`) against a fixture extensions folder built by the test: a fixture plugin there is listed by `InstalledVersions::getInstalledPackagesByType('teme-plugin')` and by `PluginRegistry::all()`; a fixture theme by `ThemeRegistry::all()`; with no stamp for this core it is **held** (not listed, `TEME_EXTENSIONS_HELD` defined); with `TEME_EXTENSIONS_ROLE=installer` nothing is loaded; after the link is switched, the next child process loads the new release (readlink, not the realpath cache); a class under `App\` in the folder never replaces core's class (prepend off). Red.
+- [x] **A4. Releases and the swap.** `ReleaseStore`: create, swap (as written), previous, prune to three, delete an unswapped one; refuses an id that isn't a lowercase ULID. Tests: the link is relative and replaced in one rename; a failed swap leaves the old link; pruning never deletes `current` or the one before. Red.
+- [x] **A5. Composer in the stage.** `ComposerRunner` with the exact flags. Tests use only local fixtures: a release whose `composer.json` disables Packagist (`{"packagist.org": false}`) and adds a `path` repository to `tests/Fixtures/Extensions/packages/*` with `"options": {"symlink": false}`. Install `fixtures/hello-extension` (requires `teme/contracts: *`): resolved against the pins, nothing from the image copied into the release's `vendor/`; a fixture requiring `laravel/framework: ^99` fails with Composer's reason; the child environment holds no `APP_KEY` and no `DB_PASSWORD` (a fixture `path` package can't see them: assert on the `Process` env); a fixture with a `composer-plugin` dependency installs without running it (its plugin writes a marker file if run; assert absent). Mark these tests `->group('composer')`; they take seconds each. Red.
+- [x] **A6. Verification and validation.** `StageValidator` (D6) and the verifying step. One test per refusal and per wait in D6, each on a fixture (`autoloads-app` declares `App\\Extra\\`, `files-dependency`, `duplicate-code`, `wrong-type`, `needs-ext-nonexistent`); the lock-mismatch case edits `composer.json` after the lock. `composer audit` is replaced by a fake in these tests (`ComposerRunner` is an injected class). Red.
+- [x] **A7. The runner and its Operations.** `BeginExtensionRequest`, `RecordExtensionStep`, `EndExtensionRequest` (operator only; each test proves a person, even an administrator, is refused and nothing is written), `InstallerRunner::tick()`: one fixture request from `requested` to `done`, the steps recorded in order, `current` switched, `queue:restart` called, the upload row deleted; a failing request leaves `current` and deletes its release; a request needing agreement stops at `waiting` with `needs`, and continues after `agreed` covers it; a request waiting over 24 hours is cancelled; a request while a Teme update is open waits; `current` moved meanwhile fails the request; `EndExtensionRequest` purges the page cache after commit for an enabled plugin's update and not for a new install, and not on rollback of the transaction. Red.
+- [x] **A8. Rollback and the start check.** Rollback swaps to the kept release with a stamp; refuses with none. `prepare()`: a release compatible with new pins gets its stamp and caches without Composer; one whose lock needs a version the pins no longer satisfy is rebuilt with `--minimal-changes` (a sibling fixture plugin's locked version doesn't move); one whose lock holds a package the image now has is rebuilt; a failed rebuild leaves the release held and the ready file written. Red.
+- [x] **A9. The command and the stack.** `teme:installer` loop (heartbeat, lock, `--once`, `--prepare-only`, SIGTERM ends the pass in hand), `teme:extensions:request` / `:cancel` (operator), `SafeMode::COMMANDS` lines. The compose files, the Dockerfile lines, nginx, `build-checks.sh`. Tests: `LayeringTest` passes (commands call Operations only); `docker compose -f docker/compose.yml config` and the Dokploy file parse (CI already runs compose checks: add the service to what they assert). Red: command missing.
+- [x] **A10. Documents and records.** `docs/guides/operators/extensions.md` (the volume, the service, the fallback commands, what a Teme update does to installed extensions, how to back up the folder by hand until the proposal's Q3 is decided), `configure.md`'s variables, the operator README link. Records.
 
 ### Fixtures (`tests/Fixtures/Extensions/packages/`, Task A1)
 
@@ -569,36 +569,76 @@ One feature test, `tests/Feature/Extensions/EndToEndTest.php`, written by whoeve
 
 ### Part A — `installer/service`
 
+**Setup:** `cat /tmp/teme-cloud-setup.log` gave nothing (no such file); `pwd` gave `/home/user`, then `/home/user/teme`. `bash scripts/cloud-setup.sh` and `npm ci` ran; Composer 2.8.12 in the cloud; no Docker daemon. Built on `origin/main` at `6be0340`.
+
+**A0, what main does today (at `6be0340`):** every line holds. `PluginRegistry.php:416` and `ThemeRegistry.php:136` (in `discoverComposer()`, line 130) call `InstalledVersions::getInstalledPackagesByType()`, which walks `ClassLoader::getRegisteredLoaders()` (`vendor/composer/InstalledVersions.php:358`). `InstalledPackages.php:49` reads one `installed.json`. `config/teme.php:41` and `:51` name the theme and plugin caches. `PackagesWithoutPlugins.php:33` keeps plugins out of package discovery. `CodeScan.php:21` refuses `autoload.files`. `Dockerfile:99` links themes as root, `:76` turns timestamp checks off, `:110` ends as `www-data`. `RunUpdater.php:66` takes the lock per pass. `SafeMode.php:39` held `teme:updater`, `teme:updates:`. `compose.dokploy.yml:96` and `:180` run deploy and the updater. **Not checked here:** the image build, whether Laravel boots as uid 9990 with the start step skipped, whether a new named volume copies the folder's owner on Dokploy, and the image's own Composer version: the cloud has the Docker CLI but no daemon. The image's `code` stage runs `composer install` from the serversideup base (`Dockerfile:43`), so the runtime has Composer, at a version not seen. These stay open for the first image build: `docker/teme/build-checks.sh` now stops the build when the user, the folder's owner or the pins are missing.
+
 #### Commits
+
+- `b897bbd` feat(extensions): the seam for the plugin and theme installer (A1, pushed first)
+- `43a967a` feat(extensions): pin the image's packages for the extensions folder (A2)
+- `0853289` feat(extensions): keep releases and swap the current one atomically (A4)
+- `5c8d172` feat(extensions): run Composer in a release with no package code and no secrets (A5)
+- `2a44b63` test(extensions): let the seam's test hold beside part C's source kinds
+- `c4b578f` feat(extensions): load the current release after core's own packages (A3)
+- `21eef64` feat(extensions): verify and validate a staged release before it runs (A6)
+- `9dcd5c9` feat(extensions): carry out a request step by step as the operator (A7)
+- `bd4833b` feat(extensions): rebuild only what no longer fits when the image changes (A8)
+- `f36f0bf` feat(extensions): run the installer as its own service in both stacks (A9)
+- `ae7a8a3` docs(guides): the installer service for operators (A10)
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
+| A1 | `SeamTest.php` | `SQLSTATE[42P01]: Undefined table: relation "extension_requests" does not exist` |
+| A2 | `CorePinsTest.php` | `ErrorException` before `CorePins` existed; once built, `Failed asserting that two strings are identical` on the hash of reordered packages (B-01) |
+| A3 | `LoadingTest.php` | the child process found no release class: the registries read only the image's cache (exact line not kept) |
+| A4 | `ReleaseStoreTest.php` | `Failed asserting that two arrays are identical` (prune) |
+| A5 | `ComposerRunnerTest.php` | the runner class was missing (exact line not kept) |
+| A6 | `StageValidatorTest.php` | `Tests: 8 failed, 8 passed`: `Failed asserting that two arrays are identical` |
+| A7 | `InstallerRunnerTest.php` | the runner and its operations were missing (exact line not kept) |
+| A8 | `PrepareTest.php` | `Failed asserting that two arrays are identical`: `fixtures/hello-extension` moved `1.0.0` → `1.1.0` in a rebuild (B-07) |
+| A9 | `RunInstallerTest.php` | `Class "App\Console\Commands\RunInstaller" not found` |
 
 #### B-?? (draft)
 
-- **B-01 (draft):**
-- **B-02 (draft):**
-- **B-03 (draft):**
-- **B-04 (draft):**
-- **B-05 (draft):**
-- **B-06 (draft):**
-- **B-07 (draft):**
-- **B-08 (draft):**
+- **B-01 (draft):** the plan's `CorePins` built the hash in `installed.json`'s order, so the same packages in another order gave another hash. Options: keep the order; sort by name. Chose sorting, so a stamp means the same versions whatever the order. `43a967a`.
+- **B-02 (draft):** Packagist is a source kind, but part A owns no service provider to tag it. Options: tag it in a provider (not in Owns); build it into `SourceKinds` first, before tagged kinds. Chose built in. `b897bbd`.
+- **B-03 (draft):** writing a release's caches reads its plugins' manifests through the registries, which would load extension code into the installer. Options: read in the installer; a hidden command, `teme:extensions:caches`, in a child process that registers an empty `ClassLoader` for the release's vendor, so `InstalledVersions` sees the packages and none of their code runs. Chose the child. `9dcd5c9`.
+- **B-04 (draft):** `teme:extensions:request` and `teme:extensions:cancel` (part A's Owns) call `RequestExtensionChange` and `CancelExtensionRequest`, which are part B's files and not on this branch. Options: write B's operations (another part's files: STOP); write the commands against classes this branch lacks (PHPStan and the suite fail); leave both commands to the join. Chose leaving them, so the fallback guide names only `teme:installer --once`. Nothing built.
+- **B-05 (draft):** `ComposeRecipeTest` and `DokployComposeTest` assert `depends_on` and `volumes` exactly. The plan (A9) names adding the service to what they assert: the roles now also wait for `installer` and mount `extensions` read-only, and one new test in each covers the installer. No assertion was dropped. `f36f0bf`.
+- **B-06 (draft):** the new page needs one line in `tests/Fixtures/Guides/OperatorGuide.php` PAGES and the README's row. The guide's Compose parser doesn't know `--entrypoint` takes a value, so the guide uses `docker compose exec` for `chown` and `tar`. `ae7a8a3`.
+- **B-07 (draft):** the plan's rebuild, `update --minimal-changes --no-dev`, allow-lists every root requirement, and in the test it moved the sibling plugin too (seen red). Options: as written; name the packages that no longer fit, `update <those> --with-all-dependencies --minimal-changes --no-dev`. Chose naming them (`CompatibilityCheck::blocking()`), which keeps the Settled "nothing updates that need not". `bd4833b`.
+- **B-08 (draft):** small choices. A rollback skips fetching, verifying and validating, and refuses with no kept release that has this core's stamp. `from_release` is `''` when there was no release. `RunInstaller` uses a bound `InstallerRunner` when a test binds one. The fallback without Docker also sets `TEME_EXTENSIONS_ROLE=installer`. The failed-swap test is skipped when the suite runs as root (the cloud does). `9dcd5c9`, `f36f0bf`, `ae7a8a3`.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
+| `admin-words-baseline.txt` | 876 | 876 |
+| `design-system-baseline.txt` | 222 | 222 |
 
 #### Gate
 
+Base `6be0340`: Architecture 139 passed; Unit and Feature 11,578 passed, 2 skipped. This branch, `composer check` at `ae7a8a3`: Pint and PHPStan clean; Architecture 139 passed; Unit and Feature 11,676 passed, 3 skipped, 1 failed. The skip added is the failed-swap test as root.
+
+The one failure, `tests/Feature/Plugins/DiscoveryTest` "finds the configured folders", is main's, not this part's: `tests/Feature/Jobs/JobsScreenTest.php` calls `PluginFixtures::installed()` without `PluginFixtures::forget()`, so `tests/jobs` stays in Composer's runtime data for whatever test the same worker runs next. `pest tests/Feature/Jobs/JobsScreenTest.php tests/Feature/Plugins/DiscoveryTest.php` fails the same way with `6be0340`'s registries put back; `DiscoveryTest` alone passes. Neither file is in part A's Owns, so it is left open: one `afterEach(fn () => PluginFixtures::forget())` in `JobsScreenTest` fixes it.
+
 #### STOP
+
+None.
 
 #### Changelog lines for the maintainer
 
+- Added: an `installer` service in both Compose files that installs, updates, removes and rolls back plugins and themes asked for from the admin, as its own user (uid 9990), in an `extensions` volume the other roles mount read-only.
+- Added: after every Teme update, the installer checks the installed plugins and themes against the new image and rebuilds only what no longer fits; the site starts with them held if that fails.
+- Added: `teme:installer` (`--once`, `--prepare-only`) and `teme:extensions:pins`; the operators' guide page "Plugins and themes installed from the admin".
+- Changed: the image adds the `teme-installer` user, `/var/teme/extensions` and the core pins; nginx serves `/themes/` from the current release after the image's own.
+
 #### Try it
+
+`php artisan test --compact tests/Feature/Extensions/Installer` (the `composer` group runs Composer against the fixture packages, with Packagist off). By hand: set `TEME_EXTENSIONS_PATH` to an empty folder, insert an `install` row in `extension_requests` for a package Composer can reach, and run `php artisan teme:installer --once`; then `ls -l "$TEME_EXTENSIONS_PATH"/current`.
 
 ### Part B — `installer/admin`
 
