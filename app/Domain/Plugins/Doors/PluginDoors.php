@@ -19,6 +19,7 @@ use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 
@@ -27,8 +28,8 @@ use Teme\Contracts\Settings\SettingsReader;
  * secrets, the content and media write doors when granted, the outbound
  * door to its hosts when it was granted http, InsertionsChanged when it was
  * granted content.insert (I-064), and the other doors its capabilities open
- * (I-3353). Bound as the loader's
- * PluginServices.
+ * (I-3353), and the writer of its own settings when it declares any.
+ * Bound as the loader's PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
 {
@@ -84,6 +85,13 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::FediverseSend->value, $capabilities, true)) {
             $offered[FediverseSender::class] = new PluginSender($name);
+        }
+
+        // Its own settings group only, for the person its work runs for (docs/proposals/plugin-sockets-1.md).
+        $settings = $this->registry->find($name)?->manifest?->contributes()['settings'] ?? null;
+
+        if (is_array($settings) && $settings !== []) {
+            $offered[PluginSettingsWriter::class] = new PluginSettingsWrites($code);
         }
 
         return $offered;
