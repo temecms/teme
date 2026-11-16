@@ -370,16 +370,15 @@ final class RouteCollisions
             return ['verify.kind must be secret, hmac or custom.'];
         }
 
-        if ($kind === 'custom') {
-            return is_string($verify['class'] ?? null) && $verify['class'] !== ''
-                ? []
-                : ['A custom verifier needs a class.'];
+        if ($kind === 'custom' && (! is_string($verify['class'] ?? null) || $verify['class'] === '')) {
+            return ['A custom verifier needs a class.'];
         }
 
         $secret = is_string($verify['secret'] ?? null) ? $verify['secret'] : '';
 
+        // A custom verifier may do without a secret; secret and hmac can't.
         if ($secret === '') {
-            return ['verify needs a secret setting name.'];
+            return $kind === 'custom' ? [] : ['verify needs a secret setting name.'];
         }
 
         $keys = [];

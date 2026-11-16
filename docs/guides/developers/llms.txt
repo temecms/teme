@@ -17,8 +17,8 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Rules for plugins and themes](rules/plugins-and-themes.md): The rules every plugin and theme lives by, both the ones Teme enforces and the ones authors must keep because Teme cannot check them.
 - [For agents](for-agents.md): How agents should read this handbook and llms.txt, choose a plugin's capabilities, and write an AGENTS.md for it.
 - [Plugins writing content](plugins/content-write.md): How a plugin granted content.write creates, changes, publishes and schedules items, always on behalf of a named person.
-- [Jobs and schedules](plugins/jobs.md): How a plugin declares background jobs and schedules in its manifest, queues them, after a delay or once while one waits, writes their handlers, who its scheduled work runs as, and what happens when one fails.
-- [Public routes](plugins/public-routes.md): How a plugin answers addresses on the public site, which paths it may take, how inbound posts are verified, cached and limited, and which addresses Teme answers itself.
+- [Jobs and schedules](plugins/jobs.md): How a plugin declares background jobs and schedules in its manifest, queues them, after a delay or once while one waits, writes their handlers, when a schedule is due, who its scheduled work runs as, and what happens when one fails.
+- [Public routes](plugins/public-routes.md): How a plugin answers addresses on the public site, which paths it may take, how inbound posts are verified, cached and limited, what Teme answers before a handler runs, and which addresses Teme answers itself.
 - [Files at the site's root](plugins/root-files.md): How a plugin declares a small text file at the site's root, such as a verification key, which core serves without running the plugin's code.
 - [The plugin import socket](plugins/import.md): How a plugin brings its own data across when a site moves from WordPress, declaring exactly what it reads and receiving it from Teme's import.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.

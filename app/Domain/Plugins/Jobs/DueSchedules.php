@@ -23,7 +23,9 @@ use Throwable;
  * time on the plugin row in the same transaction as StartJob. Each schedule
  * runs as the administrator who enabled the plugin (`consented_by`), with
  * that person's normal permissions — never the operator's elevation. A
- * plugin whose schedules can't run, by ScheduleRunner, is skipped.
+ * plugin whose schedules can't run, by ScheduleRunner, is skipped. A
+ * schedule is due its interval after its last run was queued, not on the
+ * clock, and a missed pass catches up once (docs/guides/developers/plugins/jobs.md).
  *
  * Safe mode is not checked here: the command name matches SafeMode's
  * `teme:plugins:` prefix, so active() would always skip every schedule
@@ -48,14 +50,20 @@ final readonly class DueSchedules
     ) {}
 
     /**
-     * Queues every due schedule. Returns how many jobs were queued.
+     * Queues every due schedule, or only those of the plugin with this code.
+     * Returns how many jobs were queued.
      */
-    public function run(?CarbonImmutable $now = null): int
+    public function run(?CarbonImmutable $now = null, ?string $plugin = null): int
     {
         $now ??= CarbonImmutable::now();
         $queued = 0;
+        $enabled = PluginRecord::query()->where('state', PluginRecord::ENABLED);
 
-        foreach (PluginRecord::query()->where('state', PluginRecord::ENABLED)->cursor() as $record) {
+        if ($plugin !== null) {
+            $enabled->where('code', $plugin);
+        }
+
+        foreach ($enabled->cursor() as $record) {
             try {
                 $queued += $this->plugin($record, $now);
             } catch (Throwable $failure) {
@@ -118,6 +126,39 @@ final readonly class DueSchedules
         }
 
         return $queued;
+    }
+
+    /**
+     * Returns when this plugin's schedule for the job is next due: its
+     * interval after the last run was queued, or the time the plugin was
+     * enabled when none has been, so due at the next pass. Null when the
+     * plugin declares no schedule for that job.
+     */
+    public function nextDue(PluginRecord $record, string $job): ?CarbonImmutable
+    {
+        $found = $this->registry->find($record->name);
+
+        if (! $found instanceof FoundPlugin || ! $found->manifest instanceof Manifest) {
+            return null;
+        }
+
+        foreach (DeclaredJobs::of($found->manifest)->schedules() as $schedule) {
+            $seconds = self::SECONDS[$schedule['every']] ?? null;
+
+            if ($schedule['job'] !== $job || $seconds === null) {
+                continue;
+            }
+
+            $last = $record->schedule_runs[$job] ?? null;
+
+            if (! is_string($last) || $last === '') {
+                return $record->enabled_at ?? CarbonImmutable::now();
+            }
+
+            return CarbonImmutable::parse($last)->addSeconds($seconds);
+        }
+
+        return null;
     }
 
     private function due(mixed $last, string $every, CarbonImmutable $now): bool

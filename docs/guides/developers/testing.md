@@ -80,7 +80,16 @@ The fake sits behind the door, so the door's own checks still run: a host your m
 
 ## Jobs
 
-The test's queue is `sync`, so `runJob()` runs the job at once and answers how it ended: `finished`, or `failed` with the first line of what it threw, or `cancelled`. A failed run is not tried again in the same test: call `runJob()` again for another try. A job runs as the person who enabled the plugin, as on a site; `runSchedules()` queues what is due as the schedules runner would.
+The test's queue is `sync`, so `runJob()` runs the job at once and answers how it ended: `finished`, or `failed` with the first line of what it threw, or `cancelled`. A failed run is not tried again in the same test: call `runJob()` again for another try. A job runs as the person who enabled the plugin, as on a site; `runSchedules()` queues what is due as the schedules runner would, and answers how many it queued.
+
+A schedule is due at the first pass after the plugin is enabled, then each time its interval has passed since its last run was queued, as [Jobs and schedules](plugins/jobs.md#schedules) describes. To fire one twice, give the second pass a later moment. For an `hour` schedule, the first pass queues one run, a second pass at the same moment queues none, and a pass an hour later queues one again:
+
+```php
+expect($plugin->runSchedules())->toBe(1)->and($plugin->runSchedules())->toBe(0);
+expect($plugin->runSchedules(now()->addHour()))->toBe(1);
+```
+
+A plugin enabled without an administrator, from the command line without `--as`, never runs its schedules, in a test as on a site.
 
 ### A first-party plugin's own tests
 

@@ -11,6 +11,7 @@ use App\Domain\Plugins\Columns\PluginColumns;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use Illuminate\Contracts\Container\Container;
@@ -42,7 +43,7 @@ final readonly class PluginLists
 
     /**
      * Returns the lists of the plugin whose settings group this is, each with
-     * its columns and its cleaned rows, or with the line saying it couldn't
+     * its columns and its cleaned rows, its words in the current locale, or with the line saying it couldn't
      * be shown; none for a group that isn't a running plugin's.
      *
      * @return list<array{id: string, label: string, description: string|null, columns: list<array{id: string, label: string, kind: string}>, rows: list<array<string, array{kind: string, value: string|int|float, tone?: string}>>, failed: string|null}>
@@ -104,7 +105,16 @@ final readonly class PluginLists
             $shown[] = [...$this->shape($list), 'rows' => $this->kept($list, $given), 'failed' => null];
         }
 
-        return $shown;
+        // Its headings in the person's language, from its own lang folder; rows are values, never translated.
+        $words = ManifestText::for(substr($group, strlen('plugin.')));
+        $locale = app()->getLocale();
+
+        return array_map(fn (array $list): array => [
+            ...$list,
+            'label' => $words->text($list['label'], $locale),
+            'description' => $list['description'] === null ? null : $words->text($list['description'], $locale),
+            'columns' => array_map(fn (array $column): array => [...$column, 'label' => $words->text($column['label'], $locale)], $list['columns']),
+        ], $shown);
     }
 
     /**
