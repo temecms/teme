@@ -12,7 +12,11 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
 use App\Domain\Themes\ThemeRegistry;
 use Closure;
+use FilesystemIterator;
 use JsonException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 
 /**
  * Checks a staged release before it may run: that it is exactly what was
@@ -128,6 +132,10 @@ final readonly class StageValidator
 
         array_push($refusals, ...$this->collisions($release));
 
+        foreach (array_keys($locked) as $name) {
+            array_push($refusals, ...self::links($release, $name));
+        }
+
         $platform = $this->composer->checkPlatform($release);
 
         if (! $platform->ok()) {
@@ -209,6 +217,69 @@ final readonly class StageValidator
         }
 
         return $refusals;
+    }
+
+    /**
+     * Every link in a package's folder whose target lies outside it: the web
+     * server would serve a theme's link to any file, the site's settings
+     * among them. vendor/bin is no package's, so its links are left alone.
+     *
+     * @return list<string>
+     */
+    private static function links(string $release, string $name): array
+    {
+        $root = "{$release}/vendor/{$name}";
+
+        if (! is_dir($root) || is_link($root)) {
+            return is_link($root) ? ["{$name} is installed as a link, so its files could be anywhere."] : [];
+        }
+
+        $base = (string) realpath($root);
+        $found = [];
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST);
+
+        foreach ($files as $file) {
+            /** @var SplFileInfo $file */
+            if (! $file->isLink()) {
+                continue;
+            }
+
+            $path = $file->getPathname();
+            $target = (string) readlink($path);
+            $resolved = self::normalize(str_starts_with($target, '/') ? $target : dirname($path).'/'.$target);
+            $real = realpath($path);
+            $inside = fn (string $where): bool => str_starts_with($where, self::normalize($root).'/') || str_starts_with($where, $base.'/');
+
+            if (! $inside($resolved) || ($real !== false && ! str_starts_with($real, $base.'/'))) {
+                $found[substr($path, strlen($root) + 1)] = "{$name} holds a link, ".substr($path, strlen($root) + 1).', to a file outside the package.';
+            }
+        }
+
+        ksort($found);
+
+        return array_values($found);
+    }
+
+    /** A path with its . and .. resolved, without touching the disk. */
+    private static function normalize(string $path): string
+    {
+        $parts = [];
+
+        foreach (explode('/', $path) as $part) {
+            if ($part === '' || $part === '.') {
+                continue;
+            }
+
+            if ($part === '..') {
+                array_pop($parts);
+
+                continue;
+            }
+
+            $parts[] = $part;
+        }
+
+        return '/'.implode('/', $parts);
     }
 
     /**

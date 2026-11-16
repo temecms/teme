@@ -68,6 +68,8 @@ location ^~ /themes/ {
 
 location @teme_extension_themes {
     root /var/teme/extensions/current/public;
+    # A link inside a theme's files is followed only to a file of the installer's own.
+    disable_symlinks if_not_owner from=/var/teme/extensions/current/public;
     try_files $uri =404;
 }
 

@@ -207,3 +207,20 @@ it('waits for agreement when a package comes from another source, or an upload r
             'replace' => ['package' => 'fixtures/hello-extension', 'from' => '1.0.0', 'to' => '1.1.0'],
         ]);
 })->group('composer');
+
+it('refuses a package holding a link that points outside it, and takes one that stays inside', function (): void {
+    $release = ($this->staged)('fixtures/hello-theme');
+    $public = "{$release}/vendor/fixtures/hello-theme/public";
+    symlink('../teme-theme.json', "{$public}/manifest.json");
+
+    expect(($this->validate)(($this->request)('fixtures/hello-theme', ExtensionKind::Theme), $release)->refusals)->toBe([]);
+
+    symlink(base_path('.env'), "{$public}/build/settings.txt");
+    symlink('../../../../../../outside', "{$public}/up");
+
+    $refusals = ($this->validate)(($this->request)('fixtures/hello-theme', ExtensionKind::Theme), $release)->refusals;
+
+    expect($refusals)->toHaveCount(2)
+        ->and($refusals[0])->toContain('fixtures/hello-theme')->toContain('public/build/settings.txt')
+        ->and($refusals[1])->toContain('public/up');
+})->group('composer');
