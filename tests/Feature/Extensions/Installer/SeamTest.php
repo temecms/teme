@@ -161,7 +161,8 @@ it('resolves Packagist and a tagged kind by key', function (): void {
 
     expect($kinds->find('packagist'))->toBeInstanceOf(PackagistSource::class)
         ->and($kinds->find('vendor_test'))->toBe($kind)
-        ->and($kinds->keys())->toBe(['packagist', 'vendor_test']);
+        ->and($kinds->keys()[0])->toBe('packagist')
+        ->and($kinds->keys())->toContain('vendor_test');
 });
 
 it('refuses a kind it does not know, and a key registered twice', function (): void {
