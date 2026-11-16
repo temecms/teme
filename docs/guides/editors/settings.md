@@ -137,6 +137,10 @@ Whether outside tools, such as an importer or a script, may write to the site, a
 
 Whether people on Mastodon and other fediverse servers can follow the site, and who they can follow: the blog, its authors, or both. Switching it off pauses it and keeps the followers. It also lists the site's accounts, the servers not answering, and the blocked servers. Administrators change it.
 
+### Updates
+
+The Dokploy API key Teme uses to update the site from Tools › Updates, on a site that runs on Dokploy. It is kept encrypted and never shown again, and saving it asks you to confirm your password. When Teme can't use the key, or has none, the page says why in one sentence. Those who may update Teme change it.
+
 ## To find a setting
 
 Type in **Find a setting** at the top of **Settings**, for example "time zone". It lists the settings that match and takes you to their page.

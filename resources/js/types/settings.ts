@@ -115,6 +115,8 @@ export type SettingsGroupPage = {
     panels: { title: string; description: string; keys: string[] }[] | null;
     /** The group's words in other languages (docs/proposals/multilingual-screens.md, 6): null on a site with one language or a group with no words. */
     words?: SettingsWordsSection | null;
+    /** One sentence above the form when something needs the person, such as Updates' Dokploy key; null on most pages. */
+    notice?: string | null;
 };
 
 /** A settings group's "In other languages" table. */

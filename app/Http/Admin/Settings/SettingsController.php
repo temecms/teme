@@ -20,6 +20,8 @@ use App\Domain\Settings\Queries\SettingsForm;
 use App\Domain\Settings\Queries\SettingsPageSections;
 use App\Domain\Settings\Queries\SettingsPanels;
 use App\Domain\Settings\SettingsPlacement;
+use App\Domain\Updates\Updater\PlatformCheck;
+use App\Domain\Updates\UpdatesSettings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -82,6 +84,9 @@ final class SettingsController extends Controller
             // A plugin's own actions and lists, drawn below its settings (docs/proposals/plugin-sockets-1.md).
             'pluginActions' => $actions->forGroup(SettingsPlacement::groupShownOn($page)),
             'pluginLists' => $lists->forGroup(SettingsPlacement::groupShownOn($page)),
+            // One sentence above the form when something needs the person: on Updates, why the updater can't use the
+            // Dokploy key it has, or that it has none. Null on every other page.
+            'notice' => $page === UpdatesSettings::GROUP ? app(PlatformCheck::class)->sentence() : null,
             ...$sections->for($page, $user),
         ]);
     }

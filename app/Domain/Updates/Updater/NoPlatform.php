@@ -24,6 +24,16 @@ final class NoPlatform implements Platform
         throw PlatformRefused::notSetUp();
     }
 
+    public function compose(): PlatformCompose
+    {
+        throw PlatformRefused::notSetUp();
+    }
+
+    public function setCompose(string $compose): void
+    {
+        throw PlatformRefused::notSetUp();
+    }
+
     public function deploy(string $title): void
     {
         throw PlatformRefused::notSetUp();
