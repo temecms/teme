@@ -61,22 +61,18 @@ The exact capability names and contribution kinds are fixed in phase 5. The mani
 
 ## Installing (I-036, I-211)
 
-From the admin, without the web process ever writing code.
+From the admin, without the web process ever writing code. The plan that built it is `docs/plans/plugin-installer.md`.
 
-1. **Request.** An administrator chooses a plugin and version. The `RequestPluginInstall` Operation checks `plugins.install`, requires re-authentication (the elevation already used for sensitive settings), and records an **install request**: package, version, who asked, when. It writes no files. This is audited like every Operation.
-2. **The installer** is a separate process running as a **different system user**, the one that owns the code. The web server's user can read the code but not write it. The installer picks up the request and:
-   1. **stages** a copy of the release and runs `composer require` inside the copy (Drupal Package Manager's lifecycle);
-   2. **verifies integrity**: Composer's lock hashes, and, once the repository exists, the checksum and provenance pinned in Teme's signed index;
-   3. **validates**: manifest schema, Teme range, dependencies, admin API version, PHP extensions, disk space;
-   4. **swaps releases atomically**: the new release directory becomes current, and the previous one is kept;
-   5. **runs the lifecycle**: install migrations through study C's `installed` transition. It does **not** enable; enabling is the administrator's next step;
-   6. **restarts the queue workers** and reports back to the request.
-3. **Rollback** points `current` back to the kept release. Data is recovered separately, as study C and spec §11 already say.
-4. **No installer configured.** The same screen shows the exact commands to run, as Statamic does, and the request waits until someone runs them.
+1. **The request.** Someone with `extensions.install` (administrators) presses **Add plugin** on Site › Plugins or **Add theme** on Site › Themes, chooses where it comes from (Packagist, a Git address, a vendor's Composer source with its license key, or an uploaded ZIP) and a version, and asks. `RequestExtensionChange` checks the permission and the password window (`security.elevation_minutes`: asked once, then not again for that window), refuses what can't work (another open request, an open Teme update, a package the site's build already has, removing an enabled plugin or the active theme, a constraint Composer can't read), and records one row in `extension_requests`: action, kind, package, constraint, source, who asked, when. It writes no files. One request is open at a time. **Update…** and **Remove…** in a row's ⋯ menu, and **Roll back** on the Install requests tab, ask the same way. Saved sources keep their key encrypted and never show it again; an upload is kept as data and read, never extracted, by the web process.
+2. **The installer** is its own service, `teme:installer`, running as the `teme-installer` user, the only one that can write the `extensions` volume at `/var/teme/extensions` (`TEME_EXTENSIONS_PATH`); every other role mounts it read-only. The folder is a **second Composer project** (`teme/site-extensions`) whose `replace` and `provide` pin every package the image has, so Composer resolves a plugin's needs against core's exact versions; its autoloader is registered after core's (`bootstrap/extensions.php`). Each change is built in a new release folder and takes seven steps, each recorded on the request: **Check the server**, **Prepare a new copy**, **Download** (Composer with `--no-scripts --no-plugins`: no package code runs while installing), **Verify the download** (the lock against `composer.json` and what was installed), **Check the package** (its type, manifest, Teme range and what it would load; what needs the person's agreement, such as files that run on every request or a different source than before, waits for **Agree and continue**), **Switch over** (the `current` link is swapped in one step, and only if nothing changed meanwhile) and **Finish** (the workers restart, three releases are kept).
+3. **Enabling is the person's next step.** A plugin installed here appears on Site › Plugins as not enabled, marked *Installed here, from* its source; enabling goes through the existing consent dialog, which is where its plugin migrations run. **The installer runs no migrations**; after an update that brings new ones, the plugin shows *Run database changes* (I-3442). A theme is previewed and activated as any other.
+4. **Rollback** points `current` back to the newest kept release checked against this version of Teme. Data is not rolled back.
+5. **No installer running.** The request sheet shows the exact commands that carry the request out (`docker compose run --rm installer --once`, or `php artisan teme:installer --once` as the folder's owner), or the `composer require` to add the package to the site's own build instead; the request waits until one runs.
+6. **Teme updates.** An extension request and a Teme update never run together: each refuses while the other is open. After a Teme update, the installer rebuilds the folder for the new core before the site starts on it; until it has, installed plugins and themes are held and Install requests says why.
 
-Updates and removals use the same path. The repository (phase 6) is this path with a source: Teme publishes a **signed index** that pins every release's checksum and provenance, because Packagist signs nothing.
+The request sheet reads the request again every three seconds while it is open; closing it changes nothing, since the installer carries on. Plugins and themes that are part of the site's build are marked *Part of the site's build* and are changed by changing the build.
 
-Hosts that cannot run a second process (shared hosting) use step 4. Shared hosting is already a non-goal.
+The repository (phase 6) is this path with a source of its own: Teme publishes a **signed index** that pins every release's checksum and provenance, because Packagist signs nothing.
 
 ## Trust
 
