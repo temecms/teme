@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Domain\Addresses\PathProjection;
+use App\Domain\Contents\Operations\Input\SaveDraftInput;
+use App\Domain\Contents\Operations\SaveDraft;
 use App\Domain\Feeds\ChangedFeeds;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\ImportRunKind;
@@ -34,16 +36,17 @@ beforeEach(function (): void {
     $this->harbour = typesTerm($this->editor, 'tag', 'Harbour');
 });
 
-it('tells a listener the main feed, the tag’s feed and the author’s feed once a post filed under the tag is published', function (): void {
+it('tells a listener once, the main feed, the tag’s feed and the author’s feed, when a post filed under the tag is published', function (): void {
+    // The draft is made and saved first, so only the publish is heard.
+    $content = lifecycleDraft($this->author, 'Harbour news');
+    app(SaveDraft::class)->execute(new SaveDraftInput($content->id, 'Harbour news', ['type' => 'doc', 'content' => []], [], $content->working_revision_id, (string) $this->author->id, [$this->harbour->id]));
     $heard = hkHear(FeedsChanged::class);
 
-    pageArticle($this->author, 'Harbour news', tags: [$this->harbour]);
+    listsPublish($content, $this->author);
 
-    $published = array_values(array_filter($heard->getArrayCopy(), fn (FeedsChanged $feeds): bool => in_array('http://localhost/tag/harbour/feed/', $feeds->urls, true)));
-
-    expect($published)->toHaveCount(1)
-        ->and($published[0]->urls)->toEqualCanonicalizing(['http://localhost/feed/', 'http://localhost/tag/harbour/feed/', 'http://localhost/author/jane-doe/feed/'])
-        ->and($published[0]->all)->toBeFalse();
+    expect($heard)->toHaveCount(1)
+        ->and($heard[0]->urls)->toEqualCanonicalizing(['http://localhost/feed/', 'http://localhost/tag/harbour/feed/', 'http://localhost/author/jane-doe/feed/'])
+        ->and($heard[0]->all)->toBeFalse();
 });
 
 it('tells a listener nothing for a publish that rolls back', function (): void {
