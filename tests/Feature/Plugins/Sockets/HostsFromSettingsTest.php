@@ -194,3 +194,24 @@ it('lists the hosts its settings name at the console, and records them when the 
 
     expect(($this->consent)()['settingHosts'])->toBe(['hub.example.com']);
 });
+
+it('lists the hosts its settings name on the plugins page, and records them when it is enabled there', function (): void {
+    app()->forgetInstance(Elevation::class);
+    $manifest = PluginFixtures::manifest('hub');
+
+    $this->actingAs($this->admin)->get('/admin/plugins')
+        ->assertInertia(fn ($page) => $page->where('settingHosts.tests/hub', ['settings' => ['Hub', 'More hubs'], 'hosts' => ['hub.example.com']]));
+
+    $this->actingAs($this->admin)->withSession(scConfirmed())
+        ->post('/admin/plugins/hub/enable', [
+            'version' => $manifest['version'],
+            'capabilities' => $manifest['capabilities'],
+            'hosts' => $manifest['hosts'],
+            'hooks' => [],
+            'settingHosts' => ['hub.example.com'],
+        ])
+        ->assertRedirect(route('plugins.index'))
+        ->assertInertiaFlash('toast.type', 'success');
+
+    expect(($this->consent)()['settingHosts'])->toBe(['hub.example.com']);
+});

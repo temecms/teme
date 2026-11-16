@@ -12,9 +12,11 @@ use App\Domain\Plugins\Operations\Input\MigratePluginInput;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\Plugins\Operations\RemovePluginData;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Plugins\Queries\PluginRow;
 use App\Domain\Plugins\Queries\PluginsScreen;
+use App\Domain\Plugins\SettingHosts;
 use App\Http\Admin\Requests\EnablePluginRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -30,9 +32,9 @@ use Inertia\Response;
  */
 final class PluginsController extends Controller
 {
-    public function index(PluginsScreen $screen): Response
+    public function index(PluginsScreen $screen, PluginRegistry $registry, SettingHosts $hosts): Response
     {
-        return Inertia::render('plugins/index', ['plugins' => $screen->rows()]);
+        return Inertia::render('plugins/index', ['plugins' => $screen->rows(), 'settingHosts' => $this->settingHosts($registry, $hosts)]);
     }
 
     /**
@@ -51,6 +53,7 @@ final class PluginsController extends Controller
                 hosts: array_values($request->array('hosts')),
                 hooks: array_values($request->array('hooks')),
                 actorId: (string) $request->user()?->getAuthIdentifier(),
+                settingHosts: array_values(array_filter($request->array('settingHosts'), is_string(...))),
             ));
         } catch (ValidationException $refused) {
             Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
@@ -125,6 +128,26 @@ final class PluginsController extends Controller
     /**
      * The plugin the code names, or a 404.
      */
+    /**
+     * Each plugin that takes hosts from its settings, by name: the settings'
+     * labels and the hosts they name now, which the consent dialog shows
+     * and posts back (docs/plans/plugin-sockets-1.md, A2).
+     *
+     * @return array<string, array{settings: list<string>, hosts: list<string>}>
+     */
+    private function settingHosts(PluginRegistry $registry, SettingHosts $hosts): array
+    {
+        $found = [];
+
+        foreach ($registry->all() as $plugin) {
+            if ($plugin->manifest !== null && SettingHosts::declared($plugin->manifest) !== []) {
+                $found[$plugin->name] = ['settings' => SettingHosts::labels($plugin->manifest), 'hosts' => $hosts->current($plugin->manifest)];
+            }
+        }
+
+        return $found;
+    }
+
     private function row(PluginList $list, string $code): PluginRow
     {
         foreach ($list->all() as $row) {

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { PluginIcon } from '@/components/ui/plugin-icon';
 import { __ } from '@/lib/i18n';
-import type { PluginRowPage } from '@/types';
+import type { PluginRowPage, PluginSettingHosts } from '@/types';
 
 /**
  * The words the dialog's button carries: the plain Enable while an earlier
@@ -32,10 +32,12 @@ export function confirmLabel(plugin: PluginRowPage): string {
  */
 export function ConsentDialog({
     plugin,
+    settingHosts = null,
     onClose,
     onConfirm,
 }: {
     plugin: PluginRowPage | null;
+    settingHosts?: PluginSettingHosts | null;
     onClose: () => void;
     onConfirm: (plugin: PluginRowPage) => void;
 }) {
@@ -127,6 +129,27 @@ export function ConsentDialog({
                                 ))}
                             </ul>
                         </section>
+                    )}
+
+                    {settingHosts !== null && (
+                        <p
+                            data-test="consent-setting-hosts"
+                            className="text-small"
+                        >
+                            {__(
+                                'It also connects to the hosts you enter in :settings.',
+                                {
+                                    settings: settingHosts.settings
+                                        .map((label) => `“${label}”`)
+                                        .join(` ${__('and')} `),
+                                },
+                            )}{' '}
+                            {settingHosts.hosts.length > 0
+                                ? __('They name these hosts now: :hosts', {
+                                      hosts: settingHosts.hosts.join(', '),
+                                  })
+                                : __('They name no host yet.')}
+                        </p>
                     )}
 
                     <DialogFooter>

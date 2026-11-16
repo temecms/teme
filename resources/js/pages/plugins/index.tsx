@@ -138,7 +138,7 @@ function pendingUrl(pending: Pending): string {
  * consent dialog, migrated or cleared of data after the password screen, and
  * disabled with one click (I-3353, I-3442, I-3342).
  */
-export default function Plugins({ plugins }: PluginsPage) {
+export default function Plugins({ plugins, settingHosts }: PluginsPage) {
     const [tab, setTab] = useState<Tab>('all');
     const [asking, setAsking] = useState<PluginRowPage | null>(null);
     const [details, setDetails] = useState<PluginRowPage | null>(null);
@@ -195,24 +195,25 @@ export default function Plugins({ plugins }: PluginsPage) {
 
     const enable = (plugin: PluginRowPage) => {
         setAsking(null);
-        router.post(
-            PluginsController.enable.url({ code: plugin.code }),
-            plugin.shown,
-            {
-                onBefore: () =>
-                    writePending({
-                        kind: 'enable',
-                        code: plugin.code,
-                        post: plugin.shown,
-                        at: Date.now(),
-                    }),
-                onSuccess: (page) => {
-                    if (page.component === 'plugins/index') {
-                        removePending();
-                    }
-                },
+        // The hosts its settings name now, as the dialog showed them (docs/plans/plugin-sockets-1.md, A2).
+        const post: PluginEnablePost = {
+            ...plugin.shown,
+            settingHosts: settingHosts[plugin.name]?.hosts ?? [],
+        };
+        router.post(PluginsController.enable.url({ code: plugin.code }), post, {
+            onBefore: () =>
+                writePending({
+                    kind: 'enable',
+                    code: plugin.code,
+                    post,
+                    at: Date.now(),
+                }),
+            onSuccess: (page) => {
+                if (page.component === 'plugins/index') {
+                    removePending();
+                }
             },
-        );
+        });
     };
 
     const migrate = (plugin: PluginRowPage) => {
@@ -359,6 +360,11 @@ export default function Plugins({ plugins }: PluginsPage) {
 
                 <ConsentDialog
                     plugin={asking}
+                    settingHosts={
+                        asking === null
+                            ? null
+                            : (settingHosts[asking.name] ?? null)
+                    }
                     onClose={() => setAsking(null)}
                     onConfirm={enable}
                 />

@@ -31,6 +31,8 @@ final class EnablePluginRequest extends FormRequest
             'hosts.*' => ['string', 'max:253'],
             'hooks' => ['present', 'array'],
             'hooks.*' => ['string', 'max:80'],
+            'settingHosts' => ['sometimes', 'array'],
+            'settingHosts.*' => ['string', 'max:253'],
         ];
     }
 }
