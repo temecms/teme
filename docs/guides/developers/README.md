@@ -14,16 +14,16 @@ It does not cover running a server or writing content. Those have their own guid
 
 ## The order to read it in
 
-1. [Plugin or theme?](start/plugin-or-theme.md), then [Your first plugin](start/first-plugin.md) or [Your first theme](start/first-theme.md).
+1. [Plugin or theme?](start/plugin-or-theme.md), then [Your first plugin](start/first-plugin.md) or [Your first theme](start/first-theme.md), and [Set up a development site](start/development-site.md).
 2. [The manifest](concepts/manifest.md) and [Hooks](concepts/hooks.md).
 3. [Operations](concepts/operations.md), [Code standards for plugins and themes](start/code-standards.md), then [Testing a plugin or theme](testing.md).
 4. For a plugin, [Plugin settings and secrets](plugins/settings.md). For a theme, [Regions, site code and featured posts](themes/regions.md).
 5. [Rules for plugins and themes](rules/plugins-and-themes.md) before you publish one.
 6. [For agents](for-agents.md) if you are building with an agent.
 
-## Pages that land with later work
+## Sockets for plugins and themes
 
-| Page | Lands with |
+| Page | Built in |
 |---|---|
 | [Plugins writing content](plugins/content-write.md) | plugins/content-write |
 | [Jobs and schedules](plugins/jobs.md) | plugins/jobs |

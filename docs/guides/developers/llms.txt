@@ -5,6 +5,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Plugin or theme?](start/plugin-or-theme.md): Which package you need — a plugin that adds behavior, or a theme that draws the public site.
 - [Your first plugin](start/first-plugin.md): From an empty folder to an enabled plugin that listens to a hook.
 - [Your first theme](start/first-theme.md): A theme with an index template and a single template, from the handbook example.
+- [Set up a development site](start/development-site.md): One local Teme site that loads every plugin and theme you are building, straight from their own folders.
 - [The manifest](concepts/manifest.md): How to write teme-plugin.json and teme-theme.json, and where the key tables live.
 - [Hooks](concepts/hooks.md): The five verbs, the after-commit rule, capabilities, the Since version and requires.teme, and where the generated hook list lives.
 - [Operations](concepts/operations.md): Every change goes through an Operation; what a plugin may and may not touch.

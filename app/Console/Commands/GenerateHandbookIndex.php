@@ -24,6 +24,7 @@ final class GenerateHandbookIndex extends Command
         'start/plugin-or-theme.md',
         'start/first-plugin.md',
         'start/first-theme.md',
+        'start/development-site.md',
         'concepts/manifest.md',
         'concepts/hooks.md',
         'concepts/operations.md',
