@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/wrong-type",
+    "code": "wrong-type",
+    "label": "Wrong Type",
+    "description": "A plugin the installer's tests install.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\WrongType\\WrongType",
+    "capabilities": [],
+    "hooks": []
+}

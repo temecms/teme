@@ -1,8 +1,17 @@
 import { Link } from '@inertiajs/react';
+import { MoreHorizontal } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import ThemesController from '@/actions/App/Http/Admin/ThemesController';
+import type { Change } from '@/components/extensions/installer';
+import { originLabel } from '@/components/extensions/words';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Panel } from '@/components/ui/panel';
 import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
@@ -29,12 +38,65 @@ const COLUMNS = {
     '--theme-cols': 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
 } as CSSProperties;
 
+/** A theme card's ⋯ menu, for a theme installed here: Update… and Remove…. */
+function ThemeMenu({
+    theme,
+    pkg,
+    onChange,
+}: {
+    theme: DesignTheme;
+    pkg: string;
+    onChange: (change: Change) => void;
+}) {
+    const change = (action: Change['action']) =>
+        onChange({
+            action,
+            kind: 'theme',
+            package: pkg,
+            label: theme.name,
+            version: theme.version,
+        });
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="ms-auto"
+                    aria-label={__('Actions for :name', { name: theme.name })}
+                    data-test="theme-menu"
+                >
+                    <MoreHorizontal aria-hidden="true" className="size-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                    data-test="theme-update"
+                    onSelect={() => change('update')}
+                >
+                    {__('Update…')}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    data-test="theme-uninstall"
+                    variant="destructive"
+                    onSelect={() => change('remove')}
+                >
+                    {__('Remove…')}
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 /**
  * Site › Themes' installed themes, as cards: each with its screenshot, its
  * state in a word, what it is, and what can be done with it here: Preview an
  * available theme, Activate the previewed one, or open the settings of the
- * chosen one. Incompatible and broken themes list every error; installing
- * and removing are the installer's (I-211).
+ * chosen one. Incompatible and broken themes list every error. Each card
+ * says where its theme comes from; one installed here has Update… and
+ * Remove… in its ⋯ menu, which ask the installer (I-211).
  */
 export function ThemeList({
     themes,
@@ -43,6 +105,7 @@ export function ThemeList({
     onPreview,
     onActivate,
     activating,
+    onChange,
 }: {
     themes: DesignTheme[];
     /** The theme whose settings can be changed, so its card links to them. */
@@ -53,6 +116,8 @@ export function ThemeList({
     onActivate: (code: string) => void;
     /** Whether Activate is on its way. */
     activating: boolean;
+    /** Asks for an update or a removal; only for someone who may install. */
+    onChange?: (change: Change) => void;
 }) {
     return (
         <section aria-labelledby="installed-themes" className="grid gap-3">
@@ -95,6 +160,24 @@ export function ThemeList({
                                         >
                                             {STATES[theme.state].label}
                                         </StatusPill>
+                                        {onChange !== undefined &&
+                                            theme.origin === 'extensions' &&
+                                            theme.package !== null && (
+                                                <ThemeMenu
+                                                    theme={theme}
+                                                    pkg={theme.package}
+                                                    onChange={onChange}
+                                                />
+                                            )}
+                                    </p>
+                                    <p
+                                        className="text-caption text-ink-2"
+                                        data-test="theme-origin"
+                                    >
+                                        {originLabel(
+                                            theme.origin,
+                                            theme.source,
+                                        )}
                                     </p>
                                     {theme.description !== '' && (
                                         <p>{theme.description}</p>

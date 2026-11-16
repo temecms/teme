@@ -153,6 +153,19 @@ A key set here replaces the stored one, and nobody can change it in the admin.
 
 Adding a plugin to the site's build is itself an act of trust. Teme starts a plugin only after an administrator enables it, but Composer may run files that the package or its dependencies declare from the moment it is installed, enabled or not, and Teme can't prevent that. Add only plugins you trust, and prefer ones that declare no such files.
 
+## Plugins and themes from the admin
+
+The `installer` service carries out what an administrator asks for from the admin; [Plugins and themes installed from the admin](extensions.md) explains it. The recipe sets the first two variables.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `TEME_EXTENSIONS_PATH` | none | The extensions folder, `/var/teme/extensions` in the recipe. Unset, nothing is installed from the admin and nothing is loaded from the folder. Set it the same on every role. |
+| `TEME_EXTENSIONS_ROLE` | none | `installer` on the installer service alone: it then loads no installed plugin's code itself. |
+| `TEME_COMPOSER_BINARY` | `composer` | The Composer the installer runs: a path, or a name looked up on the PATH. |
+| `TEME_EXTENSION_UPLOAD_MAX` | `33554432` | The largest package an administrator may upload, in bytes. |
+| `TEME_EXTENSIONS_PACKAGIST` | `true` | `false` stops installs by name from Packagist; packages then come only from the sources an administrator adds. |
+| `TEME_EXTENSIONS_ALLOW_PRIVATE_HOSTS` | `false` | `true` lets a Git or vendor source's address point inside the server's own network. |
+
 ## Passwords
 
 | Variable | Default | What it does |

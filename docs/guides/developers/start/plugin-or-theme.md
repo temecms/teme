@@ -30,3 +30,7 @@ The handbook ships both:
 - `docs/guides/developers/examples/themes/first-theme` — an index template and a single template using documented view data.
 
 Copy the example that matches your job, then change the copy.
+
+## Dependencies and Laravel providers
+
+A plugin or theme installed from the admin lives in the site's extensions folder, a Composer project of its own, not in the image's `vendor/`. Laravel's package discovery reads only the image's packages, so a library your package requires that lists a Laravel service provider under `extra.laravel` is **not** discovered there, and its provider never runs. Teme keeps plugins out of discovery on purpose: a plugin registers what its dependencies need itself, from its own code, once it is enabled. If your package depends on such a library, register the library's bindings yourself, and test your package installed from the admin as well as in a site's build.

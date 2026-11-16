@@ -1,0 +1,12 @@
+{
+    "name": "fixtures/with-files",
+    "description": "A library whose file runs on every request.",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "MIT",
+    "autoload": {
+        "files": [
+            "helpers.php"
+        ]
+    }
+}

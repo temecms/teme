@@ -247,7 +247,7 @@ it('filters by tab with each count, and the ⋯ button has a name', function ():
     $page = cmSignIn($this->admin)->navigate('/admin/plugins');
     ($this->seen)($page, 'Review access for 1.1.0');
 
-    $page->assertScript("[...document.querySelectorAll('[role=tab]')].map((tab) => tab.textContent).join('|') === 'All3|Enabled0|Disabled1|Needs attention2'")
+    $page->assertScript("[...document.querySelectorAll('[role=tab]')].map((tab) => tab.textContent).join('|') === 'All3|Enabled0|Disabled1|Needs attention2|Install requests0'")
         ->assertScript("document.querySelector('[data-test=\"plugin-hello\"] [data-test=\"plugin-menu\"]').getAttribute('aria-label') === 'Actions for Hello'")
         ->click('[data-test="plugins-tab-attention"]');
 
@@ -270,7 +270,7 @@ it('shows the empty state', function (): void {
     $page = cmSignIn($this->admin)->navigate('/admin/plugins');
 
     ($this->seen)($page, 'No plugins are installed');
-    ($this->seen)($page, 'Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.');
+    ($this->seen)($page, 'Add one with Add plugin, or whoever runs the server adds one to the site’s build. It then appears here, disabled.');
     expect(cmAxeViolations($page))->toBe([]);
 });
 

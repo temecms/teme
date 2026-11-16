@@ -33,6 +33,7 @@ x-teme-environment: &teme-environment
     # libpq gives up on an unreachable database after 3 s, so a health check
     # never holds a PHP worker for minutes.
     PGCONNECT_TIMEOUT: '3'
+    TEME_EXTENSIONS_PATH: /var/teme/extensions
 
 x-teme: &teme
     image: "${TEME_IMAGE:?Set TEME_IMAGE in .env to Teme's image and its exact tag, such as ghcr.io/example/teme:0.1.0}"
@@ -46,6 +47,7 @@ x-teme: &teme
     volumes:
         - media:/var/www/html/storage/app
         - page-cache:/var/www/html/storage/page-cache
+        - extensions:/var/teme/extensions:ro
     restart: unless-stopped
 
 services:
@@ -70,6 +72,8 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
 
     worker:
         <<: *teme
@@ -84,6 +88,8 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
 
     # The long jobs' own worker, on the long queue's own connection
     # (database-long, issue #146).
@@ -108,6 +114,8 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
 
     # Every timed job, backups among them: its grace period lets a backup
     # in progress finish.
@@ -130,6 +138,36 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
+
+    # Installs, updates and removes the plugins and themes asked for from the
+    # admin (docs/guides/operators/extensions.md): the only part that writes
+    # the extensions volume. The others start once it has checked the
+    # installed ones against this image.
+    installer:
+        <<: *teme
+        user: '9990:9990'
+        # The image's start step writes caches into storage/, which this user can't write; the installer needs none.
+        entrypoint: ['php', 'artisan', 'teme:installer']
+        init: true
+        stop_grace_period: 2m
+        environment:
+            <<: *teme-environment
+            TEME_EXTENSIONS_ROLE: installer
+        volumes:
+            - extensions:/var/teme/extensions
+        healthcheck:
+            test: ['CMD', 'test', '-f', '/tmp/teme-installer-ready']
+            interval: 5s
+            retries: 3
+            start_period: 15m
+        depends_on:
+            deploy:
+                condition: service_completed_successfully
+        deploy:
+            resources:
+                limits: { cpus: '0.5', memory: 1g }
 
     postgres:
         image: postgres:18.6-trixie@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336
@@ -204,3 +242,4 @@ volumes:
     pgdata:
     media:
     page-cache:
+    extensions:

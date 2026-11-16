@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/adapts",
+    "code": "adapts",
+    "label": "Adapts",
+    "description": "A plugin whose newer version fits a newer core library.",
+    "version": "1.1.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\Adapts\\Adapts",
+    "capabilities": [],
+    "hooks": []
+}

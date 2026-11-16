@@ -1,10 +1,13 @@
 import { Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
+import type { Change } from '@/components/extensions/installer';
+import { originLabel } from '@/components/extensions/words';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PluginIcon } from '@/components/ui/plugin-icon';
@@ -101,18 +104,32 @@ function RowAction({
     );
 }
 
-/** The ⋯ menu: Details and access, Settings, Remove its data…, and Forget… when allowed. */
+/**
+ * The ⋯ menu: Details and access, Settings, Remove its data… and Forget…
+ * when allowed, and Update… and Remove… for a plugin installed here (I-211).
+ */
 function RowMenu({
     plugin,
     onDetails,
     onRemoveData,
+    onChange,
     onForget,
 }: {
     plugin: PluginRowPage;
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
+    onChange?: (change: Change) => void;
     onForget: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
+    const change = (action: Change['action']) =>
+        onChange?.({
+            action,
+            kind: 'plugin',
+            package: plugin.name,
+            label: plugin.label,
+            version: plugin.version,
+        });
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -169,6 +186,24 @@ function RowMenu({
                         {__('Remove its data…')}
                     </DropdownMenuItem>
                 )}
+                {onChange !== undefined && plugin.origin === 'extensions' && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            data-test="plugin-update"
+                            onSelect={() => change('update')}
+                        >
+                            {__('Update…')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            data-test="plugin-uninstall"
+                            variant="destructive"
+                            onSelect={() => change('remove')}
+                        >
+                            {__('Remove…')}
+                        </DropdownMenuItem>
+                    </>
+                )}
                 {plugin.canForget && (
                     <DropdownMenuItem
                         data-test="plugin-forget"
@@ -202,6 +237,7 @@ export function PluginRow({
     onDetails,
     onMigrate,
     onRemoveData,
+    onChange,
     onForget,
 }: {
     plugin: PluginRowPage;
@@ -210,6 +246,8 @@ export function PluginRow({
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     onMigrate: (plugin: PluginRowPage) => void;
     onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
+    /** Asks for an update or a removal; only for someone who may install. */
+    onChange?: (change: Change) => void;
     onForget: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
     const tone = TONES[plugin.state];
@@ -231,6 +269,12 @@ export function PluginRow({
                             {plugin.version}
                         </span>
                     )}
+                </p>
+                <p
+                    className="text-caption text-ink-2"
+                    data-test="plugin-origin"
+                >
+                    {originLabel(plugin.origin, plugin.source)}
                 </p>
                 {plugin.description !== '' && (
                     <p className="text-small text-ink-2">
@@ -284,6 +328,7 @@ export function PluginRow({
                     plugin={plugin}
                     onDetails={onDetails}
                     onRemoveData={onRemoveData}
+                    onChange={onChange}
                     onForget={onForget}
                 />
             </div>

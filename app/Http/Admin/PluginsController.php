@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Extensions\ExtensionsAccess;
+use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\ForgetPlugin;
@@ -32,9 +34,13 @@ use Inertia\Response;
  */
 final class PluginsController extends Controller
 {
-    public function index(PluginsScreen $screen): Response
+    public function index(Request $request, PluginsScreen $screen, ExtensionsScreen $extensions): Response
     {
-        return Inertia::render('plugins/index', ['plugins' => $screen->rows()]);
+        return Inertia::render('plugins/index', [
+            'plugins' => $screen->rows(),
+            // Installing from the admin (I-211), for whoever may.
+            'extensions' => $request->user()?->can(ExtensionsAccess::INSTALL) === true ? $extensions->data() : null,
+        ]);
     }
 
     /**

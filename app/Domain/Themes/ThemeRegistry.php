@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Themes;
 
+use App\Domain\Extensions\ActiveRelease;
 use Composer\InstalledVersions;
 use JsonException;
 
@@ -30,7 +31,7 @@ final class ThemeRegistry
     public function all(): array
     {
         $paths = $this->configuredPaths();
-        $cache = (string) config('teme.theme_cache');
+        $cache = app(ActiveRelease::class)->themeCache() ?? (string) config('teme.theme_cache');
         $key = json_encode([$paths, $cache], JSON_THROW_ON_ERROR);
 
         if (! isset($this->memo[$key])) {

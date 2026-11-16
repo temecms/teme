@@ -1,0 +1,15 @@
+{
+    "name": "fixtures/duplicate-code",
+    "description": "A plugin the installer's tests install.",
+    "type": "teme-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "teme/contracts": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fixtures\\DuplicateCode\\": "src/"
+        }
+    }
+}

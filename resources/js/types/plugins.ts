@@ -1,3 +1,5 @@
+import type { ExtensionOrigin, ExtensionsData } from './extensions';
+
 /** One line of what a plugin asks to do, in words, and whether an update adds it. */
 export type PluginAccessLine = { words: string; new: boolean };
 
@@ -50,9 +52,15 @@ export type PluginRowPage = {
     asksMore: boolean;
     tables: PluginTableRow[];
     canRemoveData: boolean;
+    /** Part of the site's build, or installed here from the admin (I-211). */
+    origin: ExtensionOrigin;
+    /** The source kind it was installed from, when installed here. */
+    source: string | null;
     canForget: boolean;
 };
 
 export type PluginsPage = {
     plugins: PluginRowPage[];
+    /** Installing from the admin; null for anyone who may not install. */
+    extensions: ExtensionsData | null;
 };

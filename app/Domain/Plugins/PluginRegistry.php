@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Extensions\ActiveRelease;
 use Composer\InstalledVersions;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Context;
@@ -56,7 +57,7 @@ final class PluginRegistry
     public function all(): array
     {
         $paths = $this->configuredPaths();
-        $cache = (string) config('teme.plugin_cache');
+        $cache = app(ActiveRelease::class)->pluginCache() ?? (string) config('teme.plugin_cache');
         $key = json_encode([$paths, $cache, (string) config('teme.version')], JSON_THROW_ON_ERROR);
 
         if (! isset($this->memo[$key])) {
@@ -114,11 +115,12 @@ final class PluginRegistry
      * Reads every plugin now and writes the cache whole or not at all: a
      * file beside it, checked, then renamed over it, so a full disk leaves
      * the old cache in place. Returns how many plugins it holds, or null
-     * when it couldn't be written.
+     * when it couldn't be written. $path is the installer's, for a release
+     * of the extensions folder; else the configured cache.
      */
-    public function writeCache(): ?int
+    public function writeCache(?string $path = null): ?int
     {
-        $path = (string) config('teme.plugin_cache');
+        $path ??= (string) config('teme.plugin_cache');
         $entries = [];
 
         foreach ($this->candidates($this->configuredPaths()) as [$folder, $package]) {

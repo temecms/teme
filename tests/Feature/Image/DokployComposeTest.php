@@ -65,3 +65,22 @@ it('shares the image repository with every Teme part, and no tag is latest', fun
     expect($compose['x-teme-environment']['TEME_IMAGE_REPOSITORY'])->toBe('${TEME_IMAGE_REPOSITORY:-}')
         ->and(ImageFiles::text('docker/compose.dokploy.yml'))->not->toContain(':latest');
 });
+
+it('runs the installer from TEME_IMAGE, as its own user, and starts the site once it has checked the extensions (I-211)', function (): void {
+    $compose = dokployCompose();
+    $services = $compose['services'];
+
+    expect($services['installer']['image'])->toBe('${TEME_IMAGE}')
+        ->and($services['installer']['user'])->toBe('9990:9990')
+        ->and($services['installer']['entrypoint'])->toBe(['php', 'artisan', 'teme:installer'])
+        ->and($services['installer']['environment']['TEME_EXTENSIONS_ROLE'])->toBe('installer')
+        ->and($services['installer']['volumes'])->toBe(['extensions:/var/teme/extensions'])
+        ->and($services['installer']['depends_on'])->toBe(['deploy' => ['condition' => 'service_completed_successfully']])
+        ->and($compose['x-teme-environment']['TEME_EXTENSIONS_PATH'])->toBe('/var/teme/extensions')
+        ->and($compose['volumes'])->toHaveKey('extensions');
+
+    foreach (['web', 'worker', 'worker-long', 'scheduler'] as $role) {
+        expect($services[$role]['volumes'])->toContain('extensions:/var/teme/extensions:ro')
+            ->and($services[$role]['depends_on']['installer'])->toBe(['condition' => 'service_healthy']);
+    }
+});

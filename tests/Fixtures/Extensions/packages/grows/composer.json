@@ -1,0 +1,16 @@
+{
+    "name": "fixtures/grows",
+    "description": "A plugin whose newer version, for a newer core library, needs a library with autoload.files.",
+    "type": "teme-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "teme/contracts": "*",
+        "fixtures/core-lib": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fixtures\\Grows\\": "src/"
+        }
+    }
+}
