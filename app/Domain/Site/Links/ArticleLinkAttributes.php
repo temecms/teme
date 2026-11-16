@@ -9,6 +9,10 @@ use App\Domain\Cache\RenderRecord;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\LinkResolver;
 use App\Domain\Hooks\HookDispatcher;
+use App\Domain\Hooks\TimeBudget;
+use App\Domain\Plugins\Columns\ColumnClock;
+use App\Domain\Site\Insertions\ContributorTooSlow;
+use App\Domain\Site\Insertions\PageInsertions;
 use Teme\Contracts\Content\ArticleLinks;
 use Teme\Contracts\Content\LinkAttributes;
 use Teme\Contracts\Content\OutboundLink;
@@ -20,13 +24,24 @@ use Teme\Contracts\Content\OutboundLink;
  * Teme's rules allow it. A link to this site is changed only when the
  * plugin names its host. Asks nothing when no plugin listens. The page is
  * tagged with the insertions tag, so a plugin enabled or disabled purges it.
+ * Its listeners have the time page insertions have, one budget a page.
  */
-final readonly class ArticleLinkAttributes
+final class ArticleLinkAttributes
 {
     /** At most this many characters of a link's words are handed over. */
     private const int MOST_TEXT = 200;
 
-    public function __construct(private HookDispatcher $dispatcher) {}
+    private readonly TimeBudget $budget;
+
+    public function __construct(private readonly HookDispatcher $dispatcher, ColumnClock $clock)
+    {
+        $this->budget = new TimeBudget(
+            PageInsertions::CALL_BUDGET_MS,
+            PageInsertions::PAGE_BUDGET_MS,
+            $clock->nanoseconds(...),
+            fn (string $owner, int $milliseconds, int $budget): ContributorTooSlow => new ContributorTooSlow($owner, $milliseconds, $budget, 'link attributes'),
+        );
+    }
 
     /**
      * Returns the attributes to write, by each link's stored href, each with
@@ -68,7 +83,7 @@ final readonly class ArticleLinkAttributes
             return [];
         }
 
-        $given = $this->dispatcher->transform(new ArticleLinks($outbound));
+        $given = $this->dispatcher->transform(new ArticleLinks($outbound), $this->budget);
         $kept = [];
 
         foreach (is_array($given) ? $given : [] as $place => $attributes) {

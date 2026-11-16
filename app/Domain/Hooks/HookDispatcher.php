@@ -103,9 +103,11 @@ final class HookDispatcher
      * fails, or gives a value of the wrong type, is recorded and skipped, or
      * fails the Operation when core marked the hook so.
      *
+     * With a budget, a listener over it is recorded and skipped too.
+     *
      * @throws ListenerFailed when a listener of a hook marked Failure::FailOperation fails
      */
-    public function transform(Transform $hook): mixed
+    public function transform(Transform $hook, ?TimeBudget $budget = null): mixed
     {
         // Read before enter(), whose depth only the finally below gives back.
         $value = $hook->value();
@@ -114,10 +116,29 @@ final class HookDispatcher
 
         try {
             foreach ($listeners as $listener) {
+                $spent = $budget?->spentBefore($listener->owner);
+
+                if ($spent !== null) {
+                    $this->fault($listener, $hook, $spent, $failOperation);
+
+                    continue;
+                }
+
+                $started = $budget?->start() ?? 0;
+
                 try {
                     $next = ($listener->callback)($value, $hook);
                 } catch (Throwable $failure) {
+                    $budget?->charge($listener->owner, $started);
                     $this->fault($listener, $hook, $failure, $failOperation);
+
+                    continue;
+                }
+
+                $slow = $budget?->charge($listener->owner, $started);
+
+                if ($slow !== null) {
+                    $this->fault($listener, $hook, $slow, $failOperation);
 
                     continue;
                 }
