@@ -120,3 +120,23 @@ it('lists no migrations for a plugin without a migrations folder', function (): 
 
     expect(app(PluginRegistry::class)->find('tests/hello')?->migrations)->toBe([]);
 });
+
+it('finds a relative plugin_paths entry when the working directory is public/', function (): void {
+    $cwd = getcwd();
+    config([
+        'teme.plugin_paths' => ['tests/Fixtures/plugins/hello'],
+        'teme.plugin_cache' => '',
+        'teme.version' => PluginFixtures::TEME,
+    ]);
+    app(PluginRegistry::class)->flush();
+    chdir(base_path('public'));
+
+    try {
+        $hello = app(PluginRegistry::class)->find('tests/hello');
+
+        expect($hello?->path)->toBe(realpath(PluginFixtures::path('hello')))
+            ->and($hello?->usable())->toBeTrue();
+    } finally {
+        chdir($cwd ?: base_path());
+    }
+});
