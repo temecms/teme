@@ -6,6 +6,15 @@ use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
+use Teme\Contracts\Admin\AreaContext;
+use Teme\Contracts\Admin\Chart;
+use Teme\Contracts\Admin\Figure;
+use Teme\Contracts\Admin\HasPluginArea;
+use Teme\Contracts\Admin\PluginArea;
+use Teme\Contracts\Admin\Row;
+use Teme\Contracts\Admin\RowPage;
+use Teme\Contracts\Admin\Saved;
+use Teme\Contracts\Admin\TableQuery;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
 use Teme\Contracts\Content\ItemRef;
@@ -116,6 +125,15 @@ it('gives every new contract its @since and nothing from a framework', function 
     [PagePosition::class, '0.9.0'],
     [PageFacts::class, '0.9.0'],
     [InlineScripts::class, '0.9.0'],
+    [HasPluginArea::class, '0.9.0'],
+    [PluginArea::class, '0.9.0'],
+    [AreaContext::class, '0.9.0'],
+    [Figure::class, '0.9.0'],
+    [Chart::class, '0.9.0'],
+    [TableQuery::class, '0.9.0'],
+    [RowPage::class, '0.9.0'],
+    [Row::class, '0.9.0'],
+    [Saved::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {

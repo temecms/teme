@@ -35,6 +35,7 @@ It does not cover running a server or writing content. Those have their own guid
 | [The fediverse](plugins/fediverse.md) | fediverse/actors and fediverse/publishing |
 | [List columns](plugins/list-columns.md) | plugins/list-columns |
 | [Feeds and the site](plugins/feeds-and-site.md) | sockets/outbound-feeds |
+| [A plugin's own area](plugins/admin-area.md) | sockets2/plugin-area |
 | [Languages in a theme](themes/languages.md) | i18n/readers and i18n/screens |
 | [The management API](outside/management-api.md) | api/manage-foundation |
 

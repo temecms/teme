@@ -2,7 +2,7 @@
 title: Plugin settings and secrets
 type: how-to
 audience: plugin
-summary: How a plugin declares its settings screen in the manifest, reads and writes its values, keeps API keys as secrets, reaches hosts a person types into them, adds actions and lists to the page, and adds a Tools link.
+summary: How a plugin declares its settings screen in the manifest, splits it into sections, shows a setting only when another has a value, keeps lists and markup, reads and writes its values, keeps API keys as secrets, reaches hosts a person types into them, adds actions and lists to the page, and adds a Tools link.
 rests_on: [app/Domain/Plugins/Contributions, app/Domain/Plugins/Doors, app/Domain/Plugins/Lists, app/Domain/Plugins/SettingHosts.php, packages/teme-contracts/src/Settings, packages/teme-contracts/src/Lists, packages/teme-contracts/schema/teme-plugin.schema.json, docs/architecture/settings.md]
 ---
 
@@ -14,7 +14,7 @@ A plugin does not draw its own settings screen. It declares its settings in `tem
 
 List them under `contributes.settings` in the manifest. Each entry needs a `key`, a `type`, a `label` and a `description`, for example `{"key": "api_key", "type": "secret", "label": "API key", "description": "The key the service gave you."}`.
 
-A key is 2 to 41 lower-case letters, digits and underscores, starting with a letter. The types are `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `url`, `urls`, `email`, `secret` and `color`. An entry may also give:
+A key is 2 to 41 lower-case letters, digits and underscores, starting with a letter. The types are `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `url`, `urls`, `email`, `secret`, `color`, `code` and `repeater`. An entry may also give:
 
 - `default`, the value before anyone changes it;
 - `options`, value to label, for a `select` or a `multiselect`;
@@ -22,6 +22,16 @@ A key is 2 to 41 lower-case letters, digits and underscores, starting with a let
 - `required`, `example` (a hint shown with the field) and `unit` (shown beside a number).
 
 Teme checks the declarations when the plugin is enabled and again each time it starts. If any one is wrong, it registers none of the plugin's contributions and the plugin doesn't start. Nothing is stored by declaring: a plugin that stops leaves its saved values in place for when it starts again.
+
+## Sections, conditions, lists and markup
+
+A long settings page reads better in parts. Declare up to eight sections under `contributes.settingsSections`, each with an `id`, a `label` and an optional `description`, and name one in a setting's `section`. Each section is a panel, in the order you declare them; settings without a section come first, in a panel with no title.
+
+A setting with `visibleWhen` is shown only while its condition holds, such as `{"provider": "adsense"}`, or a list of values, `{"provider": ["adsense", "other"]}`. A condition names settings declared before it. A hidden setting is never checked when the page is saved, and keeps what it held.
+
+A `repeater` setting holds a list of items, each with its own `fields`, which may be any type but `secret`, `urls` or another repeater. Give it `minItems`, `maxItems` (20 when left out) and `itemTitle`, the field whose value names each item. People add, collapse, remove and move items with Move up and Move down, and the value is stored as one JSON list.
+
+A `code` setting holds markup, up to 65,535 characters, in a monospace box. Declared `"scripts": true`, each inline script it holds is asked to be approved for the plugin when the page is saved, as a code field in [your own area](admin-area.md#scripts-in-a-code-field) is. Your plugin can't write its own `code` settings, or a repeater holding one, through `PluginSettingsWriter`.
 
 ## Where they appear
 
