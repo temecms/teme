@@ -28,11 +28,12 @@ use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Site\SiteInfo;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
 use Teme\Contracts\Status\StatusNotice;
 
-it('gives every new contract its @since and nothing from a framework', function (string $class, string $since): void {
+it('gives every new contract its @since and nothing from a framework', function (string $class, string $since, array $later = []): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since '.$since);
@@ -42,7 +43,8 @@ it('gives every new contract its @since and nothing from a framework', function 
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since '.$since);
+        // A method added later carries the release it arrived in (.ai/rules/contracts.md).
+        expect($method->getDocComment())->toContain('@since '.($later[$method->getName()] ?? $since));
     }
 
     $types = [];
@@ -79,7 +81,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [StatusCheck::class, '0.5.0'],
     [StatusNotice::class, '0.5.0'],
     [ChecksStatus::class, '0.5.0'],
-    [OutboundHttp::class, '0.5.0'],
+    [OutboundHttp::class, '0.5.0', ['postForm' => '0.9.0']],
     [HttpAnswer::class, '0.5.0'],
     [HostRefused::class, '0.5.0'],
     [AnswerTooLarge::class, '0.5.0'],
@@ -95,6 +97,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRows::class, '0.9.0'],
     [ListRow::class, '0.9.0'],
     [Cell::class, '0.9.0'],
+    [SiteInfo::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -116,6 +119,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'import.wordpress',
         'fediverse.read',
         'fediverse.send',
+        'feeds.links',
     ]);
 });
 

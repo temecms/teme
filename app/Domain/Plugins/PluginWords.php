@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use Closure;
 use Teme\Contracts\Plugins\Capability;
 
 /**
@@ -37,7 +38,7 @@ final readonly class PluginWords
      */
     public static function capability(string $capability, array $hosts = [], array $imports = []): string
     {
-        return match ($capability) {
+        return self::core(fn (): string => match ($capability) {
             Capability::ImportWordPress->value => self::imports($imports),
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
@@ -49,8 +50,36 @@ final readonly class PluginWords
             Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
             Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
+            Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
             default => $capability,
-        };
+        });
+    }
+
+    /**
+     * The outbound door's sentence for a plugin that also takes hosts from
+     * its settings (docs/plans/plugin-sockets-1.md, A2): its own hosts, then
+     * the settings' labels, quoted and joined with "and".
+     *
+     * @param  list<string>  $hosts
+     * @param  list<string>  $settings  the labels of the settings it takes hosts from
+     */
+    public static function httpWithSettings(array $hosts, array $settings): string
+    {
+        $quoted = array_map(fn (string $label): string => '“'.$label.'”', $settings);
+        $last = array_pop($quoted);
+        $named = $quoted === [] ? (string) $last : implode(', ', $quoted).' '.self::core(fn (): string => __('and')).' '.$last;
+
+        return self::core(fn (): string => __('Connect to services outside this site: :hosts, and the hosts you enter in :settings', ['hosts' => implode(', ', $hosts), 'settings' => $named]));
+    }
+
+    /**
+     * The line under it that lists the hosts those settings name now.
+     *
+     * @param  list<string>  $hosts
+     */
+    public static function settingHostsNow(array $hosts): string
+    {
+        return self::core(fn (): string => $hosts === [] ? __('They name no host yet.') : __('They name these hosts now: :hosts', ['hosts' => implode(', ', $hosts)]));
     }
 
     /**
@@ -89,6 +118,17 @@ final readonly class PluginWords
      */
     public static function hook(string $hook): string
     {
-        return isset(self::HOOKS[$hook]) ? __(self::HOOKS[$hook]) : $hook;
+        return isset(self::HOOKS[$hook]) ? self::core(fn (): string => __(self::HOOKS[$hook])) : $hook;
+    }
+
+    /**
+     * Core's own words only: a plugin's language file never re-words what a
+     * person agrees to (docs/plans/plugin-sockets-1.md, A-W14).
+     *
+     * @param  Closure(): string  $words
+     */
+    private static function core(Closure $words): string
+    {
+        return app(PluginSentences::class)->coreOnly($words);
     }
 }

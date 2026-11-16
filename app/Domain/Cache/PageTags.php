@@ -37,6 +37,9 @@ final class PageTags
     /** Every stored "not found" page at an address a plugin's root file could answer (docs/guides/developers/plugins/root-files.md). */
     public const string ROOT_FILES = 'root-files';
 
+    /** Every feed, which carries the links plugins add to it (docs/plans/plugin-sockets-1.md, A3). */
+    public const string FEED_LINKS = 'feed-links';
+
     /**
      * Whether the tag names a list by its query (a type's, a term's, an
      * author's, a year's, a month's, an item's comments, the list of a

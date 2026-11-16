@@ -20,6 +20,20 @@ export type PluginEnablePost = {
     capabilities: string[];
     hosts: string[];
     hooks: string[];
+    settingHosts?: string[];
+};
+
+/**
+ * The settings a plugin takes hosts from, by their labels, and the hosts
+ * they name now; the outbound line the dialog shows in place of the plain
+ * one it replaces, and the hosts under it.
+ */
+export type PluginSettingHosts = {
+    settings: string[];
+    hosts: string[];
+    replaces: string;
+    line: string;
+    now: string;
 };
 
 /** One of a plugin’s recorded tables, with its approximate row count (-1 unknown). */
@@ -61,6 +75,7 @@ export type PluginRowPage = {
 
 export type PluginsPage = {
     plugins: PluginRowPage[];
+    settingHosts: Record<string, PluginSettingHosts>;
     /** Installing from the admin; null for anyone who may not install. */
     extensions: ExtensionsData | null;
 };

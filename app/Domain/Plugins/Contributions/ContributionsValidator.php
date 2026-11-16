@@ -49,6 +49,15 @@ final class ContributionsValidator implements ContributionsCheck
     /** At most this many columns per plugin. */
     public const int MOST_COLUMNS = 3;
 
+    /** The relations a feed link may take: hub alone in this round (docs/plans/plugin-sockets-1.md, A3). */
+    public const array FEED_LINK_RELS = ['hub'];
+
+    /** A feed link's href: an https address, or {key} naming one of the plugin's own settings. */
+    public const string FEED_LINK_HREF = '#^(https://.+|\{[a-z][a-z0-9_]{1,40}\})$#D';
+
+    /** At most this many feed links per plugin. */
+    public const int MOST_FEED_LINKS = 2;
+
     /** The code the settings are checked under; the real group takes the plugin's. */
     private const string CHECKED_CODE = 'settings';
 
@@ -67,7 +76,7 @@ final class ContributionsValidator implements ContributionsCheck
             // Reserved in the manifest's shape, read by nothing yet (I-3375).
             if ($surface === 'csp') {
                 $errors[] = __('A plugin\'s csp is read only with the site.output permission, which Teme doesn\'t offer yet.');
-            } elseif ($surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns') {
+            } elseif ($surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns' && $surface !== 'feedLinks') {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -101,6 +110,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         $columns = $contributes['columns'] ?? [];
         $errors = [...$errors, ...$this->columnErrors(is_array($columns) ? $columns : [null])];
+
+        $feedLinks = $contributes['feedLinks'] ?? [];
+        $errors = [...$errors, ...$this->feedLinkErrors(is_array($feedLinks) ? $feedLinks : [null], is_array($settings) ? $settings : [])];
 
         return $errors;
     }
@@ -251,6 +263,46 @@ final class ContributionsValidator implements ContributionsCheck
                         break;
                     }
                 }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Feed links: at most two, each `hub` and an https address of at most
+     * 2,048 characters or `{key}` naming one of its own url or urls
+     * settings (docs/plans/plugin-sockets-1.md, A3).
+     *
+     * @param  array<array-key, mixed>  $links
+     * @param  array<array-key, mixed>  $settings
+     *
+     * @return list<string>
+     */
+    private function feedLinkErrors(array $links, array $settings): array
+    {
+        $errors = count($links) > self::MOST_FEED_LINKS ? [__('A plugin can add at most 2 feed links.')] : [];
+        $urlSettings = [];
+
+        foreach ($settings as $setting) {
+            if (is_array($setting) && is_string($setting['key'] ?? null) && in_array($setting['type'] ?? null, ['url', 'urls'], true)) {
+                $urlSettings[] = $setting['key'];
+            }
+        }
+
+        foreach ($links as $link) {
+            $rel = is_array($link) ? ($link['rel'] ?? null) : null;
+            $href = is_array($link) && is_string($link['href'] ?? null) ? $link['href'] : '';
+
+            if (! in_array($rel, self::FEED_LINK_RELS, true)) {
+                $errors[] = __('A feed link’s rel must be hub.');
+            }
+
+            $named = preg_match('/^\{(.+)\}$/D', $href, $match) === 1 ? $match[1] : null;
+            $fine = preg_match(self::FEED_LINK_HREF, $href) === 1 && strlen($href) <= 2048 && ($named === null || in_array($named, $urlSettings, true));
+
+            if (! $fine) {
+                $errors[] = __('A feed link’s href must be an https:// address or one of its url or urls settings, as {key}.');
             }
         }
 

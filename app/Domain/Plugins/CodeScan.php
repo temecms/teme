@@ -53,6 +53,55 @@ final readonly class CodeScan
     }
 
     /**
+     * Every sentence the plugin's own code passes to `__()` or `trans()` as
+     * a plain string, each once: the only keys its language files may add
+     * (docs/plans/plugin-sockets-1.md, A-W14). A key built at run time
+     * counts for nothing.
+     *
+     * @param  array<string, mixed>|null  $composer
+     *
+     * @return list<string>
+     */
+    public function sentences(string $path, ?array $composer): array
+    {
+        $found = [];
+
+        foreach ($this->sourceFiles($path, $composer) as $file) {
+            $tokens = array_values(array_filter(
+                PhpToken::tokenize(PluginFileUnreadable::read($path, $file)),
+                fn (PhpToken $token): bool => ! $token->is([T_WHITESPACE, T_COMMENT, T_DOC_COMMENT]),
+            ));
+
+            foreach ($tokens as $at => $token) {
+                $called = $token->is([T_STRING, T_NAME_FULLY_QUALIFIED]) && in_array(ltrim($token->text, '\\'), ['__', 'trans'], true);
+                $before = $tokens[$at - 1] ?? null;
+
+                if (! $called || ($before !== null && $before->is([T_OBJECT_OPERATOR, T_NULLSAFE_OBJECT_OPERATOR, T_DOUBLE_COLON, T_FUNCTION]))) {
+                    continue;
+                }
+
+                $literal = ($tokens[$at + 1] ?? null)?->text === '(' ? ($tokens[$at + 2] ?? null) : null;
+
+                if ($literal !== null && $literal->is(T_CONSTANT_ENCAPSED_STRING)) {
+                    $found[self::literal($literal->text)] = true;
+                }
+            }
+        }
+
+        return array_map(strval(...), array_keys($found));
+    }
+
+    /**
+     * A quoted PHP string's value.
+     */
+    private static function literal(string $quoted): string
+    {
+        $inner = substr($quoted, 1, -1);
+
+        return $quoted[0] === "'" ? str_replace(['\\\\', "\\'"], ['\\', "'"], $inner) : stripcslashes($inner);
+    }
+
+    /**
      * Why the scan can't read the plugin whole: a file it would load that
      * lies outside its folder, more PHP files than MOST_FILES, or one larger
      * than MOST_BYTES. Empty when none.

@@ -73,7 +73,7 @@ final readonly class ManifestValidator
      * @param  array<string, mixed>  $manifest
      * @param  array<string, mixed>|null  $composer
      *
-     * @return array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null
+     * @return array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null
      */
     public function classReading(array $manifest, string $path, ?array $composer): ?array
     {
@@ -81,7 +81,24 @@ final readonly class ManifestValidator
             return null;
         }
 
-        return $this->scan->pluginClass($path, $composer, (new Manifest($manifest))->pluginClass());
+        $reading = $this->scan->pluginClass($path, $composer, (new Manifest($manifest))->pluginClass());
+
+        if ($reading === null) {
+            return null;
+        }
+
+        // Each route's handler is built as the plugin's class is (docs/plans/plugin-sockets-1.md, A-W13), so it is read the same way.
+        $handlers = [];
+
+        foreach (is_array($manifest['routes'] ?? null) ? $manifest['routes'] : [] as $route) {
+            $handler = is_array($route) && is_string($route['handler'] ?? null) ? ltrim($route['handler'], '\\') : '';
+
+            if ($handler !== '' && ! array_key_exists($handler, $handlers)) {
+                $handlers[$handler] = $this->scan->pluginClass($path, $composer, $handler);
+            }
+        }
+
+        return [...$reading, 'handlers' => $handlers];
     }
 
     /**
@@ -90,7 +107,7 @@ final readonly class ManifestValidator
      *
      * @param  array<string, mixed>  $manifest
      * @param  array<string, mixed>|null  $composer
-     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null  $reading
+     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null  $reading
      *
      * @return list<string>
      */
@@ -130,14 +147,17 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->pluginClass($manifest, $read, $reading));
         array_push($errors, ...$this->capabilities($manifest));
         array_push($errors, ...$this->hosts($manifest, $read));
+        array_push($errors, ...$this->hostsFrom($manifest, $read));
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
+        array_push($errors, ...$this->feedLinks($read));
         array_push($errors, ...$this->columns($read));
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
         array_push($errors, ...$this->routes($manifest, $read));
         array_push($errors, ...$this->rootFiles($manifest, $read));
+        array_push($errors, ...$this->handlers($read, $reading));
         array_push($errors, ...$this->imports($manifest, $read));
         array_push($errors, ...$this->httpsAddress($manifest, 'author_url'));
         array_push($errors, ...$this->httpsAddress($manifest, 'homepage'));
@@ -261,10 +281,23 @@ final readonly class ManifestValidator
             return ["{$class} doesn’t implement Teme\\Contracts\\Plugins\\Plugin."];
         }
 
+        return $this->asks($class, $source['parameters'], $read);
+    }
+
+    /**
+     * What a class Teme builds for the plugin asks of its constructor: only
+     * what Teme offers plugins, and each door only with its capability.
+     *
+     * @param  list<array{name: string, type: string|null, named: bool}>  $parameters
+     *
+     * @return list<string>
+     */
+    private function asks(string $class, array $parameters, Manifest $read): array
+    {
         $offered = array_map(strtolower(...), PluginServices::OFFERED);
         $errors = [];
 
-        foreach ($source['parameters'] as $parameter) {
+        foreach ($parameters as $parameter) {
             $type = $parameter['type'];
 
             if (! $parameter['named'] || ! in_array(strtolower((string) $type), $offered, true)) {
@@ -280,6 +313,36 @@ final readonly class ManifestValidator
             } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! in_array(Capability::ContentInsert->value, $read->capabilities(), true)) {
                 $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
             }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Each route's handler, from its source's reading, asks only for what
+     * the plugin's class may (docs/plans/plugin-sockets-1.md, A-W13). A
+     * handler whose file isn't found is left to the route's own checks.
+     *
+     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null  $reading
+     *
+     * @return list<string>
+     */
+    private function handlers(Manifest $read, ?array $reading): array
+    {
+        $errors = [];
+
+        foreach ($reading['handlers'] ?? [] as $class => $handler) {
+            if ($handler === null) {
+                continue;
+            }
+
+            if ($handler['unreadable'] !== null && $handler['unreadable'][0] !== 'interface') {
+                $errors[] = $this->unreadable($class, ...$handler['unreadable']);
+
+                continue;
+            }
+
+            array_push($errors, ...$this->asks($class, $handler['parameters'], $read));
         }
 
         return $errors;
@@ -343,6 +406,56 @@ final readonly class ManifestValidator
             $errors[] = 'It asks for http but names no hosts.';
         } elseif (! $http && $read->hosts() !== []) {
             $errors[] = 'It names hosts but doesn’t ask for http.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Links in the feeds only with feeds.links (docs/plans/plugin-sockets-1.md, A3).
+     *
+     * @return list<string>
+     */
+    private function feedLinks(Manifest $read): array
+    {
+        $links = $read->contributes()['feedLinks'] ?? [];
+
+        return $links !== [] && ! in_array(Capability::FeedsLinks->value, $read->capabilities(), true)
+            ? [__('It adds links to the feeds, but the plugin doesn’t ask for feeds.links.')]
+            : [];
+    }
+
+    /**
+     * hostsFrom: at most three of the plugin's own url or urls settings, and
+     * only with http (docs/plans/plugin-sockets-1.md, A2).
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function hostsFrom(array $manifest, Manifest $read): array
+    {
+        if (! array_key_exists('hostsFrom', $manifest)) {
+            return [];
+        }
+
+        $keys = $manifest['hostsFrom'];
+
+        if (! is_array($keys) || ! array_is_list($keys) || count($keys) > SettingHosts::MOST_SETTINGS) {
+            return [__('hostsFrom must be a list of at most 3 of its url or urls settings.')];
+        }
+
+        $errors = [];
+        $settings = SettingHosts::urlSettings($read);
+
+        foreach ($keys as $key) {
+            if (! is_string($key) || ! array_key_exists($key, $settings)) {
+                $errors[] = __('hostsFrom names :key, which is not one of its url or urls settings.', ['key' => $this->show($key)]);
+            }
+        }
+
+        if ($keys !== [] && ! in_array(Capability::Http->value, $read->capabilities(), true)) {
+            $errors[] = __('It takes hosts from its settings, but the plugin doesn’t ask for http.');
         }
 
         return $errors;

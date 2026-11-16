@@ -31,6 +31,7 @@ final class FeedBuilder
         private CardMedia $media,
         private SettingsReader $settings,
         private SiteLanguages $languages,
+        private PluginFeedLinks $pluginLinks,
     ) {}
 
     /**
@@ -40,7 +41,10 @@ final class FeedBuilder
     {
         $record = app(RenderRecord::class);
         $types = $this->items->types($subject);
-        $record->tag(self::TAG, ...$this->subjectTags($subject, $types));
+        // Every feed carries the links plugins add, purged when those change (docs/plans/plugin-sockets-1.md, A3).
+        $record->tag(self::TAG, PageTags::FEED_LINKS, ...$this->subjectTags($subject, $types));
+        $links = $this->pluginLinks->for();
+        $record->tag(...array_values(array_unique(array_map(fn (array $link): string => 'plugin:'.$link['code'], $links))));
 
         $ids = $this->items->ids($subject, FeedsSection::items());
         $rows = $this->items->rows($ids);
@@ -126,6 +130,7 @@ final class FeedBuilder
             $updated,
             $items,
             WholeSite::discouraged() ? 'noindex, nofollow' : 'noindex, follow',
+            array_map(fn (array $link): array => ['rel' => $link['rel'], 'href' => $link['href']], $links),
         );
     }
 

@@ -2,8 +2,8 @@
 title: Plugin settings and secrets
 type: how-to
 audience: plugin
-summary: How a plugin declares its settings screen in the manifest, reads its values, keeps API keys as secrets, and adds a Tools link.
-rests_on: [app/Domain/Plugins/Contributions, app/Domain/Plugins/Doors, packages/teme-contracts/src/Settings, packages/teme-contracts/schema/teme-plugin.schema.json, docs/architecture/settings.md]
+summary: How a plugin declares its settings screen in the manifest, reads its values, keeps API keys as secrets, reaches hosts a person types into them, and adds a Tools link.
+rests_on: [app/Domain/Plugins/Contributions, app/Domain/Plugins/Doors, app/Domain/Plugins/SettingHosts.php, packages/teme-contracts/src/Settings, packages/teme-contracts/schema/teme-plugin.schema.json, docs/architecture/settings.md]
 ---
 
 # Plugin settings and secrets
@@ -42,6 +42,17 @@ Store API keys, tokens and passwords as `secret` settings. A secret is encrypted
 Read a secret through `SecretReader` in your constructor, by group and key: `$this->secrets->secret('plugin.your-code', 'api_key')`.
 
 The reader Teme gives a plugin answers only that plugin's own group, and answers null for any other. It answers null too while nothing is saved, so check before you use it. Never log a secret, put it in a page, or hand it to a theme.
+
+## Hosts from your settings
+
+The outbound door reaches only the hosts listed under `hosts` in the manifest. When the person using the plugin chooses the service, such as their own hub, list the `url` or `urls` settings they type it into under `hostsFrom`, at most three, for example `"hostsFrom": ["hub_url"]`. The plugin needs the `http` capability.
+
+- **When the plugin is enabled**, the person sees, under the outbound line, "and the hosts you enter in" those settings, and the hosts they name now, defaults included. Agreeing lets the plugin reach those hosts.
+- **When someone saves a new host** in one of those settings, the settings page shows "Saving lets the plugin connect to" that host, with a box to agree. A save that names a new host without the box ticked is refused, and nothing is written. With the box ticked, saving asks for the person's password again, then records the host and who agreed.
+- **The plugin reaches a host only while a setting still names it.** Remove it and the door refuses it; put it back and it is reachable again without another yes.
+- Only exact host names count, never a wildcard or an IP address, and the plugin can never agree for itself.
+
+An update that takes hosts from another setting waits until someone agrees again.
 
 ## Hear when they change
 

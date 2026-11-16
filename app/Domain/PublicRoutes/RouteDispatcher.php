@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace App\Domain\PublicRoutes;
 
 use App\Domain\Cache\RenderRecord;
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Faults\SpooledFaults;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Seams\PluginServices;
 use Closure;
 use Composer\Autoload\ClassLoader;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use ReflectionClass;
+use ReflectionNamedType;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Teme\Contracts\Routes\PublicRequest;
@@ -20,8 +25,8 @@ use Teme\Contracts\Routes\PublicRoute;
 use Throwable;
 
 /**
- * Runs a declared route's handler: builds the plain request, enforces the
- * body cap and POST verifier, records a throw against its owner and answers
+ * Runs a declared route's handler: builds it with its plugin's doors, builds
+ * the plain request, enforces the body cap and POST verifier, records a throw against its owner and answers
  * with the site's error page, and maps the plain response to Symfony's.
  */
 final class RouteDispatcher
@@ -35,6 +40,8 @@ final class RouteDispatcher
         private readonly SpooledFaults $faults,
         private readonly Verifiers\RouteVerifier $verifiers,
         private readonly PluginRegistry $plugins,
+        private readonly PluginRecords $records,
+        private readonly PluginServices $services,
     ) {}
 
     /**
@@ -105,13 +112,68 @@ final class RouteDispatcher
 
         $instance = $route->owner === DeclaredRoute::OWNER_CORE
             ? app($class)
-            : new $class;
+            : $this->built($class, $route->owner);
 
         if (! $instance instanceof PublicRoute) {
             throw new RuntimeException("Handler {$class} does not implement PublicRoute.");
         }
 
         return $instance;
+    }
+
+    /**
+     * A plugin's handler, built as its plugin's class is: with what Teme
+     * gives the plugin for each type its constructor asks for, by its
+     * consent, never through the container (docs/plans/plugin-sockets-1.md, A-W13).
+     *
+     * @param  class-string  $class
+     */
+    private function built(string $class, string $code): object
+    {
+        $reflection = new ReflectionClass($class);
+        $parameters = $reflection->getConstructor()?->getParameters() ?? [];
+
+        // A handler that asks for nothing reads no consent.
+        if ($parameters === []) {
+            return $reflection->newInstance();
+        }
+
+        $plugin = $this->found($code);
+        $record = null;
+
+        foreach ($this->records->enabled() as $enabled) {
+            if ($plugin !== null && $enabled->name === $plugin->name) {
+                $record = $enabled;
+            }
+        }
+
+        if ($plugin?->manifest === null || $record === null) {
+            throw new RuntimeException("Handler {$class} has no enabled plugin to be built for.");
+        }
+
+        $services = $this->services->for($plugin->name, $plugin->code, $record->consent['capabilities'] ?? [], Consent::hosts($record->consent, $plugin->manifest));
+        $arguments = [];
+
+        foreach ($parameters as $parameter) {
+            $type = $parameter->getType();
+            $name = $type instanceof ReflectionNamedType ? $type->getName() : (string) $type;
+
+            // The validator refuses such a handler; this guards a cache from before.
+            $arguments[] = $services[$name] ?? throw new RuntimeException("Handler {$class} asks for {$name}, which its plugin isn’t given.");
+        }
+
+        return $reflection->newInstanceArgs($arguments);
+    }
+
+    private function found(string $code): ?FoundPlugin
+    {
+        foreach ($this->plugins->all() as $plugin) {
+            if ($plugin->code === $code) {
+                return $plugin;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -124,14 +186,7 @@ final class RouteDispatcher
             return;
         }
 
-        $found = null;
-
-        foreach ($this->plugins->all() as $plugin) {
-            if ($plugin->code === $code) {
-                $found = $plugin;
-                break;
-            }
-        }
+        $found = $this->found($code);
 
         if ($found instanceof FoundPlugin) {
             $composer = is_file($found->path.'/composer.json')

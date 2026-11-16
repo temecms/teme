@@ -33,6 +33,7 @@ final class Rss2 implements FeedFormat
             ."<channel>\n"
             .'  <title>'.Xml::text($feed->title)."</title>\n"
             .'  <atom:link href="'.Xml::attribute($feed->selfUrl).'" rel="self" type="'.self::TYPE.'"/>'."\n"
+            .$this->links($feed)
             .'  <link>'.Xml::text($feed->link)."</link>\n"
             .'  <description>'.Xml::text($feed->description)."</description>\n";
 
@@ -47,6 +48,20 @@ final class Rss2 implements FeedFormat
         }
 
         return $xml."</channel>\n</rss>\n";
+    }
+
+    /**
+     * The links plugins add, straight after the feed's own, every value escaped.
+     */
+    private function links(Feed $feed): string
+    {
+        $xml = '';
+
+        foreach ($feed->links as $link) {
+            $xml .= '  <atom:link rel="'.Xml::attribute($link['rel']).'" href="'.Xml::attribute($link['href']).'"/>'."\n";
+        }
+
+        return $xml;
     }
 
     private function item(FeedItem $item): string

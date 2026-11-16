@@ -47,6 +47,10 @@ final readonly class PluginLoader
      */
     public function load(): void
     {
+        // A fresh set of plugins' sentences each load, and none until a plugin with words starts (docs/plans/plugin-sockets-1.md, A-W14).
+        app('translator')->handleMissingKeysUsing(null);
+        app()->instance(PluginSentences::class, new PluginSentences(app(CodeScan::class)));
+
         // Before any plugin file is opened: a safe page, the server's switch for all, no plugin installed, or none enabled starts nothing.
         if ($this->safeMode->active() || $this->disabledOnServer() === true || ! $this->registry->anyInstalled()) {
             return;
@@ -141,6 +145,16 @@ final readonly class PluginLoader
         }
 
         $this->loaded->started($plugin->name, $instance);
+        $this->words($plugin);
+    }
+
+    /**
+     * The started plugin's own words, its lang/<locale>.json, which only
+     * add sentences core and earlier plugins don't hold (docs/plans/plugin-sockets-1.md, A-W14).
+     */
+    private function words(FoundPlugin $plugin): void
+    {
+        app(PluginSentences::class)->add($plugin, app('translator'));
     }
 
     /**

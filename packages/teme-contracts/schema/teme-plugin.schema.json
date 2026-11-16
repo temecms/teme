@@ -84,7 +84,8 @@
                     "routes.public",
                     "import.wordpress",
                     "fediverse.read",
-                    "fediverse.send"
+                    "fediverse.send",
+                    "feeds.links"
                 ]
             }
         },
@@ -361,6 +362,16 @@
                 "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
             }
         },
+        "hostsFrom": {
+            "type": "array",
+            "description": "Up to 3 of the plugin's own url or urls settings whose hosts it may reach once a person agrees, at enable or when saving the setting. Needs http.",
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{1,40}$"
+            }
+        },
         "hooks": {
             "type": "array",
             "description": "The hooks the plugin listens to, by name.",
@@ -520,6 +531,27 @@
                                     "pattern": "^[a-z][a-z0-9_]{0,31}$"
                                 },
                                 "description": "Content type keys; absent means every listed type."
+                            }
+                        }
+                    }
+                },
+                "feedLinks": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "description": "Links core writes in every feed, after its own rel=\"self\". Needs feeds.links.",
+                    "items": {
+                        "type": "object",
+                        "required": ["rel", "href"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "rel": {
+                                "enum": ["hub"]
+                            },
+                            "href": {
+                                "type": "string",
+                                "maxLength": 2048,
+                                "pattern": "^(https://.+|\\{[a-z][a-z0-9_]{1,40}\\})$",
+                                "description": "An https:// address, or {key} naming one of the plugin's own url or urls settings (a urls setting gives a link for each address, at most 5)."
                             }
                         }
                     }

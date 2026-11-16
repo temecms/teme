@@ -7,6 +7,9 @@ namespace App\Console\Commands;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\PluginSentences;
+use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\SettingHosts;
 use App\Domain\PublicRoutes\RootFile;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -27,7 +30,16 @@ final class EnablePluginCommand extends Command
     /** @var string */
     protected $description = 'Enable a plugin, agreeing to what it asks for';
 
-    public function handle(PluginRegistry $registry, EnablePlugin $enable): int
+    /**
+     * Runs with core's own words only: a plugin's language file never
+     * re-words what the operator agrees to (docs/plans/plugin-sockets-1.md, A-W14).
+     */
+    public function handle(PluginRegistry $registry, EnablePlugin $enable, PluginSentences $sentences): int
+    {
+        return $sentences->coreOnly(fn (): int => $this->enable($registry, $enable));
+    }
+
+    private function enable(PluginRegistry $registry, EnablePlugin $enable): int
     {
         $name = (string) $this->argument('name');
         $plugin = $registry->find($name);
@@ -49,6 +61,11 @@ final class EnablePluginCommand extends Command
         $version = $manifest?->version() ?? '';
         $capabilities = $manifest?->capabilities() ?? [];
         $hosts = $manifest?->hosts() ?? [];
+        $fromSettings = $manifest === null ? [] : SettingHosts::declared($manifest);
+        $settingHosts = $manifest === null || $fromSettings === [] ? [] : app(SettingHosts::class)->current($manifest);
+        $http = $manifest === null || $fromSettings === []
+            ? __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)])
+            : PluginWords::httpWithSettings($hosts, SettingHosts::labels($manifest));
 
         $this->line(__(':label :version asks to:', ['label' => $label, 'version' => $version]));
 
@@ -63,8 +80,9 @@ final class EnablePluginCommand extends Command
                 Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
                 Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
                 Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
+                Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
-                Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
+                Capability::Http->value => $http,
                 default => $capability,
             });
 
@@ -73,6 +91,10 @@ final class EnablePluginCommand extends Command
                 foreach (RootFile::declaredIn($manifest) as $file) {
                     $this->line('    '.$file->consentLine($manifest));
                 }
+            }
+
+            if ($capability === Capability::Http->value && $fromSettings !== []) {
+                $this->line('    '.PluginWords::settingHostsNow($settingHosts));
             }
         }
 
@@ -86,7 +108,7 @@ final class EnablePluginCommand extends Command
         $this->laravel->instance(Elevation::class, new OperatorElevation);
 
         try {
-            $enable->execute(new EnablePluginInput($name, $version, $capabilities, $hosts, $manifest?->hooks() ?? [], null));
+            $enable->execute(new EnablePluginInput($name, $version, $capabilities, $hosts, $manifest?->hooks() ?? [], null, settingHosts: $settingHosts));
         } catch (ValidationException $refused) {
             $this->components->error($refused->getMessage());
 

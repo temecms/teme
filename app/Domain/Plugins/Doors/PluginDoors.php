@@ -10,6 +10,8 @@ use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Plugins\SettingHosts;
+use App\Domain\Site\CoreSiteInfo;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Fediverse\FediverseFollowers;
@@ -21,11 +23,13 @@ use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
+use Teme\Contracts\Site\SiteInfo;
 
 /**
  * What Teme offers a plugin's constructor: the settings reader, its own
- * secrets, the content and media write doors when granted, the outbound
- * door to its hosts when it was granted http, InsertionsChanged when it was
+ * secrets, the site's public facts, the content and media write doors when granted, the outbound
+ * door to its hosts and those agreed in its settings when it was granted
+ * http, InsertionsChanged when it was
  * granted content.insert (I-064), and the other doors its capabilities open
  * (I-3353). Bound as the loader's
  * PluginServices.
@@ -39,6 +43,8 @@ final readonly class PluginDoors implements PluginServices
         private StartJob $start,
         private PluginRegistry $registry,
         private CoreInsertionsChanged $insertionsChanged,
+        private SettingHosts $settingHosts,
+        private CoreSiteInfo $site,
     ) {}
 
     /**
@@ -67,7 +73,8 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
-            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS);
+            // The hosts agreed in its settings are read at each call, never fixed here (docs/plans/plugin-sockets-1.md, A2).
+            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name));
         }
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
@@ -85,6 +92,8 @@ final readonly class PluginDoors implements PluginServices
         if (in_array(Capability::FediverseSend->value, $capabilities, true)) {
             $offered[FediverseSender::class] = new PluginSender($name);
         }
+
+        $offered[SiteInfo::class] = $this->site;
 
         return $offered;
     }
