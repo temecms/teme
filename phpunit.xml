@@ -41,7 +41,7 @@
         <env name="PAGE_CACHE_ENABLED" value="false"/>
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="127.0.0.1"/>
-        <env name="DB_PORT" value="5433"/>
+        <env name="DB_PORT" value="5433" force="false"/>
         <env name="DB_DATABASE" value="teme_test"/>
         <env name="DB_USERNAME" value="teme"/>
         <env name="DB_PASSWORD" value="teme"/>
@@ -49,7 +49,7 @@
         <env name="REDIS_URL" value=""/>
         <env name="REDIS_HOST" value="127.0.0.1"/>
         <env name="REDIS_PASSWORD" value=""/>
-        <env name="REDIS_PORT" value="6380"/>
+        <env name="REDIS_PORT" value="6380" force="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <!-- The long jobs' connection runs inline here too, as every queue does in tests. -->
