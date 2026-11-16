@@ -104,10 +104,26 @@ it('says a scheduled run acts for the administrator who enabled the plugin', fun
     expect(Content::query()->where('title', 'Written by the librarian')->sole()->author_id)->toBe($this->admin->id);
 });
 
-it('has no person to give for a run of the operator’s, and stops it', function (): void {
+it('has no person to give for a run of the operator’s, and fails it', function (): void {
     $context = new PluginJobContext('01k0000000000000000000000a', [], 1, 'tests/librarian', JobActor::operator(), app(ReportJobProgress::class));
 
-    expect(fn () => $context->personId())->toThrow(JobStopped::class, 'This run has no person to act for.')
+    expect(fn () => $context->personId())->toThrow(RuntimeException::class, 'This run has no person to act for.')
+        ->and(fn () => $context->personId())->not->toThrow(JobStopped::class)
         ->and((new PluginJobContext('01k0000000000000000000000a', [], 1, 'tests/librarian', JobActor::person($this->admin->id), app(ReportJobProgress::class)))->personId())
         ->toBe((string) $this->admin->id);
+});
+
+it('ends a run of the operator’s whose handler asks for its person failed, at once, writing nothing', function (): void {
+    Queue::fake();
+    $id = ($this->jobs)()->queue('write-as-person', ['title' => 'For nobody']);
+    $job = ($this->pushed)();
+
+    ($this->handle)($job);
+
+    $tracked = TrackedJob::query()->findOrFail($id);
+
+    expect($tracked->state)->toBe(JobState::Failed)
+        ->and($tracked->message)->toBe('This run has no person to act for.')
+        ->and($job->tries)->toBe(1)
+        ->and(Content::query()->where('title', 'For nobody')->exists())->toBeFalse();
 });

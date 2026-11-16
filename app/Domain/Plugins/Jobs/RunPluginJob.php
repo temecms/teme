@@ -155,6 +155,12 @@ final class RunPluginJob implements ShouldQueue
 
         try {
             $handler->handle($context);
+        } catch (NoPersonToActFor $nobody) {
+            // Another try would ask for the same person, so it fails now.
+            $this->tries = 1;
+            $fail->execute(new FailJobInput($this->trackedJobId, $nobody->getMessage(), $this->actor->userId));
+
+            return;
         } catch (JobStopped) {
             return;
         } catch (Throwable $failure) {

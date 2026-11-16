@@ -47,7 +47,7 @@ final class PluginJobContext implements JobContext
     public function personId(): string
     {
         if ($this->actor->isOperator() || $this->actor->userId === null) {
-            throw new JobStopped(__('This run has no person to act for.'));
+            throw new NoPersonToActFor(__('This run has no person to act for.'));
         }
 
         return $this->actor->userId;
