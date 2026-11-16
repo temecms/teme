@@ -22,7 +22,8 @@ use Teme\Contracts\Operations\OperationInput;
  * waiting. Or, for a new Teme the current release no longer fits, records a
  * rebuild Teme asks for itself and begins it. The operator only. Returns the
  * request's id, or null when there is nothing to begin: the request was
- * cancelled first, another is open, or a Teme update is.
+ * cancelled first, another is open, or a Teme update is (a rebuild, which
+ * that update's start asks for, waits for none).
  */
 final class BeginExtensionRequest extends BaseOperation
 {
@@ -40,7 +41,8 @@ final class BeginExtensionRequest extends BaseOperation
         /** @var BeginExtensionRequestInput $input */
         DB::select('SELECT pg_advisory_xact_lock(hashtext(?))', ['teme.extensions.request']);
 
-        if (DB::table('teme_updates')->whereIn('status', ['requested', 'running'])->exists()) {
+        // A rebuild is the update's own last step: the updater keeps its row running until the site is up.
+        if (! $input->rebuild && DB::table('teme_updates')->whereIn('status', ['requested', 'running'])->exists()) {
             return null;
         }
 

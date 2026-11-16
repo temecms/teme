@@ -99,3 +99,25 @@ it('rolls back no further than a release checked against this core', function ()
 
     expect(DB::table('extension_requests')->value('status'))->toBe('failed');
 })->group('composer');
+
+it('rebuilds while the Teme update that started it is still running', function (): void {
+    // The updater keeps its row running until every part is healthy, and the site waits for this check.
+    DB::table('teme_updates')->insert(['id' => strtolower((string) Str::ulid()), 'kind' => 'update', 'from_version' => '0.5.0', 'to_version' => '0.6.0', 'status' => 'running', 'requested_at' => now()]);
+    $id = $this->folder->install('fixtures/adapts', '1.0.0', pins: ExtensionsFolder::pinsWith(['fixtures/core-lib' => '1.2.0']));
+    $project = json_decode((string) file_get_contents($this->folder->store->path($id).'/composer.json'), true);
+    $project['require'] = ['fixtures/adapts' => '^1.0'];
+    file_put_contents($this->folder->store->path($id).'/composer.json', json_encode($project));
+    $new = ExtensionsFolder::pinsWith(['fixtures/core-lib' => '2.0.0']);
+
+    expect($this->folder->runner($new)->prepare())->toBeNull()
+        ->and($this->folder->store->current())->not->toBe($id)
+        ->and(DB::table('extension_requests')->value('status'))->toBe('done');
+})->group('composer');
+
+it('says another request is open only when one is', function (): void {
+    $id = $this->folder->install('fixtures/adapts', '1.0.0', pins: ExtensionsFolder::pinsWith(['fixtures/core-lib' => '1.2.0']));
+    DB::table('extension_requests')->insert(['id' => strtolower((string) Str::ulid()), 'action' => 'install', 'kind' => 'plugin', 'package' => 'fixtures/hello-extension', 'status' => 'requested', 'requested_at' => now()]);
+
+    expect($this->folder->runner(ExtensionsFolder::pinsWith(['fixtures/core-lib' => '2.0.0']))->prepare())->toContain('Another request is open')
+        ->and($this->folder->store->current())->toBe($id);
+})->group('composer');

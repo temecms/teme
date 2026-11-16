@@ -218,7 +218,7 @@ final class InstallerRunner
 
     private function checking(ExtensionRequest $request): bool
     {
-        if (DB::table('teme_updates')->whereIn('status', ['requested', 'running'])->exists()) {
+        if ($request->action !== ExtensionAction::Rebuild && DB::table('teme_updates')->whereIn('status', ['requested', 'running'])->exists()) {
             throw new InstallerFailed('An update of Teme is under way; ask again once it has ended.');
         }
 
