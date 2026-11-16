@@ -82,7 +82,7 @@ The same goes for a code setting declared `"scripts": true` on your settings pag
 
 ## Hand core the data
 
-The class named under `plugin` in the manifest implements `HasPluginArea` beside `Plugin`, and its `pluginArea()` answers your `PluginArea`. Core calls it as the signed-in person, with an `AreaContext` holding their ID, language and time zone:
+The class named under `plugin` in the manifest implements `HasPluginArea` beside `Plugin`, and its `pluginArea()` answers your `PluginArea`. Core calls it as the signed-in person, with an `AreaContext` holding their ID, language and time zone, and in `permissions` the ids of your own permissions they hold, so you can show most people their own records and holders of a `view-all` permission everyone's:
 
 | Method | What it answers |
 |---|---|

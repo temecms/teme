@@ -64,7 +64,7 @@ final class ActOnPluginRecords extends BaseOperation
         /** @var ActOnPluginRecordsInput $input */
         $plugin = $this->writable($input->code, $input->record, $input->actorId);
         $ids = $this->ids($input);
-        $context = AreaContexts::for($input->actorId);
+        $context = AreaContexts::for($input->code, $input->actorId);
 
         $saved = $this->write($plugin, fn (PluginArea $data): Saved => $data->act($input->record, $input->action, $ids, $context));
 

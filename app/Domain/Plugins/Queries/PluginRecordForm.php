@@ -50,7 +50,7 @@ final readonly class PluginRecordForm
         $stored = [];
 
         if ($id !== null) {
-            $read = $this->reads->values($plugin, $record, $id, $fields, AreaContexts::for($personId), $failed);
+            $read = $this->reads->values($plugin, $record, $id, $fields, AreaContexts::for($plugin->code, $personId), $failed);
 
             if ($read === null && $failed === null) {
                 return null;

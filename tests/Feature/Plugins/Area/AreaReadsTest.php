@@ -180,7 +180,7 @@ it('shows a block’s failure line, and records the fault, when the plugin throw
 it('stops calling once the page’s budget is spent', function (): void {
     $plugin = app(PluginAreas::class)->find('placard');
     $reads = app(AreaReads::class);
-    $context = AreaContexts::for((string) $this->editor->id);
+    $context = AreaContexts::for('placard', (string) $this->editor->id);
     $block = $plugin?->area->block('overview', 'totals') ?? [];
 
     foreach (range(1, 5) as $call) {

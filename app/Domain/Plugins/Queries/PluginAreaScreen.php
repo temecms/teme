@@ -87,7 +87,7 @@ final readonly class PluginAreaScreen
     public function data(AreaPlugin $plugin, string $page, string $block, string $personId, array $ask = []): ?array
     {
         $declared = $plugin->area->block($page, $block);
-        $context = AreaContexts::for($personId);
+        $context = AreaContexts::for($plugin->code, $personId);
 
         return match ($declared['type'] ?? null) {
             'figures' => $this->reads->figures($plugin, $page, $declared, $context),
