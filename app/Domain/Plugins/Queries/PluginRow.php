@@ -18,6 +18,7 @@ final readonly class PluginRow
      * @param  array{capabilities: list<string>, hosts: list<string>, hooks: list<string>}  $asks  what the manifest asks for now
      * @param  array{capabilities: list<string>, hosts: list<string>, routes: list<string>}  $added  what it asks for that was never agreed to
      * @param  list<string>  $stopped  the subscription ids stopped for this version
+     * @param  string|null  $schedules  why its schedules don't run, with what to do; null when they do or it has none
      */
     public function __construct(
         public string $name,
@@ -33,6 +34,7 @@ final readonly class PluginRow
         public array $asks,
         public array $added,
         public array $stopped,
+        public ?string $schedules = null,
     ) {}
 
 }

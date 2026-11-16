@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
@@ -16,17 +17,18 @@ use Teme\Contracts\Plugins\Capability;
 /**
  * `teme:plugins:enable`: enables a plugin as the operator (I-3353), saying
  * first why it can't be used, if it can't, or else what it asks to do, and
- * enabling it only once run again with --agree.
+ * enabling it only once run again with --agree. A plugin with schedules
+ * needs --as, the administrator they run as (docs/proposals/plugin-sockets-1.md).
  */
 final class EnablePluginCommand extends Command
 {
     /** @var string */
-    protected $signature = 'teme:plugins:enable {name : The plugin’s Composer name} {--agree : Agree to what it asks for}';
+    protected $signature = 'teme:plugins:enable {name : The plugin’s Composer name} {--agree : Agree to what it asks for} {--as= : The email of the administrator its schedules run as}';
 
     /** @var string */
     protected $description = 'Enable a plugin, agreeing to what it asks for';
 
-    public function handle(PluginRegistry $registry, EnablePlugin $enable): int
+    public function handle(PluginRegistry $registry, EnablePlugin $enable, ScheduleRunner $schedules): int
     {
         $name = (string) $this->argument('name');
         $plugin = $registry->find($name);
@@ -74,11 +76,29 @@ final class EnablePluginCommand extends Command
             return self::FAILURE;
         }
 
+        // Scheduled work runs as an administrator, never as the operator: refused before anything is written (docs/proposals/plugin-sockets-1.md).
+        $email = $this->option('as');
+        $schedulesAs = null;
+
+        if (is_string($email) && $email !== '') {
+            $schedulesAs = $schedules->administrator($email);
+
+            if ($schedulesAs === null) {
+                $this->components->error(__('No one who may manage plugins has the email :email.', ['email' => $email]));
+
+                return self::FAILURE;
+            }
+        } elseif ($schedules->declaresSchedules($name)) {
+            $this->components->error(__(':label runs work on a schedule, and scheduled work runs as an administrator. Name one with --as=<email>.', ['label' => $label]));
+
+            return self::FAILURE;
+        }
+
         // The operator (docs/architecture/operations.md, The operator).
         $this->laravel->instance(Elevation::class, new OperatorElevation);
 
         try {
-            $enable->execute(new EnablePluginInput($name, $version, $capabilities, $hosts, $manifest?->hooks() ?? [], null));
+            $enable->execute(new EnablePluginInput($name, $version, $capabilities, $hosts, $manifest?->hooks() ?? [], null, schedulesAs: $schedulesAs));
         } catch (ValidationException $refused) {
             $this->components->error($refused->getMessage());
 

@@ -66,6 +66,8 @@ final readonly class PluginsScreen
                 'state' => $row->state->value,
                 'badge' => $row->state->label(),
                 'reason' => $row->reason,
+                // Why its schedules don't run, shown as a warning in its row (docs/proposals/plugin-sockets-1.md).
+                'schedules' => $row->schedules,
                 'enabled' => $enabled,
                 'needsAttention' => in_array($row->state, self::NEEDS_ATTENTION, true),
                 'action' => $this->action($row, $enabled, $newImports),
