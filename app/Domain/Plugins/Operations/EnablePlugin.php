@@ -6,11 +6,13 @@ namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\SettingHosts;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
@@ -48,6 +50,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly SecurityLog $log,
         private readonly PublicRouteRegistry $publicRoutes,
         private readonly RouteCollisions $routeCollisions,
+        private readonly SettingHosts $settingHosts,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -75,6 +78,9 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             && $this->sameSet($input->capabilities, $manifest->capabilities())
             && $this->sameSet($input->hosts, $manifest->hosts())
             && $this->sameSet($input->hooks, $manifest->hooks());
+
+        // The hosts its settings name, when shown, are those they name now.
+        $same = $same && ($input->settingHosts === [] || $this->sameSet($input->settingHosts, $this->settingHosts->current($manifest)));
 
         if (! $same) {
             throw ValidationException::withMessages(['plugin' => ['It asks for something different now. Look again before you enable it.']]);
@@ -139,6 +145,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 'hooks' => $input->hooks,
                 'routes' => Consent::routeLines($manifest),
                 ...$this->imports($found),
+                ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
             ],
             'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
             'consented_at' => $now,
@@ -178,6 +185,35 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         $declared = $found->manifest === null ? [] : Consent::declaredImports($found->manifest);
 
         return $declared === [] ? [] : ['imports' => $declared];
+    }
+
+    /**
+     * The settings it takes hosts from and the hosts agreed in them, kept
+     * with the consent (docs/plans/plugin-sockets-1.md, A2): those agreed now,
+     * and those a person agreed before, on its settings page; nothing when it
+     * takes none.
+     *
+     * @param  array<string, mixed>  $before  the consent recorded before
+     * @param  list<string>  $agreed
+     *
+     * @return array{}|array{hostsFrom: list<string>, settingHosts: list<string>, settingHostsAgreed?: list<mixed>}
+     */
+    private function hostsFrom(Manifest $manifest, array $before, array $agreed): array
+    {
+        $keys = SettingHosts::declared($manifest);
+
+        if ($keys === []) {
+            return [];
+        }
+
+        $earlier = array_values(array_filter((array) ($before['settingHosts'] ?? []), is_string(...)));
+        $history = is_array($before['settingHostsAgreed'] ?? null) ? array_values($before['settingHostsAgreed']) : [];
+
+        return [
+            'hostsFrom' => $keys,
+            'settingHosts' => array_values(array_unique([...$earlier, ...$agreed])),
+            ...($history === [] ? [] : ['settingHostsAgreed' => $history]),
+        ];
     }
 
     /**

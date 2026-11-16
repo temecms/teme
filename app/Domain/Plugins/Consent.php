@@ -44,7 +44,38 @@ final readonly class Consent
             return false;
         }
 
+        // Hosts from another of its settings are wider access (docs/plans/plugin-sockets-1.md, A2).
+        if (self::hostsFromAdded($consent, $manifest) !== []) {
+            return false;
+        }
+
         return true;
+    }
+
+    /**
+     * The settings the outbound door may take hosts from: those the
+     * manifest's `hostsFrom` names now that were also agreed, the narrower
+     * of the two.
+     *
+     * @param  array{hostsFrom?: list<string>}  $consent
+     *
+     * @return list<string>
+     */
+    public static function hostsFrom(array $consent, Manifest $manifest): array
+    {
+        return array_values(array_intersect(SettingHosts::declared($manifest), (array) ($consent['hostsFrom'] ?? [])));
+    }
+
+    /**
+     * The settings the manifest's `hostsFrom` names that were never agreed.
+     *
+     * @param  array{hostsFrom?: list<string>}  $consent
+     *
+     * @return list<string>
+     */
+    public static function hostsFromAdded(array $consent, Manifest $manifest): array
+    {
+        return array_values(array_diff(SettingHosts::declared($manifest), (array) ($consent['hostsFrom'] ?? [])));
     }
 
     /**
@@ -75,8 +106,15 @@ final readonly class Consent
     {
         $imports = self::importsAdded($consent, $manifest);
 
+        $capabilities = array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? []));
+
+        // Hosts from another setting are more of http, so the screen asks again under it.
+        if (self::hostsFromAdded($consent, $manifest) !== [] && ! in_array('http', $capabilities, true)) {
+            $capabilities[] = 'http';
+        }
+
         return [
-            'capabilities' => array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? [])),
+            'capabilities' => $capabilities,
             'hosts' => array_values(array_filter($manifest->hosts(), fn (string $host): bool => ! HostPattern::anyCovers($consent['hosts'] ?? [], $host))),
             'routes' => array_values(array_diff(self::routeLines($manifest), $consent['routes'] ?? [])),
             ...($imports === [] ? [] : ['imports' => $imports]),

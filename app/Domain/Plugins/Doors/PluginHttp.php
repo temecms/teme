@@ -47,12 +47,14 @@ final readonly class PluginHttp implements OutboundHttp
      * @param  list<string>  $hosts  the hosts this plugin's consent covers
      * @param  int  $maxBytes  answer size cap; defaults to 1 MB for http, media may pass the upload limit
      * @param  int  $mostSeconds  the upper limit for each call: 10 normally, 300 inside a long job (I-3445)
+     * @param  (Closure(): list<string>)|null  $settingHosts  the exact hosts agreed in its settings, read at each call (docs/plans/plugin-sockets-1.md)
      */
     public function __construct(
         private array $hosts,
         private HostResolver $resolver,
         private int $maxBytes = self::MOST_BYTES,
         private int $mostSeconds = self::MOST_SECONDS,
+        private ?Closure $settingHosts = null,
     ) {}
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
@@ -82,7 +84,7 @@ final readonly class PluginHttp implements OutboundHttp
         try {
             $uri = new Uri($url);
         } catch (InvalidArgumentException) {
-            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->hosts)]));
+            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->agreedHosts())]));
         }
 
         $host = $this->allowedHost($uri);
@@ -295,11 +297,24 @@ final readonly class PluginHttp implements OutboundHttp
 
         $host = strtolower($uri->getHost());
 
-        if (preg_match(HostPattern::PATTERN, $host) !== 1 || str_starts_with($host, '*.') || ! HostPattern::anyCovers($this->hosts, $host)) {
-            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->hosts)]));
+        if (preg_match(HostPattern::PATTERN, $host) !== 1 || str_starts_with($host, '*.') || ! HostPattern::anyCovers($this->agreedHosts(), $host)) {
+            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->agreedHosts())]));
         }
 
         return $host;
+    }
+
+    /**
+     * The hosts its consent covers, then the exact hosts agreed in its
+     * settings that its settings name now.
+     *
+     * @return list<string>
+     */
+    private function agreedHosts(): array
+    {
+        $more = $this->settingHosts === null ? [] : ($this->settingHosts)();
+
+        return array_values(array_unique([...$this->hosts, ...array_filter($more, fn (string $host): bool => ! str_starts_with($host, '*.'))]));
     }
 
     private function publicAddress(string $host): string

@@ -54,6 +54,33 @@ final readonly class PluginWords
     }
 
     /**
+     * The outbound door's sentence for a plugin that also takes hosts from
+     * its settings (docs/plans/plugin-sockets-1.md, A2): its own hosts, then
+     * the settings' labels, quoted and joined with "and".
+     *
+     * @param  list<string>  $hosts
+     * @param  list<string>  $settings  the labels of the settings it takes hosts from
+     */
+    public static function httpWithSettings(array $hosts, array $settings): string
+    {
+        $quoted = array_map(fn (string $label): string => '“'.$label.'”', $settings);
+        $last = array_pop($quoted);
+        $named = $quoted === [] ? (string) $last : implode(', ', $quoted).' '.__('and').' '.$last;
+
+        return __('Connect to services outside this site: :hosts, and the hosts you enter in :settings', ['hosts' => implode(', ', $hosts), 'settings' => $named]);
+    }
+
+    /**
+     * The line under it that lists the hosts those settings name now.
+     *
+     * @param  list<string>  $hosts
+     */
+    public static function settingHostsNow(array $hosts): string
+    {
+        return $hosts === [] ? __('They name no host yet.') : __('They name these hosts now: :hosts', ['hosts' => implode(', ', $hosts)]);
+    }
+
+    /**
      * What a plugin reads from the WordPress site an import reads, each
      * declared name listed (docs/proposals/plugin-import-socket.md).
      *

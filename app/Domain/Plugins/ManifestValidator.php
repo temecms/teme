@@ -129,6 +129,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->pluginClass($manifest, $read, $reading));
         array_push($errors, ...$this->capabilities($manifest));
         array_push($errors, ...$this->hosts($manifest, $read));
+        array_push($errors, ...$this->hostsFrom($manifest, $read));
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
         array_push($errors, ...$this->columns($read));
@@ -339,6 +340,42 @@ final readonly class ManifestValidator
             $errors[] = 'It asks for http but names no hosts.';
         } elseif (! $http && $read->hosts() !== []) {
             $errors[] = 'It names hosts but doesn’t ask for http.';
+        }
+
+        return $errors;
+    }
+
+    /**
+     * hostsFrom: at most three of the plugin's own url or urls settings, and
+     * only with http (docs/plans/plugin-sockets-1.md, A2).
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function hostsFrom(array $manifest, Manifest $read): array
+    {
+        if (! array_key_exists('hostsFrom', $manifest)) {
+            return [];
+        }
+
+        $keys = $manifest['hostsFrom'];
+
+        if (! is_array($keys) || ! array_is_list($keys) || count($keys) > SettingHosts::MOST_SETTINGS) {
+            return [__('hostsFrom must be a list of at most 3 of its url or urls settings.')];
+        }
+
+        $errors = [];
+        $settings = SettingHosts::urlSettings($read);
+
+        foreach ($keys as $key) {
+            if (! is_string($key) || ! array_key_exists($key, $settings)) {
+                $errors[] = __('hostsFrom names :key, which is not one of its url or urls settings.', ['key' => $this->show($key)]);
+            }
+        }
+
+        if ($keys !== [] && ! in_array(Capability::Http->value, $read->capabilities(), true)) {
+            $errors[] = __('It takes hosts from its settings, but the plugin doesn’t ask for http.');
         }
 
         return $errors;
