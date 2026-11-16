@@ -111,7 +111,8 @@ final readonly class ArticleViews
             usage: app(CardUsage::class),
             leadNodeId: $lead['nodeId'],
             insertions: $plan,
-            linkAttributes: app(ArticleLinkAttributes::class)->for($document, $links),
+            // Plugins are asked about links only where they may insert: published renders, never a preview.
+            linkAttributes: $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [],
         ));
 
         // A draft never published has no first publication yet: the revision's own time stands in.

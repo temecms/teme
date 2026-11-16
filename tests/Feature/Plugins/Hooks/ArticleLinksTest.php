@@ -9,6 +9,7 @@ use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Site\ArticleViews;
 use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\Links\ArticleLinkAttributes;
 use App\Domain\Support\Security\Elevation;
@@ -132,4 +133,14 @@ it('stops asking once the page’s budget is spent, and records the asks it skip
 
     expect(array_map(fn (array $kept): int => count($kept), $asks))->toBe([1, 1, 1, 0])
         ->and(array_column(hkFaults(), 'message'))->toBe(['tests/linker\'s link attributes took 300 ms, over the 250 ms budget.']);
+});
+
+it('asks plugins about links only on a published article, never on a preview', function (): void {
+    ($this->start)();
+    $content = ($this->publish)();
+
+    expect(app(ArticleViews::class)->ofRevision((string) $content->id, (string) $content->published_revision_id)->bodyHtml)
+        ->toContain('<a href="https://example.org/page" rel="noopener">Outside</a>')
+        ->not->toContain('nofollow')
+        ->and(app(ArticleViews::class)->published($content)->bodyHtml)->toContain('rel="noopener nofollow"');
 });
