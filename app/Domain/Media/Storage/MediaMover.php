@@ -28,7 +28,8 @@ use Throwable;
  * ID, resumable from the run's cursor, each file checked by size and every
  * original read back against its recorded SHA-256 (every file with deep).
  * It never lists a folder, and records each chunk through the operator's
- * move Operations.
+ * move Operations. deleteSource() removes the source's copies after a
+ * verified move, through MoveGate.
  */
 final class MediaMover
 {
@@ -43,6 +44,7 @@ final class MediaMover
 
     public function __construct(
         private readonly MediaMoveLock $lock,
+        private readonly MoveGate $gate,
         private readonly StartMediaMove $start,
         private readonly RecordMediaMoveProgress $record,
         private readonly EndMediaMove $end,
@@ -163,6 +165,47 @@ final class MediaMover
                 $say(__('Copying :items media items from “:from” to “:to”.', ['items' => number_format($run->items_total - $run->items_done), 'from' => $from, 'to' => $to]));
 
                 return $this->walk($run, $chunk, $say, $advance, $stopping, fn (array $file, object $row): array => $this->copyFile($file, $from, $to, $deep));
+            });
+        } catch (MediaMoveRefused $refused) {
+            return ['code' => self::REFUSED, 'runId' => null, 'sentence' => $refused->getMessage()];
+        }
+    }
+
+    /**
+     * Deletes the source's copy of every file in scope, under the move lock,
+     * only when MoveGate allows it, each one only after its target copy is
+     * checked again. Never a folder.
+     *
+     * @param  list<'public'|'originals'>  $roles
+     * @param  Closure(string): void  $say
+     * @param  Closure(int): void  $advance
+     * @param  Closure(): bool  $stopping
+     *
+     * @return array{code: int, runId: string|null, sentence: string}
+     */
+    public function deleteSource(string $from, string $to, array $roles, int $chunk, Closure $say, Closure $advance, Closure $stopping): array
+    {
+        try {
+            self::refuse($from, $to, $roles);
+
+            return $this->lock->during(function () use ($from, $to, $roles, $chunk, $say, $advance, $stopping): array {
+                $refusal = $this->gate->refusal($from, $to, $roles);
+
+                if ($refusal !== null) {
+                    throw new MediaMoveRefused($refusal);
+                }
+
+                $run = $this->begin('delete_source', $from, $to, $roles, null, false, fn (): int => $this->count($roles, null)['items']);
+                $say(__('Deleting the copies in “:from” of :items media items, each after checking its copy in “:to”.', ['items' => number_format($run->items_total - $run->items_done), 'from' => $from, 'to' => $to]));
+
+                return $this->walk($run, $chunk, $say, $advance, $stopping, function (array $file) use ($from, $to): array {
+                    // A backup may have started since the gate was asked: wait for nothing, stop instead.
+                    if ($this->gate->backupRunning()) {
+                        throw new MediaMoveRefused(__('A backup started, so the deletion stopped. Run it again when the backup has finished.'));
+                    }
+
+                    return $this->deleteFile($file, $from, $to);
+                });
             });
         } catch (MediaMoveRefused $refused) {
             return ['code' => self::REFUSED, 'runId' => null, 'sentence' => $refused->getMessage()];
@@ -352,6 +395,40 @@ final class MediaMover
             return [...$this->checked($file, $target, $sourceSha, $deep, 'copied'), 'bytes' => $sourceSize];
         } catch (Throwable $failure) {
             return ['outcome' => 'failures', 'reason' => __('it couldn’t be copied: :reason', ['reason' => BucketCheck::reason($failure)])];
+        }
+    }
+
+    /**
+     * Deletes one file's source copy after checking its target copy once
+     * more: there, with the source's size. A file already gone from the
+     * source counts as deleted when its target copy is there.
+     *
+     * @param  array{role: 'public'|'originals', path: string, bytes: int, sha256: string|null}  $file
+     *
+     * @return array{outcome: string, bytes?: int, reason?: string}
+     */
+    private function deleteFile(array $file, string $from, string $to): array
+    {
+        $source = self::disk(MediaLocations::disks($from)[$file['role']]);
+        $target = self::disk(MediaLocations::disks($to)[$file['role']]);
+        $path = $file['path'];
+
+        try {
+            $there = $target->fileExists($path);
+
+            if (! $source->fileExists($path)) {
+                return $there ? ['outcome' => 'present'] : ['outcome' => 'holes', 'reason' => __('missing in both locations')];
+            }
+
+            if (! $there || $target->fileSize($path) !== $source->fileSize($path)) {
+                return ['outcome' => 'failures', 'reason' => __('its copy in “:to” is missing or a different size, so it was kept', ['to' => $to])];
+            }
+
+            $source->delete($path);
+
+            return ['outcome' => 'deleted'];
+        } catch (Throwable $failure) {
+            return ['outcome' => 'failures', 'reason' => __('it couldn’t be deleted: :reason', ['reason' => BucketCheck::reason($failure)])];
         }
     }
 

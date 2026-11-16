@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Domain\Media\Storage\MediaMover;
 use App\Domain\Media\Storage\MediaMoveRefused;
+use App\Domain\Media\Storage\MoveGate;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
@@ -27,7 +28,8 @@ final class MoveMedia extends Command
         {--deep : Read back every copied file and compare SHA-256, not only the originals}
         {--chunk=100 : Media items per chunk}
         {--dry-run : Count the items, files and bytes the rows name, and copy nothing}
-        {--status : List the last ten moves and stop}';
+        {--status : List the last ten moves and stop}
+        {--delete-source : Delete the source’s copies, only after a verified move}';
 
     /** @var string */
     protected $description = 'Copy the media library between the server and object storage, resumable and verified';
@@ -54,8 +56,14 @@ final class MoveMedia extends Command
         /** @var list<'public'|'originals'> $roles */
         $roles = $only === '' ? ['originals', 'public'] : [$only];
 
+        if ((bool) $this->option('delete-source') && ((bool) $this->option('catch-up') || (bool) $this->option('deep'))) {
+            $this->error(__('--delete-source runs alone: leave out --catch-up and --deep.'));
+
+            return MediaMover::REFUSED;
+        }
+
         if ((bool) $this->option('dry-run')) {
-            return $this->dryRun($mover, $from, $to, $roles);
+            return (bool) $this->option('delete-source') ? $this->gateDryRun($from, $to, $roles) : $this->dryRun($mover, $from, $to, $roles);
         }
 
         // Finishes the item in hand, records the chunk and ends the run stopped.
@@ -65,21 +73,18 @@ final class MoveMedia extends Command
 
         // A bar only where a person watches: in a log it would be noise.
         $bar = $this->output->isDecorated() ? $this->output->createProgressBar() : null;
-        $result = $mover->copy(
-            $from,
-            $to,
-            $roles,
-            (bool) $this->option('catch-up'),
-            (bool) $this->option('deep'),
-            max(1, (int) $this->option('chunk')),
-            function (string $line) use ($bar): void {
-                $bar?->clear();
-                $this->line($line);
-                $bar?->display();
-            },
-            fn (int $items) => $bar?->advance($items),
-            fn (): bool => $this->stopping,
-        );
+        $say = function (string $line) use ($bar): void {
+            $bar?->clear();
+            $this->line($line);
+            $bar?->display();
+        };
+        $advance = fn (int $items) => $bar?->advance($items);
+        $stopping = fn (): bool => $this->stopping;
+        $chunk = max(1, (int) $this->option('chunk'));
+
+        $result = (bool) $this->option('delete-source')
+            ? $mover->deleteSource($from, $to, $roles, $chunk, $say, $advance, $stopping)
+            : $mover->copy($from, $to, $roles, (bool) $this->option('catch-up'), (bool) $this->option('deep'), $chunk, $say, $advance, $stopping);
         $bar?->clear();
 
         match ($result['code']) {
@@ -118,6 +123,34 @@ final class MoveMedia extends Command
             'files' => number_format($counted['files']),
             'bytes' => number_format($counted['bytes']),
         ]));
+
+        return MediaMover::VERIFIED;
+    }
+
+    /**
+     * Whether the source's copies may be deleted now, and why not.
+     *
+     * @param  list<'public'|'originals'>  $roles
+     */
+    private function gateDryRun(string $from, string $to, array $roles): int
+    {
+        try {
+            MediaMover::refuse($from, $to, $roles);
+        } catch (MediaMoveRefused $refused) {
+            $this->error($refused->getMessage());
+
+            return MediaMover::REFUSED;
+        }
+
+        $refusal = $this->laravel->make(MoveGate::class)->refusal($from, $to, $roles, holdingMoveLock: false);
+
+        if ($refusal !== null) {
+            $this->error($refusal);
+
+            return MediaMover::REFUSED;
+        }
+
+        $this->info(__('The copies in “:from” may be deleted: the move to “:to” is verified. Nothing was deleted.', ['from' => $from, 'to' => $to]));
 
         return MediaMover::VERIFIED;
     }
