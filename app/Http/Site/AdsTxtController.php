@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Site;
 
+use App\Domain\Cache\PageCache;
 use App\Domain\SiteCode\SiteCodeSettings;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
@@ -16,7 +18,7 @@ use Teme\Contracts\Settings\SettingsReader;
  */
 final class AdsTxtController extends Controller
 {
-    public function __invoke(SettingsReader $settings): Response
+    public function __invoke(Request $request, SettingsReader $settings): Response
     {
         $mode = $settings->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE);
 
@@ -26,6 +28,8 @@ final class AdsTxtController extends Controller
             if (trim($target) === '') {
                 abort(404);
             }
+
+            $request->attributes->set(PageCache::REDIRECT_OK, true);
 
             return response('', 301, [
                 'Location' => $target,
