@@ -94,7 +94,7 @@ A move copies the files the site's records name, never a listing of a folder, an
    docker compose exec web find storage/app/public/media storage/app/private/media-originals -mindepth 1 -type d -empty -delete
    ```
 
-A run ends with exit status 0 when every file is verified, 1 when some failed, 2 when it was refused, and 3 when it was stopped. The status list names each failed file, and each file missing from both places, which isn't a failure: the move can't lose what was never there. To check a bucket in full later, run `php artisan teme:media:move --from=server --to=bucket --deep`, which reads back every file and copies only what is wrong.
+A run ends with exit status 0 when every file is verified, 1 when some failed, 2 when it was refused, and 3 when it was stopped. The status list names each failed file, and each file missing from both places, which isn't a failure: the move can't lose what was never there. To check a bucket in full while the server still has its copies, run `php artisan teme:media:move --from=server --to=bucket --deep`: it reads back every file, copies again any that is wrong, and checks it once more. After the server's copies are deleted there is nothing to copy from or compare the image sizes with, so the same run checks only the originals, against the checksums Teme recorded, and names any that is wrong.
 
 Addresses that editors pasted into content before the move keep working: Teme recognizes media addresses from the server and from the bucket alike.
 

@@ -404,3 +404,22 @@ it('ends as stopped a killed run of another scope in the same direction, and goe
     'a catch-up' => [['--catch-up' => true]],
     'a deep copy' => [['--deep' => true]],
 ]);
+
+it('rewrites a target copy of the right size whose bytes are wrong, then verifies it', function (): void {
+    $id = mvItem('image', ['w640']);
+    mvRun(['--from' => 'server', '--to' => 'bucket']);
+    $original = "{$id}/v1/item.jpg";
+    $variant = "{$id}/v1/item-w640.webp";
+    $wrong = fn (string $bytes): string => strrev($bytes);
+    Storage::disk('media-originals-bucket')->put($original, $wrong(Storage::disk('media-originals')->get($original)));
+    Storage::disk('media-bucket')->put($variant, $wrong(Storage::disk('media')->get($variant)));
+
+    [$code, $output] = mvRun(['--from' => 'server', '--to' => 'bucket', '--deep' => true]);
+    $run = MediaMove::query()->where('deep', true)->sole();
+
+    expect($code)->toBe(0, $output)
+        ->and($run->failures)->toBe(0)
+        ->and($run->files_copied)->toBe(2)
+        ->and(Storage::disk('media-originals-bucket')->get($original))->toBe(Storage::disk('media-originals')->get($original))
+        ->and(Storage::disk('media-bucket')->get($variant))->toBe(Storage::disk('media')->get($variant));
+});

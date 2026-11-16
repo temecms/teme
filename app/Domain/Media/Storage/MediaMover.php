@@ -382,19 +382,28 @@ final class MediaMover
                 return ['outcome' => 'failures', 'reason' => __('the copy in “:from” differs from its recorded checksum', ['from' => $from])];
             }
 
+            $write = function () use ($source, $target, $path): void {
+                $stream = $source->readStream($path);
+
+                try {
+                    $target->writeStream($path, $stream);
+                } finally {
+                    if (is_resource($stream)) {
+                        fclose($stream);
+                    }
+                }
+            };
+
             if ($size === $sourceSize) {
-                return $this->checked($file, $target, $sourceSha, $deep, 'present');
-            }
+                $present = $this->checked($file, $target, $sourceSha, $deep, 'present');
 
-            $stream = $source->readStream($path);
-
-            try {
-                $target->writeStream($path, $stream);
-            } finally {
-                if (is_resource($stream)) {
-                    fclose($stream);
+                // The right size with the wrong bytes, from a source that passed its own check: copy it once more.
+                if ($present['outcome'] !== 'failures' || $sourceSha === null) {
+                    return $present;
                 }
             }
+
+            $write();
 
             if ($target->fileSize($path) !== $sourceSize) {
                 return ['outcome' => 'failures', 'reason' => __('its size differs after copying')];
