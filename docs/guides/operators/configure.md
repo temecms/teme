@@ -69,7 +69,7 @@ Either way the message names the variable and the file's path, and never prints 
 
 ## Media storage
 
-Where the media files live, and the addresses they are served at. Give every role the same values: a worker writing images to the server while `web` reads them from a bucket breaks every image. Read the guide to media in object storage before you change `MEDIA_STORAGE` on a site that has media.
+Where the media files live, and the addresses they are served at. Give every role the same values: a worker writing images to the server while `web` reads them from a bucket breaks every image. Read [Media in object storage](object-storage.md) before you change `MEDIA_STORAGE` on a site that has media.
 
 | Variable | Default | What it does |
 |---|---|---|

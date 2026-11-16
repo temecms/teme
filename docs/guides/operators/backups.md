@@ -17,6 +17,8 @@ A backup holds:
 - the media: every original and every variant;
 - the application key, so a restored site can read what it had encrypted.
 
+When your media is in object storage, a backup holds the database, the application key and the list of every original with its checksum, but not the files themselves: they stay in the bucket, and Tools › Backups says so. Turn on versioning or replication at your storage provider, or keep the originals on the server, where the backup holds them, and only the variants in the bucket. See [Media in object storage](object-storage.md).
+
 It never holds code. To restore, you install the same version of Teme first: see [Restoring and moving](restore-and-moving.md).
 
 ## Where it goes

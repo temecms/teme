@@ -12,12 +12,20 @@ How files arrive, how images are prepared for readers, how editors find and desc
 
 ## Storage
 
-Two disks, both configurable (`config/media.php`, `config/filesystems.php`):
+Two roles, each on a disk of the location the site uses (`config/media.php`, `config/filesystems.php`):
 
-| Disk | Holds | Default |
-|---|---|---|
-| `media` (public) | Image variants, and the files of every non-image item | `storage/app/public/media`, served at `/storage/media` |
-| `media-originals` (private) | Image originals | `storage/app/private/media-originals`, never served |
+| Disk | Location | Holds | Where |
+|---|---|---|---|
+| `media` (public) | `server` | Image variants, and the files of every non-image item | `storage/app/public/media`, served at `MEDIA_URL`, by default `APP_URL/storage/media` |
+| `media-originals` (private) | `server` | Image originals | `storage/app/private/media-originals`, never served |
+| `media-bucket` (public) | `bucket` | The same as `media` | The bucket `MEDIA_BUCKET`, served at `MEDIA_BUCKET_URL` (a CDN or the bucket's public address) |
+| `media-originals-bucket` (private) | `bucket` | The same as `media-originals` | The bucket `MEDIA_ORIGINALS_BUCKET`, with no public address |
+
+**`MEDIA_STORAGE` chooses the location**, `server` by default or `bucket`, and `MediaLocations` names each location's two disks. `MEDIA_DISK` and `MEDIA_ORIGINALS_DISK` stay as overrides of one role, so a site may keep its originals on the server and its variants in the bucket. An unknown location names a disk that doesn't exist, so the first use fails loudly rather than falling back to the server. **The address is environment configuration, never a setting:** it must agree with where the files are, which only the operator's storage decides, and changing it needs the page cache cleared, which a deploy does. **Two buckets, never one with two folders**, because a provider makes a whole bucket public: a CDN in front of one bucket would serve the originals too. Public access is the bucket's, never the object's; `MEDIA_BUCKET_ACL=public-read` exists only for a provider that serves nothing else (DigitalOcean Spaces). Every object in the public bucket is written `immutable` for a year, since its key carries the file version; every original is written private.
+
+**An editor downloads an original from a bucket through a signed address** that lasts five minutes (`media.original_link_seconds`): the same route and permission, a 302 to an address made for that request and never stored, with the download's name in its `Content-Disposition`. From the server's disks it streams as before. **An address pasted into content keeps resolving to its item** after a move: `PathLinkResolver` tries every location's public address and the server's `/storage/media` path (rule 9).
+
+**The move** (I-3456): `php artisan teme:media:bucket-check` proves a bucket setup by writing, reading and deleting a probe in each bucket, and `php artisan teme:media:move` copies the files the rows name, never a listing, from one location to the other, in either direction. It walks every row, trashed ones too, by its ID, resumes where a stopped run ended, reads back every original and compares its SHA-256 with the row's (every variant too with `--deep`), and records each run in `media_moves` through three Operations only the operator may run. `--catch-up` copies only the items changed since the last finished copy. `--delete-source` deletes the old location's copies only once the site reads the new one, the latest copy began after that switch and found no failure, an unbroken chain of catch-ups leads back to a full copy, and no backup or other move runs; it checks each target file once more before deleting its source. The order of a move is in `docs/guides/operators/object-storage.md`.
 
 **Image originals are private.** Readers get variants, which are re-encoded and carry no camera metadata, so a phone photo's GPS position never reaches the public site. Editors can download an original from the admin. Every other file — PDF, audio, video — is public as uploaded.
 
@@ -31,7 +39,7 @@ Two disks, both configurable (`config/media.php`, `config/filesystems.php`):
 
 `{id}` is the item's ULID; `{name}` is the uploaded file name, slugged and cut to 80 characters, kept for search engines; `{ext}` comes from the detected type. The version segment changes on Replace, so a CDN never serves a stale file.
 
-**The row stores paths, not disks or hosts.** Which disk a path lives on follows from the item's kind; the disk's URL comes from configuration. Moving to object storage is a configuration change plus a copy.
+**The row stores paths, not disks or hosts.** Which disk a path lives on follows from the item's kind; the disk's URL comes from configuration. Moving to object storage is a configuration change plus a copy, in the order the operator's guide to object storage gives.
 
 ## The schema
 
