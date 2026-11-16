@@ -24,6 +24,15 @@ it('finds, validates, enables and runs the first-plugin example', function (): v
         ->and(FirstPlugin::$heard[0])->toContain($item->id);
 });
 
+it('enables the first-plugin example with the command its page tells readers to run', function (): void {
+    $this->plugin(base_path('docs/guides/developers/examples/plugins/first-plugin'));
+
+    $this->artisan('teme:plugins:enable', [
+        'name' => 'teme-examples/first-plugin',
+        '--agree' => true,
+    ])->assertSuccessful();
+});
+
 it('checks and draws the first-theme example', function (): void {
     $theme = $this->theme(base_path('docs/guides/developers/examples/themes/first-theme'));
 
