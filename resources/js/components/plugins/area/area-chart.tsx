@@ -11,6 +11,7 @@ import {
     YAxis,
 } from 'recharts';
 import { Panel } from '@/components/ui/panel';
+import { __ } from '@/lib/i18n';
 import type { AreaChartBlock, AreaChartData } from '@/types/plugin-area';
 
 /** The series' colours, from the design tokens, in order. */
@@ -47,6 +48,7 @@ export function AreaChart({
                     <ResponsiveContainer width="100%" height="100%">
                         <Chart
                             data={rows}
+                            accessibilityLayer={false}
                             margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
                         >
                             <CartesianGrid
@@ -99,7 +101,7 @@ export function AreaChart({
                     data-test="area-chart-table"
                 >
                     <div role="row">
-                        <span role="columnheader">{''}</span>
+                        <span role="columnheader">{__('Point')}</span>
                         {data.series.map((series) => (
                             <span key={series.id} role="columnheader">
                                 {series.label}
