@@ -97,7 +97,7 @@ it('refuses a prefix that is all digits, page or comments', function (string $pr
     expect(PrefixConflicts::for($prefix))->toBe('Use a prefix with a letter in it, not page or comments.');
 })->with(['2026', '7', 'page', 'comments']);
 
-it('answers 404 for a term\'s feed under any prefix, hidden or shown, and redirects no old address to one', function (bool $cached): void {
+it('answers 404 for a hidden language\'s term feed and redirects no old address to one, and serves a shown language\'s (I-3360)', function (bool $cached): void {
     $noticias = $this->site->newsEs();
     $spanish = addrCurrent('term', $noticias);
     $french = addrCurrent('term', $this->site->newsFr);
@@ -107,10 +107,16 @@ it('answers 404 for a term\'s feed under any prefix, hidden or shown, and redire
     $folder = $cached ? cacheOn() : null;
 
     try {
-        foreach (["/{$spanish}/feed/", '/categoria/viejas/feed/', "/{$french}/feed/", '/categorie/anciennes/feed/'] as $address) {
+        foreach (["/{$spanish}/feed/", '/categoria/viejas/feed/'] as $address) {
             for ($twice = 0; $twice < 2; $twice++) {
-                addrGet($address)->assertNotFound()->assertDontSee('Noticias')->assertDontSee('Las noticias de la semana.')->assertDontSee('Actualités');
+                addrGet($address)->assertNotFound()->assertDontSee('Noticias')->assertDontSee('Las noticias de la semana.');
             }
+        }
+
+        // A shown language's term has its feed, and its old address leads there (6.1c S3).
+        for ($twice = 0; $twice < 2; $twice++) {
+            addrGet("/{$french}/feed/")->assertOk()->assertSee('Actualités');
+            expect(addrLocation(addrGet('/categorie/anciennes/feed/')->assertStatus(301)))->toBe("/{$french}/feed/");
         }
 
         addrGet('/'.addrCurrent('term', $this->site->news).'/feed/')->assertOk()->assertSee('News');

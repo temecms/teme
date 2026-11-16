@@ -41,8 +41,8 @@ final class FeedItems
     }
 
     /**
-     * The IDs of the newest items of this subject, newest first, the
-     * default language's alone while the site has several (I-3360).
+     * The IDs of the newest items of this subject, newest first, in the
+     * subject's language alone (I-3360).
      *
      * @return list<string>
      */
@@ -55,7 +55,7 @@ final class FeedItems
         }
 
         // Only public items go beyond the site's own pages (I-1700).
-        $items = ListingViews::inLanguage(ListingViews::archive($types)->where('contents.visibility', 'public'), null);
+        $items = ListingViews::inLanguage(ListingViews::archive($types)->where('contents.visibility', 'public'), $subject->language);
 
         if ($subject->kind === FeedSubject::TERM) {
             $items->whereExists(fn (Builder $sub) => $sub->selectRaw('1')

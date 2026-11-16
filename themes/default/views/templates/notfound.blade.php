@@ -3,9 +3,9 @@
 
 @section('main')
     <div class="wrap notfound">
-        <h1>We couldn’t find that page</h1>
-        <p>It may have moved, or the address may have a typo. Try a search, or start from the home page.</p>
+        <h1>{{ __('We couldn’t find that page') }}</h1>
+        <p>{{ __('It may have moved, or the address may have a typo. Try a search, or start from the home page.') }}</p>
         @include('theme::partials.search-form', ['id' => 'search-notfound', 'value' => ''])
-        <p><a href="{{ $site->url }}">Go to the home page</a></p>
+        <p><a href="{{ $site->url }}">{{ __('Go to the home page') }}</a></p>
     </div>
 @endsection

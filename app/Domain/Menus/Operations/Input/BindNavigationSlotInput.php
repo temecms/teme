@@ -8,7 +8,8 @@ use Teme\Contracts\Operations\OperationInput;
 
 /**
  * What BindNavigationSlot needs: the theme, its slot, the menu to show there
- * or null for none, and who is asking.
+ * or null for none, who is asking, and the other site language whose
+ * readers see it there (null for the default language's).
  */
 final readonly class BindNavigationSlotInput implements OperationInput
 {
@@ -17,6 +18,7 @@ final readonly class BindNavigationSlotInput implements OperationInput
         public string $slot,
         public ?string $navigationId,
         public string $actorId,
+        public ?string $language = null,
     ) {}
 
     public function actorId(): string

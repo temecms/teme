@@ -37,6 +37,7 @@
     "require-dev": {
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.12",
+        "laravel-lang/lang": "15.38.0",
         "laravel/boost": "*",
         "laravel/pail": "^1.2.5",
         "laravel/pint": "^1.27",

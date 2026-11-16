@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * One page of live, public items for the API's list (D5, D19): newest
  * first, oldest first, or in their order under a parent, by cursor,
- * filtered by type, term, author, dates and parent, each from its
+ * filtered by type, term, author, dates, parent and language, each from its
  * published revision. One statement for the page;
  * its terms, authors and images in one statement each (ItemShapes).
  */
@@ -39,8 +39,10 @@ final readonly class ItemsQuery
 
         [$credited, $creditedBindings] = $filters->author === null ? ['', []] : app(Credits::class)->itemIdsSql($filters->author);
 
-        // The default language's items alone while the site has several (I-3360); one item is read in any shown language.
-        $rows = Live::unlessLocked(Live::withLocked(app(SiteLanguages::class)->whereDefault(Live::items($filters->types), 'contents.language')), 'revision.fields')
+        // One language's items, the default's unless one is asked for (I-3360); one item is read in any shown language.
+        $items = Live::items($filters->types);
+        $items = $filters->language === null ? app(SiteLanguages::class)->whereDefault($items, 'contents.language') : $items->where('contents.language', $filters->language);
+        $rows = Live::unlessLocked(Live::withLocked($items), 'revision.fields')
             ->join('content_revisions as revision', 'revision.id', '=', 'contents.published_revision_id')
             // Compared as text, as ListingViews::itemsById() does, so the paths index answers the join.
             ->leftJoin('paths', fn (JoinClause $join) => $join->on('paths.target_id', '=', DB::raw('contents.id::text'))->where('paths.target_type', 'content')->where('paths.is_current', true))

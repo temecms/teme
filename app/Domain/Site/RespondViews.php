@@ -162,6 +162,8 @@ final readonly class RespondViews
             return null;
         }
 
+        // The reply page is in the item's own language (I-3360).
+        ItemLanguage::use((string) $item->id);
         $target = new CommentTarget((string) $item->id, app(ArticleViews::class)->headline($item)['title'], $this->comments->itemUrl($item));
         $context = $this->comments->view($comment, $item, false, null, app(LinkResolver::class));
         $name = (string) $context->name;

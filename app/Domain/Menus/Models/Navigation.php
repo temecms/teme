@@ -10,11 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * One menu an editor builds under Content › Navigation: a name, a handle
- * made from it once, and a tree of items. Only the menu Operations write it.
+ * made from it once, the language it is written in (null for the site's
+ * default, I-3360), and a tree of items. Only the menu Operations write it.
  *
  * @property string $id
  * @property string $name
  * @property string $handle
+ * @property string|null $language
  */
 final class Navigation extends Model
 {

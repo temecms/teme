@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
 
+use App\Domain\Languages\PageLanguage;
 use App\Domain\Site\Document\JsonLdNode;
 use App\Domain\Site\Head\HeadValues;
-use App\Domain\Site\SiteLanguage;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ListingView;
 use Teme\Contracts\StructuredData\NodeIds;
@@ -19,7 +19,7 @@ use Teme\Contracts\StructuredData\NodeIds;
  */
 final readonly class ListingNodes
 {
-    public function __construct(private SiteLanguage $language) {}
+    public function __construct(private PageLanguage $language) {}
 
     /**
      * The listing's nodes, or none while it has no address of its own.

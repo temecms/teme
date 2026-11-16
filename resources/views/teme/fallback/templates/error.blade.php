@@ -9,7 +9,7 @@
 <body>
 <main data-fallback="error">
     <h1>{{ $page->code }}</h1>
-    <p>Something went wrong with this page.</p>
+    <p>{{ __('Something went wrong with this page.') }}</p>
 </main>
 </body>
 </html>

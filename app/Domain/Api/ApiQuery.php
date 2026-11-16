@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Api;
 
+use App\Domain\Languages\SiteLanguages;
 use Illuminate\Http\Request;
 
 /**
@@ -97,6 +98,32 @@ final readonly class ApiQuery
         }
 
         return (int) $given;
+    }
+
+    /**
+     * The language a list asks for, as stored: null for the site's default,
+     * named or not; a language the site doesn't show readers, hidden or
+     * unknown alike, is noted as one problem with the same words (I-3360).
+     *
+     * @param  array<string, string>  $problems
+     */
+    public static function language(self $query, array &$problems): ?string
+    {
+        $given = $query->get('language');
+
+        if ($given === null) {
+            return null;
+        }
+
+        $languages = app(SiteLanguages::class);
+
+        if (! in_array($given, $languages->shown(), true)) {
+            $problems['language'] = ApiWords::badLanguage($languages->shown());
+
+            return null;
+        }
+
+        return $languages->stored($given);
     }
 
     /**

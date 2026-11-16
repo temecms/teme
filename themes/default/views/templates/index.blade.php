@@ -3,6 +3,6 @@
 
 @section('main')
     <div class="wrap">
-        <p>This page has no template of its own.</p>
+        <p>{{ __('This page has no template of its own.') }}</p>
     </div>
 @endsection

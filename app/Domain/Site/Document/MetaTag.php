@@ -45,11 +45,14 @@ final readonly class MetaTag
 
     /**
      * What makes two entries the same tag, so the first one wins: its
-     * attribute and its key, in any case.
+     * attribute and its key, in any case; for `og:locale:alternate`, of
+     * which a page has one a language, its content too.
      */
     public function identity(): string
     {
-        return $this->attribute.':'.strtolower($this->key);
+        $identity = $this->attribute.':'.strtolower($this->key);
+
+        return strtolower($this->key) === 'og:locale:alternate' ? $identity.' '.$this->content : $identity;
     }
 
     /**

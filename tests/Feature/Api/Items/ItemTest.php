@@ -27,7 +27,7 @@ beforeEach(function (): void {
 });
 
 /** D6's full item: the summary without its links, and its fields, word count and body. */
-const ITEM_MEMBERS = ['id', 'type', 'title', 'slug', 'path', 'url', 'parent_id', 'visibility', 'language', 'published_at', 'updated_at', 'excerpt', 'featured_image', 'author', 'authors', 'terms', 'ancestors', 'fields', 'word_count', 'body'];
+const ITEM_MEMBERS = ['id', 'type', 'title', 'slug', 'path', 'url', 'parent_id', 'visibility', 'language', 'published_at', 'updated_at', 'excerpt', 'featured_image', 'author', 'authors', 'terms', 'ancestors', 'translations', 'fields', 'word_count', 'body'];
 
 /**
  * The statements one drawn answer at this address makes, the registries

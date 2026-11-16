@@ -9,6 +9,7 @@ use App\Domain\Cards\CardUsage;
 use App\Domain\Design\Contrast;
 use App\Domain\Design\SiteDesign;
 use App\Domain\Languages\PageLanguage;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\Document\DocumentHead;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Site\Document\DocumentPage;
@@ -29,7 +30,8 @@ use Illuminate\View\Component;
 
 /**
  * `<x-teme::document>`: core's document shell around every public page
- * (I-247), so a template writes only its own markup. It writes the `lang`,
+ * (I-247), so a template writes only its own markup. It writes the `lang`
+ * and `dir`,
  * the colour scheme, the title, the head's typed entries (DocumentMeta, the
  * robots value among them), the one preloaded font, the theme's tokens and
  * its dark ones, with the site's accent, lightened for the dark scheme
@@ -59,6 +61,9 @@ final class Document extends Component
     ]]];
 
     public string $lang;
+
+    /** The direction the page's language runs, `ltr` or `rtl` (I-3360). */
+    public string $dir;
 
     /** Light, dark, or auto for the reader's own: the theme's `color_scheme`. */
     public string $scheme;
@@ -114,6 +119,7 @@ final class Document extends Component
 
         // An article's own language; any other page's is the one its address chose (I-3360), the default's when nothing chose one.
         $this->lang = $model instanceof ArticleView ? $language->forContent($model->id) : app(PageLanguage::class)->tag();
+        $this->dir = app(SiteLanguages::class)->direction($this->lang);
         $this->title = $titles->for($model, $composers->intent()->isFront ?? false);
         $this->preload = $this->preloadOf($code, $manifest?->preloadedFont()['file'] ?? null);
         $this->scheme = $design->scheme();

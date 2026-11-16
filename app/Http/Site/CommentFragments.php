@@ -7,6 +7,7 @@ namespace App\Http\Site;
 use App\Domain\Site\ViewModels\CommentFormView;
 use App\Domain\Site\ViewModels\OwnComment;
 use App\Domain\Themes\ActiveTheme;
+use App\Domain\Themes\ThemeWords;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 
@@ -24,6 +25,7 @@ final class CommentFragments
     {
         // Reading the active theme points theme:: at it, or at core's fallback.
         app(ActiveTheme::class)->get();
+        ThemeWords::use();
         $view = View::exists('theme::partials.comment') ? 'theme::partials.comment' : 'teme::fallback.partials.comment';
 
         return ['id' => $own->id, 'parentId' => $own->parentId, 'html' => view($view)->with('comment', $own->place)->render()];
@@ -34,6 +36,8 @@ final class CommentFragments
      */
     public static function form(CommentFormView $form): string
     {
+        ThemeWords::use();
+
         return Blade::render('<x-teme::comment-form :form="$form" />', ['form' => $form]);
     }
 }

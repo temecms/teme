@@ -1,6 +1,6 @@
 {{-- Related posts, given $related, each with the reason it's related as a small label. --}}
 <section class="related" aria-labelledby="related-title">
-    <h2 class="section-title" id="related-title">Related</h2>
+    <h2 class="section-title" id="related-title">{{ __('Related') }}</h2>
     <div class="feed-grid">
         @foreach ($related as $entry)
             <div class="related-item">

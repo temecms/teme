@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Feeds;
 
 use App\Domain\Addresses\PublicRequestPath;
+use App\Domain\Languages\PageLanguage;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\Document\DocumentPage;
 use App\Domain\Site\Document\HeadContributor;
 use App\Domain\Site\Document\LinkRelation;
@@ -16,7 +18,7 @@ use Teme\Contracts\Settings\SettingsReader;
 
 /**
  * The feeds a public page links in its head (I-299): the site's on every
- * page, a term's or an author's on their own archive, and a type's on its
+ * page, in the page's language (I-3360), a term's or an author's on their own archive, and a type's on its
  * archive page. Core's own
  * entries, so a site or a plugin can still say otherwise. There is no link
  * to a comment feed, which does not exist.
@@ -27,6 +29,8 @@ final class FeedLinks implements HeadContributor
         private SettingsReader $settings,
         private FeedUrls $urls,
         private TaxonomyRegistry $taxonomies,
+        private PageLanguage $page,
+        private SiteLanguages $languages,
     ) {}
 
     public function precedence(): Precedence
@@ -37,7 +41,8 @@ final class FeedLinks implements HeadContributor
     public function entries(DocumentPage $page): array
     {
         $site = $this->settings->string('general', 'site_title');
-        $entries = [$this->link('/feed/', "{$site} » Feed")];
+        $prefix = $this->languages->prefix($this->page->tag());
+        $entries = [$this->link($prefix === '' ? '/feed/' : "/{$prefix}/feed/", "{$site} » Feed")];
         $subject = $page->model instanceof ListingView ? $page->model->subject : null;
         $path = self::archivePath(request()->getPathInfo());
 

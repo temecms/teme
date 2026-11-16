@@ -17,7 +17,7 @@
         </header>
 
         @if ($page->items === [])
-            <div class="empty"><p>Nothing here yet.</p></div>
+            <div class="empty"><p>{{ __('Nothing here yet.') }}</p></div>
         @else
             <div class="{{ ($themeSettings['feed_layout'] ?? 'list') === 'grid' ? 'feed-grid' : 'feed-list' }}">
                 @foreach ($page->items as $item)

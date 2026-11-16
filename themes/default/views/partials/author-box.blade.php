@@ -2,10 +2,10 @@
 @foreach ($authors as $author)
     @if (($author->bio ?? '') !== '')
         <section class="author-box" aria-labelledby="author-{{ $loop->index }}">
-            <h2 id="author-{{ $loop->index }}">About {{ $author->name }}</h2>
+            <h2 id="author-{{ $loop->index }}">{{ __('About :name', ['name' => $author->name]) }}</h2>
             <p>{{ $author->bio }}</p>
             @if ($author->url !== '')
-                <p class="meta"><a href="{{ $author->url }}">More from {{ $author->name }}</a></p>
+                <p class="meta"><a href="{{ $author->url }}">{{ __('More from :name', ['name' => $author->name]) }}</a></p>
             @endif
         </section>
     @endif

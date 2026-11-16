@@ -3,7 +3,7 @@
 
 @section('main')
     <div class="wrap notfound">
-        <h1>Something went wrong</h1>
-        <p><a href="{{ $site->url }}">Go to the home page</a></p>
+        <h1>{{ __('Something went wrong') }}</h1>
+        <p><a href="{{ $site->url }}">{{ __('Go to the home page') }}</a></p>
     </div>
 @endsection

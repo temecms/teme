@@ -14,7 +14,7 @@ use App\Domain\Api\Ulids;
 /**
  * What a list of terms was asked for (D5, D39), every parameter checked:
  * a public taxonomy, a parent (an ID, or `none` for the top level), a slug,
- * the page's size and the position after which to read.
+ * a language (I-3360), the page's size and the position after which to read.
  */
 final readonly class TermFilters
 {
@@ -33,6 +33,7 @@ final readonly class TermFilters
         public ?string $slug,
         public int $limit,
         public ?Cursor $after,
+        public ?string $language = null,
     ) {}
 
     /**
@@ -78,10 +79,12 @@ final readonly class TermFilters
             }
         }
 
+        $language = ApiQuery::language($query, $problems);
+
         if ($problems !== []) {
             throw new InvalidParameters($problems);
         }
 
-        return new self($taxonomy, $parent, $slug, $limit, $after);
+        return new self($taxonomy, $parent, $slug, $limit, $after, $language);
     }
 }

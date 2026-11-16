@@ -52,7 +52,7 @@ function dogCached(bool $cached, Closure $check): void
 
 dataset('page cache', ['off' => [false], 'on' => [true]]);
 
-it('lists only the default language\'s items and terms in the sitemaps', function (bool $cached): void {
+it('lists every shown language\'s items but no hidden one\'s, and only the default language\'s terms, in the sitemaps', function (bool $cached): void {
     // The French item the newest of all, so the index's date would be its.
     test()->travel(1)->minutes();
     DB::table('contents')->where('id', $this->site->postFr)->update(['published_at' => now()]);
@@ -61,7 +61,8 @@ it('lists only the default language\'s items and terms in the sitemaps', functio
         $items = (string) addrGet('/sitemap-items-post.xml')->assertOk()->getContent();
         $terms = (string) addrGet('/sitemap-terms-category.xml')->assertOk()->getContent();
 
-        expect($items)->toContain('/hello/')->not->toContain('/fr/bonjour/')->not->toContain('/es/hola/')
+        // Every shown language's items since 6.1c's H3 (I-3360); never a hidden one's.
+        expect($items)->toContain('/hello/')->toContain('/fr/bonjour/')->not->toContain('/es/hola/')
             ->and($terms)->toContain('/category/news/')->not->toContain('actualites');
     });
 

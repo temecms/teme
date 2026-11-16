@@ -1,6 +1,6 @@
 {{-- Core's document shell (I-247): the template's markup is the slot; everything around it is written here. The head's entries escape their own values and a fragment is written as given (I-228), so both are output raw; each placement draws its stack, this request's own pushes, before its fragments. --}}
 <!doctype html>
-<html lang="{{ $lang }}" data-scheme="{{ $scheme }}">
+<html lang="{{ $lang }}" dir="{{ $dir }}" data-scheme="{{ $scheme }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
