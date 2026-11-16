@@ -23,7 +23,7 @@ it('names the site, its address, language, zone and home', function (): void {
     $response = $this->get('/api/v1')->assertOk()->assertHeader('Content-Type', 'application/json');
 
     expect(array_keys((array) $response->json()))->toBe(['data', 'links'])
-        ->and(array_keys($response->json('data')))->toEqualCanonicalizing(['name', 'tagline', 'url', 'language', 'timezone', 'home'])
+        ->and(array_keys($response->json('data')))->toEqualCanonicalizing(['name', 'tagline', 'url', 'language', 'languages', 'timezone', 'home'])
         ->and($response->json('data.name'))->toBe('The Harbour Times')
         ->and($response->json('data.tagline'))->toBe('News from the quay')
         ->and($response->json('data.url'))->toBe('http://localhost/')

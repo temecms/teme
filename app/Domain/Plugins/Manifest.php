@@ -132,6 +132,53 @@ final readonly class Manifest
     }
 
     /**
+     * The public routes the plugin declares, each as the file says it.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function routes(): array
+    {
+        $routes = $this->raw['routes'] ?? null;
+
+        if (! is_array($routes) || ! array_is_list($routes)) {
+            return [];
+        }
+
+        /** @var list<array<string, mixed>> */
+        return array_values(array_filter($routes, is_array(...)));
+    }
+
+    /**
+     * What the plugin brings across from the WordPress site an import reads
+     * (docs/architecture/plugins.md): its importer class, without a leading
+     * backslash, and the names it declares, each once; empty when it
+     * declares nothing or a part is of the wrong type.
+     *
+     * @return array{importer: string, options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}
+     */
+    public function imports(): array
+    {
+        $imports = $this->raw['imports'] ?? null;
+        $imports = is_array($imports) && ! array_is_list($imports) ? $imports : [];
+        $names = fn (mixed $values): array => is_array($values) && array_is_list($values) ? array_values(array_unique(array_filter($values, is_string(...)))) : [];
+        $postTypes = [];
+
+        if (is_array($imports['postTypes'] ?? null) && ! array_is_list($imports['postTypes'])) {
+            foreach ($imports['postTypes'] as $type => $meta) {
+                $postTypes[(string) $type] = $names($meta);
+            }
+        }
+
+        return [
+            'importer' => is_string($imports['importer'] ?? null) ? ltrim($imports['importer'], '\\') : '',
+            'options' => $names($imports['options'] ?? null),
+            'postTypes' => $postTypes,
+            'userMeta' => $names($imports['userMeta'] ?? null),
+            'termMeta' => $names($imports['termMeta'] ?? null),
+        ];
+    }
+
+    /**
      * Who wrote the plugin, or ''.
      */
     public function author(): string

@@ -194,6 +194,10 @@ final readonly class NavigationScreens
             return [__('Heading'), null];
         }
 
+        if ($item->kind === 'languages') {
+            return [__('Language switcher'), null];
+        }
+
         if ($item->kind === 'url') {
             return [(string) $item->url, null];
         }

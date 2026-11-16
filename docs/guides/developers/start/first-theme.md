@@ -35,14 +35,14 @@ Every theme needs `views/templates/index.blade.php`. A single item uses `single.
 ```blade
 // docs/guides/developers/examples/themes/first-theme/views/templates/index.blade.php
 <x-teme::document>
-<main id="main" data-template="index" data-site-name="{{ $site->name }}" data-front="{{ $isFront ? 'yes' : 'no' }}"></main>
+<main id="main" data-template="index" data-site-name="{{ $site->name }}" data-front="{{ $isFront ? 'yes' : 'no' }}"><h1>{{ $site->name }}</h1></main>
 </x-teme::document>
 ```
 
 ```blade
 // docs/guides/developers/examples/themes/first-theme/views/templates/single.blade.php
 <x-teme::document>
-<main id="main" data-template="single">{{ $page->title }}</main>
+<main id="main" data-template="single"><h1>{{ $page->title }}</h1></main>
 </x-teme::document>
 ```
 
@@ -54,7 +54,7 @@ Point `teme.theme_paths` at the theme folder in local work, then:
 php artisan teme:theme:check first-theme
 ```
 
-The command fails when the manifest is wrong or a declared template file is missing. Fix every error before you activate the theme in Design settings.
+The command fails when the manifest is wrong, a declared template file is missing, or the home page or a published item's page has no `<h1>` or more than one. Fix every error before you activate the theme in Design settings.
 
 ## 4. What you should see
 

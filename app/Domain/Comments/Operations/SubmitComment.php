@@ -33,6 +33,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Comments\CommentCandidate;
@@ -211,7 +212,7 @@ final class SubmitComment extends BaseOperation
             // The form's own words, as the design pass drew them (D14).
             [
                 'text.required' => __('Write your comment.'),
-                'text.max' => __('Shorten your comment to 5,000 characters or fewer. It has :count.', ['count' => number_format(mb_strlen($text))]),
+                'text.max' => __('Shorten your comment to 5,000 characters or fewer. It has :count.', ['count' => Number::format(mb_strlen($text), locale: app()->getLocale())]),
                 'name.required' => __('Enter your name.'),
                 'name.max' => __('Enter a name of 100 characters or fewer.'),
                 'email.required' => __('Enter your email address.'),

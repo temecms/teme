@@ -57,6 +57,7 @@ use App\Http\Admin\Settings\AiSettingsController;
 use App\Http\Admin\Settings\BrandColourController;
 use App\Http\Admin\Settings\CheckAiKeyController;
 use App\Http\Admin\Settings\DiscussionSettingsController;
+use App\Http\Admin\Settings\FediverseSettingsController;
 use App\Http\Admin\Settings\FindSettingsController;
 use App\Http\Admin\Settings\HomePageController;
 use App\Http\Admin\Settings\SearchAndSocialController;
@@ -291,6 +292,24 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::put('settings/ai', [AiSettingsController::class, 'update'])->name('settings.ai.update');
         });
 
+        // Before settings/{group} too: Settings › Fediverse (I-058), each
+        // change by its own Operation; the switch also needs settings.modules.manage.
+        Route::middleware('can:settings.fediverse.manage')->group(function (): void {
+            Route::get('settings/fediverse', [FediverseSettingsController::class, 'show'])->name('settings.fediverse');
+            Route::put('settings/fediverse', [FediverseSettingsController::class, 'update'])->name('settings.fediverse.update');
+            Route::put('settings/fediverse/switch', [FediverseSettingsController::class, 'switchFediverse'])->name('settings.fediverse.switch');
+            Route::post('settings/fediverse/authors/{person}', [FediverseSettingsController::class, 'enableAuthor'])
+                ->where('person', '[0-9a-hjkmnp-tv-z]{26}')
+                ->name('settings.fediverse.authors.enable');
+            Route::delete('settings/fediverse/authors/{person}', [FediverseSettingsController::class, 'disableAuthor'])
+                ->where('person', '[0-9a-hjkmnp-tv-z]{26}')
+                ->name('settings.fediverse.authors.disable');
+            Route::post('settings/fediverse/blocked', [FediverseSettingsController::class, 'block'])->name('settings.fediverse.blocked.store');
+            Route::delete('settings/fediverse/blocked/{host}', [FediverseSettingsController::class, 'unblock'])
+                ->where('host', '[a-z0-9.-]{1,253}')
+                ->name('settings.fediverse.blocked.destroy');
+        });
+
         // Before settings/{group} too: General draws the design group's
         // brand colour, saved by its own Operation (I-457).
         Route::put('settings/general/brand-colour', BrandColourController::class)
@@ -307,7 +326,12 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         // translations' routes (I-3360).
         require __DIR__.'/admin/languages.php';
         require __DIR__.'/admin/translations.php';
+        require __DIR__.'/admin/management-api.php';
 
+        // A group's words in other languages (I-3360); TranslateSettings asks the group's own ability.
+        Route::put('settings/{group}/words', [SettingsController::class, 'words'])
+            ->where('group', '[a-z0-9_.-]+')
+            ->name('settings.words');
         Route::get('settings/{group}', [SettingsController::class, 'show'])
             ->where('group', '[a-z0-9_.-]+')
             ->name('settings.show');

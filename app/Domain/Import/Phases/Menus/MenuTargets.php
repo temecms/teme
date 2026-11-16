@@ -145,6 +145,7 @@ final class MenuTargets
             MenuNode::TERM => [$this->term($node)],
             MenuNode::HOME => [$node->found(['kind' => 'home', 'target_id' => null, 'url' => null])],
             MenuNode::PAGES => $this->pageList($node),
+            MenuNode::LANGUAGES => [$node],
             default => [$this->leadsToAddress($node)],
         };
     }

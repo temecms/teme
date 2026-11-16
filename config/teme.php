@@ -145,4 +145,13 @@ return [
         'postgres_bindir' => env('TEME_POSTGRES_BINDIR', ''),
         'cache_path' => env('TEME_RESTIC_CACHE', storage_path('app/restic-cache')),
     ],
+
+    /*
+     * The fediverse (I-058). A site delivers to other servers only when it
+     * runs in production, unless this is on: a staging or local copy sends
+     * nothing (docs/plans/fediverse-publishing.md).
+     */
+    'fediverse' => [
+        'deliver_outside_production' => (bool) env('TEME_FEDIVERSE_DELIVER_OUTSIDE_PRODUCTION', false),
+    ],
 ];

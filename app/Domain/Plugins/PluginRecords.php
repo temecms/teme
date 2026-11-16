@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins;
 
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
@@ -58,5 +59,6 @@ final readonly class PluginRecords
     {
         Cache::memo()->forget(self::CACHE_KEY);
         Cache::forever('illuminate:queue:restart', CarbonImmutable::now()->getTimestamp());
+        app(PublicRouteRegistry::class)->flush();
     }
 }

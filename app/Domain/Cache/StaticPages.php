@@ -48,7 +48,7 @@ final readonly class StaticPages
      * The headers a page may carry and still be a file: its HTML's type,
      * and the variation by encoding the web server adds itself (D2).
      */
-    private const array PLAIN = ['content-type' => ['text/html', 'text/html;charset=utf-8'], 'vary' => ['accept-encoding'], 'content-language' => ['en', 'en-gb', 'en-ng', 'en-us', 'ar', 'ca', 'cs', 'da', 'de', 'el', 'es', 'et', 'eu', 'fi', 'fr', 'ga', 'ha', 'hi', 'hu', 'hy', 'id', 'ig', 'it', 'lt', 'nb', 'ne', 'nl', 'pcm', 'pl', 'pt', 'pt-br', 'ro', 'ru', 'sr', 'sv', 'sw', 'ta', 'tr', 'uk', 'yi', 'yo']];
+    private const array PLAIN = ['content-type' => ['text/html', 'text/html;charset=utf-8'], 'vary' => ['accept-encoding'], 'content-language' => ['en', 'en-gb', 'en-ng', 'en-us', 'ar', 'ca', 'cs', 'da', 'de', 'el', 'es', 'et', 'eu', 'fi', 'fr', 'ga', 'ha', 'hi', 'hu', 'hy', 'id', 'ig', 'it', 'ja', 'lt', 'nb', 'ne', 'nl', 'pcm', 'pl', 'pt', 'pt-br', 'ro', 'ru', 'sr', 'sv', 'sw', 'ta', 'tr', 'uk', 'yi', 'yo']];
 
     /**
      * The page's own content security policy and where its reports go, which

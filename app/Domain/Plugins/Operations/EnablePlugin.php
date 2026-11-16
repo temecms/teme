@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -11,6 +13,8 @@ use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -18,6 +22,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
@@ -27,7 +32,8 @@ use Teme\Contracts\Plugins\Capability;
  * Enables a plugin (I-3353, I-3442): a person who holds plugins.manage, after
  * their password, or the operator. Its manifest is checked and its code
  * scanned afresh, never from the cache, and what the person agreed to must
- * be what it asks for now. Runs its waiting migrations inside the same
+ * be what it asks for now; none of its public routes may collide with one
+ * that answers already. Runs its waiting migrations inside the same
  * transaction, records that consent, for this exact version and by whom,
  * and clears its faults and stopped parts. Returns its name.
  */
@@ -40,6 +46,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly PluginRecords $records,
         private readonly PluginMigrations $migrations,
         private readonly SecurityLog $log,
+        private readonly PublicRouteRegistry $publicRoutes,
+        private readonly RouteCollisions $routeCollisions,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -70,6 +78,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         if (! $same) {
             throw ValidationException::withMessages(['plugin' => ['It asks for something different now. Look again before you enable it.']]);
+        }
+
+        // Two owners never answer one request: refused before anything is written (docs/proposals/plugin-public-routes.md).
+        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
+
+        if ($collisions !== []) {
+            throw ValidationException::withMessages(['plugin' => $collisions]);
         }
 
         $taken = PluginRecord::query()->where('code', $plugin->code)->where('name', '!=', $plugin->name)->value('name');
@@ -103,6 +118,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
 
         $record = PluginRecord::query()->where('name', $input->name)->lockForUpdate()->sole();
         $found = $this->registry->find($input->name) ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
+        $manifest = $found->manifest ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
 
         try {
             $migrations = $this->migrations->run($found, $record->migrations);
@@ -117,7 +133,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'disabled_at' => null,
             'disabled_by' => null,
             'version' => $input->version,
-            'consent' => ['capabilities' => $input->capabilities, 'hosts' => $input->hosts, 'hooks' => $input->hooks],
+            'consent' => [
+                'capabilities' => $input->capabilities,
+                'hosts' => $input->hosts,
+                'hooks' => $input->hooks,
+                'routes' => Consent::routeLines($manifest),
+                ...$this->imports($found),
+            ],
             'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
             'consented_at' => $now,
             'enabled_at' => $now,
@@ -133,6 +155,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'capabilities' => $input->capabilities,
             'hosts' => $input->hosts,
         ]);
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
 
         // Article pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
         if (in_array(Capability::ContentInsert->value, $input->capabilities, true)) {
@@ -142,6 +165,19 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         DB::afterCommit(fn () => $this->records->changed());
 
         return $input->name;
+    }
+
+    /**
+     * The names the plugin declares to import, kept with the consent so an
+     * import hands it only those agreed to (I-349); nothing when it declares none.
+     *
+     * @return array{}|array{imports: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}}
+     */
+    private function imports(FoundPlugin $found): array
+    {
+        $declared = $found->manifest === null ? [] : Consent::declaredImports($found->manifest);
+
+        return $declared === [] ? [] : ['imports' => $declared];
     }
 
     /**

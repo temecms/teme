@@ -66,6 +66,9 @@
 | `$navigation` | `array<string, list<array{label: string, url: string\|null, current: bool, opensNewTab: bool, heading: bool, children: list<mixed>}>\|null>` | Each of the theme's navigation slots with its menu's tree, or null when it has none. |
 | `$themeSettings` | `array<string, mixed>` | The active theme's own settings, key to value, without its menu places. |
 | `$isFront` | `bool` | True only on the site's home page and its numbered pages. |
+| `$language` | `PageLanguageView` | The language of the page being drawn: its tag, its own name and its home address. |
+| `$direction` | `string` | The direction of the page's language: ltr, or rtl for a language written right to left. |
+| `$alternates` | `list<Alternate>` | Every language version of this page a reader can open, this page included, the default language first; empty when there is only this page. |
 
 Laravel’s own `$errors`, `$attributes` and `$slot` are Blade’s, not Teme’s, and may change with Laravel.
 
@@ -74,6 +77,18 @@ Core may add `language`, `direction` and `alternates` to a page’s data; a them
 A theme never writes `dir` or `lang`: the page’s shell does. Use logical CSS properties (start and end, not left and right).
 
 ## The page’s values
+
+### Alternate
+
+One language version of the page being drawn, as `$alternates` lists it (I-3360): its language's tag and own name, its address, absolute, whether it is this page, and whether it is in the site's default language.
+
+| Name | Type | Description |
+|---|---|---|
+| `$tag` | `string` | the version's language as the BCP 47 tag `hreflang` takes, such as fr |
+| `$name` | `string` | the language's own name, such as Français |
+| `$url` | `string` | the version's address, absolute |
+| `$current` | `bool` | whether it is the page being drawn |
+| `$isDefault` | `bool` | whether it is in the site's default language |
 
 ### ArticleView
 
@@ -285,6 +300,18 @@ An address with nothing at it, as its template sees it, as `$page`. A placeholde
 |---|---|---|
 | `$path` | `string` | the address that was asked for |
 
+### PageLanguageView
+
+The language of the page being drawn, as every theme view sees it, as `$language` (I-3360): its BCP 47 tag, its PHP locale, its own name, whether it is the site's default, and its home address.
+
+| Name | Type | Description |
+|---|---|---|
+| `$tag` | `string` | the page's language as the BCP 47 tag `lang` takes, such as fr or pt-BR |
+| `$locale` | `string` | the page's language as a locale for PHP, such as fr or pt_BR |
+| `$name` | `string` | the language's own name, such as Français |
+| `$isDefault` | `bool` | whether it is the site's default language |
+| `$home` | `string` | that language's home address, absolute |
+
 ### Pagination
 
 A listing's pages: the current one, how many there are (null when unknown), and the addresses of the newer page and the older one.
@@ -425,7 +452,7 @@ A field reaches a template as a `FieldView`, from `$page->field('handle')` or a 
 
 ### `<x-teme::document>`
 
-`<x-teme::document>`: core's document shell around every public page (I-247), so a template writes only its own markup. It writes the `lang`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, the theme's tokens and its dark ones, with the site's accent, lightened for the dark scheme (I-457), the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link (I-163). It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
+`<x-teme::document>`: core's document shell around every public page (I-247), so a template writes only its own markup. It writes the `lang` and `dir`, the colour scheme, the title, the head's typed entries (DocumentMeta, the robots value among them), the one preloaded font, the theme's tokens and its dark ones, with the site's accent, lightened for the dark scheme (I-457), the theme's assets, the styles of the cards the page drew, the page's JSON-LD graph, the three placements, with their fragments, the skip link and its style, the speculation rules, and core's small script, which in a browser that signed in asks who is reading and adds the "Edit" link (I-163). It reads the page from ComposerRegistry, where PublicPage started it, never the template's variables.
 
 No attributes.
 
@@ -449,6 +476,15 @@ No attributes.
 |---|---|---|---|
 | `name` | `string` | '' | the script's data-teme marker, by which core's tests and scripts find it |
 | `type` | `string` | '' | the script's type, such as speculationrules; none for a classic script |
+
+### `<x-teme::languages>`
+
+`<x-teme::languages />`: a link to each language version of the page, for a theme that places its own switcher (I-3360). The same links as a menu's language switcher, in a plain list with `lang` and `hreflang` on each and `aria-current` on the page's own; nothing on a page with no other version.
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `showNames` | `bool` | true | whether each link reads its language's own name, such as Français, rather than its short code, such as FR |
+| `hideCurrent` | `bool` | false | whether the page's own language is left out |
 
 ### `<x-teme::navigation>`
 

@@ -60,7 +60,7 @@ it('enables a plugin from the console only with --agree, saying first what it as
         ->and($output)->toContain('Widened enabled.')
         ->and($record->state)->toBe('enabled')
         ->and($record->consented_by)->toBeNull()
-        ->and($record->consent)->toEqualCanonicalizing(['capabilities' => ['content.read', 'http'], 'hosts' => ['api.example.com'], 'hooks' => ['ContentPublished']])
+        ->and($record->consent)->toEqualCanonicalizing(['capabilities' => ['content.read', 'http'], 'hosts' => ['api.example.com'], 'hooks' => ['ContentPublished'], 'routes' => []])
         ->and(DB::table('security_events')->where('type', 'plugin.enabled')->whereNull('user_id')->count())->toBe(1);
 });
 

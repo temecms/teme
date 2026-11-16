@@ -19,7 +19,8 @@ use Teme\Contracts\Operations\OperationInput;
  * Replaces a menu's items with a whole new tree, in one transaction. Each
  * item points at a content item or a term by ID (rule 9), at the home page,
  * or at an outside address or a path on this site, or is a heading, which
- * leads nowhere and opens the items under it (I-2628). An address typed in
+ * leads nowhere and opens the items under it (I-2628), or a language
+ * switcher, which expands into the page's versions. An address typed in
  * full as this site's own is stored as what it names, never as the site's
  * URL. A menu is at most three levels deep and 200 items long, and every
  * problem names the item it is on, as "Item 3 › 2: …". Its checks are
@@ -36,7 +37,16 @@ final class SaveNavigationItems extends BaseOperation
     public const int MAX_ITEMS = 200;
 
     /** @var list<string> */
-    public const array KINDS = ['content', 'term', 'home', 'url', 'heading'];
+    public const array KINDS = ['content', 'term', 'home', 'url', 'heading', 'languages'];
+
+    /**
+     * What a language switcher may say about how a theme draws it, each
+     * true or false: as a dropdown, with the languages' names, and without
+     * the page's own language (I-3360).
+     *
+     * @var list<string>
+     */
+    public const array SWITCHER_OPTIONS = ['dropdown', 'show_names', 'hide_current'];
 
     protected function authorize(OperationInput $input): void
     {
@@ -137,10 +147,36 @@ final class SaveNavigationItems extends BaseOperation
     }
 
     /**
+     * What is wrong with a language switcher, or null: it expands into the
+     * page's versions, so nothing goes under it, and it takes only the
+     * options a theme reads, each true or false.
+     *
+     * @param  array{children: int, options: array<mixed>|null}  $item
+     */
+    private static function switcherProblem(array $item): ?string
+    {
+        if ($item['children'] > 0) {
+            return __('Nothing can go under a language switcher.');
+        }
+
+        foreach ($item['options'] ?? [] as $option => $value) {
+            if (! in_array($option, self::SWITCHER_OPTIONS, true)) {
+                return __('A language switcher has no option “:option”.', ['option' => (string) $option]);
+            }
+
+            if (! is_bool($value)) {
+                return __('Set the language switcher’s “:option” to true or false.', ['option' => (string) $option]);
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * What is wrong with one item on its own, or null. Targets are checked
      * after, all at once.
      *
-     * @param  array{path: list<int>, kind: string, target_id: string|null, url: string|null, label: string|null, children: int}  $item
+     * @param  array{path: list<int>, kind: string, target_id: string|null, url: string|null, label: string|null, children: int, options: array<mixed>|null}  $item
      */
     private static function problem(array $item): ?string
     {
@@ -158,6 +194,10 @@ final class SaveNavigationItems extends BaseOperation
 
         if ($item['kind'] === 'heading') {
             return self::headingProblem($item);
+        }
+
+        if ($item['kind'] === 'languages') {
+            return self::switcherProblem($item);
         }
 
         if (in_array($item['kind'], ['content', 'term'], true) && $item['target_id'] === null) {

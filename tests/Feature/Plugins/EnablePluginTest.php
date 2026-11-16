@@ -53,7 +53,7 @@ it('enables a plugin for the operator, recording what was agreed, for which vers
         ->and($record->disabled_reason)->toBeNull()
         ->and($record->code)->toBe('hello')
         ->and($record->version)->toBe('1.0.0')
-        ->and($record->consent)->toEqualCanonicalizing(['capabilities' => ['content.read'], 'hosts' => [], 'hooks' => ['ContentPublished']])
+        ->and($record->consent)->toEqualCanonicalizing(['capabilities' => ['content.read'], 'hosts' => [], 'hooks' => ['ContentPublished'], 'routes' => []])
         ->and($record->consented_by)->toBeNull()
         ->and($record->consented_at)->not->toBeNull()
         ->and($record->enabled_at)->not->toBeNull()

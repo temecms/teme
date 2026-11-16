@@ -10,7 +10,8 @@ use Teme\Contracts\Operations\OperationInput;
  * What ImportNavigation needs: the menu an earlier run made (null for a new
  * one), WordPress's name for it, its whole tree as SaveNavigationItems takes
  * it, the fingerprint the import last left (null to check nothing), and who
- * is importing (null for the operator).
+ * is importing (null for the operator), and, for a new menu, the site
+ * language it is written in (null for the default).
  */
 final readonly class ImportNavigationInput implements OperationInput
 {
@@ -23,6 +24,7 @@ final readonly class ImportNavigationInput implements OperationInput
         public array $tree,
         public ?string $expectedFingerprint,
         public ?string $actorId,
+        public ?string $language = null,
     ) {}
 
     public function actorId(): ?string

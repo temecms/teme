@@ -8,6 +8,8 @@ use App\Domain\Import\Queries\ImportSources;
 use App\Domain\Import\Queries\SuggestedHosts;
 use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourceRefused;
+use App\Domain\Import\Translations\ImportedLanguages;
+use App\Domain\Import\Translations\LanguageNotes;
 use App\Domain\Support\Network\AddressRefused;
 use Illuminate\Contracts\Cache\Repository;
 use InvalidArgumentException;
@@ -53,8 +55,11 @@ final readonly class ImportAnalysis
         }
 
         $source = $this->sources->find($sourceId) ?? throw new InvalidArgumentException('Teme has no import source ['.$sourceId.'].');
-        $report = $this->clients->for($source)->whole('analyze')['report'] ?? null;
+        $reader = $this->clients->for($source);
+        $report = $reader->whole('analyze')['report'] ?? null;
         $analysis = is_array($report) ? SiteAnalysis::fromReport($report) : SiteAnalysis::noReport();
+        // What the import does with the site's languages (I-3446).
+        $analysis = $analysis->withStays(LanguageNotes::stays(app(ImportedLanguages::class)->refresh($sourceId, $reader)));
 
         $this->cache->put(self::key($sourceId), $analysis->toArray(), self::KEEP_SECONDS);
         $this->suggestedHosts->remember($sourceId, is_array($report) ? $report : null);

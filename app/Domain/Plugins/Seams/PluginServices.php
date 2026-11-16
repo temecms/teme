@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Seams;
 
 use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Fediverse\FediverseFollowers;
+use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
@@ -20,7 +22,7 @@ use Teme\Contracts\Settings\SettingsReader;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

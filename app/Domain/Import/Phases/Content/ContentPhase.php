@@ -39,6 +39,8 @@ use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\PreparesObjects;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
+use App\Domain\Import\Translations\ImportedLanguages;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Themes\TemplateChoice;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
@@ -205,7 +207,14 @@ final class ContentPhase implements ListPhase, PreparesObjects
     private function create(SourceRef $ref, array $item, ContentType $type, array $state, Conversion $conversion, ConversionSite $site, ImportContext $context): ImportResult
     {
         $id = strtolower((string) Str::ulid());
-        [$decided, $notes, $extra] = $this->decide($ref, $item, $type, $state, $conversion, $site, $context);
+        // Created in its language at its old address, linked to its translations at the end (I-3446).
+        $language = app(ImportedLanguages::class)->stored($context->sourceId, $item['language'] ?? null, app(SiteLanguages::class)->translates($type->key));
+
+        if ($language === false) {
+            return ImportResult::skipped(new ImportMessage('post.language-missing', __('Its language on the old site isn’t one of this site’s, so it wasn’t imported. The Languages step of the report says why.')));
+        }
+
+        [$decided, $notes, $extra] = $this->decide($ref, $item, $type, $state, $conversion, $site, $context, $language);
         [$decided, $slugNotes] = $this->freeSlug($decided, $id, $context);
         $written = app(ImportContent::class)->execute(new ImportContentInput($id, $decided, $context->actorId()));
 
@@ -247,7 +256,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
                 : self::changedHere());
         }
 
-        [$decided, $notes, $extra] = $this->decide($ref, $item, $type, $state, $conversion, $site, $context);
+        [$decided, $notes, $extra] = $this->decide($ref, $item, $type, $state, $conversion, $site, $context, $content->language);
         [$decided, $slugNotes] = $this->freeSlug($decided, $contentId, $context);
         $written = app(UpdateImportedContent::class)->execute(new UpdateImportedContentInput($contentId, $record, $decided, $context->actorId()));
 
@@ -302,7 +311,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
      *
      * @throws ImportFailed when nobody can own it
      */
-    private function decide(SourceRef $ref, array $item, ContentType $type, array $state, Conversion $conversion, ConversionSite $site, ImportContext $context): array
+    private function decide(SourceRef $ref, array $item, ContentType $type, array $state, Conversion $conversion, ConversionSite $site, ImportContext $context, ?string $language): array
     {
         $now = CarbonImmutable::now('UTC');
         $title = WordPressPost::title($item);
@@ -403,6 +412,7 @@ final class ContentPhase implements ListPhase, PreparesObjects
             oldDates: array_values(array_unique([...WordPressPost::oldDates($item), ...WordPressPost::oldDates(['old_dates' => [$item['date'] ?? '']])])),
             visibility: Visibility::from($state['visibility'] ?? 'public'),
             password: WordPressPost::password($item),
+            language: $language,
         );
 
         return [$decided, $notes, ['pending_canonical' => $seo['pendingCanonical'], 'missing' => $missing]];
@@ -480,8 +490,10 @@ final class ContentPhase implements ListPhase, PreparesObjects
                 throw ImportStopped::because('address-clash', "Teme already has {$what} at /{$address}/, and “{$item->title}” from WordPress needs that address too, so the import stopped. Change one of the two addresses, then carry on the import.");
             }
 
-            $slugFree = $candidate->trashedAt !== null || Slugs::isAvailable($candidate->type, $candidate->slug, $contentId);
-            $addressFree = $address === null || ($holder === null || $mine) && ! Paths::taken(explode('/', $address)[0]);
+            $slugFree = $candidate->trashedAt !== null || Slugs::isAvailable($candidate->type, $candidate->slug, $contentId, $candidate->language);
+            // Another language's address is checked after its prefix (I-3360).
+            $segments = explode('/', (string) $address);
+            $addressFree = $address === null || ($holder === null || $mine) && ! Paths::taken($segments[$candidate->language !== null && count($segments) > 1 ? 1 : 0]);
 
             if ($slugFree && $addressFree) {
                 return [$candidate, $try === 1 ? [] : [new ImportMessage('post.slug-changed', "Its address name “{$base}” is taken here, so it became “{$candidate->slug}”.", ['from' => $base, 'to' => $candidate->slug])]];

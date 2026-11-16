@@ -10,7 +10,7 @@ namespace Teme\Contracts\Insertions;
  * content.insert, and asked only for public web pages of items that have
  * not opted out.
  *
- * @since 0.8.0
+ * @since 0.9.0
  */
 interface InsertionContributor
 {
@@ -18,7 +18,7 @@ interface InsertionContributor
      * Whom it speaks for: "plugin", "site" or "core". A plugin's entry
      * wins a shared key, then the site's, then core's.
      *
-     * @since 0.8.0
+     * @since 0.9.0
      */
     public function precedence(): string;
 
@@ -27,7 +27,7 @@ interface InsertionContributor
      *
      * @return list<Insertion>
      *
-     * @since 0.8.0
+     * @since 0.9.0
      */
     public function insertions(ArticleFacts $article): array;
 }

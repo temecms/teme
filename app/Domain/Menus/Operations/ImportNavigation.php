@@ -40,6 +40,7 @@ final class ImportNavigation extends BaseOperation
     {
         /** @var ImportNavigationInput $input */
         $this->validateName($input->name);
+        $this->validateLanguage($input->language);
         SaveNavigationItems::check($input->tree);
     }
 
@@ -77,7 +78,7 @@ final class ImportNavigation extends BaseOperation
         if ($navigation === null) {
             // The two lists import side by side: one new handle at a time.
             DB::select('select pg_advisory_xact_lock(hashtext(?))', ['navigations.handle']);
-            $navigation = Navigation::query()->create(['name' => $name, 'handle' => CreateNavigation::handleFor($name)]);
+            $navigation = Navigation::query()->create(['name' => $name, 'handle' => CreateNavigation::handleFor($name), 'language' => self::storedLanguage($input->language)]);
         }
 
         $this->replace($navigation, $input->tree);
@@ -100,7 +101,7 @@ final class ImportNavigation extends BaseOperation
             ->where('navigation_id', $navigation->id)
             ->orderBy('position')
             ->orderBy('id')
-            ->get(['id', 'parent_id', 'kind', 'target_id', 'url', 'label', 'opens_new_tab'])
+            ->get(['id', 'parent_id', 'kind', 'target_id', 'url', 'label', 'opens_new_tab', 'options'])
             ->groupBy(fn (object $item): string => (string) ($item->parent_id ?? ''));
 
         return hash('sha256', json_encode([$navigation->name, self::branch($items, '')], JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
@@ -118,7 +119,14 @@ final class ImportNavigation extends BaseOperation
         $branch = [];
 
         foreach ($items->get($parent) ?? [] as $item) {
-            $branch[] = [(string) $item->kind, $item->target_id, $item->url, $item->label, (bool) $item->opens_new_tab, self::branch($items, (string) $item->id)];
+            $values = [(string) $item->kind, $item->target_id, $item->url, $item->label, (bool) $item->opens_new_tab, self::branch($items, (string) $item->id)];
+
+            // Only a switcher has options; every other item hashes as it always has.
+            if ($item->options !== null) {
+                $values[] = json_decode((string) $item->options, true, flags: JSON_THROW_ON_ERROR);
+            }
+
+            $branch[] = $values;
         }
 
         return $branch;

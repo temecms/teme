@@ -28,6 +28,7 @@ final readonly class ImportedItem
      * @param  list<string>  $oldDates  WordPress's old local dates, Y-m-d
      * @param  Visibility  $visibility  who may read it once published (I-1700)
      * @param  string|null  $password  the password readers give, only for a protected item
+     * @param  string|null  $language  its language as `language` stores it: null for the site's default (I-3446)
      */
     public function __construct(
         public string $type,
@@ -50,6 +51,7 @@ final readonly class ImportedItem
         public array $oldDates,
         public Visibility $visibility = Visibility::Public,
         #[SensitiveParameter] public ?string $password = null,
+        public ?string $language = null,
     ) {}
 
     /**
@@ -60,7 +62,7 @@ final readonly class ImportedItem
         return new self(
             $this->type, $this->title, $slug, $this->status, $this->publishedAt, $this->createdAt, $this->modifiedAt,
             $this->trashedAt, $this->authorId, $this->schedulerId, $this->discussion, $this->document, $this->fields,
-            $this->terms, $this->guid, $this->wordpressPath, $this->oldSlugs, $this->oldDates, $this->visibility, $this->password,
+            $this->terms, $this->guid, $this->wordpressPath, $this->oldSlugs, $this->oldDates, $this->visibility, $this->password, $this->language,
         );
     }
 }

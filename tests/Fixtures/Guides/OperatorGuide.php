@@ -34,6 +34,7 @@ final class OperatorGuide
         'restore-and-moving.md',
         'troubleshooting.md',
         'migration-runbook.md',
+        'management-api.md',
     ];
 
     /** How far a page is proved: by CI, by a run on real servers, by these tests alone, or not yet. */

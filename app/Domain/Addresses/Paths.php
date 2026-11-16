@@ -28,13 +28,14 @@ final class Paths
 
     /**
      * First segments the public site's own routes answer: the feed, the
-     * sitemap, robots.txt, the API and llms.txt. No item and no address setting may take one,
+     * sitemap, robots.txt, the API, llms.txt and the fediverse's addresses, new
+     * and the WordPress plugin's (I-058). No item and no address setting may take one,
      * as with RESERVED; unlike RESERVED's, what they answer is the public
      * site's, which the page cache may store.
      *
      * @var list<string>
      */
-    public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'ads.txt', 'api', 'llms.txt'];
+    public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'ads.txt', 'api', 'llms.txt', 'ap', 'wp-json'];
 
     /**
      * Every kind of target this release writes to the path table and
@@ -117,9 +118,10 @@ final class Paths
      * Why this target may not have this address, in words that name what
      * holds it: the site itself, another target's current address, or a
      * type's archive page. Null when it is free, or held only as someone's
-     * history.
+     * history. $language is a target's not written yet, as `language`
+     * will store it; a written target's own is read from its row.
      */
-    public static function conflict(string $path, string $type, string $id): ?string
+    public static function conflict(string $path, string $type, string $id, ?string $language = null): ?string
     {
         $shown = $path === '' ? '/' : '/'.$path.'/';
         $segments = explode('/', $path);
@@ -127,9 +129,9 @@ final class Paths
 
         // A language's own target under its prefix: what follows the prefix
         // is checked as the default language's address would be (I-3360).
-        $language = app(SiteLanguages::class)->byPrefix($first);
+        $prefixed = app(SiteLanguages::class)->byPrefix($first);
 
-        if ($language !== null && self::languageOf($type, $id) === $language) {
+        if ($prefixed !== null && (self::languageOf($type, $id) ?? $language) === $prefixed) {
             $first = $segments[1] ?? null;
         }
 

@@ -16,10 +16,12 @@ use App\Domain\Contents\Operations\MarkTranslationUpToDate;
 use App\Domain\Contents\Operations\TranslateContent;
 use App\Domain\Contents\Operations\UnlinkTranslation;
 use App\Domain\Contents\Queries\ContentPointers;
+use App\Domain\Contents\Queries\TranslationCandidates;
 use App\Domain\Contents\Queries\TranslationMessages;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -54,6 +56,26 @@ final class TranslationsController extends Controller
         app(LinkTranslations::class)->execute(new LinkTranslationsInput([$content, $with], $this->actor($request)));
 
         return $this->done($type, $this->messages->linked($with));
+    }
+
+    /**
+     * The items "Link a different post…" offers in one language, by title:
+     * only for someone who may change this item, as linking asks.
+     */
+    public function candidates(Request $request, string $type, string $content): JsonResponse
+    {
+        $this->belongs($type, $content);
+
+        $found = TranslationCandidates::search(
+            $content,
+            $request->string('language')->toString(),
+            $request->string('q')->limit(200, '')->toString(),
+            $this->actor($request),
+        );
+
+        abort_if($found === null, 403);
+
+        return response()->json($found);
     }
 
     public function unlink(Request $request, string $type, string $content, string $other): RedirectResponse

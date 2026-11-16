@@ -86,13 +86,13 @@ final class ImportedContents
         }
 
         // The trash frees a slug (I-142); only a live item needs its own.
-        if ($item->trashedAt === null && ! Slugs::isAvailable($item->type, $item->slug, $contentId)) {
+        if ($item->trashedAt === null && ! Slugs::isAvailable($item->type, $item->slug, $contentId, $item->language)) {
             throw ValidationException::withMessages(['slug' => __('Another :type already uses this address.', ['type' => $item->type])]);
         }
 
         Validator::make(['terms' => $item->terms], [
             'terms' => ['array', 'max:50'],
-            'terms.*' => ['string', 'distinct', TermRules::usableBy($item->type)],
+            'terms.*' => ['string', 'distinct', TermRules::usableBy($item->type, $item->language)],
         ])->validate();
 
         app(FieldValidator::class)->validate($item->type, $item->fields);
@@ -100,7 +100,7 @@ final class ImportedContents
         app(DocumentValidator::class)->validate(DocumentNormaliser::normalise($item->document));
 
         $address = self::address($contentId, $item);
-        $clash = $address === null ? null : Paths::conflict($address, 'content', $contentId);
+        $clash = $address === null ? null : Paths::conflict($address, 'content', $contentId, $item->language);
 
         if ($clash !== null) {
             throw ValidationException::withMessages(['slug' => $clash]);
@@ -162,6 +162,8 @@ final class ImportedContents
 
         $content = new Content(['type' => $item->type, 'slug' => $item->slug]);
         $content->id = $contentId;
+        // Another language's address carries its prefix (I-3360).
+        $content->language = $item->language;
 
         return Addresses::wouldHave($content, $item->slug, $item->terms, Addresses::ownerSlug($content, (int) $item->authorId), $item->publishedAt, $item->fields[BuiltInFields::PRIMARY_CATEGORY] ?? null);
     }

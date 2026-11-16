@@ -7,9 +7,11 @@ namespace App\Http\Site;
 use App\Domain\Cards\CardUsage;
 use App\Domain\Contents\PreviewLinkViews;
 use App\Domain\Contents\Queries\PreviewLinks;
+use App\Domain\Languages\PageLanguage;
 use App\Domain\Menus\SlotMenus;
 use App\Domain\Regions\Regions;
 use App\Domain\Site\ArticleViews;
+use App\Domain\Site\ItemLanguage;
 use App\Domain\Site\PageWarnings;
 use App\Domain\Site\SiteDates;
 use App\Domain\Site\SiteLanguage;
@@ -45,12 +47,14 @@ final class PreviewController extends Controller
         // nothing about the viewer is known or stored.
         $views->record($preview['linkId']);
 
+        // Drawn in the item's own language (I-3360).
+        ItemLanguage::use($preview['contentId']);
         $page = $articles->ofRevision($preview['contentId'], $preview['revisionId']);
 
         // Rendered before the page: the view factory empties its stacks once
         // a render finishes, so the bar is pushed only after its own.
         $bar = view('teme::components.preview-bar', [
-            'expires' => SiteDates::show(SiteDates::inSite($preview['expiresAt']), $language->tag(), 'LLL'),
+            'expires' => SiteDates::show(SiteDates::inSite($preview['expiresAt']), app(PageLanguage::class)->tag(), 'LLL'),
         ])->render();
         View::startPush('teme-body-start', $bar);
 

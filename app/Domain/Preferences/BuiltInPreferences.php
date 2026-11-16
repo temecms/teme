@@ -48,9 +48,10 @@ final class BuiltInPreferences
 
             $registry->register(new PreferenceDefinition(
                 "lists.{$type->key}.columns", 'list', $columns, "{$type->plural} columns",
-                // Featured image is offered, and never on until someone turns it on (I-3120).
-                allowed: fn (): array => ['featured', ...self::columnsOf($type->key)],
-                maxItems: count($columns) + 1,
+                // Featured image is offered, and never on until someone turns it on (I-3120);
+                // Languages too (docs/proposals/multilingual-screens.md, 4).
+                allowed: fn (): array => ['featured', 'languages', ...self::columnsOf($type->key)],
+                maxItems: count($columns) + 2,
             ));
         }
 

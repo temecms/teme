@@ -9,6 +9,7 @@ use App\Domain\Addresses\Jobs\RecomputeAddresses;
 use App\Domain\Addresses\PathProjection;
 use App\Domain\Cache\Footprints;
 use App\Domain\Import\Operations\Concerns\AuthorizesImports;
+use App\Domain\Languages\LanguageLock;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\JobActor;
 use App\Domain\Taxonomy\Models\Term;
@@ -56,9 +57,13 @@ final class ImportTerm extends BaseOperation
 
         $this->validateTerm($input->taxonomy, $input->name, $input->slug, $input->parentId, $input->termId);
 
+        // A new term's language is the input's; one made before keeps its own (I-3446).
+        $language = $input->termId === null ? $input->language : Term::query()->whereKey($input->termId)->value('language');
+
         $taken = Term::query()
             ->where('taxonomy', $input->taxonomy)
             ->where('slug', $input->slug)
+            ->where(fn ($query) => $language === null ? $query->whereNull('language') : $query->where('language', $language))
             ->when($input->termId !== null, fn ($query) => $query->whereKeyNot($input->termId))
             ->exists();
 
@@ -78,8 +83,13 @@ final class ImportTerm extends BaseOperation
         $fields = ['name' => trim($input->name), 'slug' => $input->slug, 'parent_id' => $input->parentId, 'description' => $input->description];
 
         if ($input->termId === null) {
+            // A term given a language takes the languages' lock first (I-3360).
+            if ($input->language !== null) {
+                LanguageLock::shared();
+            }
+
             // refresh(): the columns the database defaults aren't on the model after an insert.
-            $term = Term::query()->create(['taxonomy' => $input->taxonomy, ...$fields])->refresh();
+            $term = Term::query()->create(['taxonomy' => $input->taxonomy, 'language' => $input->language, ...$fields])->refresh();
             app(PathProjection::class)->syncTerm($term);
 
             // A "not found" page may be stored at the address it takes (I-263).

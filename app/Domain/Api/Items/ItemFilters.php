@@ -21,8 +21,8 @@ use Throwable;
 
 /**
  * What a request to the items list asks for (D5): its types, term, author,
- * dates, parent, sort, size and cursor, each checked, every problem refused
- * at once.
+ * dates, parent, language (I-3360), sort, size and cursor, each checked,
+ * every problem refused at once.
  */
 final readonly class ItemFilters
 {
@@ -44,6 +44,7 @@ final readonly class ItemFilters
      * @param  string|null  $termTaxonomy  that term's taxonomy
      * @param  Credit|null  $author  the person whose items are kept, an account or a person with no account; account 0 for a slug nobody has
      * @param  string|null  $parentId  the item whose live children are kept (I-3363)
+     * @param  string|null  $language  the language whose items are kept, as stored: null for the site's default (I-3360)
      */
     private function __construct(
         public ?array $types,
@@ -56,6 +57,7 @@ final readonly class ItemFilters
         public int $limit,
         public ?Cursor $after,
         public ?string $parentId = null,
+        public ?string $language = null,
     ) {}
 
     /**
@@ -102,16 +104,17 @@ final readonly class ItemFilters
         }
 
         $types = self::types($query->get('type'), $problems);
+        $language = ApiQuery::language($query, $problems);
         $since = self::date($query, 'published_since', $problems);
         $before = self::date($query, 'published_before', $problems);
-        [$termId, $termTaxonomy] = self::term($query->get('term'), $problems);
+        [$termId, $termTaxonomy] = self::term($query->get('term'), $language, $problems);
         $author = self::author($query->get('author'));
 
         if ($problems !== []) {
             throw new InvalidParameters($problems);
         }
 
-        return new self($types, $termId, $termTaxonomy, $author, $since, $before, $sort, $limit, $after, $parentId);
+        return new self($types, $termId, $termTaxonomy, $author, $since, $before, $sort, $limit, $after, $parentId, $language);
     }
 
     /**
@@ -207,14 +210,14 @@ final readonly class ItemFilters
     }
 
     /**
-     * The term asked for, and its taxonomy, while it is a public taxonomy's;
-     * one statement.
+     * The term asked for, and its taxonomy, while it is a public taxonomy's
+     * and in the language listed; one statement.
      *
      * @param  array<string, string>  $problems
      *
      * @return array{0: string|null, 1: string|null}
      */
-    private static function term(?string $given, array &$problems): array
+    private static function term(?string $given, ?string $language, array &$problems): array
     {
         if ($given === null) {
             return [null, null];
@@ -222,8 +225,8 @@ final readonly class ItemFilters
 
         $taxonomies = Live::taxonomies();
         $taxonomy = preg_match(Ulids::LOWER, $given) === 1 && $taxonomies !== []
-            // The default language's terms only, as the terms list gives (A5): any other is as unknown as a made-up ID.
-            ? DB::table('terms')->where('id', $given)->whereIn('taxonomy', $taxonomies)->whereNull('language')->value('taxonomy')
+            // The listed language's terms only, as the terms list gives: any other is as unknown as a made-up ID.
+            ? DB::table('terms')->where('id', $given)->whereIn('taxonomy', $taxonomies)->when($language === null, fn ($query) => $query->whereNull('language'), fn ($query) => $query->where('language', $language))->value('taxonomy')
             : null;
 
         if ($taxonomy === null) {

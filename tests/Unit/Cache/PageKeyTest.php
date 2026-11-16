@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 use App\Domain\Cache\PageKey;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+
+uses(RefreshDatabase::class);
 
 it('is the scheme, the host and the path exactly as asked', function (): void {
     expect(PageKey::of(Request::create('http://Example.COM/About/'))?->url)->toBe('http://example.com/About/')

@@ -38,11 +38,16 @@ final readonly class LinkTag
 
     /**
      * What makes two entries the same link, so the first one wins: its
-     * relation, and for an alternate its address too.
+     * relation, and for an alternate its address too, and its language
+     * when it has one, so `x-default` stands beside the version it names.
      */
     public function identity(): string
     {
-        return $this->rel->single() ? $this->rel->value : $this->rel->value.' '.$this->href;
+        if ($this->rel->single()) {
+            return $this->rel->value;
+        }
+
+        return $this->rel->value.($this->hreflang === null ? '' : ' '.$this->hreflang).' '.$this->href;
     }
 
     /**

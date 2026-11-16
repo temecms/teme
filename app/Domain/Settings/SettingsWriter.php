@@ -165,6 +165,109 @@ final readonly class SettingsWriter
         return $record->version;
     }
 
+    /**
+     * Writes one other language's words for a group (I-3360) and returns
+     * the group's version after it. A value that is empty, or the same as
+     * the default language's, removes that language's word, so the
+     * default's shows again; so does a key in $reset. Each change is logged
+     * with its language in its key, "fr.tagline". Plugins hear nothing: a
+     * French title told as a plain change would say the site's name changed.
+     *
+     * @param  array<string, mixed>  $values  translatable key => that language's value
+     * @param  list<string>  $reset  translatable keys to return to the default language's value
+     */
+    public function writeTranslations(string $group, string $language, array $values, array $reset, ?int $expectedVersion, ?string $actorId, string $origin = 'human'): int
+    {
+        $definition = $this->registry->find($group)
+            ?? throw new RuntimeException("No settings group [{$group}] is registered.");
+
+        SettingsGroupRecord::query()->insertOrIgnore(['group_key' => $group, 'overrides' => '{}', 'version' => 0]);
+
+        $record = SettingsGroupRecord::query()->lockForUpdate()->findOrFail($group);
+
+        if ($expectedVersion !== null && $record->version !== $expectedVersion) {
+            throw StaleSettingsException::for($group, $expectedVersion, $record->version);
+        }
+
+        $all = $record->translations ?? [];
+        $before = $all[$language] ?? [];
+        $words = $before;
+        $changed = [];
+
+        foreach ($values as $key => $raw) {
+            $setting = $definition->setting($key);
+
+            if ($setting === null || ! TranslatableSettings::has($group, $key)) {
+                throw new RuntimeException("Setting [{$group}.{$key}] has no words per language.");
+            }
+
+            $value = SettingRules::normalise($setting, $raw);
+            $default = array_key_exists($key, $record->overrides) ? $record->overrides[$key] : $setting->default;
+
+            if ($value === '' || $value === null || $value === $default) {
+                unset($words[$key]);
+            } else {
+                $words[$key] = $value;
+            }
+        }
+
+        foreach ($reset as $key) {
+            unset($words[$key]);
+        }
+
+        foreach (array_unique([...array_keys($before), ...array_keys($words)]) as $key) {
+            if (($before[$key] ?? null) !== ($words[$key] ?? null)) {
+                $changed[] = (string) $key;
+            }
+        }
+
+        if ($changed === []) {
+            if ($record->version === 0 && $record->draft_values === null && $record->overrides === [] && $record->translations === null) {
+                $record->delete();
+            }
+
+            return $record->version;
+        }
+
+        if ($words === []) {
+            unset($all[$language]);
+        } else {
+            $all[$language] = $words;
+        }
+
+        $record->translations = $all;
+        $record->version = $record->version + 1;
+        $record->updated_by = $actorId === null ? null : (int) $actorId;
+        $record->save();
+
+        $prefix = fn (array $set): array => array_combine(
+            array_map(fn (string $key): string => "{$language}.{$key}", array_keys($set)),
+            array_values($set),
+        );
+
+        SettingsChange::query()->create([
+            'group_key' => $group,
+            'changed_keys' => array_map(fn (string $key): string => "{$language}.{$key}", $changed),
+            'before' => $prefix(array_intersect_key($before, array_flip($changed))),
+            'after' => $prefix(array_intersect_key($words, array_flip($changed))),
+            'actor_id' => $record->updated_by,
+            'origin' => $origin,
+        ]);
+
+        $this->pruneHistory($group);
+
+        // After commit, as write() does (rule 6).
+        DB::afterCommit(fn () => Cache::memo()->forget(SettingsRepository::cacheKey($group, translations: true)));
+
+        if ($definition->cacheTags !== []) {
+            app(PublicChanges::class)->add(new CacheKeysFor(CacheKeysFor::SETTINGS, $group, $definition->cacheTags));
+        }
+
+        DB::afterCommit(fn () => event(new SettingsChanged($group, $changed, $actorId, $language)));
+
+        return $record->version;
+    }
+
     private function pruneHistory(string $group): void
     {
         $kept = SettingsChange::query()

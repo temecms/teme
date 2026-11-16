@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Domain\Themes;
 
+use App\Domain\Languages\PageLanguage;
 use App\Domain\Menus\NavigationComposer;
-use App\Domain\Site\SiteLanguage;
+use App\Domain\Site\LanguageComposer;
 use App\Domain\Themes\CoreComposers\SiteComposer;
 use App\Domain\Themes\CoreComposers\ThemeSettingsComposer;
 use App\Domain\Themes\Exceptions\ComposerKeyCollision;
@@ -30,7 +31,7 @@ use Teme\Contracts\Themes\ViewComposer;
 final class ComposerRegistry
 {
     /** @var list<class-string<ViewComposer>> core's composers, run before any theme's */
-    private const array CORE = [SiteComposer::class, NavigationComposer::class, ThemeSettingsComposer::class];
+    private const array CORE = [SiteComposer::class, LanguageComposer::class, NavigationComposer::class, ThemeSettingsComposer::class];
 
     /** @var list<string> the names core keeps for a page's language, which no theme's composer may return (I-3360) */
     public const array RESERVED = ['language', 'direction', 'alternates'];
@@ -52,7 +53,7 @@ final class ComposerRegistry
     /** @var array<class-string, array<string, list<mixed>>> the values each composer gave each key on this page */
     private array $given = [];
 
-    public function __construct(private readonly ActiveTheme $active, private readonly SiteLanguage $language) {}
+    public function __construct(private readonly ActiveTheme $active, private readonly PageLanguage $language) {}
 
     /**
      * Why a theme's composer may not run, or null when it may: it must be a

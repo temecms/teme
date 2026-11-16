@@ -43,6 +43,12 @@ final class WordPressMenus
     /** A label or an address holding an email address, which a message never repeats. */
     public const string EMAIL = '/[^\s@]+@[^\s@]+\.[^\s@]+/';
 
+    /** The address of Polylang's language switcher. */
+    public const string SWITCHER = '#pll_switcher';
+
+    /** Polylang's switcher options Teme's switcher has, each true or false. */
+    private const array SWITCHER_OPTIONS = ['dropdown', 'show_names', 'hide_current'];
+
     /** How many block names a message lists. */
     private const int LISTED = 8;
 
@@ -225,6 +231,37 @@ final class WordPressMenus
     }
 
     /**
+     * Polylang's language switcher as Teme's, found already: the options
+     * Teme's switcher has, each true or false; any other that was on is
+     * left out and said.
+     *
+     * @param  array<mixed>  $options
+     */
+    private function switcher(int $id, string $label, array $options): MenuNode
+    {
+        $kept = [];
+        $dropped = [];
+
+        foreach ($options as $option => $value) {
+            $on = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+
+            if (in_array($option, self::SWITCHER_OPTIONS, true)) {
+                $kept[(string) $option] = $on;
+            } elseif ($on) {
+                $dropped[] = (string) $option;
+            }
+        }
+
+        $node = new MenuNode(name: self::name($label, $id), label: $label, ownLabel: true, leadsTo: MenuNode::LANGUAGES);
+
+        if ($dropped !== []) {
+            $this->messages[] = new ImportMessage('menu.switcher-options', __('Its language switcher had options Teme’s switcher doesn’t have, so they were left out: :options.', ['options' => implode(', ', $dropped)]), ['item' => $id, 'options' => $dropped]);
+        }
+
+        return $node->found(['kind' => MenuNode::LANGUAGES, 'target_id' => null, 'url' => null, 'options' => $kept]);
+    }
+
+    /**
      * One classic item as WordPress showed it, without what's under it.
      *
      * @param  array<mixed>  $raw
@@ -236,6 +273,12 @@ final class WordPressMenus
         $this->counted($formatted, $classes, $raw['attr_title'] ?? '', $raw['xfn'] ?? '', '');
         $type = (string) ($raw['type'] ?? '');
         $objectId = (int) ($raw['object_id'] ?? 0);
+
+        // Polylang's language switcher becomes Teme's (I-3446).
+        if (($raw['url'] ?? null) === self::SWITCHER) {
+            return $this->switcher($id, $label, is_array($raw['pll_switcher'] ?? null) ? $raw['pll_switcher'] : []);
+        }
+
         $leadsTo = match (true) {
             $type === self::POST_TYPE && $objectId > 0 => MenuNode::ITEM,
             $type === self::TAXONOMY && $objectId > 0 => MenuNode::TERM,

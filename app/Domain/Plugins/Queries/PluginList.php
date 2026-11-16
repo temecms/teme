@@ -75,7 +75,7 @@ final readonly class PluginList
             reason: $reason,
             consent: $consent,
             asks: ['capabilities' => $manifest?->capabilities() ?? [], 'hosts' => $manifest?->hosts() ?? [], 'hooks' => $manifest?->hooks() ?? []],
-            added: $manifest === null ? ['capabilities' => [], 'hosts' => []] : Consent::added($consent, $manifest),
+            added: $manifest === null ? ['capabilities' => [], 'hosts' => [], 'routes' => []] : Consent::added($consent, $manifest),
             stopped: array_keys($stopped),
         );
     }

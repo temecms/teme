@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Site;
 
 use App\Domain\Site\CommentViews;
+use App\Domain\Site\ItemLanguage;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,12 @@ final class PendingCommentsController extends Controller
     {
         $path = $request->query('path');
         $key = $request->headers->get(self::HEADER);
+
+        if (is_string($path)) {
+            // Drawn in the language of the page that asks (I-3360).
+            ItemLanguage::useAddress($path);
+        }
+
         $own = is_string($path) && $key !== null ? $views->own($path, $key) : [];
 
         return new JsonResponse(['comments' => array_map(CommentFragments::place(...), $own)], 200, ['Cache-Control' => 'no-store, private']);

@@ -29,7 +29,7 @@ final class ItemsController
      * @var array{index: list<string>, show: list<string>, byPath: list<string>}
      */
     public const array PARAMETERS = [
-        'index' => ['type', 'term', 'author', 'published_since', 'published_before', 'parent', 'sort', 'limit', 'after'],
+        'index' => ['type', 'term', 'author', 'published_since', 'published_before', 'parent', 'language', 'sort', 'limit', 'after'],
         'show' => [],
         'byPath' => ['path'],
     ];

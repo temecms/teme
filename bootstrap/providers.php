@@ -14,6 +14,8 @@ use App\Providers\ContentServiceProvider;
 use App\Providers\CrawlersServiceProvider;
 use App\Providers\DashboardServiceProvider;
 use App\Providers\DeploymentServiceProvider;
+use App\Providers\FediversePublishingServiceProvider;
+use App\Providers\FediverseServiceProvider;
 use App\Providers\FeedsServiceProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\HeadServiceProvider;
@@ -22,6 +24,7 @@ use App\Providers\ImportServiceProvider;
 use App\Providers\InsertionsServiceProvider;
 use App\Providers\JsonLdServiceProvider;
 use App\Providers\LanguageServiceProvider;
+use App\Providers\ManageApiServiceProvider;
 use App\Providers\MediaServiceProvider;
 use App\Providers\MetadataSuggestionsServiceProvider;
 use App\Providers\NavigationServiceProvider;
@@ -96,4 +99,7 @@ return [
     ImportServiceProvider::class,
     UpdatesServiceProvider::class,
     PluginServiceProvider::class,
+    ManageApiServiceProvider::class,
+    FediverseServiceProvider::class,
+    FediversePublishingServiceProvider::class,
 ];

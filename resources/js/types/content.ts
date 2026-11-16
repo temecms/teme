@@ -43,6 +43,8 @@ export type ContentRow = {
     } | null;
     /** Quick and Bulk edit's Discussion (I-688): null when the type takes none or comments are off; `canSet` when this person may publish the item. */
     discussion: { value: Discussion; canSet: boolean } | null;
+    /** Its group's versions by language tag, for the language marks; null on a site with one language. */
+    versions?: Record<string, 'there' | 'outOfDate'> | null;
 };
 
 export type ContentTab = { key: string; label: string; count: number };
@@ -98,6 +100,8 @@ export type ContentIndexPage = {
     takesComments: boolean;
     typeTaxonomies: TypeTaxonomy[];
     labels: { singular: string; plural: string };
+    /** The site's languages, in order, for the marks and the Language filter; none when the type has no versions. */
+    languages?: { tag: string; name: string }[];
     /** Whether Add new is offered: false once a type with one item only has it (I-415). */
     canAdd: boolean;
     /** On the Scheduled tab, one line per reason held schedules cannot run; empty elsewhere. */

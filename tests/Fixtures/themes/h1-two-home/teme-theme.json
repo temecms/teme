@@ -1,0 +1,8 @@
+{
+    "manifest": 1,
+    "code": "h1-two-home",
+    "name": "Fixture Two H1s On The Home Page",
+    "version": "0.1.0",
+    "description": "A usable theme the one-H1 check of the theme checker fails.",
+    "requires": { "teme": "^0.1" }
+}

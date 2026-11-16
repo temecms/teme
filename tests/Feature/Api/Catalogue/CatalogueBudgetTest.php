@@ -71,7 +71,7 @@ it('pins the cold answers: what a site reads again only when the cache it keeps 
         return $count;
     };
 
-    // The site: the three settings groups. Types: the stored types, taxonomies and fields (three reads and the two
+    // The site: the four settings groups, the languages group's for its languages (I-3360). Types: the stored types, taxonomies and fields (three reads and the two
     // checks that their tables exist) and two settings groups. Taxonomies: the stored types and taxonomies and one group.
-    expect([$cold('/api/v1'), $cold('/api/v1/types'), $cold('/api/v1/taxonomies')])->toBe([3, 7, 4]);
+    expect([$cold('/api/v1'), $cold('/api/v1/types'), $cold('/api/v1/taxonomies')])->toBe([4, 7, 4]);
 });

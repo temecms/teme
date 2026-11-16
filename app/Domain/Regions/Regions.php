@@ -6,6 +6,7 @@ namespace App\Domain\Regions;
 
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
+use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Types\CoreTypes;
 use Illuminate\Support\Facades\DB;
@@ -31,8 +32,8 @@ final class Regions
 
     /**
      * The region's published document, or null when it has none: no row,
-     * never published, unpublished since, or in the trash. The default
-     * language's version, while no page reads another yet (I-3360).
+     * never published, unpublished since, or in the trash. The page
+     * language's version, else the default language's (I-3360).
      *
      * @return array<mixed>|null
      */
@@ -43,18 +44,28 @@ final class Regions
         // Drawn or empty, the page shows what this region holds (I-263).
         app(RenderRecord::class)->tag(PageTags::region($slug));
 
-        if (array_key_exists($slug, $this->documents)) {
-            return $this->documents[$slug];
+        $language = app(PageLanguage::class)->stored();
+        $key = $slug.'|'.$language;
+
+        if (array_key_exists($key, $this->documents)) {
+            return $this->documents[$key];
         }
 
-        $document = app(SiteLanguages::class)->whereDefault(DB::table('contents'), 'contents.language')
+        // The page language's version, else the default language's (I-3360).
+        $versions = DB::table('contents');
+        $versions = $language === null
+            ? app(SiteLanguages::class)->whereDefault($versions, 'contents.language')
+            : $versions->where(fn ($query) => $query->whereNull('contents.language')->orWhere('contents.language', $language));
+
+        $document = $versions
             ->join('content_revisions', 'content_revisions.id', '=', 'contents.published_revision_id')
             ->where('contents.type', CoreTypes::REGION)
             ->where('contents.slug', $slug)
             ->where('contents.status', 'published')
             ->whereNull('contents.deleted_at')
+            ->orderByRaw('contents.language IS NULL')
             ->value('content_revisions.document');
 
-        return $this->documents[$slug] = $document === null ? null : (array) json_decode((string) $document, true);
+        return $this->documents[$key] = $document === null ? null : (array) json_decode((string) $document, true);
     }
 }

@@ -4,13 +4,16 @@
 # as a plain file from the page cache's static folder, and anything else
 # reaches PHP as before: only a GET or HEAD, with no query, from a browser
 # that carries no teme_auth marker, at an address the router doesn't keep
-# for itself. The folder is the page cache's (PAGE_CACHE_STATIC_PATH);
-# change both lines if Teme lives elsewhere than /var/www/html.
+# for itself, and never to a fediverse server asking for a document
+# (Accept: activity+json or ld+json, I-058). The folder is the page
+# cache's (PAGE_CACHE_STATIC_PATH); change both lines if Teme lives
+# elsewhere than /var/www/html.
 # Held in step with the code by tests/Feature/Cache/StaticSettingsTest.php.
 @teme_static {
 	method GET HEAD
 	query ""
 	not header_regexp Cookie (^|;\s*)teme_auth=
+	not header_regexp Accept (?i)(activity\+json|ld\+json)
 	not path_regexp ^/(admin|preview|up|storage|build|_teme)(/|$)
 	file {
 		root /var/www/html/storage/page-cache/static

@@ -9,7 +9,7 @@ namespace Teme\Contracts\Insertions;
  * insertions to give: identity, type, terms, language, authors, and size.
  * Core skips contributors entirely when the item has opted out.
  *
- * @since 0.8.0
+ * @since 0.9.0
  */
 final readonly class ArticleFacts
 {
@@ -17,7 +17,7 @@ final readonly class ArticleFacts
      * @param  array<string, list<string>>  $termIdsByTaxonomy  term IDs by taxonomy key
      * @param  list<string>  $authorIds
      *
-     * @since 0.8.0
+     * @since 0.9.0
      */
     public function __construct(
         public string $contentId,

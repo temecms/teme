@@ -113,6 +113,21 @@ export type SettingsGroupPage = {
     imageWidths: { label: string; value: string; hint: string } | null;
     /** General's panels, each its title, its line and its settings' keys, or null for one panel. */
     panels: { title: string; description: string; keys: string[] }[] | null;
+    /** The group's words in other languages (docs/proposals/multilingual-screens.md, 6): null on a site with one language or a group with no words. */
+    words?: SettingsWordsSection | null;
+};
+
+/** A settings group's "In other languages" table. */
+export type SettingsWordsSection = {
+    /** The site's other languages, in order. */
+    languages: { tag: string; name: string }[];
+    /** The group's word settings. */
+    fields: { key: string; label: string; multiline: boolean }[];
+    /** The default language's words, each field's placeholder. */
+    defaults: Record<string, string>;
+    /** Each language's own words, by tag; a word left out falls back. */
+    values: Record<string, Record<string, string>>;
+    version: number;
 };
 
 export type DiscussionFieldset = {

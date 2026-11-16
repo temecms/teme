@@ -347,7 +347,7 @@
         if (!count) return;
         const total = (Number(count.dataset.temeCount) || 0) + 1;
         count.dataset.temeCount = String(total);
-        count.textContent = total === 1 ? words.countOne : words.countMany.replace(':count', () => total.toLocaleString('en-US'));
+        count.textContent = total === 1 ? words.countOne : words.countMany.replace(':count', () => total.toLocaleString(document.documentElement.lang || 'en-US'));
     };
     const respond = document.querySelector('[data-teme-respond]');
     const form = respond ? prepare(respond) : null;

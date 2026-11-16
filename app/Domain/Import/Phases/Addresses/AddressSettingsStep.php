@@ -16,6 +16,8 @@ use App\Domain\Import\Phases\Settings\WordPressSettings;
 use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
+use App\Domain\Import\Translations\ImportedLanguages;
+use App\Domain\Import\Translations\PolylangLanguages;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
@@ -60,7 +62,16 @@ final readonly class AddressSettingsStep implements StepPhase
 
         $answer = $reader->whole('settings');
         $options = is_array($answer['options'] ?? null) ? $answer['options'] : [];
-        $early = WordPressSettings::early($options, is_string($answer['locale'] ?? null) ? $answer['locale'] : '');
+        // With Polylang, the default language is Polylang's own, not WordPress's locale (I-3446).
+        $polylang = app(ImportedLanguages::class)->refresh($context->sourceId, $reader);
+
+        // Its addresses don't say their language, so nothing is written, settings included.
+        if ($polylang->active && $polylang->mode() === PolylangLanguages::FROM_CONTENT) {
+            throw ImportStopped::because('languages-from-content', __('Polylang on the old site set each page’s language from its content, so its addresses don’t say which language they are in, and Teme can’t give each one its address. Set Polylang’s URL modifications to “The language is set from the directory name”, then start the import again.'));
+        }
+
+        $locale = $polylang->active && $polylang->defaultTag() !== null ? (string) $polylang->defaultTag() : (is_string($answer['locale'] ?? null) ? $answer['locale'] : '');
+        $early = WordPressSettings::early($options, $locale);
         $values = $early['values'] === [] ? [] : ['general' => $early['values']];
         $messages = $early['messages'];
         $structure = self::text($options['permalink_structure'] ?? '');

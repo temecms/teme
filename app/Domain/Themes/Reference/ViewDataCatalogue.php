@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Themes\Reference;
 
 use App\Domain\Site\FieldViews;
+use App\Domain\Site\ViewModels\Alternate;
 use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\CommentsPageView;
 use App\Domain\Site\ViewModels\ErrorView;
 use App\Domain\Site\ViewModels\LatestView;
 use App\Domain\Site\ViewModels\ListingView;
 use App\Domain\Site\ViewModels\NotFoundView;
+use App\Domain\Site\ViewModels\PageLanguageView;
 use App\Domain\Site\ViewModels\ProtectedView;
 use App\Domain\Site\ViewModels\RespondView;
 use App\Domain\Site\ViewModels\SiteView;
@@ -64,6 +66,9 @@ final class ViewDataCatalogue
         '$navigation' => ['type' => 'array<string, list<array{label: string, url: string|null, current: bool, opensNewTab: bool, heading: bool, children: list<mixed>}>|null>', 'description' => 'Each of the theme\'s navigation slots with its menu\'s tree, or null when it has none.'],
         '$themeSettings' => ['type' => 'array<string, mixed>', 'description' => 'The active theme\'s own settings, key to value, without its menu places.'],
         '$isFront' => ['type' => 'bool', 'description' => 'True only on the site\'s home page and its numbered pages.'],
+        '$language' => ['type' => 'PageLanguageView', 'description' => 'The language of the page being drawn: its tag, its own name and its home address.'],
+        '$direction' => ['type' => 'string', 'description' => 'The direction of the page\'s language: ltr, or rtl for a language written right to left.'],
+        '$alternates' => ['type' => 'list<Alternate>', 'description' => 'Every language version of this page a reader can open, this page included, the default language first; empty when there is only this page.'],
     ];
 
     /**
@@ -74,7 +79,7 @@ final class ViewDataCatalogue
     public function classes(): array
     {
         $found = [];
-        $queue = [...array_values(self::PAGE_MODELS), SiteView::class];
+        $queue = [...array_values(self::PAGE_MODELS), SiteView::class, PageLanguageView::class, Alternate::class];
 
         while ($queue !== []) {
             $class = array_shift($queue);

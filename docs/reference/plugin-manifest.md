@@ -14,7 +14,7 @@
 | `requires` | object | yes | What the plugin needs to run. |  |
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send" |
 | `jobs` | array | no | Background jobs the plugin declares (I-3445). |  |
 | `jobs[].key` | string | yes |  | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes |  |  |
@@ -24,6 +24,17 @@
 | `schedules` | array | no | How often a declared job should run (I-3445). |  |
 | `schedules[].job` | string | yes |  | ^[a-z][a-z0-9-]{0,47}$ |
 | `schedules[].every` | string | yes |  | "minute", "five-minutes", "fifteen-minutes", "hour", "day", "week" |
+| `routes` | array | no | Public addresses the plugin answers when granted routes.public. |  |
+| `routes[].id` | string | yes |  | ^[a-z][a-z0-9_-]*$ |
+| `routes[].method` | string | yes |  | "GET", "POST" |
+| `routes[].path` | string | yes |  |  |
+| `routes[].handler` | string | yes |  |  |
+| `imports` | object | no | What the plugin brings across from the WordPress site an import reads, when granted import.wordpress. |  |
+| `imports.importer` | string | yes | The plugin's importer class. |  |
+| `imports.options` | array | no |  |  |
+| `imports.postTypes` | object | no |  |  |
+| `imports.userMeta` | array | no |  |  |
+| `imports.termMeta` | array | no |  |  |
 | `hosts` | array | no | The hosts the plugin asks to reach, when it asks for http. |  |
 | `hooks` | array | no | The hooks the plugin listens to, by name. |  |
 | `contributes` | object | no | What the plugin adds to the admin. |  |

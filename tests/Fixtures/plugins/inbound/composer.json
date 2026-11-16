@@ -1,0 +1,9 @@
+{
+    "name": "tests/inbound",
+    "type": "teme-plugin",
+    "autoload": {
+        "psr-4": {
+            "Tests\\Fixtures\\Plugins\\Inbound\\": "src/"
+        }
+    }
+}

@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\Models\NavigationItem;
+use App\Domain\Menus\Operations\CreateNavigation;
+use App\Domain\Menus\Operations\Input\CreateNavigationInput;
+use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Teme\Contracts\Settings\SettingsReader;
+use Tests\Fixtures\Languages\Languages;
 
 uses(RefreshDatabase::class);
 
@@ -311,3 +316,66 @@ it('puts focus on the next item\'s menu button after Remove from an item\'s menu
     cmWaitUntil($page, "document.querySelector('[data-slot=\"dropdown-menu-content\"]') === null && document.querySelector('[aria-label=\"More actions for Home\"]') === null");
     cmWaitUntil($page, 'document.activeElement?.getAttribute("aria-label") === "More actions for About"');
 });
+
+it('shows a French menu in a place for French readers, and adds the language switcher, both kept on reload', function (): void {
+    siteSetLanguage(User::factory()->create()->assignRole('administrator'), 'en-GB');
+    Languages::set(['fr']);
+    $principal = app(CreateNavigation::class)->execute(new CreateNavigationInput('Principal', (string) $this->editor->id, 'fr'));
+    $this->actingAs($this->editor)->get("/admin/navigation/{$principal->id}")->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor), "/admin/navigation/{$principal->id}");
+    cmWaitUntil($page, "document.getElementById('menu-readers-of') !== null");
+    $page->assertScript("document.getElementById('menu-readers-of').textContent.includes('French')")
+        ->click('#slot-primary')
+        ->click('[role="option"] >> text="Principal (this menu)"');
+    cmWaitUntil($page, "document.querySelector('[role=\"listbox\"]') === null && document.body.innerText.includes('Saved. Header shows “Principal”.')");
+
+    expect(SettingsGroupRecord::query()->find('theme.good')->translations)->toEqual(['fr' => ['nav_primary' => $principal->id]])
+        ->and(app(SettingsReader::class)->string('theme.good', 'nav_primary'))->not->toBe($principal->id);
+
+    $page->press('Add an item');
+    shellSettled($page, '[data-slot="sheet-content"]');
+    $page->click('#add-item-tab-languages')->click('[data-test="add-language-switcher"]');
+    $page->click('[data-slot="sheet-content"] >> text="Close"');
+    cmWaitUntil($page, 'document.querySelector(\'[data-slot="sheet-content"]\') === null');
+    $page->press('Save menu');
+    cmWaitUntil($page, "document.body.innerText.includes('Saved “Principal”.')");
+
+    expect(NavigationItem::query()->where('navigation_id', $principal->id)->pluck('kind')->all())->toBe(['languages']);
+
+    cmNavigate($page, "/admin/navigation/{$principal->id}");
+    cmWaitUntil($page, "document.getElementById('slot-primary')?.textContent.includes('Principal') === true");
+    $page->assertScript("document.getElementById('menu-readers-of').textContent.includes('French')");
+    cmNoJavaScriptErrors($page);
+});
+
+it('sets a menu\'s own language from For readers of, kept on reload', function (): void {
+    siteSetLanguage(User::factory()->create()->assignRole('administrator'), 'en-GB');
+    Languages::set(['fr']);
+    $this->actingAs($this->editor)->get("/admin/navigation/{$this->menu->id}")->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor), "/admin/navigation/{$this->menu->id}");
+    cmWaitUntil($page, "document.getElementById('menu-readers-of')?.textContent.includes('English') === true");
+    $page->click('#menu-readers-of')->click('[role="option"] >> text="French"');
+    cmWaitUntil($page, "document.querySelector('[role=\"listbox\"]') === null && document.body.innerText.includes('Saved. “Main” is for readers of French.')");
+
+    expect(Navigation::query()->find($this->menu->id)->language)->toBe('fr');
+
+    cmNavigate($page, "/admin/navigation/{$this->menu->id}");
+    cmWaitUntil($page, "document.getElementById('menu-readers-of')?.textContent.includes('French') === true");
+    cmNoJavaScriptErrors($page);
+});
+
+it('passes axe on a menu\'s Show in card with For readers of, at 1280 and 375, in both schemes', function (string $scheme, int $width): void {
+    siteSetLanguage(User::factory()->create()->assignRole('administrator'), 'en-GB');
+    Languages::set(['fr']);
+    lscrPrefer($this->editor, ['appearance.mode' => $scheme]);
+    $this->actingAs($this->editor)->get("/admin/navigation/{$this->menu->id}")->assertOk();
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize($width, 900), "/admin/navigation/{$this->menu->id}");
+    cmWaitUntil($page, "document.getElementById('menu-readers-of') !== null");
+
+    expect(cmAxeViolations($page))->toBe([])
+        ->and($page->script('() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)'))->toBe(0);
+    cmNoJavaScriptErrors($page);
+})->with(['light', 'dark'])->with([1280, 375]);

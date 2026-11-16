@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Fediverse\Import\FediverseRepliesStep;
+use App\Domain\Fediverse\Import\FediverseStep;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\Phases\Addresses\AddressClashStep;
 use App\Domain\Import\Phases\Addresses\AddressSettingsStep;
@@ -20,6 +22,9 @@ use App\Domain\Import\Phases\Finish\DeletedStep;
 use App\Domain\Import\Phases\Finish\FidelityStep;
 use App\Domain\Import\Phases\Finish\RecountStep;
 use App\Domain\Import\Phases\ImportPhases;
+use App\Domain\Import\Phases\Languages\LanguagesStep;
+use App\Domain\Import\Phases\Languages\LanguageWordsStep;
+use App\Domain\Import\Phases\Languages\TranslationsStep;
 use App\Domain\Import\Phases\Media\MediaParentsStep;
 use App\Domain\Import\Phases\Media\MediaPhase;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
@@ -33,6 +38,10 @@ use App\Domain\Import\Phases\Terms\TermParentsStep;
 use App\Domain\Import\Phases\Terms\TermsPhase;
 use App\Domain\Import\Phases\Users\AuthorsWaitingStep;
 use App\Domain\Import\Phases\Users\UsersPhase;
+use App\Domain\Import\PluginData\PluginDataGoneStep;
+use App\Domain\Import\PluginData\PluginDataPhase;
+use App\Domain\Import\PluginData\PluginImports;
+use App\Domain\Import\PluginData\PluginOptionsStep;
 use App\Domain\Import\Tracking\ImportJobKind;
 use App\Domain\Import\Tracking\PageParentsJobKind;
 use App\Domain\Jobs\JobKinds;
@@ -49,6 +58,7 @@ final class ImportServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->scoped(ImportMode::class);
+        $this->app->scoped(PluginImports::class);
         $this->app->bind(HostResolver::class, DnsHostResolver::class);
 
         // Core's phases, each tagged ImportPhases::TAG from its own line, in I-333's order.
@@ -56,6 +66,8 @@ final class ImportServiceProvider extends ServiceProvider
         $this->app->tag([AddressClashStep::class], ImportPhases::TAG);
 
         $this->app->tag([AddressSettingsStep::class], ImportPhases::TAG);
+
+        $this->app->tag([LanguagesStep::class], ImportPhases::TAG);
 
         $this->app->tag([UsersPhase::class, AuthorsWaitingStep::class], ImportPhases::TAG);
 
@@ -67,15 +79,22 @@ final class ImportServiceProvider extends ServiceProvider
 
         $this->app->tag([ContentWaitingStep::class, ContentPhase::class, PageParentsStep::class], ImportPhases::TAG);
 
+        $this->app->tag([PluginOptionsStep::class, PluginDataPhase::class, PluginDataGoneStep::class], ImportPhases::TAG);
+
         $this->app->tag([SecondPassStep::class], ImportPhases::TAG);
 
         $this->app->tag([CommentsPhase::class, CommentCountsStep::class, CommentPagesStep::class], ImportPhases::TAG);
+
+        $this->app->tag([FediverseRepliesStep::class], ImportPhases::TAG);
 
         $this->app->tag([MenusPhase::class, MenuPlacesStep::class, WidgetsStep::class], ImportPhases::TAG);
 
         $this->app->tag([RedirectsStep::class, OldAddressesStep::class], ImportPhases::TAG);
 
         $this->app->tag([SiteSettingsStep::class], ImportPhases::TAG);
+
+        $this->app->tag([TranslationsStep::class, LanguageWordsStep::class], ImportPhases::TAG);
+        $this->app->tag([FediverseStep::class], ImportPhases::TAG);
 
         $this->app->tag([CheckStep::class], ImportPhases::TAG);
 

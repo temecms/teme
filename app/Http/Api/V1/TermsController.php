@@ -22,7 +22,7 @@ use Illuminate\Http\Request;
 final class TermsController
 {
     /** The parameters the list takes. */
-    public const array PARAMETERS = ['taxonomy', 'parent', 'slug', 'limit', 'after'];
+    public const array PARAMETERS = ['taxonomy', 'parent', 'slug', 'language', 'limit', 'after'];
 
     public function index(Request $request, TermsQuery $terms): JsonResponse
     {

@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "name": "tests/fediverse",
+    "code": "fediverse",
+    "label": "Fediverse",
+    "description": "A fixture that listens to the fediverse and sends through it, for the sockets tests.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Fediverse\\FediversePlugin",
+    "capabilities": ["fediverse.read", "fediverse.send"],
+    "hooks": ["ActivityReceived", "CollectActivityHandlers", "ActorDocumentBuilt"]
+}

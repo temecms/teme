@@ -39,6 +39,7 @@ final class RoleSeeder extends Seeder
         'settings.modules.manage',
         'settings.seo.manage',
         'settings.ai.manage',
+        'settings.fediverse.manage',
         'terms.manage',
         'users.manage',
         'navigation.manage',
@@ -56,6 +57,7 @@ final class RoleSeeder extends Seeder
         'updates.manage',
         'plugins.manage',
         'privacy.manage',
+        'api.keys.manage',
     ];
 
     public const ROLES = [

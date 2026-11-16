@@ -13,6 +13,12 @@ use Teme\Contracts\Content\ContentScheduled;
 use Teme\Contracts\Content\ContentTrashed;
 use Teme\Contracts\Content\ContentUnpublished;
 use Teme\Contracts\Content\ContentVisibilityChanged;
+use Teme\Contracts\Fediverse\ActivityReceived;
+use Teme\Contracts\Fediverse\ActivitySent;
+use Teme\Contracts\Fediverse\ActorDocumentBuilt;
+use Teme\Contracts\Fediverse\CollectActivityHandlers;
+use Teme\Contracts\Fediverse\CollectObjectBuilders;
+use Teme\Contracts\Fediverse\ObjectBuilt;
 use Teme\Contracts\Hooks\Hook;
 use Teme\Contracts\Media\MediaStored;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
@@ -39,5 +45,11 @@ final class HookCatalogue
         CommentStatusChanged::class,
         SettingsChanged::class,
         CollectPersonalDataHolders::class,
+        ActivityReceived::class,
+        ActivitySent::class,
+        CollectActivityHandlers::class,
+        CollectObjectBuilders::class,
+        ObjectBuilt::class,
+        ActorDocumentBuilt::class,
     ];
 }

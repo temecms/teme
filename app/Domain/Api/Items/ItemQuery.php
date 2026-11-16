@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
 
+use App\Domain\Addresses\Addresses;
 use App\Domain\Addresses\AddressSettings;
 use App\Domain\Addresses\Paths;
 use App\Domain\Addresses\PublicRequestPath;
@@ -14,6 +15,7 @@ use App\Domain\Api\Ulids;
 use App\Domain\Cache\PageTags;
 use App\Domain\Cache\RenderRecord;
 use App\Domain\Contents\Tree\ContentTree;
+use App\Domain\Site\Alternates;
 use App\Domain\Site\SiteLanguage;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
@@ -22,11 +24,12 @@ use stdClass;
 /**
  * One live, public item in full (D6, D34): found by its ID or by an address
  * of it, current or old, and shaped from its published revision only, with
- * its fields and its body; a protected item without its words (D30).
+ * its fields, its body and its other language versions (I-3360); a
+ * protected item without its words (D30).
  */
 final readonly class ItemQuery
 {
-    public function __construct(private ItemShapes $shapes, private FieldValues $fields, private BodyShape $body, private SiteLanguage $language) {}
+    public function __construct(private ItemShapes $shapes, private FieldValues $fields, private BodyShape $body, private SiteLanguage $language, private Alternates $alternates) {}
 
     /**
      * The item's row, from its published revision with its document, fields
@@ -98,7 +101,7 @@ final readonly class ItemQuery
      */
     public function full(object $row): array
     {
-        $item = [...$this->shapes->item($row, $this->shapes->parts([$row])), 'ancestors' => $this->ancestors($row)];
+        $item = [...$this->shapes->item($row, $this->shapes->parts([$row])), 'ancestors' => $this->ancestors($row), 'translations' => $this->translations((string) $row->id)];
 
         if ((bool) $row->locked) {
             return [...$item, 'fields' => new stdClass, 'word_count' => null, 'body' => null];
@@ -112,6 +115,31 @@ final readonly class ItemQuery
             'word_count' => (int) $row->word_count,
             'body' => $this->body->of($document),
         ];
+    }
+
+    /**
+     * The item's other language versions a reader can open, in the site's
+     * language order, each with its language and address: the head's
+     * `hreflang` links, less the item itself; [] when it has none (I-3360).
+     * One statement, Alternates' own, so the API and the page agree.
+     *
+     * @return list<array{id: string, language: string, path: string, url: string}>
+     */
+    private function translations(string $id): array
+    {
+        $root = rtrim(url('/'), '/');
+        $translations = [];
+
+        foreach ($this->alternates->ofItem($id) as $member) {
+            if ($member['id'] === $id) {
+                continue;
+            }
+
+            $path = Addresses::toUrl($member['path'], $member['type']);
+            $translations[] = ['id' => $member['id'], 'language' => $member['language'], 'path' => $path, 'url' => $root.$path];
+        }
+
+        return $translations;
     }
 
     /**
