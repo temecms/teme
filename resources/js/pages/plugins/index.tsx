@@ -326,7 +326,8 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
                     )
                 }
             >
-                {plugins.length === 0 && extensions === null ? (
+                {plugins.length === 0 &&
+                (extensions === null || extensions.requests.length === 0) ? (
                     <Panel
                         data-test="plugins-empty"
                         className="grid justify-items-center gap-3 px-6 py-12 text-center"
@@ -339,9 +340,13 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
                             {__('No plugins are installed')}
                         </p>
                         <p className="text-body text-ink-2">
-                            {__(
-                                'Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.',
-                            )}
+                            {extensions === null
+                                ? __(
+                                      'Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.',
+                                  )
+                                : __(
+                                      'Add one with Add plugin, or whoever runs the server adds one to the site’s build. It then appears here, disabled.',
+                                  )}
                         </p>
                     </Panel>
                 ) : (

@@ -46,7 +46,10 @@ class ComposerRunner
             ExtensionAction::Rollback => throw new LogicException('A rollback runs no Composer.'),
         };
 
-        return $this->run([...$command, '--no-progress', '--prefer-dist', '--optimize-autoloader'], $release, $auth);
+        // `remove` takes no --prefer-dist; the packages it keeps are already installed.
+        $options = $request->action === ExtensionAction::Remove ? ['--no-progress', '--optimize-autoloader'] : ['--no-progress', '--prefer-dist', '--optimize-autoloader'];
+
+        return $this->run([...$command, ...$options], $release, $auth);
     }
 
     /** Checks that the lock matches composer.json. */
