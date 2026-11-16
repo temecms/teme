@@ -179,10 +179,13 @@ export function FeaturedPostsCard({
             }
             preview={attrs.heading}
             tools={
-                <SourceSwitch
-                    value={attrs.source}
-                    onChange={(source) => updateAttributes({ source })}
-                />
+                // A phone's card head has no room beside the card's own buttons; the panel has the same switch.
+                <div className="max-sm:hidden">
+                    <SourceSwitch
+                        value={attrs.source}
+                        onChange={(source) => updateAttributes({ source })}
+                    />
+                </div>
             }
             settings={
                 <FeaturedPostsSettings
