@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Extensions\Queries\ExtensionsScreen;
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
@@ -92,6 +94,7 @@ final readonly class PluginsScreen
                 'agreed' => [
                     ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent)),
                     ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
+                    ...$this->permissionLines($manifest, (array) ($row->consent['permissions'] ?? []), false),
                 ],
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
                 'asks' => [...$this->accessLines(
@@ -106,11 +109,11 @@ final readonly class PluginsScreen
                 ), ...$this->insertionHostsLine(
                     $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
                     $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
-                )],
+                ), ...$this->permissionLines($manifest, null, $row->consent !== [] && ($row->added['permissions'] ?? []) !== [])],
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
-                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports,
+                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || ($row->added['permissions'] ?? []) !== [] || $newImports,
                 'tables' => $tables,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables left.
                 'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
@@ -121,6 +124,32 @@ final readonly class PluginsScreen
                 'canForget' => ! $enabled && ($manifest === null) && ($record === null || $this->migrations->ownedTables($record->migrations) === []),
             ];
         }, $rows);
+    }
+
+    /**
+     * A line for each permission the plugin declares, who it is given to and
+     * what it lets them do (docs/plans/plugin-sockets-2.md, A1); with
+     * $agreed, only those whose id was agreed.
+     *
+     * @param  list<mixed>|null  $agreed
+     *
+     * @return list<array{words: string, new: bool}>
+     */
+    private function permissionLines(?Manifest $manifest, ?array $agreed, bool $new): array
+    {
+        if ($manifest === null) {
+            return [];
+        }
+
+        $lines = [];
+
+        foreach (PluginPermissions::declared($manifest) as $index => $permission) {
+            if ($agreed === null || in_array($permission['id'], $agreed, true)) {
+                $lines[] = ['words' => PluginPermissions::consentWords($manifest)[$index], 'new' => $new];
+            }
+        }
+
+        return $lines;
     }
 
     /**
@@ -215,7 +244,7 @@ final readonly class PluginsScreen
     {
         if ($row->state === PluginState::Waiting) {
             // Consent first: an update that asks for more access waits for that.
-            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports ? 'review' : 'migrate';
+            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || ($row->added['permissions'] ?? []) !== [] || $newImports ? 'review' : 'migrate';
         }
 
         if ($enabled) {

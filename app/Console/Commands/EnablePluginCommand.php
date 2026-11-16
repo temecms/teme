@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -106,6 +107,10 @@ final class EnablePluginCommand extends Command
 
         if ($insertionHosts !== []) {
             $this->line('  '.PluginWords::insertionHosts($insertionHosts));
+        }
+
+        foreach ($manifest === null ? [] : PluginPermissions::consentWords($manifest) as $words) {
+            $this->line('  '.$words);
         }
 
         if (! $this->option('agree')) {

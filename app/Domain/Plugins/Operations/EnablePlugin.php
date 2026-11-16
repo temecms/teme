@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
@@ -163,6 +164,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->insertionHosts($manifest, $input->capabilities),
                 ...$this->imports($found),
                 ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
+                ...$this->permissions($manifest),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.
             'consented_by' => $consentedBy === null ? null : (int) $consentedBy,
@@ -173,6 +175,9 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'quarantine' => [],
             'migrations' => $migrations,
         ])->save();
+
+        // Its permissions, made once and given to administrators and the roles it names (docs/plans/plugin-sockets-2.md, A1).
+        PluginPermissions::ensure($code, PluginPermissions::declared($manifest));
 
         $this->log->record(SecurityEventType::PluginEnabled, $input->actorId(), context: [
             'plugin' => $input->name,
@@ -197,6 +202,19 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         DB::afterCommit(fn () => $this->records->changed());
 
         return $input->name;
+    }
+
+    /**
+     * The permissions it declares, kept with the consent so a new one, or a
+     * new role given one, asks again; none for a plugin that declares none.
+     *
+     * @return array{permissions?: list<string>}
+     */
+    private function permissions(Manifest $manifest): array
+    {
+        $lines = PluginPermissions::consentLines($manifest);
+
+        return $lines === [] ? [] : ['permissions' => $lines];
     }
 
     /**

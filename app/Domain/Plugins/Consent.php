@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\PublicRoutes\DeclaredRoute;
 use App\Domain\PublicRoutes\RootFile;
 
@@ -53,6 +54,11 @@ final readonly class Consent
         }
 
         if (self::insertionHostsAdded($consent, $manifest) !== []) {
+            return false;
+        }
+
+        // A new permission, or a new role given one (docs/plans/plugin-sockets-2.md, A1).
+        if (self::permissionsAdded($consent, $manifest) !== []) {
             return false;
         }
 
@@ -188,6 +194,7 @@ final readonly class Consent
     {
         $imports = self::importsAdded($consent, $manifest);
         $insertionHosts = self::insertionHostsAdded($consent, $manifest);
+        $permissions = self::permissionsAdded($consent, $manifest);
 
         $capabilities = array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? []));
 
@@ -202,7 +209,21 @@ final readonly class Consent
             'routes' => array_values(array_diff(self::routeLines($manifest), $consent['routes'] ?? [])),
             ...($insertionHosts === [] ? [] : ['insertionHosts' => $insertionHosts]),
             ...($imports === [] ? [] : ['imports' => $imports]),
+            ...($permissions === [] ? [] : ['permissions' => $permissions]),
         ];
+    }
+
+    /**
+     * The permission lines (PluginPermissions::consentLines) the manifest
+     * declares that were never agreed.
+     *
+     * @param  array{permissions?: list<string>}  $consent
+     *
+     * @return list<string>
+     */
+    public static function permissionsAdded(array $consent, Manifest $manifest): array
+    {
+        return array_values(array_diff(PluginPermissions::consentLines($manifest), (array) ($consent['permissions'] ?? [])));
     }
 
     /**
