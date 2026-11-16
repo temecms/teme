@@ -114,43 +114,103 @@ Each page states what `main` does today, from the code named. No page says a thi
 
 ## Records (the builder's)
 
+Setup log: `none`. Working directory: `/home/user/teme`. Built from `origin/main` at `9b29abb`, after the `chore/m0-kit-and-scripts` merge; step M-0 was already done, so `composer.json` is unchanged.
+
 ### Commits
+
+- `1dc3136` feat(docs): generate the contracts reference with teme:docs:contracts
+- `27e9beb` docs(schema): describe every job, schedule and route key in the plugin manifest
+- `356513e` feat(testing): add teme/testing, a kit for testing plugins and themes
+- `187f8a1` test(docs): test the handbook's examples with the testing kit
+- `35b02d9` docs(handbook): bring the plugin pages up to main, and test with the kit
+- this commit: docs(plans): handbook pass 1's records
 
 ### Each test seen red (first failure line)
 
+- Task 1, `tests/Feature/Console/GenerateContractsReferenceTest.php`: `The command "teme:docs:contracts" does not exist.`
+- Task 2, `tests/Feature/Console/GenerateManifestReferenceTest.php`: `jobs[].tries` has no description, and both schemas' root description carried `(I-3187)`; 3 failed.
+- Task 3, `tests/Feature/Testing/*`: `The class or trait [Teme\Testing\InteractsWithTeme] could not be found.`
+- Task 4, the first plugin's own test: `No tests found.` before the Feature suite named its folder, then 1 passed.
+- Task 5, `DeveloperPagesTest` "tells no reader that something lands later": failed on `lands` in `plugins/jobs.md`.
+
 ### Gate
+
+- Quick checks after each task: Pint, PHPStan, the Architecture suite, and the touched tests (`tests/Feature/Plugins` 597 passed, `tests/Feature/Guides/Developers` 223 passed, `tests/Feature/Testing` 26 passed, the two console generator tests 6 and 6 passed).
+- Full `composer check` at the end: Pint passed; PHPStan no errors; Architecture 139 passed (1,358 assertions); Unit and Feature 11,780 passed, 2 skipped (60,615 assertions).
+- Baseline counts, before and after: `AdminWordsTest` 876 and 876; `DesignSystemTest` contrast 144 and 144. No baseline line added.
 
 ### Contract changes (docblocks and schema only)
 
+- `packages/teme-contracts`: docblocks and `@since` tags only; no signature, case or constant changed.
+- `teme-plugin.schema.json`: a description on every job, schedule and route key; the route keys core already reads (`when`, `verify`, `cache`, `maxBody`, `throttle`, `where`) are now declared; internal labels removed from descriptions.
+- `teme-theme.schema.json`: the root description no longer carries an internal label.
+
 ### `@since` added where none existed
+
+- `Operation` and `execute()`, `OperationInput` and `actorId()`: 0.1.0.
+- `SettingType`, its first ten cases: 0.1.0.
+- `Capability::ContentRead`, `MediaRead`, `Http`: 0.5.0; its other eight cases: 0.9.0.
+- `ImportOutcome::IMPORTED`, `SKIPPED`, `FAILED` and `WordPressRecord::POST`, `USER`, `TERM`: 0.9.0.
 
 ### Issues drafted for the maintainers to file
 
+1. A plugin's `lang` folder is never loaded, so its own words can't be translated.
+2. A public route's handler is built with none of the plugin's doors.
+3. An untagged checkout reports Teme 0.1.0, so a plugin requiring `^0.9` is refused on a development site unless `TEME_VERSION` is set.
+4. A listener's failure is reported but never counted, and a failing plugin is never set aside.
+5. `plugins/insertions.md` still says insertions join main with v1 and names Teme 0.8.0; it was outside this part's files.
+6. Several contracts docblocks carry internal labels (a study letter, spec section numbers, phase numbers), which now show in `docs/reference/contracts.md`.
+7. Pest's browser plugin adds `visit()` to every test class, so no testing helper can be named `visit`.
+8. Enabling a plugin from the console records no person, so its schedules are skipped (existing issue 334).
+
 ### B-?? (draft)
 
-- B-01:
-- B-02:
-- B-03:
-- B-04:
-- B-05:
-- B-06:
-- B-07:
-- B-08:
-- B-09:
-- B-10:
-- B-11:
-- B-12:
-- B-13:
-- B-14:
-- B-15:
-- B-16:
-- B-17:
-- B-18:
-- B-19:
-- B-20:
+- B-01: `@since` for undated members. Options: leave them undated, or date them from the changelog and tags. Chose the changelog and tags (history is squashed; the tags are `v0.7.0-alpha.2` and `v0.8.0-alpha.1`), and the generator now fails on any member without one. Commit `1dc3136`.
+- B-02: the examples required `^0.8`, which the kit's version 0.9.0 doesn't satisfy. Options: report the kit as 0.8, or move the examples to `^0.9`. Chose `^0.9`, and updated the quote in `start/first-theme.md`, which wasn't in the Changed list. Commits `187f8a1`, `35b02d9`.
+- B-03: the kit's `visit()` collides fatally with Pest's browser plugin. Options: drop the browser plugin, or rename. Chose `fetch()`; Settled item 7 names `visit`, so the maintainers should confirm the name. Commit `356513e`.
+- B-04: the kit's own tests can't use `TemeTestCase` inside `tests/Feature`, where Pest refuses a second test case. Chose `Tests\TestCase` with `RefreshDatabase` and the `InteractsWithTeme` trait; `TemeTestCase` is that same trait over the same base. Commit `356513e`.
+- B-05: a plugin is given its host resolver when it is built, and a settings group can't be registered twice, so a restart can't swap it. Chose to bind the public resolver when the kit sets up, and to fake HTTP only in `outbound()`. Commit `356513e`.
+- B-06: starting a plugin enabled mid-test. Chose to load only the new plugin, passing the running ones through the disabled switch for that load; `disable()` forgets the plugin's subscriptions. Disabling and enabling one plugin in a single test doesn't start it twice. Commit `356513e`.
+- B-07: the `hello` fixture's listener leaves nothing a test can see. Fixtures aren't this part's files, so the kit's tests use the `contributor` fixture. Commit `356513e`.
+- B-08: two edits outside the Owns list, each forced by a planned change: a `ManifestSchemaTest` assertion on a description's wording, and the theme schema's root description. Commit `27e9beb`.
+- B-09: `TemeTestCase` always uses `RefreshDatabase`, so the planned database-trait guard has nothing to guard; `ExamplesTest` now proves an example works by `plugin()` failing when it doesn't, and enables through `EnablePlugin` rather than the console. Commits `356513e`, `187f8a1`.
+- B-10: the paragraph on Teme's own plugins was left out: main has no `plugins/` folder. Commit `35b02d9`.
+- B-11: the README's Contracts row and the for-agents line went in with Task 5, not Task 1, since each file is staged whole. Commit `35b02d9`.
+- B-12: `llms.txt` was regenerated in Task 5 so that commit stays green. Commit `35b02d9`.
+- B-13: no full `composer check` before building, as the brief asks for one at the end; the baseline counts were read from their files. No commit.
+- B-14: the review's suggested fix for finding 1, starting the plugin again through the loader, fails with `Settings group [plugin.contributor] is already registered.`: what a plugin adds to the admin can't be removed or added twice in one process. Options: change core's registries, or have the kit subscribe the still-held plugin's hooks again, as the loader does. Chose the kit, so no core file changes; the kit now also fails the test when the loader recorded a failure for a plugin it still lists as running. Commit `11baecc`.
+- B-15 to B-20: not used.
 
 ### STOP
 
+None.
+
 ### Changelog lines for the maintainers
 
+- `teme:docs:contracts` writes `docs/reference/contracts.md`: every contract with its Since, and what a plugin's constructor may ask for.
+- `teme/testing` (`packages/teme-testing`): a kit for testing plugins and themes against a real Teme site; documented, not covered by semver before 1.0.
+- The plugin manifest schema describes every job, schedule and route key, and declares the route keys core reads.
+- The developer handbook covers jobs, schedules, public routes, writing content, the import socket and a plugin's own tables; the handbook examples require Teme `^0.9`.
+
 ### How to try it
+
+- `php artisan teme:docs:contracts`, then read `docs/reference/contracts.md`.
+- `php artisan test docs/guides/developers/examples/plugins/first-plugin/tests` runs the first plugin's own test through the kit.
+- `php artisan test tests/Feature/Testing` runs the kit's own tests.
+- Read `docs/guides/developers/testing.md` and `docs/guides/developers/plugins/tables.md`.
+
+### Follow-up R1
+
+Fixed the review's three IMPORTANT findings; the LATER ones are left for the maintainers to file.
+
+- `11baecc` fix(testing): hear a plugin's hooks again when it is enabled after being disabled (finding 1, B-14).
+- `e29c8b4` test(docs): enable the first-plugin example with the command its page names (finding 2).
+- `812aa84` docs(handbook): say a public route's cache lifetime is at most 60 seconds, and 60 by default (finding 3).
+
+Each test seen red:
+
+- Finding 1, `tests/Feature/Testing/PluginsTest.php` "starts a plugin again when it is enabled after being disabled": `Expected 1 matching request(s) sent; 0 were.`
+- Finding 2, `tests/Feature/Guides/Developers/ExamplesTest.php` "enables the first-plugin example with the command its page tells readers to run": it restores an assertion on behavior that already worked, so it passed at once; with the name changed for a moment it failed with `Expected status code 0 but received 1.`, then the name was put back.
+- Finding 3 is wording only, with no behavior to test.
+
+Gate: full `composer check` passed. Pint passed; PHPStan no errors; Architecture 139 passed (1,358 assertions); Unit and Feature 11,782 passed, 2 skipped (60,617 assertions). Baselines unchanged: 876 and 144.

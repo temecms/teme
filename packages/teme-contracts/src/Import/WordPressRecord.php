@@ -12,13 +12,25 @@ namespace Teme\Contracts\Import;
  */
 final readonly class WordPressRecord
 {
-    /** A post of a declared post type. */
+    /**
+     * A post of a declared post type.
+     *
+     * @since 0.9.0
+     */
     public const string POST = 'post';
 
-    /** A person's declared meta. */
+    /**
+     * A person's declared meta.
+     *
+     * @since 0.9.0
+     */
     public const string USER = 'user';
 
-    /** A term's declared meta. */
+    /**
+     * A term's declared meta.
+     *
+     * @since 0.9.0
+     */
     public const string TERM = 'term';
 
     /**

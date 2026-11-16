@@ -154,28 +154,32 @@ final class DeveloperGuide
     }
 
     /**
-     * Every class, interface and enum basename under teme-contracts.
+     * Every class, interface, trait and enum basename under teme-contracts
+     * and the testing kit, teme/testing.
      *
      * @return list<string>
      */
     public static function contractBasenames(): array
     {
-        $root = GuideFile::root().'/packages/teme-contracts/src';
         $found = [];
 
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) as $file) {
-            if ($file->getExtension() !== 'php') {
-                continue;
+        foreach (['packages/teme-contracts/src' => 'Teme\\Contracts\\', 'packages/teme-testing/src' => 'Teme\\Testing\\'] as $folder => $namespace) {
+            $root = GuideFile::root().'/'.$folder;
+
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS)) as $file) {
+                if ($file->getExtension() !== 'php') {
+                    continue;
+                }
+
+                $relative = substr($file->getPathname(), strlen($root) + 1, -4);
+                $class = $namespace.str_replace(['/', '\\'], '\\', $relative);
+
+                if (! class_exists($class) && ! interface_exists($class) && ! enum_exists($class) && ! trait_exists($class)) {
+                    continue;
+                }
+
+                $found[] = class_basename($class);
             }
-
-            $relative = substr($file->getPathname(), strlen($root) + 1, -4);
-            $class = 'Teme\\Contracts\\'.str_replace(['/', '\\'], '\\', $relative);
-
-            if (! class_exists($class) && ! interface_exists($class) && ! enum_exists($class)) {
-                continue;
-            }
-
-            $found[] = class_basename($class);
         }
 
         return array_values(array_unique($found));

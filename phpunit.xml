@@ -10,6 +10,7 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <directory>docs/guides/developers/examples/plugins/first-plugin/tests</directory>
         </testsuite>
         <testsuite name="Architecture">
             <directory>tests/Architecture</directory>
