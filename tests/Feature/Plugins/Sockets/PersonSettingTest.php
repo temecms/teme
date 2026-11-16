@@ -5,9 +5,16 @@ declare(strict_types=1);
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Contributions\DeclaredSettings;
 use App\Domain\Plugins\Doors\PluginDoors;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\WritePluginSettingsInput;
+use App\Domain\Plugins\Operations\WritePluginSettings;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\Operations\UpdateSettings;
 use App\Domain\Settings\SettingsRegistry;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,4 +64,31 @@ it('refuses a person with no account, writing nothing', function (): void {
         ->toThrow(ValidationException::class);
 
     expect(DB::table('settings')->where('group_key', 'plugin.librarian')->exists())->toBeFalse();
+});
+
+it('refuses a plugin choosing its own person setting, writing nothing', function (): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+    PluginFixtures::use('librarian');
+    PluginFixtures::installed(['tests/librarian' => 'librarian']);
+    $manifest = app(PluginRegistry::class)->find('tests/librarian')?->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput(
+        'tests/librarian',
+        $manifest?->version() ?? '1.0.0',
+        $manifest?->capabilities() ?? [],
+        $manifest?->hosts() ?? [],
+        $manifest?->hooks() ?? [],
+        (string) $this->admin->id,
+    ));
+    $writer = User::factory()->create()->assignRole('author');
+
+    try {
+        app(WritePluginSettings::class)->execute(new WritePluginSettingsInput('librarian', ['byline' => (string) $writer->id], (string) $this->admin->id));
+        $this->fail('The write was not refused.');
+    } catch (ValidationException $refused) {
+        expect($refused->errors()['values.byline'] ?? [])->toBe(['A plugin can’t choose a person for itself.']);
+    }
+
+    expect(DB::table('settings')->where('group_key', 'plugin.librarian')->exists())->toBeFalse();
+
+    PluginFixtures::forget();
 });
