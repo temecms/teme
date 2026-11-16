@@ -83,6 +83,6 @@ final readonly class PluginAreas
             }
         }
 
-        return new AreaPlugin($name, $code, $manifest->label(), DeclaredArea::from($area), $data instanceof PluginArea ? $data : null);
+        return new AreaPlugin($name, $code, AreaWords::text($code, $manifest->label()), DeclaredArea::from($area), $data instanceof PluginArea ? $data : null);
     }
 }

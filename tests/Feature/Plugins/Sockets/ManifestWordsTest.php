@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Navigation\Queries\AdminNavigation;
 use App\Domain\Navigation\ToolsHub;
 use App\Domain\Plugins\Columns\PluginColumns;
 use App\Domain\Plugins\Contributions\ToolLinks;
@@ -12,6 +13,8 @@ use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\Queries\PluginAreaScreen;
+use App\Domain\Plugins\Queries\PluginRecordForm;
 use App\Domain\Plugins\Queries\PluginsScreen;
 use App\Domain\Settings\Queries\SettingsForm;
 use App\Domain\Settings\Queries\SettingsNavigation;
@@ -20,13 +23,14 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Fixtures\Plugins\Placard\PlacardArea;
 use Tests\Fixtures\Plugins\PluginFixtures;
 use Tests\Fixtures\Plugins\Workbench\Workbench;
 
 uses(RefreshDatabase::class);
 
 // The fixture's classes, loaded before a test resets them.
-foreach (glob(dirname(__DIR__, 3).'/Fixtures/plugins/workbench/src/*.php') ?: [] as $file) {
+foreach ([...(glob(dirname(__DIR__, 3).'/Fixtures/plugins/workbench/src/*.php') ?: []), ...(glob(dirname(__DIR__, 3).'/Fixtures/plugins/placard/src/*.php') ?: [])] as $file) {
     require_once $file;
 }
 
@@ -149,4 +153,29 @@ it('heads a plugin’s list columns in its Spanish words', function (): void {
     expect($columns['score']->label)->toBe('Puntuación SEO')
         ->and($columns['score']->plugin)->toBe('Columnas')
         ->and($columns['views']->label)->toBe('Views');
+});
+
+it('shows a plugin’s area in its Spanish words: its menu entry, its pages and a record’s form', function (): void {
+    PlacardArea::reset();
+    PluginFixtures::use(PluginFixtures::copy('placard', files: [
+        'lang/es.json' => json_encode(['Placard' => 'Cartel', 'Overview' => 'Resumen', 'Ad' => 'Anuncio', 'Basics' => 'Lo básico', 'Name' => 'Nombre'], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+    ]));
+    app()->instance(LoadedPlugins::class, new LoadedPlugins);
+    $manifest = app(PluginRegistry::class)->find('tests/placard')?->manifest;
+    app(EnablePlugin::class)->execute(new EnablePluginInput('tests/placard', '1.0.0', $manifest?->capabilities() ?? [], [], [], null));
+    app(PluginLoader::class)->load();
+    app()->setLocale('es');
+
+    $entry = collect(app(AdminNavigation::class)->forUser($this->admin->id))->firstWhere('key', 'plugin.placard');
+    $screen = app(PluginAreaScreen::class);
+    $plugin = $screen->plugin('placard', $this->admin);
+    $form = $plugin === null ? null : app(PluginRecordForm::class)->find($plugin, 'ad', null, (string) $this->admin->id);
+
+    expect($entry['label'] ?? null)->toBe('Cartel')
+        ->and(array_column($plugin === null ? [] : ($screen->frame($plugin, null)['tabs'] ?? []), 'label'))->toBe(['Resumen', 'Ads'])
+        ->and($form['record']['label'] ?? null)->toBe('Anuncio')
+        ->and($form['sections'][0]['label'] ?? null)->toBe('Lo básico')
+        ->and($form['sections'][0]['fields'][0]['label'] ?? null)->toBe('Nombre');
+
+    PlacardArea::reset();
 });
