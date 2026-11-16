@@ -27,8 +27,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Carries out the open update one pass at a time (I-3326): each pass reads the request's row, moves one step at most
  * one state, and records it, so a restarted updater carries on from the row. It moves the service through the
- * platform with one deploy, watches each part, and switches back by deploying the old image when the new release
- * isn't healthy.
+ * platform with one deploy, its image and, when the release brings one, its compose file together, watches each
+ * part, and switches back by deploying the old image and file when the new release isn't healthy.
  */
 final readonly class UpdateRunner
 {
@@ -53,6 +53,7 @@ final readonly class UpdateRunner
         private RecordTemeUpdateStep $record,
         private EndTemeUpdate $end,
         private SiteQuiet $quiet,
+        private ComposeTemplate $template,
     ) {}
 
     /**
@@ -273,19 +274,56 @@ final readonly class UpdateRunner
         }
 
         $image = ImageName::for($update->to);
+        // Decided before anything is changed: a refusal here leaves the service as it was.
+        $compose = $this->composeChange();
         $mark = DB::table('deploy_runs')->max('finished_at');
-        $this->record($update, UpdateStep::Deploy, UpdateStep::STARTED, $detail, runsAfter: $mark === null ? null : CarbonImmutable::parse((string) $mark)->format('Y-m-d\TH:i:s.uP'), mark: $latest?->id);
+        $this->record($update, UpdateStep::Deploy, UpdateStep::STARTED, $detail, runsAfter: $mark === null ? null : CarbonImmutable::parse((string) $mark)->format('Y-m-d\TH:i:s.uP'), mark: $latest?->id, compose: $compose['old'] ?? null);
 
         try {
             $this->platform->setImage(ImageSetting::Site, $image);
+
+            if ($compose !== null) {
+                $this->platform->setCompose($compose['new']);
+            }
         } catch (PlatformRefused $refused) {
-            // Nothing was deployed, so the containers are the old ones: the setting goes back, and the update ends.
-            $this->abandon($update, $refused->getMessage());
+            // Nothing was deployed, so the containers are the old ones: the settings go back, and the update ends.
+            $this->abandon($update, $refused->getMessage(), $compose['old'] ?? null);
 
             return;
         }
 
         $this->platform->deploy("Teme {$update->to}");
+    }
+
+    /**
+     * The compose file the deploy brings, with the one it replaces, or null when the service keeps its own: Dokploy
+     * takes the file from Git, or the file is the template's current one already. The service's file is replaced
+     * only when the template's list names it as released, and only by the template's current file.
+     *
+     * @return array{old: string, new: string}|null
+     *
+     * @throws PlatformRefused
+     */
+    private function composeChange(): ?array
+    {
+        $current = $this->platform->compose();
+
+        if ($current->fromGit) {
+            return null;
+        }
+
+        $hashes = $this->template->hashes();
+        $hash = ComposeHash::of($current->text);
+
+        if ($hash === $hashes['current']) {
+            return null;
+        }
+
+        if (! in_array($hash, $hashes['released'], true)) {
+            throw new PlatformRefused("This site’s compose file was edited on the server, so it can’t be updated automatically. Paste the new template from {$this->template->composeAddress()}, then update.");
+        }
+
+        return ['old' => $current->text, 'new' => $this->template->current($hashes['current'])];
     }
 
     /**
@@ -540,8 +578,24 @@ final readonly class UpdateRunner
         }
 
         $this->record($update, UpdateStep::Deploy, UpdateStep::STARTED, mark: $latest?->id);
-        $this->platform->setImage(ImageSetting::Site, ImageName::for($update->from));
+        $this->putBack($update, $entry);
         $this->platform->deploy("Teme {$update->from}, switched back");
+    }
+
+    /**
+     * Sets the old image, and the compose file the deploy step replaced, back on the platform; deploys nothing.
+     *
+     * @param  array<string, mixed>  $entry  the deploy step's record
+     *
+     * @throws PlatformRefused
+     */
+    private function putBack(TemeUpdate $update, array $entry): void
+    {
+        $this->platform->setImage(ImageSetting::Site, ImageName::for($update->from));
+
+        if (is_string($entry['compose'] ?? null)) {
+            $this->platform->setCompose($entry['compose']);
+        }
     }
 
     /**
@@ -557,7 +611,7 @@ final readonly class UpdateRunner
                 $this->switchBackFailed($update, 'the service didn’t finish deploying within 15 minutes');
             } elseif ($this->mayAskAgain($entry)) {
                 $this->record($update, UpdateStep::Deploy, UpdateStep::STARTED, $entry['detail'] ?? null, asks: 2);
-                $this->platform->setImage(ImageSetting::Site, ImageName::for($update->from));
+                $this->putBack($update, $entry);
                 $this->platform->deploy("Teme {$update->from}, switched back");
             }
 
@@ -733,13 +787,13 @@ final readonly class UpdateRunner
     }
 
     /**
-     * Ends a request whose first ask for the deploy was refused at the image setting: the setting goes back to the
-     * old image without a deploy, since nothing was deployed, and the update ends failed.
+     * Ends a request whose first ask for the deploy was refused at the image setting or the compose file: both go
+     * back as they were without a deploy, since nothing was deployed, and the update ends failed.
      */
-    private function abandon(TemeUpdate $update, string $reason): void
+    private function abandon(TemeUpdate $update, string $reason, ?string $compose = null): void
     {
         try {
-            $this->platform->setImage(ImageSetting::Site, ImageName::for($update->from));
+            $this->putBack($update, ['compose' => $compose]);
         } catch (PlatformRefused) {
             // The platform is what failed: the reason is already the one to show.
         }
@@ -752,12 +806,12 @@ final readonly class UpdateRunner
         $this->end->execute(new EndTemeUpdateInput($update->id, $status, $error));
     }
 
-    private function record(TemeUpdate $update, UpdateStep $step, string $state, ?string $detail = null, ?string $backupRunId = null, ?string $deployRunId = null, ?int $asks = null, ?string $runsAfter = null, ?string $mark = null): void
+    private function record(TemeUpdate $update, UpdateStep $step, string $state, ?string $detail = null, ?string $backupRunId = null, ?string $deployRunId = null, ?int $asks = null, ?string $runsAfter = null, ?string $mark = null, ?string $compose = null): void
     {
         // A step that starts from another state has asked the platform once, as its record is made.
         $asks ??= $state === UpdateStep::STARTED && $update->state($step) !== UpdateStep::STARTED ? 1 : null;
 
-        $this->record->execute(new RecordTemeUpdateStepInput($update->id, $step, $state, $detail, $backupRunId, $deployRunId, $asks, $runsAfter, $mark));
+        $this->record->execute(new RecordTemeUpdateStepInput($update->id, $step, $state, $detail, $backupRunId, $deployRunId, $asks, $runsAfter, $mark, compose: $compose));
     }
 
     /**

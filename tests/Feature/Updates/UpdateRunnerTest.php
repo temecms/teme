@@ -12,6 +12,7 @@ use App\Domain\Updates\Queries\SiteQuiet;
 use App\Domain\Updates\Queries\TemeUpdates;
 use App\Domain\Updates\Requests\UpdateKind;
 use App\Domain\Updates\TemeVersion;
+use App\Domain\Updates\Updater\ComposeHash;
 use App\Domain\Updates\Updater\NoPlatform;
 use App\Domain\Updates\Updater\PartHealth;
 use App\Domain\Updates\Updater\Platform;
@@ -22,6 +23,7 @@ use Carbon\CarbonImmutable;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -33,6 +35,10 @@ use Tests\Fixtures\Updates\FakePlatform;
 uses(RefreshDatabase::class);
 
 const UR_IMAGE = 'ghcr.io/temecms/teme';
+
+const UR_HASHES = 'https://templates.example.org/main/compose-hashes.json';
+
+const UR_TEMPLATE = 'https://templates.example.org/main/blueprints/teme/docker-compose.yml';
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
@@ -53,11 +59,20 @@ beforeEach(function (): void {
     app()->instance(Platform::class, $this->platform);
     $this->site = '0.1.0-rc.14';
 
-    // GitHub's answer and the site's /up, on a fresh client: a test may swap the list GitHub gives.
+    // The template's list of released compose files, and the file it serves: by default, the service's own file is current.
+    config(['teme.updater.dokploy.compose_hashes_url' => UR_HASHES]);
+    $this->hashes = fn (): Response|GuzzleHttp\Promise\PromiseInterface => Http::response(['format' => 1, 'current' => ComposeHash::of($this->platform->compose), 'released' => [ComposeHash::of($this->platform->compose)]]);
+    $this->served = null;
+
+    // GitHub's answer, the site's /up and the template's files, on a fresh client: a test may swap the list GitHub gives.
     $this->fakeHttp = function (array $releases): void {
         Http::swap(new Factory);
         updFake(Http::response(array_map(fn (string|array $release): array => is_array($release) ? updItem($release[0], $release[1]) : updItem($release), $releases), 200));
-        Http::fake(['https://example.org/up' => fn () => Http::response('', $this->site === null ? 503 : 200, $this->site === null ? [] : ['X-Teme-Version' => $this->site])]);
+        Http::fake([
+            'https://example.org/up' => fn () => Http::response('', $this->site === null ? 503 : 200, $this->site === null ? [] : ['X-Teme-Version' => $this->site]),
+            UR_HASHES => fn () => ($this->hashes)(),
+            UR_TEMPLATE => fn () => Http::response((string) $this->served, $this->served === null ? 404 : 200),
+        ]);
     };
     ($this->fakeHttp)(['0.1.0-rc.15', '0.1.0-rc.14']);
 
@@ -921,4 +936,154 @@ it('refuses a version with a trailing newline, which a pattern without D lets th
 it('holds its version pattern to the one TemeVersion keeps, apart from the modifier', function (): void {
     expect(substr(ImageName::VERSION, 0, -1))->toBe(TemeVersion::PATTERN)
         ->and(substr(ImageName::VERSION, -1))->toBe('D');
+});
+
+/*
+ * The compose file: the template repository lists, in compose-hashes.json, the
+ * hash of its current Dokploy compose file and of every one it has released.
+ * The updater replaces the service's file only when it is one of those, in the
+ * same deploy as the image, and only with the current one.
+ */
+
+const UR_OLD_COMPOSE = "services:\n  web:\n    image: \${TEME_IMAGE:?set it}\n";
+const UR_NEW_COMPOSE = "services:\n  web:\n    image: \${TEME_IMAGE:?set it}\n    init: true\n";
+const UR_EDITED_COMPOSE = "services:\n  web:\n    image: \${TEME_IMAGE:?set it}\n    ports: ['80:8080']\n";
+
+/** The template's list: UR_NEW_COMPOSE current, UR_OLD_COMPOSE released before it; and the file the template serves. */
+function urTemplate(object $test, string $served = UR_NEW_COMPOSE): void
+{
+    $test->hashes = fn () => Http::response(['format' => 1, 'current' => ComposeHash::of(UR_NEW_COMPOSE), 'released' => [ComposeHash::of(UR_OLD_COMPOSE), ComposeHash::of(UR_NEW_COMPOSE)]]);
+    $test->served = $served;
+}
+
+it('replaces a compose file the template released with its current one, in the one deploy that moves the image', function (): void {
+    $this->platform->compose = UR_OLD_COMPOSE;
+    urTemplate($this);
+    ($this->request)();
+    $this->site = '0.1.0-rc.15';
+    ($this->tick)();
+    ($this->deployRecorded)('0.1.0-rc.15');
+    ($this->ticks)(20);
+
+    expect(($this->row)()->status)->toBe('done')
+        ->and($this->platform->compose)->toBe(UR_NEW_COMPOSE)
+        ->and(array_slice($this->platform->calls, 0, 3))->toBe([
+            "setImage TEME_IMAGE {$this->new}", 'setCompose '.substr(ComposeHash::of(UR_NEW_COMPOSE), 0, 12), 'deploy Teme 0.1.0-rc.15',
+        ]);
+    Http::assertSent(fn ($request): bool => $request->url() === UR_TEMPLATE);
+});
+
+it('refuses a compose file edited on the server, says what to do, and changes nothing', function (): void {
+    $this->platform->compose = UR_EDITED_COMPOSE;
+    urTemplate($this);
+    ($this->request)();
+    ($this->ticks)(3);
+
+    $row = ($this->row)();
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toBe('This site’s compose file was edited on the server, so it can’t be updated automatically. Paste the new template from '.UR_TEMPLATE.', then update.')
+        ->and($this->platform->calls)->toBe([])
+        ->and($this->platform->compose)->toBe(UR_EDITED_COMPOSE)
+        ->and($this->platform->images['TEME_IMAGE'])->toBe($this->old);
+});
+
+it('refuses, and changes nothing, when the list of released compose files can’t be read', function (callable $answer): void {
+    $this->platform->compose = UR_OLD_COMPOSE;
+    $this->hashes = $answer;
+    ($this->request)();
+    ($this->ticks)(3);
+
+    expect(($this->row)()->status)->toBe('failed')
+        ->and(($this->row)()->error)->toBe('Teme couldn’t read the list of released compose files at '.UR_HASHES.', so nothing was changed.')
+        ->and($this->platform->calls)->toBe([])
+        ->and($this->platform->compose)->toBe(UR_OLD_COMPOSE);
+})->with([
+    'not there' => [fn () => Http::response('', 404)],
+    'not JSON' => [fn () => Http::response('not json', 200)],
+    'no current file' => [fn () => Http::response(['format' => 1, 'released' => []])],
+    'a hash that isn’t one' => [fn () => Http::response(['format' => 1, 'current' => 'abc', 'released' => ['abc']])],
+]);
+
+it('refuses a file the template serves that isn’t its current one, and changes nothing', function (): void {
+    $this->platform->compose = UR_OLD_COMPOSE;
+    urTemplate($this, UR_EDITED_COMPOSE);
+    ($this->request)();
+    ($this->ticks)(3);
+
+    expect(($this->row)()->status)->toBe('failed')
+        ->and(($this->row)()->error)->toBe('The template served a compose file at '.UR_TEMPLATE.' that its list doesn’t name as current, so nothing was changed.')
+        ->and($this->platform->calls)->toBe([])
+        ->and($this->platform->compose)->toBe(UR_OLD_COMPOSE);
+});
+
+it('changes only the image when the compose file is the current one already, and fetches no file', function (): void {
+    $this->platform->compose = UR_NEW_COMPOSE;
+    urTemplate($this);
+    ($this->request)();
+    ($this->tick)();
+
+    expect(array_slice($this->platform->calls, 0, 2))->toBe(["setImage TEME_IMAGE {$this->new}", 'deploy Teme 0.1.0-rc.15']);
+    Http::assertNotSent(fn ($request): bool => $request->url() === UR_TEMPLATE);
+});
+
+it('leaves a compose file Dokploy reads from Git to Dokploy’s Pull, changes only the image, and reads no list', function (): void {
+    $this->platform->compose = UR_EDITED_COMPOSE;
+    $this->platform->composeFromGit = true;
+    urTemplate($this);
+    ($this->request)();
+    ($this->tick)();
+
+    expect(array_slice($this->platform->calls, 0, 2))->toBe(["setImage TEME_IMAGE {$this->new}", 'deploy Teme 0.1.0-rc.15'])
+        ->and($this->platform->compose)->toBe(UR_EDITED_COMPOSE);
+    Http::assertNotSent(fn ($request): bool => in_array($request->url(), [UR_HASHES, UR_TEMPLATE], true));
+});
+
+it('reads the list only from an https address', function (): void {
+    config(['teme.updater.dokploy.compose_hashes_url' => 'http://templates.example.org/compose-hashes.json']);
+    $this->platform->compose = UR_OLD_COMPOSE;
+    ($this->request)();
+    ($this->ticks)(3);
+
+    expect(($this->row)()->error)->toBe('TEME_DOKPLOY_COMPOSE_HASHES_URL must be an https:// address of a compose-hashes.json, so nothing was changed.')
+        ->and($this->platform->calls)->toBe([]);
+});
+
+it('switches back to the old image and the old compose file in one deploy', function (): void {
+    $this->platform->compose = UR_OLD_COMPOSE;
+    urTemplate($this);
+    ($this->request)();
+    ($this->tick)();
+    ($this->deployRecorded)('0.1.0-rc.15');
+    $this->site = '0.1.0-rc.14';
+    ($this->ticks)(2);
+    $this->travel(16)->minutes();
+    ($this->ticks)(8);
+
+    expect(($this->row)()->status)->toBe('switched_back')
+        ->and($this->platform->images['TEME_IMAGE'])->toBe($this->old)
+        ->and($this->platform->compose)->toBe(UR_OLD_COMPOSE)
+        ->and(array_slice($this->platform->calls, -3))->toBe([
+            "setImage TEME_IMAGE {$this->old}", 'setCompose '.substr(ComposeHash::of(UR_OLD_COMPOSE), 0, 12), 'deploy Teme 0.1.0-rc.14, switched back',
+        ]);
+});
+
+it('puts the image and the compose file back when Dokploy refuses the new compose file, and deploys nothing', function (): void {
+    $this->platform->compose = UR_OLD_COMPOSE;
+    $this->platform->refuseCompose = new PlatformRefused('Dokploy refused the compose file.');
+    urTemplate($this);
+    ($this->request)();
+    ($this->tick)();
+
+    expect(($this->row)()->status)->toBe('failed')
+        ->and(($this->row)()->error)->toBe('Dokploy refused the compose file.')
+        ->and($this->platform->images['TEME_IMAGE'])->toBe($this->old)
+        ->and($this->platform->compose)->toBe(UR_OLD_COMPOSE)
+        ->and(($this->deployCalls)())->toBe([]);
+});
+
+it('hashes a compose file as the template repository does, whatever its line endings', function (): void {
+    expect(ComposeHash::of("a: 1\r\nb: 2\r\n\r\n"))->toBe(ComposeHash::of("a: 1\nb: 2\n"))
+        ->and(ComposeHash::of("a: 1\nb: 2"))->toBe(hash('sha256', "a: 1\nb: 2\n"))
+        ->and(ComposeHash::of("a: 1\n"))->not->toBe(ComposeHash::of("a: 2\n"));
 });
