@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
+use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
@@ -35,6 +36,7 @@ final readonly class PluginsScreen
         private PluginList $list,
         private PluginRegistry $registry,
         private PluginMigrations $migrations,
+        private ExtensionsScreen $extensions,
     ) {}
 
     /**
@@ -45,8 +47,20 @@ final readonly class PluginsScreen
     public function rows(): array
     {
         $records = PluginRecord::query()->get()->keyBy('name');
+        $rows = $this->list->all();
+        $paths = [];
 
-        return array_map(function (PluginRow $row) use ($records): array {
+        foreach ($rows as $row) {
+            $found = $this->registry->find($row->name);
+
+            if ($found !== null) {
+                $paths[$row->name] = $found->path;
+            }
+        }
+
+        $origins = $this->extensions->origins($paths);
+
+        return array_map(function (PluginRow $row) use ($records, $origins): array {
             $record = $records->get($row->name);
             $enabled = $record !== null && $record->state === PluginRecord::ENABLED;
             $hosts = $row->asks['hosts'];
@@ -91,8 +105,11 @@ final readonly class PluginsScreen
                 'tables' => $tables,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables left.
                 'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
+                // Installed from the admin, or part of the site's build (I-211).
+                'origin' => $origins[$row->name]['origin'] ?? 'image',
+                'source' => $origins[$row->name]['source'] ?? null,
             ];
-        }, $this->list->all());
+        }, $rows);
     }
 
     /**
