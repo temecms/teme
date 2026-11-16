@@ -130,7 +130,7 @@ final class RunPluginJob implements ShouldQueue
         ];
         self::configure($this, $declared);
 
-        $instance = $loader->instance($plugin, $record, $declared['long'] ? 300 : null, $declared['long'] ? PluginHttp::LONG_ANSWER_BYTES : null);
+        $instance = $loader->instance($plugin, $record, httpSeconds: $declared['long'] ? 300 : null, answerBytes: $declared['long'] ? PluginHttp::LONG_ANSWER_BYTES : null);
         $handler = $instance instanceof PluginHasJobs ? ($instance->jobs()[$this->jobKey] ?? null) : null;
 
         if ($handler === null) {

@@ -164,7 +164,7 @@ final readonly class PluginLoader
      */
     public function instance(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null, ?int $answerBytes = null): Plugin
     {
-        return $this->build($plugin, $record, $httpSeconds, $answerBytes);
+        return $this->build($plugin, $record, httpSeconds: $httpSeconds, answerBytes: $answerBytes);
     }
 
     /**
@@ -179,7 +179,7 @@ final readonly class PluginLoader
         $this->autoload($plugin, $class);
 
         $reflection = new ReflectionClass($class);
-        $services = $this->services->for($plugin->name, $plugin->code, $record->consent['capabilities'] ?? [], Consent::hosts($record->consent, $manifest), $httpSeconds, $answerBytes);
+        $services = $this->services->for($plugin->name, $plugin->code, $record->consent['capabilities'] ?? [], Consent::hosts($record->consent, $manifest), httpSeconds: $httpSeconds, answerBytes: $answerBytes);
         $arguments = [];
 
         foreach ($reflection->getConstructor()?->getParameters() ?? [] as $parameter) {

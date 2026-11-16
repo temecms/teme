@@ -43,8 +43,8 @@ beforeEach(function (): void {
         'jobs',
         ['http'],
         ['api.example.com'],
-        $long ? 300 : null,
-        $long ? PluginHttp::LONG_ANSWER_BYTES : null,
+        httpSeconds: $long ? 300 : null,
+        answerBytes: $long ? PluginHttp::LONG_ANSWER_BYTES : null,
     )[OutboundHttp::class];
 
     // The path names the answer's size in bytes; the jobs fixture's long call asks for /long, answered with 5 MB.
