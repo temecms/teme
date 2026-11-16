@@ -640,6 +640,25 @@ None.
 
 `php artisan test --compact tests/Feature/Extensions/Installer` (the `composer` group runs Composer against the fixture packages, with Packagist off). By hand: set `TEME_EXTENSIONS_PATH` to an empty folder, insert an `install` row in `extension_requests` for a package Composer can reach, and run `php artisan teme:installer --once`; then `ls -l "$TEME_EXTENSIONS_PATH"/current`.
 
+#### Follow-up R1
+
+The review's BLOCKING 1 and 2 and IMPORTANT 3, 4 and 5 are fixed. The LATER items are left for the maintainer.
+
+| Finding | Commit | Test seen red (first line of the failure) |
+|---|---|---|
+| 1. The rebuild after a Teme update never started | `d671122` | `PrepareTest` "rebuilds while the Teme update that started it is still running": `Failed asserting that 'Another request is open, so the installed plugins and themes wait to be rebuilt for this version of Teme.' is null.` |
+| 2. A theme's links were served by nginx | `a1f12be` | `StageValidatorTest` "refuses a package holding a link that points outside it": `Failed asserting that actual size 0 matches expected size 2.` `ThemeAssetsTest` "follows no link from a theme's files to a file the installer doesn't own": the `disable_symlinks` line was missing. |
+| 3. `/themes/` addresses that are no theme file gave a 404 | `d99f0f4` | `ThemeAssetsTest` "hands an address under /themes/ that is no theme's file to the site": no `try_files $uri @teme_app;`. |
+| 4. The start check ran outside the installer lock | `1089e25` | `RunInstallerTest` "waits for the installer lock before the start check": `Failed asserting that null is false.` (the check never waited) |
+| 5. Agreements were asked for again; the start loop repeated the check | `28e3efd` | `StageValidatorTest` "asks again only about packages the release that runs doesn't already hold": `Failed asserting that two arrays are identical.` `PrepareTest` "stops the start check … once the rebuild waits for an administrator": `Expected: fixtures/grows needs fixtures/core-lib ^1.0; this Teme has 2.0.0.` |
+
+- **Finding 1:** a rebuild skips the open-update check, both in `BeginExtensionRequest` and in the `checking` step. With no update check left on that path, `prepare()`'s "Another request is open" now appears only when another request is open; a second new test proves it.
+- **Finding 2:** `StageValidator::validate()` refuses any link in `vendor/<package>/` whose target, read as written or resolved on disk, lies outside that package. A link that stays inside is taken. `vendor/bin` belongs to no package, so it isn't checked. nginx's `@teme_extension_themes` gains `disable_symlinks if_not_owner from=/var/teme/extensions/current/public;`.
+- **Finding 3:** `@teme_extension_themes` ends with `try_files $uri @teme_app;`, and PHP under `/themes/` still answers 404.
+- **Finding 4, B-08 addendum (draft):** `prepare()` now runs while holding `teme.installer`, the same advisory lock every pass takes. It waits with `pg_try_advisory_lock` and a one-second sleep, and gives up only on SIGTERM. Options: a blocking `pg_advisory_lock`, which can't be stopped and hung the suite's lock test; or a waiting loop that can be stopped. Chose the loop. The plan's `flock(stage.lock)` from preparing through switching is **not** added. Every step, and the whole start-up rebuild, already runs under that one lock, so no two processes can work in a release at once. A second lock would guard nothing more. `RunInstallerTest`'s existing "takes no step while another installer holds the lock" now calls one `pass()` directly instead of `--once`, because `--once` starts with the start check, which now waits for that lock. What it proves is unchanged.
+- **Finding 5:** autoload-files dependencies and Composer plugins count as needs only when the running release's lock doesn't hold that name at that reference. The runner already passes the running release for every action. `prepare()` stops its loop when the rebuild waits, and says it waits for an administrator. The installer's loop takes up the waiting request as before. New fixture: `fixtures/grows` (1.0.0, and 1.1.0, which needs `fixtures/with-files`). `ExtensionsFolder::runner()` can take a Composer runner, so a test can count audits.
+- **Gate (R1):** `composer check` at `28e3efd`: Pint and PHPStan clean; Architecture 139 passed; Unit and Feature 11,685 passed, 3 skipped, 1 failed. The failure this time is `tests/Feature/Cache/TermAndPeoplePurgesTest` "purges the pages…" (line 138: `/lists-someone-else/` purged too). That file and `app/Domain/Cache` are unchanged from `6be0340`, no code of this part runs in it, and it passes alone three times in a row, so it is a flaky parallel run, left open. `DiscoveryTest`'s order-dependent failure from the first gate didn't happen this run, because the workers ran the tests in a different order.
+
 ### Part B — `installer/admin`
 
 #### Commits
