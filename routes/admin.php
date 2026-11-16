@@ -258,6 +258,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::middleware('can:site-code.manage')->group(function (): void {
             Route::get('settings/site-code', [SiteCodeController::class, 'show'])->name('settings.site-code');
             Route::post('settings/site-code', [SiteCodeController::class, 'store'])->name('settings.site-code.store');
+            Route::put('settings/site-code/ads-txt', [SiteCodeController::class, 'updateAdsTxt'])->name('settings.site-code.ads-txt');
             Route::put('settings/site-code/{entry}', [SiteCodeController::class, 'update'])
                 ->where('entry', '[0-9a-hjkmnp-tv-z]{26}')
                 ->name('settings.site-code.update');
@@ -441,6 +442,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             // A site's and a run's IDs are lower case (HasUlids, I-418).
             Route::get('{source}', [ImportScreenController::class, 'show'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('show');
             Route::post('{source}/analyze', [ImportSourceController::class, 'analyze'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('analyze');
+            Route::post('{source}/hosts', [ImportSourceController::class, 'hosts'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('hosts');
             Route::post('{source}/forget', [ImportSourceController::class, 'forget'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('forget');
             Route::post('{source}/start', [ImportRunController::class, 'start'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('start');
             Route::post('{source}/catch-up', [ImportRunController::class, 'catchUp'])->where('source', '[0-9a-hjkmnp-tv-z]{26}')->name('catch-up');

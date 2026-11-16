@@ -65,7 +65,7 @@ final class SiteLinks
         }
 
         $page = $this->site->pageOf($href);
-        $kept = $page === null ? (DocumentSchema::allowsHref($href) ? $href : null) : $this->page($page);
+        $kept = $page === null ? (DocumentSchema::allowsHref($href) ? $href : null) : $this->page($page, $href);
 
         if ($kept === null) {
             $this->report->count('link.removed');
@@ -109,6 +109,8 @@ final class SiteLinks
 
         if ($link === null) {
             $this->report->count('file.missing', '', basename(rawurldecode((string) parse_url($href, PHP_URL_PATH))));
+        } else {
+            $this->noteOtherHost($href, 'links.other-host');
         }
 
         return $link;
@@ -120,7 +122,7 @@ final class SiteLinks
      *
      * @param  array{path: string, query: string, place: string}  $page
      */
-    private function page(array $page): ?string
+    private function page(array $page, string $href): ?string
     {
         parse_str($page['query'], $vars);
         $later = self::later($page['path'], $vars);
@@ -128,6 +130,8 @@ final class SiteLinks
         $link = $target === null ? null : $this->byId($target['kind'], $target['id'], $page['place']);
 
         if ($link !== null) {
+            $this->noteOtherHost($href, 'links.other-host');
+
             return $link;
         }
 
@@ -139,9 +143,22 @@ final class SiteLinks
 
         if (! $later) {
             $this->pending[$path] = true;
+            $this->noteOtherHost($href, 'links.other-host');
         }
 
         return $path;
+    }
+
+    /**
+     * Counts a conversion from another old address of this site, by host.
+     */
+    private function noteOtherHost(string $href, string $code): void
+    {
+        $host = $this->site->hostOf($href);
+
+        if ($host !== null && $this->site->hostKind($host) === 'other') {
+            $this->report->count($code, $host);
+        }
     }
 
     /**

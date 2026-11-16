@@ -30,8 +30,8 @@ function fieldsDraft(User $author, array $fields): Content
 it('registers the five built-in fields for posts and pages', function (): void {
     $handles = fn (string $type): array => array_map(fn (Field $field): string => $field->handle, app(FieldRegistry::class)->forType($type));
 
-    expect($handles('post'))->toBe(['seo_title', 'meta_description', 'excerpt', 'canonical', 'noindex', 'featured_image', 'template', 'sticky', 'social_title', 'social_description', 'social_image', 'nosnippet', 'max_snippet', 'noarchive', 'primary_category', 'page_type', 'article_type'])
-        ->and($handles('page'))->toBe(['seo_title', 'meta_description', 'excerpt', 'canonical', 'noindex', 'featured_image', 'template', 'social_title', 'social_description', 'social_image', 'nosnippet', 'max_snippet', 'noarchive', 'primary_category', 'page_type', 'article_type']);
+    expect($handles('post'))->toBe(['seo_title', 'meta_description', 'excerpt', 'canonical', 'noindex', 'featured_image', 'template', 'sticky', 'social_title', 'social_description', 'social_image', 'nosnippet', 'max_snippet', 'noarchive', 'primary_category', 'page_type', 'article_type', 'insertions_off'])
+        ->and($handles('page'))->toBe(['seo_title', 'meta_description', 'excerpt', 'canonical', 'noindex', 'featured_image', 'template', 'social_title', 'social_description', 'social_image', 'nosnippet', 'max_snippet', 'noarchive', 'primary_category', 'page_type', 'article_type', 'insertions_off']);
 });
 
 it('stores fields under their key, trimmed and typed', function (): void {

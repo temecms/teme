@@ -1,0 +1,12 @@
+{
+    "blocks": [
+        {
+            "blockName": "yoast-seo/table-of-contents",
+            "attrs": {},
+            "innerBlocks": [],
+            "innerHTML": "<div class=\"wp-block-yoast-seo-table-of-contents yoast-table-of-contents\"><h2>Table of contents</h2><ul><li><a href=\"#a\">Where boats go</a></li></ul></div>",
+            "innerContent": ["<div class=\"wp-block-yoast-seo-table-of-contents yoast-table-of-contents\"><h2>Table of contents</h2><ul><li><a href=\"#a\">Where boats go</a></li></ul></div>"]
+        }
+    ],
+    "wordpress_html": "<div class=\"wp-block-yoast-seo-table-of-contents yoast-table-of-contents\"><h2>Table of contents</h2><ul><li><a href=\"#a\">Where boats go</a></li></ul></div>"
+}

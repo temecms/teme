@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array<string, mixed> $fields
  * @property list<string> $terms
  * @property string|null $source_revision_id the revision of another version this one was translated from (I-3360)
+ * @property string|null $via the plugin code that wrote this revision, or null for a person
  */
 final class ContentRevision extends Model
 {

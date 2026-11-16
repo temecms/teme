@@ -1,0 +1,12 @@
+{
+    "blocks": [
+        {
+            "blockName": "rank-math/faq-block",
+            "attrs": {},
+            "innerBlocks": [],
+            "innerHTML": "<div id=\"rank-math-faq\" class=\"rank-math-block\"><div class=\"rank-math-list \"><div id=\"faq-question-1\" class=\"rank-math-list-item\"><h3 class=\"rank-math-question \">How long?</h3><div class=\"rank-math-answer \"><p>Two days.</p></div></div></div></div>",
+            "innerContent": ["<div id=\"rank-math-faq\" class=\"rank-math-block\"><div class=\"rank-math-list \"><div id=\"faq-question-1\" class=\"rank-math-list-item\"><h3 class=\"rank-math-question \">How long?</h3><div class=\"rank-math-answer \"><p>Two days.</p></div></div></div></div>"]
+        }
+    ],
+    "wordpress_html": "<div id=\"rank-math-faq\" class=\"rank-math-block\"><div class=\"rank-math-list \"><div id=\"faq-question-1\" class=\"rank-math-list-item\"><h3 class=\"rank-math-question \">How long?</h3><div class=\"rank-math-answer \"><p>Two days.</p></div></div></div></div>"
+}

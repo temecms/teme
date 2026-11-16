@@ -68,7 +68,13 @@ function Meta({ row }: { row: RevisionRow }) {
                     <Assistant assistant={row.assistant} />
                 ),
         },
-        { key: 'author', node: row.author ?? 'Someone' },
+        {
+            key: 'author',
+            node:
+                row.via === null
+                    ? (row.author ?? 'Someone')
+                    : `${row.author ?? 'Someone'}, ${row.via}`,
+        },
         { key: 'change', node: change(row.wordDelta) },
     ];
 

@@ -54,8 +54,9 @@ final readonly class ContentSite
 
         $uploads = $kept['uploads'] ?? null;
         $shortcodes = array_values(array_filter((array) ($kept['shortcodes'] ?? []), is_string(...)));
+        $otherHosts = array_values(array_filter((array) ($source->other_hosts ?? []), is_string(...)));
 
-        return new ConversionSite($source->address, is_string($uploads) ? $uploads : null, $shortcodes);
+        return new ConversionSite($source->address, is_string($uploads) ? $uploads : null, $shortcodes, $otherHosts);
     }
 
     /**

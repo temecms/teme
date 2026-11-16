@@ -16,6 +16,7 @@ final readonly class SaveDraftInput implements OperationInput
      * @param  array<string, mixed>  $document
      * @param  array<string, mixed>  $fields
      * @param  list<string>  $terms  term IDs, in the editor's order
+     * @param  string|null  $via  the plugin code that wrote this, or null for a person
      */
     public function __construct(
         public string $contentId,
@@ -29,6 +30,7 @@ final readonly class SaveDraftInput implements OperationInput
         public string $kind = 'save',
         /** The revision a restore is taken from; set, the new revision's kind is `restore`. */
         public ?string $restoredFromId = null,
+        public ?string $via = null,
     ) {}
 
     public function actorId(): ?string

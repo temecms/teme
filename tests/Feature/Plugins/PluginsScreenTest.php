@@ -7,12 +7,14 @@ use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginWords;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Teme\Contracts\Plugins\Capability;
 use Tests\Fixtures\Backups\HealthyBackups;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -85,6 +87,10 @@ it('words each capability and hook, never as codes, and marks what an update add
     ])->and($row['listensFor'])->toBe(['an item published', 'a file uploaded or replaced', 'a setting changed'])
         ->and(json_encode([$row['asks'], $row['agreed'], $row['listensFor']]))->not->toContain('content.read')->not->toContain('ContentPublished');
 });
+
+it('words every capability a plugin can ask for, never as its code', function (Capability $capability): void {
+    expect(PluginWords::capability($capability->value, ['api.example.com']))->not->toBe($capability->value);
+})->with(Capability::cases());
 
 it('says which hosts a new host marks as NEW', function (): void {
     PluginFixtures::use(PluginFixtures::copy('widened', ['version' => '1.1.0', 'hosts' => ['api.example.com', 'files.other.example']]));

@@ -1,0 +1,20 @@
+{
+    "blocks": [
+        {
+            "blockName": "yoast/faq-block",
+            "attrs": {
+                "questions": [
+                    {
+                        "id": "faq-question-1",
+                        "jsonQuestion": "Is it free?",
+                        "jsonAnswer": "Yes, always."
+                    }
+                ]
+            },
+            "innerBlocks": [],
+            "innerHTML": "<div class=\"schema-faq wp-block-yoast-faq-block\"><div class=\"schema-faq-section\" id=\"faq-question-1\"><strong class=\"schema-faq-question\">Is it free?</strong> <p class=\"schema-faq-answer\">Yes, always.</p> </div></div>",
+            "innerContent": ["<div class=\"schema-faq wp-block-yoast-faq-block\"><div class=\"schema-faq-section\" id=\"faq-question-1\"><strong class=\"schema-faq-question\">Is it free?</strong> <p class=\"schema-faq-answer\">Yes, always.</p> </div></div>"]
+        }
+    ],
+    "wordpress_html": "<div class=\"schema-faq wp-block-yoast-faq-block\"><div class=\"schema-faq-section\" id=\"faq-question-1\"><strong class=\"schema-faq-question\">Is it free?</strong> <p class=\"schema-faq-answer\">Yes, always.</p> </div></div>"
+}

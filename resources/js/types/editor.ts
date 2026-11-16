@@ -290,6 +290,8 @@ export type RevisionRow = {
     /** Words added (positive) or removed since the revision before; null for the first. */
     wordDelta: number | null;
     author: string | null;
+    /** "through Writer" when a plugin wrote it; else null. */
+    via: string | null;
     createdAt: string;
     isPublished: boolean;
     isWorking: boolean;

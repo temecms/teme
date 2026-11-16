@@ -11,6 +11,7 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\SlotMenus;
 use App\Domain\Regions\Regions;
 use App\Domain\Settings\DesignPreview;
+use App\Domain\Site\Insertions\InsertionOrigins;
 use App\Domain\Site\PageWarnings;
 use App\Domain\Site\Policy\PagePolicy;
 use App\Domain\Site\Policy\PolicyMode;
@@ -77,6 +78,8 @@ final class PublicPage
     public static function render(ViewIntent $intent, object $model, int $status = 200, int $pageNumber = 1): Response
     {
         app(PagePolicy::class)->start();
+        // Insertion origins were collected while PathResolver built the article, before this start().
+        app(InsertionOrigins::class)->apply(app(PagePolicy::class));
         $resolution = app(TemplateResolver::class)->resolve($intent);
         self::recordFallback($resolution);
         app(ComposerRegistry::class)->startPage($intent, $model);

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Domain\Cards;
 
+use App\Domain\Site\Insertions\InsertionPlan;
+
 /**
  * What a card needs while rendering: how to turn a content ID into an
  * address, which output is being produced, the media the document's cards
  * show, looked up once per document by CardMedia, where to record the cards
- * a page draws, and which image card, if any, is the page's lead image.
+ * a page draws, which image card, if any, is the page's lead image, and the
+ * insertion plan for a published article page (I-064).
  */
 final readonly class RenderContext
 {
@@ -23,5 +26,7 @@ final readonly class RenderContext
         public ?CardUsage $usage = null,
         /** The node ID of the image card that is the lead image, drawn to load first (I-245). */
         public ?string $leadNodeId = null,
+        /** Insertions for a published web article; null outside that path (I-064). */
+        public ?InsertionPlan $insertions = null,
     ) {}
 }

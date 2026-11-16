@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { ChoicesForm } from '@/components/import/choices-form';
 import { ConnectForm } from '@/components/import/connect-form';
 import { ImportSteps } from '@/components/import/import-steps';
+import { OtherHostsForm } from '@/components/import/other-hosts-form';
 import { RunProgress } from '@/components/import/run-progress';
 import { RunReport } from '@/components/import/run-report';
 import { SiteRuns } from '@/components/import/site-runs';
@@ -23,10 +24,12 @@ function Plan({
     siteId,
     plan,
     siteTimezone,
+    listedHosts,
 }: {
     siteId: string;
     plan: ImportPlan | null | undefined;
     siteTimezone: string;
+    listedHosts: string[];
 }) {
     if (plan == null) {
         return <AnalysisSkeleton />;
@@ -34,6 +37,13 @@ function Plan({
 
     return (
         <>
+            <OtherHostsForm
+                siteId={siteId}
+                listed={listedHosts}
+                suggested={plan.suggestedHosts}
+                remembered={plan.rememberedHosts}
+            />
+
             <SiteAnalysis
                 siteId={siteId}
                 plan={plan}
@@ -81,6 +91,7 @@ export default function ImportShow({
     runs,
     report,
     downloads,
+    rememberedHosts,
     siteTimezone,
 }: ImportShowPage) {
     const { start, stop } = usePoll(
@@ -140,12 +151,22 @@ export default function ImportShow({
                     />
                 )}
 
+                {!site.forgotten && step === 'report' && (
+                    <OtherHostsForm
+                        siteId={site.id}
+                        listed={site.otherHosts}
+                        suggested={site.suggestedHosts}
+                        remembered={rememberedHosts}
+                    />
+                )}
+
                 {step === 'plan' && (
                     <Deferred data="plan" fallback={<AnalysisSkeleton />}>
                         <Plan
                             siteId={site.id}
                             plan={plan}
                             siteTimezone={siteTimezone}
+                            listedHosts={site.otherHosts}
                         />
                     </Deferred>
                 )}

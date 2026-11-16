@@ -11,7 +11,7 @@ namespace App\Domain\Contents\Queries;
 final readonly class RevisionPage
 {
     /**
-     * @param  list<array{id: string, kind: string, origin: string, wordCount: int, wordDelta: int|null, author: string|null, createdAt: string, isPublished: bool, isWorking: bool}>  $rows
+     * @param  list<array{id: string, kind: string, origin: string, wordCount: int, wordDelta: int|null, author: string|null, via: string|null, createdAt: string, isPublished: bool, isWorking: bool}>  $rows
      */
     public function __construct(
         public array $rows,

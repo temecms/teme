@@ -11,6 +11,9 @@ use Teme\Contracts\Operations\OperationInput;
  */
 final readonly class StartJobInput implements OperationInput
 {
+    /**
+     * @param  array<string, mixed>  $payload  JSON-ready data kept on the tracked job (I-3445)
+     */
     public function __construct(
         public string $kind,
         public string $label,
@@ -19,6 +22,7 @@ final readonly class StartJobInput implements OperationInput
         public ?string $runId = null,
         public ?string $actorId = null,
         public string $owner = 'core',
+        public array $payload = [],
     ) {}
 
     public function actorId(): ?string

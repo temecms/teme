@@ -17,6 +17,7 @@ final readonly class CreateDraftInput implements OperationInput
      * @param  array<string, mixed>  $fields
      * @param  list<string>  $terms  term IDs, in the editor's order
      * @param  string|null  $language  a site language's tag; null for the default (I-3360)
+     * @param  string|null  $via  the plugin code that wrote this, or null for a person
      */
     public function __construct(
         public string $type,
@@ -26,6 +27,7 @@ final readonly class CreateDraftInput implements OperationInput
         public ?string $actorId,
         public array $terms = [],
         public ?string $language = null,
+        public ?string $via = null,
     ) {}
 
     public function actorId(): ?string

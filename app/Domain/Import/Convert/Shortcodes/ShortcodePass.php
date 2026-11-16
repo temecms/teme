@@ -18,7 +18,7 @@ use Dom\Element;
 final class ShortcodePass
 {
     /** Page builders' and themes' families: a bracket of one of these is a shortcode (I-336). */
-    public const array FAMILIES = ['vc_', 'td_', 'tdb_', 'et_pb_', 'fusion_'];
+    public const array FAMILIES = ['vc_', 'td_', 'tdb_', 'tdm_', 'tdc_', 'et_pb_', 'fusion_'];
 
     /** How many reads of a row's own content may sit one inside another; deeper, the brackets are text. */
     private const int DEPTH = 64;

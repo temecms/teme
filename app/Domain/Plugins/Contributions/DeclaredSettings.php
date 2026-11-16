@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
+use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\PluginAccess;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\Setting;
@@ -20,11 +21,13 @@ final class DeclaredSettings
     /**
      * Returns the plugin's settings group, `plugin.{code}`, built with the
      * contract's own constructors; sensitive when any setting is a secret.
-     * Throws InvalidArgumentException for a setting Teme can't build.
+     * A plugin that inserts content in articles purges the pages that asked
+     * it when its settings are saved. Throws InvalidArgumentException for a
+     * setting Teme can't build.
      *
      * @param  list<mixed>  $settings  as the manifest declares them
      */
-    public static function group(string $code, string $label, string $description, string $version, array $settings): SettingsGroup
+    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false): SettingsGroup
     {
         $key = "plugin.{$code}";
         $built = [];
@@ -42,6 +45,8 @@ final class DeclaredSettings
             settings: $built,
             since: $version,
             sensitive: array_any($built, fn (Setting $setting): bool => $setting->type === SettingType::Secret),
+            // Its settings may change what it inserts in articles (I-064).
+            cacheTags: $inserts ? [PageTags::INSERTIONS] : [],
         );
     }
 

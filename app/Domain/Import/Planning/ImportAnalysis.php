@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Import\Planning;
 
 use App\Domain\Import\Queries\ImportSources;
+use App\Domain\Import\Queries\SuggestedHosts;
 use App\Domain\Import\Source\CompanionClients;
 use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Support\Network\AddressRefused;
@@ -22,7 +23,12 @@ final readonly class ImportAnalysis
     /** How long a site's analysis is kept: six hours. */
     public const int KEEP_SECONDS = 21600;
 
-    public function __construct(private ImportSources $sources, private CompanionClients $clients, private Repository $cache) {}
+    public function __construct(
+        private ImportSources $sources,
+        private CompanionClients $clients,
+        private Repository $cache,
+        private SuggestedHosts $suggestedHosts,
+    ) {}
 
     /**
      * The cache key a site's analysis is kept under.
@@ -51,6 +57,7 @@ final readonly class ImportAnalysis
         $analysis = is_array($report) ? SiteAnalysis::fromReport($report) : SiteAnalysis::noReport();
 
         $this->cache->put(self::key($sourceId), $analysis->toArray(), self::KEEP_SECONDS);
+        $this->suggestedHosts->remember($sourceId, is_array($report) ? $report : null);
 
         return $analysis;
     }
@@ -72,5 +79,6 @@ final readonly class ImportAnalysis
     public function forget(string $sourceId): void
     {
         $this->cache->forget(self::key($sourceId));
+        $this->suggestedHosts->forget($sourceId);
     }
 }
