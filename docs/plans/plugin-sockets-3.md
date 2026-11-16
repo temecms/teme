@@ -832,7 +832,7 @@ Each run with `app/` and `packages/` stashed, the tests and fixtures in place.
 
 - Quick check after the tasks: Pint, PHPStan, `types:check`, `npm run check` clean; Architecture 139 passed; `tests/Feature/Plugins` 657 passed; `tests/Feature/Hooks` 78 passed; `tests/Feature/Notices` 100 passed, 1 skipped; `tests/Unit/Contracts` 136 passed; also `tests/Feature/Feeds` 93, `tests/Feature/Site` 283, `tests/Feature/Api` 334, `tests/Feature/Guides` 514 passed.
 - End of part, `composer check`: Pint, PHPStan, `types:check`, `npm run check`, `build:themes` clean; Architecture 139 passed (1384 assertions); Unit and Feature 11945 passed, 2 skipped, 2 failed (61327 assertions). The two failures are `GenerateManifestReferenceTest` and `GenerateHooksReferenceTest`, the committed references this plan says not to regenerate (see B-?? below); nothing else failed.
-- `composer check:browser` not run: Task 6 (the only Browser test) is stopped.
+- Browser, one file at a time after `npm run build`: `Account/PluginNoticeChoicesTest` 4 passed, `AccountNotificationsTest` 3 passed, `InboxScreenTest` 4 passed. The quick check after Task 6: Architecture 139; `Feature/Plugins` 664, `Notices` 100 (1 skipped), `Inbox` 23, `Admin` 910, `Comments` 411, `Fediverse` 175, `Jobs` 81, `Guides` 514, `Languages` 373 passed; baselines unchanged.
 
 #### B-?? (draft)
 
@@ -851,6 +851,8 @@ Each run with `app/` and `packages/` stashed, the tests and fixtures in place.
 - **D-L1: classes.** Themes have no place yet to declare link classes, so every class a plugin asks for is left off; `ArticleLinkAttributes::themeClasses()` is the one place to read them when a theme can. `599bb8f`.
 - **D-L1: cache and outputs.** The page is tagged `insertions` before any plugin is asked, and enabling or disabling a plugin with `content.links` purges those pages, as `content.insert` does. Feeds and the API draw bodies through `FeedBody`, which asks the same hook. Previews get the attributes too, since the hook is asked "per drawn article". `599bb8f`.
 - **Comments.** Early drafts cited D-numbers; every comment now cites only the plan's path.
+- **Plugin groups beside core's rows, not inside them.** `NoticeChoices::forScreen()` keeps its rows' shape, which `AccountNotificationsTest` and `CommentEmailPreferencesTest` pin; a new `grouped()` splits them, and the page gets core's under `notices` and the plugins' under `pluginNotices`. `FormPanel`'s title takes only words, so a plugin group's heading (its name and plug) is drawn inside the panel instead of changing the shared pattern.
+- **An inbox item's plugin.** `InboxChannel` files a plugin's kind under the plugin's code (the inbox's `owner`), and `InboxFor` gives each row `plugin`, the plugin's label, or null for core. A code starting with a digit, which the inbox's owner rule refuses, is filed under core rather than failing the delivery.
 
 #### Contract changes
 
@@ -861,7 +863,7 @@ Each run with `app/` and `packages/` stashed, the tests and fixtures in place.
 
 - Task 5 (permission audience and area link) waits: `sockets2/plugin-area` is not on `main`.
 - Screens built from the approved drawings, with the two rules. The maintainers approved five round 3 drawings on 2026-11-16; this part's one among them is the refusal when disabling a plugin others need. It needs no new screen code: the Plugins page shows the refusal as its error toast, naming the dependents once ("Relay Pro needs it. Disable Relay Pro first."), and no heading repeats. `PluginDependenciesTest` now proves that through the page's own route; it passed at once, since Task 2 already sends the refusal there.
-- Task 6 (Account › Notifications, `PluginNoticeChoicesTest`) stays stopped: Account › Notifications (proposal, screen 5) is not among the approved drawings. `NoticeChoices` (the plugin's label beside its kinds) waits with it, since its shape follows the drawing.
+- Screens 2 and 5 built from the approved drawings, with the two rules (approved later on 2026-11-16; screen 2 is Part A's). Task 6, screen 5: Account › Notifications lists each enabled plugin's kinds after core's, in a group headed once by the plugin's own name with the plug mark, with the same switches; a disabled plugin's group goes and its stored choices stay. An inbox item a plugin sent shows "From <plugin's name>" with the plug mark and opens the admin link the plugin gave. Tests: `tests/Feature/Plugins/Notices/PluginNoticeScreenTest.php` (seen red: "Property [notices] was marked as invalid using a closure." with plugin rows mixed into core's, and no `pluginNotices`), `tests/Browser/Account/PluginNoticeChoicesTest.php` (1280 and 375, axe light and dark, 4 passed); `AccountNotificationsTest` and `InboxScreenTest` (browser) still pass. `NoticeChoices` (the plugin's label beside its kinds) waits with it, since its shape follows the drawing.
 - Left open for the screens: the Plugins screen's consent lines for notice kinds, required plugins and declared hooks are in `PluginWords`, `EnablePluginCommand` and `PluginRow::$requiredBy`, but `PluginsScreen` and `plugins/index.tsx` are not this part's files.
 
 #### Changelog lines for the maintainers
