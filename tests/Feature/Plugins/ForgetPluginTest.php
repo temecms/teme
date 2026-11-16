@@ -9,6 +9,8 @@ use App\Domain\Plugins\Operations\ForgetPlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\Operations\Input\ForgetPluginInput;
+use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
+use App\Domain\Plugins\Operations\RemovePluginData;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
@@ -19,6 +21,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -102,6 +105,24 @@ it('refuses ForgetPlugin while the package is still present, writing nothing', f
         ->and(DB::table('security_events')->where('type', 'plugin.forgotten')->count())->toBe(0);
 });
 
+it('refuses ForgetPlugin while the plugin still owns tables, writing nothing', function (): void {
+    $copy = PluginFixtures::copy('tables');
+    PluginFixtures::use($copy);
+    ($this->enable)('tests/tables');
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+    (new Filesystem)->deleteDirectory($copy);
+    PluginFixtures::use();
+    app(PluginRegistry::class)->flush();
+
+    expect(fn () => app(ForgetPlugin::class)->execute(new ForgetPluginInput('tests/tables', null)))
+        ->toThrow(ValidationException::class, 'Remove its data first.');
+
+    expect(PluginRecord::query()->where('name', 'tests/tables')->exists())->toBeTrue()
+        ->and(Schema::hasTable('tables_links'))->toBeTrue()
+        ->and(PluginRecord::query()->where('name', 'tests/tables')->sole()->migrations)->not->toBe([])
+        ->and(DB::table('security_events')->where('type', 'plugin.forgotten')->count())->toBe(0);
+});
+
 it('writes nothing when someone without plugins.manage tries to forget a plugin', function (?string $role): void {
     $copy = PluginFixtures::copy('hello');
     PluginFixtures::use($copy);
@@ -143,7 +164,7 @@ it('lists and asks unless --force on teme:plugins:forget', function (): void {
     expect(PluginRecord::query()->where('name', 'tests/hello')->exists())->toBeFalse();
 });
 
-it('offers Forget only for a disabled plugin whose package is gone', function (): void {
+it('offers Forget only for a disabled plugin whose package is gone and that owns no tables', function (): void {
     $this->admin = User::factory()->create()->assignRole('administrator');
     $rows = fn (): array => collect($this->actingAs($this->admin)->get('/admin/plugins')->assertOk()->viewData('page')['props']['plugins'])->keyBy('name')->all();
 
@@ -168,4 +189,20 @@ it('offers Forget only for a disabled plugin whose package is gone', function ()
 
     expect($listed['tests/hello']['canForget'])->toBeTrue()
         ->and($listed['tests/gone']['canForget'])->toBeTrue();
+
+    $tables = PluginFixtures::copy('tables');
+    PluginFixtures::use($tables);
+    app()->instance(Elevation::class, new OperatorElevation);
+    ($this->enable)('tests/tables');
+    app(DisablePlugin::class)->execute(new DisablePluginInput('tests/tables', null));
+    (new Filesystem)->deleteDirectory($tables);
+    PluginFixtures::use();
+    app(PluginRegistry::class)->flush();
+
+    expect(($rows)()['tests/tables']['canForget'])->toBeFalse();
+
+    app()->instance(Elevation::class, new OperatorElevation);
+    app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/tables', null));
+
+    expect(($rows)()['tests/tables']['canForget'])->toBeTrue();
 });
