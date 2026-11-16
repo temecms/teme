@@ -187,6 +187,14 @@ final readonly class Manifest
     }
 
     /**
+     * The author’s website, or ''.
+     */
+    public function authorUrl(): string
+    {
+        return $this->string('author_url');
+    }
+
+    /**
      * The plugin's home page, or ''.
      */
     public function homepage(): string

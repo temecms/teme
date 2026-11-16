@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Hooks\Reference\HookCatalogue;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestValidator;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Hooks\Hooks;
@@ -131,6 +132,37 @@ it('checks a plugin whose file would throw or exit when loaded, without loading 
     expect(($this->errors)($manifest, 'loud', PluginFixtures::composer('loud')))->toBe([])
         ->and(array_filter(array_diff(get_included_files(), $before), fn (string $file): bool => str_contains($file, 'plugins/loud')))->toBe([]);
 })->with(['Exits', 'Loud']);
+
+it('refuses author_url and homepage that are not https or are longer than 2000 characters', function (string $key, mixed $value): void {
+    $errors = ($this->errors)([...PluginFixtures::manifest('hello'), $key => $value]);
+
+    expect($errors)->toContain("{$key} must be an https address of at most 2000 characters.");
+})->with([
+    'author_url http' => ['author_url', 'http://example.com'],
+    'author_url not a url' => ['author_url', 'not-a-url'],
+    'author_url too long' => ['author_url', 'https://example.com/'.str_repeat('a', 2000)],
+    'author_url not a string' => ['author_url', 1],
+    'homepage http' => ['homepage', 'http://example.com'],
+    'homepage not a url' => ['homepage', 'ftp://example.com'],
+    'homepage too long' => ['homepage', 'https://example.com/'.str_repeat('a', 2000)],
+    'homepage not a string' => ['homepage', false],
+]);
+
+it('accepts https author_url and homepage, and leaves them out when absent', function (): void {
+    $with = [...PluginFixtures::manifest('hello'), 'author_url' => 'https://example.com/author', 'homepage' => 'https://example.com'];
+    $without = PluginFixtures::manifest('hello');
+
+    expect(($this->errors)($with))->toBe([])
+        ->and(($this->errors)($without))->toBe([]);
+});
+
+it('reads authorUrl from the manifest', function (): void {
+    $with = new Manifest([...PluginFixtures::manifest('hello'), 'author_url' => 'https://example.com/author']);
+    $without = new Manifest(PluginFixtures::manifest('hello'));
+
+    expect($with->authorUrl())->toBe('https://example.com/author')
+        ->and($without->authorUrl())->toBe('');
+});
 
 it('takes Teme’s own pre-releases in a range that names them, and says why ^0.5 stops at 0.6', function (string $range, string $teme, ?string $sentence): void {
     config(['teme.version' => $teme]);

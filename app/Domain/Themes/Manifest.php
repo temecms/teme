@@ -44,6 +44,30 @@ final readonly class Manifest
     }
 
     /**
+     * Who wrote the theme, or ''.
+     */
+    public function author(): string
+    {
+        return $this->string('author');
+    }
+
+    /**
+     * The author’s website, or ''.
+     */
+    public function authorUrl(): string
+    {
+        return $this->string('author_url');
+    }
+
+    /**
+     * The theme's home page, or ''.
+     */
+    public function homepage(): string
+    {
+        return $this->string('homepage');
+    }
+
+    /**
      * The Teme versions the theme works with, such as "^0.1", or '' when it doesn't say.
      */
     public function requiresTeme(): string

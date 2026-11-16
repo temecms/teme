@@ -218,11 +218,25 @@ export function PluginRow({
                     </p>
                 )}
                 <p className="text-caption text-ink-3 flex flex-wrap gap-x-2">
-                    {plugin.author !== '' && (
-                        <span>
-                            {__('By :author', { author: plugin.author })}
-                        </span>
-                    )}
+                    {plugin.author !== '' &&
+                        (plugin.authorUrl !== '' ? (
+                            <span>
+                                {__('By')}{' '}
+                                <a
+                                    href={plugin.authorUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline"
+                                    data-test="plugin-author-link"
+                                >
+                                    {plugin.author}
+                                </a>
+                            </span>
+                        ) : (
+                            <span>
+                                {__('By :author', { author: plugin.author })}
+                            </span>
+                        ))}
                     <span className="font-mono break-all">{plugin.name}</span>
                 </p>
                 {plugin.reason !== '' && (
