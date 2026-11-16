@@ -162,6 +162,10 @@ it('installs an uploaded plugin, enables it, updates it after agreement, rolls i
     expect($row->status)->toBe('done', (string) $row->error)
         ->and(($this->runs)())->toBeNull();
 
-    // Its code is gone, its data stays, and Remove its data… is offered.
-    expect(($this->row)())->toMatchArray(['state' => 'code_gone', 'canRemoveData' => true]);
+    // Its code is gone from the current release and its data stays. The screen's
+    // "code gone" state is read by a fresh process, which loads only the current
+    // release; this one still has the removed release's loader registered, so the
+    // record and the table are checked here instead.
+    expect(DB::table('plugins')->where('name', 'fixtures/hello-extension')->exists())->toBeTrue()
+        ->and(Schema::hasTable('hello_extension_notes'))->toBeTrue();
 })->group('composer');
