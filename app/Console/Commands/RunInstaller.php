@@ -92,14 +92,28 @@ final class RunInstaller extends Command
     }
 
     /**
-     * The start check: the folder can be written, and the current release
-     * fits this image or is rebuilt. Whatever its outcome, the ready file is
+     * The start check, under the installer lock: the folder can be written,
+     * and the current release fits this image or is rebuilt. Whatever its outcome, the ready file is
      * written, so the site's other roles start: on extensions held, if need be.
      */
     public function prepare(): void
     {
         try {
-            $held = $this->runner()->prepare();
+            // Waits for the lock, so a --once run beside the service never steps the same rebuild twice.
+            while (! DB::selectOne('SELECT pg_try_advisory_lock(hashtext(?)) AS got', [self::LOCK])->got) {
+                if ($this->stopping) {
+                    throw new InstallerFailed('The installer stopped while another installer held its lock.');
+                }
+
+                Sleep::for(1)->second();
+            }
+
+            try {
+                $held = $this->runner()->prepare();
+            } finally {
+                DB::select('SELECT pg_advisory_unlock(hashtext(?))', [self::LOCK]);
+            }
+
             $this->blocked = null;
 
             if ($held !== null) {

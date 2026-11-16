@@ -8,6 +8,7 @@ use App\Domain\Extensions\Installer\InstallerRunner;
 use App\Domain\Plugins\SafeMode;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
 use Tests\Fixtures\Extensions\ExtensionsFolder;
 
@@ -86,8 +87,12 @@ it('takes no step while another installer holds the lock', function (): void {
     ]);
     app()->instance(InstallerRunner::class, $this->folder->runner());
 
+    $command = app(RunInstaller::class);
+    $command->setLaravel(app());
+
     try {
-        $this->artisan('teme:installer', ['--once' => true])->assertExitCode(0);
+        // One pass, without the start check, which would wait for the lock.
+        $command->pass();
     } finally {
         DB::connection('another')->select('SELECT pg_advisory_unlock(hashtext(?))', [RunInstaller::LOCK]);
         DB::purge('another');
@@ -99,3 +104,31 @@ it('takes no step while another installer holds the lock', function (): void {
 it('runs the installer and the extensions commands with no plugin loaded', function (string $command): void {
     expect(SafeMode::forCommand($command))->toBeTrue();
 })->with(['teme:installer', 'teme:extensions:pins', 'teme:extensions:caches']);
+
+it('waits for the installer lock before the start check', function (): void {
+    $id = $this->folder->install('fixtures/hello-extension', '1.0.0');
+    $stamp = $this->folder->store->path($id).'/compat/'.ExtensionsFolder::pins()['hash'];
+    unlink($stamp);
+    app()->instance(InstallerRunner::class, $this->folder->runner());
+    config(['database.connections.another' => config('database.connections.'.config('database.default'))]);
+    DB::connection('another')->select('SELECT pg_advisory_lock(hashtext(?))', [RunInstaller::LOCK]);
+    $stampedWhileHeld = null;
+
+    Sleep::fake();
+    // The other installer lets go during this one's first wait.
+    Sleep::whenFakingSleep(function () use (&$stampedWhileHeld, $stamp): void {
+        if ($stampedWhileHeld === null) {
+            $stampedWhileHeld = is_file($stamp);
+            DB::connection('another')->select('SELECT pg_advisory_unlock(hashtext(?))', [RunInstaller::LOCK]);
+        }
+    });
+
+    try {
+        $this->artisan('teme:installer', ['--prepare-only' => true])->assertExitCode(0);
+    } finally {
+        DB::purge('another');
+    }
+
+    expect($stampedWhileHeld)->toBeFalse()
+        ->and($stamp)->toBeFile();
+})->group('composer');
