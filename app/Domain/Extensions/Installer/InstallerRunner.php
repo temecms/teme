@@ -223,7 +223,10 @@ final class InstallerRunner
 
     private function checking(ExtensionRequest $request): bool
     {
-        if ($request->action !== ExtensionAction::Rebuild && DB::table('teme_updates')->whereIn('status', ['requested', 'running'])->exists()) {
+        // Only Teme's own rebuild, which the update's start asks for, goes on while that update is open.
+        $temesOwnRebuild = $request->action === ExtensionAction::Rebuild && $request->requestedBy === null;
+
+        if (! $temesOwnRebuild && DB::table('teme_updates')->whereIn('status', ['requested', 'running'])->exists()) {
             throw new InstallerFailed('An update of Teme is under way; ask again once it has ended.');
         }
 

@@ -137,6 +137,32 @@ it('leaves a request waiting while an update of Teme is open', function (): void
     expect(DB::table('extension_requests')->where('id', $id)->value('status'))->toBe('requested');
 });
 
+it('stops a begun request, an administrator’s rebuild among them, when an update of Teme opened meanwhile', function (string $action, ?string $package): void {
+    $admin = User::factory()->create();
+    $id = ($this->ask)($action, $package, $package === null ? null : '1.0.0', ['status' => 'running', 'step' => 'checking', 'started_at' => now(), 'requested_by' => $admin->id]);
+    DB::table('teme_updates')->insert(['id' => strtolower((string) Str::ulid()), 'kind' => 'update', 'from_version' => '0.5.0', 'to_version' => '0.6.0', 'status' => 'requested', 'requested_at' => now()]);
+
+    $this->runner->tick();
+    $row = DB::table('extension_requests')->where('id', $id)->first();
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toBe('An update of Teme is under way; ask again once it has ended.');
+})->with([
+    'an install' => ['install', 'fixtures/hello-extension'],
+    'an administrator’s rebuild' => ['rebuild', null],
+]);
+
+it('takes Teme’s own rebuild past the check while the update that asked for it is open', function (): void {
+    $id = ($this->ask)('rebuild', null, null, ['status' => 'running', 'step' => 'checking', 'started_at' => now()]);
+    DB::table('teme_updates')->insert(['id' => strtolower((string) Str::ulid()), 'kind' => 'update', 'from_version' => '0.5.0', 'to_version' => '0.6.0', 'status' => 'running', 'requested_at' => now()]);
+
+    $this->runner->tick();
+    $row = DB::table('extension_requests')->where('id', $id)->first();
+
+    expect($row->status)->toBe('running', (string) $row->error)
+        ->and($row->step)->toBe('preparing');
+});
+
 it('fails a request when current moved while it was being built', function (): void {
     $id = ($this->ask)('install', 'fixtures/hello-extension', '1.0.0');
 
