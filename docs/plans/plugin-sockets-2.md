@@ -279,48 +279,100 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 #### Commits on `sockets2/plugin-area`
 
--
+- `5a44902a` feat(plugins): a plugin declares up to three permissions of its own (Task 1)
+- `a358703f` feat(plugins): sections and conditions on a plugin's settings page (Task 2)
+- `c469eba1` feat(settings): repeater and code settings, a plugin's included (Task 3)
+- `dce49ad3` feat(plugins): a plugin's area, declared in its manifest and read once (Task 4)
+- `139d1c90` feat(plugins): a plugin's area, its pages, record forms and writes (Tasks 5 and 6)
+- `8254c1d8` feat(settings): draw a plugin's sections, conditions, repeaters, actions and lists (Task 7, settings screens)
+- `02bd537e` feat(plugins): a plugin's area in the menu, five at most, the rest on Tools (Task 8, and Task 7's area browser test)
+- `ffeec8e5` feat(plugins): a code field's inline scripts wait for approval on the form (Task 9)
+- `09b8a5b3` docs(handbook): a plugin's own area, and settings sections, conditions, lists and markup (Task 10)
+- `4c621921` fix(types): reserve the plugin segment a plugin's area lives under (the gate)
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Plugins/Area/PluginPermissionsTest.php` | Teme doesn’t offer the permissions surface to plugins yet. |
+| 2 | `tests/Unit/Plugins/VisibleWhenTest.php` | Class "App\Domain\Plugins\Area\VisibleWhen" not found |
+| 2 | `tests/Feature/Plugins/Area/PluginSettingsSectionsTest.php` | Property [panels] does not match the expected value. |
+| 3 | `tests/Feature/Plugins/Area/RepeaterSettingTest.php` | Its settings can’t be used: Setting [plugin.settings.fallback] has an unknown type [code]. |
+| 4 | `tests/Feature/Plugins/Area/DeclaredAreaTest.php` | Class "App\Domain\Plugins\Area\DeclaredArea" not found |
+| 5 | `tests/Feature/Plugins/Area/AreaReadsTest.php` | Interface "Teme\Contracts\Admin\HasPluginArea" not found |
+| 6 | `tests/Feature/Plugins/Area/SavePluginRecordTest.php` | Target class [App\Domain\Plugins\Operations\SavePluginRecord] does not exist. |
+| 6 | `tests/Feature/Plugins/Area/ActOnPluginRecordsTest.php` | Target class [App\Domain\Plugins\Operations\ActOnPluginRecords] does not exist. |
+| 6 | `tests/Feature/Plugins/Area/AreaActionsTest.php` | Inertia Flash Data [toast] does not match expected value. |
+| 7 | `tests/Browser/Plugins/PluginSettingsSectionsTest.php` | Timeout 5000ms exceeded. (the repeater's sub-fields weren't sent) |
+| 7 | `tests/Browser/Plugins/PluginAreaScreensTest.php` | axe: aria-hidden-focus, empty-table-header |
+| 8 | `tests/Feature/Plugins/Area/AreaEntriesTest.php` | Failed asserting that two arrays are equal. |
+| 9 | `tests/Feature/Plugins/Area/CodeFieldScriptsTest.php` | Failed asserting that two arrays are identical. (no request made); Route [plugins.area.script] not defined. |
 
 #### Task 0
 
--
+- V is 0.9.0; built on `main` at `9f27e413` (PR #380), as the revised go said; round 1's `RunPluginAction` is on `main`.
+- `@dnd-kit/*` is not installed: items move with Move up and Move down (decided Q7).
+- `design-field.tsx` compares strictly; `ThemeSettings` names earlier keys and scalar values. `VisibleWhen` follows this plan's rule, which also matches `"3"` with `3`.
+- `UpdateSettings` validated whatever was sent; WhoPublishes' hidden fields aren't drawn, so aren't sent.
+- A plugin's `DB::table()` write inside an Operation rolls back with it (SavePluginRecordTest).
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Base (`9f27e413`): Pint and PHPStan clean, Architecture 139 passed; Unit and Feature 12,530 passed, 3 skipped, 1 failed (FirstPluginTest, flaky in parallel).
+- Branch: Pint and PHPStan clean, Architecture 139 passed; Unit and Feature 12,673 passed, 3 skipped, 3 failed, in 1,840 s. `TypeRoutingTest` was fixed in `4c621921` (380 passed after). `GenerateManifestReferenceTest` and `GenerateContractsReferenceTest` wait for the join, which regenerates `docs/reference/` once, as this plan says.
+- Browser, one file at a time: `tests/Browser/Plugins` (all six files, 48 tests) and the Settings screens' files (SettingControls, SettingsPanels, SettingsPlacements, SettingsSaveBar, SiteCodeSettings, WhoPublishesSettings, MenuAndSettings; 63 tests), all passed.
 
 #### B-?? (draft)
 
--
+- **The validator lands whole in Task 1.** `AreaValidator` (permissions, area, settings sections and conditions) came with Task 1, because the fixture's manifest needs it to enable. `5a44902a`.
+- **Consent lines.** Permissions are kept in the consent as `id` and `id:role`; taking a role away doesn't ask again. `5a44902a`.
+- **Markup in cells.** A plugin's markup reaches the page as its characters, drawn as text (as round 1's lists), never stripped. `139d1c90`.
+- **The chart's hidden table** is a table by ARIA roles, because R5 keeps raw tables in `ui/` and patterns. `139d1c90`.
+- **Frame props** are `tabs` and `current`, not `pages` and `page`, because NoTypeLiteralsTest keeps a type's name off keys. `139d1c90`.
+- **Charts** use recharts 3.10.1 inside core's `area-chart.tsx` (decided Q6 overrides A9). npm also dropped a stale `@rollup/rollup-win32-x64-msvc` line from the lock's root dependencies. `139d1c90`.
+- **An empty repeater** still checks its `minItems`. `139d1c90`.
+- **Area actions.** Options: round 1's `plugins.manage` only, or the area's permission too. Chosen: `RunPluginActionInput` gains `?string $permission` (last, null by default) and `RunPluginAction` allows either, passed only for actions the area's pages offer, so an editor holding the area's permission can run them. `139d1c90`.
+- **The record form** uses `FormPage` and `FormPanel`, with the delete dialog inside (R7), not `SettingsPage` as A9 words it; `SectionTabs` for more than three sections. `139d1c90`.
+- **A hidden setting** sits in a disabled, hidden fieldset (only settings with `visibleWhen`), so the browser neither checks nor sends it. `8254c1d8`.
+- **Round 1's plugin lists** are drawn with core's `DataTable`. `8254c1d8`.
+- **SettingsForm** sends a repeater's `fields` and `itemTitle`, for repeaters only. `8254c1d8`.
+- **Menu entries** are merged in `AdminNavigation` at query time (as type entries are), not registered in `NavigationRegistry`; Tools cards are added in `ToolsHub::pagesFor` before its plugins.manage gate. The icon is `plug`. `02bd537e`.
+- **Screens** were built from the approved drawing, with I-3468: the menu entry and the area's heading show the plugin's own name; the top bar names only the parents. `139d1c90`, `02bd537e`.
+- **Task 9 on main, not after B.** The revised go built Task 9 on `main` without merging `sockets2/inserts`; B's `ScriptRequests::fromMarkup()` (not `fromCode()`) and `ApprovePluginScript` are on `main`. `ffeec8e5`.
+- **Approving on the form (decided Q2).** Options: wait for B's site-code routes, or a route of A's own. Chosen: `plugins.area.script` in the area block, running B's `ApprovePluginScript` (site-code permission and the password, asked in place with a 423). Under each code field the form shows each waiting script: Approve script for a person who may change site code, Waiting for approval for anyone else. This replaces A-T9's count line. `ffeec8e5`.
+- **Who asks.** Only a plugin enabled with `content.insert` or `pages.insert` asks (B's `RequestPluginScript` rule); the fixture gains `content.insert`. `ffeec8e5`.
+- **Settings' code fields** ask on save, but the settings page doesn't draw the waiting scripts yet: that needs one line in `SettingsController`, outside A's Owns. Settings › Site code (B) lists them. Left for the join. `ffeec8e5`.
+- **The notice to approvers** (decided Q2) needs a notice kind in `BuiltInNotices`, outside A's Owns. Left for the join. `ffeec8e5`.
+- **The `plugin` segment.** P4's `admin/plugin/{code}` needs `plugin` in `ContentTypeRegistry::RESERVED` (TypeRoutingTest), outside A's Owns. Options: move the area under `plugins/`, or reserve the word. Chosen: reserve it, one word, since P4 decided the path. `4c621921`.
 
 #### Contract changes
 
--
+- New in `Teme\Contracts\Admin`, `@since 0.9.0`: `HasPluginArea`, `PluginArea`, `AreaContext`, `Figure`, `Chart`, `TableQuery`, `RowPage`, `Row`, `Saved`.
+- `Teme\Contracts\Settings`: `SettingType::Code`, `SettingType::Repeater`; `Setting::code()`, `Setting::repeater()`, `->section()`.
+- The manifest schema: `contributes.permissions`, `contributes.area`, `contributes.settingsSections`; settings `visibleWhen`, `section`, `scripts`, types `code` and `repeater`.
 
 #### STOP
 
--
+- None.
 
 #### Changelog lines for the maintainers
 
--
+- A plugin can have screens of its own in the admin: an overview of figures and charts, tables of its records, and a form for each, all drawn by Teme.
+- A plugin can declare up to three permissions of its own, and give them to editors, authors or contributors.
+- A plugin's settings page can be split into sections, show a setting only when another has a value, and hold lists and markup.
+- An inline script in a plugin's code field waits for approval, and a person who may change site code approves it on the plugin's own form.
 
 #### Try it
 
--
+- Enable the `tests/placard` fixture, then open **Placard** in the Site menu as an editor: the overview, the Ads table, and an ad's form with its versions.
+- Save an ad whose code holds `<script>…</script>`, then open it as an administrator and approve the script there.
 
 ---
 
