@@ -67,6 +67,17 @@ it('lets the area’s permission answer only when the area passes it on, queuing
     Queue::assertNothingPushed();
 });
 
+it('takes no permission from its caller but the area’s own, queuing nothing for another', function (): void {
+    // One the editor holds that isn't the area's: a caller can't make it answer.
+    $held = $this->editor->getAllPermissions()->pluck('name')->first(fn (string $name): bool => ! str_starts_with($name, 'plugin.'));
+
+    expect($held)->toBeString()
+        ->and(fn () => app(RunPluginAction::class)->execute(new RunPluginActionInput('placard', 'prune-now', (string) $this->editor->id, $held)))
+        ->toThrow(AuthorizationException::class)
+        ->and(TrackedJob::query()->count())->toBe(0);
+    Queue::assertNothingPushed();
+});
+
 it('refuses, queuing nothing, a person without the area’s permission', function (): void {
     $author = User::factory()->create()->assignRole('author');
 
