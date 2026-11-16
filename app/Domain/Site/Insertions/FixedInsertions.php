@@ -33,7 +33,7 @@ final readonly class FixedInsertions
      * Each edge's insertion, cleaned, with its label, its rail's width and
      * the narrowest screen it shows on; none where nothing is fixed.
      *
-     * @return list<array{key: string, edge: string, width: int, minWidth: int, label: string, html: string}>
+     * @return list<array{key: string, edge: string, width: int, minWidth: int, label: string, name: string, html: string}>
      */
     public function all(): array
     {
@@ -62,17 +62,33 @@ final readonly class FixedInsertions
             }
 
             $width = (int) ($at->args['width'] ?? 0);
+            $label = $this->label($entry['owner']);
             $drawn[$edge] = [
                 'key' => $entry['insertion']->key,
                 'edge' => $edge,
                 'width' => $width,
                 'minWidth' => $width === 0 ? 0 : $content + 2 * ($width + self::RAIL_GAP),
-                'label' => $this->label($entry['owner']),
+                'label' => $label,
+                'name' => self::name($label, $edge),
                 'html' => $html,
             ];
         }
 
         return array_values($drawn);
+    }
+
+    /**
+     * The name a screen reader gives the edge's landmark: its label and its
+     * edge, so two edges with one label can be told apart.
+     */
+    private static function name(string $label, string $edge): string
+    {
+        return match ($edge) {
+            'top' => __(':label, at the top of the screen', ['label' => $label]),
+            'left' => __(':label, at the left of the screen', ['label' => $label]),
+            'right' => __(':label, at the right of the screen', ['label' => $label]),
+            default => __(':label, at the bottom of the screen', ['label' => $label]),
+        };
     }
 
     /**

@@ -6,7 +6,7 @@
 @endif
 @endforeach
 @foreach ($fixed as $item)
-<aside class="teme-fixed" data-edge="{{ $item['edge'] }}" data-teme-fixed="{{ $item['key'] }}" aria-label="{{ $item['label'] }}"@if ($item['width'] > 0) style="--teme-rail:{{ $item['width'] }}px"@endif>
+<aside class="teme-fixed" data-edge="{{ $item['edge'] }}" data-teme-fixed="{{ $item['key'] }}" aria-label="{{ $item['name'] }}"@if ($item['width'] > 0) style="--teme-rail:{{ $item['width'] }}px"@endif>
     <div class="teme-fixed-head"><span>{{ $item['label'] }}</span><button type="button" class="teme-fixed-close" data-teme-fixed-close aria-label="{{ __('Close') }}"><svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
     <div class="teme-fixed-body">{!! $item['html'] !!}</div>
 </aside>

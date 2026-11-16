@@ -43,16 +43,16 @@ afterEach(function (): void {
     PluginFixtures::forget();
 });
 
-it('fixes the first insertion for each edge to it, with the plugin\'s label and a close button', function (): void {
+it('fixes the first insertion for each edge to it, with the plugin\'s label, a name for each edge and a close button', function (): void {
     $response = addrGet('/')->assertOk();
     $html = (string) $response->getContent();
 
     expect(substr_count($html, '<aside class="teme-fixed"'))->toBe(2)
-        ->and($html)->toContain('<aside class="teme-fixed" data-edge="bottom" data-teme-fixed="billboard.bar" aria-label="Sponsored">')
+        ->and($html)->toContain('<aside class="teme-fixed" data-edge="bottom" data-teme-fixed="billboard.bar" aria-label="Sponsored, at the bottom of the screen">')
         ->toContain('<div data-test="billboard-bar">Bar</div>')
         ->not->toContain('billboard-second-bar')
         ->toContain('<span>Sponsored</span><button type="button" class="teme-fixed-close" data-teme-fixed-close aria-label="Close">')
-        ->toContain('<aside class="teme-fixed" data-edge="right" data-teme-fixed="billboard.rail" aria-label="Sponsored" style="--teme-rail:300px">')
+        ->toContain('<aside class="teme-fixed" data-edge="right" data-teme-fixed="billboard.rail" aria-label="Sponsored, at the right of the screen" style="--teme-rail:300px">')
         ->and(strpos($html, 'data-teme-fixed="billboard.bar"'))->toBeGreaterThan(strpos($html, 'data-test="billboard-bottom"'));
 });
 
@@ -88,7 +88,7 @@ it('labels what a plugin fixes "Advertisement" when it declares no label', funct
     }, ['pages.insert'], 'tests/plain');
 
     expect(app(FixedInsertions::class)->all())->toBe([[
-        'key' => 'plain.bar', 'edge' => 'top', 'width' => 0, 'minWidth' => 0, 'label' => 'Advertisement', 'html' => '<p>Plain</p>',
+        'key' => 'plain.bar', 'edge' => 'top', 'width' => 0, 'minWidth' => 0, 'label' => 'Advertisement', 'name' => 'Advertisement, at the top of the screen', 'html' => '<p>Plain</p>',
     ]]);
 });
 
