@@ -20,7 +20,8 @@ namespace Teme\Contracts\Plugins;
  * feed (`@since 0.9.0`). PagesInsert unlocks the places to add content on every public
  * page: the head, the top and bottom of the body, between the items of a
  * list, beside a theme's regions, and fixed to the screen's edge. Ai opens SiteAi, the site's own AI connection, for the tasks
- * the plugin declares (0.9.0).
+ * the plugin declares (0.9.0). PeopleRead opens the door that names the
+ * people who write on the site.
  *
  * @since 0.5.0
  */
@@ -67,4 +68,7 @@ enum Capability: string
 
     /** @since 0.9.0 */
     case Ai = 'ai';
+
+    /** @since 0.9.0 */
+    case PeopleRead = 'people.read';
 }

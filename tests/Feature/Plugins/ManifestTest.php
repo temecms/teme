@@ -68,9 +68,9 @@ it('refuses a class that isn’t a plugin', function (): void {
 });
 
 it('refuses a capability Teme doesn’t offer plugins yet, and one that doesn’t exist', function (): void {
-    $errors = ($this->errors)([...PluginFixtures::manifest('hello'), 'capabilities' => ['content.read', 'people.read', 'content.delete']]);
+    $errors = ($this->errors)([...PluginFixtures::manifest('hello'), 'capabilities' => ['content.read', 'mail.send', 'content.delete']]);
 
-    expect($errors)->toContain('Teme doesn’t offer people.read to plugins yet.')
+    expect($errors)->toContain('Teme doesn’t offer mail.send to plugins yet.')
         ->toContain('content.delete isn’t something a plugin can ask for.');
 });
 

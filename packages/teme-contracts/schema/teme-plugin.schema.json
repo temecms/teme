@@ -87,7 +87,8 @@
                     "fediverse.send",
                     "feeds.links",
                     "pages.insert",
-                    "ai"
+                    "ai",
+                    "people.read"
                 ]
             }
         },
@@ -160,6 +161,14 @@
                             "day",
                             "week"
                         ]
+                    },
+                    "enabledBy": {
+                        "type": "string",
+                        "description": "One of the plugin's boolean settings, which switches the schedule on and off."
+                    },
+                    "everyFrom": {
+                        "type": "string",
+                        "description": "One of the plugin's select settings whose options are all intervals above; how often the schedule runs, every when unset."
                     }
                 }
             }
@@ -417,7 +426,10 @@
                                     "urls",
                                     "email",
                                     "secret",
-                                    "color"
+                                    "color",
+                                    "person",
+                                    "term",
+                                    "type"
                                 ]
                             },
                             "label": {
@@ -458,6 +470,15 @@
                             "unit": {
                                 "type": "string",
                                 "description": "The unit shown beside a number."
+                            },
+                            "taxonomy": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,31}$",
+                                "description": "For a term: the taxonomy its terms come from."
+                            },
+                            "multiple": {
+                                "type": "boolean",
+                                "description": "For a term: whether several may be chosen."
                             }
                         }
                     }

@@ -11,10 +11,18 @@ use Teme\Contracts\Ai\AiAsk;
 use Teme\Contracts\Ai\AiRefused;
 use Teme\Contracts\Ai\AiStanding;
 use Teme\Contracts\Ai\SiteAi;
+use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
+use Teme\Contracts\Content\ItemPage;
+use Teme\Contracts\Content\ItemQuery;
 use Teme\Contracts\Content\ItemRef;
+use Teme\Contracts\Content\ItemSnapshot;
 use Teme\Contracts\Content\NewItem;
+use Teme\Contracts\Content\QueuedItem;
+use Teme\Contracts\Content\QueuePage;
+use Teme\Contracts\Content\QueueQuery;
+use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
@@ -40,6 +48,9 @@ use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Lists\PluginList;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\People\PeopleReader;
+use Teme\Contracts\People\PersonPage;
+use Teme\Contracts\People\PersonRef;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Site\SiteInfo;
@@ -126,6 +137,17 @@ it('gives every new contract its @since and nothing from a framework', function 
     [AiAnswer::class, '0.9.0'],
     [AiStanding::class, '0.9.0'],
     [AiRefused::class, '0.9.0'],
+    [ContentReader::class, '0.9.0'],
+    [ItemQuery::class, '0.9.0'],
+    [ItemPage::class, '0.9.0'],
+    [ItemSnapshot::class, '0.9.0'],
+    [ReadRefused::class, '0.9.0'],
+    [QueueQuery::class, '0.9.0'],
+    [QueuedItem::class, '0.9.0'],
+    [QueuePage::class, '0.9.0'],
+    [PeopleReader::class, '0.9.0'],
+    [PersonRef::class, '0.9.0'],
+    [PersonPage::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -150,6 +172,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'feeds.links',
         'pages.insert',
         'ai',
+        'people.read',
     ]);
 });
 

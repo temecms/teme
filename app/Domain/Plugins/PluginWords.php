@@ -55,6 +55,7 @@ final readonly class PluginWords
             Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
             Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
+            Capability::PeopleRead->value => __('See the names of the people who write on this site'),
             default => $capability,
         });
     }

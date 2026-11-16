@@ -73,7 +73,9 @@ final class WritePluginSettings extends BaseOperation
             $setting = $group->setting((string) $key);
 
             if ($setting !== null && ! in_array($setting->type, self::WRITABLE, true)) {
-                $problems["values.{$key}"] = __('A plugin can’t write its own :type settings.', ['type' => $setting->type->value]);
+                $problems["values.{$key}"] = $setting->type === SettingType::Person
+                    ? __('A plugin can’t choose a person for itself.')
+                    : __('A plugin can’t write its own :type settings.', ['type' => $setting->type->value]);
             }
         }
 

@@ -24,6 +24,7 @@ It does not cover running a server or writing content. Those have their own guid
 ## Sockets for plugins and themes
 
 - [Plugins writing content](plugins/content-write.md)
+- [Reading content](plugins/content-read.md)
 - [Jobs and schedules](plugins/jobs.md)
 - [Public routes](plugins/public-routes.md)
 - [Files at the site's root](plugins/root-files.md)

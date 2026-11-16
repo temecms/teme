@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
 /**
@@ -26,6 +27,11 @@ use Throwable;
  * plugin whose schedules can't run, by ScheduleRunner, is skipped. A
  * schedule is due its interval after its last run was queued, not on the
  * clock, and a missed pass catches up once (docs/guides/developers/plugins/jobs.md).
+ *
+ * A schedule may name its plugin's own settings: a boolean that switches it
+ * on and off, and a select that says how often it runs. They are read on
+ * every pass, so a change counts at the next minute's check; a setting that
+ * can't be read leaves the schedule off, or at its declared interval.
  *
  * Safe mode is not checked here: the command name matches SafeMode's
  * `teme:plugins:` prefix, so active() would always skip every schedule
@@ -47,6 +53,7 @@ final readonly class DueSchedules
         private PluginRegistry $registry,
         private StartJob $start,
         private ScheduleRunner $runner,
+        private SettingsReader $settings,
     ) {}
 
     /**
@@ -111,7 +118,8 @@ final readonly class DueSchedules
         $queued = 0;
 
         foreach ($declared->schedules() as $schedule) {
-            if (! $this->due($runs[$schedule['job']] ?? null, $schedule['every'], $now)) {
+            if (! $this->switchedOn($record->code, $schedule['enabledBy'] ?? null)
+                || ! $this->due($runs[$schedule['job']] ?? null, $this->every($record->code, $schedule['every'], $schedule['everyFrom'] ?? null), $now)) {
                 continue;
             }
 
@@ -143,7 +151,7 @@ final readonly class DueSchedules
         }
 
         foreach (DeclaredJobs::of($found->manifest)->schedules() as $schedule) {
-            $seconds = self::SECONDS[$schedule['every']] ?? null;
+            $seconds = self::SECONDS[$this->every($record->code, $schedule['every'], $schedule['everyFrom'] ?? null)] ?? null;
 
             if ($schedule['job'] !== $job || $seconds === null) {
                 continue;
@@ -159,6 +167,42 @@ final readonly class DueSchedules
         }
 
         return null;
+    }
+
+    /**
+     * Whether the plugin's switch for a schedule is on: always, when the
+     * schedule names none.
+     */
+    private function switchedOn(string $code, ?string $enabledBy): bool
+    {
+        if ($enabledBy === null) {
+            return true;
+        }
+
+        try {
+            return $this->settings->get("plugin.{$code}", $enabledBy) === true;
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * How often a schedule runs: its setting's interval when it names one
+     * that holds an interval, else the one it declares.
+     */
+    private function every(string $code, string $declared, ?string $everyFrom): string
+    {
+        if ($everyFrom === null) {
+            return $declared;
+        }
+
+        try {
+            $chosen = $this->settings->get("plugin.{$code}", $everyFrom);
+        } catch (Throwable) {
+            return $declared;
+        }
+
+        return is_string($chosen) && isset(self::SECONDS[$chosen]) ? $chosen : $declared;
     }
 
     private function due(mixed $last, string $every, CarbonImmutable $now): bool

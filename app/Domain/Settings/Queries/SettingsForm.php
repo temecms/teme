@@ -9,6 +9,7 @@ use App\Domain\Plugins\Contributions\DeclaredSettings;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SecretStore;
 use App\Domain\Settings\SettingsRegistry;
+use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Users\Queries\AuthorOptions;
 use DateTimeZone;
 use Illuminate\Support\Facades\DB;
@@ -22,12 +23,16 @@ use Teme\Contracts\Settings\SettingType;
  */
 final class SettingsForm
 {
+    /** The most terms a term setting offers. */
+    private const int MOST_TERMS = 500;
+
     public function __construct(
         private readonly SettingsRegistry $registry,
         private readonly SettingsReader $settings,
         private readonly SecretStore $secrets,
         private readonly CardMedia $media,
         private readonly AuthorOptions $authors,
+        private readonly ContentTypeRegistry $types,
     ) {}
 
     /**
@@ -145,9 +150,12 @@ final class SettingsForm
      */
     private function field(Setting $setting): array
     {
-        $options = $setting->type === SettingType::Timezone
-            ? array_combine(DateTimeZone::listIdentifiers(), DateTimeZone::listIdentifiers())
-            : $setting->options;
+        $options = match ($setting->type) {
+            SettingType::Timezone => array_combine(DateTimeZone::listIdentifiers(), DateTimeZone::listIdentifiers()),
+            SettingType::Term => $this->terms((string) $setting->taxonomy),
+            SettingType::ContentType => $this->publicTypes(),
+            default => $setting->options,
+        };
 
         return [
             'key' => $setting->key,
@@ -162,6 +170,40 @@ final class SettingsForm
             'example' => $setting->example,
             'unit' => $setting->unit,
             'visibleWhen' => $setting->visibleWhen,
+            ...($setting->type === SettingType::Term ? ['multiple' => $setting->multiple] : []),
         ];
+    }
+
+    /**
+     * A term setting's choices: the taxonomy's terms, slug => name, by name.
+     * A taxonomy can be large, so at most the first 500.
+     *
+     * @return array<string, string>
+     */
+    private function terms(string $taxonomy): array
+    {
+        /** @var array<string, string> */
+        return DB::table('terms')->where('taxonomy', $taxonomy)
+            ->orderBy('name')->orderBy('id')->limit(self::MOST_TERMS)
+            ->pluck('name', 'slug')->map(strval(...))->all();
+    }
+
+    /**
+     * A type setting's choices: the content types with public addresses,
+     * key => plural name, in the registry's order.
+     *
+     * @return array<string, string>
+     */
+    private function publicTypes(): array
+    {
+        $types = [];
+
+        foreach ($this->types->all() as $type) {
+            if ($type->public) {
+                $types[$type->key] = $type->plural;
+            }
+        }
+
+        return $types;
     }
 }

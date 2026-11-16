@@ -2,8 +2,8 @@
 title: Jobs and schedules
 type: how-to
 audience: plugin
-summary: How a plugin declares background jobs and schedules in its manifest, queues them, after a delay or once while one waits, writes their handlers, when a schedule is due, who its scheduled work runs as, and what happens when one fails.
-rests_on: [app/Domain/Plugins/Jobs, packages/teme-contracts/src/Jobs, packages/teme-contracts/schema/teme-plugin.schema.json, routes/console.php, docs/architecture/plugins.md]
+summary: How a plugin declares background jobs and schedules in its manifest, queues them, after a delay or once while one waits, writes their handlers, when a schedule is due, who a run acts for, schedules its own settings switch and time, every limit a run works within, and what happens when one fails.
+rests_on: [app/Domain/Plugins/Jobs, packages/teme-contracts/src/Jobs, packages/teme-contracts/schema/teme-plugin.schema.json, routes/console.php, app/Domain/Plugins/Doors/PluginHttp.php, docs/architecture/plugins.md]
 ---
 
 # Jobs and schedules
@@ -27,6 +27,12 @@ A long job runs on the long queue, and each outbound call it makes may take up t
 Implement `PluginHasJobs` beside `Plugin`. Its `jobs()` answers a `JobHandler` for each declared key; a run whose key has no handler fails at once. Teme builds your plugin with its doors for every run, so a handler can use what your constructor was given: build the handlers there, passing them the doors they need.
 
 A handler's `handle()` receives a `JobContext`: `payload()` is what the job was queued with, `attempt()` counts the tries from 1, and `progress($done, $total, $message)` shows how far it is in **Tools › Jobs**. Call `progress()` as you go. When the run was cancelled, or your plugin was turned off while it ran, `progress()` throws `JobStopped`; let it unwind, and the run ends quietly.
+
+## The person a run acts for
+
+`JobContext::personId()` gives the account ID the run acts for: the person who queued it, or for a scheduled run the administrator who enabled the plugin. Pass it to every door that acts for a person, such as `ContentWriter` and `ContentReader`. Don't keep a "write as" setting of your own.
+
+A run the operator queued from the command line acts for nobody: `personId()` throws, and the run fails at once, without another try, with "This run has no person to act for."
 
 ## Queue a job
 
@@ -68,6 +74,33 @@ php artisan teme:plugins:enable your/plugin --agree --as=admin@example.com
 ```
 
 Without `--as`, or with an email no one who may manage plugins has, nothing is enabled.
+
+## Schedules your settings switch and time
+
+Two optional entries on a schedule hand the choice to the site's administrator, through the plugin's own settings (see [Plugin settings and secrets](settings.md)):
+
+- `enabledBy` names one of the plugin's `boolean` settings. The schedule runs only while it is on, so with no `default` of `true` it starts off.
+- `everyFrom` names one of the plugin's `select` settings whose options are all intervals from the list above. The schedule runs as often as the chosen option says, and as often as `every` says if the setting can't be read.
+
+Teme reads these settings each minute, when it checks what is due, so a change counts at the next minute's check. Turning a schedule on runs it at that check when its interval has already passed since its last run. A schedule that names a setting the plugin doesn't declare, or one of the wrong kind, stops the plugin from being enabled.
+
+## Limits
+
+| What | Ordinary | Inside a job declared `long` |
+|---|---|---|
+| A job's run | 75 seconds | 1,800 seconds |
+| An outbound call through `OutboundHttp` | 10 seconds | 300 seconds |
+| An outbound answer | 1 MB | 16 MB |
+| An outbound request's body | 1 MB | 1 MB |
+| A job's payload | 64 KB | 64 KB |
+| An AI request | 55 seconds | 600 seconds |
+| A schedule's smallest interval | one minute | one minute |
+
+An answer past its limit stops as it arrives and throws `AnswerTooLarge`; nothing past the limit is read.
+
+## Cutting work into runs
+
+A run that needs longer than its limit is cut short and retried, so cut big work into small runs. Do one step in each run and queue the next step from it. Make each step safe to run twice, because a retry repeats it: check what is already done before doing it again. Never wait inside a run to space the steps out: queue the next step with `new QueueOptions(delaySeconds: …)` instead, or let a schedule pick it up.
 
 ## When a job fails
 

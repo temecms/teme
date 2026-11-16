@@ -160,18 +160,18 @@ final readonly class PluginLoader
     /**
      * Builds the plugin with its doors, without registering it — for a job
      * run that needs the same doors as boot, optionally with a longer
-     * outbound ceiling (I-3445).
+     * outbound ceiling and a larger answer (I-3445).
      */
-    public function instance(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null): Plugin
+    public function instance(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null, ?int $answerBytes = null): Plugin
     {
-        return $this->build($plugin, $record, $httpSeconds);
+        return $this->build($plugin, $record, httpSeconds: $httpSeconds, answerBytes: $answerBytes);
     }
 
     /**
      * The plugin, built with what Teme gives it for each type its
      * constructor asks for, never through the container.
      */
-    private function build(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null): Plugin
+    private function build(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null, ?int $answerBytes = null): Plugin
     {
         /** @var Manifest $manifest */
         $manifest = $plugin->manifest;
@@ -179,7 +179,7 @@ final readonly class PluginLoader
         $this->autoload($plugin, $class);
 
         $reflection = new ReflectionClass($class);
-        $services = $this->services->for($plugin->name, $plugin->code, $record->consent['capabilities'] ?? [], Consent::hosts($record->consent, $manifest), $httpSeconds);
+        $services = $this->services->for($plugin->name, $plugin->code, $record->consent['capabilities'] ?? [], Consent::hosts($record->consent, $manifest), httpSeconds: $httpSeconds, answerBytes: $answerBytes);
         $arguments = [];
 
         foreach ($reflection->getConstructor()?->getParameters() ?? [] as $parameter) {
