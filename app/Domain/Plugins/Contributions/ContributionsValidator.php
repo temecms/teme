@@ -19,7 +19,7 @@ use Teme\Contracts\Plugins\Capability;
 final class ContributionsValidator implements ContributionsCheck
 {
     /** The setting types a plugin may declare. */
-    public const array TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'secret', 'color'];
+    public const array TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'secret', 'color', 'code', 'repeater'];
 
     /** Where a plugin may add a link: Tools alone in the first release. */
     public const array SURFACES = ['tools'];

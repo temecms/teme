@@ -416,7 +416,9 @@
                                     "urls",
                                     "email",
                                     "secret",
-                                    "color"
+                                    "color",
+                                    "code",
+                                    "repeater"
                                 ]
                             },
                             "label": {
@@ -457,6 +459,42 @@
                             "unit": {
                                 "type": "string",
                                 "description": "The unit shown beside a number."
+                            },
+                            "section": {
+                                "type": "string",
+                                "description": "The id of the settingsSections entry the setting sits in."
+                            },
+                            "visibleWhen": {
+                                "type": "object",
+                                "description": "Shows the setting only while every earlier setting named has this value, or one of a list of values."
+                            },
+                            "fields": {
+                                "type": "array",
+                                "description": "A repeater's fields, one item's worth: scalar types and code."
+                            },
+                            "minItems": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 50,
+                                "description": "A repeater's fewest items."
+                            },
+                            "maxItems": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50,
+                                "description": "A repeater's most items."
+                            },
+                            "itemLabel": {
+                                "type": "string",
+                                "description": "What one of a repeater's items is called, as its Add button names it."
+                            },
+                            "itemTitle": {
+                                "type": "string",
+                                "description": "The key of the field whose value titles a collapsed item."
+                            },
+                            "scripts": {
+                                "type": "boolean",
+                                "description": "A code setting whose inline scripts wait for an administrator's approval."
                             }
                         }
                     }
@@ -706,6 +744,122 @@
                                 "type": "string",
                                 "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
                             }
+                        }
+                    }
+                },
+                "settingsSections": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "description": "The sections the plugin's settings page is split into, in order.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "label"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The section's id, which a setting's section names."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The section's heading."
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 160,
+                                "description": "A line under the heading."
+                            }
+                        }
+                    }
+                },
+                "permissions": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "description": "Permissions the plugin declares, named plugin.{code}.{id}; administrators always hold them.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "label"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,23}$",
+                                "description": "The permission's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "What it lets a person do."
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 160,
+                                "description": "A longer line about it."
+                            },
+                            "roles": {
+                                "type": "array",
+                                "items": {
+                                    "enum": ["editor", "author", "contributor"]
+                                },
+                                "uniqueItems": true,
+                                "description": "The roles given it when it is first made."
+                            }
+                        }
+                    }
+                },
+                "area": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["label", "permission", "pages"],
+                    "description": "The plugin's own area in the admin: pages of blocks core draws, and records' forms.",
+                    "properties": {
+                        "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "description": "The area's word for what it holds, used inside it."
+                        },
+                        "description": {
+                            "type": "string",
+                            "maxLength": 160,
+                            "description": "A line about the area."
+                        },
+                        "permission": {
+                            "type": "string",
+                            "description": "The id of the declared permission that opens the area."
+                        },
+                        "menu": {
+                            "enum": ["content", "site", "tools"],
+                            "description": "Where its entry goes."
+                        },
+                        "purges": {
+                            "type": "array",
+                            "items": {
+                                "enum": ["insertions", "page-insertions"]
+                            },
+                            "uniqueItems": true,
+                            "description": "What core purges after a write that changed something."
+                        },
+                        "pages": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "items": {
+                                "type": "object"
+                            },
+                            "description": "The area's pages, each its id, label and blocks."
+                        },
+                        "records": {
+                            "type": "array",
+                            "maxItems": 3,
+                            "items": {
+                                "type": "object"
+                            },
+                            "description": "The kinds of record the area's tables list and its forms edit."
                         }
                     }
                 }

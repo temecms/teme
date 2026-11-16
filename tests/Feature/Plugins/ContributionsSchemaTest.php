@@ -16,7 +16,7 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $feedLink = $contributes['feedLinks']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel'])
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'permissions', 'settingsSections', 'area'])
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
         ->and($link['surface']['enum'])->toBe(ContributionsValidator::SURFACES)
         ->and($link['icon']['enum'])->toBe(ContributionsValidator::ICONS)
