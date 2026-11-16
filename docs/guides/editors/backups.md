@@ -78,6 +78,6 @@ Open the recovery keys from the screen. Each key is listed with the places it op
 
 ## To restore
 
-You do not restore from this screen. Restoring is done at the server, so ask whoever runs the server. A restore checks everything first, backs the site up as it is, then restores. Restoring from this screen comes in a later version.
+You do not restore from this screen. Restoring is done at the server, so ask whoever runs the server. A restore checks everything first, backs the site up as it is, then restores.
 
 After a restore, backups are paused until an administrator says whether this server is now the site or a copy of it, because two sites must never back up into one place. The screen asks the question and shows what each answer does.

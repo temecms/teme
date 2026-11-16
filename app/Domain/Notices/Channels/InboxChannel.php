@@ -8,6 +8,7 @@ use App\Domain\Inbox\InboxLink;
 use App\Domain\Inbox\Operations\Input\SendToInboxInput;
 use App\Domain\Inbox\Operations\SendToInbox;
 use App\Domain\Notices\NoticeMail;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Models\User;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
@@ -16,7 +17,7 @@ use Illuminate\Support\Str;
  * Delivers a plain notice to the recipient's own inbox, as that person: a
  * person putting an item in their own inbox, with no elevation. Core's seven
  * kinds use mail only, so nothing in core reaches the inbox this way yet
- * (I-1921).
+ * (I-1921); a plugin's kind is filed under the plugin's code.
  */
 final class InboxChannel
 {
@@ -39,7 +40,19 @@ final class InboxChannel
             text: Str::limit(implode(' ', $message->lines), 1000, ''),
             link: $link,
             actorId: (string) $notifiable->id,
-            owner: 'core',
+            owner: $this->owner($notice->noticeKind()),
         ));
+    }
+
+    /**
+     * Whom the item is from: the plugin's code for a plugin's own kind, as
+     * the inbox shows it (docs/plans/plugin-sockets-3.md); core otherwise, and
+     * for a code the inbox can't file, one starting with a digit.
+     */
+    private function owner(string $kind): string
+    {
+        $code = app(DeclaredNotices::class)->owner($kind)['code'] ?? null;
+
+        return $code !== null && preg_match('/^[a-z][a-z0-9-]*$/D', $code) === 1 ? $code : 'core';
     }
 }

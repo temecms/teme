@@ -59,15 +59,18 @@ final readonly class SettingHosts
     }
 
     /**
-     * Returns the labels of the settings `hostsFrom` names, in its order.
+     * Returns the labels of the settings `hostsFrom` names, in its order, in
+     * the current locale from the plugin's own lang folder.
      *
      * @return list<string>
      */
     public static function labels(Manifest $manifest): array
     {
         $labels = self::urlSettings($manifest);
+        $words = ManifestText::for($manifest->code());
+        $locale = app()->getLocale();
 
-        return array_map(fn (string $key): string => $labels[$key] ?? $key, self::declared($manifest));
+        return array_map(fn (string $key): string => isset($labels[$key]) ? $words->text($labels[$key], $locale) : $key, self::declared($manifest));
     }
 
     /**

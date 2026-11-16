@@ -6,7 +6,7 @@ namespace App\Domain\Site\ViewModels;
 
 /**
  * The item a comment form posts to, found by the address the form sends,
- * never its ID (1.8b's D9): its ID, for SubmitComment, and its title and
+ * never its ID: its ID, for SubmitComment, and its title and
  * address, for the pages that answer the form.
  */
 final readonly class CommentTarget

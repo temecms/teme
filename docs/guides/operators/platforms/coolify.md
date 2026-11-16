@@ -7,7 +7,7 @@ written_for: Coolify v4.4.6
 
 # Running Teme on Coolify
 
-> Not proved yet: nobody has run Teme on Coolify v4.4.6. Unknown: whether several resources may mount one named volume, and how Coolify's own database backups are stored in this version.
+> Not proved yet: Teme has not been tested on Coolify v4.4.6. Unknown: whether several resources may mount one named volume, and how Coolify's own database backups are stored in this version.
 
 This page was written for Coolify v4.4.6, from Coolify's documentation.
 

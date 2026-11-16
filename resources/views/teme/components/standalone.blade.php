@@ -1,4 +1,4 @@
-{{-- The one card the pages outside the admin's app draw, the error pages and the holding page (docs/proposals/sign-in-pages.md): the admin's tokens as plain CSS, and nothing loaded. --}}
+{{-- The one card the pages outside the admin's app draw, the error pages and the holding page: the admin's tokens as plain CSS, and nothing loaded. --}}
 @props(['title', 'holding' => false, 'error' => null, 'refreshSeconds' => null, 'brand' => ['name' => null, 'mark' => null]])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">

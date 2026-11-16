@@ -7,7 +7,7 @@ written_for: the media move and bucket check at Teme's own tag
 
 # Media in object storage
 
-> Not proved yet: the commands are tested against stand-ins for a bucket, and nobody has yet moved a site to each provider below.
+> Not proved yet: the commands are tested against stand-ins for a bucket, not against each provider below.
 
 Teme keeps uploaded files on the server by default. It can keep them in S3-compatible object storage instead: Cloudflare R2, DigitalOcean Spaces, Backblaze B2, Amazon S3 or MinIO. This page says when that is worth it, how to set up the buckets, how to move a site's files without taking it down, and what changes for backups.
 
@@ -40,7 +40,7 @@ The site never fetches media from the reader's browser by script, so the buckets
 
 ## Check the buckets first
 
-Set the variables on every role, leave `MEDIA_STORAGE` as `server` for now, deploy, and run:
+Set the variables on every role, leave `MEDIA_STORAGE` as `server` until the move is done, deploy, and run:
 
 ```sh
 docker compose exec web php artisan teme:media:bucket-check

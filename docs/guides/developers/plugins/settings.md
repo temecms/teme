@@ -14,11 +14,12 @@ A plugin does not draw its own settings screen. It declares its settings in `tem
 
 List them under `contributes.settings` in the manifest. Each entry needs a `key`, a `type`, a `label` and a `description`, for example `{"key": "api_key", "type": "secret", "label": "API key", "description": "The key the service gave you."}`.
 
-A key is 2 to 41 lower-case letters, digits and underscores, starting with a letter. The types are `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `url`, `urls`, `email`, `secret`, `color`, `code` and `repeater`. An entry may also give:
+A key is 2 to 41 lower-case letters, digits and underscores, starting with a letter. The types are `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `url`, `urls`, `email`, `secret`, `color`, `person`, `term`, `type`, `code` and `repeater`. An entry may also give:
 
 - `default`, the value before anyone changes it;
 - `options`, value to label, for a `select` or a `multiselect`;
 - `min` and `max` for a number, `maxLength` for text;
+- `taxonomy`, for a `term`, which it must name, and `multiple`, true to choose several terms;
 - `required`, `example` (a hint shown with the field) and `unit` (shown beside a number).
 
 Teme checks the declarations when the plugin is enabled and again each time it starts. If any one is wrong, it registers none of the plugin's contributions and the plugin doesn't start. Nothing is stored by declaring: a plugin that stops leaves its saved values in place for when it starts again.
@@ -29,7 +30,7 @@ A long settings page reads better in parts. Declare up to eight sections under `
 
 A setting with `visibleWhen` is shown only while its condition holds, such as `{"provider": "adsense"}`, or a list of values, `{"provider": ["adsense", "other"]}`. A condition names settings declared before it. A hidden setting is never checked when the page is saved, and keeps what it held.
 
-A `repeater` setting holds a list of items, each with its own `fields`, which may be any type but `secret`, `urls` or another repeater. Give it `minItems`, `maxItems` (20 when left out) and `itemTitle`, the field whose value names each item. People add, collapse, remove and move items with Move up and Move down, and the value is stored as one JSON list.
+A `repeater` setting holds a list of items, each with its own `fields`, which may be `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `email`, `color` or `code` settings. Give it `minItems`, `maxItems` (20 when left out) and `itemTitle`, the field whose value names each item. People add, collapse, remove and move items with Move up and Move down, and the value is stored as one JSON list.
 
 A `code` setting holds markup, up to 65,535 characters, in a monospace box. Declared `"scripts": true`, each inline script it holds is asked to be approved for the plugin when the page is saved, as a code field in [your own area](admin-area.md#scripts-in-a-code-field) is. Your plugin can't write its own `code` settings, or a repeater holding one, through `PluginSettingsWriter`.
 
@@ -42,6 +43,10 @@ Each save is an Operation, so it is checked, recorded in the settings history, a
 ## Read the values
 
 Ask for `SettingsReader` in your plugin's constructor, as [Your first plugin](../start/first-plugin.md) does, and read your group by its key: `string()`, `int()`, `bool()`, `stringList()`, `get()` for one value, or `group()` for every value at once. Each answers the saved value, or the declared default.
+
+A `person` setting is drawn with core's person picker, offering the people who may write, and saved only as someone with an account. The reader answers it as that account's ID, a string, or an empty string while nobody is chosen: use it, for example, as the person a plugin credits by default.
+
+A `term` setting offers the terms of the taxonomy it names, such as `category`, by name, up to the first 500. It is saved only as terms that taxonomy has, and the reader answers their slugs: one slug as a string, or with `multiple` a list of slugs (read it with `stringList()`), empty while none is chosen. A `type` setting offers the content types with public addresses, and the reader answers the chosen type's key, such as `post`. A term or type that is removed later stays saved until someone saves the group again, so check it still exists before you use it.
 
 The reader never answers a secret. Read the settings when you need them, not once in the constructor, so a saved change counts on the next request.
 

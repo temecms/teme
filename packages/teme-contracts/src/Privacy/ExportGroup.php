@@ -6,7 +6,7 @@ namespace Teme\Contracts\Privacy;
 
 /**
  * One titled group of values in a person's export: a comment, an account,
- * an event. A preview until Teme 1.0 (I-3187).
+ * an event. A preview until Teme 1.0.
  *
  * @since 0.5.0
  */

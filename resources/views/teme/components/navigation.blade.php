@@ -1,4 +1,4 @@
-{{-- A slot's menu (I-253), or, outside production, a loud note that it has none (study B, decision 2). A menu with nothing to show draws no landmark. --}}
+{{-- A slot's menu, or, outside production, a loud note that it has none. A menu with nothing to show draws no landmark. --}}
 @if ($items !== null)
 @if ($items !== [])
 <nav aria-label="{{ $label }}">

@@ -1,0 +1,11 @@
+{
+    "manifest": 1,
+    "name": "tests/relay-pro",
+    "code": "relay-pro",
+    "label": "Relay Pro",
+    "description": "A fixture add-on that requires Relay and listens to its hooks, for the sockets tests.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5", "plugins": { "tests/relay": "^1.0" } },
+    "plugin": "Tests\\Fixtures\\Plugins\\RelayPro\\RelayProPlugin",
+    "hooks": ["relay:PromptModules", "relay:ArticleTitle", "relay:ArticleWritten"]
+}

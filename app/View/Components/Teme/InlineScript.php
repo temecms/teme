@@ -10,7 +10,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * `<x-teme::inline-script>`: one of core's own inline scripts (I-498),
+ * `<x-teme::inline-script>`: one of core's own inline scripts,
  * written exactly as its hash is noted in the page's policy, so the page
  * stays shared and a policy allows it without a nonce. Core's alone: a
  * theme's scripts go in its build, which teme:theme:check holds it to.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Ai\Plugins\DeclaredAiTask;
 use Closure;
 use Teme\Contracts\Plugins\Capability;
 
@@ -27,23 +28,28 @@ final readonly class PluginWords
         'MediaStored' => 'a file uploaded or replaced',
         'CommentStatusChanged' => 'a comment’s status changed',
         'SettingsChanged' => 'a setting changed',
+        'ArticleLinks' => 'an article’s links drawn',
     ];
 
     /**
      * The sentence for one capability a plugin asks for; the outbound door
-     * names its hosts, and import.wordpress what it reads.
+     * names its hosts, import.wordpress what it reads, and ai its tasks.
      *
      * @param  list<string>  $hosts
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
+     * @param  list<string>  $aiTasks  the declared AI tasks' labels
+     * @param  list<string>  $notices  the labels of the kinds of notice it declares
      */
-    public static function capability(string $capability, array $hosts = [], array $imports = []): string
+    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = [], array $notices = []): string
     {
         return self::core(fn (): string => match ($capability) {
+            Capability::Ai->value => __('Use your site’s AI connection (Settings › AI) for: :tasks. What it sends goes to the AI service chosen there, and it spends your site’s AI budget.', ['tasks' => implode(', ', $aiTasks)]),
             Capability::ImportWordPress->value => self::imports($imports),
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
             Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
             Capability::PagesInsert->value => __('Add content to every page of your site: in the head, at the top and bottom of the page, between items on lists, in the theme’s regions, and fixed to the screen’s edge'),
+            Capability::ContentLinks->value => __('Change how links in your articles behave: nofollow, new tab'),
             Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
             Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
             Capability::Jobs->value => __('Run work in the background and on a schedule'),
@@ -52,6 +58,8 @@ final readonly class PluginWords
             Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
             Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
+            Capability::PeopleRead->value => __('See the names of the people who write on this site'),
+            Capability::NoticesSend->value => __('Send notices to people on this site, by email or in their inbox: :kinds', ['kinds' => implode('; ', $notices)]),
             default => $capability,
         });
     }
@@ -115,6 +123,15 @@ final readonly class PluginWords
     }
 
     /**
+     * The consent's line for a plugin this one requires, which must stay
+     * enabled while this one is (docs/plans/plugin-sockets-3.md).
+     */
+    public static function needs(string $plugin): string
+    {
+        return __('Needs :plugin, which must stay enabled.', ['plugin' => $plugin]);
+    }
+
+    /**
      * The sentence naming the hosts a plugin's inserted content may load
      * from (`contributes.csp`).
      *
@@ -123,6 +140,28 @@ final readonly class PluginWords
     public static function insertionHosts(array $hosts): string
     {
         return __('Lets the content it inserts load from: :hosts', ['hosts' => implode(', ', $hosts)]);
+    }
+
+    /**
+     * One declared AI task as the consent lists it: its label and what it sends.
+     */
+    public static function aiTask(DeclaredAiTask $task): string
+    {
+        return __(':label: sends :what', ['label' => $task->label, 'what' => self::aiSends($task->sends)]);
+    }
+
+    /**
+     * What an AI task sends, in words: its own brief, an item's unpublished
+     * text, or published text only.
+     */
+    public static function aiSends(string $sends): string
+    {
+        return match ($sends) {
+            'brief' => __('only what the plugin writes itself'),
+            'draft' => __('an item’s unpublished text'),
+            'published' => __('published text only'),
+            default => $sends,
+        };
     }
 
     /**

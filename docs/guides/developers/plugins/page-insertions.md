@@ -3,15 +3,14 @@ title: Content on every page
 type: how-to
 audience: plugin
 summary: How a plugin with pages.insert places markup in the head, at the top and bottom of every page, between list items, around a theme's regions and fixed to the screen's edge, and what core cleans, caps and leaves out.
-rests_on: [packages/teme-contracts/src/Insertions, app/Domain/Site/Insertions, docs/plans/plugin-sockets-2.md]
-lands_with: sockets2/inserts
+rests_on: [packages/teme-contracts/src/Insertions, app/Domain/Site/Insertions, docs/architecture/plugins.md]
 ---
 
 # Content on every page
 
 A plugin can place its own markup on every public page, not only inside articles: an ad network's script in the head, a banner at the top, an ad between the items of a list, a box after a theme's region, a bar fixed to the bottom of the screen. Core decides where each piece can go, cleans it, and leaves it out wherever it doesn't belong. The theme says where; the plugin says what.
 
-This page describes the code on the `sockets2/inserts` branch. The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0. For content between an article's paragraphs, see [Content inside articles](insertions.md).
+The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0. For content between an article's paragraphs, see [Content inside articles](insertions.md).
 
 ## Ask for pages.insert
 

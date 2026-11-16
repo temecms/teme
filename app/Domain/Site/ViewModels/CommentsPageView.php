@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Site\ViewModels;
 
 /**
- * A later page of an item's comments, as its template sees it, as `$page`
- * (docs/studies/comments.md §3.1, I-272): the item's title, address and
+ * A later page of an item's comments, as its template sees it, as `$page`:
+ * the item's title, address and
  * kicker, and the thread's page. Page 1 is the item itself, which draws it.
  */
 final readonly class CommentsPageView

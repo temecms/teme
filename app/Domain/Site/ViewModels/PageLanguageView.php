@@ -6,7 +6,7 @@ namespace App\Domain\Site\ViewModels;
 
 /**
  * The language of the page being drawn, as every theme view sees it, as
- * `$language` (I-3360): its BCP 47 tag, its PHP locale, its own name,
+ * `$language`: its BCP 47 tag, its PHP locale, its own name,
  * whether it is the site's default, and its home address.
  */
 final readonly class PageLanguageView

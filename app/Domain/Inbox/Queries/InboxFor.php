@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Inbox\Queries;
 
+use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Queries\Cursor;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -18,7 +20,7 @@ use stdClass;
  * page at a time, each with the address its link leads to for them now, and
  * how many they haven't read. It writes nothing.
  *
- * @phpstan-type InboxRow array{id: string, title: string, text: string|null, href: string|null, read: bool, at: string, owner: string}
+ * @phpstan-type InboxRow array{id: string, title: string, text: string|null, href: string|null, read: bool, at: string, owner: string, plugin: string|null}
  */
 final readonly class InboxFor
 {
@@ -139,6 +141,7 @@ final readonly class InboxFor
     private static function shown(User $person, Collection $found): array
     {
         $rows = [];
+        $plugins = self::pluginLabels($found);
 
         foreach ($found as $row) {
             $body = json_decode((string) $row->body, true);
@@ -152,10 +155,37 @@ final readonly class InboxFor
                 'read' => $row->read_at !== null,
                 'at' => CarbonImmutable::parse((string) $row->created_at)->utc()->toIso8601String(),
                 'owner' => (string) $row->owner,
+                'plugin' => $plugins[(string) $row->owner] ?? null,
             ];
         }
 
         return $rows;
+    }
+
+    /**
+     * The label of each plugin these items are from, by its code: what the
+     * inbox names it by (docs/plans/plugin-sockets-3.md). Core's own items
+     * ask nothing.
+     *
+     * @param  Collection<int, stdClass>  $found
+     *
+     * @return array<string, string>
+     */
+    private static function pluginLabels(Collection $found): array
+    {
+        $codes = $found->pluck('owner')->map(fn (mixed $owner): string => (string) $owner)->reject(fn (string $owner): bool => $owner === 'core')->unique()->values()->all();
+
+        if ($codes === []) {
+            return [];
+        }
+
+        $labels = [];
+
+        foreach (PluginRecord::query()->whereIn('code', $codes)->get(['name', 'code']) as $record) {
+            $labels[(string) $record->code] = app(PluginRegistry::class)->find((string) $record->name)?->manifest?->label() ?? (string) $record->name;
+        }
+
+        return $labels;
     }
 
     /**

@@ -77,7 +77,9 @@ final class WritePluginSettings extends BaseOperation
             $repeater = $setting?->type === SettingType::Repeater && ! array_any($setting->fields, fn (Setting $field): bool => $field->type === SettingType::Code);
 
             if ($setting !== null && ! $repeater && ! in_array($setting->type, self::WRITABLE, true)) {
-                $problems["values.{$key}"] = __('A plugin can’t write its own :type settings.', ['type' => $setting->type->value]);
+                $problems["values.{$key}"] = $setting->type === SettingType::Person
+                    ? __('A plugin can’t choose a person for itself.')
+                    : __('A plugin can’t write its own :type settings.', ['type' => $setting->type->value]);
             }
         }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Teme\Contracts\StructuredData;
 
 /**
- * The fragments core's structured-data nodes end their @id with (I-696), so
+ * The fragments core's structured-data nodes end their @id with, so
  * an extension adds to core's node by naming it, rather than describing the
  * same thing twice. A node's @id is an address and a fragment: the site's
  * home address, a page's own, or an author's; a page's own node is its

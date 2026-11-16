@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Domain\Settings\Queries;
 
 use App\Domain\Cards\CardMedia;
+use App\Domain\Plugins\Contributions\DeclaredSettings;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SecretStore;
 use App\Domain\Settings\SettingsRegistry;
+use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Users\Queries\AuthorOptions;
 use DateTimeZone;
 use Illuminate\Support\Facades\DB;
@@ -21,12 +23,16 @@ use Teme\Contracts\Settings\SettingType;
  */
 final class SettingsForm
 {
+    /** The most terms a term setting offers. */
+    private const int MOST_TERMS = 500;
+
     public function __construct(
         private readonly SettingsRegistry $registry,
         private readonly SettingsReader $settings,
         private readonly SecretStore $secrets,
         private readonly CardMedia $media,
         private readonly AuthorOptions $authors,
+        private readonly ContentTypeRegistry $types,
     ) {}
 
     /**
@@ -40,6 +46,7 @@ final class SettingsForm
      * who may write, by name, and the chosen person while they have an
      * account. A list, not a map, so the browser keeps its order. Each
      * field carries its `visibleWhen`: the other settings' values it shows for.
+     * A plugin's group carries its words in the person's language.
      *
      * @return array{
      *     group: array{key: string, label: string, description: string, sensitive: bool},
@@ -80,7 +87,7 @@ final class SettingsForm
         $images = $this->media->forIds(array_values($chosen));
         $media = array_map(fn (string $id): ?array => $images[$id] ?? null, $chosen);
 
-        return [
+        $form = [
             'group' => [
                 'key' => $definition->key,
                 'label' => $definition->label,
@@ -95,6 +102,9 @@ final class SettingsForm
             'media' => $media,
             'version' => (int) (SettingsGroupRecord::query()->whereKey($group)->value('version') ?? 0),
         ];
+
+        // A plugin's words in the person's language, from its own lang folder (docs/plans/plugin-sockets-2.md).
+        return str_starts_with($group, 'plugin.') ? DeclaredSettings::translated($form, app()->getLocale()) : $form;
     }
 
     /**
@@ -140,9 +150,12 @@ final class SettingsForm
      */
     private function field(Setting $setting): array
     {
-        $options = $setting->type === SettingType::Timezone
-            ? array_combine(DateTimeZone::listIdentifiers(), DateTimeZone::listIdentifiers())
-            : $setting->options;
+        $options = match ($setting->type) {
+            SettingType::Timezone => array_combine(DateTimeZone::listIdentifiers(), DateTimeZone::listIdentifiers()),
+            SettingType::Term => $this->terms((string) $setting->taxonomy),
+            SettingType::ContentType => $this->publicTypes(),
+            default => $setting->options,
+        };
 
         return [
             'key' => $setting->key,
@@ -163,6 +176,40 @@ final class SettingsForm
                 'fields' => array_map($this->field(...), $setting->fields),
                 'itemTitle' => $setting->itemTitle,
             ] : []),
+            ...($setting->type === SettingType::Term ? ['multiple' => $setting->multiple] : []),
         ];
+    }
+
+    /**
+     * A term setting's choices: the taxonomy's terms, slug => name, by name.
+     * A taxonomy can be large, so at most the first 500.
+     *
+     * @return array<string, string>
+     */
+    private function terms(string $taxonomy): array
+    {
+        /** @var array<string, string> */
+        return DB::table('terms')->where('taxonomy', $taxonomy)
+            ->orderBy('name')->orderBy('id')->limit(self::MOST_TERMS)
+            ->pluck('name', 'slug')->map(strval(...))->all();
+    }
+
+    /**
+     * A type setting's choices: the content types with public addresses,
+     * key => plural name, in the registry's order.
+     *
+     * @return array<string, string>
+     */
+    private function publicTypes(): array
+    {
+        $types = [];
+
+        foreach ($this->types->all() as $type) {
+            if ($type->public) {
+                $types[$type->key] = $type->plural;
+            }
+        }
+
+        return $types;
     }
 }

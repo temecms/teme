@@ -15,7 +15,7 @@ it('gives every privacy contract its @since, the preview line and nothing from a
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since 0.5.0')
-        ->and($reflection->getDocComment())->toContain('A preview until Teme 1.0 (I-3187)');
+        ->and($reflection->getDocComment())->toContain('A preview until Teme 1.0.');
 
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
         if ($method->getDeclaringClass()->getName() !== $class || ! $method->isUserDefined()) {

@@ -3,11 +3,11 @@
 # Paste into Dokploy: Create Service > Compose > Raw. Compose type: Docker Compose.
 # Passwords come from the service's Environment tab instead of secret files:
 # TEME_IMAGE, APP_URL, APP_KEY, DB_PASSWORD, POSTGRES_PASSWORD, TEME_GITHUB_TOKEN.
-# Updating from the admin (I-3333) adds TEME_UPDATER_IMAGE (the same image as
+# Updating from the admin adds TEME_UPDATER_IMAGE (the same image as
 # TEME_IMAGE), TEME_IMAGE_REPOSITORY, TEME_DOKPLOY_URL, TEME_DOKPLOY_TOKEN and
 # TEME_DOKPLOY_COMPOSE_ID; only the updater service names the last three.
 # teme-db-setup makes Teme's own limited login (teme_app) and both databases
-# on every deploy, instead of the recipe's initdb script (I-379).
+# on every deploy, instead of the recipe's initdb script.
 name: teme
 
 x-teme-environment: &teme-environment
@@ -227,7 +227,7 @@ services:
             resources:
                 limits: { cpus: '0.5', memory: 1g }
 
-    # Carries out an update asked for from the admin (I-3326): sets TEME_IMAGE
+    # Carries out an update asked for from the admin: sets TEME_IMAGE
     # through Dokploy's API and deploys this Compose service. Its own image is
     # TEME_UPDATER_IMAGE, so the update it runs never replaces it midway.
     updater:

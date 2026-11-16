@@ -7,7 +7,7 @@ namespace Teme\Contracts\Privacy;
 /**
  * One place that keeps personal data, answering export and erase requests a
  * page at a time, so a holder with thousands of rows never runs long. Core's
- * holders and plugins' are asked the same way. A preview until Teme 1.0 (I-3187).
+ * holders and plugins' are asked the same way. A preview until Teme 1.0.
  *
  * @since 0.5.0
  */

@@ -25,7 +25,7 @@ final readonly class Pagination
         public ?string $previous,
         public ?string $next,
         private string $base = '/',
-        /** Kept on every page address pages() gives, such as `?s=heron` (1.6h). */
+        /** Kept on every page address pages() gives, such as `?s=heron`. */
         private string $query = '',
         /** Page 1's address when it isn't the base, as a thread's first page is its item's own address at #comments. */
         private ?string $first = null,

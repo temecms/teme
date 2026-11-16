@@ -1,0 +1,23 @@
+{
+    "manifest": 1,
+    "name": "tests/relay",
+    "code": "relay",
+    "label": "Relay",
+    "description": "A fixture that declares hooks of its own for other plugins, and kinds of notice, for the sockets tests.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Relay\\RelayPlugin",
+    "capabilities": ["content.read", "notices.send"],
+    "contributes": {
+        "hooks": [
+            { "name": "PromptModules", "class": "Tests\\Fixtures\\Plugins\\Relay\\Hooks\\PromptModules", "description": "Collects extra prompt modules for an article." },
+            { "name": "ArticleTitle", "class": "Tests\\Fixtures\\Plugins\\Relay\\Hooks\\ArticleTitle", "description": "Lets another plugin change an article’s title before it is written." },
+            { "name": "ArticleWritten", "class": "Tests\\Fixtures\\Plugins\\Relay\\Hooks\\ArticleWritten", "description": "Tells other plugins an article was written." },
+            { "name": "DraftShared", "class": "Tests\\Fixtures\\Plugins\\Relay\\Hooks\\DraftShared", "description": "Hands other plugins a draft’s words, for those that may read content." }
+        ],
+        "notices": [
+            { "id": "job_failed", "label": "Email me when an article I started fails", "audience": "starter", "channels": ["mail", "inbox"], "defaults": ["inbox"] },
+            { "id": "queue_stalled", "label": "Email me when the article queue stops", "audience": "plugins.manage", "channels": ["mail"], "defaults": ["mail"] }
+        ]
+    }
+}

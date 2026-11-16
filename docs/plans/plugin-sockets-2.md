@@ -647,43 +647,69 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+Setup: `/tmp/teme-cloud-setup.log` absent at start (`none`); `pwd` `/home/user/teme`. `bash scripts/cloud-setup.sh` run once (PHP was 8.3, PostgreSQL and Valkey down); afterwards PHP 8.4.27, `pg_isready` accepting, Valkey PONG.
+
 #### Commits on `sockets2/small`
 
--
+- `dc273544` feat(plugins): a custom route verifier needs no secret
+- `5f1f8544` feat(plugins): a plugin's manifest words translate from its own lang folder
+- `dea8b6c8` feat(plugins): schedules say when they are next due, and a pass can be limited to one plugin
+- `8a206db0` docs(plugins): custom verifiers without a secret, the answers before a handler, translated manifest words, and when a schedule is due
+- this records commit
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Plugins/Sockets/CustomVerifierTest.php` | `[plugin.inbound.] is not a secret setting.` (the 500 of F-15); and a `custom` route naming an undeclared secret passed validation |
+| 2 | `tests/Feature/Plugins/Sockets/ManifestWordsTest.php` | `Failed asserting that two strings are identical.` (`Workbench`, not `Banco de trabajo`) |
+| 3 | `tests/Feature/Plugins/Sockets/ScheduleDueTest.php` | `The "--plugin" option does not exist.`; `Call to undefined method …DueSchedules::nextDue()`; `The command "teme:plugins:schedules" does not exist.` |
 
 #### Task 0
 
--
+- V = `0.9.0` (`git tag -l 'v0.9.0*'` lists none). No `@since` was written: this part adds nothing to the contracts.
+- Built on `origin/main` at `9f27e413` (Merge pull request #380 from temecms/join/sockets-r1-r2).
+- Round 1 on `main`: `origin/sockets/outbound-feeds` and `origin/sockets/plugin-admin` are both ancestors of `main`, joined by `07b8161c` (part A, outbound feeds: A-W13 `736a196a` handler doors, A-W14 `PluginSentences`) and `07a9c2c4` (part B, plugin admin: B5 `9cf630dc`, `--as` and `ScheduleRunner::problem()`). Part B of this round (`sockets2/inserts`) is on `main` too (`98d57772`).
+- What a declared route answers before its handler (`RouteDispatcher`, `DeclaredRouteController`, the `declared-routes` limiter): 405 with `Allow: GET, HEAD` to a non-safe method matching no route; 413 to a body over `maxBody`, by Content-Length first, then by the body read; 401 to a failed POST verification; 429 from the `declared-routes` throttle. All with an empty body.
+- A-W14 loads a plugin's words in `App\Domain\Plugins\PluginSentences`: each started plugin's `lang/<locale>.json`, keeping only keys its own code passes to `__()`, that core lacks and no earlier plugin claimed. The admin's locale is set per request by `UseAdminLanguage` from `AdminWords::locale()`, which answers `en` for everyone until a second admin language ships (I-162).
 
 #### Gate
 
--
+- Before (base `9f27e413`, `composer check`): Pint passed; PHPStan no errors; `npm run types:check` and `npm run check` passed; Architecture 139 passed; Unit and Feature 12,531 passed, 3 skipped.
+- Quick check after each task: Pint, PHPStan, types, lint, Architecture 139 passed; `tests/Feature/Plugins` (with Sockets) 784 → 789 → 794 passed; `tests/Feature/Cache/DeclaredRouteCacheTest.php` 8 passed; for Task 2 also `tests/Feature/Admin` 910, `Extensions` 286 (1 skipped), `Navigation` 89, `Site/Insertions` 113, `SiteCode` 45, `Themes` 131 passed; for Task 4 `tests/Feature/Guides` 571 passed.
+- After (`composer check`): Pint passed; PHPStan no errors; types and lint passed; Architecture 139 passed; Unit and Feature 12,542 passed, 3 skipped, 2 failed: `GenerateManifestReferenceTest` (the generated `docs/reference/plugin-manifest.md` doesn't carry the new `verify.secret` and `verify.class` descriptions, which this part may not regenerate; the join does) and the handbook's `FirstPluginTest` (heard two publishes in a worker; passes alone, twice, and `tests/Feature/Testing` 26 passed).
+- Baselines unchanged: `admin-words-baseline.txt` 876 lines and `design-system-baseline.txt` 222 lines, before and after. No Browser test (the plan names none, and no screen file changed).
 
 #### B-?? (draft)
 
--
+- **B-?? (draft) The WAIT FOR grep.** The task's `git log origin/main --oneline -60 | grep -q "sockets/plugin-admin"` (and `…outbound-feeds`) never matched, because the maintainer joined round 1 through `join/sockets-r1-r2` with subjects such as "merge: join plugin sockets round 1 part B (plugin admin)". Options: keep waiting until the 8-hour limit, or check the merges another way. Chosen: `git merge-base --is-ancestor origin/<branch> origin/main` for both, which held at `9f27e413`, since that is what the condition means. Commit: the branch's base.
+- **B-?? (draft) Where manifest words are translated.** The plan names `DeclaredSettings` as the builder, but plugin groups, Tool links and the rest are built once at boot by `PluginLoader`, before the person's locale is set, and `Setting` has no way to change a label (a contract change). Options: re-register groups per request, change the contract, or translate where each screen's data is read. Chosen: the last. `DeclaredSettings::translated()` translates a plugin group's form, called from `SettingsForm::find()` and the group's menu label in `SettingsNavigation`; `ToolLinks::all()`, `PluginActions::forGroup()`, `PluginLists::forGroup()`, `PluginColumns::for()`, `PluginsScreen::rows()` (label, description, what it adds) and `SettingHosts::labels()` (the consent's setting names) translate their own words. `SettingsForm`, `SettingsNavigation` and `PluginsScreen` are the screens' builders the Owns line describes, outside the Plugins folder. `5f1f8544`.
+- **B-?? (draft) A Spanish-speaking administrator in the test.** `AdminWords::locale()` answers `en` for everyone (I-162), so no administrator can choose Spanish yet. `ManifestWordsTest` sets the locale as a second admin language will (`app()->setLocale('es')`) and reads each screen's query, not an HTTP page. `5f1f8544`.
+- **B-?? (draft) Permissions in `ManifestWordsTest`.** Plugin permissions are part A's (`contributes.permissions`), not on `main`, so the test has no permission line; the join adds it with the area (as the Joining section says for `AreaWords`). The test also covers actions, lists, list columns, the Plugins screen and the settings menu, which C2 lists. `5f1f8544`.
+- **B-?? (draft) `nextDue()` before the first run.** C3 doesn't say what a schedule never queued answers. Chosen: the time the plugin was enabled (`enabled_at`, now when absent), so it reads as due at the next pass; a job the plugin has no schedule for answers null. `dea8b6c8`.
+- **B-?? (draft) `teme:plugins:schedules` reasons.** Only `ScheduleRunner::problem()`'s reason is shown; a plugin whose consent lacks `jobs` (its schedules skipped by `DueSchedules`) is listed with an empty reason, since a sentence for it would be new words the plan doesn't give. `dea8b6c8`.
+- **B-?? (draft) The handbook's test example.** C3 shows `Queue::fake()`, the command and `travel()`; that is how `ScheduleDueTest` fires schedules. A plugin author's test uses the testing kit, whose `runSchedules($moment)` already takes the pass's moment, so `testing.md` shows that, in three lines (a longer block must name an example file, which this part doesn't own). `8a206db0`.
+- **B-?? (draft) `public-routes.md` said handlers get no constructor arguments.** Out of date since A-W13; corrected in the same section the plan names, from `RouteHandlerDoorsTest`'s behaviour. Changing two pages' summaries meant regenerating `docs/guides/developers/llms.txt` with `teme:docs:handbook-index` (`GenerateHandbookIndexTest`). `8a206db0`.
 
 #### Contract changes
 
--
+- None to any PHP contract. The schema's `routes[].verify.secret` and `verify.class` descriptions say `secret` is optional for `custom` and its class is then given an empty string, as the shared-files table gives C.
 
 #### STOP
 
--
+- None.
 
 #### Changelog lines for the maintainers
 
--
+- A plugin's `custom` route verifier no longer needs a secret setting; without one its class is given an empty secret, instead of the route answering 500.
+- The words a plugin's manifest gives (its label and description, settings, Tools links, actions, lists and columns) are shown in the person's language from the plugin's own `lang/<locale>.json`, never from core's.
+- `teme:plugins:schedules` lists each enabled plugin's schedules with when each was last queued, when it is next due and why it can't run; `teme:plugins:run-due-schedules --plugin=<code>` runs one plugin's.
+- The developer handbook says what a declared route answers before its handler runs, and exactly when a schedule is due.
 
 #### Try it
 
--
+- `php artisan test --compact tests/Feature/Plugins/Sockets/CustomVerifierTest.php tests/Feature/Plugins/Sockets/ManifestWordsTest.php tests/Feature/Plugins/Sockets/ScheduleDueTest.php` (one file at a time with `--parallel`).
+- On a development site with a plugin that has schedules enabled with `--as`: `php artisan teme:plugins:schedules`, then `php artisan teme:plugins:run-due-schedules --plugin=<code>` twice (the second queues nothing), and `teme:plugins:schedules` again.
 
 ---
 

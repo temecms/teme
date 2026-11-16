@@ -19,6 +19,8 @@ export type FieldType =
     | 'urls'
     | 'person'
     | 'hours'
+    | 'term'
+    | 'type'
     | 'code'
     | 'repeater';
 
@@ -37,6 +39,8 @@ export type FieldDefinition = {
     unit: string | null;
     /** A person setting's choices: who may write, by name, and the chosen person while they have an account. */
     people?: { value: string; label: string }[];
+    /** A term setting's: whether it holds several terms, ticked, rather than one. */
+    multiple?: boolean;
     /** The other settings' values this one shows for: every entry must hold (empty: always). */
     visibleWhen?: Record<string, VisibleWhenValue | VisibleWhenValue[]>;
     /** A plugin's setting: the id of the section it sits in (docs/plans/plugin-sockets-2.md, A4), or null. */

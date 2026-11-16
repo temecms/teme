@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Site\ViewModels;
 
 /**
- * One step of a breadcrumb trail (I-295): its name, and its address,
+ * One step of a breadcrumb trail: its name, and its address,
  * site-relative.
  */
 final readonly class Crumb

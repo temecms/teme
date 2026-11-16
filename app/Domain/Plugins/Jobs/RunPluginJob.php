@@ -13,6 +13,7 @@ use App\Domain\Jobs\Operations\Input\FailJobInput;
 use App\Domain\Jobs\Operations\Input\FinishJobInput;
 use App\Domain\Jobs\Operations\ReportJobProgress;
 use App\Domain\Plugins\Doors\CurrentJobActor;
+use App\Domain\Plugins\Doors\PluginHttp;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
@@ -129,7 +130,7 @@ final class RunPluginJob implements ShouldQueue
         ];
         self::configure($this, $declared);
 
-        $instance = $loader->instance($plugin, $record, $declared['long'] ? 300 : null);
+        $instance = $loader->instance($plugin, $record, httpSeconds: $declared['long'] ? 300 : null, answerBytes: $declared['long'] ? PluginHttp::LONG_ANSWER_BYTES : null);
         $handler = $instance instanceof PluginHasJobs ? ($instance->jobs()[$this->jobKey] ?? null) : null;
 
         if ($handler === null) {
@@ -154,6 +155,12 @@ final class RunPluginJob implements ShouldQueue
 
         try {
             $handler->handle($context);
+        } catch (NoPersonToActFor $nobody) {
+            // Another try would ask for the same person, so it fails now.
+            $this->tries = 1;
+            $fail->execute(new FailJobInput($this->trackedJobId, $nobody->getMessage(), $this->actor->userId));
+
+            return;
         } catch (JobStopped) {
             return;
         } catch (Throwable $failure) {

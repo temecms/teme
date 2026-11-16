@@ -1,6 +1,6 @@
 # serversideup/php 4.5.1's own site-opts.d/http.conf.template, with its
-# "location /" replaced for Teme's static-file page cache (slice 1.7d″,
-# I-086): copy it over the image's /etc/nginx/site-opts.d/http.conf.template,
+# "location /" replaced for Teme's static-file page cache:
+# copy it over the image's /etc/nginx/site-opts.d/http.conf.template,
 # which the image turns into http.conf when the container starts. Every
 # other line is the image's. With SSL_MODE mixed or full the image reads
 # https.conf.template instead, which this leaves alone: behind Traefik,

@@ -18,12 +18,12 @@ use Teme\Contracts\Insertions\PagePosition;
 
 /**
  * `<x-teme::region name="after-content" />`: the site's own content a theme
- * places, such as a newsletter box after the article (study B §3e), drawn
+ * places, such as a newsletter box after the article, drawn
  * from the region's published revision, its cards recorded for the page's
- * head (I-248). Nothing for a region that's empty or unpublished; outside
+ * head. Nothing for a region that's empty or unpublished; outside
  * production, a note for a name the theme's manifest doesn't declare. What
  * plugins place before or after a declared region is drawn around it, also
- * when it is empty (docs/plans/plugin-sockets-2.md, B2).
+ * when it is empty.
  */
 final class Region extends Component
 {

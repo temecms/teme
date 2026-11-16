@@ -37,7 +37,7 @@ final readonly class FieldViews
         'textarea' => ['value' => 'string', 'text' => 'the same (a template turns lines into `<br>` after escaping)', 'empty' => "`''`"],
         'number' => ['value' => 'int|float|null', 'text' => 'as stored: `(string) $value`, such as `166` or `3.5`', 'empty' => 'null'],
         'select' => ['value' => 'string|null', 'text' => 'its label; a choice no longer offered, the stored value itself', 'empty' => "null or `''`"],
-        'boolean' => ['value' => 'bool', 'text' => "`Yes` when true, `''` when false", 'empty' => 'false (2.2b Q4 A)'],
+        'boolean' => ['value' => 'bool', 'text' => "`Yes` when true, `''` when false", 'empty' => 'false'],
         'url' => ['value' => 'string', 'text' => 'the address', 'empty' => "`''`"],
         'date' => ['value' => 'DateTimeImmutable|null', 'text' => "`SiteDates::show(…, 'LL')` in the item's language", 'empty' => 'null'],
         'datetime' => ['value' => 'DateTimeImmutable|null', 'text' => "`SiteDates::show(…, 'LLL')`", 'empty' => 'null'],

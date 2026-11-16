@@ -9,7 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * `<x-teme::image>`: a theme's way to draw a media item (I-245), such as
+ * `<x-teme::image>`: a theme's way to draw a media item, such as
  * `<x-teme::image :id="$page->lead->id" context="feature" :priority="true" />`.
  * It is thin: ImageMarkup writes the `<img>`, so every image on the site,
  * cards included, comes out the same.

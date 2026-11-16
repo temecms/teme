@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use Stringable;
 
 /**
- * One field of an item as a template draws it (I-3346): its handle, label
+ * One field of an item as a template draws it: its handle, label
  * and type, its value as a plain PHP value, the words to print, and, for a
  * web address, an item or an image, what to link or draw. It prints as its
  * text, so {{ $page->field('runtime') }} shows the value.
@@ -23,7 +23,7 @@ final readonly class FieldView implements Stringable
      * @param  string  $text  the value as words, escaped by the template like any text; '' when empty
      * @param  string|null  $url  a web address's address, or an item's address now
      * @param  ImageRef|null  $image  a media field's image, with the alt text for this use
-     * @param  string  $show  where Show on the site lists it: after, before or hidden (I-3322)
+     * @param  string  $show  where Show on the site lists it: after, before or hidden
      * @param  bool  $empty  whether there is nothing to show
      */
     public function __construct(

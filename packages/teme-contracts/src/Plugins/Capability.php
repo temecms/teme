@@ -19,7 +19,12 @@ namespace Teme\Contracts\Plugins;
  * declares under `contributes.feedLinks`, such as a WebSub hub, to every
  * feed (`@since 0.9.0`). PagesInsert unlocks the places to add content on every public
  * page: the head, the top and bottom of the body, between the items of a
- * list, beside a theme's regions, and fixed to the screen's edge.
+ * list, beside a theme's regions, and fixed to the screen's edge. Ai opens
+ * SiteAi, the site's own AI connection, for the tasks the plugin declares
+ * (0.9.0). PeopleRead opens the door that names the people who write on the
+ * site. NoticesSend opens the Notices door, for the kinds of notice the
+ * plugin declares, and ContentLinks the hook that sets attributes on the
+ * links an article draws.
  *
  * @since 0.5.0
  */
@@ -63,4 +68,16 @@ enum Capability: string
 
     /** @since 0.9.0 */
     case PagesInsert = 'pages.insert';
+
+    /** @since 0.9.0 */
+    case Ai = 'ai';
+
+    /** @since 0.9.0 */
+    case PeopleRead = 'people.read';
+
+    /** @since 0.9.0 */
+    case NoticesSend = 'notices.send';
+
+    /** @since 0.9.0 */
+    case ContentLinks = 'content.links';
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Ai\Queries;
 
 use App\Domain\Ai\AiAvailability;
+use App\Domain\Ai\AiCapability;
 use App\Domain\Ai\AiModel;
 use App\Domain\Ai\AiProvider;
 use App\Domain\Ai\AiProviders;
@@ -13,8 +14,14 @@ use App\Domain\Ai\AiSettingsSection;
 use App\Domain\Ai\AiTask;
 use App\Domain\Ai\AiTasks;
 use App\Domain\Ai\ModelChoices;
+use App\Domain\Ai\Plugins\DeclaredAiTask;
+use App\Domain\Ai\Plugins\PluginAiSection;
+use App\Domain\Ai\Plugins\PluginAiSpend;
+use App\Domain\Ai\Plugins\PluginAiStanding;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\Providers\LibraryProvider;
 use App\Domain\Ai\UsageLimits;
+use App\Domain\Plugins\PluginWords;
 use App\Domain\Settings\Queries\SettingsForm;
 use App\Models\User;
 use RuntimeException;
@@ -46,13 +53,17 @@ final readonly class AiSettingsScreen
         private ModelChoices $choices,
         private AiAvailability $availability,
         private AiMonthSummary $month,
+        private PluginAiTasks $pluginTasks,
+        private PluginAiStanding $pluginStanding,
+        private PluginAiSpend $pluginSpend,
     ) {}
 
     /**
      * Returns Settings › AI as its page needs it: whether AI is on and, only
      * when it is, the group's description, whether any task can run, the
-     * sections in their order (each service, the models, the limits, and any
-     * other part's section on the generic controls), this month's figures,
+     * sections in their order (each service, the models, the plugins' tasks
+     * and limits, the limits, and any other part's section on the generic
+     * controls), this month's figures,
      * Tools › AI activity's address for whoever may see it, the group's
      * values without its secrets, each secret's state, each media setting's
      * image, and the version to save against.
@@ -78,8 +89,9 @@ final readonly class AiSettingsScreen
         $sections = [];
 
         foreach ($this->settings->ordered() as $section) {
-            $sections[] = match (true) {
+            $drawn = match (true) {
                 $section instanceof LibraryProvider => $this->service($section, $fields),
+                $section instanceof PluginAiSection => $this->plugins($section, $fields, $catalogue),
                 $section instanceof ModelChoices => [
                     'kind' => 'models',
                     'key' => $section->key(),
@@ -93,6 +105,10 @@ final readonly class AiSettingsScreen
                     'fields' => $this->fieldsOf($section, $fields),
                 ],
             };
+
+            if ($drawn !== null) {
+                $sections[] = $drawn;
+            }
         }
 
         return [
@@ -142,6 +158,66 @@ final readonly class AiSettingsScreen
     }
 
     /**
+     * Settings › AI's Plugins section: its settings on the generic controls,
+     * and each enabled plugin granted `ai` with its switch's, budget's and
+     * limit's settings, its month so far, and its tasks' rows, each with what
+     * it sends, its two settings, every model able to do it, and whether it
+     * can be asked now and, when it can't, why.
+     *
+     * @param  array<array-key, mixed>  $fields
+     * @param  list<array{provider: AiProvider, ready: bool, models: list<AiModel>}>  $catalogue
+     *
+     * @return array<string, mixed>|null null when no enabled plugin declares an AI task, so the section isn't drawn
+     */
+    private function plugins(PluginAiSection $section, array $fields, array $catalogue): ?array
+    {
+        $plugins = [];
+
+        foreach ($this->pluginTasks->enabled() as $code => $plugin) {
+            $month = $this->pluginSpend->month($code);
+            $plugins[] = [
+                'code' => $code,
+                'label' => $plugin['label'],
+                'onField' => PluginAiSection::onKey($code),
+                'budgetField' => PluginAiSection::budgetKey($code),
+                'hourlyField' => PluginAiSection::hourlyKey($code),
+                'on' => $section->on($code),
+                'budgetMicrounits' => $section->budgetMicrounits($code),
+                'hourly' => $section->hourly($code),
+                'month' => ['costMicrounits' => $month->costMicrounits, 'requests' => $month->requests, 'unpricedRequests' => $month->unpricedRequests],
+                'tasks' => array_map(function (DeclaredAiTask $task) use ($code, $catalogue): array {
+                    $standing = $this->pluginStanding->of($code, $task);
+
+                    return [
+                        'key' => $task->id,
+                        'label' => $task->label,
+                        'note' => $task->description === '' ? null : $task->description,
+                        'sends' => $task->sends,
+                        'sendsWords' => PluginWords::aiSends($task->sends),
+                        'modelField' => PluginAiSection::modelKey($code, $task->id),
+                        'fallbackField' => PluginAiSection::fallbackKey($code, $task->id),
+                        'on' => $standing->available,
+                        'status' => $standing->available ? __('On') : __('Off: :why', ['why' => $standing->sentence]),
+                        'options' => $this->options($task->needs, $catalogue),
+                    ];
+                }, $plugin['tasks']),
+            ];
+        }
+
+        if ($plugins === []) {
+            return null;
+        }
+
+        return [
+            'kind' => 'plugins',
+            'key' => $section->key(),
+            'label' => $section->label(),
+            'fields' => $this->fieldsOf($section, $fields),
+            'plugins' => $plugins,
+        ];
+    }
+
+    /**
      * A task's row: its words, its two settings, every model able to do it
      * from every provider, whether it can run and, when it can't, why.
      *
@@ -151,13 +227,35 @@ final readonly class AiSettingsScreen
      */
     private function task(AiTask $task, array $catalogue): array
     {
+        return [
+            'key' => $task->key(),
+            'label' => $task->label(),
+            'note' => self::TASK_NOTES[$task->key()] ?? null,
+            'modelField' => ModelChoices::modelKey($task->key()),
+            'fallbackField' => ModelChoices::fallbackKey($task->key()),
+            'on' => $this->availability->taskReady($task->key()),
+            'status' => $this->status($task),
+            'options' => $this->options($task->capabilities(), $catalogue),
+        ];
+    }
+
+    /**
+     * Every model able to do all of $needs, from every provider, as a select offers it.
+     *
+     * @param  list<AiCapability>  $needs
+     * @param  list<array{provider: AiProvider, ready: bool, models: list<AiModel>}>  $catalogue
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function options(array $needs, array $catalogue): array
+    {
         $options = [];
 
         foreach ($catalogue as $entry) {
             $provider = $entry['provider'];
 
             foreach ($entry['models'] as $model) {
-                if (! $model->can(...$task->capabilities())) {
+                if (! $model->can(...$needs)) {
                     continue;
                 }
 
@@ -173,16 +271,7 @@ final readonly class AiSettingsScreen
             }
         }
 
-        return [
-            'key' => $task->key(),
-            'label' => $task->label(),
-            'note' => self::TASK_NOTES[$task->key()] ?? null,
-            'modelField' => ModelChoices::modelKey($task->key()),
-            'fallbackField' => ModelChoices::fallbackKey($task->key()),
-            'on' => $this->availability->taskReady($task->key()),
-            'status' => $this->status($task),
-            'options' => $options,
-        ];
+        return $options;
     }
 
     /**

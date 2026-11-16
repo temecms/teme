@@ -2,8 +2,8 @@
 title: Plugins writing content
 type: how-to
 audience: plugin
-summary: How a plugin granted content.write creates, changes, publishes and schedules items, always on behalf of a named person.
-rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentWriter.php, app/Domain/Plugins/Doors/ActingPerson.php, docs/architecture/operations.md]
+summary: How a plugin granted content.write creates, changes, publishes and schedules items, with their slugs, credits and language versions, always on behalf of a named person.
+rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentWriter.php, app/Domain/Plugins/Doors/ActingPerson.php, docs/architecture/plugins.md, docs/architecture/operations.md]
 ---
 
 # Plugins writing content
@@ -29,6 +29,16 @@ The person's own permissions then apply as in the editor: an author can publish 
 
 Each answers the item as hooks carry it. Each write is recorded in the item's history, announced to hooks after it commits, and clears the cached pages that show it, exactly as an editor's would.
 
+## Slug, credits and translations
+
+Three more parts, each set inside the same transaction as the create or the change, so a refusal of any one writes nothing:
+
+- `slug`, on `NewItem` and `ItemChanges`: the last part of the item's address, lower-case letters and digits joined by single hyphens, at most 200 characters. Another item of the type and language already using it is refused. Left out, a new item's slug is made from its title.
+- `credits`, on `NewItem` and `ItemChanges`: account IDs to credit, in order, at most 20. On a new item, none credits the acting person; on a change, null leaves them and an empty list returns the credit to the item's owner. Crediting anyone but the acting person needs that person's own right to edit everyone's items of the type.
+- `translationOf`, on `NewItem`: the ID of an existing item in another language. The new item joins its language versions. Refused when the two share a language, are of different types, or the other is in the trash.
+
+To link items that already exist, call `linkTranslations()` with their IDs, between 2 and the site's number of languages, and the person's ID. Every version each already has joins one group, under the same refusals.
+
 ## When a write is refused
 
 Every refusal is a `WriteRefused` exception, with a message that says why: no person, the wrong person, a permission the person lacks, an item that doesn't exist, a field the type doesn't have, or a value that fails the type's checks. Nothing is written when one is thrown. Catch it where you can tell the person, and let it fail a job otherwise, so the run is marked failed with that message.
@@ -37,4 +47,4 @@ Every refusal is a `WriteRefused` exception, with a message that says why: no pe
 
 With the testing kit, write from a job and run it with `runJob()`: the job runs as the administrator who enabled the plugin, so its writes act for them, and `fetch()` shows what the site then answers. See [Testing a plugin or theme](../testing.md).
 
-Next: [The plugin import socket](import.md), and the generated [contracts reference](../../../reference/contracts.md) for every method.
+Next: [Reading content](content-read.md), [Jobs and schedules](jobs.md) for work that runs in the background, [The plugin import socket](import.md), and the generated [contracts reference](../../../reference/contracts.md) for every method.

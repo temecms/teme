@@ -55,7 +55,44 @@ export type AiFieldsBlock = {
     fields: FieldDefinition[];
 };
 
-export type AiSettingsBlock = AiServiceBlock | AiModelsBlock | AiFieldsBlock;
+/** One task a plugin declares, with what it sends (its own brief, a draft, or published text). */
+export type AiPluginTaskRow = AiTaskRow & {
+    sends: 'brief' | 'draft' | 'published';
+    sendsWords: string;
+};
+
+/** A plugin granted ai: its switch, budget and limit settings, its month, and its tasks. */
+export type AiPluginRow = {
+    code: string;
+    label: string;
+    onField: string;
+    budgetField: string;
+    hourlyField: string;
+    on: boolean;
+    budgetMicrounits: number | null;
+    hourly: number;
+    month: {
+        costMicrounits: number;
+        requests: number;
+        unpricedRequests: number;
+    };
+    tasks: AiPluginTaskRow[];
+};
+
+/** Settings › AI's plugins: each plugin's own panel, its controls drawn from these fields. */
+export type AiPluginsBlock = {
+    kind: 'plugins';
+    key: string;
+    label: string;
+    fields: FieldDefinition[];
+    plugins: AiPluginRow[];
+};
+
+export type AiSettingsBlock =
+    | AiServiceBlock
+    | AiModelsBlock
+    | AiFieldsBlock
+    | AiPluginsBlock;
 
 export type AiSettingsPage =
     | { enabled: false }

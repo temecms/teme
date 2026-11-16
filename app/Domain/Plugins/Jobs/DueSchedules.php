@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
 /**
@@ -23,7 +24,14 @@ use Throwable;
  * time on the plugin row in the same transaction as StartJob. Each schedule
  * runs as the administrator who enabled the plugin (`consented_by`), with
  * that person's normal permissions — never the operator's elevation. A
- * plugin whose schedules can't run, by ScheduleRunner, is skipped.
+ * plugin whose schedules can't run, by ScheduleRunner, is skipped. A
+ * schedule is due its interval after its last run was queued, not on the
+ * clock, and a missed pass catches up once (docs/guides/developers/plugins/jobs.md).
+ *
+ * A schedule may name its plugin's own settings: a boolean that switches it
+ * on and off, and a select that says how often it runs. They are read on
+ * every pass, so a change counts at the next minute's check; a setting that
+ * can't be read leaves the schedule off, or at its declared interval.
  *
  * Safe mode is not checked here: the command name matches SafeMode's
  * `teme:plugins:` prefix, so active() would always skip every schedule
@@ -45,17 +53,24 @@ final readonly class DueSchedules
         private PluginRegistry $registry,
         private StartJob $start,
         private ScheduleRunner $runner,
+        private SettingsReader $settings,
     ) {}
 
     /**
-     * Queues every due schedule. Returns how many jobs were queued.
+     * Queues every due schedule, or only those of the plugin with this code.
+     * Returns how many jobs were queued.
      */
-    public function run(?CarbonImmutable $now = null): int
+    public function run(?CarbonImmutable $now = null, ?string $plugin = null): int
     {
         $now ??= CarbonImmutable::now();
         $queued = 0;
+        $enabled = PluginRecord::query()->where('state', PluginRecord::ENABLED);
 
-        foreach (PluginRecord::query()->where('state', PluginRecord::ENABLED)->cursor() as $record) {
+        if ($plugin !== null) {
+            $enabled->where('code', $plugin);
+        }
+
+        foreach ($enabled->cursor() as $record) {
             try {
                 $queued += $this->plugin($record, $now);
             } catch (Throwable $failure) {
@@ -103,7 +118,8 @@ final readonly class DueSchedules
         $queued = 0;
 
         foreach ($declared->schedules() as $schedule) {
-            if (! $this->due($runs[$schedule['job']] ?? null, $schedule['every'], $now)) {
+            if (! $this->switchedOn($record->code, $schedule['enabledBy'] ?? null)
+                || ! $this->due($runs[$schedule['job']] ?? null, $this->every($record->code, $schedule['every'], $schedule['everyFrom'] ?? null), $now)) {
                 continue;
             }
 
@@ -118,6 +134,75 @@ final readonly class DueSchedules
         }
 
         return $queued;
+    }
+
+    /**
+     * Returns when this plugin's schedule for the job is next due: its
+     * interval after the last run was queued, or the time the plugin was
+     * enabled when none has been, so due at the next pass. Null when the
+     * plugin declares no schedule for that job.
+     */
+    public function nextDue(PluginRecord $record, string $job): ?CarbonImmutable
+    {
+        $found = $this->registry->find($record->name);
+
+        if (! $found instanceof FoundPlugin || ! $found->manifest instanceof Manifest) {
+            return null;
+        }
+
+        foreach (DeclaredJobs::of($found->manifest)->schedules() as $schedule) {
+            $seconds = self::SECONDS[$this->every($record->code, $schedule['every'], $schedule['everyFrom'] ?? null)] ?? null;
+
+            if ($schedule['job'] !== $job || $seconds === null) {
+                continue;
+            }
+
+            $last = $record->schedule_runs[$job] ?? null;
+
+            if (! is_string($last) || $last === '') {
+                return $record->enabled_at ?? CarbonImmutable::now();
+            }
+
+            return CarbonImmutable::parse($last)->addSeconds($seconds);
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether the plugin's switch for a schedule is on: always, when the
+     * schedule names none.
+     */
+    private function switchedOn(string $code, ?string $enabledBy): bool
+    {
+        if ($enabledBy === null) {
+            return true;
+        }
+
+        try {
+            return $this->settings->get("plugin.{$code}", $enabledBy) === true;
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * How often a schedule runs: its setting's interval when it names one
+     * that holds an interval, else the one it declares.
+     */
+    private function every(string $code, string $declared, ?string $everyFrom): string
+    {
+        if ($everyFrom === null) {
+            return $declared;
+        }
+
+        try {
+            $chosen = $this->settings->get("plugin.{$code}", $everyFrom);
+        } catch (Throwable) {
+            return $declared;
+        }
+
+        return is_string($chosen) && isset(self::SECONDS[$chosen]) ? $chosen : $declared;
     }
 
     private function due(mixed $last, string $every, CarbonImmutable $now): bool
