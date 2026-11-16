@@ -286,7 +286,7 @@ it('counts a file missing in both places as a hole, not a failure, and one alrea
         ->and($run->failures)->toBe(0)
         ->and($run->files_present)->toBe(1)
         ->and(collect($run->problems)->pluck('id')->unique()->all())->toBe([$gone])
-        ->and($output)->toContain('2 files were missing in both locations; teme:media:regenerate remakes image sizes.');
+        ->and($output)->toContain('2 files were missing in both locations; teme:media:move --status names them.');
 });
 
 it('copies on a catch-up only what changed since the last finished copy began, and records when', function (): void {

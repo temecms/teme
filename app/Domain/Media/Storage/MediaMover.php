@@ -535,7 +535,7 @@ final class MediaMover
      */
     private function ending(MediaMove $run, array $totals): string
     {
-        $holes = $totals['holes'] === 0 ? '' : ' '.__(':holes files were missing in both locations; teme:media:regenerate remakes image sizes.', ['holes' => number_format($totals['holes'])]);
+        $holes = $totals['holes'] === 0 ? '' : ' '.__(':holes files were missing in both locations; teme:media:move --status names them.', ['holes' => number_format($totals['holes'])]);
 
         if ($totals['failures'] > 0) {
             return __('Not verified: :failures files failed. teme:media:move --status names them; run the same command again to retry.', ['failures' => number_format($totals['failures'])]).$holes;
