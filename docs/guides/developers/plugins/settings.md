@@ -14,7 +14,7 @@ A plugin does not draw its own settings screen. It declares its settings in `tem
 
 List them under `contributes.settings` in the manifest. Each entry needs a `key`, a `type`, a `label` and a `description`, for example `{"key": "api_key", "type": "secret", "label": "API key", "description": "The key the service gave you."}`.
 
-A key is 2 to 41 lower-case letters, digits and underscores, starting with a letter. The types are `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `url`, `urls`, `email`, `secret` and `color`. An entry may also give:
+A key is 2 to 41 lower-case letters, digits and underscores, starting with a letter. The types are `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `url`, `urls`, `email`, `secret`, `color` and `person`. An entry may also give:
 
 - `default`, the value before anyone changes it;
 - `options`, value to label, for a `select` or a `multiselect`;
@@ -32,6 +32,8 @@ Each save is an Operation, so it is checked, recorded in the settings history, a
 ## Read the values
 
 Ask for `SettingsReader` in your plugin's constructor, as [Your first plugin](../start/first-plugin.md) does, and read your group by its key: `string()`, `int()`, `bool()`, `stringList()`, `get()` for one value, or `group()` for every value at once. Each answers the saved value, or the declared default.
+
+A `person` setting is drawn with core's person picker, offering the people who may write, and saved only as someone with an account. The reader answers it as that account's ID, a string, or an empty string while nobody is chosen: use it, for example, as the person a plugin credits by default.
 
 The reader never answers a secret. Read the settings when you need them, not once in the constructor, so a saved change counts on the next request.
 

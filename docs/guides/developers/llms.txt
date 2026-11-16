@@ -15,8 +15,9 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Regions, site code and featured posts](themes/regions.md): How a theme sets aside regions for the site's own content, where an administrator's own HTML goes, and how to draw pinned posts on the latest posts page.
 - [Rules for plugins and themes](rules/plugins-and-themes.md): The rules every plugin and theme lives by, both the ones Teme enforces and the ones authors must keep because Teme cannot check them.
 - [For agents](for-agents.md): How agents should read this handbook and llms.txt, choose a plugin's capabilities, and write an AGENTS.md for it.
-- [Plugins writing content](plugins/content-write.md): How a plugin will create and change content through Operations.
-- [Jobs and schedules](plugins/jobs.md): How a plugin will declare queue jobs and schedules in its manifest.
+- [Plugins writing content](plugins/content-write.md): How a plugin with content.write creates and changes items through Operations, with their slugs, credits and language versions, always for a named person.
+- [Reading content](plugins/content-read.md): How a plugin with content.read lists the site's published items a page at a time, and reads an item's draft for the person its work acts for.
+- [Jobs and schedules](plugins/jobs.md): Who a plugin's background job acts for, and every limit a job's run works within.
 - [Public routes](plugins/public-routes.md): How a plugin will register routes reachable without signing in.
 - [The plugin import socket](plugins/import.md): How a plugin will take part in site import.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.

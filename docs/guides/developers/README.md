@@ -26,6 +26,7 @@ It does not cover running a server or writing content. Those have their own guid
 | Page | Built in |
 |---|---|
 | [Plugins writing content](plugins/content-write.md) | plugins/content-write |
+| [Reading content](plugins/content-read.md) | sockets3/content-doors |
 | [Jobs and schedules](plugins/jobs.md) | plugins/jobs |
 | [Public routes](plugins/public-routes.md) | plugin public routes |
 | [The plugin import socket](plugins/import.md) | plugin import socket |
