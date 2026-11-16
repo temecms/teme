@@ -11,6 +11,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
 
 uses(RefreshDatabase::class);
 
@@ -86,4 +87,35 @@ it('marks both cards, and only them, as region cards for the editor', function (
         ->toMatchArray(['label' => 'Featured posts', 'menuLabel' => 'Featured posts', 'icon' => 'list', 'inMenus' => true])
         ->and(collect(CardManifest::forBrowser(app(CardRegistry::class))['cards'])->firstWhere('name', 'site-code'))
         ->toMatchArray(['label' => 'Custom HTML', 'menuLabel' => 'Custom HTML', 'icon' => 'code-xml', 'inMenus' => true]);
+});
+
+it('sends the editor in region mode the code placed with a card, by name and state, and never the code (I-3127)', function (): void {
+    $ad = scAdd($this->admin, 'Sidebar ad', 'placed', '<script>window.secret=1</script>');
+    $off = scAdd($this->admin, 'Old banner', 'placed', '<div>Old</div>', on: false);
+    scAdd($this->admin, 'Analytics', 'head', '<script>head()</script>');
+    $region = regionCreate($this->admin, 'default');
+
+    $response = $this->actingAs($this->editor)->get("/admin/content/{$region->id}/edit")->assertOk();
+
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('placedCode', [
+            ['id' => $ad->id, 'name' => 'Sidebar ad', 'on' => true],
+            ['id' => $off->id, 'name' => 'Old banner', 'on' => false],
+        ])
+        ->where('siteCodeLocked', false));
+    expect((string) $response->getContent())->not->toContain('window.secret');
+
+    config(['teme.disallow_site_code' => true]);
+
+    $this->actingAs($this->editor)->get("/admin/content/{$region->id}/edit")
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('siteCodeLocked', true));
+});
+
+it('sends no placed code to the editor outside region mode', function (): void {
+    scAdd($this->admin, 'Sidebar ad', 'placed', '<div>Ad</div>');
+    $post = lifecycleDraft($this->editor, 'A story');
+
+    $this->actingAs($this->editor)->get("/admin/content/{$post->id}/edit")
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('placedCode', null)->where('siteCodeLocked', null));
 });
