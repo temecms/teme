@@ -261,7 +261,10 @@ Setup: `cat /tmp/teme-cloud-setup.log` gave "2026-11-16T10:33:47Z ran in /home/u
 - `4015d8b` feat(ai): long AI requests of up to 600 seconds inside a long job (T4)
 - `f5d94f2` feat(ai): plugin AI settings, activity by plugin and the Plugins screen's AI figures (T5)
 - `5df8f5b` docs(handbook): the site's AI connection for plugins (T7)
-- T6 (the screens) is not built: it waits for the maintainers' approval of the drawings. This is not a STOP; it is left for a follow-up.
+- `27c4173` docs(plans): plugin AI part's records
+- `f25e0fa` feat(ai): the plugin AI screens: a panel per plugin, activity by plugin, and the Plugins screen's AI line (T6)
+- `aa9847d` docs(handbook): each plugin's own panel on Settings › AI (T6)
+- T6: screens built from the approved drawings, with the two rules (the owner's note of 2026-11-16: a plugin's name appears once, in its panel's header, and sections are named for what they do; the top bar shows only parents). The drawings themselves are not in this repository, so the screens follow the plan's screen descriptions and that note.
 - The quick check ran on the whole part before the commits were split by task, so an intermediate commit was not checked on its own.
 
 #### Tests seen red (first line of the failure)
@@ -275,6 +278,7 @@ Seen red with the part's code under `app/`, `packages/`, `database/` and `resour
 | 3 | `tests/Feature/Ai/Plugins/SiteAiTest.php` | 20 failed: `ScribePlugin asks for Teme\Contracts\Ai\SiteAi; a plugin may ask only for what Teme offers plugins.` (contract missing) |
 | 4 | `tests/Feature/Ai/Plugins/LongAiRequestTest.php` | 3 failed: the same refusal of `SiteAi`; with it, `AiRequest` refuses any timeout over 55 |
 | 5 | `tests/Feature/Ai/Plugins/PluginAiSettingsTest.php` | 6 failed: the same refusal of `SiteAi`; no Plugins section, filter or AI line exists |
+| 6 | `tests/Browser/Ai/PluginAiSettingsTest.php` (built from the screens without T6's changes) | 8 failed: `Expected to see text [$0.0011, 1 request] within element [[data-test="ai-plugin-month-scribe"]]` (no plugin panel, no activity totals, no Plugins screen line) |
 
 #### Task 0
 
@@ -298,6 +302,8 @@ Seen red with the part's code under `app/`, `packages/`, `database/` and `resour
 - Base at `11813b3`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,874 passed, 2 skipped, 1 failed (`Plugins/DiscoveryTest` "finds the configured folders", known to be flaky; a stray `tests/jobs` folder appeared).
 - After, the full `composer check` on `5df8f5b`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,944 passed, 2 skipped, 2 failed (61,395 assertions, 1,910 s).
 - The two failures: `Console/GenerateManifestReferenceTest`, because `docs/reference/plugin-manifest.md` doesn't list the new `ai` capability; the plan says not to regenerate it, and the join does. And `Plugins/DatabaseDownTest`, known to be flaky; it passed when run alone.
+- After T6, the full `composer check` on `aa9847d`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,943 passed, 2 skipped, 3 failed (61,394 assertions, 1,893 s): `GenerateManifestReferenceTest` as above; `Plugins/DatabaseDownTest` and `Backups/PostgresToolsTest` (restic's error words), which this part doesn't touch, both passed when run alone.
+- Browser, one file at a time after `npm run build`: `Ai/PluginAiSettingsTest` 8 passed (93 assertions), `AiSettingsScreenTest` 5 passed, `AiActivityScreenTest` 6 passed, `Plugins/PluginsScreenTest` 19 passed.
 
 #### B-?? (draft)
 
@@ -314,6 +320,11 @@ Seen red with the part's code under `app/`, `packages/`, `database/` and `resour
 - **B-11 (draft), the handbook page's index.** `DeveloperPagesTest` needs every page in `GenerateHandbookIndex::PAGES` and the README table, so each gains one line, and `llms.txt` is regenerated with `php artisan teme:docs:handbook-index`. `5df8f5b`.
 - **B-12 (draft), a row with no item.** Tools › AI activity shows a plugin's request with no item as "No item" (state `none`). `f5d94f2`.
 - **B-13 (draft), test helpers.** The scribe helpers live in `tests/Feature/Ai/Plugins/helpers.php`, inside Owns, not in `tests/Pest.php`. `8a4f0d2`.
+- **B-15 (draft), one panel per plugin.** Options: one Plugins panel holding every plugin, or a panel per plugin after Models. Chose a panel per plugin, titled with the plugin's name, because the owner's rule says a plugin's name appears once, in its header; inside, the controls read "AI on", "Monthly budget, in US dollars" and "Requests an hour" (the settings' own labels name the plugin, so the panel draws them with its own words), and each task says what it sends. `f25e0fa`.
+- **B-16 (draft), files outside Owns for T6.** The Plugins screen's row is drawn in `components/plugins/plugin-row.tsx`, not `plugins/index.tsx`, and the activity page's types are in `types/tools.ts`, with the row's in `types/plugins.ts`. Each gains only additions (the `ai` line; `plugin`, `plugins`, `pluginMonths`, `answered`, `none`). `f25e0fa`.
+- **B-17 (draft), a row with no item, again.** `AiSubject` (not owned) draws a title and a kind, so a plugin request with no item now reads "No item" with "A plugin’s own request" under it, instead of "Untitled". `f25e0fa`.
+- **B-18 (draft), the labelled-select count.** `AiActivityScreenTest` "labels every select on the page" counts the page's controls; the Plugin filter makes 4, and the test still checks each is labelled. The Plugin filter shows only once a plugin has asked. `f25e0fa`.
+- **B-19 (draft), the top bar.** The pages pass their trail as every page does today; the shell draws it, and the "parents only" rule belongs to issue #349's shell work, so no crumb was changed here. `f25e0fa`.
 - **B-14 (draft), AiAsk's inputs.** The contract checks each input's name against `^[a-z][a-z_]*$` and trusts its documented `array<string, string>` for the values, as the other contracts trust their documented types. `8a4f0d2`.
 
 #### Contract changes
@@ -324,7 +335,7 @@ Seen red with the part's code under `app/`, `packages/`, `database/` and `resour
 
 #### STOP
 
-- None. T6 (the screens) waits for the drawings' approval and is left for a follow-up, as the owner's message says.
+- None. T6 was first left for the drawings' approval, then built after the maintainers approved them.
 
 #### Changelog lines for the maintainers
 
@@ -332,6 +343,7 @@ Seen red with the part's code under `app/`, `packages/`, `database/` and `resour
 - Added: Settings › AI has a model and fallback for each plugin task, and per plugin a switch, a monthly budget and an hourly limit.
 - Added: Tools › AI activity records and filters plugins' requests, with this month's totals by plugin; the Plugins screen's row carries the plugin's AI cost this month.
 - Added: AI requests of up to 600 seconds inside a plugin's long job.
+- Added: Settings › AI gives each plugin with AI tasks its own panel; Tools › AI activity has a Plugin filter, the plugin's name under each task and the month's totals by plugin; the Plugins screen shows "AI this month".
 
 #### Try it
 
