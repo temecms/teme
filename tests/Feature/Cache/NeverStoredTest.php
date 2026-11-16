@@ -71,6 +71,11 @@ it('never stores a redirect', function (): void {
     addrGet('/big-story')->assertStatus(301)->assertHeader('X-Teme-Cache', 'BYPASS (redirect)');
 });
 
+it('never stores a marked route\'s redirect except ads.txt', function (): void {
+    addrGet('/wp-sitemap.xml')->assertStatus(301)->assertHeader('X-Teme-Cache', 'BYPASS (redirect)');
+    addrGet('/wp-sitemap.xml')->assertStatus(301)->assertHeader('X-Teme-Cache', 'BYPASS (redirect)');
+});
+
 it('never stores a server error', function (): void {
     addrGet('/cache-probe/unavailable')->assertStatus(503)->assertHeader('X-Teme-Cache', 'BYPASS (server error)');
 });

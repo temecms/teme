@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Support\HttpsLink;
+
 /**
  * A plugin's teme-plugin.json, read into typed getters (I-3353). It holds
  * what the file says even when ManifestValidator found problems, so a broken
@@ -187,11 +189,19 @@ final readonly class Manifest
     }
 
     /**
+     * The author’s website, or ''.
+     */
+    public function authorUrl(): string
+    {
+        return HttpsLink::or($this->string('author_url'));
+    }
+
+    /**
      * The plugin's home page, or ''.
      */
     public function homepage(): string
     {
-        return $this->string('homepage');
+        return HttpsLink::or($this->string('homepage'));
     }
 
     /**

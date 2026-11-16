@@ -76,6 +76,7 @@ final readonly class PluginsScreen
                 'version' => $row->version,
                 'description' => $row->description,
                 'author' => $row->author,
+                'authorUrl' => $row->authorUrl,
                 'homepage' => $row->homepage,
                 'state' => $row->state->value,
                 'badge' => $row->state->label(),

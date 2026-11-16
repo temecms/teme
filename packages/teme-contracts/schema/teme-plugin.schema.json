@@ -474,6 +474,11 @@
             "type": "string",
             "description": "Who wrote the plugin."
         },
+        "author_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The author’s website."
+        },
         "homepage": {
             "type": "string",
             "description": "Where to read about it."

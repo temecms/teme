@@ -24,7 +24,10 @@ Copy `docs/guides/developers/examples/themes/first-theme`. The folder name must 
     "description": "The handbook's first theme: an index and a single template.",
     "requires": {
         "teme": "^0.8"
-    }
+    },
+    "author": "Teme Examples",
+    "author_url": "https://example.com/author",
+    "homepage": "https://example.com/first-theme"
 }
 ```
 

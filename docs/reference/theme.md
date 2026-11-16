@@ -18,6 +18,8 @@
 | `description` | string | yes | What the theme is for, in a sentence. |
 | `requires` | object | yes | What the theme needs. |
 | `author` | string | no | Shown to people only; Teme reads nothing from it. |
+| `author_url` | string | no | The author’s website. |
+| `homepage` | string | no | Where to read about the theme. |
 | `license` | string | no | Shown to people only; Teme reads nothing from it. |
 | `templates` | object | no | Content type, then template slug, then label. Every slug but default needs views/templates/single-{type}-{slug}.blade.php: only the theme's files can say whether it exists. |
 | `navigations` | object | no | The places the theme draws a menu: slot, then label. |

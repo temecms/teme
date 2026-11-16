@@ -26,6 +26,7 @@ final readonly class PluginRow
         public string $version,
         public string $description,
         public string $author,
+        public string $authorUrl,
         public string $homepage,
         public PluginState $state,
         public string $reason,

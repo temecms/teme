@@ -6,6 +6,8 @@
 #            APP_URL; then any of Teme's settings (the guide names them;
 #            never copy .env.example, which is for development). Compose
 #            reads it, and hands it to every Teme role.
+#            Media in object storage takes MEDIA_STORAGE and the other
+#            MEDIA_* settings from it too (object-storage.md).
 #   secrets  app_key, db_password, postgres_password and github_token, one
 #            value each (github_token may be empty), readable by the
 #            containers (chmod 0644).

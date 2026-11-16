@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Themes\Manifest;
 use App\Domain\Themes\ManifestValidator;
 
 it('accepts valid layout, image contexts, fonts and tokens', function (): void {
@@ -13,6 +14,30 @@ it('accepts valid layout, image contexts, fonts and tokens', function (): void {
     ]), base_path('tests/Fixtures/themes/good'));
 
     expect($errors)->toBe([]);
+});
+
+it('refuses author_url and homepage that are not https or are longer than 2000 characters', function (string $key, mixed $value): void {
+    $errors = app(ManifestValidator::class)->errors(pageManifest([$key => $value]), base_path('tests/Fixtures/themes/good'));
+
+    expect($errors)->toContain("{$key} must be an https address of at most 2000 characters.");
+})->with([
+    'author_url http' => ['author_url', 'http://example.com'],
+    'author_url not a url' => ['author_url', 'not-a-url'],
+    'author_url too long' => ['author_url', 'https://example.com/'.str_repeat('a', 2000)],
+    'homepage http' => ['homepage', 'http://example.com'],
+    'homepage too long' => ['homepage', 'https://example.com/'.str_repeat('a', 2000)],
+]);
+
+it('accepts https author_url and homepage, and reads them from the manifest', function (): void {
+    $raw = pageManifest(['author_url' => 'https://example.com/author', 'homepage' => 'https://example.com']);
+    $errors = app(ManifestValidator::class)->errors($raw, base_path('tests/Fixtures/themes/good'));
+    $manifest = new Manifest($raw);
+
+    expect($errors)->toBe([])
+        ->and($manifest->authorUrl())->toBe('https://example.com/author')
+        ->and($manifest->homepage())->toBe('https://example.com')
+        ->and((new Manifest(pageManifest([])))->authorUrl())->toBe('')
+        ->and((new Manifest(pageManifest([])))->homepage())->toBe('');
 });
 
 it('refuses an invalid sizes string, two preloaded fonts, an unknown token, and a missing content context', function (): void {

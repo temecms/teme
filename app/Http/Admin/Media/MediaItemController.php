@@ -18,7 +18,9 @@ use App\Domain\Media\Queries\MediaDetails;
 use App\Domain\Media\Queries\MediaFileLocation;
 use App\Domain\Media\Queries\MediaUsageList;
 use App\Http\Controllers\Controller;
+use Illuminate\Filesystem\LocalFilesystemAdapter;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -86,9 +88,23 @@ final class MediaItemController extends Controller
         return response()->noContent();
     }
 
-    public function original(string $media, MediaFileLocation $location): StreamedResponse
+    /**
+     * The original as a download: from a bucket, a redirect to a signed
+     * address that works for five minutes, made for this request and never
+     * kept; from the server's disks, streamed as before (I-3456).
+     */
+    public function original(string $media, MediaFileLocation $location): StreamedResponse|RedirectResponse
     {
         $file = $location->original($media) ?? abort(404);
+
+        if (! $file['disk'] instanceof LocalFilesystemAdapter && $file['disk']->providesTemporaryUrls()) {
+            $url = $file['disk']->temporaryUrl($file['path'], now()->addSeconds((int) config('media.original_link_seconds')), [
+                // The slugged name and detected extension, ASCII by construction.
+                'ResponseContentDisposition' => 'attachment; filename="'.$file['downloadName'].'"',
+            ]);
+
+            return redirect()->away($url, 302)->header('Cache-Control', 'no-store, private');
+        }
 
         return $file['disk']->download($file['path'], $file['downloadName']);
     }

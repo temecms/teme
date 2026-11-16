@@ -33,6 +33,7 @@ export type PluginRowPage = {
     version: string;
     description: string;
     author: string;
+    authorUrl: string;
     homepage: string;
     state: PluginState;
     badge: string;

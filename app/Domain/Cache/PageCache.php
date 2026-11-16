@@ -85,6 +85,12 @@ final readonly class PageCache
     public const string CACHEABLE = 'teme.page-cache.cacheable';
 
     /**
+     * The request attribute AdsTxtController sets when /ads.txt answers with
+     * a permanent redirect that the page cache may store like its text.
+     */
+    public const string REDIRECT_OK = 'teme.page-cache.redirect-ok';
+
+    /**
      * A rate limit's headers: one reader's own count, kept by no stored
      * page and sent on no answer a shared cache may keep.
      */

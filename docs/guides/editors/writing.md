@@ -41,7 +41,7 @@ Use headings in order: **Heading 2** for sections, **Heading 3** inside them. Th
 
 ## To add a card
 
-A card is a block that is more than text. Insert one with **Insert** on the toolbar, or from the slash menu. Each card has its own settings when you select it. There are nine kinds; the [cards reference](../../reference/cards.md) lists exactly what each holds.
+A card is a block that is more than text. Insert one with **Insert** on the toolbar, or from the slash menu. Each card has its own settings when you select it. There are nine kinds, and two more for a theme's regions; the [cards reference](../../reference/cards.md) lists exactly what each holds.
 
 - **Image**: one picture, with a caption and credit, and alt text for this use.
 - **Gallery**: two to twenty-four images shown together, with one caption.
@@ -52,6 +52,11 @@ A card is a block that is more than text. Insert one with **Insert** on the tool
 - **Audio**: a sound file from the library, played in the page, with a caption and a transcript.
 - **Video**: a video file from the library, played in the page, with a poster, a caption and caption tracks.
 - **Imported content**: markup the importer could not turn into cards, kept as it came. Only an import adds one; you can read it, move it or delete it.
+
+Two cards go only in a theme's region, under **Content › Regions**, and only in a region whose theme lists them:
+
+- **Custom HTML**: code an administrator keeps in Settings › Site code and marks as placed with a card. You choose it by name; you never see or change the code, and the site draws it exactly as written.
+- **Featured posts**: a short list of posts, either the latest of a type, optionally only those filed under one category or tag, or posts you choose by hand, up to 12, in the order you set.
 
 ## To link to another item
 

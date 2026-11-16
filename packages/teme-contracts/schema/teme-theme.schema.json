@@ -71,6 +71,16 @@
             "type": "string",
             "description": "Shown to people only; Teme reads nothing from it."
         },
+        "author_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The author’s website."
+        },
+        "homepage": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where to read about the theme."
+        },
         "license": {
             "type": "string",
             "description": "Shown to people only; Teme reads nothing from it."

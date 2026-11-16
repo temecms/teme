@@ -32,6 +32,7 @@ final class OperatorGuide
         'updates.md',
         'backups.md',
         'restore-and-moving.md',
+        'object-storage.md',
         'troubleshooting.md',
         'migration-runbook.md',
         'management-api.md',

@@ -40,7 +40,7 @@ You need only two settings to start: `TEME_IMAGE` and `APP_URL`. Everything else
 
 ## Secrets from files
 
-A secret can come from a file instead of a variable. Name the file in the variable of the same name with `_FILE` added, and leave the variable itself unset. The recipe does this for four secrets; you can do it for any of these fourteen:
+A secret can come from a file instead of a variable. Name the file in the variable of the same name with `_FILE` added, and leave the variable itself unset. The recipe does this for four secrets; you can do it for any of these fifteen:
 
 | Secret | Variable that names its file |
 |---|---|
@@ -58,6 +58,7 @@ A secret can come from a file instead of a variable. Name the file in the variab
 | The spare database's password | `TEME_VERIFY_DB_PASSWORD_FILE` |
 | The GitHub token | `TEME_GITHUB_TOKEN_FILE` |
 | The Dokploy token | `TEME_DOKPLOY_TOKEN_FILE` |
+| The media bucket's secret key | `MEDIA_BUCKET_SECRET_ACCESS_KEY_FILE` |
 
 Teme refuses to start, and says why, in two cases:
 
@@ -65,6 +66,26 @@ Teme refuses to start, and says why, in two cases:
 - The file the `_FILE` variable names cannot be read.
 
 Either way the message names the variable and the file's path, and never prints a secret's value.
+
+## Media storage
+
+Where the media files live, and the addresses they are served at. Give every role the same values: a worker writing images to the server while `web` reads them from a bucket breaks every image. Read [Media in object storage](object-storage.md) before you change `MEDIA_STORAGE` on a site that has media.
+
+| Variable | Default | What it does |
+|---|---|---|
+| `MEDIA_STORAGE` | `server` | `server` keeps media in `storage/app` on the server; `bucket` keeps it in the two buckets below. |
+| `MEDIA_URL` | `APP_URL` and `/storage/media` | The address the server's media are served at, for a pull CDN in front of the site, such as `https://media.example.com`. |
+| `MEDIA_BUCKET` | none | The public bucket: image sizes and files that aren't images. |
+| `MEDIA_ORIGINALS_BUCKET` | none | The private bucket: image originals. Never make it public. |
+| `MEDIA_BUCKET_URL` | none | The CDN or public address in front of the public bucket. Required with `MEDIA_STORAGE=bucket`. |
+| `MEDIA_BUCKET_ENDPOINT` | AWS | The provider's S3 address, such as `https://<account>.r2.cloudflarestorage.com`. |
+| `MEDIA_BUCKET_REGION` | `us-east-1` | The bucket's region. Cloudflare R2 takes `auto`. |
+| `MEDIA_BUCKET_PATH_STYLE` | `false` | `true` puts the bucket in the address's path instead of its host, as MinIO needs. |
+| `MEDIA_BUCKET_ROOT` and `MEDIA_ORIGINALS_BUCKET_ROOT` | none | A folder inside each bucket to keep media in. |
+| `MEDIA_BUCKET_ACCESS_KEY_ID` | none | The access key's ID, for both buckets. |
+| `MEDIA_BUCKET_SECRET_ACCESS_KEY` | none | The access key's secret, for both buckets. Can come from a file. |
+| `MEDIA_BUCKET_ACL` | none | `public-read` only for a provider that serves an object only when the object itself is public, such as DigitalOcean Spaces. Never applies to originals. |
+| `MEDIA_DISK` and `MEDIA_ORIGINALS_DISK` | from `MEDIA_STORAGE` | One role's disk, overriding `MEDIA_STORAGE`: `MEDIA_ORIGINALS_DISK=media-originals` keeps originals on the server while the rest is in the bucket. |
 
 ## The edge
 

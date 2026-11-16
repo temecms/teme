@@ -182,6 +182,45 @@ export function ThemeList({
                                     {theme.description !== '' && (
                                         <p>{theme.description}</p>
                                     )}
+                                    {(theme.author !== '' ||
+                                        theme.homepage !== '') && (
+                                        <p className="text-caption text-ink-3 flex flex-wrap gap-x-2">
+                                            {theme.author !== '' &&
+                                                (theme.authorUrl !== '' ? (
+                                                    <span>
+                                                        {__('By')}{' '}
+                                                        <a
+                                                            href={
+                                                                theme.authorUrl
+                                                            }
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="underline"
+                                                            data-test="theme-author-link"
+                                                        >
+                                                            {theme.author}
+                                                        </a>
+                                                    </span>
+                                                ) : (
+                                                    <span>
+                                                        {__('By :author', {
+                                                            author: theme.author,
+                                                        })}
+                                                    </span>
+                                                ))}
+                                            {theme.homepage !== '' && (
+                                                <a
+                                                    href={theme.homepage}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="underline"
+                                                    data-test="theme-homepage-link"
+                                                >
+                                                    {__('Homepage')}
+                                                </a>
+                                            )}
+                                        </p>
+                                    )}
                                     {theme.live && !theme.usable && (
                                         <p>
                                             This is the site’s theme, but it
