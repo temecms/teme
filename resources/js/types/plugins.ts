@@ -49,6 +49,7 @@ export type PluginRowPage = {
     asksMore: boolean;
     tables: PluginTableRow[];
     canRemoveData: boolean;
+    canForget: boolean;
 };
 
 export type PluginsPage = {

@@ -101,15 +101,17 @@ function RowAction({
     );
 }
 
-/** The ⋯ menu: Details and access, Settings, and Remove its data… when allowed. */
+/** The ⋯ menu: Details and access, Settings, Remove its data…, and Forget… when allowed. */
 function RowMenu({
     plugin,
     onDetails,
     onRemoveData,
+    onForget,
 }: {
     plugin: PluginRowPage;
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
+    onForget: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
     return (
         <DropdownMenu>
@@ -167,6 +169,22 @@ function RowMenu({
                         {__('Remove its data…')}
                     </DropdownMenuItem>
                 )}
+                {plugin.canForget && (
+                    <DropdownMenuItem
+                        data-test="plugin-forget"
+                        variant="destructive"
+                        onSelect={() =>
+                            onForget(
+                                plugin,
+                                document.querySelector<HTMLElement>(
+                                    `[data-plugin-menu="${plugin.name}"]`,
+                                ),
+                            )
+                        }
+                    >
+                        {__('Forget…')}
+                    </DropdownMenuItem>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -184,6 +202,7 @@ export function PluginRow({
     onDetails,
     onMigrate,
     onRemoveData,
+    onForget,
 }: {
     plugin: PluginRowPage;
     onAsk: (plugin: PluginRowPage, opener: HTMLElement) => void;
@@ -191,6 +210,7 @@ export function PluginRow({
     onDetails: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
     onMigrate: (plugin: PluginRowPage) => void;
     onRemoveData: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
+    onForget: (plugin: PluginRowPage, opener: HTMLElement | null) => void;
 }) {
     const tone = TONES[plugin.state];
 
@@ -250,6 +270,7 @@ export function PluginRow({
                     plugin={plugin}
                     onDetails={onDetails}
                     onRemoveData={onRemoveData}
+                    onForget={onForget}
                 />
             </div>
         </li>
