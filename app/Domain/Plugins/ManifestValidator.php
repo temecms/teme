@@ -137,6 +137,8 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->schedules($manifest, $read));
         array_push($errors, ...$this->routes($manifest, $read));
         array_push($errors, ...$this->imports($manifest, $read));
+        array_push($errors, ...$this->httpsAddress($manifest, 'author_url'));
+        array_push($errors, ...$this->httpsAddress($manifest, 'homepage'));
 
         return $errors;
     }
@@ -736,6 +738,28 @@ final readonly class ManifestValidator
         }
 
         return $errors;
+    }
+
+    /**
+     * An optional https address of at most 2000 characters, naming the key when wrong.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function httpsAddress(array $manifest, string $key): array
+    {
+        if (! array_key_exists($key, $manifest)) {
+            return [];
+        }
+
+        $value = $manifest[$key];
+
+        if (! is_string($value) || strlen($value) > 2000 || ! str_starts_with(strtolower($value), 'https://') || filter_var($value, FILTER_VALIDATE_URL) === false) {
+            return ["{$key} must be an https address of at most 2000 characters."];
+        }
+
+        return [];
     }
 
     private function show(mixed $value): string

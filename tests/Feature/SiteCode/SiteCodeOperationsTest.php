@@ -35,9 +35,27 @@ beforeEach(function (): void {
     };
 });
 
-it('has the document shell\'s three placements, and words for each', function (): void {
-    expect(array_keys(SiteCode::PLACES))->toBe(array_map(fn (Placement $placement): string => $placement->value, Placement::cases()))
-        ->and(array_column(SiteCode::PLACES, 'label'))->toBe(['Head', 'Start of the body', 'End of the body']);
+it('has the document shell\'s three placements and the place a card puts code, and words for each', function (): void {
+    expect(array_keys(SiteCode::PLACES))->toBe([...array_map(fn (Placement $placement): string => $placement->value, Placement::cases()), SiteCode::PLACED])
+        ->and(array_column(SiteCode::PLACES, 'label'))->toBe(['Head', 'Start of the body', 'End of the body', 'Placed with a card']);
+});
+
+it('keeps code an administrator places with a card, and draws it on no page by itself (I-3127)', function (): void {
+    $entry = scAdd($this->admin, 'Sidebar ad', 'placed', '<div data-test="placed-ad">Ad</div>');
+    cmItem(User::factory()->create()->assignRole('author'), 'Harbour news');
+
+    expect($entry->refresh()->only(['name', 'placement', 'enabled']))->toBe(['name' => 'Sidebar ad', 'placement' => 'placed', 'enabled' => true])
+        ->and(scLog()[0]['context']['after_placement'])->toBe('placed')
+        ->and((string) addrGet('/harbour-news/')->assertOk()->getContent())->not->toContain('data-test="placed-ad"');
+});
+
+it('writes nothing when an editor tries to place code with a card', function (): void {
+    $editor = User::factory()->create()->assignRole('editor');
+
+    expect(fn () => scElevated(fn (): mixed => app(SaveSiteCode::class)->execute(new SaveSiteCodeInput(null, 'Sidebar ad', 'placed', '<div>Ad</div>', true, (string) $editor->id))))
+        ->toThrow(AuthorizationException::class, 'Not permitted to change site code.')
+        ->and(DB::table('site_code_entries')->count())->toBe(0)
+        ->and(scLog())->toBe([]);
 });
 
 it('adds an entry, keeping the code exactly as it came, and logs it with nothing before (I-865)', function (): void {

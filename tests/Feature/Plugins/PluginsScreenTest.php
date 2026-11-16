@@ -158,6 +158,23 @@ it('offers the settings link only to a plugin that declares settings', function 
         ->and($rows['tests/widened']['hasSettings'])->toBeFalse();
 });
 
+it('gives the page the author and authorUrl when the manifest sets them', function (): void {
+    $copy = PluginFixtures::copy('hello', [
+        'author' => 'Ada Example',
+        'author_url' => 'https://example.com/ada',
+        'homepage' => 'https://example.com/hello',
+    ]);
+    PluginFixtures::use($copy, 'widened');
+
+    $row = ($this->rows)()['tests/hello'];
+
+    expect($row)->toMatchArray([
+        'author' => 'Ada Example',
+        'authorUrl' => 'https://example.com/ada',
+        'homepage' => 'https://example.com/hello',
+    ])->and(($this->rows)()['tests/widened']['authorUrl'])->toBe('');
+});
+
 it('puts Plugins in the main menu under Site, between Themes and Types, and nowhere for someone without plugins.manage', function (): void {
     $keys = fn (User $person): array => array_column(array_values(array_filter(
         $this->actingAs($person)->get(route('dashboard'))->viewData('page')['props']['nav'],

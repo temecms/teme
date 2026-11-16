@@ -8,6 +8,7 @@ use App\Domain\Backups\Manifest;
 use App\Domain\Backups\Tools\Restic;
 use App\Domain\Backups\Tools\ResticOutcome;
 use App\Domain\Backups\Tools\ResticRepository;
+use App\Domain\Media\MediaLocations;
 use Illuminate\Filesystem\LocalFilesystemAdapter;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -56,16 +57,27 @@ final readonly class MediaRestore
 
     /**
      * Each of this server's media folders, paired with the folder the backup
-     * holds it in, and every problem with them, in words.
+     * holds it in; every problem with them, in words; and a note for each
+     * role the backup left in a bucket (I-3456). A manifest without
+     * locations, made before media could be in a bucket, had both roles on
+     * the server.
      *
-     * @return array{pairs: list<array{role: string, from: string, to: string}>, problems: list<string>}
+     * @return array{pairs: list<array{role: string, from: string, to: string}>, problems: list<string>, notes: list<string>}
      */
     public static function pairs(Manifest $manifest): array
     {
-        $there = (array) (((array) ($manifest->toArray()['media'] ?? []))['snapshot_roots'] ?? []);
-        [$here, $problems] = [[], []];
+        $media = (array) ($manifest->toArray()['media'] ?? []);
+        $there = (array) ($media['snapshot_roots'] ?? []);
+        $locations = (array) ($media['locations'] ?? []);
+        [$here, $problems, $notes] = [[], [], []];
 
         foreach (['originals' => (string) config('media.originals_disk'), 'public' => (string) config('media.disk')] as $role => $disk) {
+            if (($locations[$role] ?? 'server') === 'bucket') {
+                $notes[] = self::inBucket($role);
+
+                continue;
+            }
+
             $adapter = Storage::disk($disk);
 
             if (! $adapter instanceof LocalFilesystemAdapter) {
@@ -86,17 +98,21 @@ final readonly class MediaRestore
         }
 
         if ($problems !== []) {
-            return ['pairs' => [], 'problems' => $problems];
+            return ['pairs' => [], 'problems' => $problems, 'notes' => $notes];
+        }
+
+        if (count($here) < 2) {
+            return ['pairs' => array_map(fn (string $role): array => ['role' => $role, 'from' => (string) $there[$role], 'to' => $here[$role]], array_keys($here)), 'problems' => [], 'notes' => $notes];
         }
 
         $sharedHere = self::normal($here['originals']) === self::normal($here['public']);
 
         if ($sharedHere !== ((string) ($there['originals'] ?? '') === (string) ($there['public'] ?? ''))) {
-            return ['pairs' => [], 'problems' => ['The two media disks share one folder here and had two on the backup’s server, or the other way round. Lay them out as the backup’s server did.']];
+            return ['pairs' => [], 'problems' => ['The two media disks share one folder here and had two on the backup’s server, or the other way round. Lay them out as the backup’s server did.'], 'notes' => $notes];
         }
 
         if (! $sharedHere && (self::inside($here['originals'], $here['public']) || self::inside($here['public'], $here['originals']))) {
-            return ['pairs' => [], 'problems' => ['One media disk’s folder lies inside the other’s here. Give each a folder of its own.']];
+            return ['pairs' => [], 'problems' => ['One media disk’s folder lies inside the other’s here. Give each a folder of its own.'], 'notes' => $notes];
         }
 
         $pairs = [];
@@ -105,7 +121,19 @@ final readonly class MediaRestore
             $pairs[] = ['role' => $role, 'from' => (string) $there[$role], 'to' => $here[$role]];
         }
 
-        return ['pairs' => $pairs, 'problems' => []];
+        return ['pairs' => $pairs, 'problems' => [], 'notes' => $notes];
+    }
+
+    /**
+     * The note for a role whose files a backup left in a bucket: they
+     * aren't in it, and the restored database expects them there.
+     */
+    private static function inBucket(string $role): string
+    {
+        $what = $role === 'originals' ? 'The image originals were' : 'The public media files were';
+        $bucket = (string) config('filesystems.disks.'.MediaLocations::disks('bucket')[$role === 'originals' ? 'originals' : 'public'].'.bucket');
+
+        return "{$what} in object storage when this backup was made, so they aren’t in it; the restored database expects them in the bucket “{$bucket}”.";
     }
 
     /**

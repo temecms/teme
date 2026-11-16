@@ -42,7 +42,8 @@ The site's accent colour replaces the theme's red in both schemes; in the dark o
 ## Places
 
 - **Menus:** `primary` (the header) and `footer`, chosen under Content › Navigation or on Settings › Design.
-- **Region:** `after-content`, after the article, taking callouts and buttons, at most five, filled under Content › Regions.
+- **Region:** `after-content`, after the article, taking callouts, buttons, Custom HTML (site code an administrator marks “Placed with a card”) and Featured posts, at most five, filled under Content › Regions.
+- **Featured posts:** `views/cards/featured-posts.blade.php` draws the card's list with the theme's own `partials/card` (`thumb` images, `h3` titles, no byline) in place of core's plain list.
 
 ## Comments
 

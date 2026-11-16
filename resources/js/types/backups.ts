@@ -74,6 +74,8 @@ export type PendingKey = {
 export type BackupsPage = {
     backupJob: JobRow | null;
     backUpNow: 'hidden' | 'paused' | 'busy' | 'offered';
+    /** Whether any media is in object storage, so backups hold its list and checksums but not its files. */
+    mediaInBucket: boolean;
     setup: SetupState;
     running: string | null;
     firstBackup: string | null;

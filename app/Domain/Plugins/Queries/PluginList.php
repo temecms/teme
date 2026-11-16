@@ -70,6 +70,7 @@ final readonly class PluginList
             version: $manifest?->version() ?? $record->version ?? '',
             description: $manifest?->description() ?? '',
             author: $manifest?->author() ?? '',
+            authorUrl: $manifest?->authorUrl() ?? '',
             homepage: $manifest?->homepage() ?? '',
             state: $state,
             reason: $reason,

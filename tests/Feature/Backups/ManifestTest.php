@@ -13,6 +13,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Tests\Feature\Media\Storage\StorageEnvironment;
 use Tests\Fixtures\Backups\CommittedMedia;
 
 uses(RefreshDatabase::class);
@@ -98,7 +99,7 @@ it('writes every key of format 1, and no secret', function (): void {
         ->and($data['database']['postgres_major'])->toBe((int) $data['database']['postgres'])
         ->and($data['database']['structure_only'])->toBe(BackupTables::STRUCTURE_ONLY)
         ->and($data['database']['tables']['media'])->toBe(1)
-        ->and(array_keys($data['media']))->toBe(['items', 'files', 'bytes', 'variants', 'roots', 'snapshot_roots', 'originals', 'missing'])
+        ->and(array_keys($data['media']))->toBe(['items', 'files', 'bytes', 'variants', 'locations', 'roots', 'snapshot_roots', 'originals', 'missing'])
         ->and(array_keys($data['media']['originals'][0]))->toBe(['id', 'disk', 'path', 'bytes', 'sha256'])
         ->and($data['media']['originals'][0]['id'])->toBe($image)
         ->and($data['app_key'])->toBe('app-key.json')
@@ -127,4 +128,40 @@ it('reads back only a manifest of its own format', function (): void {
         ->toThrow(InvalidArgumentException::class, 'That isn’t a manifest of a format this Teme reads.')
         ->and(fn () => Manifest::fromJson('[1]'))
         ->toThrow(InvalidArgumentException::class, 'That isn’t a manifest of a format this Teme reads.');
+});
+
+it('leaves media in a bucket to the bucket: listed with checksums, counted, never checked or backed up (I-3456)', function (): void {
+    $image = $this->media->image(['w640', 'thumb']);
+    $pdf = $this->media->document();
+
+    StorageEnvironment::with(StorageEnvironment::bucket(), function () use ($image, $pdf): void {
+        [$inventory] = ($this->take)();
+        $media = $inventory->manifest();
+
+        expect($media['locations'])->toBe(['public' => 'bucket', 'originals' => 'bucket'])
+            ->and($media['roots'])->toBe([])
+            ->and($media['snapshot_roots'])->toBe([])
+            ->and($inventory->folders())->toBe([])
+            ->and($inventory->bucketFileCount())->toBe(4)
+            ->and($inventory->missingCount())->toBe(0)
+            ->and(collect($media['originals'])->pluck('disk', 'id')->all())->toEqual([$image => 'originals', $pdf => 'public'])
+            ->and(collect($media['originals'])->firstWhere('id', $image)['sha256'])->toBe(hash('sha256', "original of {$image}"));
+    });
+});
+
+it('backs up only the server’s role when the originals stay on the server and the rest is in the bucket', function (): void {
+    StorageEnvironment::with(StorageEnvironment::bucket(['MEDIA_ORIGINALS_DISK' => 'media-originals']), function (): void {
+        Storage::fake('media-originals');
+        // No files: the original is checked on the server and found missing; the variant, in the bucket, isn't checked.
+        $this->media->image(['w640'], withFiles: false);
+        [$inventory] = ($this->take)();
+        $media = $inventory->manifest();
+
+        expect($media['locations'])->toBe(['public' => 'bucket', 'originals' => 'server'])
+            ->and(array_keys($media['roots']))->toBe(['originals'])
+            ->and(array_keys($media['snapshot_roots']))->toBe(['originals'])
+            ->and($inventory->folders())->toBe([rtrim(Storage::disk('media-originals')->path(''), '/\\')])
+            ->and($inventory->bucketFileCount())->toBe(1)
+            ->and($inventory->missingCount())->toBe(1);
+    });
 });

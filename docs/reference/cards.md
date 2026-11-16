@@ -151,3 +151,35 @@ Since 0.1.0. Registered by `core`.
 
 Refers to: nothing.
 
+## `site-code` — Custom HTML
+
+HTML an administrator keeps in Settings › Site code, placed here by name. Editors choose it; only administrators write or change it.
+
+Since 0.9.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `entryId` | required, string, regex:/^[0-9a-hjkmnp-tv-z]{26}$/ | — |
+
+Refers to: nothing.
+
+## `featured-posts` — Featured posts
+
+A short list of posts: ones you choose, or the latest of a type, optionally filed under one category or tag.
+
+Since 0.9.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `heading` | nullable, string, max:120 | — |
+| `source` | in:chosen,latest | `"latest"` |
+| `items` | array, list, max:12 | `[]` |
+| `type` | string, max:64 | `"post"` |
+| `termId` | nullable, string, regex:/^[0-9a-hjkmnp-tv-z]{26}$/ | — |
+| `count` | integer, min:1, max:12 | `5` |
+| `images` | boolean | `true` |
+
+Refers to: nothing.
+
