@@ -102,6 +102,7 @@ it('shares the site title and the groups the user may manage', function (): void
             $entry('ai', 'AI'),
             $entry('languages', 'Languages'),
             $entry('management_api', 'Management API'),
+            $entry('fediverse', 'Fediverse'),
         ]);
 });
 

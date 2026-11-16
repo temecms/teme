@@ -28,13 +28,14 @@ final class Paths
 
     /**
      * First segments the public site's own routes answer: the feed, the
-     * sitemap, robots.txt, the API and llms.txt. No item and no address setting may take one,
+     * sitemap, robots.txt, the API, llms.txt and the fediverse's addresses, new
+     * and the WordPress plugin's (I-058). No item and no address setting may take one,
      * as with RESERVED; unlike RESERVED's, what they answer is the public
      * site's, which the page cache may store.
      *
      * @var list<string>
      */
-    public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'ads.txt', 'api', 'llms.txt'];
+    public const array SITE_ROUTES = ['feed', 'sitemap.xml', 'robots.txt', 'ads.txt', 'api', 'llms.txt', 'ap', 'wp-json'];
 
     /**
      * Every kind of target this release writes to the path table and

@@ -10,6 +10,7 @@ screens:
   - settings.addresses.show
   - settings.ai
   - settings.site-code
+  - settings.fediverse
   - themes.index
 sources:
   - resources/js/pages/settings
@@ -131,6 +132,10 @@ The language your site is written in, and the other languages it publishes in. F
 ### Management API
 
 Whether outside tools, such as an importer or a script, may write to the site, and the keys they sign in with. Each key acts as one person, with only the abilities chosen for it. Making a key asks you to confirm your password. Administrators change it.
+
+### Fediverse
+
+Whether people on Mastodon and other fediverse servers can follow the site, and who they can follow: the blog, its authors, or both. Switching it off pauses it and keeps the followers. It also lists the site's accounts, the servers not answering, and the blocked servers. Administrators change it.
 
 ## To find a setting
 

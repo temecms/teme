@@ -57,6 +57,7 @@ use App\Http\Admin\Settings\AiSettingsController;
 use App\Http\Admin\Settings\BrandColourController;
 use App\Http\Admin\Settings\CheckAiKeyController;
 use App\Http\Admin\Settings\DiscussionSettingsController;
+use App\Http\Admin\Settings\FediverseSettingsController;
 use App\Http\Admin\Settings\FindSettingsController;
 use App\Http\Admin\Settings\HomePageController;
 use App\Http\Admin\Settings\SearchAndSocialController;
@@ -289,6 +290,24 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::middleware('can:settings.ai.manage')->group(function (): void {
             Route::get('settings/ai', [AiSettingsController::class, 'show'])->name('settings.ai');
             Route::put('settings/ai', [AiSettingsController::class, 'update'])->name('settings.ai.update');
+        });
+
+        // Before settings/{group} too: Settings › Fediverse (I-058), each
+        // change by its own Operation; the switch also needs settings.modules.manage.
+        Route::middleware('can:settings.fediverse.manage')->group(function (): void {
+            Route::get('settings/fediverse', [FediverseSettingsController::class, 'show'])->name('settings.fediverse');
+            Route::put('settings/fediverse', [FediverseSettingsController::class, 'update'])->name('settings.fediverse.update');
+            Route::put('settings/fediverse/switch', [FediverseSettingsController::class, 'switchFediverse'])->name('settings.fediverse.switch');
+            Route::post('settings/fediverse/authors/{person}', [FediverseSettingsController::class, 'enableAuthor'])
+                ->where('person', '[0-9a-hjkmnp-tv-z]{26}')
+                ->name('settings.fediverse.authors.enable');
+            Route::delete('settings/fediverse/authors/{person}', [FediverseSettingsController::class, 'disableAuthor'])
+                ->where('person', '[0-9a-hjkmnp-tv-z]{26}')
+                ->name('settings.fediverse.authors.disable');
+            Route::post('settings/fediverse/blocked', [FediverseSettingsController::class, 'block'])->name('settings.fediverse.blocked.store');
+            Route::delete('settings/fediverse/blocked/{host}', [FediverseSettingsController::class, 'unblock'])
+                ->where('host', '[a-z0-9.-]{1,253}')
+                ->name('settings.fediverse.blocked.destroy');
         });
 
         // Before settings/{group} too: General draws the design group's

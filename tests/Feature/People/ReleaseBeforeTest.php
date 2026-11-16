@@ -41,7 +41,8 @@ it('writes no row in the update: paths, users and contents are as they were', fu
 
     // The tables this migration makes are gone, as on the release before.
     Schema::dropIfExists('content_bylines');
-    Schema::dropIfExists('people');
+    // CASCADE drops only the foreign keys later tables hold to it, which the release before had none of.
+    DB::statement('DROP TABLE IF EXISTS people CASCADE');
 
     $before = ['paths' => ($this->rows)('paths'), 'users' => ($this->rows)('users'), 'contents' => ($this->rows)('contents'), 'terms' => ($this->rows)('terms')];
 
