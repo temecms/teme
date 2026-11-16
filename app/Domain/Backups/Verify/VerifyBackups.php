@@ -514,7 +514,8 @@ final readonly class VerifyBackups
         /** @var list<array{disk: string, path: string, sha256: string}> $originals */
         $originals = array_values(array_filter(
             is_array($media) && is_array($media['originals'] ?? null) ? $media['originals'] : [],
-            fn (mixed $original): bool => is_array($original) && is_string($original['disk'] ?? null) && is_string($original['path'] ?? null) && is_string($original['sha256'] ?? null),
+            // Only the roles the snapshot holds: a role in a bucket was left to the bucket (I-3456).
+            fn (mixed $original): bool => is_array($original) && is_string($original['disk'] ?? null) && is_string($roots[$original['disk']] ?? null) && is_string($original['path'] ?? null) && is_string($original['sha256'] ?? null),
         ));
         $sample = self::sample($originals, self::SAMPLE);
 

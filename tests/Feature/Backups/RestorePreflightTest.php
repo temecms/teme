@@ -8,6 +8,7 @@ use App\Domain\Backups\Manifest;
 use App\Domain\Backups\Models\BackupDestination;
 use App\Domain\Backups\Queries\BackupPlaces;
 use App\Domain\Backups\Restore\BackupAppKey;
+use App\Domain\Backups\Restore\MediaCheck;
 use App\Domain\Backups\Restore\MediaRestore;
 use App\Domain\Backups\Restore\RestoreCompatibility;
 use App\Domain\Backups\Restore\RestorePoint;
@@ -321,4 +322,37 @@ it('refuses a database that hasn’t run this Teme’s migrations, or lacks the 
 
     expect(rpRefusal(fn () => rpFind()))->toBe(['Maintenance mode keeps its flag in the cache_elsewhere table, which this database doesn’t have. Run php artisan migrate first.'])
         ->and(Schema::hasTable('cache'))->toBeTrue();
+});
+
+it('restores only the roles a backup holds, and says in one line where the others are (I-3456)', function (): void {
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    config(['filesystems.disks.media-originals-bucket.bucket' => 'teme-originals']);
+
+    $mixed = MediaRestore::pairs(rpManifest(['media' => ['locations' => ['public' => 'server', 'originals' => 'bucket'], 'snapshot_roots' => ['originals' => null]]]));
+
+    expect($mixed['problems'])->toBe([])
+        ->and(array_column($mixed['pairs'], 'role'))->toBe(['public'])
+        ->and($mixed['notes'])->toBe(['The image originals were in object storage when this backup was made, so they aren’t in it; the restored database expects them in the bucket “teme-originals”.']);
+
+    $both = MediaRestore::pairs(rpManifest(['media' => ['locations' => ['public' => 'bucket', 'originals' => 'bucket']]]));
+
+    expect($both['problems'])->toBe([])
+        ->and($both['pairs'])->toBe([])
+        ->and($both['notes'])->toHaveCount(2);
+
+    // A manifest from before media could be in a bucket: both roles on the server, as before.
+    $old = MediaRestore::pairs(rpManifest());
+
+    expect(array_column($old['pairs'], 'role'))->toBe(['originals', 'public'])
+        ->and($old['notes'])->toBe([]);
+});
+
+it('checks after a restore only the roles it restored, never one the backup left in a bucket', function (): void {
+    $manifest = rpManifest(['media' => [
+        'locations' => ['public' => 'bucket', 'originals' => 'bucket'],
+        'originals' => [['id' => '01JA0000000000000000000000', 'disk' => 'originals', 'path' => '01JA0000000000000000000000/v1/a.jpg', 'bytes' => 1, 'sha256' => str_repeat('0', 64)]],
+    ]]);
+
+    expect(app(MediaCheck::class)->check($manifest, [])['counts'])->toBe(['originals_missing' => 0, 'originals_changed' => 0, 'variants_missing' => 0]);
 });

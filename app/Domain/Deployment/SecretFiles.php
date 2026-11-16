@@ -36,6 +36,7 @@ final class SecretFiles
         'TEME_VERIFY_DB_PASSWORD',
         'TEME_GITHUB_TOKEN',
         'TEME_DOKPLOY_TOKEN',
+        'MEDIA_BUCKET_SECRET_ACCESS_KEY',
     ];
 
     /**
