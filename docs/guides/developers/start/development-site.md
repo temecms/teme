@@ -34,6 +34,9 @@ You build a plugin or theme in its own folder or repository, and test it against
    docker compose up -d
    ```
 
+   If ports 5432, 5433 or 6380 are already in use, set `TEME_DB_PORT`, `TEME_TEST_DB_PORT` and `TEME_VALKEY_TEST_PORT` before that command.
+   The test suite reads the same `TEME_TEST_DB_PORT` and `TEME_VALKEY_TEST_PORT` for `postgres_test` and `valkey_test`.
+
 3. Make the settings file and its key, then the database:
 
    ```bash
