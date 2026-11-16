@@ -654,6 +654,13 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 - `28229d8` feat(plugins): a person setting in a plugin's manifest (Task 5)
 - `251d008` feat(plugins): answers of up to 16 MB inside a long job (Task 6)
 - `3cac622` docs(guides): reading content, writing details, a job's person and its limits (Task 8)
+- `546e8d4` docs(plans): part C's records
+- `a46e4b6` feat(plugins): the content reader gives the status, the scheduled time and the queue (scheduler port 1)
+- `4f9528e` feat(plugins): a people.read door that names the people who write (scheduler port 2)
+- `15e414c` fix(plugins): offer people.read rather than refusing it as later (scheduler port 2)
+- `e852add` feat(settings): term and type settings chosen from what the site has (scheduler port 3)
+- `f955a44` feat(plugins): schedules switched and timed by the plugin's own settings (scheduler port 4)
+- `5e60687` fix(plugins): a plain schedule reads as before; the handbook index regenerated
 - this records commit
 
 Tasks 1 and 2 were built together, and the first commit carries `PluginDoors`/`PluginServices` whole, Task 6's `$answerBytes` parameter included, and the librarian fixture with its `person` setting (Task 5).
@@ -669,6 +676,10 @@ Run with the contracts and tests in place and `app/` set aside.
 | 4 | `tests/Feature/Plugins/Sockets/JobPersonTest.php` | `ValidationException` at enable: the librarian's `person` setting was unknown; with it known, `PluginJobContext contains 1 abstract method … (JobContext::personId)` |
 | 5 | `tests/Feature/Plugins/Sockets/PersonSettingTest.php` | `InvalidArgumentException: Setting [plugin.librarian.byline] has an unknown type [person].` |
 | 6 | `tests/Feature/Plugins/Sockets/LongAnswersTest.php` | `PluginJobContext contains 1 abstract method … (JobContext::personId)` (the file loads the jobs fixture); with that in place, the 5 MB answer inside a long job threw `AnswerTooLarge` (1 MB) |
+| Scheduler 1 | `tests/Feature/Plugins/Sockets/ContentQueueTest.php` | With `queue()` stubbed to an empty page: `Failed asserting that null is identical to '2026-11-18T12:26:00+00:00'.` (no `scheduledFor`), and the queue, refusals and bounds all failed |
+| Scheduler 2 | `tests/Feature/Plugins/Sockets/PeopleReaderTest.php` | `Undefined array key "Teme\Contracts\People\PeopleReader"` (the door isn't offered) |
+| Scheduler 3 | `tests/Feature/Plugins/Sockets/SiteChoiceSettingsTest.php` | `InvalidArgumentException: Setting [plugin.scheduler.topics] has an unknown type [term].` |
+| Scheduler 4 | `tests/Feature/Plugins/Sockets/SettingSchedulesTest.php` | `Failed asserting that 1 is identical to 0.` (the switched-off schedule ran), and the validator accepted every wrong `enabledBy`/`everyFrom` |
 
 #### Task 0
 
@@ -689,6 +700,11 @@ Run with the contracts and tests in place and `app/` set aside.
   - `tests/Feature/Console/GenerateManifestReferenceTest` ("keeps the reference current"): `docs/reference/plugin-manifest.md` doesn't list the new settings type `person`. Expected: the plan says not to regenerate `docs/reference/plugin-manifest.md`; the join does, once.
   - `tests/Feature/Plugins/DiscoveryTest` ("finds the configured folders"): found `tests/jobs` beside the fixtures it named. Not reproduced: `tests/Feature/Plugins` passed whole twice in parallel (652 passed each), and with `LongAnswersTest` beside it. Already seen flaky in an earlier part.
 - No Browser test (the plan names none; the person picker is core's).
+- After the scheduler port's additions, `composer check` on `f955a44`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,971 passed, 3 failed, 2 skipped (61,391 assertions). The failures:
+  - `GenerateManifestReferenceTest`: expected, as above.
+  - `tests/Unit/Plugins/DeclaredJobsTest` ("reads declared jobs with…"): a plain schedule now carried `enabledBy`/`everyFrom` as null. Fixed in the next commit (the keys appear only when declared); the test unchanged, and it passes with `tests/Unit/Plugins`, `tests/Feature/Plugins/Sockets` and `PluginSchedulesTest` (629 passed with the guides).
+  - `GenerateHandbookIndexTest`: `llms.txt` lacked the two changed summaries; regenerated in the same commit, and it passes.
+  The full run was not repeated after that commit.
 
 #### B-?? (draft)
 
@@ -700,9 +716,16 @@ Run with the contracts and tests in place and `app/` set aside.
 - **B-?? (draft) Bounds and language refusals.** `published()` throws `InvalidArgumentException` for a limit outside 1 to 200, more than 10 types or 10 terms, and a language the site doesn't have (`SiteLanguages::stored()`'s own refusal), as for a bad cursor. Commit `d66253f`.
 - **B-?? (draft) Handbook pages.** `content-write.md` and `jobs.md` were stubs; both became how-to pages covering what the plan asks (the rest of the write door in two sentences). The new `plugins/content-read.md` needed a line in `GenerateHandbookIndex::PAGES`, the README's table and a regenerated `llms.txt` (`DeveloperPagesTest`). `jobs.md`'s paragraph on spacing steps doesn't name round 1's `QueueOptions`, which isn't on `main`: it says to let a schedule pick up the next step. The limits table lists the AI request (55 s, 600 s long) from Part A. Commit `3cac622`.
 
+- **B-?? (draft) added by the maintainers (scheduler port): the queue.** `ItemSnapshot` grows last with `?DateTimeImmutable $scheduledFor = null` (UTC, from `contents.scheduled_for`); the status was already the `ItemRef`'s. New `ContentReader::queue(QueueQuery, string $actingPersonId): QueuePage` with `QueueQuery` (statuses of `draft`, `review`, `scheduled`, all three by default; up to 10 types; limit 1 to 200), `QueuedItem` (`ItemRef`, `scheduledFor`) and `QueuePage`. It lists only what the person may edit, type by type through `ContentAbilities::canEditSql()` (ContentPolicy::update restated), trashed items never, oldest first by ULID with the API's opaque cursor (sort `queue`). The person rule is `draft()`'s: another person or the operator gets `ReadRefused`. `ItemRef` doesn't grow (`HookContractsTest` pins it). New `app/Domain/Contents/Queries/QueuedItems.php`. Commit `a46e4b6`.
+- **B-?? (draft) added by the maintainers (scheduler port): `people.read`.** `Capability::PeopleRead` (`people.read`, listed last), in the schema's enum and `PluginContractsTest`'s list; its consent sentence "See the names of the people who write on this site" in `PluginWords` and `teme:plugins:enable`. Door `Teme\Contracts\People\PeopleReader::writers(?string $after = null, int $limit = 100): PersonPage`, with `PersonRef(id, name)` and `PersonPage`: the people `AuthorOptions::people()` finds (may create content, not suspended), in account order, by an opaque cursor; never an email. Offered last (`PluginDoors`, `OFFERED`). `ManifestValidator::LATER` listed `people.read` as a capability offered later, so `ManifestTest`'s "refuses a capability Teme doesn't offer plugins yet" now names `mail.send` (still later) instead: the one existing test changed, its proof unchanged; the maintainers may prefer another example. Commits `4f9528e`, `15e414c`.
+- **B-?? (draft) added by the maintainers (scheduler port): settings chosen from the site.** `SettingType::Term` (`term`) and `SettingType::ContentType` (`type`), `@since 0.9.0`; `Setting::term(…, string $taxonomy, bool $multiple = false)` and `Setting::contentType(…)`; `Setting`'s constructor grows last with `?string $taxonomy` and `bool $multiple`. Stored as slugs (one, `''` for none, or with `multiple` a list, at most 100) and a type key, so a value reads the same after an export; `SettingRules` checks on save that each slug is a term of that taxonomy and the type is registered and public (new sentences "Choose terms this site has here." and "Choose a content type this site shows to readers here.", through `__()`). `SettingsForm` offers the taxonomy's terms by name (the first 500) and the public types, and adds `multiple` to a term field; `field-control.tsx` draws one as `SelectField` and several as the multiselect's ticked boxes (now one `Choices` component both use; the words "Choose a term" / "Choose a type" through `__()`). The manifest takes `taxonomy` (required for a term) and `multiple`. The `person` setting was already checked against existing accounts on save, so it is unchanged. Core files outside Part C's Owns changed for this, as the note asks: `SettingType`, `Setting`, `SettingRules`, `SettingsForm`, `field-control.tsx`, `types/settings.ts`. Commit `e852add`.
+- **B-?? (draft) added by the maintainers (scheduler port): schedules from settings.** A schedule may give `enabledBy` (one of the plugin's `boolean` settings) and `everyFrom` (a `select` setting whose option keys are all in `DeclaredJobs::EVERY`); `every` stays required as the fallback. `ManifestValidator::schedules()` refuses a wrong one (sentences through `__()`), the schema lists both, `DeclaredJobs` carries them, and `DueSchedules` reads `plugin.{code}` through `SettingsReader` on each pass: off while the switch isn't `true` (so off by default), the setting's interval when it holds one. A run isn't recorded while off, so switching on runs at the next minute's check once the interval has passed since the last run. Commit `f955a44`.
+
 #### Contract changes
 
 None beyond the plan's: `ContentReader`, `ItemQuery`, `ItemPage`, `ItemSnapshot`, `ReadRefused` (new, `@since 0.9.0`); `NewItem` (last: `slug`, `translationOf`, `credits`), `ItemChanges` (last: `slug`, `credits`), `ContentWriter::linkTranslations()`, `JobContext::personId()` (V is 0.9.0, so no `TranslationLinker`/`JobPerson`); `OutboundHttp`'s class docblock sentence; the schema's settings type `person`.
+
+Added by the maintainers for the scheduler port (all `@since 0.9.0`): `ItemSnapshot::$scheduledFor` (last, defaulted); `ContentReader::queue()` with `QueueQuery`, `QueuedItem`, `QueuePage`; `Teme\Contracts\People\PeopleReader`, `PersonRef`, `PersonPage`; `Capability::PeopleRead`; `SettingType::Term`, `SettingType::ContentType`, `Setting::term()`, `Setting::contentType()`, `Setting::$taxonomy`, `Setting::$multiple` (constructor, last); the schema's capability `people.read`, settings types `term` and `type` with `taxonomy` and `multiple`, and a schedule's `enabledBy` and `everyFrom`.
 
 #### STOP
 
@@ -714,6 +737,11 @@ None.
 - C6's line in round 1's `WritePluginSettings` (refuse `person`) is not built: that Operation isn't on `main`. It belongs with whichever join carries `sockets/plugin-admin`.
 - A run of the operator's whose handler calls `personId()` stops with `JobStopped`, and `RunPluginJob` returns on `JobStopped` without ending the tracked job, so it stays waiting. Unchanged here (it's how a cancel already ends); worth a decision whether such a run should fail with the sentence instead.
 
+- `docs/architecture/plugins.md`'s capability table describes `people.read` as "Users' and commenters' personal data, and the hooks that carry it"; what is offered now is narrower (the names of the people who write). That page is the maintainers' to update.
+- `docs/reference/plugin-manifest.md` also lacks `term`, `type`, `people.read` and a schedule's `enabledBy`/`everyFrom`; the join's one regeneration covers them.
+- A term setting offers a taxonomy's first 500 terms by name; a large tag list would want a search picker.
+- A saved term or type that is later removed stays saved until the group is saved again; the reader still answers it.
+
 #### Changelog lines for the maintainers
 
 - Added: plugins granted `content.read` can list the site's published, public items a page at a time, and read an item's draft for the person their work acts for (`ContentReader`).
@@ -722,10 +750,15 @@ None.
 - Added: a plugin setting can be a person, chosen with core's person picker.
 - Changed: inside a long job, a plugin's outbound answers may be up to 16 MB; requests stay at 1 MB.
 - Docs: Reading content; Plugins writing content and Jobs and schedules (every limit in one table) are now full pages.
+- Added: the content reader gives an item's scheduled time, and lists the unpublished items (drafts, in review, scheduled) the person may edit, a page at a time.
+- Added: plugins can ask for `people.read` to list the names of the people who write on the site, never their email addresses.
+- Added: plugin settings can offer the site's own terms of a taxonomy (one or several) and its public content types, checked on save.
+- Added: a plugin's schedule can be switched on and off, and timed, by the plugin's own settings; a change counts at the next minute's check.
 
 #### Try it
 
 - `php artisan test --compact tests/Feature/Plugins/Sockets`.
+- `php artisan test --compact tests/Feature/Plugins/Sockets/ContentQueueTest.php tests/Feature/Plugins/Sockets/PeopleReaderTest.php tests/Feature/Plugins/Sockets/SiteChoiceSettingsTest.php tests/Feature/Plugins/Sockets/SettingSchedulesTest.php` for the scheduler port's additions; the `tests/scheduler` fixture shows a manifest using all four.
 - Enable the `tests/librarian` fixture on a development site (its folder in `teme.plugin_paths`), open Settings › Plugin settings › Librarian and choose a person for "Credit articles to"; queue its `write-as-person` job while signed in, and the draft it writes is yours.
 
 ---|---|---|
