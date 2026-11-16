@@ -29,7 +29,7 @@ Each entry in `contributes.aiTasks` has:
 
 An update that adds a task, sends more than a task did, or needs more waits until an administrator agrees again. A narrower task needs no new agreement.
 
-A task is off until an administrator chooses its model. Settings › AI shows each plugin's tasks under Plugins, with the plugin's own switch, its monthly budget and how many requests it may make in an hour (120 unless changed).
+A task is off until an administrator chooses its model. Settings › AI gives each plugin its own panel after the models: its tasks, each with what it sends, and the plugin's own switch, its monthly budget and how many requests it may make in an hour (120 unless changed).
 
 ## Asking
 
