@@ -9,6 +9,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { SelectField } from '@/components/ui/select-field';
 import { __ } from '@/lib/i18n';
 import { savePreferences } from '@/lib/preferences';
@@ -24,7 +25,12 @@ const FIXED_WIDTH = 48 + 320 + 56;
 /** The preference id the Thumbnails entry keeps, as it always has. */
 const THUMBNAILS = 'featured';
 
-type ChooserColumn = { id: string; label: string; width?: number };
+type ChooserColumn = {
+    id: string;
+    label: string;
+    width?: number;
+    plugin?: string;
+};
 
 /**
  * The column chooser (I-204; docs/architecture/design-system.md, section
@@ -175,9 +181,17 @@ export function ColumnChooser({
                                 />
                                 <Label
                                     htmlFor={`column-${column.id}`}
-                                    className="flex-1"
+                                    className="flex min-w-0 flex-1 items-center gap-1"
                                 >
-                                    {column.label}
+                                    <span className="truncate">
+                                        {column.label}
+                                    </span>
+                                    {column.plugin !== undefined && (
+                                        <PluginMark
+                                            name={column.plugin}
+                                            iconOnly
+                                        />
+                                    )}
                                 </Label>
                                 <Button
                                     type="button"
