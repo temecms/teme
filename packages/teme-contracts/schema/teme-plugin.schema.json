@@ -81,7 +81,8 @@
                     "content.insert",
                     "http",
                     "jobs",
-                    "routes.public"
+                    "routes.public",
+                    "import.wordpress"
                 ]
             }
         },
@@ -172,6 +173,50 @@
                         "minLength": 1
                     },
                     "handler": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            }
+        },
+        "imports": {
+            "type": "object",
+            "description": "What the plugin brings across from the WordPress site an import reads, when granted import.wordpress.",
+            "required": ["importer"],
+            "additionalProperties": false,
+            "properties": {
+                "importer": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The plugin's importer class."
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "postTypes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    }
+                },
+                "userMeta": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "termMeta": {
+                    "type": "array",
+                    "items": {
                         "type": "string",
                         "minLength": 1
                     }

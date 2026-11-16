@@ -9,6 +9,7 @@ use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Import\ImportRunKind;
 use App\Domain\Import\ImportRunState;
 use App\Domain\Import\Models\ImportRun;
+use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Phases\Addresses\OldSiteUrls;
 use App\Domain\Import\Phases\ImportPhase;
 use App\Domain\Import\Phases\ImportPhases;
@@ -16,6 +17,9 @@ use App\Domain\Import\Queries\ImportScreen;
 use App\Domain\Media\Models\Media;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\ThemeSlotSettings;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginLoader;
 use App\Domain\Redirects\RedirectSource;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Themes\ActiveTheme;
@@ -29,6 +33,7 @@ use Teme\Contracts\Settings\SettingsReader;
 use Tests\Fixtures\Import\AcceptanceSite;
 use Tests\Fixtures\Import\FakeCompanion;
 use Tests\Fixtures\Import\MenuImports;
+use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -269,6 +274,29 @@ function accSteps(): array
             expect($harbour->uploaded_for)->toBe(accItem($run->id, 21)->id);
 
             return null;
+        }],
+        'plugin-options' => ['plugin-options', $alone],
+        'plugin-data' => ['plugin-data', function (ImportRun $run): ImportRun {
+            // A plugin with data to bring, on a companion that sends it, so the phase has lists to read.
+            PluginFixtures::use('importer');
+            $manifest = PluginFixtures::manifest('importer');
+            scElevated(fn (): string => app(EnablePlugin::class)->execute(new EnablePluginInput('tests/importer', $manifest['version'], $manifest['capabilities'], [], [], null)));
+            app(PluginLoader::class)->load();
+            $this->site->companion->items('probe', ['name' => 'teme-companion', 'version' => '0.3.0', 'api' => 2, 'application_passwords' => true]);
+            $this->site->companion->wordpress(posts: [['id' => 90, 'type' => 'ap_actor', 'title' => 'Harbour master', 'meta' => []]]);
+            ImportSource::query()->whereKey($this->source->id)->update(['api_version' => 2]);
+            $this->travel(1)->hours();
+            $catchUp = $this->site->import($this->source, ImportRunKind::CatchUp);
+
+            expect(DB::table('import_map')->where('object_type', 'plugin')->where('object_id', 'importer:post:ap_actor:90')->value('outcome'))->toBe('created');
+            PluginFixtures::forget();
+
+            return $catchUp;
+        }],
+        'plugin-data-gone' => ['plugin-data-gone', function (ImportRun $run): ImportRun {
+            $this->travel(1)->hours();
+
+            return $this->site->import($this->source, ImportRunKind::CatchUp);
         }],
         'second-pass' => ['second-pass', function (ImportRun $run): null {
             expect(accLinks(accItem($run->id, 21)))->toBe(['teme:content/'.accItem($run->id, 22)->id]);

@@ -10,8 +10,10 @@ namespace Teme\Contracts\Plugins;
  * door, MediaRead the media-reading hooks, MediaWrite the media door,
  * ContentInsert the article insertion points, Http the outbound door to the
  * hosts the plugin names, Jobs the door that queues the plugin's declared
- * background work, and RoutesPublic the door that answers the plugin's
- * declared public addresses.
+ * background work, RoutesPublic the door that answers the plugin's declared
+ * public addresses, and ImportWordPress hands an import the data the plugin
+ * declares under its manifest's `imports`, read from the WordPress site Teme
+ * imports.
  *
  * @since 0.5.0
  */
@@ -25,4 +27,5 @@ enum Capability: string
     case Http = 'http';
     case Jobs = 'jobs';
     case RoutesPublic = 'routes.public';
+    case ImportWordPress = 'import.wordpress';
 }

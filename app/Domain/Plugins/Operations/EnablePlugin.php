@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -137,6 +138,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 'hosts' => $input->hosts,
                 'hooks' => $input->hooks,
                 'routes' => Consent::routeLines($manifest),
+                ...$this->imports($found),
             ],
             'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
             'consented_at' => $now,
@@ -163,6 +165,19 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         DB::afterCommit(fn () => $this->records->changed());
 
         return $input->name;
+    }
+
+    /**
+     * The names the plugin declares to import, kept with the consent so an
+     * import hands it only those agreed to (I-349); nothing when it declares none.
+     *
+     * @return array{}|array{imports: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}}
+     */
+    private function imports(FoundPlugin $found): array
+    {
+        $declared = $found->manifest === null ? [] : Consent::declaredImports($found->manifest);
+
+        return $declared === [] ? [] : ['imports' => $declared];
     }
 
     /**

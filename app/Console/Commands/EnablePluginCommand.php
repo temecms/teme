@@ -60,6 +60,7 @@ final class EnablePluginCommand extends Command
                 Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
                 Capability::Jobs->value => __('Run work in the background and on a schedule'),
                 Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
+                Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
                 Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
                 default => $capability,
             });

@@ -11,6 +11,8 @@ use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Models\ImportSource;
 use App\Domain\Import\Phases\ImportPhase;
 use App\Domain\Import\Phases\ImportPhases;
+use App\Domain\Import\PluginData\PluginDataLists;
+use App\Domain\Import\PluginData\PluginDataReport;
 use App\Domain\Import\Tracking\ImportRunJobs;
 use Illuminate\Support\Facades\DB;
 
@@ -234,6 +236,9 @@ final readonly class ImportScreen
             $counted[(string) $row->object_type][(string) $row->outcome] = (int) $row->total;
         }
 
+        // Each plugin's records get a row of their own (docs/proposals/plugin-import-socket.md).
+        $plugins = isset($counted[PluginDataLists::TYPE]) ? app(PluginDataReport::class)->rows($runId) : [];
+        unset($counted[PluginDataLists::TYPE]);
         $types = [];
         $known = [];
 
@@ -251,6 +256,8 @@ final readonly class ImportScreen
         foreach ($others as $type) {
             $types[] = self::typeRow((string) $type, (string) $type, $counted[$type]);
         }
+
+        array_push($types, ...$plugins);
 
         $codes = DB::table('import_messages')
             ->where('run_id', $runId)

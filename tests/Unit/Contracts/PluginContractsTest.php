@@ -101,6 +101,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'http',
         'jobs',
         'routes.public',
+        'import.wordpress',
     ]);
 });
 

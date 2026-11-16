@@ -1,0 +1,19 @@
+{
+    "manifest": 1,
+    "name": "tests/importer",
+    "code": "importer",
+    "label": "Importer",
+    "description": "A plugin the tests enable, which brings its own data across from WordPress.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Importer\\ImporterPlugin",
+    "capabilities": ["import.wordpress"],
+    "imports": {
+        "importer": "Tests\\Fixtures\\Plugins\\Importer\\Importer",
+        "options": ["importer_mode"],
+        "postTypes": { "ap_actor": ["_importer_inbox", "_importer_following"] },
+        "userMeta": ["importer_also_known_as"],
+        "termMeta": []
+    },
+    "owns": { "tables": ["importer_received"] }
+}
