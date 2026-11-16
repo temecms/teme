@@ -9,6 +9,7 @@ use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
+use Teme\Contracts\Lists\HasListColumns;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck as PluginCheck;
 
@@ -45,6 +46,7 @@ final readonly class Contributions implements PluginContributions
         }
 
         array_push($errors, ...$this->jobHandlers($jobs, $plugin));
+        array_push($errors, ...$this->columnHandlers($contributes['columns'] ?? [], $plugin));
 
         if ($errors !== []) {
             return $errors;
@@ -119,6 +121,50 @@ final readonly class Contributions implements PluginContributions
         foreach ($handlers as $key) {
             if (! isset($declared[$key])) {
                 $errors[] = "It has a handler for \"{$key}\", which isn’t declared.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Declared column ids must match the plugin's listColumns() keys, and the
+     * other way round. Columns are not registered here; they are read from
+     * the manifest when a list asks.
+     *
+     *
+     * @return list<string>
+     */
+    private function columnHandlers(mixed $columns, object $plugin): array
+    {
+        $declared = [];
+
+        foreach (is_array($columns) ? $columns : [] as $entry) {
+            if (is_array($entry) && is_string($entry['id'] ?? null)) {
+                $declared[$entry['id']] = true;
+            }
+        }
+
+        if ($declared === [] && ! ($plugin instanceof HasListColumns)) {
+            return [];
+        }
+
+        if ($declared !== [] && ! ($plugin instanceof HasListColumns)) {
+            return ['It declares columns but doesn’t implement '.HasListColumns::class.'.'];
+        }
+
+        $handlers = $plugin instanceof HasListColumns ? array_keys($plugin->listColumns()) : [];
+        $errors = [];
+
+        foreach (array_keys($declared) as $id) {
+            if (! in_array($id, $handlers, true)) {
+                $errors[] = "It declares column \"{$id}\" but has no handler for it.";
+            }
+        }
+
+        foreach ($handlers as $id) {
+            if (! isset($declared[$id])) {
+                $errors[] = "It has a handler for column \"{$id}\", which isn’t declared.";
             }
         }
 
