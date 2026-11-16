@@ -200,7 +200,13 @@ it('lists the hosts its settings name on the plugins page, and records them when
     $manifest = PluginFixtures::manifest('hub');
 
     $this->actingAs($this->admin)->get('/admin/plugins')
-        ->assertInertia(fn ($page) => $page->where('settingHosts.tests/hub', ['settings' => ['Hub', 'More hubs'], 'hosts' => ['hub.example.com']]));
+        ->assertInertia(fn ($page) => $page->where('settingHosts.tests/hub', [
+            'settings' => ['Hub', 'More hubs'],
+            'hosts' => ['hub.example.com'],
+            'replaces' => 'Connect to services outside this site: api.example.com',
+            'line' => 'Connect to services outside this site: api.example.com, and the hosts you enter in “Hub” and “More hubs”',
+            'now' => 'They name these hosts now: hub.example.com',
+        ]));
 
     $this->actingAs($this->admin)->withSession(scConfirmed())
         ->post('/admin/plugins/hub/enable', [

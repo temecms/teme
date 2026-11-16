@@ -119,7 +119,16 @@ export function ConsentDialog({
                                         key={line.words}
                                         className="flex flex-wrap items-baseline gap-2"
                                     >
-                                        <span>{line.words}</span>
+                                        {settingHosts !== null &&
+                                        line.words === settingHosts.replaces ? (
+                                            <span data-test="consent-setting-hosts">
+                                                {settingHosts.line}
+                                                <br />
+                                                {settingHosts.now}
+                                            </span>
+                                        ) : (
+                                            <span>{line.words}</span>
+                                        )}
                                         {line.new && (
                                             <span className="bg-accent text-on-accent text-caption rounded-sm px-2 font-semibold">
                                                 {__('NEW')}
@@ -129,27 +138,6 @@ export function ConsentDialog({
                                 ))}
                             </ul>
                         </section>
-                    )}
-
-                    {settingHosts !== null && (
-                        <p
-                            data-test="consent-setting-hosts"
-                            className="text-small"
-                        >
-                            {__(
-                                'It also connects to the hosts you enter in :settings.',
-                                {
-                                    settings: settingHosts.settings
-                                        .map((label) => `“${label}”`)
-                                        .join(` ${__('and')} `),
-                                },
-                            )}{' '}
-                            {settingHosts.hosts.length > 0
-                                ? __('They name these hosts now: :hosts', {
-                                      hosts: settingHosts.hosts.join(', '),
-                                  })
-                                : __('They name no host yet.')}
-                        </p>
                     )}
 
                     <DialogFooter>

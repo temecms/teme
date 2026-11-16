@@ -14,6 +14,7 @@ use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\Plugins\Operations\RemovePluginData;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginSentences;
+use App\Domain\Plugins\PluginWords;
 use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Plugins\Queries\PluginRow;
 use App\Domain\Plugins\Queries\PluginsScreen;
@@ -25,6 +26,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Teme\Contracts\Plugins\Capability;
 
 /**
  * Site › Plugins: every plugin, what it asks for and where it stands, and
@@ -137,10 +139,11 @@ final class PluginsController extends Controller
      */
     /**
      * Each plugin that takes hosts from its settings, by name: the settings'
-     * labels and the hosts they name now, which the consent dialog shows
-     * and posts back (docs/plans/plugin-sockets-1.md, A2).
+     * labels and the hosts they name now, which the consent dialog posts
+     * back, and the outbound line it shows in place of the plain one, with
+     * the hosts under it (docs/plans/plugin-sockets-1.md, A2).
      *
-     * @return array<string, array{settings: list<string>, hosts: list<string>}>
+     * @return array<string, array{settings: list<string>, hosts: list<string>, replaces: string, line: string, now: string}>
      */
     private function settingHosts(PluginRegistry $registry, SettingHosts $hosts): array
     {
@@ -148,7 +151,15 @@ final class PluginsController extends Controller
 
         foreach ($registry->all() as $plugin) {
             if ($plugin->manifest !== null && SettingHosts::declared($plugin->manifest) !== []) {
-                $found[$plugin->name] = ['settings' => SettingHosts::labels($plugin->manifest), 'hosts' => $hosts->current($plugin->manifest)];
+                $labels = SettingHosts::labels($plugin->manifest);
+                $now = $hosts->current($plugin->manifest);
+                $found[$plugin->name] = [
+                    'settings' => $labels,
+                    'hosts' => $now,
+                    'replaces' => PluginWords::capability(Capability::Http->value, $plugin->manifest->hosts()),
+                    'line' => PluginWords::httpWithSettings($plugin->manifest->hosts(), $labels),
+                    'now' => PluginWords::settingHostsNow($now),
+                ];
             }
         }
 

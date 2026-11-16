@@ -7,6 +7,7 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
+use App\Domain\Plugins\PluginRecords;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -84,3 +85,17 @@ it('passes axe with the agreement showing, in the light and dark schemes', funct
 
     expect(cmAxeViolations($page))->toBe([]);
 })->with(['light', 'dark']);
+
+it('says in the consent dialog, under the outbound line, which hosts its settings name now', function (): void {
+    PluginRecord::query()->delete();
+    app(PluginRecords::class)->changed();
+
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/plugins');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="plugin-hub"] [data-test="plugin-enable"]\') !== null');
+    $page->click('[data-test="plugin-hub"] [data-test="plugin-enable"]');
+    shellSettled($page, '[data-slot="dialog-content"]');
+
+    $page->assertScript('document.querySelector(\'[data-test="consent-asks"]\').innerText.includes("Connect to services outside this site: api.example.com, and the hosts you enter in “Hub” and “More hubs”\\nThey name these hosts now: hub.example.com")', true)
+        ->assertScript('document.querySelector(\'[data-test="consent-dialog"]\').innerText.includes("It also connects")', false);
+    cmNoJavaScriptErrors($page);
+});
