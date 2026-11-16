@@ -30,7 +30,10 @@ The package name is `teme-examples/first-plugin`. Its manifest asks for `content
     },
     "plugin": "TemeExamples\\FirstPlugin\\FirstPlugin",
     "capabilities": ["content.read"],
-    "hooks": ["ContentPublished"]
+    "hooks": ["ContentPublished"],
+    "author": "Teme Examples",
+    "author_url": "https://example.com/author",
+    "homepage": "https://example.com/first-plugin"
 }
 ```
 
