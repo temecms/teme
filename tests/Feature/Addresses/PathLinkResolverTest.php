@@ -9,6 +9,8 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Tests\Feature\Media\Storage\StorageEnvironment;
 
 uses(RefreshDatabase::class);
 
@@ -61,4 +63,20 @@ it('finds the address and the type through both keys, never a scan (1.6h)', func
         ->and($plan)->toMatch('/Index Cond: .*\(target_id\)::text = /')
         ->and(planReadsIndex($plan, 'contents_pkey', 'contents'))->toBeTrue($plan)
         ->and($plan)->not->toContain('Seq Scan');
+});
+
+it('resolves a pasted media address from every storage location to the item, once the bucket is in use (I-3456)', function (): void {
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    $report = mediaUpload($this->editor, mediaPdf(), 'Annual report.pdf');
+
+    StorageEnvironment::with(StorageEnvironment::bucket(), function () use ($report): void {
+        $resolver = app(PathLinkResolver::class);
+
+        expect($resolver->targetAt("https://cdn.example.test/{$report->id}/v1/annual-report.pdf"))->toBe(['kind' => 'media', 'id' => $report->id])
+            ->and($resolver->targetAt("http://localhost/storage/media/{$report->id}/v1/annual-report.pdf"))->toBe(['kind' => 'media', 'id' => $report->id])
+            ->and($resolver->targetAt("/storage/media/{$report->id}/v1/annual-report.pdf"))->toBe(['kind' => 'media', 'id' => $report->id])
+            ->and($resolver->targetAt("https://elsewhere.example/storage/media/{$report->id}/v1/annual-report.pdf"))->toBeNull()
+            ->and($resolver->targetAt("https://elsewhere.example/{$report->id}/v1/annual-report.pdf"))->toBeNull();
+    });
 });
