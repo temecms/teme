@@ -228,7 +228,6 @@ The `.ai/rules/builders.md` gate after each task, with `php artisan test --paral
 - B-13: A-W14 adds `lang/` with `addJsonPath()` when a plugin starts, so a plugin that doesn't start loads no words; Laravel reads the main `lang` folder last, so core wins a clash. The test checks the translator in Spanish rather than a whole Spanish page. File outside Owns: `PluginLoader`. The paragraph rewritten is in `rules/plugins-and-themes.md`. `37c5d52`.
 - B-14: the web consent dialog lists the setting hosts from a new `settingHosts` prop that `PluginsController::index()` builds, not from `PluginsScreen` (B's), and the enable posts them; `EnablePluginRequest`, `PluginsController` and `components/plugins/consent-dialog.tsx` are outside Owns. `6c7a23f`.
 - B-15: the new handbook page is listed in `GenerateHandbookIndex::PAGES` (outside Owns) and the README, and `llms.txt` is regenerated, as the guide tests require. `b9925b9`.
-- B-16:
 - B-17:
 - B-18:
 - B-19:
@@ -255,6 +254,23 @@ The `.ai/rules/builders.md` gate after each task, with `php artisan test --paral
 - Plugins can hear which feeds a change touched with the `FeedsChanged` hook.
 - A public route's handler can ask for its plugin's doors in its constructor.
 - A plugin's `lang/<locale>.json` files translate its words while it is enabled.
+
+#### Follow-up R1
+
+The review's findings 1, 2, 3 and 6, fixed on this branch alone, nothing merged into it.
+
+| Finding | Commit | Test, and its first failure |
+|---|---|---|
+| 1 (blocking): a plugin's language file re-worded core's sentences | `3220006` | `PluginTranslationsTest`: the consent line came back as the fixture's "Nothing to worry about: api.example.com", not "Connect to services outside this site: api.example.com"; another plugin's `es.json` turned "Hub sent the ping." into "Otra cosa." |
+| 2: the consent dialog's wording wasn't A2's | `725893d` | `HostsFromSettingsTest` (plugins page): "Property [settingHosts.tests/hub] does not match the expected value"; `tests/Browser/PluginHostsAgreementTest.php`: the asks list didn't include A2's line and the hosts under it |
+| 3: the publish test filtered out extra notifications | `f28b8b9` | `FeedsChangedTest`, rewritten to save the draft first, clear what was heard, publish, and expect exactly one: **it passed at once**. One publish already sends one `FeedsChanged`, so the gathering across nested Operations the review offered as a fallback wasn't needed. |
+| 6: the new-host line wasn't tied to its field | `7a59a13` | `tests/Browser/PluginHostsAgreementTest.php`: the field's `aria-describedby` didn't name the line, at both widths |
+
+- B-13 corrected (`3220006`): Teme no longer calls `addJsonPath`. `PluginSentences` keeps a plugin's line only for a key its own `src/` passes to `__()` or `trans()` as a plain string (read by the new `CodeScan::sentences()`), that none of core's `lang/*.json` holds, and that no plugin started before it claimed. The translator asks these lines only for a key core has no line for, through `handleMissingKeysUsing`. The admin's catalogue (`AdminWords`) reads the file loader, so the browser gets only core's words. Core's words only (`PluginSentences::coreOnly()`): every `PluginWords` sentence, the Plugins page and its enable, `teme:plugins:enable`, and the refusals in `UpdateSettings` and `AgreePluginHosts`. The password screen draws from the admin's catalogue, which is core's only. What's left open: a plugin whose own code passes, as a plain string, one of core's sentences that no core `lang/*.json` holds can still re-word it on screens outside those. Files outside Owns: `CodeScan`, `PluginLoader`, `PluginWords`, `UpdateSettings`, `AgreePluginHosts`, `EnablePluginCommand`, `PluginsController`. The handbook's paragraph says the new rule.
+- B-14 completed (`725893d`): `PluginsController::settingHosts()` now sends `replaces` (the plain http line), `line` (`PluginWords::httpWithSettings()`, A2's sentence) and `now` (`PluginWords::settingHostsNow()`). The dialog draws `line` and `now` in place of the line it replaces, so the web and the console say the same. The unplanned JS sentence is gone.
+- B-16 (`7a59a13`): `HostsAgreement` adds the line's id to the field's `aria-describedby` with an effect while the line shows, and takes it out after. Options: a `describedBy` prop through `SettingsField` and `FieldControl` (two more files outside Owns). Chose the effect: only the shared `group.tsx` changes.
+- Finding 4, the misplaced docblock, is LATER and not part of this follow-up. It is left as it was.
+- Gate after `7a59a13`: Pint and PHPStan clean. Architecture: 139 passed (1358 assertions). Unit and Feature: 11779 passed, 2 skipped and 2 failed (60567 assertions). The 2 failures are `GenerateManifestReferenceTest` and `GenerateHooksReferenceTest`, as before. `DatabaseDownTest` passed this time. Browser, after `npm run build`, one file at a time: `PluginHostsAgreementTest` 5 passed, `Plugins/PluginsScreenTest` 19, `SettingsPanelsTest` 18, `SettingsSaveBarTest` 8. Baselines are unchanged, 222 and 876.
 
 #### Try it
 
