@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Teme\Contracts\Status;
 
 /**
- * A plugin that raises notices implements this beside Plugin (I-214: a new
- * ability is a new interface).
+ * A plugin that raises notices implements this beside Plugin: a new
+ * ability is a new interface.
  *
  * @since 0.5.0
  */

@@ -29,16 +29,16 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\View\Component;
 
 /**
- * `<x-teme::document>`: core's document shell around every public page
- * (I-247), so a template writes only its own markup. It writes the `lang`
+ * `<x-teme::document>`: core's document shell around every public page,
+ * so a template writes only its own markup. It writes the `lang`
  * and `dir`,
  * the colour scheme, the title, the head's typed entries (DocumentMeta, the
  * robots value among them), the one preloaded font, the theme's tokens and
- * its dark ones, with the site's accent, lightened for the dark scheme
- * (I-457), the theme's assets, the styles of the cards the page drew, the
+ * its dark ones, with the site's accent, lightened for the dark scheme,
+ * the theme's assets, the styles of the cards the page drew, the
  * page's JSON-LD graph, the three placements, with their fragments, the skip
  * link and its style, the speculation rules, and core's small script, which in a browser that
- * signed in asks who is reading and adds the "Edit" link (I-163).
+ * signed in asks who is reading and adds the "Edit" link.
  * It reads the page from ComposerRegistry, where PublicPage started it,
  * never the template's variables.
  */
@@ -48,7 +48,7 @@ final class Document extends Component
      * The site's own pages are prerendered as a reader heads for them; never
      * the admin, core's endpoints, or an address with a query string, as
      * WordPress leaves out, since a search page prerendered on the way would
-     * use up the reader's search limit (I-160, 1.6h).
+     * use up the reader's search limit.
      */
     private const array SPECULATION = ['prerender' => [[
         'where' => ['and' => [
@@ -62,7 +62,7 @@ final class Document extends Component
 
     public string $lang;
 
-    /** The direction the page's language runs, `ltr` or `rtl` (I-3360). */
+    /** The direction the page's language runs, `ltr` or `rtl`. */
     public string $dir;
 
     /** Light, dark, or auto for the reader's own: the theme's `color_scheme`. */
@@ -79,10 +79,10 @@ final class Document extends Component
 
     public ?string $speculation;
 
-    /** Where core's script asks who is reading (/_teme/session, I-163). */
+    /** Where core's script asks who is reading (/_teme/session). */
     public string $session;
 
-    /** The cookie core's script looks for before it asks (I-465). */
+    /** The cookie core's script looks for before it asks. */
     public string $marker;
 
     /** @var list<string> the cards whose styles the theme replaces */
@@ -150,7 +150,7 @@ final class Document extends Component
     }
 
     /**
-     * The text of the page's one JSON-LD script (I-698), or null when nothing
+     * The text of the page's one JSON-LD script, or null when nothing
      * gave a node.
      */
     public function jsonLd(): ?string
@@ -193,9 +193,9 @@ final class Document extends Component
 
     /**
      * The theme's tokens as custom properties on :root, then its dark ones
-     * for the dark scheme, chosen or the reader's own (I-257), or '' for
+     * for the dark scheme, chosen or the reader's own, or '' for
      * none. With the site's accent set, each scheme takes its pair, the dark
-     * one lightened (I-457), in place of the theme's accent and on-accent.
+     * one lightened, in place of the theme's accent and on-accent.
      *
      * @param  array<string, string>  $tokens
      * @param  array<string, string>  $tokensDark

@@ -1,4 +1,4 @@
-{{-- Laravel's own 503 page, maintenance among it, drawn on the one card (docs/proposals/sign-in-pages.md). A GET checks again by itself; a refreshed POST could answer 405. --}}
+{{-- Laravel's own 503 page, maintenance among it, drawn on the one card. A GET checks again by itself; a refreshed POST could answer 405. --}}
 @php
     $page = app(\App\Http\Standalone\StandalonePage::class);
     $brand = $page->brand();

@@ -6,7 +6,7 @@ namespace App\Domain\Site\ViewModels;
 
 /**
  * Core's page about writing a comment, as the theme's `respond` template sees
- * it, as `$page` (I-593, I-594): the reply page, or the answer to a comment
+ * it, as `$page`: the reply page, or the answer to a comment
  * form posted without JavaScript, in core's words. Never stored or indexed.
  */
 final readonly class RespondView

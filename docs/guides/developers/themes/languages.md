@@ -4,14 +4,11 @@ type: how-to
 audience: theme
 summary: What a multilingual site gives a theme, from the page's language and direction, its other language versions, the language switcher, and the theme's own words.
 rests_on: [app/Domain/Site/LanguageComposer.php, app/Domain/Site/ViewModels, app/View/Components/Teme/Languages.php, app/Domain/Themes/ThemeWords.php, docs/reference/theme.md]
-lands_with: i18n/readers and i18n/screens
 ---
 
 # Languages in a theme
 
 A site can publish in several languages. Core works out which language each page is in, which other versions of it exist, and how readers move between them. A theme only draws what it is given, and words its own text through the translator.
-
-This page describes the code on the `i18n/readers` and `i18n/screens` branches, which join `main` with v1.
 
 ## What core writes for you
 

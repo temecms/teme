@@ -44,7 +44,7 @@ Each step waits for the one before it: the database is healthy, then `teme-db-se
 
 ## Updating from the admin
 
-Not proved yet: nothing in this section has been run on a real Dokploy. Part 3's live run will prove it.
+Updating from the admin has not been tested on a real Dokploy server.
 
 ### What it does
 
@@ -92,7 +92,7 @@ Dokploy can back up its own databases to a bucket, but it does not see the datab
 
 You can instead make each role its own Dokploy Application from the same image and tag, with the commands in the table above, a shared `media` and `page-cache` volume, and a database of your own made as [The database](../database.md) describes. This has not been proved. The single Compose service is the way to install.
 
-## What we learned
+## Dokploy notes
 
 - `DB_HOST` is a host name, never a connection URL.
 - Only `web` joins `dokploy-network`, and service names must be unique. A `postgres` elsewhere on that network was reached by mistake, which is why the database here is called `teme-postgres`.

@@ -1,4 +1,4 @@
-{{-- One level of a menu, and the levels under it. A heading is a button that opens the list after it, which it names by id (I-2628); the list is drawn open, so its items are there with no script, and core's menu script folds it. A link and its sub-items are drawn as before. --}}
+{{-- One level of a menu, and the levels under it. A heading is a button that opens the list after it, which it names by id; the list is drawn open, so its items are there with no script, and core's menu script folds it. A link and its sub-items are drawn as before. --}}
 @if (($listId ?? null) !== null)
 <ul id="{{ $listId }}" data-teme-submenu>
 @else

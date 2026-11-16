@@ -1,4 +1,4 @@
-{{-- Core's own pages about writing a comment: the reply page, and the answer to a form posted without JavaScript (I-593, I-594), drawn when the theme has no templates.respond, never the theme's index (1.8b's D10). Reads only $page. --}}
+{{-- Core's own pages about writing a comment: the reply page, and the answer to a form posted without JavaScript, drawn when the theme has no templates.respond, never the theme's index. Reads only $page. --}}
 <x-teme::document>
 <main id="main" data-fallback="respond">
     <h1 id="page-h" tabindex="-1">{{ $page->heading }}</h1>

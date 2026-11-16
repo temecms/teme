@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Site\ViewModels;
 
 /**
- * An item as a link (I-3363): its published title, its address, and its
+ * An item as a link: its published title, its address, and its
  * type's key.
  */
 final readonly class ItemLink

@@ -7,7 +7,7 @@ namespace Teme\Contracts\Privacy;
 /**
  * One page of a holder's answer to an erase request: how much it removed,
  * how much it kept and why, and whether it is finished.
- * A preview until Teme 1.0 (I-3187).
+ * A preview until Teme 1.0.
  *
  * @since 0.5.0
  */

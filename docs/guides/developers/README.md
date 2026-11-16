@@ -23,20 +23,18 @@ It does not cover running a server or writing content. Those have their own guid
 
 ## Sockets for plugins and themes
 
-| Page | Built in |
-|---|---|
-| [Plugins writing content](plugins/content-write.md) | plugins/content-write |
-| [Jobs and schedules](plugins/jobs.md) | plugins/jobs |
-| [Public routes](plugins/public-routes.md) | plugin public routes |
-| [Files at the site's root](plugins/root-files.md) | sockets/root-files |
-| [The plugin import socket](plugins/import.md) | plugin import socket |
-| [Content inside articles](plugins/insertions.md) | render/insertion-points |
-| [Content on every page](plugins/page-insertions.md) | sockets2/inserts |
-| [The fediverse](plugins/fediverse.md) | fediverse/actors and fediverse/publishing |
-| [List columns](plugins/list-columns.md) | plugins/list-columns |
-| [Feeds and the site](plugins/feeds-and-site.md) | sockets/outbound-feeds |
-| [Languages in a theme](themes/languages.md) | i18n/readers and i18n/screens |
-| [The management API](outside/management-api.md) | api/manage-foundation |
+- [Plugins writing content](plugins/content-write.md)
+- [Jobs and schedules](plugins/jobs.md)
+- [Public routes](plugins/public-routes.md)
+- [Files at the site's root](plugins/root-files.md)
+- [The plugin import socket](plugins/import.md)
+- [Content inside articles](plugins/insertions.md)
+- [Content on every page](plugins/page-insertions.md)
+- [The fediverse](plugins/fediverse.md)
+- [List columns](plugins/list-columns.md)
+- [Feeds and the site](plugins/feeds-and-site.md)
+- [Languages in a theme](themes/languages.md)
+- [The management API](outside/management-api.md)
 
 ## Generated reference
 

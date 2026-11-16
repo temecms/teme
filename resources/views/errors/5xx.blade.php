@@ -1,4 +1,4 @@
-{{-- Laravel's own 5xx page, drawn on the one card for anything a theme does not answer (docs/proposals/sign-in-pages.md). --}}
+{{-- Laravel's own 5xx page, drawn on the one card for anything a theme does not answer. --}}
 @php
     $code = $exception->getStatusCode();
     $page = app(\App\Http\Standalone\StandalonePage::class);

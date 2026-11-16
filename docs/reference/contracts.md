@@ -29,7 +29,7 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 
 `Teme\Contracts\Cache\CacheKeysFor`, class. Since 0.1.0.
 
-A change to something the public site shows, as the page cache is told of it: what changed, and the page-cache tags core purges for it, from before the change and after. It is study C's collect hook of this name: core owns the graph (spec §5.6), and from phase 5 a listener may return the tags of pages it adds that show the same thing. The tags are the page cache's vocabulary, and a CDN's surrogate keys.
+A change to something the public site shows, as the page cache is told of it: what changed, and the page-cache tags core purges for it, from before the change and after. Core works out which tags a change touches. The tags are the page cache's vocabulary, and a CDN's surrogate keys.
 
 - `CONTENT` — A content item, by its ID. Since 0.1.0.
 - `TERM` — A taxonomy term, by its ID. Since 0.1.0.
@@ -748,7 +748,7 @@ How a plugin granted media.write adds media, including from an outside address o
 
 `Teme\Contracts\Notices\NoticeKind`, class. Since 0.5.0.
 
-One kind of notice Teme or a plugin sends: who may receive it, by which channels, which are on until the person changes them, and whether the person may turn it off at all. Words are written in English and translated when drawn. A preview until Teme 1.0 (I-3187).
+One kind of notice Teme or a plugin sends: who may receive it, by which channels, which are on until the person changes them, and whether the person may turn it off at all. Words are written in English and translated when drawn. A preview until Teme 1.0.
 
 - `MAIL`. Since 0.5.0.
 - `INBOX`. Since 0.5.0.
@@ -758,7 +758,7 @@ One kind of notice Teme or a plugin sends: who may receive it, by which channels
 
 `Teme\Contracts\Notices\NoticeMessage`, class. Since 0.5.0.
 
-What a notice says, as plain words: the layout escapes them and adds the greeting, the sign-off and the footer. The action is a route's name and parameters, made into an address when sent (AGENTS.md rule 9). A preview until Teme 1.0 (I-3187).
+What a notice says, as plain words: the layout escapes them and adds the greeting, the sign-off and the footer. The action is a route's name and parameters, made into an address when sent (AGENTS.md rule 9). A preview until Teme 1.0.
 
 - `__construct(string $subject, array $lines, ?string $actionLabel = null, ?string $actionRoute = null, array $actionParameters = [], ?string $quote = null)`. Since 0.5.0.
 
@@ -766,7 +766,7 @@ What a notice says, as plain words: the layout escapes them and adds the greetin
 
 `Teme\Contracts\Notices\NoticeRegistrar`, interface. Since 0.5.0.
 
-Where kinds of notice are declared, as SettingsRegistrar declares settings. A preview until Teme 1.0 (I-3187).
+Where kinds of notice are declared, as SettingsRegistrar declares settings. A preview until Teme 1.0.
 
 - `register(NoticeKind $kind): void`. Since 0.5.0.
 
@@ -774,7 +774,7 @@ Where kinds of notice are declared, as SettingsRegistrar declares settings. A pr
 
 `Teme\Contracts\Notices\Notices`, interface. Since 0.5.0.
 
-Sends a notice of a declared kind. Core decides who receives it: the site's switch, each person's choice and the kind's audience; it is delivered after the current database transaction commits, never if it rolls back. A preview until Teme 1.0 (I-3187).
+Sends a notice of a declared kind. Core decides who receives it: the site's switch, each person's choice and the kind's audience; it is delivered after the current database transaction commits, never if it rolls back. A preview until Teme 1.0.
 
 - `send(string $kind, array $accountIds, NoticeMessage $message): void` — To accounts, by ID; an account that can't receive it is passed over. Since 0.5.0.
 - `sendToAddress(string $kind, string $email, NoticeMessage $message): void` — To an email address with no account behind it, for a required kind only. Since 0.5.0.
@@ -841,7 +841,7 @@ A plugin's own class, the one its teme-plugin.json names under `plugin`. Teme bu
 
 `Teme\Contracts\Privacy\CollectPersonalDataHolders`, class. Since 0.5.0.
 
-Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed. A preview until Teme 1.0 (I-3187).
+Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed. A preview until Teme 1.0.
 
 A hook: its parameters are in the [hooks reference](hooks.md#collectpersonaldataholders).
 
@@ -849,7 +849,7 @@ A hook: its parameters are in the [hooks reference](hooks.md#collectpersonaldata
 
 `Teme\Contracts\Privacy\ErasePage`, class. Since 0.5.0.
 
-One page of a holder's answer to an erase request: how much it removed, how much it kept and why, and whether it is finished. A preview until Teme 1.0 (I-3187).
+One page of a holder's answer to an erase request: how much it removed, how much it kept and why, and whether it is finished. A preview until Teme 1.0.
 
 - `__construct(int $removed, int $retained, array $reasons, bool $done)`. Since 0.5.0.
 
@@ -857,7 +857,7 @@ One page of a holder's answer to an erase request: how much it removed, how much
 
 `Teme\Contracts\Privacy\ExportGroup`, class. Since 0.5.0.
 
-One titled group of values in a person's export: a comment, an account, an event. A preview until Teme 1.0 (I-3187).
+One titled group of values in a person's export: a comment, an account, an event. A preview until Teme 1.0.
 
 - `__construct(string $title, array $values)`. Since 0.5.0.
 
@@ -865,7 +865,7 @@ One titled group of values in a person's export: a comment, an account, an event
 
 `Teme\Contracts\Privacy\ExportPage`, class. Since 0.5.0.
 
-One page of a holder's answer to an export request: the groups it found, and whether it has given the last of them. A preview until Teme 1.0 (I-3187).
+One page of a holder's answer to an export request: the groups it found, and whether it has given the last of them. A preview until Teme 1.0.
 
 - `__construct(array $groups, bool $done)`. Since 0.5.0.
 
@@ -873,7 +873,7 @@ One page of a holder's answer to an export request: the groups it found, and whe
 
 `Teme\Contracts\Privacy\PersonalDataHolder`, interface. Since 0.5.0.
 
-One place that keeps personal data, answering export and erase requests a page at a time, so a holder with thousands of rows never runs long. Core's holders and plugins' are asked the same way. A preview until Teme 1.0 (I-3187).
+One place that keeps personal data, answering export and erase requests a page at a time, so a holder with thousands of rows never runs long. Core's holders and plugins' are asked the same way. A preview until Teme 1.0.
 
 - `key(): string` — A key unique across the site: lower-case words, hyphens inside, dots between; a plugin's starts with its code and a dot. Since 0.5.0.
 - `label(): string` — What it holds, for the person and the operator: "Comments". Since 0.5.0.
@@ -884,7 +884,7 @@ One place that keeps personal data, answering export and erase requests a page a
 
 `Teme\Contracts\Privacy\PersonalDataSubject`, class. Since 0.5.0.
 
-Who a privacy request is about: an email address, lower-cased, and the account it belongs to, when one does. A preview until Teme 1.0 (I-3187).
+Who a privacy request is about: an email address, lower-cased, and the account it belongs to, when one does. A preview until Teme 1.0.
 
 - `__construct(string $email, ?string $accountId = null)`. Since 0.5.0.
 
@@ -1067,7 +1067,7 @@ Reads effective setting values: the stored override, or the declared default. Ne
 
 `Teme\Contracts\Settings\SettingsRegistrar`, interface. Since 0.1.0.
 
-Where settings groups are declared. Internal in phase 1; the extension contract in phase 5, unchanged in shape.
+Where settings groups are declared.
 
 - `group(SettingsGroup $group): void`. Since 0.1.0.
 
@@ -1091,7 +1091,7 @@ The site's public facts, offered to every plugin with no capability: its address
 
 `Teme\Contracts\Status\ChecksStatus`, interface. Since 0.5.0.
 
-A plugin that raises notices implements this beside Plugin (I-214: a new ability is a new interface).
+A plugin that raises notices implements this beside Plugin: a new ability is a new interface.
 
 - `statusChecks(): array` — The checks Teme asks on every admin page. Since 0.5.0.
 

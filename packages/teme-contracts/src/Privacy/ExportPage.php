@@ -6,7 +6,7 @@ namespace Teme\Contracts\Privacy;
 
 /**
  * One page of a holder's answer to an export request: the groups it found,
- * and whether it has given the last of them. A preview until Teme 1.0 (I-3187).
+ * and whether it has given the last of them. A preview until Teme 1.0.
  *
  * @since 0.5.0
  */

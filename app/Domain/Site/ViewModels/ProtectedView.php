@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Site\ViewModels;
 
 /**
- * An item protected by a password, as a reader without its key sees it
- * (I-1700): its title and core's form. Its words are core's, so no theme can
+ * An item protected by a password, as a reader without its key sees it:
+ * its title and core's form. Its words are core's, so no theme can
  * misstate what happened.
  */
 final readonly class ProtectedView

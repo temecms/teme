@@ -37,7 +37,7 @@ Changed on **Settings › Design**, and previewed there before they're published
 | Archive | Archive header: with description and image, or title only | With description |
 | Archive | Author and date on cards | On |
 
-The site's accent colour replaces the theme's red in both schemes; in the dark one Teme lightens it just enough to read (I-457).
+The site's accent colour replaces the theme's red in both schemes; in the dark one Teme lightens it just enough to read.
 
 ## Places
 

@@ -1,4 +1,4 @@
-{{-- Core's form for an item protected by a password (I-1700): no script, posted to core's own address, never stored. --}}
+{{-- Core's form for an item protected by a password: no script, posted to core's own address, never stored. --}}
 <form class="teme-password-form" method="post" action="/_teme/unlock" novalidate aria-labelledby="page-h">
     <input type="hidden" name="path" value="{{ $page->path }}">
     <div class="teme-field">

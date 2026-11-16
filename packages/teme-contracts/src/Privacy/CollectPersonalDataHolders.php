@@ -11,7 +11,7 @@ use Teme\Contracts\Hooks\HookContract;
 /**
  * Gathers the plugins' holders of personal data, asked at each step of a
  * privacy request. A listener that fails stops the request, so an erasure is
- * never reported done while a holder was missed. A preview until Teme 1.0 (I-3187).
+ * never reported done while a holder was missed. A preview until Teme 1.0.
  *
  * @since 0.5.0
  */

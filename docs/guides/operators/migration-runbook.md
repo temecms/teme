@@ -7,7 +7,7 @@ written_for: moving a WordPress site to Teme on two servers
 
 # The migration runbook
 
-> Not proved yet: nobody has run this checklist from start to finish. The Took and Surprise columns are empty on purpose: whoever runs it fills them in, and corrects the steps from what really happened.
+> Not proved yet: this checklist has not been tested from start to finish. Fill in the Took and Surprise columns as you go, and correct a step when what happens differs from what it says.
 
 This is a checklist for moving a real WordPress site to Teme, and then proving that you can restore it onto a second server. Do it once, on a copy, before you trust Teme with a site you cannot lose.
 

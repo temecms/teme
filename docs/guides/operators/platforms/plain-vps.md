@@ -62,7 +62,7 @@ If Cloudflare is in front of the server, there are two flags to add and one sett
 
 Containers are replaced one by one, so readers may see a few seconds of errors at each update. Platforms with rolling updates avoid that; this layout does not.
 
-Updating from the admin needs the updater, which works with Dokploy only for now; on plain Compose, update by hand: [Updating and rolling back](../updates.md).
+Updating from the admin needs the updater, which works with Dokploy only. On plain Compose, update by hand: [Updating and rolling back](../updates.md).
 
 ## Looking after the host
 

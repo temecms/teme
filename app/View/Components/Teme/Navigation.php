@@ -11,8 +11,8 @@ use Illuminate\View\Component;
 /**
  * `<x-teme::navigation slot="primary" label="Main" />`: the menu a theme's
  * slot shows, as a labelled landmark with `aria-current` on the page being
- * shown (I-253). A slot with no menu is loud outside production and silent
- * in it (study B, decision 2). It reads the slot from SlotMenus, never the
+ * shown. A slot with no menu is loud outside production and silent
+ * in it. It reads the slot from SlotMenus, never the
  * template's variables. Its view gets the slot as `$slotKey`: there, `$slot`
  * is always Blade's default slot. A heading is drawn as a button that
  * opens the list of its items.

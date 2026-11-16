@@ -1,4 +1,4 @@
-# Teme's Compose recipe (I-384): one image, several roles, and the
+# Teme's Compose recipe: one image, several roles, and the
 # PostgreSQL they share. Put this file and the postgres folder on the
 # server (the image carries both: docs/guides/operators/install.md copies
 # them out with docker cp), and beside them:

@@ -10,10 +10,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * `<x-teme::comment-form>`: core's comment form (docs/studies/comments.md
- * §3.4, I-578), which a theme places and styles. Where only signed-in people
+ * `<x-teme::comment-form>`: core's comment form, which a theme places and styles. Where only signed-in people
  * may comment, a browser that carries no sign-in marker, whose page may be
- * stored and shared, gets a line in its place (D16).
+ * stored and shared, gets a line in its place.
  */
 final class CommentForm extends Component
 {

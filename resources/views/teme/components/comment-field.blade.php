@@ -1,4 +1,4 @@
-{{-- One field of core's comment form, with its hint and, when the form comes back refused, its error (D14). Included, not a component: it reads $id, $name, $label and $hint, and $type, $autocomplete, $width, $optional and $textarea when given, with the form's $form. --}}
+{{-- One field of core's comment form, with its hint and, when the form comes back refused, its error. Included, not a component: it reads $id, $name, $label and $hint, and $type, $autocomplete, $width, $optional and $textarea when given, with the form's $form. --}}
 @php
     $fieldError = collect($form->errors)->first(fn (array $candidate): bool => $candidate['field'] === $name);
     $optional = $optional ?? false;
