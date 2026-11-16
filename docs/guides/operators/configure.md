@@ -28,7 +28,8 @@ You need only two settings to start: `TEME_IMAGE` and `APP_URL`. Everything else
 |---|---|---|
 | `DB_HOST` | `postgres` in the recipe | The PostgreSQL server's host. |
 | `DB_PORT` | `5432` in the recipe | Its port. |
-| `DATABASE_URL` | none | The database's whole address, `postgresql://user:password@host:5432/database`, instead of the five settings: the way Dokploy's database service shows it. A password with a special character is written with `%XX` codes. A `DB_HOST` that holds an address, or a `DATABASE_URL` that cannot be read, stops Teme with a sentence that never repeats it. |
+| `DATABASE_URL` | none | The database's whole address, `postgresql://user:password@host:5432/database`, instead of the five settings: the way many hosts show it. A password with a special character is written with `%XX` codes. A `DB_HOST` that holds an address, or a `DATABASE_URL` that cannot be read, stops Teme with a sentence that never repeats it. |
+| `PORT` | `8080` | The port a container that runs every role listens on, when its host says which port it routes to. |
 | `DB_DATABASE` | `teme` in the recipe | The database's name. |
 | `DB_USERNAME` | `teme` in the recipe | The role Teme signs in as. It is never a superuser: see [The database](database.md). |
 | `DB_PASSWORD` | none | The role's password. The recipe reads it from `secrets/db_password` through `DB_PASSWORD_FILE`. |
@@ -121,8 +122,8 @@ Set `TEME_UPDATES_CHECK` and `TEME_UPDATES_CHANNEL` the same on every role: `web
 | `TEME_DOKPLOY_URL` | none | Dokploy's address. The updater only. |
 | `TEME_DOKPLOY_TOKEN` | none | Your Dokploy token. The updater only. |
 | `TEME_DOKPLOY_COMPOSE_ID` | none | The Compose service's ID in Dokploy. The updater only. |
-| `TEME_DOKPLOY_APP_NAME` | none | The App Name Dokploy shows on an Application's General tab, for Teme run as [one Application](platforms/dokploy.md#install-as-one-application). The updater finds the Application by it. |
-| `TEME_ROLE` | none | Set it to `all` to run web, both queue workers, the scheduler, the installer and the updater in one container, as [one Application](platforms/dokploy.md#install-as-one-application). Leave it unset in the recipe, which gives each role its own container. |
+| `TEME_DOKPLOY_APP_NAME` | none | The App Name Dokploy shows on an Application's General tab, for the updater of a Teme [container on Dokploy](platforms/one-container.md#on-dokploy). The updater only. |
+| `TEME_ROLE` | none | Set it to `all` to run web, both queue workers, the scheduler, the installer and the updater in one container: see [Run Teme as one container](platforms/one-container.md). Leave it unset in the recipe, which gives each role its own container. |
 | `TEME_UPDATER_DEPLOY_TIMEOUT` | `3600` | Seconds the updater waits for the deploy to finish. The updater only. |
 | `TEME_UPDATER_PART_TIMEOUT` | `900` | Seconds the updater waits for each later step. The updater only. |
 

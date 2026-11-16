@@ -28,6 +28,7 @@ final class OperatorGuide
         'cloudflare.md',
         'platforms/dokploy.md',
         'platforms/coolify.md',
+        'platforms/one-container.md',
         'platforms/plain-vps.md',
         'updates.md',
         'backups.md',

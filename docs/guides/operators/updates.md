@@ -52,7 +52,7 @@ docker compose exec scheduler php artisan teme:updates:check
 
 On Dokploy, with the `updater` service running, open **Tools › Updates** and press **Update to …**. Teme asks for your password again, records the request, and emails every administrator. The updater starts it within a minute, and the page shows each step as it is taken: the deploy (which backs up and migrates), then `web`, the workers and the scheduler on the new release, then a last check, then the updater itself.
 
-When Teme runs as [one Dokploy Application](platforms/dokploy.md#install-as-one-application) from a Docker image, the same button changes the Application's image and redeploys it; there is no updater service, because the updater is in the container. When Dokploy builds that Application from Git or a ZIP, the button stops and says so: put the new release in the source and press **Deploy** in Dokploy.
+When Teme runs as [one container](platforms/one-container.md), the admin's **Update** says to update from the host's own panel, except on a Dokploy Application that runs from the image, where the same button changes the image and redeploys it.
 
 The site is down for a short while as the service deploys, as when updating by hand. [Running Teme on Dokploy](platforms/dokploy.md) says how long and why. If the new release isn't healthy, the updater switches every part back, and the page says so. The database keeps the new release's additions, which the old one runs beside.
 
