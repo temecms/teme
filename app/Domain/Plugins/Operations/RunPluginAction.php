@@ -37,7 +37,10 @@ final class RunPluginAction extends BaseOperation
         /** @var RunPluginActionInput $input */
         $person = $this->actors->find($input->actorId);
 
-        if ($person === null || ! $person->can(PluginAccess::MANAGE) || $this->actions->find($input->code, $input->action) === null) {
+        // From a plugin's own area, the area's permission answers too (docs/plans/plugin-sockets-2.md).
+        $allowed = $person !== null && ($person->can(PluginAccess::MANAGE) || ($input->permission !== null && $person->can($input->permission)));
+
+        if (! $allowed || $this->actions->find($input->code, $input->action) === null) {
             throw new AuthorizationException(__('Not permitted.'));
         }
     }

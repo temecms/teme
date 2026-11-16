@@ -1,0 +1,310 @@
+import { CodeField } from '@/components/fields/code-field';
+import { RepeaterField } from '@/components/fields/repeater-field';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { SelectField } from '@/components/ui/select-field';
+import { Textarea } from '@/components/ui/textarea';
+import { __ } from '@/lib/i18n';
+import { visibleKeys } from '@/lib/visible-when';
+import type { AreaField } from '@/types/plugin-area';
+
+type Values = Record<string, unknown>;
+
+/** A value as a text box shows it. */
+function text(value: unknown): string {
+    return typeof value === 'string' || typeof value === 'number'
+        ? String(value)
+        : '';
+}
+
+/** A value as a list of strings. */
+function list(value: unknown): string[] {
+    return Array.isArray(value)
+        ? value.filter((one): one is string => typeof one === 'string')
+        : [];
+}
+
+/** A list of tick boxes, one a choice, for multiselect and the pickers. */
+function Choices({
+    id,
+    field,
+    value,
+    onChange,
+}: {
+    id: string;
+    field: AreaField;
+    value: unknown;
+    onChange: (value: unknown) => void;
+}) {
+    const chosen = list(value);
+
+    if (field.choices.length === 0) {
+        return (
+            <p id={id} className="text-small text-ink-3">
+                {__('Nothing to choose from yet.')}
+            </p>
+        );
+    }
+
+    return (
+        <ScrollArea className="max-h-56">
+            <ul id={id} aria-label={field.label} className="grid gap-2">
+                {field.choices.map((choice) => {
+                    const box = `${id}-${choice.value}`;
+
+                    return (
+                        <li
+                            key={choice.value}
+                            className="flex items-center gap-2"
+                        >
+                            <Checkbox
+                                id={box}
+                                checked={chosen.includes(choice.value)}
+                                onCheckedChange={(checked) =>
+                                    onChange(
+                                        checked === true
+                                            ? [...chosen, choice.value]
+                                            : chosen.filter(
+                                                  (one) => one !== choice.value,
+                                              ),
+                                    )
+                                }
+                            />
+                            <Label htmlFor={box} className="text-body text-ink">
+                                {choice.label}
+                            </Label>
+                        </li>
+                    );
+                })}
+            </ul>
+        </ScrollArea>
+    );
+}
+
+/**
+ * One field of a plugin record's form (docs/plans/plugin-sockets-2.md, A2):
+ * the control its type draws, every value plain text. A repeater draws its
+ * items' fields with the same rule, one level down.
+ */
+export function AreaFieldInput({
+    field,
+    value,
+    onChange,
+    errors,
+    path,
+    waiting = 0,
+}: {
+    field: AreaField;
+    value: unknown;
+    onChange: (value: unknown) => void;
+    errors: Record<string, string>;
+    /** Where its error is keyed, as in values.name or values.versions.0.code. */
+    path: string;
+    /** For a code field that may hold scripts: how many wait for approval. */
+    waiting?: number;
+}) {
+    const id = `field-${path.replaceAll('.', '-')}`;
+    const error = errors[path];
+    const describedBy = field.description !== '' ? `${id}-help` : undefined;
+
+    if (field.type === 'boolean') {
+        return (
+            <div className="grid gap-1" data-field={field.key}>
+                <div className="flex items-start gap-2">
+                    <div className="flex h-lh items-center">
+                        <Checkbox
+                            id={id}
+                            checked={value === true}
+                            onCheckedChange={(checked) =>
+                                onChange(checked === true)
+                            }
+                            aria-describedby={describedBy}
+                        />
+                    </div>
+                    <div className="grid gap-1">
+                        <Label htmlFor={id} className="text-body text-ink">
+                            {field.label}
+                        </Label>
+                        {describedBy !== undefined && (
+                            <p
+                                id={describedBy}
+                                className="text-caption text-ink-3"
+                            >
+                                {field.description}
+                            </p>
+                        )}
+                    </div>
+                </div>
+                {error !== undefined && (
+                    <p className="text-small text-danger-ink">{error}</p>
+                )}
+            </div>
+        );
+    }
+
+    if (field.type === 'repeater') {
+        const items = Array.isArray(value) ? (value as Values[]) : [];
+        const empty = Object.fromEntries(
+            field.fields.map((sub) => [sub.key, sub.empty]),
+        );
+
+        return (
+            <div className="grid gap-2" data-field={field.key}>
+                <p className="text-small text-ink-2 font-medium">
+                    {field.label}
+                </p>
+                {field.description !== '' && (
+                    <p className="text-caption text-ink-3">
+                        {field.description}
+                    </p>
+                )}
+                <RepeaterField
+                    id={id}
+                    label={field.label}
+                    items={items}
+                    onChange={onChange}
+                    itemLabel={field.itemLabel}
+                    itemTitle={field.itemTitle}
+                    empty={empty}
+                    minItems={field.minItems}
+                    maxItems={field.maxItems}
+                >
+                    {(item, index, change) => {
+                        const shown = visibleKeys(field.fields, item);
+
+                        return field.fields
+                            .filter((sub) => shown.has(sub.key))
+                            .map((sub) => (
+                                <AreaFieldInput
+                                    key={sub.key}
+                                    field={sub}
+                                    value={item[sub.key]}
+                                    onChange={(next) =>
+                                        change({ ...item, [sub.key]: next })
+                                    }
+                                    errors={errors}
+                                    path={`${path}.${index}.${sub.key}`}
+                                />
+                            ));
+                    }}
+                </RepeaterField>
+                {error !== undefined && (
+                    <p className="text-small text-danger-ink">{error}</p>
+                )}
+            </div>
+        );
+    }
+
+    const control = (() => {
+        switch (field.type) {
+            case 'textarea':
+                return (
+                    <Textarea
+                        value={text(value)}
+                        onChange={(event) => onChange(event.target.value)}
+                        maxLength={field.maxLength ?? undefined}
+                    />
+                );
+            case 'code':
+                return (
+                    <CodeField
+                        id={id}
+                        value={text(value)}
+                        onChange={onChange}
+                        describedBy={describedBy}
+                        invalid={error !== undefined}
+                        waiting={field.scripts ? waiting : 0}
+                    />
+                );
+            case 'select':
+            case 'region':
+                return (
+                    <SelectField
+                        options={field.choices}
+                        emptyLabel={
+                            field.type === 'region' ? __('None') : undefined
+                        }
+                        value={text(value)}
+                        onValueChange={onChange}
+                    />
+                );
+            case 'multiselect':
+            case 'types':
+            case 'terms':
+                return (
+                    <Choices
+                        id={id}
+                        field={field}
+                        value={value}
+                        onChange={onChange}
+                    />
+                );
+            case 'number':
+                return (
+                    <Input
+                        type="number"
+                        inputMode="numeric"
+                        value={text(value)}
+                        min={field.min ?? undefined}
+                        max={field.max ?? undefined}
+                        onChange={(event) =>
+                            onChange(
+                                event.target.value === ''
+                                    ? null
+                                    : Number(event.target.value),
+                            )
+                        }
+                    />
+                );
+            case 'datetime':
+                return (
+                    <Input
+                        type="datetime-local"
+                        value={text(value).slice(0, 16)}
+                        onChange={(event) => onChange(event.target.value)}
+                    />
+                );
+            case 'color':
+                return (
+                    <Input
+                        type="text"
+                        value={text(value)}
+                        placeholder={__('#rrggbb')}
+                        onChange={(event) => onChange(event.target.value)}
+                    />
+                );
+            default:
+                return (
+                    <Input
+                        type={
+                            field.type === 'email'
+                                ? 'email'
+                                : field.type === 'url'
+                                  ? 'url'
+                                  : 'text'
+                        }
+                        value={text(value)}
+                        maxLength={field.maxLength ?? undefined}
+                        onChange={(event) => onChange(event.target.value)}
+                    />
+                );
+        }
+    })();
+
+    return (
+        <div data-field={field.key}>
+            <Field
+                htmlFor={id}
+                label={field.label}
+                help={field.description !== '' ? field.description : undefined}
+                error={error}
+                required={field.required}
+            >
+                {control}
+            </Field>
+        </div>
+    );
+}
