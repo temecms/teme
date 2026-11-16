@@ -305,6 +305,8 @@ export default function AiActivity(page: AiActivityPage) {
         ...(filters.month === null ? {} : { month: filters.month }),
         ...(filters.plugin === null ? {} : { plugin: filters.plugin }),
     };
+    // Teme only is no choice until a plugin has asked.
+    const askedBy = plugins.length > 1 || filters.plugin !== null;
 
     // A filter starts a list afresh: no cursor, no drawer.
     const filter = (event: FormEvent<HTMLFormElement>) => {
@@ -563,20 +565,22 @@ export default function AiActivity(page: AiActivityPage) {
                             className="w-44"
                         />
                     </Field>
-                    <Field
-                        key={`plugin-${filters.plugin ?? ''}`}
-                        htmlFor="ai-plugin"
-                        label={__('Asked by')}
-                    >
-                        <SelectField
-                            id="ai-plugin"
-                            name="plugin"
-                            defaultValue={filters.plugin ?? ''}
-                            emptyLabel={__('Teme and plugins')}
-                            options={plugins}
-                            className="w-52"
-                        />
-                    </Field>
+                    {askedBy && (
+                        <Field
+                            key={`plugin-${filters.plugin ?? ''}`}
+                            htmlFor="ai-plugin"
+                            label={__('Asked by')}
+                        >
+                            <SelectField
+                                id="ai-plugin"
+                                name="plugin"
+                                defaultValue={filters.plugin ?? ''}
+                                emptyLabel={__('Teme and plugins')}
+                                options={plugins}
+                                className="w-52"
+                            />
+                        </Field>
+                    )}
                     <Button
                         type="submit"
                         variant="outline"

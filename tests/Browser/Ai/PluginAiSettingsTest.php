@@ -12,6 +12,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Teme\Contracts\Settings\SettingsReader;
@@ -116,4 +117,17 @@ it('names the plugin in Tools › AI activity with its mark, totals Teme and eac
 it('shows the plugin’s AI cost this month on the Plugins screen', function (): void {
     cmNavigate(cmSignIn($this->admin), '/admin/plugins')
         ->assertSeeIn('[data-test="plugin-scribe"] [data-test="plugin-ai"]', 'AI this month: $0.0011 of $5.00');
+});
+
+it('leaves the Asked by filter out while only Teme has asked', function (): void {
+    DB::table('ai_activity')->whereNotNull('plugin')->delete();
+    DB::table('ai_plugin_monthly_spend')->delete();
+    aiTask('tidy');
+    actvRow($this->admin);
+
+    cmNavigate(cmSignIn($this->admin), '/admin/tools/ai-activity')
+        ->assertSee('Tidy')
+        ->assertPresent('#ai-task')
+        ->assertNotPresent('#ai-plugin')
+        ->assertNotPresent('[data-test="ai-activity-by-plugin"]');
 });
