@@ -57,7 +57,7 @@ A secret can come from a file instead of a variable. Name the file in the variab
 | The backup machine key | `TEME_BACKUP_MACHINE_KEY_FILE` |
 | The spare database's password | `TEME_VERIFY_DB_PASSWORD_FILE` |
 | The GitHub token | `TEME_GITHUB_TOKEN_FILE` |
-| The Dokploy token | `TEME_DOKPLOY_TOKEN_FILE` |
+| The Dokploy API key | `TEME_DOKPLOY_TOKEN_FILE` |
 | The media bucket's secret key | `MEDIA_BUCKET_SECRET_ACCESS_KEY_FILE` |
 
 Teme refuses to start, and says why, in two cases:
@@ -115,11 +115,13 @@ Set `TEME_UPDATES_CHECK` and `TEME_UPDATES_CHANNEL` the same on every role: `web
 | `TEME_GITHUB_TOKEN` | none | Optional. A fine-grained GitHub token with Contents: read on Teme's repository alone; it only raises GitHub's limit on requests. Give it to the scheduler only, never to `web` or the workers: the recipe reads it from `secrets/github_token` in the scheduler alone. |
 | `TEME_UPDATES_CHANNEL` | follows the version this site runs | `stable` for releases only, `prerelease` for every release. |
 | `TEME_UPDATER_PLATFORM` | none | `dokploy`. The updater only: the Dokploy file sets it on the `updater` service. |
-| `TEME_IMAGE_REPOSITORY` | none | `ghcr.io/<owner>/teme`, the image without its tag. The Dokploy file's, on the Environment tab. |
+| `TEME_IMAGE_REPOSITORY` | none | `ghcr.io/temecms/teme`, the image without its tag. The Dokploy file's, on the Environment tab. |
 | `TEME_IMAGE` and `TEME_UPDATER_IMAGE` | none | The image with its exact tag, for every service but the updater, and for the updater. The Dokploy file's, on the Environment tab: the updater sets them when it updates. |
-| `TEME_DOKPLOY_URL` | none | Dokploy's address. The updater only. |
-| `TEME_DOKPLOY_TOKEN` | none | Your Dokploy token. The updater only. |
-| `TEME_DOKPLOY_COMPOSE_ID` | none | The Compose service's ID in Dokploy. The updater only. |
+| `TEME_DOKPLOY_URL` | `http://dokploy:3000` | Dokploy's address, on Dokploy's own network. The updater only. |
+| `TEME_DOKPLOY_TOKEN` | none | A Dokploy API key, set on the server. It wins over the key pasted in Settings › Updates. The updater only. |
+| `TEME_DOKPLOY_APP_NAME` | the Compose project's name | The Compose service's App Name, which the updater finds the service by. The updater only. |
+| `TEME_DOKPLOY_COMPOSE_ID` | none | The Compose service's ID in Dokploy. When set, the updater uses it instead of the App Name. The updater only. |
+| `TEME_DOKPLOY_COMPOSE_HASHES_URL` | the Dokploy template's `compose-hashes.json` | Where the updater reads the list of compose files the Dokploy template has released, over `https://`. It replaces the service's compose file only when the file is in that list. The updater only. |
 | `TEME_UPDATER_DEPLOY_TIMEOUT` | `3600` | Seconds the updater waits for the deploy to finish. The updater only. |
 | `TEME_UPDATER_PART_TIMEOUT` | `900` | Seconds the updater waits for each later step. The updater only. |
 
