@@ -145,6 +145,82 @@ Who may read an item changed: it was made private, protected by a password, or p
 | `formerUrl` | the live address it had, or null when it had none |
 | `actorId` | the account ID of the person who changed it, or null when no signed-in person did |
 
+## ActivityReceived
+
+An activity another fediverse server sent the site, once its signature was checked and its server is not blocked: a Like, an Announce, a Follow or any other. Sent from the queued job that takes it, never for one refused at the inbox.
+
+- **Class:** `Teme\Contracts\Fediverse\ActivityReceived`
+- **Verb:** Notification
+- **Capability:** `fediverse.read`
+- **Since:** 0.9.0
+
+| Parameter | Description |
+|---|---|
+| `activity` |  |
+| `type` | its type, such as Like or Announce |
+| `actorUri` | the address of the account that signed it |
+
+## ActivitySent
+
+An activity the site queued for its followers, sent after it is stored: a Create, Update, Delete or Announce of an item, the Accept of a Follow, or one a plugin sent through FediverseSender. Its deliveries go after.
+
+- **Class:** `Teme\Contracts\Fediverse\ActivitySent`
+- **Verb:** Notification
+- **Capability:** `fediverse.read`
+- **Since:** 0.9.0
+
+| Parameter | Description |
+|---|---|
+| `activity` |  |
+| `type` | its type, such as Create or Accept |
+| `actorUri` | the address of the site's account that sends it |
+
+## ActorDocumentBuilt
+
+Lets plugins change one of the site's accounts as other servers read it, such as adding profile fields. Teme puts back the keys that say who it is and where it is reached (`id`, `type`, `preferredUsername`, `inbox`, `outbox`, `followers`, `following`, `endpoints`, `publicKey`) as it wrote them.
+
+- **Class:** `Teme\Contracts\Fediverse\ActorDocumentBuilt`
+- **Verb:** Transform
+- **Capability:** `fediverse.read`
+- **Since:** 0.9.0
+
+| Parameter | Description |
+|---|---|
+| `document` |  |
+| `actorUri` | the account's address |
+
+## CollectActivityHandlers
+
+Gathers the plugins' handlers for the activities other servers send, asked each time one arrives whose type Teme does not take itself.
+
+- **Class:** `Teme\Contracts\Fediverse\CollectActivityHandlers`
+- **Verb:** Collect
+- **Capability:** `fediverse.read`
+- **Since:** 0.9.0
+
+## CollectObjectBuilders
+
+Gathers the plugins' object builders, asked each time an item's object is built; the first that names the item's type builds it.
+
+- **Class:** `Teme\Contracts\Fediverse\CollectObjectBuilders`
+- **Verb:** Collect
+- **Capability:** `fediverse.read`
+- **Since:** 0.9.0
+
+## ObjectBuilt
+
+Lets plugins change an item's object before it is answered or sent, such as adding a tag. Teme puts back the keys that say what it is and who sent it to whom (`id`, `type`, `attributedTo`, `to`, `cc`) as it wrote them.
+
+- **Class:** `Teme\Contracts\Fediverse\ObjectBuilt`
+- **Verb:** Transform
+- **Capability:** `fediverse.read`
+- **Since:** 0.9.0
+
+| Parameter | Description |
+|---|---|
+| `object` |  |
+| `item` | the item it is built from |
+
 ## MediaStored
 
 A file was stored in the media library: a new upload, or a new file in place of an item's old one. Sent after the change is saved, never during an import run.
