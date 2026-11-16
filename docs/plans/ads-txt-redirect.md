@@ -47,3 +47,26 @@ None.
 ### Try it
 
 On Settings › Site code, choose **Send to another address**, enter `https://ads.example/ads.txt`, save. `/ads.txt` answers 301 to that address; the page cache HIT keeps the Location. Switch back to **Text** and save a line of ads.txt; `/ads.txt` serves plain UTF-8 again.
+
+## Follow-up R1
+
+### Commits
+
+- `b28b372` fix(cache): store only ads.txt's marked redirect — IMPORTANT 1
+- `dbf3586` fix(site-code): refuse junk ads.txt redirects in text mode — IMPORTANT 2
+
+### Each test seen failing
+
+1. IMPORTANT 1: `never stores a marked route's redirect except ads.txt` — `/wp-sitemap.xml` asserted `BYPASS (redirect)` but got `MISS` while StoreRules stored every marked 301.
+2. IMPORTANT 2: `refuses junk in the redirect field while saving text mode…` — `ValidationException` not thrown while text mode still wrote `trim($redirectUrl)` without `redirectProblem`.
+
+### Gate totals
+
+`export PATH=/opt/node24/bin:$PATH && composer check`
+
+- Pint: passed
+- PHPStan: OK, no errors
+- types:check / npm run check: passed
+- Architecture: **139 passed** (1363 assertions)
+- Unit+Feature (parallel): **11587 passed**, 2 skipped, **1 failed** — `Media\MediaFiltersTest` “it finds each month…” EXPLAIN missing `media_live_created` (same known flake as PART 2). Alone with AdsTxtTest + NeverStoredTest: **41 passed**.
+- LATER items left untouched (own-host www/backslash, browser 301 cache, empty redirect/www tests).
