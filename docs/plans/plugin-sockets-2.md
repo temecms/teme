@@ -374,6 +374,52 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 - Enable the `tests/placard` fixture, then open **Placard** in the Site menu as an editor: the overview, the Ads table, and an ad's form with its versions.
 - Save an ad whose code holds `<script>…</script>`, then open it as an administrator and approve the script there.
 
+#### Follow-up R1
+
+The review's findings 1, 2, 3, 4 and 6 and the first item of 8 are fixed; Part C's Task 7 of round 3 (`AreaContext::$permissions`) and Part D's Task 5 (a permission audience and the area link) are built here, now that the area exists.
+
+Commits:
+- `d500083c` merge: main into the plugin area, keeping both sides (20 conflicts; lists and test rows as unions; the schema rebuilt by loading both sides; the developer README's entry a list item; `llms.txt` regenerated)
+- `8c9a496d` feat(plugins): a plugin's area in the person's language, from its own words (`AreaWords` reads `ManifestText`; the Joining step)
+- `a40d14a3` fix(plugins): give a role an update adds, once it is agreed to (finding 1)
+- `ccc4f7b2` fix(plugins): a plugin action takes only its area's own permission, checked in the Operation (finding 2)
+- `ce70b9f2` docs(handbook): a plugin's own area names no branch or plan (finding 3)
+- `b29339f3` fix(plugins): a script's settings name and the consent's roles in words that translate (finding 4)
+- `08ac08f7` fix(plugins): an area on the Tools hub names Tools as its parent in the top bar (finding 6)
+- `9dfd28a7` test(plugins): another plugin's script is never approved through this plugin's form (finding 8, first item)
+- `68c7c306` feat(plugins): a plugin's area is told which of its own permissions the person holds (round 3 C-T7, issue #423)
+- `42d52394` feat(plugins): a plugin's notice for the holders of its own permission, linking to its area (round 3 D-T5)
+
+Tests seen red (first line of the failure):
+
+| Fix | File | First failure |
+|---|---|---|
+| ManifestText | `tests/Feature/Plugins/Sockets/ManifestWordsTest.php` | Failed asserting that two strings are identical. ('Placard' for 'Cartel') |
+| 1 | `tests/Feature/Plugins/Area/PluginPermissionsTest.php` | Failed asserting that two arrays are identical. (author not given the permission) |
+| 2 | `tests/Feature/Plugins/Area/AreaActionsTest.php` | Exception [Illuminate\Auth\Access\AuthorizationException] not thrown. |
+| 3 | `tests/Feature/Guides/Developers/DeveloperPagesTest.php` | Failed asserting that two arrays are identical. (`docs/plans/`, a branch name) |
+| 4 | `tests/Feature/Plugins/Area/PluginPermissionsTest.php` | Failed asserting that two arrays are identical. ('Permite a autores and editores manage ads') |
+| 4 | `tests/Feature/Plugins/Area/CodeFieldScriptsTest.php` | Failed asserting that two strings are identical. ('Settings: Fallback code') |
+| 6 | `tests/Feature/Plugins/Area/AreaEntriesTest.php` | Property [parent] does not exist. |
+| 8 | `tests/Feature/Plugins/Area/CodeFieldScriptsTest.php` | Passed at once, since the check was there; seen red with the check taken out: Expected response status code [404] but received 302. |
+| C-T7 | `tests/Feature/Plugins/Area/AreaContextPermissionsTest.php` | Undefined property: Teme\Contracts\Admin\AreaContext::$permissions |
+| D-T5 | `tests/Feature/Plugins/Notices/PluginNoticeAudienceTest.php` | The kind of notice review_waiting must go to starter or plugins.manage. |
+
+B-?? (draft):
+- **Finding 2.** Options: drop the input's permission and work it out in the Operation, or keep it and accept it only when it is the area's own and the action is offered. Chosen: keep it, so the settings page's own route still asks for plugins.manage and the existing test keeps what it proves. `ccc4f7b2`.
+- **Finding 3** comes with a guard: the handbook test now refuses a plan path, a proposal path, an idea number or a branch name (other than `main`) in any handbook page. `ce70b9f2`.
+- **Finding 4.** The roles are fixed words, joined by `:first and :second` or `:first, :second and :third`. `b29339f3`.
+- **D-T5.** An audience names the permission's `id`, as declared, not its full name, since the validator doesn't know the plugin's code; `starter` and `plugins.manage` win over a permission with that id. The two refusal sentences now name the new choices, so their test rows' expected words changed to match; they prove the same refusals. The schema's `audience` became a pattern. `42d52394`.
+- **The reference pages** (`docs/reference/`) are still not regenerated; GenerateManifestReferenceTest and GenerateContractsReferenceTest stay red for the join.
+
+Gate: Pint and PHPStan clean; Architecture 139 passed; Unit and Feature 12,999 passed, 3 skipped, 2 failed (the two reference tests), in 1,784 s. Browser, one file at a time: PluginAreaScreens 9, PluginSettingsSections 5, PluginsScreen 19, PluginNoticeChoices 4, all passed. Baselines unchanged: design-system 222, admin-words 876.
+
+Later, for issues:
+- Finding 5: plugin code runs on every admin page with no time limit (`PluginAreas` builds each area's data for the menu). Build the data only for screens and writes, and read the manifest once per request.
+- Finding 7: loose input on the record form and the area page: a number like `1e400` becomes INF; `datetime` takes relative words; the `t` query comes back as `asks` unfiltered.
+- Finding 8, second item: the chart keys each row by series id beside `label`, so a series with id `label` collides.
+- Finding 9: `plugin` is now a reserved type key; a site with a type keyed `plugin` needs an upgrade check or a release note.
+
 ---
 
 ## Part B: inserted content beyond the article, and approved inline scripts (`sockets2/inserts`)
