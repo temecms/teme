@@ -5,6 +5,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { originLabel } from '@/components/extensions/words';
 import { PluginIcon } from '@/components/ui/plugin-icon';
 import { __ } from '@/lib/i18n';
 import type { PluginRowPage } from '@/types';
@@ -41,6 +42,9 @@ export function DetailsDialog({
                                 <DialogDescription className="text-caption font-mono">
                                     {plugin.name}
                                 </DialogDescription>
+                                <p className="text-caption text-ink-2">
+                                    {originLabel(plugin.origin, plugin.source)}
+                                </p>
                             </div>
                         </div>
                     </DialogHeader>

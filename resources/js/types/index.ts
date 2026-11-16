@@ -4,6 +4,7 @@ export type * from './content';
 export type * from './dashboard';
 export type * from './design';
 export type * from './editor';
+export type * from './extensions';
 export type * from './media';
 export type * from './menus';
 export type * from './navigation';

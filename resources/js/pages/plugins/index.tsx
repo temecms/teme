@@ -1,23 +1,29 @@
 import { Head, router, setLayoutProps } from '@inertiajs/react';
-import { Plug } from 'lucide-react';
+import { Plug, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import PluginsController from '@/actions/App/Http/Admin/PluginsController';
+import { useInstaller } from '@/components/extensions/installer';
+import { RequestsList } from '@/components/extensions/requests-list';
 import { ListPage } from '@/components/patterns/list-page';
 import { ConsentDialog } from '@/components/plugins/consent-dialog';
 import { DetailsDialog } from '@/components/plugins/details-dialog';
 import { PluginRow } from '@/components/plugins/plugin-row';
 import { RemoveDataDialog } from '@/components/plugins/remove-data-dialog';
+import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { __ } from '@/lib/i18n';
 import { index as pluginsIndex } from '@/routes/plugins';
 import type { PluginEnablePost, PluginRowPage, PluginsPage } from '@/types';
 
-type Tab = 'all' | 'enabled' | 'disabled' | 'attention';
+type PluginTab = 'all' | 'enabled' | 'disabled' | 'attention';
+
+/** The plugin views, then Install requests for someone who may install. */
+type Tab = PluginTab | 'requests';
 
 /** The tabs, in order, and the plugins each one holds. */
 const TABS: {
-    key: Tab;
+    key: PluginTab;
     holds: (p: PluginRowPage) => boolean;
 }[] = [
     { key: 'all', holds: () => true },
@@ -40,7 +46,7 @@ const TABS: {
 ];
 
 /** A tab's label, looked up while the page draws, never where the module loads. */
-function tabLabel(key: Tab): string {
+function tabLabel(key: PluginTab): string {
     switch (key) {
         case 'all':
             return __('All');
@@ -51,6 +57,17 @@ function tabLabel(key: Tab): string {
         case 'attention':
             return __('Needs attention');
     }
+}
+
+/** The tab the address names: ?tab=requests opens Install requests, as Themes links to it. */
+function firstTab(canInstall: boolean): Tab {
+    if (!canInstall || typeof window === 'undefined') {
+        return 'all';
+    }
+
+    return new URLSearchParams(window.location.search).get('tab') === 'requests'
+        ? 'requests'
+        : 'all';
 }
 
 /** Where a password-gated request waits while the person types their password. */
@@ -136,10 +153,22 @@ function pendingUrl(pending: Pending): string {
 /**
  * Site › Plugins: every plugin with its state and why, enabled through a
  * consent dialog, migrated or cleared of data after the password screen, and
- * disabled with one click (I-3353, I-3442, I-3342).
+ * disabled with one click (I-3353, I-3442, I-3342). Someone who may install
+ * also adds, updates and removes plugins here, and follows every plugin and
+ * theme request on Install requests (I-211).
  */
-export default function Plugins({ plugins }: PluginsPage) {
-    const [tab, setTab] = useState<Tab>('all');
+export default function Plugins({ plugins, extensions }: PluginsPage) {
+    const [tab, setTab] = useState<Tab>(() => firstTab(extensions !== null));
+    const installer = useInstaller(
+        extensions,
+        'plugin',
+        plugins
+            .filter((plugin) => plugin.origin === 'extensions')
+            .map((plugin) => ({
+                package: plugin.name,
+                version: plugin.version,
+            })),
+    );
     const [asking, setAsking] = useState<PluginRowPage | null>(null);
     const [details, setDetails] = useState<PluginRowPage | null>(null);
     const [removing, setRemoving] = useState<PluginRowPage | null>(null);
@@ -284,8 +313,20 @@ export default function Plugins({ plugins }: PluginsPage) {
                 description={__(
                     'Plugins are Composer packages, added to the site’s build by whoever runs the server. Plugins don’t run on this page, so you can always disable one here.',
                 )}
+                actions={
+                    extensions !== null && (
+                        <Button
+                            type="button"
+                            onClick={installer.openAdd}
+                            data-test="plugins-add"
+                        >
+                            <Plus aria-hidden="true" />
+                            {__('Add plugin')}
+                        </Button>
+                    )
+                }
             >
-                {plugins.length === 0 ? (
+                {plugins.length === 0 && extensions === null ? (
                     <Panel
                         data-test="plugins-empty"
                         className="grid justify-items-center gap-3 px-6 py-12 text-center"
@@ -322,6 +363,15 @@ export default function Plugins({ plugins }: PluginsPage) {
                                     {tabLabel(item.key)}
                                 </TabsTrigger>
                             ))}
+                            {extensions !== null && (
+                                <TabsTrigger
+                                    value="requests"
+                                    count={extensions.requests.length}
+                                    data-test="plugins-tab-requests"
+                                >
+                                    {__('Install requests')}
+                                </TabsTrigger>
+                            )}
                         </TabsList>
                         {TABS.map((item) => {
                             const shown = plugins.filter(item.holds);
@@ -346,6 +396,11 @@ export default function Plugins({ plugins }: PluginsPage) {
                                                         onRemoveData={
                                                             onRemoveData
                                                         }
+                                                        onChange={
+                                                            extensions === null
+                                                                ? undefined
+                                                                : installer.openChange
+                                                        }
                                                     />
                                                 ))}
                                             </ul>
@@ -354,6 +409,14 @@ export default function Plugins({ plugins }: PluginsPage) {
                                 </TabsContent>
                             );
                         })}
+                        {extensions !== null && (
+                            <TabsContent value="requests">
+                                <RequestsList
+                                    data={extensions}
+                                    onOpen={installer.openRequest}
+                                />
+                            </TabsContent>
+                        )}
                     </Tabs>
                 )}
 
@@ -371,6 +434,7 @@ export default function Plugins({ plugins }: PluginsPage) {
                     onClose={() => setRemoving(null)}
                     onConfirm={removeData}
                 />
+                {installer.sheets}
             </ListPage>
         </>
     );
