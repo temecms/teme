@@ -99,7 +99,7 @@ it('writes files 0644 and folders 0755, whatever the umask', function (): void {
         ->and(fileperms($folder.'/src') & 0777)->toBe(0755)
         ->and(fileperms($folder.'/src/HelloExtension.php') & 0777)->toBe(0644)
         ->and(fileperms($folder.'/composer.json') & 0777)->toBe(0644);
-});
+})->skipOnWindows();
 
 it('changes nothing when the same archive is unpacked again', function (): void {
     $bytes = uploadZip();
