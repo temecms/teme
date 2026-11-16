@@ -646,7 +646,6 @@ export default function SiteCodeSettings({
                                                 inputMode="url"
                                                 spellCheck={false}
                                                 defaultValue={adsTxtRedirect}
-                                                placeholder="https://"
                                                 data-test="site-code-ads-txt-redirect"
                                                 aria-describedby="site-code-ads-txt-redirect-hint site-code-ads-txt-redirect-error"
                                                 className="font-mono"
