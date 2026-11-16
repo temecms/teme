@@ -16,6 +16,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Fixtures\Plugins\Placard\PlacardArea;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
@@ -104,6 +105,15 @@ it('puts an area that asks for Tools on the Tools hub, leaving its menu place to
 
     expect(array_column(($this->menu)($this->editor), 'label'))->toBe(['Placard B'])
         ->and(array_column(($this->cards)($this->editor), 'label'))->toBe(['Placard A']);
+});
+
+it('names Tools as the parent of an area placed there, and no parent for one in the menu', function (): void {
+    ($this->areas)(['tools', 'site']);
+
+    $this->actingAs($this->editor)->get('/admin/plugin/placarda')
+        ->assertInertia(fn (Assert $page) => $page->where('parent', ['title' => 'Tools', 'href' => '/admin/tools']));
+    $this->actingAs($this->editor)->get('/admin/plugin/placardb')
+        ->assertInertia(fn (Assert $page) => $page->where('parent', null));
 });
 
 it('shows neither the entry nor the card to a person without the area’s permission', function (): void {

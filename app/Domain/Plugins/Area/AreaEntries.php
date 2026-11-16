@@ -83,6 +83,15 @@ final readonly class AreaEntries
     }
 
     /**
+     * Whether this plugin's area sits on the Tools hub, rather than in the
+     * menu: Tools is then its parent in the top bar.
+     */
+    public function onTools(string $code): bool
+    {
+        return array_any($this->placed()['tools'], fn (AreaPlugin $plugin): bool => $plugin->code === $code);
+    }
+
+    /**
      * The areas split into those with a menu entry and those on the Tools hub.
      *
      * @return array{menu: list<AreaPlugin>, tools: list<AreaPlugin>}

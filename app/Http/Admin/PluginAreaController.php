@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Plugins\Area\AreaEntries;
 use App\Domain\Plugins\Area\AreaPlugin;
 use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Area\PluginAreas;
@@ -56,6 +57,8 @@ final class PluginAreaController extends Controller
 
         return Inertia::render('plugins/area', [
             ...$frame,
+            // The top bar's parent: Tools for an area placed there, none for one in the menu.
+            'parent' => app(AreaEntries::class)->onTools($code) ? ['title' => __('Tools'), 'href' => route('tools.index', [], false)] : null,
             'asks' => $asks,
             ...$data,
         ]);

@@ -106,6 +106,8 @@ export type PluginAreaPageProps = {
     current: { id: string; label: string };
     blocks: AreaBlock[];
     asks: Record<string, AreaTableAsk>;
+    /** The top bar's parent: Tools for an area placed there, else none. */
+    parent: { title: string; href: string } | null;
 } & Record<`block_${string}`, unknown>;
 
 export type AreaChoice = { value: string; label: string };
