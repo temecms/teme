@@ -1,0 +1,49 @@
+<?php
+
+// A stand-in for Teme's artisan in the container test: it records what ran, as whom, and with which environment, and behaves as each long-running command does.
+
+$command = $argv[1] ?? '';
+$options = array_slice($argv, 2);
+$user = posix_getpwuid(posix_geteuid())['name'];
+$log = '/tmp/fake-artisan-'.$user.'.log';
+
+file_put_contents($log, sprintf("%.6f %s %s %s\n", microtime(true), $user, $command, implode(' ', $options)), FILE_APPEND | LOCK_EX);
+
+$write = function (string $path, string $contents, int $mode = 0644): void {
+    file_put_contents($path, $contents);
+    chmod($path, $mode);
+};
+
+switch ($command) {
+    case 'config:cache':
+        $write('/var/www/html/storage/framework/cache/config.php', "<?php return ['db' => '".getenv('DB_USERNAME')."', 'secret' => '".getenv('TEME_DOKPLOY_TOKEN')."'];", 0666 & ~umask());
+        exit(0);
+    case 'route:cache':
+        exit(0);
+    case 'teme:database:prepare':
+        if (getenv('FAKE_PREPARE_FAIL') === '1') {
+            fwrite(STDERR, "The database refused.\n");
+            exit(1);
+        }
+        echo "export DB_USERNAME='teme_app'\n", "export DB_PASSWORD='derived'\n", "export TEME_VERIFY_DATABASE='teme_verify'\n";
+        fwrite(STDERR, 'prepared with '.(getenv('DB_USERNAME') ?: 'nobody')."\n");
+        exit(0);
+    case 'teme:deploy':
+        usleep(500000);
+        @mkdir('/tmp/deploys');
+        touch('/tmp/deploys/'.getmypid());
+
+        exit((int) getenv('FAKE_DEPLOY_EXIT'));
+    case 'teme:installer':
+        file_put_contents('/tmp/installer-env-'.$user, json_encode(getenv()));
+        if (in_array('--prepare-only', $options, true)) {
+            touch('/tmp/teme-installer-ready');
+            exit(0);
+        }
+        // fall through to the long-running loop
+    default:
+        file_put_contents('/tmp/running-'.str_replace(':', '-', $command).'-'.getmypid(), $user);
+        while (true) {
+            sleep(1);
+        }
+}

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Teme's PHP never runs as root: a person who opens a terminal in the
+# container (which starts as root) and runs php artisan would otherwise leave
+# root's files in storage that the site can't write. Run as root, this
+# hands the command to www-data; run as anyone else it is PHP itself.
+if [ "$(id -u)" = 0 ]; then
+    HOME=/var/www
+    export HOME
+    exec setpriv --reuid=www-data --regid=www-data --init-groups /usr/local/bin/php "$@"
+fi
+exec /usr/local/bin/php "$@"

@@ -17,7 +17,8 @@ it('caches the configuration, then the routes, then writes nginx\'s HSTS map, an
     expect(ImageFiles::directives('docker/teme/entrypoint.d/60-teme-start.sh'))->toBe([
         'set -eu',
         'cd /var/www/html',
-        'php artisan config:cache --no-interaction',
+        // The configuration holds every secret: only the user that runs the site can read the file.
+        '(umask 077 && php artisan config:cache --no-interaction)',
         'php artisan route:cache --no-interaction',
         'php docker/teme/nginx-hsts.php > /etc/nginx/conf.d/teme-hsts.conf.new',
         'mv /etc/nginx/conf.d/teme-hsts.conf.new /etc/nginx/conf.d/teme-hsts.conf',

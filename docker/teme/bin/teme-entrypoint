@@ -1,0 +1,30 @@
+#!/bin/sh
+# Teme's entrypoint: the image starts as root so that one container can run
+# every role (TEME_ROLE=all) with the plugin installer as its own user. A
+# container with no role drops to www-data before the base image's own
+# entrypoint runs, which is how it always ran; one started as another user
+# (the installer's, in Compose) changes nothing.
+set -eu
+
+base=docker-php-serversideup-entrypoint
+role="${TEME_ROLE:-}"
+
+case "$role" in
+    '' | all) ;;
+    *)
+        echo "TEME_ROLE is \"$role\", and the only role Teme knows is all. Remove TEME_ROLE to run one role by its command, or set it to all to run every role in this container." >&2
+        exit 1
+        ;;
+esac
+
+if [ "$(id -u)" != 0 ]; then
+    exec "$base" "$@"
+fi
+
+if [ "$role" != all ]; then
+    HOME=/var/www
+    export HOME
+    exec setpriv --reuid=www-data --regid=www-data --init-groups "$base" "$@"
+fi
+
+exec /usr/local/lib/teme/start-all "$@"

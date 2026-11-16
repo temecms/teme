@@ -1,0 +1,47 @@
+#!/bin/sh
+# Starts every role in this container (TEME_ROLE=all), as root. It puts the
+# database login out of the environment every process inherits, switches
+# on Teme's s6 services, and hands over to the base image's entrypoint,
+# which runs its start scripts and then /init.
+set -eu
+
+private=/run/teme
+services=/usr/local/share/teme/s6-rc.d
+tree=/etc/s6-overlay/s6-rc.d
+
+mkdir -p "$private"
+chmod 0711 "$private"
+
+# The login Teme was given never reaches a process that doesn't need it: it
+# waits here, readable by root alone, for the deploy step.
+(
+    umask 077
+    : > "$private/admin.env"
+    for name in DB_USERNAME DB_PASSWORD DB_URL DATABASE_URL; do
+        eval "set=\${$name+x}"
+        if [ -n "$set" ]; then
+            eval "value=\$$name"
+            printf "export %s='%s'\n" "$name" "$(printf '%s' "$value" | sed "s/'/'\\''/g")" >> "$private/admin.env"
+        fi
+    done
+)
+unset DB_USERNAME DB_PASSWORD DB_URL DATABASE_URL
+
+# s6 lets a job finish before it ends a service.
+export S6_SERVICES_GRACETIME="${S6_SERVICES_GRACETIME:-300000}"
+
+for service in "$services"/*; do
+    name="$(basename "$service")"
+    cp -R "$service" "$tree/$name"
+    case "$name" in
+        teme-deploy | teme-installer-prepare) ;;
+        *) : > "$tree/user/contents.d/$name" ;;
+    esac
+done
+
+# Web starts only once the site is deployed and the installed plugins and themes fit this image.
+for name in nginx php-fpm; do
+    printf '\n%s\n' teme-installer-prepare >> "$tree/$name/dependencies"
+done
+
+exec docker-php-serversideup-entrypoint "$@"

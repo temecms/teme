@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs a command as www-data, the user the site runs as.
+HOME=/var/www
+export HOME
+exec setpriv --reuid=www-data --regid=www-data --init-groups "$@"

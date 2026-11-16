@@ -1,0 +1,6 @@
+#!/bin/sh
+# Checks the installed plugins and themes against this image before web
+# starts. However it ends, the site starts: a plugin or theme that doesn't
+# fit is held, which the installer says in its own words.
+/usr/local/lib/teme/as-installer --prepare-only || echo "The installed plugins and themes are held until the installer can check them; the site starts without them." >&2
+exit 0
