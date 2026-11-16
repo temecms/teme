@@ -689,10 +689,27 @@ None.
 
 #### Changelog lines for the maintainer
 
-- Plugins and themes can be installed from a Git address, public or private with a token, and from a vendor's Composer source with a licence key; keys go to Composer only inside the installer and are never written to a file or a log.
+- Plugins and themes can be installed from a Git address, public or private with a token, and from a vendor's Composer source with a license key; keys go to Composer only inside the installer and are never written to a file or a log.
 - Git and vendor addresses must use https and point outside the server's own network, unless the operator allows private hosts (`TEME_EXTENSIONS_ALLOW_PRIVATE_HOSTS`).
 - Uploaded ZIPs are unpacked by the installer only after checking for unsafe paths, symbolic links, archive bombs (20,000 files, 256 MB unpacked) and a `composer.json` and manifest that match the upload; a different archive with the same name and version is refused.
 
 #### Try it
 
 `php artisan test --compact tests/Feature/Extensions/Sources` (57 tests; the `composer` group runs Composer against a temporary folder, with Packagist off). By hand, in `php artisan tinker`: `app(App\Domain\Extensions\Sources\SafeAddress::class)->check('https://127.0.0.1/x.git')` throws "127.0.0.1 is on a private network, so Teme won’t connect to it."; `app(App\Domain\Extensions\Sources\SourceKinds::class)->keys()` lists `packagist`, `git`, `composer`, `upload`. The end-to-end run waits for the join.
+
+#### Follow-up R1
+
+The review of 2026-11-16 (verdict: merge after fixes). Fixed on this branch:
+
+- **IMPORTANT 1, the file modes test on Windows:** `UploadsTest` "writes files 0644 and folders 0755, whatever the umask" now ends `->skipOnWindows()`. Commit `b68a015`. Not seen red: the failure happens only on Windows, and this container is Linux, where the test still runs and passes (1 passed, 4 assertions).
+- **LATER 7, composer.json read without a size cap:** `ArchiveReader` checks the entry's size from the archive's directory against `MOST_COMPOSER_BYTES` (1 MB) and caps `getFromName` at it. Seen red first: the new dataset case "a composer.json over 1 MB" failed with `Exception [RuntimeException] not thrown.`; it now gives "The archive’s composer.json is larger than 1 MB." Commit `3cb3ced`.
+- **LATER 6, British spelling:** "licence key" is "license key" in `ComposerSource`'s docblock, in the test's planted values, and in the changelog line above. Commit `4065014`. The proposal's own "licence" is outside part C's files and stays.
+
+Left for the join, as the review marks them: **2** (delete an unpacked upload's folder on a failed or cancelled request when no kept release's lock names it, and at prune) and **3** (check every `vcs` and `composer` repository in the staged `composer.json` with `SafeAddress::check()` before `fetching`, not only the request's own source).
+
+Recorded for later, as the review asks (a builder can't write `docs/ideas.md`):
+
+- **4:** `SafeAddress` covers only the first connection. Composer follows redirects, `git` follows them on its first request, and a vendor's `packages.json` may list dist addresses on any https host, internal ones included. Wants an ideas entry and an issue.
+- **5:** two sources on the same host keep only one key, because the runner merges `auth()` with `array_replace_recursive` and the keys are by host (two private GitHub repositories with different tokens, or two vendors on one host). Wants a line in the operators' guide (part A's file).
+
+**Gate after R1** (at `4065014`): Pint passed; PHPStan no errors; Architecture 139 passed (1361 assertions); Unit and Feature 1 failed, 2 skipped, 11659 passed (60165 assertions). The one failure is A's `SeamTest`, B-19, already changed on `installer/service`. Part C's own: 58 passed (142 assertions). Baselines unchanged: 876 and 222 lines.
