@@ -15,6 +15,7 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Fixtures\Languages\LanguageSite;
 
@@ -201,4 +202,29 @@ it('costs the same number of queries for one item as for twelve', function (): v
     $twelve = $queries(12);
 
     expect($twelve)->toBe($one);
+});
+
+it('keeps the default theme\'s floor with both cards after the article: one h1, headings in order, every picture sized and described', function (): void {
+    Storage::fake('media');
+    Storage::fake('media-originals');
+    $story = pageArticle($this->editor, 'A story');
+    $this->travel(1)->minutes();
+    pageArticle($this->editor, 'Another story');
+    $entry = scAdd($this->admin, 'Sidebar ad', 'placed', '<div data-test="placed-ad">Ad</div>');
+    $region = regionCreate($this->admin, 'default');
+    regionSave($region, $this->editor, [
+        ['type' => 'featured-posts', 'attrs' => ['id' => (string) Str::ulid(), 'heading' => 'More to read', 'source' => 'latest', 'type' => 'post', 'count' => 3]],
+        ['type' => 'site-code', 'attrs' => ['id' => (string) Str::ulid(), 'entryId' => $entry->id]],
+    ]);
+    listsPublish($region, $this->editor);
+
+    $html = (string) addrGet('/a-story/')->assertOk()->getContent();
+    $dom = dtDom($html);
+
+    expect($html)->toContain('More to read')->toContain('data-test="placed-ad"')
+        ->and($dom->query('//h1')->length)->toBe(1)
+        ->and($dom->query('//img[not(@alt)]')->length)->toBe(0)
+        ->and($dom->query('//img[not(@width) or not(@height)]')->length)->toBe(0)
+        ->and(dtHeadingsInOrder($dom))->toBeTrue()
+        ->and($story->id)->not->toBe('');
 });
