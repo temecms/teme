@@ -443,50 +443,118 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+Setup: `cat /tmp/teme-cloud-setup.log` printed two lines, "ran in /home/user/teme as root" (09:11:02Z) and "finished" (09:24:47Z); `pwd` was `/home/user/teme`. Built from `origin/main` at `df2f85d`.
+
 #### Commits on `sockets2/inserts`
 
--
+- `665b7a4` feat(contracts): page insertion contracts and the pages.insert capability
+- `d8d8037` feat(site): ask plugins granted pages.insert for each public page's insertions
+- `82f3931` feat(site): draw page insertions in the head and at the top and bottom of the body
+- `6a1bf33` feat(themes): draw page insertions between list items and around regions
+- `defde21` feat(site): fix page insertions to the screen's edges, with a label and a close button
+- `fcfcb4a` feat(plugins): agree to the hosts inserted content loads from, and purge page insertions
+- `f8c02cb` feat(site): keep a plugin's inline script once a person approved its exact text
+- `430e4bb` docs(plugins): content on every page, and what the page cache means for insertions
+- `761c2ae` test(site): fixed insertions in a browser, each edge named for screen readers
+- `261c924` fix(site): read an article's address once, and a person through Actors
+- `e646c9f` feat(languages): the new reader words in each shipped language, and the handbook's index
+- this commit: docs(plans): sockets2 inserts' records
 
 #### Tests seen red (first line of the failure)
 
+The code for Tasks 1 to 6 was drafted before its tests were run, so each test was seen red by running it against `main`'s code (the branch's `app`, `packages`, `database`, `resources` and `themes` set aside, tests and the fixture kept). That shows each test fails without the code, but most fail at the same first step, not each for the reason the plan gives; I record it as it happened.
+
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `PageInsertionsTest.php` (16 red) | `Tests\Fixtures\Plugins\Billboard\Billboard asks for Teme\Contracts\Insertions\InlineScripts; a plugin may ask only for what Teme offers plugins.` (the fixture can't be enabled without the door and `pages.insert`) |
+| 1 | `tests/Unit/Contracts/PluginContractsTest.php` | `include(.../teme/contracts/src/Insertions/PageInsertionContributor.php): Failed to open stream` (five contracts), and the capability list `Failed asserting that two arrays are identical` (no `pages.insert`) |
+| 2 | `HeadInsertionsTest.php` (3 red) | as Task 1: the fixture can't be enabled |
+| 3 | `BetweenItemsTest.php` (10 red), `RegionInsertionsTest.php` (1 red) | as Task 1 |
+| 4 | `FixedInsertionsTest.php` (5 red) | as Task 1 |
+| 5 | `InsertionHostsTest.php` (3 red), `PageInsertionCacheTest.php` (5 red), `tests/Feature/Policy/PluginCspTest.php` | as Task 1; `PluginCspTest`: `Failed asserting that two arrays are identical` (the old sentence) |
+| 6 | `PluginScriptsTest.php` (17 red) | as Task 1 |
+| 7 | `tests/Browser/Site/FixedInsertionsTest.php` | `1 Accessibility issues found - [moderate] Landmarks should have a unique role or role/label/title` (two edges both named "Sponsored"); fixed by naming each edge |
+
+Once the code was back, the first runs were red for real reasons, each fixed: a plugin with `csp` failed to start because the start-up check of its contributions had no capabilities to read (B-07); the page cache tests needed the cache switched on; `Consent::added()` grew a key existing tests didn't expect (B-08).
 
 #### Task 0
 
--
+- V is `0.9.0`: no `v0.9.0*` tag exists. `git log --oneline -1` at the start: `df2f85d Merge pull request #344 from temecms/docs/plan-sockets-2`.
+- The document shell writes the body's end through `Placements` (`PlacementContributor`s tagged under `Placements::CONTRIBUTORS`, already used by site code); core's own inline scripts go through `<x-teme::inline-script>`, whose hashes join `script-src`.
+- `ListingViews`, `LatestViews` and the search view build `$page->items` as lists the templates loop over with `@foreach`; the loop's `$loop` gives the item's number and whether it is the last.
+- `PathResolver` answers `view`, `redirect` or `notfound`; a `view` carries a `ViewIntent` whose kind is `single`, `latest`, `archive`, `taxonomy`, `author`, `date` or `search` (`isFront` on the home page), plus `private` for a private item.
+- `SiteCodePolicy::of()` hashes `textContent` as HTML's own parser gives it, which turns CR LF into LF; `ApprovedScripts::hash()` does the same before `PagePolicy::hash()`.
+- The region component is drawn inside the page cache's record, so a tag it adds reaches the stored page.
+- No difference changed a decision.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 lines | 222 lines |
+| admin-words-baseline.txt | 876 lines | 876 lines |
 
 #### Gate
 
--
+- Base (`main` at `df2f85d`, before any change): Pint and PHPStan passed; Architecture 139 passed; Unit and Feature 11,710 passed, 2 skipped, 1 failed: `Tests\Feature\Plugins\DiscoveryTest > it finds the configured folders` saw `tests/jobs` in the registry, a leftover of another test in the same worker; it passes alone (8 passed).
+- Branch, first full run: Pint, PHPStan, Architecture (139) passed; Unit and Feature 14 failed. Fixed: `ReaderWordsTest` (the 15 new reader words translated in the seven shipped languages), `PublicReadersTest` (`RequestPluginScript` reads a person through `Actors`), `StatementCountsTest` (an article read its address twice; now once), `GenerateHandbookIndexTest` (`llms.txt` regenerated). `DatabaseDownTest` failed once and passes alone.
+- Branch, final full run (`composer check`): Pint passed; PHPStan no errors; `npm run types:check` and `npm run check` passed; Architecture 139 passed; Unit and Feature 11,783 passed, 2 skipped, 2 failed: `GenerateManifestReferenceTest` and `ThemeReferenceTest`, the generated `docs/reference/plugin-manifest.md` and `docs/reference/theme.md`, which this part may not write (B-13).
+- Browser: `tests/Browser/Site/FixedInsertionsTest.php` 2 passed (1280 and 375, axe); `tests/Browser/InsertionPointsTest.php` 3 passed; `tests/Browser/SiteCodeSettingsTest.php` 5 passed; after `npm run build`, `npm run build:themes` and `teme:themes:link`.
 
 #### B-?? (draft)
 
--
+- **B-01 Where the new views live.** Options: `resources/views/components/` (the plan) or `resources/views/teme/components/` (where `<x-teme::region>` and core's other theme components are). Chose the second, so themes call them `<x-teme::between-items>`. Commits `6a1bf33`, `defde21`.
+- **B-02 No `ListingPlan`.** Options: a plan built by `ListingViews`/`LatestViews`/search and handed to the views, or the `<x-teme::between-items>` component asking `PageInsertions` for its item. Chose the component: the listings stay unchanged, and every list a theme draws gets it by one line. `index.blade.php` has no list loop, so it has no line. Commit `6a1bf33`.
+- **B-03 Fixed insertions drawn as a placement.** Options: edit the document shell's body end, or draw them from `PluginPlacements`, a `PlacementContributor` at the body's end. Chose the placement: the shell is untouched and site code's own fragments keep their order. Commit `defde21`.
+- **B-04 Whose scripts and hosts an article insertion may use.** `InsertionCleaner` stays static; the approved hashes are passed in, and `InsertionPoints::owned()` gives each insertion with its plugin's code. Commit `fcfcb4a`, `f8c02cb`.
+- **B-05 Revoking deletes the row.** Options: keep a revoked row as refused, or delete it. Chose delete, so the plugin may ask again and the panel shows only live decisions; the security log keeps the script as it was. Approve and refuse act only on a waiting script. Commit `f8c02cb`.
+- **B-06 The door's person.** `InlineScripts::request(name, script)` names no person, so the door uses the job's person while a job runs, else the signed-in person, as `ActingPerson` reads them; never the operator. Commit `f8c02cb`.
+- **B-07 `csp` checked once.** `ContributionsValidator::errors()` takes the capabilities as `?array`: the manifest's validator passes them and refuses `csp` without an insert capability; the start-up path (`Contributions::add()`, whose seam is unchanged) passes none, which means "already checked". Commit `fcfcb4a`.
+- **B-08 `Consent::added()`** lists `insertionHosts` only when there are any, as it does `imports`, so existing callers and tests read the same array. Commit `fcfcb4a`.
+- **B-09 Small readings.** A rail fixed with width 0 is 160 wide; an author archive's `authorIds` is empty (the page lists one author, but the facts give IDs only for an article); a term archive's term is found by taxonomy and slug. Commits `665b7a4`, `d8d8037`.
+- **B-10 Each fixed edge is named.** Two `<aside>`s labelled the same failed axe (landmark-unique). The visible label stays the plugin's; the landmark's name adds the edge ("Sponsored, at the bottom of the screen"). Commit `761c2ae`.
+- **B-11 Remove-data forgets scripts.** `RemovePluginData` deletes the plugin's `plugin_scripts` rows with its tables (B4, "remove-data deletes them"); a plugin with no tables has no remove-data, so its rows stay inert. Commit `f8c02cb`.
+- **B-12 Files changed outside Owns, each a line or two:** `Consent.php`, `PluginsScreen.php`, `PluginRow.php`, `ContributionsCheck.php`, `ManifestValidator.php`, `CheckTheme.php`, `InsertionsServiceProvider.php`, `PublicController.php`, `ArticleViews.php`, `RemovePluginData.php`, `GenerateHandbookIndex.php` and the handbook README (the new page's line), `tests/Feature/Plugins/ContributionsSchemaTest.php` (`fixedLabel` added to the list of `contributes` keys, as the plan's schema change makes it). `PluginCspTest`'s second test changed as the plan names (the new sentence, and `[]` passed for "no capabilities").
+- **B-13 The generated references.** `ThemeReferenceTest` fails because `docs/reference/theme.md` doesn't yet list `<x-teme::between-items>` or the region's new sentence, and `GenerateManifestReferenceTest` because `docs/reference/plugin-manifest.md` doesn't list `pages.insert` and `fixedLabel`. The rules forbid writing `docs/reference/*.md` here, so both are left for the join, which already regenerates `plugin-manifest.md`; add `php artisan teme:docs:theme` there.
+- **B-14 Reader words.** Words under `app/Domain/Site` count as reader words, so the script Operations' refusals and the fixed edges' words are translated in `lang/*.json` (seven files, our lines only). Commit `e646c9f`.
 
 #### Contract changes
 
--
+- None beyond the plan: `PageInsertionContributor`, `PageInsertion`, `PagePosition`, `PageFacts`, `InlineScripts` (all `@since 0.9.0`), `Capability::PagesInsert`, `ArticleFacts::$path` (last, default `''`), and the schema's `pages.insert`, `csp` description and `contributes.fixedLabel`.
 
 #### STOP
 
--
+- None. Left for a follow-up, as the owner asked, until the maintainers approve their drawing: the **Scripts from plugins** panel on Settings › Site code (`SiteCodeScreen`, `site-code.tsx`, `SiteCodeController`'s three actions and routes, `PluginScriptsPanelTest`), the in-form approval control, and the notice to people who may approve. The Operations those screens will call are built and tested.
 
 #### Changelog lines for the maintainers
 
--
+- Plugins granted `pages.insert` can add content to every public page: in the head, at the top and bottom of the page, between items on lists, before or after a theme's regions, and fixed to the screen's edge with a label and a close button.
+- A plugin's inline script is kept only after a person who may change site code approves its exact text; its hash joins the page's content security policy.
+- The hosts a plugin's inserted content loads from (`contributes.csp`) are shown and agreed to when the plugin is enabled, and added to a page's policy only where the plugin drew.
+- `teme:theme:check` warns about a theme whose lists don't draw what plugins place between items.
 
 #### Try it
 
--
+- `php artisan test tests/Feature/Site/Insertions` and `php artisan test tests/Browser/Site/FixedInsertionsTest.php`.
+- With the `tests/billboard` fixture enabled (`TEME_PLUGIN_PATHS` pointing at `tests/Fixtures/plugins/billboard`), open the home page: a bar at the bottom labelled Sponsored, a rail on the right on a wide screen, and markup after the third item of the list.
+
+#### Follow-up R1
+
+The review's four IMPORTANT findings, each with its test written first and seen red, then fixed. The LATER findings (5 to 9) are not part of this follow-up.
+
+| Finding | Commit | Test, and its first failure before the fix |
+|---|---|---|
+| 1. Removing a plugin's data left its approvals cached | `61bc15f` | `PluginScriptsTest` "forgets a plugin's approvals with its data, so enabled again its old script is removed": `Expecting '<!doctype html>…' not to contain '(window.billboard = window.billboard \|\| []).push({});'` |
+| 2. A plugin could replace site code or core's fixed block by reusing its key | `abccb90` | `HeadInsertionsTest` "never replaces site code or core's fixed block with an insertion that reuses its key": `To contain: <div data-test="consent">Consent</div>` |
+| 3. An author archive's facts had no author | `9644145` | `PageInsertionsTest` "gives an author archive its author's ID": `Failed asserting that two arrays are identical` (`[]` where the author's ID was expected) |
+| 4. The handbook put approval on Settings › Site code | `a03a340` | Words only, no test: the page now says approval happens where the ad is written, by a control core draws, and that Site code lists approved and waiting scripts and revokes; both screens follow |
+
+- Fix 1: `RemovePluginData::invalidateCache()` calls `ApprovedScripts::forget()` after commit.
+- Fix 2: `PluginPlacements` keys each fragment `plugin.<code>.<key>`, or `plugin.` and a hash when that is too long for `Fragment::KEY_PATTERN`.
+- Fix 3: `ListingViews::forAuthor()` tells `PageInsertions` whose archive it draws; `PageFacts::$authorIds` holds that ID, as the contract says. `ListingViews.php` is one more file outside Owns (the plan lists it as changed).
+- B-13 stands: add `php artisan teme:docs:theme` to the Joining step, beside `plugin-manifest.md`.
+- Gate (`composer check`): Pint passed; PHPStan no errors; `npm run types:check` and `npm run check` passed; Architecture 139 passed; Unit and Feature 11,784 passed, 2 skipped, 4 failed: `GenerateManifestReferenceTest` and `ThemeReferenceTest` (B-13), and `DatabaseDownTest` and `DiscoveryTest`, which failed in a worker and pass alone (9 passed).
+- Baselines unchanged: 222 and 876 lines.
 
 ---
 

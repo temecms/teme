@@ -8,6 +8,7 @@ use App\Domain\Addresses\Addresses;
 use App\Domain\Addresses\AddressSettings;
 use App\Domain\Addresses\ListingTypes;
 use App\Domain\Contents\Models\Content;
+use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Settings\Models\SettingsGroupRecord;
@@ -44,13 +45,14 @@ final readonly class DesignScreen
         private ThemeRegistry $themes,
         private SettingsRegistry $registry,
         private SettingsReader $settings,
+        private ExtensionsScreen $extensions,
     ) {}
 
     /**
      * The screen's props.
      *
      * @return array{
-     *     themes: list<array{code: string, name: string, version: string, description: string, author: string, authorUrl: string, homepage: string, usable: bool, errors: list<string>, live: bool, state: string, screenshot: string|null}>,
+     *     themes: list<array{code: string, name: string, version: string, description: string, author: string, authorUrl: string, homepage: string, usable: bool, errors: list<string>, live: bool, state: string, screenshot: string|null, origin: 'image'|'extensions', source: string|null, package: string|null}>,
      *     theme: string,
      *     preview: array{code: string, name: string, version: string, changed: bool}|null,
      *     themeGroup: string|null,
@@ -74,6 +76,7 @@ final readonly class DesignScreen
         $themes = array_values($this->themes->all());
         // The theme the site names first, as people look for it first; the rest as found.
         usort($themes, fn (Theme $a, Theme $b): int => ($b->code === $liveTheme) <=> ($a->code === $liveTheme));
+        $origins = $this->extensions->origins(array_column(array_map(fn (Theme $theme): array => [$theme->code, $theme->path], $themes), 1, 0));
 
         return [
             'themes' => array_map(fn (Theme $theme): array => [
@@ -89,6 +92,8 @@ final readonly class DesignScreen
                 'live' => $theme->code === $liveTheme,
                 'state' => $this->state($theme, $liveTheme, $chosenCode),
                 'screenshot' => $this->screenshot($theme->code) === null ? null : route('themes.screenshot', ['code' => $theme->code]),
+                // Installed from the admin, or part of the site's build (I-211).
+                ...($origins[$theme->code] ?? ['origin' => 'image', 'source' => null, 'package' => null]),
             ], $themes),
             'theme' => $chosenCode,
             'preview' => $chosen === null || $chosen->code === $liveTheme ? null : $this->preview($chosen),

@@ -2,74 +2,50 @@
 
 declare(strict_types=1);
 
-use App\Domain\Plugins\PluginLoader;
-use App\Domain\Plugins\PluginRegistry;
-use App\Domain\Support\Security\Elevation;
-use App\Domain\Support\Security\OperatorElevation;
-use App\Domain\Themes\ThemeRegistry;
-use App\Models\User;
-use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Teme\Testing\InteractsWithTeme;
 use TemeExamples\FirstPlugin\FirstPlugin;
-use Tests\Fixtures\Plugins\PluginFixtures;
 
-uses(RefreshDatabase::class);
-
-beforeEach(function (): void {
-    $this->seed(RoleSeeder::class);
-    config(['teme.version' => '0.8.0-alpha.1']);
-    app()->instance(Elevation::class, new OperatorElevation);
-    $this->editor = User::factory()->create()->assignRole('editor');
-});
-
-afterEach(fn () => PluginFixtures::forget());
+uses(RefreshDatabase::class, InteractsWithTeme::class);
 
 it('finds, validates, enables and runs the first-plugin example', function (): void {
-    // Discovery only accepts folders that hold a manifest (B-01): the example
+    // Discovery only accepts folders that hold a manifest: the example
     // package itself, under docs/guides/developers/examples/plugins/.
-    $path = base_path('docs/guides/developers/examples/plugins/first-plugin');
-    PluginFixtures::use($path);
-    config(['teme.version' => '0.8.0-alpha.1']);
-    app(PluginRegistry::class)->flush();
+    $plugin = $this->plugin(base_path('docs/guides/developers/examples/plugins/first-plugin'));
 
-    $found = app(PluginRegistry::class)->find('teme-examples/first-plugin');
+    expect($plugin->name)->toBe('teme-examples/first-plugin')
+        ->and($plugin->code)->toBe('first-plugin');
 
-    expect($found)->not->toBeNull()
-        ->and($found->usable())->toBeTrue()
-        ->and($found->problems)->toBe([]);
-
-    $this->artisan('teme:plugins:enable', [
-        'name' => 'teme-examples/first-plugin',
-        '--agree' => true,
-    ])->assertSuccessful();
-
-    require_once $path.'/src/FirstPlugin.php';
+    $plugin->enable();
     FirstPlugin::$heard = [];
-    app(PluginLoader::class)->load();
-    $item = lifecycleDraft($this->editor, 'Handbook example');
-    listsPublish($item, $this->editor);
-    $item->refresh();
+    $item = $this->publish('Handbook example');
 
     expect(FirstPlugin::$heard)->toHaveCount(1)
         ->and(FirstPlugin::$heard[0])->toContain($item->id);
 });
 
+it('enables the first-plugin example with the command its page tells readers to run', function (): void {
+    $this->plugin(base_path('docs/guides/developers/examples/plugins/first-plugin'));
+
+    $this->artisan('teme:plugins:enable', [
+        'name' => 'teme-examples/first-plugin',
+        '--agree' => true,
+    ])->assertSuccessful();
+});
+
 it('checks and draws the first-theme example', function (): void {
-    $path = base_path('docs/guides/developers/examples/themes/first-theme');
-    config(['teme.theme_paths' => [$path]]);
-    app(ThemeRegistry::class)->flush();
-    $this->app['env'] = 'local';
+    $theme = $this->theme(base_path('docs/guides/developers/examples/themes/first-theme'));
 
-    $this->artisan('teme:theme:check', ['code' => 'first-theme'])->assertSuccessful();
+    expect($theme->check())->toBe([]);
 
-    themeActivate('first-theme');
-    addrPublished($this->editor, 'Handbook post');
+    $theme->activate();
+    $this->publish('Handbook post');
 
-    addrGet('/')
+    $this->fetch('/')
         ->assertOk()
         ->assertSee('data-template="index"', false);
 
-    addrGet('/handbook-post/')
+    $this->fetch('/handbook-post/')
         ->assertOk()
         ->assertSee('data-template="single"', false)
         ->assertSee('Handbook post');

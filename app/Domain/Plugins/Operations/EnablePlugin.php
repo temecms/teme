@@ -5,16 +5,21 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Jobs\ScheduleRunner;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\SettingHosts;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
@@ -49,6 +54,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly SecurityLog $log,
         private readonly PublicRouteRegistry $publicRoutes,
         private readonly RouteCollisions $routeCollisions,
+        private readonly SettingHosts $settingHosts,
+        private readonly ScheduleRunner $schedules,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -77,15 +84,28 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             && $this->sameSet($input->hosts, $manifest->hosts())
             && $this->sameSet($input->hooks, $manifest->hooks());
 
+        // The hosts its settings name, when shown, are those they name now.
+        $same = $same && ($input->settingHosts === [] || $this->sameSet($input->settingHosts, $this->settingHosts->current($manifest)));
+
         if (! $same) {
             throw ValidationException::withMessages(['plugin' => ['It asks for something different now. Look again before you enable it.']]);
         }
 
         // Two owners never answer one request: refused before anything is written (docs/proposals/plugin-public-routes.md).
-        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
+        $enabled = PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all();
+        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy($enabled), $manifest);
+
+        // Nor one root file (docs/guides/developers/plugins/root-files.md).
+        $others = array_values(array_filter(array_map(fn (PluginRecord $record): ?Manifest => $this->registry->find($record->name)?->manifest, $enabled)));
+        $collisions = [...$collisions, ...$this->routeCollisions->rootFilesAgainst($others, $manifest)];
 
         if ($collisions !== []) {
             throw ValidationException::withMessages(['plugin' => $collisions]);
+        }
+
+        // The administrator the operator names for its schedules must still manage plugins (docs/proposals/plugin-sockets-1.md).
+        if ($input->schedulesAs !== null && ! $this->schedules->mayManage($input->schedulesAs)) {
+            throw ValidationException::withMessages(['plugin' => [__('No one who may manage plugins has that account.')]]);
         }
 
         $taken = PluginRecord::query()->where('code', $plugin->code)->where('name', '!=', $plugin->name)->value('name');
@@ -127,6 +147,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
         }
 
+        $consentedBy = $input->actorId() ?? $input->schedulesAs;
+
         $record->fill([
             'code' => $code,
             'state' => PluginRecord::ENABLED,
@@ -139,10 +161,13 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 'hosts' => $input->hosts,
                 'hooks' => $input->hooks,
                 'routes' => Consent::routeLines($manifest),
+                ...$this->insertionHosts($manifest, $input->capabilities),
                 ...$this->imports($found),
+                ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
                 ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
             ],
-            'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
+            // Its schedules run as this person: who enabled it, or whom the operator named.
+            'consented_by' => $consentedBy === null ? null : (int) $consentedBy,
             'consented_at' => $now,
             'enabled_at' => $now,
             // Enabling again is the manual clear of what Teme stopped.
@@ -156,11 +181,18 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'version' => $input->version,
             'capabilities' => $input->capabilities,
             'hosts' => $input->hosts,
+            ...($input->actorId() === null && $input->schedulesAs !== null ? ['schedules_as' => $input->schedulesAs] : []),
         ]);
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
+        // A stored "not found" at an address its root files now answer goes too (docs/guides/developers/plugins/root-files.md).
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
 
-        // Article pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
-        if (in_array(Capability::ContentInsert->value, $input->capabilities, true)) {
+        // Every stored feed is drawn again with its links, after commit (docs/plans/plugin-sockets-1.md, A3).
+        if (($manifest->contributes()['feedLinks'] ?? []) !== []) {
+            $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, [PageTags::FEED_LINKS]));
+        }
+
+        // Pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
+        if (in_array(Capability::ContentInsert->value, $input->capabilities, true) || in_array(Capability::PagesInsert->value, $input->capabilities, true)) {
             app(InsertionsChanged::class)->notify();
         }
 
@@ -180,6 +212,56 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         $declared = $found->manifest === null ? [] : Consent::declaredImports($found->manifest);
 
         return $declared === [] ? [] : ['imports' => $declared];
+    }
+
+    /**
+     * The settings it takes hosts from and the hosts agreed in them, kept
+     * with the consent (docs/plans/plugin-sockets-1.md, A2): those agreed now,
+     * and those a person agreed before, on its settings page; nothing when it
+     * takes none.
+     *
+     * @param  array<string, mixed>  $before  the consent recorded before
+     * @param  list<string>  $agreed
+     *
+     * @return array{}|array{hostsFrom: list<string>, settingHosts: list<string>, settingHostsAgreed?: list<mixed>}
+     */
+    private function hostsFrom(Manifest $manifest, array $before, array $agreed): array
+    {
+        $keys = SettingHosts::declared($manifest);
+
+        if ($keys === []) {
+            return [];
+        }
+
+        $earlier = array_values(array_filter((array) ($before['settingHosts'] ?? []), is_string(...)));
+        $history = is_array($before['settingHostsAgreed'] ?? null) ? array_values($before['settingHostsAgreed']) : [];
+
+        return [
+            'hostsFrom' => $keys,
+            'settingHosts' => array_values(array_unique([...$earlier, ...$agreed])),
+            ...($history === [] ? [] : ['settingHostsAgreed' => $history]),
+        ];
+    }
+
+    /**
+     * The hosts its inserted content may load from, kept with the consent so
+     * a later version that adds one waits for another yes; nothing for a
+     * plugin that inserts nothing or declares none
+     * (docs/plans/plugin-sockets-2.md, B3).
+     *
+     * @param  list<string>  $capabilities
+     *
+     * @return array{}|array{csp: array<string, list<string>>}
+     */
+    private function insertionHosts(Manifest $manifest, array $capabilities): array
+    {
+        if (! in_array(Capability::ContentInsert->value, $capabilities, true) && ! in_array(Capability::PagesInsert->value, $capabilities, true)) {
+            return [];
+        }
+
+        $declared = Consent::declaredInsertionHosts($manifest);
+
+        return $declared === [] ? [] : ['csp' => $declared];
     }
 
     /**

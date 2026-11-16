@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
+use Teme\Contracts\Site\SiteInfo;
 
 uses(RefreshDatabase::class);
 
@@ -104,6 +105,6 @@ it('hands a plugin nothing that writes, registers or changes a setting', functio
         $reader->group($group->key);
     }
 
-    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class, OutboundHttp::class])
+    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class, OutboundHttp::class, SiteInfo::class])
         ->and(DB::table('settings')->orderBy('group_key')->get()->toJson())->toBe($before);
 });

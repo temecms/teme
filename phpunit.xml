@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
          colors="true"
 >
     <testsuites>
@@ -10,12 +10,17 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <directory>docs/guides/developers/examples/plugins/first-plugin/tests</directory>
         </testsuite>
         <testsuite name="Architecture">
             <directory>tests/Architecture</directory>
         </testsuite>
         <testsuite name="Browser">
             <directory>tests/Browser</directory>
+        </testsuite>
+        <!-- First-party plugins' own tests, run by `composer check:plugins` and the plugins workflow (docs/guides/developers/testing.md). -->
+        <testsuite name="Plugins">
+            <directory>plugins/*/tests</directory>
         </testsuite>
     </testsuites>
     <source>
@@ -41,7 +46,7 @@
         <env name="PAGE_CACHE_ENABLED" value="false"/>
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_HOST" value="127.0.0.1"/>
-        <env name="DB_PORT" value="5433"/>
+        <env name="DB_PORT" value="5433" force="true"/>
         <env name="DB_DATABASE" value="teme_test"/>
         <env name="DB_USERNAME" value="teme"/>
         <env name="DB_PASSWORD" value="teme"/>
@@ -49,7 +54,7 @@
         <env name="REDIS_URL" value=""/>
         <env name="REDIS_HOST" value="127.0.0.1"/>
         <env name="REDIS_PASSWORD" value=""/>
-        <env name="REDIS_PORT" value="6380"/>
+        <env name="REDIS_PORT" value="6380" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <!-- The long jobs' connection runs inline here too, as every queue does in tests. -->

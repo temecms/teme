@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { PluginIcon } from '@/components/ui/plugin-icon';
 import { __ } from '@/lib/i18n';
-import type { PluginRowPage } from '@/types';
+import type { PluginRowPage, PluginSettingHosts } from '@/types';
 
 /**
  * The words the dialog's button carries: the plain Enable while an earlier
@@ -32,10 +32,12 @@ export function confirmLabel(plugin: PluginRowPage): string {
  */
 export function ConsentDialog({
     plugin,
+    settingHosts = null,
     onClose,
     onConfirm,
 }: {
     plugin: PluginRowPage | null;
+    settingHosts?: PluginSettingHosts | null;
     onClose: () => void;
     onConfirm: (plugin: PluginRowPage) => void;
 }) {
@@ -117,7 +119,16 @@ export function ConsentDialog({
                                         key={line.words}
                                         className="flex flex-wrap items-baseline gap-2"
                                     >
-                                        <span>{line.words}</span>
+                                        {settingHosts !== null &&
+                                        line.words === settingHosts.replaces ? (
+                                            <span data-test="consent-setting-hosts">
+                                                {settingHosts.line}
+                                                <br />
+                                                {settingHosts.now}
+                                            </span>
+                                        ) : (
+                                            <span>{line.words}</span>
+                                        )}
                                         {line.new && (
                                             <span className="bg-accent text-on-accent text-caption rounded-sm px-2 font-semibold">
                                                 {__('NEW')}

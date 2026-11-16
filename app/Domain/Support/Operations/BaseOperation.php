@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Support\Operations;
 
 use App\Domain\Cache\PublicChanges;
+use App\Domain\Feeds\ChangedFeeds;
 use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Hooks\PendingNotifications;
 use App\Domain\Import\ImportMode;
@@ -12,6 +13,7 @@ use App\Domain\Support\Security\Elevation;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
+use Teme\Contracts\Feeds\FeedsChanged;
 use Teme\Contracts\Hooks\Hook;
 use Teme\Contracts\Hooks\Notification;
 use Teme\Contracts\Operations\Operation;
@@ -83,6 +85,7 @@ abstract class BaseOperation implements Operation
 
             if (! $held) {
                 $changes->purge($tags);
+                $this->feedsChanged($tags);
                 app(HookDispatcher::class)->deliver($pending);
             }
             // Later (I-332): an import run gathers its notifications and delivers them once when it ends.
@@ -139,6 +142,34 @@ abstract class BaseOperation implements Operation
     protected function notifyAfterCommit(string $hook, Closure $build): void
     {
         app(PendingNotifications::class)->add($hook, $build);
+    }
+
+    /**
+     * Tells plugins the feeds the purged pages' tags name, built only when
+     * one listens (docs/plans/plugin-sockets-1.md, A4); a failure to build it
+     * is core's, reported, and the other notifications still go.
+     *
+     * @param  list<string>  $tags
+     */
+    private function feedsChanged(array $tags): void
+    {
+        $dispatcher = app(HookDispatcher::class);
+
+        if (! $dispatcher->wants(FeedsChanged::class)) {
+            return;
+        }
+
+        try {
+            $feeds = app(ChangedFeeds::class)->from($tags);
+        } catch (Throwable $failure) {
+            report($failure);
+
+            return;
+        }
+
+        if ($feeds !== null) {
+            $dispatcher->notify($feeds);
+        }
     }
 
     /**

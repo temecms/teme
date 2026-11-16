@@ -8,6 +8,7 @@ use App\Domain\Ai\Plugins\PluginAiSection;
 use App\Domain\Ai\Plugins\PluginAiSpend;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestValidator;
@@ -35,6 +36,7 @@ final readonly class PluginList
         private LoadedPlugins $loaded,
         private PluginLoader $loader,
         private PluginMigrations $migrations,
+        private ScheduleRunner $schedules,
         private PluginAiSpend $aiSpend,
         private PluginAiSection $aiSection,
     ) {}
@@ -83,6 +85,7 @@ final readonly class PluginList
             asks: ['capabilities' => $manifest?->capabilities() ?? [], 'hosts' => $manifest?->hosts() ?? [], 'hooks' => $manifest?->hooks() ?? []],
             added: $manifest === null ? ['capabilities' => [], 'hosts' => [], 'routes' => []] : Consent::added($consent, $manifest),
             stopped: array_keys($stopped),
+            schedules: $record === null ? null : $this->schedules->problem($record),
             ai: in_array(Capability::Ai->value, $consent['capabilities'] ?? [], true) && $plugin !== null ? $this->ai($plugin->code) : null,
         );
     }

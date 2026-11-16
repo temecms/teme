@@ -6,6 +6,7 @@ namespace App\Domain\Plugins;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\PublicRoutes\DeclaredRoute;
+use App\Domain\PublicRoutes\RootFile;
 
 /**
  * What a person agreed to a plugin doing, against what its manifest asks for
@@ -13,6 +14,8 @@ use App\Domain\PublicRoutes\DeclaredRoute;
  * that asks for more waits until someone agrees. Declared public routes count
  * as access too: a new METHOD path, a GET turned into a POST, or a new
  * `.well-known` name needs another yes (`docs/plans/plugin-public-routes.md`).
+ * So do the hosts a plugin that inserts content declares for it to load from
+ * (`contributes.csp`, docs/plans/plugin-sockets-2.md, B3).
  * So do declared AI tasks: a new one, or one that sends or needs more.
  */
 final readonly class Consent
@@ -24,7 +27,7 @@ final readonly class Consent
      * to import, and every AI task as it stands. Hooks are shown, never
      * agreed to: a new hook that needs no new capability needs no new yes.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, aiTasks?: array<string, mixed>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>}  $consent
      */
     public static function covers(array $consent, Manifest $manifest): bool
     {
@@ -50,7 +53,117 @@ final readonly class Consent
             return false;
         }
 
+        // Hosts from another of its settings are wider access (docs/plans/plugin-sockets-1.md, A2).
+        if (self::hostsFromAdded($consent, $manifest) !== []) {
+            return false;
+        }
+
+        if (self::insertionHostsAdded($consent, $manifest) !== []) {
+            return false;
+        }
+
         return true;
+    }
+
+    /**
+     * The settings the outbound door may take hosts from: those the
+     * manifest's `hostsFrom` names now that were also agreed, the narrower
+     * of the two.
+     *
+     * @param  array{hostsFrom?: list<string>}  $consent
+     *
+     * @return list<string>
+     */
+    public static function hostsFrom(array $consent, Manifest $manifest): array
+    {
+        return array_values(array_intersect(SettingHosts::declared($manifest), (array) ($consent['hostsFrom'] ?? [])));
+    }
+
+    /**
+     * The settings the manifest's `hostsFrom` names that were never agreed.
+     *
+     * @param  array{hostsFrom?: list<string>}  $consent
+     *
+     * @return list<string>
+     */
+    public static function hostsFromAdded(array $consent, Manifest $manifest): array
+    {
+        return array_values(array_diff(SettingHosts::declared($manifest), (array) ($consent['hostsFrom'] ?? [])));
+    }
+
+    /**
+     * The hosts the manifest's `csp` declares for the content the plugin
+     * inserts, by kind (script, frame, img and the rest), in lower case;
+     * kinds it lists none for are absent.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function declaredInsertionHosts(Manifest $manifest): array
+    {
+        $csp = $manifest->contributes()['csp'] ?? null;
+        $declared = [];
+
+        foreach (is_array($csp) ? $csp : [] as $kind => $hosts) {
+            $listed = array_values(array_unique(array_filter(array_map(fn (mixed $host): string => is_string($host) ? strtolower($host) : '', is_array($hosts) ? $hosts : []), fn (string $host): bool => preg_match(HostPattern::PATTERN, $host) === 1)));
+
+            if (is_string($kind) && $listed !== []) {
+                $declared[$kind] = $listed;
+            }
+        }
+
+        ksort($declared);
+
+        return $declared;
+    }
+
+    /**
+     * The hosts inserted content may load from, by kind: those the manifest
+     * declares now that an agreed host of the same kind covers, the narrower
+     * of the two.
+     *
+     * @param  array{csp?: array<string, list<string>>}  $consent
+     *
+     * @return array<string, list<string>>
+     */
+    public static function insertionHosts(array $consent, Manifest $manifest): array
+    {
+        $kept = [];
+
+        foreach (self::declaredInsertionHosts($manifest) as $kind => $hosts) {
+            $agreed = array_values(array_filter((array) ($consent['csp'][$kind] ?? []), 'is_string'));
+            $covered = array_values(array_filter($hosts, fn (string $host): bool => HostPattern::anyCovers($agreed, $host)));
+
+            if ($covered !== []) {
+                $kept[$kind] = $covered;
+            }
+        }
+
+        return $kept;
+    }
+
+    /**
+     * The hosts for inserted content the manifest declares that no agreed
+     * host of the same kind covers, each once.
+     *
+     * @param  array{csp?: array<string, list<string>>}  $consent
+     *
+     * @return list<string>
+     */
+    public static function insertionHostsAdded(array $consent, Manifest $manifest): array
+    {
+        $added = [];
+
+        foreach (self::declaredInsertionHosts($manifest) as $kind => $hosts) {
+            $agreed = array_values(array_filter((array) ($consent['csp'][$kind] ?? []), 'is_string'));
+
+            foreach ($hosts as $host) {
+                if (! HostPattern::anyCovers($agreed, $host)) {
+                    $added[$host] = true;
+                }
+            }
+        }
+
+        return array_keys($added);
     }
 
     /**
@@ -70,22 +183,32 @@ final readonly class Consent
     /**
      * What the manifest asks for that was never agreed to: its new
      * capabilities, its hosts no agreed host covers, its new route lines,
-     * and, only when there are any, the names it declares to import that
-     * were never agreed and the ids of its AI tasks never agreed as they stand.
+     * and, only when there are any, the hosts its inserted content loads
+     * from, the names it declares to import that were never agreed and the
+     * ids of its AI tasks never agreed as they stand.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, aiTasks?: array<string, mixed>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>}  $consent
      *
-     * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}, aiTasks?: list<string>}
+     * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, insertionHosts?: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}, aiTasks?: list<string>}
      */
     public static function added(array $consent, Manifest $manifest): array
     {
         $imports = self::importsAdded($consent, $manifest);
         $aiTasks = PluginAiTasks::added($consent['aiTasks'] ?? [], $manifest);
+        $insertionHosts = self::insertionHostsAdded($consent, $manifest);
+
+        $capabilities = array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? []));
+
+        // Hosts from another setting are more of http, so the screen asks again under it.
+        if (self::hostsFromAdded($consent, $manifest) !== [] && ! in_array('http', $capabilities, true)) {
+            $capabilities[] = 'http';
+        }
 
         return [
-            'capabilities' => array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? [])),
+            'capabilities' => $capabilities,
             'hosts' => array_values(array_filter($manifest->hosts(), fn (string $host): bool => ! HostPattern::anyCovers($consent['hosts'] ?? [], $host))),
             'routes' => array_values(array_diff(self::routeLines($manifest), $consent['routes'] ?? [])),
+            ...($insertionHosts === [] ? [] : ['insertionHosts' => $insertionHosts]),
             ...($imports === [] ? [] : ['imports' => $imports]),
             ...($aiTasks === [] ? [] : ['aiTasks' => $aiTasks]),
         ];
@@ -94,8 +217,9 @@ final readonly class Consent
     /**
      * Each declared public route as `METHOD path`, with `{code}` replaced by
      * the plugin's code and its condition, when it has one, in brackets, in
-     * the file's order. The consent screen lists these, so a changed
-     * condition asks again too.
+     * the file's order, then each root file it declares as `GET /name`. The
+     * consent screen lists these, so a changed condition or a new root file
+     * asks again too.
      *
      * @return list<string>
      */
@@ -111,6 +235,10 @@ final readonly class Consent
             }
 
             $lines[] = $route->consentLine();
+        }
+
+        foreach (RootFile::declaredIn($manifest) as $file) {
+            $lines[] = $file->consentLine($manifest);
         }
 
         return $lines;

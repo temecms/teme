@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Extensions\ActiveRelease;
 use Composer\InstalledVersions;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Context;
@@ -25,7 +26,7 @@ use ValueError;
  * plugin's code, and a plugin it can't read, or a cache it can't load,
  * never stops it.
  *
- * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}
+ * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}
  * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>, migrations: list<string>}
  */
 final class PluginRegistry
@@ -37,7 +38,7 @@ final class PluginRegistry
      * hooks are checked on every read anyway. A deployment that changes Teme
      * runs `teme:plugins:cache` again, as `optimize` does.
      */
-    private const int FORMAT = 4;
+    private const int FORMAT = 5;
 
     /** @var array<string, array<string, FoundPlugin>> each discovery, by the settings it was made from */
     private array $memo = [];
@@ -56,7 +57,7 @@ final class PluginRegistry
     public function all(): array
     {
         $paths = $this->configuredPaths();
-        $cache = (string) config('teme.plugin_cache');
+        $cache = app(ActiveRelease::class)->pluginCache() ?? (string) config('teme.plugin_cache');
         $key = json_encode([$paths, $cache, (string) config('teme.version')], JSON_THROW_ON_ERROR);
 
         if (! isset($this->memo[$key])) {
@@ -114,11 +115,12 @@ final class PluginRegistry
      * Reads every plugin now and writes the cache whole or not at all: a
      * file beside it, checked, then renamed over it, so a full disk leaves
      * the old cache in place. Returns how many plugins it holds, or null
-     * when it couldn't be written.
+     * when it couldn't be written. $path is the installer's, for a release
+     * of the extensions folder; else the configured cache.
      */
-    public function writeCache(): ?int
+    public function writeCache(?string $path = null): ?int
     {
-        $path = (string) config('teme.plugin_cache');
+        $path ??= (string) config('teme.plugin_cache');
         $entries = [];
 
         foreach ($this->candidates($this->configuredPaths()) as [$folder, $package]) {
@@ -508,11 +510,31 @@ final class PluginRegistry
         $found = [];
 
         foreach (is_array($paths) ? $paths : [] as $path) {
-            if (is_string($path) && is_file($path.'/teme-plugin.json')) {
-                $found[] = realpath($path) ?: $path;
+            if (! is_string($path) || $path === '') {
+                continue;
+            }
+
+            // Relative entries are against the project root, not the process cwd
+            // (public/ under a web server): issue #339.
+            $resolved = self::absolutePath($path);
+
+            if (is_file($resolved.'/teme-plugin.json')) {
+                $found[] = realpath($resolved) ?: $resolved;
             }
         }
 
         return array_values(array_unique($found));
+    }
+
+    /**
+     * An absolute folder path: absolute entries unchanged, relative ones from base_path().
+     */
+    private static function absolutePath(string $path): string
+    {
+        if (str_starts_with($path, '/') || str_starts_with($path, '\\') || (strlen($path) > 1 && $path[1] === ':')) {
+            return $path;
+        }
+
+        return base_path($path);
     }
 }

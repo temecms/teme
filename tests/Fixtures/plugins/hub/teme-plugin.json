@@ -1,0 +1,57 @@
+{
+    "manifest": 1,
+    "name": "tests/hub",
+    "code": "hub",
+    "label": "Hub",
+    "description": "A plugin the sockets' tests enable: it pings the hubs its settings name, links them in the feeds, and asks for the site's facts.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Tests\\Fixtures\\Plugins\\Hub\\Hub",
+    "capabilities": [
+        "http",
+        "feeds.links"
+    ],
+    "hosts": [
+        "api.example.com"
+    ],
+    "hostsFrom": [
+        "hub_url",
+        "more_hubs"
+    ],
+    "contributes": {
+        "settings": [
+            {
+                "key": "hub_url",
+                "type": "url",
+                "label": "Hub",
+                "description": "The hub feed readers subscribe through.",
+                "default": "https://hub.example.com/"
+            },
+            {
+                "key": "more_hubs",
+                "type": "urls",
+                "label": "More hubs",
+                "description": "Other hubs to ping.",
+                "default": []
+            },
+            {
+                "key": "note",
+                "type": "text",
+                "label": "Note",
+                "description": "A note for nobody."
+            }
+        ],
+        "feedLinks": [
+            {
+                "rel": "hub",
+                "href": "{hub_url}"
+            },
+            {
+                "rel": "hub",
+                "href": "{more_hubs}"
+            }
+        ]
+    }
+}

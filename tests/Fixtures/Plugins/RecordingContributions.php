@@ -20,7 +20,7 @@ final class RecordingContributions implements PluginContributions
      */
     public function __construct(private readonly array $refuse = []) {}
 
-    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = []): array
+    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = [], bool $rootFiles = false): array
     {
         if (isset($this->refuse[$name])) {
             return [$this->refuse[$name]];

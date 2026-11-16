@@ -17,6 +17,8 @@ use App\Domain\Design\Operations\PublishDesign;
 use App\Domain\Design\Operations\SaveDesignDraft;
 use App\Domain\Design\Operations\StopPreviewingTheme;
 use App\Domain\Design\Queries\DesignScreen;
+use App\Domain\Extensions\ExtensionsAccess;
+use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Regions\Queries\RegionScreens;
 use App\Domain\Regions\RegionWords;
 use App\Domain\Themes\Theme;
@@ -39,7 +41,7 @@ use Teme\Contracts\Settings\Setting;
  */
 final class ThemesController extends Controller
 {
-    public function index(Request $request, DesignScreen $screen, RegionScreens $regions, ThemeRegistry $themes): Response
+    public function index(Request $request, DesignScreen $screen, RegionScreens $regions, ThemeRegistry $themes, ExtensionsScreen $extensions): Response
     {
         $data = $screen->data();
         $previewed = $data['preview'] === null ? null : $themes->find($data['preview']['code']);
@@ -49,6 +51,8 @@ final class ThemesController extends Controller
             'regions' => $regions->index(),
             'previewRegions' => $previewed === null ? null : $regions->forTheme($previewed),
             'canEditRegions' => $request->user()?->can('regions.manage') === true,
+            // Installing from the admin (I-211), for whoever may.
+            'extensions' => $request->user()?->can(ExtensionsAccess::INSTALL) === true ? $extensions->data() : null,
         ]);
     }
 

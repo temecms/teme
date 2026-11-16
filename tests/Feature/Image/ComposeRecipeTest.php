@@ -23,20 +23,43 @@ it('runs every Teme role from one image, named in .env with its exact tag', func
     expect(ImageFiles::text('docker/compose.yml'))->not->toContain(':latest');
 });
 
-it('starts every role once deploy has succeeded, and deploy once PostgreSQL is ready', function (): void {
+it('starts every role once deploy has succeeded and the installer has checked the extensions, and deploy once PostgreSQL is ready', function (): void {
     $services = ImageFiles::compose()['services'];
 
     expect($services['deploy']['depends_on'])->toBe(['postgres' => ['condition' => 'service_healthy']])
-        ->and($services['deploy']['restart'])->toBe('no');
+        ->and($services['deploy']['restart'])->toBe('no')
+        ->and($services['installer']['depends_on'])->toBe(['deploy' => ['condition' => 'service_completed_successfully']]);
 
     foreach (['web', 'worker', 'worker-long', 'scheduler'] as $role) {
-        expect($services[$role]['depends_on'])->toBe(['deploy' => ['condition' => 'service_completed_successfully']]);
+        expect($services[$role]['depends_on'])->toBe(['deploy' => ['condition' => 'service_completed_successfully'], 'installer' => ['condition' => 'service_healthy']]);
     }
 });
 
-it('mounts the media and the page cache in every role (I-533)', function (string $role): void {
-    expect(ImageFiles::compose()['services'][$role]['volumes'])->toBe(['media:/var/www/html/storage/app', 'page-cache:/var/www/html/storage/page-cache']);
+it('mounts the media, the page cache and, read-only, the extensions in every role (I-533)', function (string $role): void {
+    expect(ImageFiles::compose()['services'][$role]['volumes'])->toBe(['media:/var/www/html/storage/app', 'page-cache:/var/www/html/storage/page-cache', 'extensions:/var/teme/extensions:ro'])
+        ->and(ImageFiles::compose()['services'][$role]['environment']['TEME_EXTENSIONS_PATH'])->toBe('/var/teme/extensions');
 })->with(ImageFiles::TEME_ROLES);
+
+it('runs the installer from the site’s own image, as its own user, alone with the extensions volume writable (I-211)', function (): void {
+    $compose = ImageFiles::compose();
+    $installer = $compose['services']['installer'];
+
+    expect($installer['image'])->toBe($compose['services']['web']['image'])
+        ->and($installer['user'])->toBe('9990:9990')
+        ->and($installer['entrypoint'])->toBe(['php', 'artisan', 'teme:installer'])
+        ->and($installer['init'])->toBeTrue()
+        ->and($installer['environment']['TEME_EXTENSIONS_ROLE'])->toBe('installer')
+        ->and($installer['environment']['TEME_EXTENSIONS_PATH'])->toBe('/var/teme/extensions')
+        ->and($installer['volumes'])->toBe(['extensions:/var/teme/extensions'])
+        ->and($installer['healthcheck']['test'])->toBe(['CMD', 'test', '-f', '/tmp/teme-installer-ready'])
+        ->and($compose['volumes'])->toHaveKey('extensions');
+
+    foreach ($compose['services'] as $name => $service) {
+        if ($name !== 'installer') {
+            expect(array_filter($service['volumes'] ?? [], fn (string $volume): bool => str_starts_with($volume, 'extensions:') && ! str_ends_with($volume, ':ro')))->toBe([]);
+        }
+    }
+});
 
 it('publishes no port', function (): void {
     foreach (ImageFiles::compose()['services'] as $service) {

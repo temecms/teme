@@ -135,6 +135,22 @@ return [
     ],
 
     /*
+     * Plugins and themes installed from the admin (I-211; docs/architecture/plugins.md).
+     * path is the extensions folder, the installer's volume, unset where
+     * there is none; composer is the binary the installer runs. An upload
+     * may be upload_max bytes. packagist off stops installs by name from
+     * Packagist; private_hosts lets a Git or vendor address point inside the
+     * server's own network.
+     */
+    'extensions' => [
+        'path' => env('TEME_EXTENSIONS_PATH'),
+        'composer' => env('TEME_COMPOSER_BINARY', 'composer'),
+        'upload_max' => (int) env('TEME_EXTENSION_UPLOAD_MAX', 33554432),
+        'packagist' => (bool) filter_var(env('TEME_EXTENSIONS_PACKAGIST', true), FILTER_VALIDATE_BOOLEAN),
+        'private_hosts' => (bool) filter_var(env('TEME_EXTENSIONS_ALLOW_PRIVATE_HOSTS', false), FILTER_VALIDATE_BOOLEAN),
+    ],
+
+    /*
      * Backups (I-366). restic is a path, or a name looked up on the PATH;
      * the PostgreSQL folder holds pg_dump and pg_restore from one
      * installation, each looked up on the PATH when it is empty. restic

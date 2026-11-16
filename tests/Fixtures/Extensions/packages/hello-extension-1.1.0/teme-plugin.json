@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/hello-extension",
+    "code": "hello-extension",
+    "label": "Hello Extension",
+    "description": "A plugin the installer's tests install.",
+    "version": "1.1.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\HelloExtension\\HelloExtension",
+    "capabilities": [],
+    "hooks": []
+}

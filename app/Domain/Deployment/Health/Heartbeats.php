@@ -21,6 +21,9 @@ final readonly class Heartbeats
     /** The updater, which carries out an update asked for from the admin (I-3326). */
     public const string UPDATER = 'updater';
 
+    /** The installer, which carries out a plugin or theme request asked for from the admin (I-211). */
+    public const string INSTALLER = 'installer';
+
     /** A queue's row is named this, then the queue's name. */
     public const string QUEUE_PREFIX = 'queue:';
 

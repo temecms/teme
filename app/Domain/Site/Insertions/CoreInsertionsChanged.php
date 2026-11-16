@@ -11,8 +11,8 @@ use Teme\Contracts\Insertions\InsertionsChanged;
 
 /**
  * The door plugins call when their insertion rules change (I-064): notes
- * the insertions tag for the page cache to purge after the Operation
- * commits (rule 6).
+ * the insertions and page-insertions tags for the page cache to purge after
+ * the Operation commits (rule 6).
  */
 final readonly class CoreInsertionsChanged implements InsertionsChanged
 {
@@ -20,6 +20,6 @@ final readonly class CoreInsertionsChanged implements InsertionsChanged
 
     public function notify(): void
     {
-        $this->changes->add(new CacheKeysFor(CacheKeysFor::SETTINGS, 'insertions', [PageTags::INSERTIONS]));
+        $this->changes->add(new CacheKeysFor(CacheKeysFor::SETTINGS, 'insertions', [PageTags::INSERTIONS, PageTags::PAGE_INSERTIONS]));
     }
 }

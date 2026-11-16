@@ -77,3 +77,20 @@ it('refuses the default theme on Teme 1.0', function (): void {
 
     expect(app(ThemeRegistry::class)->find('default')?->errors)->toContain("The theme requires Teme {$constraint}, but this is Teme 1.0.0.");
 });
+
+it('finds a relative theme_paths entry when the working directory is public/', function (): void {
+    $cwd = getcwd();
+    config(['teme.theme_paths' => ['tests/Fixtures/themes/good'], 'teme.theme_cache' => '']);
+    app()->forgetInstance(ThemeRegistry::class);
+    chdir(base_path('public'));
+
+    try {
+        $good = app(ThemeRegistry::class)->find('good');
+
+        expect($good)->not->toBeNull()
+            ->and($good->usable())->toBeTrue()
+            ->and($good->path)->toBe(realpath(base_path('tests/Fixtures/themes/good')));
+    } finally {
+        chdir($cwd ?: base_path());
+    }
+});

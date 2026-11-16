@@ -24,6 +24,7 @@ Stored values are keyed by the field's **key**, which never changes. The **handl
 | `primary_category` | `01K5Z0F1ED00000000000000PC` | term | The category that stands for this when it has several. Empty uses the first one ticked. | 0.1.0 |
 | `page_type` | `01K5Z0F1ED00000000000000PT` | select | What search engines are told this page is. Empty uses the default for its type. | 0.1.0 |
 | `article_type` | `01K5Z0F1ED00000000000000AT` | select | What kind of article search engines are told this is, if it is one. Empty uses the default for its type. | 0.1.0 |
+| `insertions_off` | `01K5Z0F1ED00000000000000XF` | boolean | Turns off ads and other content plugins place inside this item. | 0.8.0 |
 
 ## Post
 
@@ -46,4 +47,5 @@ Stored values are keyed by the field's **key**, which never changes. The **handl
 | `primary_category` | `01K5Z0F1ED00000000000000PC` | term | The category that stands for this when it has several. Empty uses the first one ticked. | 0.1.0 |
 | `page_type` | `01K5Z0F1ED00000000000000PT` | select | What search engines are told this page is. Empty uses the default for its type. | 0.1.0 |
 | `article_type` | `01K5Z0F1ED00000000000000AT` | select | What kind of article search engines are told this is, if it is one. Empty uses the default for its type. | 0.1.0 |
+| `insertions_off` | `01K5Z0F1ED00000000000000XF` | boolean | Turns off ads and other content plugins place inside this item. | 0.8.0 |
 

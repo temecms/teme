@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Ai\Plugins\DeclaredAiTask;
 use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
@@ -37,6 +38,7 @@ final readonly class PluginsScreen
         private PluginList $list,
         private PluginRegistry $registry,
         private PluginMigrations $migrations,
+        private ExtensionsScreen $extensions,
     ) {}
 
     /**
@@ -47,8 +49,20 @@ final readonly class PluginsScreen
     public function rows(): array
     {
         $records = PluginRecord::query()->get()->keyBy('name');
+        $rows = $this->list->all();
+        $paths = [];
 
-        return array_map(function (PluginRow $row) use ($records): array {
+        foreach ($rows as $row) {
+            $found = $this->registry->find($row->name);
+
+            if ($found !== null) {
+                $paths[$row->name] = $found->path;
+            }
+        }
+
+        $origins = $this->extensions->origins($paths);
+
+        return array_map(function (PluginRow $row) use ($records, $origins): array {
             $record = $records->get($row->name);
             $enabled = $record !== null && $record->state === PluginRecord::ENABLED;
             $hosts = $row->asks['hosts'];
@@ -71,15 +85,20 @@ final readonly class PluginsScreen
                 'state' => $row->state->value,
                 'badge' => $row->state->label(),
                 'reason' => $row->reason,
+                // Why its schedules don't run, shown as a warning in its row (docs/proposals/plugin-sockets-1.md).
+                'schedules' => $row->schedules,
                 'enabled' => $enabled,
                 'needsAttention' => in_array($row->state, self::NEEDS_ATTENTION, true),
                 'action' => $this->action($row, $enabled, $newImports || ($row->added['aiTasks'] ?? []) !== []),
                 'hasSettings' => $this->labels($manifest?->contributes()['settings'] ?? null) !== [],
                 'adds' => [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)],
                 'agreedVersion' => $record?->version,
-                'agreed' => $this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : [])))),
+                'agreed' => [
+                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : [])))),
+                    ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
+                ],
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
-                'asks' => $this->accessLines(
+                'asks' => [...$this->accessLines(
                     $row->asks['capabilities'],
                     $hosts,
                     $row->consent === [] ? [] : $row->added['capabilities'],
@@ -90,17 +109,62 @@ final readonly class PluginsScreen
                     $newImports,
                     $aiTasks,
                     $newAiTasks,
-                ),
+                ), ...$this->insertionHostsLine(
+                    $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
+                    $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
+                )],
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
-                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || $newImports || $newAiTasks !== [],
+                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports || $newAiTasks !== [],
                 'tables' => $tables,
                 'ai' => $row->ai,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables left.
                 'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
+                // Installed from the admin, or part of the site's build (I-211).
+                'origin' => $origins[$row->name]['origin'] ?? 'image',
+                'source' => $origins[$row->name]['source'] ?? null,
+                // Same rule as ForgetPlugin: disabled, package gone, and no tables left.
+                'canForget' => ! $enabled && ($manifest === null) && ($record === null || $this->migrations->ownedTables($record->migrations) === []),
             ];
-        }, $this->list->all());
+        }, $rows);
+    }
+
+    /**
+     * The line naming the hosts a plugin's inserted content loads from, or
+     * none when it declares none (docs/plans/plugin-sockets-2.md, B3).
+     *
+     * @param  list<string>  $hosts
+     *
+     * @return list<array{words: string, new: bool}>
+     */
+    private function insertionHostsLine(array $hosts, bool $new): array
+    {
+        $hosts = array_values(array_unique($hosts));
+
+        return $hosts === [] ? [] : [['words' => PluginWords::insertionHosts($hosts), 'new' => $new]];
+    }
+
+    /**
+     * The hosts agreed to for a plugin's inserted content, of every kind.
+     *
+     * @param  array<string, mixed>  $consent
+     *
+     * @return list<string>
+     */
+    private function agreedInsertionHosts(array $consent): array
+    {
+        $hosts = [];
+
+        foreach (is_array($consent['csp'] ?? null) ? $consent['csp'] : [] as $listed) {
+            foreach (is_array($listed) ? $listed : [] as $host) {
+                if (is_string($host)) {
+                    $hosts[] = $host;
+                }
+            }
+        }
+
+        return $hosts;
     }
 
     /**
@@ -159,7 +223,7 @@ final readonly class PluginsScreen
     {
         if ($row->state === PluginState::Waiting) {
             // Consent first: an update that asks for more access waits for that.
-            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || $newImports ? 'review' : 'migrate';
+            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports ? 'review' : 'migrate';
         }
 
         if ($enabled) {

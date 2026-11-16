@@ -9,6 +9,9 @@ use App\Domain\Design\Operations\Input\ChangeBrandColourInput;
 use App\Domain\Languages\Operations\Input\SaveSettingsWordsInput;
 use App\Domain\Languages\Operations\SaveSettingsWords;
 use App\Domain\Languages\Queries\SettingsWords;
+use App\Domain\Plugins\Lists\PluginActions;
+use App\Domain\Plugins\Lists\PluginLists;
+use App\Domain\Plugins\SettingHosts;
 use App\Domain\Settings\Exceptions\StaleSettingsException;
 use App\Domain\Settings\Operations\Input\SaveSettingsPageInput;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
@@ -31,7 +34,7 @@ use Inertia\Response;
  */
 final class SettingsController extends Controller
 {
-    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections): Response|RedirectResponse
+    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists): Response|RedirectResponse
     {
         // A group drawn under another page's name opens on that page, so its
         // own address, such as /admin/settings/content, keeps working.
@@ -74,6 +77,11 @@ final class SettingsController extends Controller
             'panels' => SettingsPanels::for($page),
             // "In other languages" (docs/proposals/multilingual-screens.md, 6): null on a site with one language.
             'words' => SettingsWords::for(SettingsPlacement::groupShownOn($page)),
+            // A plugin's hosts from its settings (docs/plans/plugin-sockets-1.md, A2): null for every other group.
+            'pluginHosts' => $this->pluginHosts($hosts, SettingsPlacement::groupShownOn($page)),
+            // A plugin's own actions and lists, drawn below its settings (docs/proposals/plugin-sockets-1.md).
+            'pluginActions' => $actions->forGroup(SettingsPlacement::groupShownOn($page)),
+            'pluginLists' => $lists->forGroup(SettingsPlacement::groupShownOn($page)),
             ...$sections->for($page, $user),
         ]);
     }
@@ -96,7 +104,7 @@ final class SettingsController extends Controller
 
         try {
             $result = $save->execute(new SaveSettingsPageInput(
-                group: new UpdateSettingsInput(group: $group, values: $values, reset: $reset, secrets: $secrets, expectedVersion: $request->integer('expected_version'), actorId: $actorId),
+                group: new UpdateSettingsInput(group: $group, values: $values, reset: $reset, secrets: $secrets, expectedVersion: $request->integer('expected_version'), actorId: $actorId, agreedHosts: array_values(array_filter($request->array('agreedHosts'), is_string(...)))),
                 // Sent only when changed: saving the colour also drops one drafted in Design.
                 brandColour: $page === 'general' && $request->has('accent')
                     ? new ChangeBrandColourInput(colour: $request->string('accent')->toString(), expectedVersion: $request->integer('accent_version'), actorId: $actorId)
@@ -116,6 +124,26 @@ final class SettingsController extends Controller
             : __('Settings saved.')]);
 
         return to_route('settings.show', ['group' => $page]);
+    }
+
+    /**
+     * What the page needs to ask before a plugin reaches a host entered in
+     * its settings: the plugin's label, the settings it takes hosts from,
+     * the hosts agreed in them, and its manifest's agreed hosts; null when
+     * the group isn't such a plugin's. The server stays the judge.
+     *
+     * @return array{plugin: string, settings: list<string>, agreed: list<string>, declared: list<string>}|null
+     */
+    private function pluginHosts(SettingHosts $hosts, string $group): ?array
+    {
+        $plugin = $hosts->forGroup($group);
+
+        return $plugin === null ? null : [
+            'plugin' => $plugin['label'],
+            'settings' => $plugin['keys'],
+            'agreed' => $plugin['agreed'],
+            'declared' => $plugin['hosts'],
+        ];
     }
 
     /**
