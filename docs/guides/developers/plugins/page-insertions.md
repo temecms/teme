@@ -87,7 +87,13 @@ People enabling the plugin see them ("Lets the content it inserts load from: …
 
 ## Inline scripts
 
-An inline script in what a plugin inserts is removed, unless a person approved its exact text for that plugin. Ask with the `InlineScripts` door: take it in your plugin's constructor and call `request(name, script)` while a person is using the plugin, for instance when they save its settings. The request waits on **Settings › Site code** until someone who may change site code approves or refuses it, with their password asked again; they can revoke it there later. At most 20 wait per plugin. A plugin can never approve.
+An inline script in what a plugin inserts is removed, unless a person approved its exact text for that plugin. A plugin can never approve.
+
+Approval happens where the ad is written. When someone saves a code field or setting your manifest declares with `scripts: true`, core asks for each new inline script in it, and a control core draws beside the field lets a person who may change site code approve it there, with their password asked again. For a script your plugin builds itself, ask with the `InlineScripts` door: take it in your plugin's constructor and call `request(name, script)` while a person is using the plugin; the request waits until someone approves or refuses it. At most 20 wait per plugin.
+
+**Settings › Site code** lists every plugin's approved and waiting scripts, and an approval can be revoked there.
+
+The control on the form and the list on Settings › Site code follow in a later release; until then the Operations behind them exist, and a script that waits is removed from pages.
 
 Once approved, the script is kept byte for byte wherever your insertions carry it, and its hash joins the page's `script-src`. While the host has switched site code off, no plugin's inline script is kept.
 
