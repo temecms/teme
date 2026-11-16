@@ -26,7 +26,12 @@ import { __, __n } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 import { index as toolsIndex } from '@/routes/tools';
 import { index } from '@/routes/tools/ai-activity';
-import type { AiActivityPage, AiActivityRow, AiMonthSummary } from '@/types';
+import type {
+    AiActivityPage,
+    AiActivityRow,
+    AiMonthSummary,
+    AiPluginMonth,
+} from '@/types';
 
 /** The summary's two columns from the small breakpoint up. */
 const FACTS = { '--facts-cols': 'max-content 1fr' } as CSSProperties;
@@ -34,9 +39,11 @@ const FACTS = { '--facts-cols': 'max-content 1fr' } as CSSProperties;
 /** The figures above the list: a month's spend and requests, and, for this month, the budget (I-1307). */
 function Summary({
     summary,
+    pluginMonths,
     canChangeSettings,
 }: {
     summary: AiMonthSummary;
+    pluginMonths: AiPluginMonth[];
     canChangeSettings: boolean;
 }) {
     const budget = summary.budgetMicrounits;
@@ -144,6 +151,48 @@ function Summary({
                         </span>
                     </Notice>
                 )}
+                {pluginMonths.length > 0 && (
+                    <section
+                        aria-labelledby="ai-activity-by-plugin"
+                        data-test="ai-activity-by-plugin"
+                        className="border-line grid gap-2 border-t pt-3"
+                    >
+                        <h3
+                            id="ai-activity-by-plugin"
+                            className="text-small font-medium"
+                        >
+                            {__('By plugin')}
+                        </h3>
+                        <dl
+                            className="text-small grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                            style={FACTS}
+                        >
+                            {pluginMonths.map((plugin) => (
+                                <div
+                                    key={plugin.code}
+                                    className="contents"
+                                    data-test={`ai-activity-plugin-month-${plugin.code}`}
+                                >
+                                    <dt className="text-ink-2">
+                                        {plugin.label}
+                                    </dt>
+                                    <dd>
+                                        {__n(
+                                            ':cost, :count request|:cost, :count requests',
+                                            plugin.requests,
+                                            {
+                                                cost: formatCost(
+                                                    plugin.costMicrounits,
+                                                ),
+                                                count: plugin.requests.toLocaleString(),
+                                            },
+                                        )}
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </section>
+                )}
                 <p className="text-ink-2 text-caption">
                     {__('Months follow UTC, as the AI companies bill.')}
                 </p>
@@ -166,7 +215,9 @@ export default function AiActivity(page: AiActivityPage) {
         people,
         tasks,
         months,
+        plugins,
         summary,
+        pluginMonths,
         details,
         missing,
         siteTimezone,
@@ -183,12 +234,16 @@ export default function AiActivity(page: AiActivityPage) {
     const filtered =
         filters.person !== null ||
         filters.task !== null ||
-        filters.month !== null;
+        filters.month !== null ||
+        filters.plugin !== null;
     const keep: Record<string, string> = {
         ...(filters.person === null ? {} : { person: String(filters.person) }),
         ...(filters.task === null ? {} : { task: filters.task }),
         ...(filters.month === null ? {} : { month: filters.month }),
+        ...(filters.plugin === null ? {} : { plugin: filters.plugin }),
     };
+    // Only Teme is listed until a plugin has asked.
+    const pluginFilter = plugins.length > 1 || filters.plugin !== null;
 
     // A filter starts a list afresh: no cursor, no drawer.
     const filter = (event: FormEvent<HTMLFormElement>) => {
@@ -196,7 +251,7 @@ export default function AiActivity(page: AiActivityPage) {
         const data = new FormData(event.currentTarget);
         const query: Record<string, string> = {};
 
-        for (const name of ['person', 'task', 'month'] as const) {
+        for (const name of ['person', 'task', 'month', 'plugin'] as const) {
             const value = data.get(name);
 
             if (typeof value === 'string' && value !== '') {
@@ -254,6 +309,14 @@ export default function AiActivity(page: AiActivityPage) {
             cell: (row) => (
                 <>
                     {row.task.label}
+                    {row.plugin !== null && (
+                        <span
+                            className="text-ink-2 text-caption block"
+                            data-test={`ai-row-plugin-${row.id}`}
+                        >
+                            {row.plugin.label}
+                        </span>
+                    )}
                     {row.variant !== null && (
                         <span className="text-ink-2 text-caption block">
                             {row.variant.label}
@@ -380,6 +443,7 @@ export default function AiActivity(page: AiActivityPage) {
 
                 <Summary
                     summary={summary}
+                    pluginMonths={pluginMonths}
                     canChangeSettings={canChangeSettings}
                 />
 
@@ -435,6 +499,22 @@ export default function AiActivity(page: AiActivityPage) {
                             className="w-44"
                         />
                     </Field>
+                    {pluginFilter && (
+                        <Field
+                            key={`plugin-${filters.plugin ?? ''}`}
+                            htmlFor="ai-plugin"
+                            label={__('Plugin')}
+                        >
+                            <SelectField
+                                id="ai-plugin"
+                                name="plugin"
+                                defaultValue={filters.plugin ?? ''}
+                                emptyLabel={__('Teme and every plugin')}
+                                options={plugins}
+                                className="w-52"
+                            />
+                        </Field>
+                    )}
                     <Button
                         type="submit"
                         variant="outline"

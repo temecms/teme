@@ -1,4 +1,5 @@
 import { Head, setLayoutProps } from '@inertiajs/react';
+import type { CSSProperties } from 'react';
 import AiSettingsController from '@/actions/App/Http/Admin/Settings/AiSettingsController';
 import { MonthFigures } from '@/components/ai-settings/month-figures';
 import { ServicePanel } from '@/components/ai-settings/service-panel';
@@ -9,8 +10,125 @@ import { SettingsPanel } from '@/components/fields/settings-panel';
 import InputError from '@/components/input-error';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { Notice } from '@/components/ui/notice';
-import { __ } from '@/lib/i18n';
-import type { AiSettingsPage } from '@/types/ai-settings';
+import { formatCost } from '@/lib/ai-cost';
+import { __, __n } from '@/lib/i18n';
+import type { FieldDefinition, SecretStatus } from '@/types';
+import type { AiPluginRow, AiSettingsPage } from '@/types/ai-settings';
+
+/** The month's figures in two columns from the small breakpoint up. */
+const FACTS = { '--facts-cols': 'max-content 1fr' } as CSSProperties;
+
+/**
+ * One plugin's AI on Settings › AI: its name once, in the panel's header;
+ * its switch, budget and hourly limit; this month's figures; and its tasks'
+ * model and fallback rows, each saying what it sends.
+ */
+function PluginPanel({
+    plugin,
+    fields,
+    values,
+    secrets,
+    errors,
+}: {
+    plugin: AiPluginRow;
+    fields: FieldDefinition[];
+    values: Record<string, unknown>;
+    secrets: Record<string, SecretStatus>;
+    errors: Record<string, string>;
+}) {
+    // The section's own words, without the plugin's name, which the header already says.
+    const words: Record<string, { label: string; description: string }> = {
+        [plugin.onField]: {
+            label: __('AI on'),
+            description: __(
+                'Lets the plugin ask the site’s AI connection for its tasks. Switched off, it can’t ask; its settings are kept.',
+            ),
+        },
+        [plugin.budgetField]: {
+            label: __('Monthly budget, in US dollars'),
+            description: __(
+                'When this month’s cost reaches it, the plugin can’t ask until the month ends. 0 means only the site’s budget applies.',
+            ),
+        },
+        [plugin.hourlyField]: {
+            label: __('Requests an hour'),
+            description: __(
+                'How many times the plugin may ask in an hour, for everyone it works for.',
+            ),
+        },
+    };
+    const controls = [plugin.onField, plugin.budgetField, plugin.hourlyField]
+        .map((key) => fields.find((field) => field.key === key))
+        .filter((field): field is FieldDefinition => field !== undefined);
+    const month = plugin.month;
+
+    return (
+        <SettingsPanel
+            as="section"
+            title={plugin.label}
+            description={__(
+                'A plugin. Its requests are recorded under its name in Tools › AI activity, and they count toward the site’s budget.',
+            )}
+        >
+            <div data-test={`ai-plugin-${plugin.code}`} className="grid gap-5">
+                <dl
+                    data-test={`ai-plugin-month-${plugin.code}`}
+                    className="text-small grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
+                    style={FACTS}
+                >
+                    <dt className="text-ink-2">{__('This month')}</dt>
+                    <dd>
+                        {__n(
+                            ':cost, :count request|:cost, :count requests',
+                            month.requests,
+                            {
+                                cost: formatCost(month.costMicrounits),
+                                count: month.requests.toLocaleString(),
+                            },
+                        )}
+                    </dd>
+                    <dt className="text-ink-2">{__('Budget')}</dt>
+                    <dd>
+                        {plugin.budgetMicrounits === null
+                            ? __('The site’s budget only')
+                            : __(':budget a month', {
+                                  budget: formatCost(plugin.budgetMicrounits),
+                              })}
+                    </dd>
+                </dl>
+
+                {controls.map((field) => (
+                    <SettingsField
+                        key={field.key}
+                        field={{ ...field, ...words[field.key] }}
+                        value={values[field.key]}
+                        secret={secrets[field.key]}
+                        media={null}
+                        error={errors[`values.${field.key}`]}
+                    />
+                ))}
+
+                {plugin.tasks.map((task) => (
+                    <TaskRow
+                        key={task.key}
+                        task={{
+                            ...task,
+                            key: `${plugin.code}-${task.key}`,
+                            note: [
+                                task.note,
+                                __('Sends :what.', { what: task.sendsWords }),
+                            ]
+                                .filter((line) => line !== null)
+                                .join(' '),
+                        }}
+                        values={values}
+                        errors={errors}
+                    />
+                ))}
+            </div>
+        </SettingsPanel>
+    );
+}
 
 /**
  * Settings › AI (I-1308): each AI service with its key, a model and fallback
@@ -149,6 +267,19 @@ export default function AiSettings(props: AiSettingsPage) {
                                                 )}
                                             </SettingsPanel>
                                         );
+                                    }
+
+                                    if (section.kind === 'plugins') {
+                                        return section.plugins.map((plugin) => (
+                                            <PluginPanel
+                                                key={`plugin-${plugin.code}`}
+                                                plugin={plugin}
+                                                fields={section.fields}
+                                                values={props.values}
+                                                secrets={props.secrets}
+                                                errors={errors}
+                                            />
+                                        ));
                                     }
 
                                     return (

@@ -99,12 +99,14 @@ export type AiActivityRow = {
     person: { id: number | null; name: string | null };
     task: { key: string; label: string };
     variant: { key: string; label: string } | null;
+    /** The plugin that asked, by code and name; null for Teme's own requests. */
+    plugin: { code: string; label: string } | null;
     subject: {
-        kind: 'content' | 'media';
+        kind: 'content' | 'media' | 'none';
         id: string;
         title: string | null;
         kindLabel: string;
-        state: 'present' | 'trashed' | 'gone';
+        state: 'present' | 'trashed' | 'gone' | 'none';
     };
     outcome: {
         key:
@@ -113,7 +115,8 @@ export type AiActivityRow = {
             | 'discarded'
             | 'failed'
             | 'refused'
-            | 'stale';
+            | 'stale'
+            | 'answered';
         label: string;
     };
     why: string | null;
@@ -144,6 +147,15 @@ export type AiMonthSummary = {
     reached: boolean;
 };
 
+/** One plugin's AI spend in a month (Tools › AI activity, under the month's figures). */
+export type AiPluginMonth = {
+    code: string;
+    label: string;
+    costMicrounits: number;
+    requests: number;
+    unpricedRequests: number;
+};
+
 export type AiActivityPage = {
     rows: AiActivityRow[];
     newer: string | null;
@@ -152,11 +164,16 @@ export type AiActivityPage = {
         person: number | null;
         task: string | null;
         month: string | null;
+        plugin: string | null;
     };
     people: { value: number; label: string }[];
     tasks: { value: string; label: string }[];
     months: { value: string; label: string }[];
+    /** The Plugin filter's choices: `teme` for Teme's own requests, then each plugin with requests. */
+    plugins: { value: string; label: string }[];
     summary: AiMonthSummary;
+    /** The month's totals by plugin, by name; empty when no plugin asked. */
+    pluginMonths: AiPluginMonth[];
     details: AiActivityRow | null;
     missing: boolean;
     siteTimezone: string;

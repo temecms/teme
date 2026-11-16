@@ -50,6 +50,8 @@ export type PluginRowPage = {
     asksMore: boolean;
     tables: PluginTableRow[];
     canRemoveData: boolean;
+    /** For a plugin granted ai: its AI cost this month and its own budget (null: the site's only), in micro-dollars; else null. */
+    ai: { costMicrounits: number; budgetMicrounits: number | null } | null;
 };
 
 export type PluginsPage = {

@@ -155,7 +155,7 @@ it('labels every select on the page', function (): void {
 
     preg_match_all('/<(?:Input|SelectField|select|textarea)\b((?:=>|[^>])*)>/s', $source, $controls);
 
-    expect($controls[1])->toHaveCount(3);
+    expect($controls[1])->toHaveCount(4);
 
     foreach ($controls[1] as $attributes) {
         $named = str_contains($attributes, 'aria-label=') || str_contains($attributes, 'aria-labelledby=');

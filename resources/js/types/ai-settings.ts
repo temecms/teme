@@ -79,7 +79,7 @@ export type AiPluginRow = {
     tasks: AiPluginTaskRow[];
 };
 
-/** Settings › AI's Plugins section; drawn on the generic controls from its fields until its own screen. */
+/** Settings › AI's plugins: each plugin's own panel, its controls drawn from these fields. */
 export type AiPluginsBlock = {
     kind: 'plugins';
     key: string;

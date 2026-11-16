@@ -209,8 +209,8 @@ final readonly class AiActivityList
                 'subject' => [
                     'kind' => (string) $row->subject_type,
                     'id' => (string) $row->subject_id,
-                    'title' => $known['title'] ?? null,
-                    'kindLabel' => $none ? __('No item') : ($known['kindLabel'] ?? ($media ? 'Image' : 'Item')),
+                    'title' => $none ? __('No item') : ($known['title'] ?? null),
+                    'kindLabel' => $none ? __('A plugin’s own request') : ($known['kindLabel'] ?? ($media ? 'Image' : 'Item')),
                     'state' => $none ? 'none' : ($known['state'] ?? 'gone'),
                 ],
                 'outcome' => ['key' => $outcome->value, 'label' => $outcome->label()],
