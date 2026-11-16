@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -14,6 +16,7 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
@@ -81,7 +84,12 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         }
 
         // Two owners never answer one request: refused before anything is written (docs/proposals/plugin-public-routes.md).
-        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
+        $enabled = PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all();
+        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy($enabled), $manifest);
+
+        // Nor one root file (docs/guides/developers/plugins/root-files.md).
+        $others = array_values(array_filter(array_map(fn (PluginRecord $record): ?Manifest => $this->registry->find($record->name)?->manifest, $enabled)));
+        $collisions = [...$collisions, ...$this->routeCollisions->rootFilesAgainst($others, $manifest)];
 
         if ($collisions !== []) {
             throw ValidationException::withMessages(['plugin' => $collisions]);
@@ -155,7 +163,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'capabilities' => $input->capabilities,
             'hosts' => $input->hosts,
         ]);
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
+        // A stored "not found" at an address its root files now answer goes too (docs/guides/developers/plugins/root-files.md).
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
 
         // Article pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
         if (in_array(Capability::ContentInsert->value, $input->capabilities, true)) {

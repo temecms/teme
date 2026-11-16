@@ -31,6 +31,7 @@ export type PluginRowPage = {
     version: string;
     description: string;
     author: string;
+    authorUrl: string;
     homepage: string;
     state: PluginState;
     badge: string;
@@ -49,6 +50,7 @@ export type PluginRowPage = {
     asksMore: boolean;
     tables: PluginTableRow[];
     canRemoveData: boolean;
+    canForget: boolean;
 };
 
 export type PluginsPage = {

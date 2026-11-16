@@ -108,6 +108,34 @@ it('describes the theme being previewed, and says when its own settings hold cha
     $this->actingAs($this->admin)->get('/admin/themes')->assertInertia(fn (Assert $page) => $page->where('preview.changed', true));
 });
 
+it('gives Themes the author, authorUrl and homepage when the manifest sets them', function (): void {
+    $folder = sys_get_temp_dir().'/teme-themes-'.getmypid().'-'.uniqid().'/linked';
+    mkdir($folder.'/views/templates', 0777, true);
+    file_put_contents($folder.'/views/templates/index.blade.php', '<html></html>');
+    file_put_contents($folder.'/teme-theme.json', (string) json_encode(pageManifest([
+        'code' => 'linked',
+        'name' => 'Linked',
+        'author' => 'Ada Example',
+        'author_url' => 'https://example.com/ada',
+        'homepage' => 'https://example.com/theme',
+    ])));
+    config(['teme.theme_paths' => [base_path('tests/Fixtures/themes/good'), $folder]]);
+
+    $themes = collect($this->actingAs($this->admin)->get('/admin/themes')->assertOk()->viewData('page')['props']['themes'])->keyBy('code');
+
+    expect($themes['linked'])->toMatchArray([
+        'author' => 'Ada Example',
+        'authorUrl' => 'https://example.com/ada',
+        'homepage' => 'https://example.com/theme',
+    ])->and($themes['good'])->toMatchArray([
+        'author' => '',
+        'authorUrl' => '',
+        'homepage' => '',
+    ]);
+
+    File::deleteDirectory(dirname($folder));
+});
+
 it('gives Themes the regions of the theme in use, each with its cards, limit and state, and what is unplaced', function (): void {
     regionCreate($this->admin);
 

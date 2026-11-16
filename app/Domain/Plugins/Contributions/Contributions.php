@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Plugins\Seams\PluginContributions;
+use App\Domain\PublicRoutes\RootFileNames;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
+use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Lists\HasListColumns;
@@ -27,6 +29,7 @@ final readonly class Contributions implements PluginContributions
         private ToolLinks $links,
         private StatusChecks $checks,
         private StatusFaults $faults,
+        private Container $container,
     ) {}
 
     /**
@@ -34,10 +37,11 @@ final readonly class Contributions implements PluginContributions
      * why they can't be used and registers none of them.
      *
      * @param  array<array-key, mixed>  $contributes  the manifest's `contributes`
+     * @param  bool  $rootFiles  whether the manifest declares root files, whose names its settings may fill
      *
      * @return list<string>
      */
-    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = []): array
+    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = [], bool $rootFiles = false): array
     {
         $errors = $this->validator->errors($contributes, $version);
 
@@ -62,7 +66,12 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, rootFiles: $rootFiles), $name);
+
+            // A name its settings fill is checked when they are saved (docs/guides/developers/plugins/root-files.md).
+            if ($rootFiles) {
+                RootFileNames::register($this->container, $name, $code);
+            }
         }
 
         $links = $contributes['admin'] ?? [];

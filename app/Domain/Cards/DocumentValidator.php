@@ -29,7 +29,8 @@ final readonly class DocumentValidator
      * a button's destination), which only an autosave allows (B-142); every
      * other rule holds, and a card always needs its id. With $rules, a
      * region's, the document must also keep to its region's cards and block
-     * limit. Every caller passes $rules by name, and fix #1's editor guard
+     * limit; without them, a card that belongs in regions only is refused
+     * (I-3127). Every caller passes $rules by name, and fix #1's editor guard
      * passes $allowUnfinishedCards by name (I-452), so the order stays.
      *
      * @param  array<mixed>  $document
@@ -47,13 +48,13 @@ final readonly class DocumentValidator
         $count = 0;
 
         foreach ($document['content'] as $index => $node) {
-            $this->node($node, "content.{$index}", 1, $count, $allowUnfinishedCards);
+            $this->node($node, "content.{$index}", 1, $count, $allowUnfinishedCards, $rules !== null);
         }
 
         $rules?->check($document);
     }
 
-    private function node(mixed $node, string $path, int $depth, int &$count, bool $unfinished): void
+    private function node(mixed $node, string $path, int $depth, int &$count, bool $unfinished, bool $inRegion): void
     {
         if (! is_array($node)) {
             throw InvalidDocumentException::at($path, 'A node must be an object.');
@@ -88,6 +89,10 @@ final readonly class DocumentValidator
         $card = $this->cards->find($type);
 
         if ($card !== null) {
+            if ($card instanceof RegionCard && ! $inRegion) {
+                throw InvalidDocumentException::at("{$path}.type", __("This card goes in a theme's region only."));
+            }
+
             $this->card($card, $attrs, $node, $path, $unfinished);
 
             return;
@@ -124,7 +129,7 @@ final readonly class DocumentValidator
         }
 
         foreach ($content as $index => $child) {
-            $this->node($child, "{$path}.content.{$index}", $depth + 1, $count, $unfinished);
+            $this->node($child, "{$path}.content.{$index}", $depth + 1, $count, $unfinished, $inRegion);
         }
     }
 

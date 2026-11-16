@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "urn:teme:theme-manifest:1",
     "title": "Teme theme manifest, version 1",
-    "description": "teme-theme.json. A preview until Teme 1.0 (I-3187): a key may change in a minor release before then, named in the changelog.",
+    "description": "teme-theme.json. A preview until Teme 1.0: a key may change in a minor release before then, named in the changelog.",
     "$comment": "@since 0.4.0",
     "type": "object",
     "required": [
@@ -70,6 +70,16 @@
         "author": {
             "type": "string",
             "description": "Shown to people only; Teme reads nothing from it."
+        },
+        "author_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The author’s website."
+        },
+        "homepage": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where to read about the theme."
         },
         "license": {
             "type": "string",

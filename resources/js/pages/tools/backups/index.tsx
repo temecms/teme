@@ -184,6 +184,14 @@ export default function BackupsIndex(page: BackupsPage) {
                 <div className="grid gap-4">
                     <Verdict page={page} />
 
+                    {page.mediaInBucket && (
+                        <p className="text-body">
+                            {__(
+                                'Your media files are in object storage, so these backups hold their list and checksums but not the files. Turn on versioning or replication at your storage provider.',
+                            )}
+                        </p>
+                    )}
+
                     {setUp && (
                         <>
                             <PendingKey page={page} />

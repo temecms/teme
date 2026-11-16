@@ -86,3 +86,54 @@ it('keeps the committed manifest references in step with the command', function 
     expect(file_get_contents($dir.'/plugin-manifest.md'))->toBe(file_get_contents(base_path('docs/reference/plugin-manifest.md')))
         ->and(file_get_contents($dir.'/theme-manifest.md'))->toBe(file_get_contents(base_path('docs/reference/theme-manifest.md')));
 });
+
+/**
+ * Every description in a decoded schema, by the path of the node that holds it.
+ *
+ * @param  array<string, mixed>  $node
+ *
+ * @return array<string, string>
+ */
+function manifestReferenceDescriptions(array $node, string $path = ''): array
+{
+    $found = [];
+
+    if (is_string($node['description'] ?? null)) {
+        $found[$path === '' ? '(root)' : $path] = $node['description'];
+    }
+
+    foreach ($node as $key => $child) {
+        if (is_array($child) && $key !== 'enum' && $key !== 'required') {
+            $found += manifestReferenceDescriptions($child, $path === '' ? (string) $key : $path.'.'.$key);
+        }
+    }
+
+    return $found;
+}
+
+it('describes every key of a plugin’s jobs, schedules and routes', function (): void {
+    $path = storage_path('framework/testing/plugin-manifest-described.md');
+
+    $this->artisan('teme:docs:manifest', ['--output' => dirname($path)])->assertSuccessful();
+
+    $rows = file(storage_path('framework/testing/plugin-manifest.md'), FILE_IGNORE_NEW_LINES) ?: [];
+    $undescribed = [];
+
+    foreach ($rows as $row) {
+        if (preg_match('/^\| `((?:jobs|schedules|routes)\[\][^`]*)` \| [^|]* \| [^|]* \| (.*?) \|/', $row, $found) === 1 && trim($found[2]) === '') {
+            $undescribed[] = $found[1];
+        }
+    }
+
+    expect($undescribed)->toBe([]);
+});
+
+it('carries no internal labels in either schema’s descriptions', function (string $file): void {
+    $schema = json_decode((string) file_get_contents(base_path('packages/teme-contracts/schema/'.$file)), true, flags: JSON_THROW_ON_ERROR);
+    $labelled = array_filter(
+        manifestReferenceDescriptions($schema),
+        fn (string $description): bool => preg_match('/\bI-\d+|\bslice\b/i', $description) === 1,
+    );
+
+    expect($labelled)->toBe([]);
+})->with(['teme-plugin.schema.json', 'teme-theme.schema.json']);

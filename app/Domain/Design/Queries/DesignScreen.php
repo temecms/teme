@@ -50,7 +50,7 @@ final readonly class DesignScreen
      * The screen's props.
      *
      * @return array{
-     *     themes: list<array{code: string, name: string, version: string, description: string, usable: bool, errors: list<string>, live: bool, state: string, screenshot: string|null}>,
+     *     themes: list<array{code: string, name: string, version: string, description: string, author: string, authorUrl: string, homepage: string, usable: bool, errors: list<string>, live: bool, state: string, screenshot: string|null}>,
      *     theme: string,
      *     preview: array{code: string, name: string, version: string, changed: bool}|null,
      *     themeGroup: string|null,
@@ -81,6 +81,9 @@ final readonly class DesignScreen
                 'name' => $theme->manifest?->name() ?? $theme->code,
                 'version' => $theme->manifest?->version() ?? '',
                 'description' => $theme->manifest?->description() ?? '',
+                'author' => $theme->manifest?->author() ?? '',
+                'authorUrl' => $theme->manifest?->authorUrl() ?? '',
+                'homepage' => $theme->manifest?->homepage() ?? '',
                 'usable' => $theme->usable(),
                 'errors' => $theme->errors,
                 'live' => $theme->code === $liveTheme,

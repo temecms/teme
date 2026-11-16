@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
 
+use App\Domain\Addresses\Paths;
 use App\Domain\Plugins\Manifest;
 
 /**
@@ -119,6 +120,59 @@ final class RouteCollisions
 
                 if ($other->method === $candidate->method && $this->pathsOverlap($candidate, $other) && $this->conditionsOverlap($candidate, $other)) {
                     $errors[] = __('This route collides with :owner’s :id.', ['owner' => $other->owner, 'id' => $other->id]);
+                }
+            }
+        }
+
+        return array_values(array_unique($errors));
+    }
+
+    /**
+     * Every literal root-file name in this manifest that is one of core's
+     * own public addresses (docs/guides/developers/plugins/root-files.md); empty when there is none.
+     *
+     * @return list<string>
+     */
+    public function rootFileErrors(Manifest $manifest): array
+    {
+        $errors = [];
+
+        foreach (RootFile::declaredIn($manifest) as $file) {
+            if ($file->nameSetting() === null && (in_array($file->name, self::CORE_PUBLIC, true) || in_array($file->name, Paths::SITE_ROUTES, true))) {
+                $errors[] = "The root file {$file->name} is a core public address.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Every literal root-file name this manifest shares with a literal name
+     * another enabled plugin declares, naming its owner. The plugin's own
+     * manifest is left out, so enabling it again compares only against others.
+     *
+     * @param  list<Manifest>  $enabled  the enabled plugins' manifests
+     *
+     * @return list<string>
+     */
+    public function rootFilesAgainst(array $enabled, Manifest $manifest): array
+    {
+        $errors = [];
+
+        foreach (RootFile::declaredIn($manifest) as $file) {
+            if ($file->nameSetting() !== null) {
+                continue;
+            }
+
+            foreach ($enabled as $other) {
+                if ($other->name() === $manifest->name()) {
+                    continue;
+                }
+
+                foreach (RootFile::declaredIn($other) as $theirs) {
+                    if ($theirs->nameSetting() === null && $theirs->name === $file->name) {
+                        $errors[] = __('The root file /:name belongs to :owner.', ['name' => $file->name, 'owner' => $other->name()]);
+                    }
                 }
             }
         }

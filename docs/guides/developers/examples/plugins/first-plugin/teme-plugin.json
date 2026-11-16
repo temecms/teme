@@ -6,9 +6,12 @@
     "description": "The handbook's first plugin: listens when a post is published.",
     "version": "1.0.0",
     "requires": {
-        "teme": "^0.8"
+        "teme": "^0.9"
     },
     "plugin": "TemeExamples\\FirstPlugin\\FirstPlugin",
     "capabilities": ["content.read"],
-    "hooks": ["ContentPublished"]
+    "hooks": ["ContentPublished"],
+    "author": "Teme Examples",
+    "author_url": "https://example.com/author",
+    "homepage": "https://example.com/first-plugin"
 }

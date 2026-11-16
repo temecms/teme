@@ -15,6 +15,7 @@ use App\Http\Site\Middleware\BareReportAnswer;
 use App\Http\Site\Middleware\GuardCommentPost;
 use App\Http\Site\Middleware\MarkCacheable;
 use App\Http\Site\Middleware\MatchDeclaredRoutes;
+use App\Http\Site\Middleware\ServeRootFiles;
 use App\Http\Site\PendingCommentsController;
 use App\Http\Site\PolicyReportController;
 use App\Http\Site\PublicController;
@@ -106,5 +107,6 @@ Route::middleware(['public', 'throttle:declared-routes'])
 Route::middleware('public')->group(function (): void {
     Route::get('/', [PublicController::class, 'handle'])->middleware(['throttle:declared-routes', MatchDeclaredRoutes::class])->name('home');
     Route::post('/', DeclaredRouteController::class)->middleware('throttle:declared-routes')->name('declared.home');
-    Route::fallback([PublicController::class, 'handle'])->middleware(['throttle:declared-routes', MatchDeclaredRoutes::class])->name('public.path');
+    // A plugin's root file answers before any declared route or page (docs/guides/developers/plugins/root-files.md).
+    Route::fallback([PublicController::class, 'handle'])->middleware(['throttle:declared-routes', ServeRootFiles::class, MatchDeclaredRoutes::class])->name('public.path');
 });

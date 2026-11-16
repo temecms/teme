@@ -212,3 +212,19 @@ it('names the No inserted content field by ID on the insertions page, and the co
         ->and($page)->toContain('from Teme 0.9.0')
         ->and($page)->not->toContain('from Teme 0.8.0');
 });
+
+it('tells no reader that something lands later', function (GuideFile $page): void {
+    preg_match_all('/\blands\b|until then|join\/v1/i', $page->prose(), $found);
+
+    expect($found[0])->toBe([])
+        ->and($page->frontMatter()['type'] ?? null)->not->toBe('stub');
+})->with(DeveloperGuide::allPages());
+
+it('knows the testing kit’s classes as it knows the contracts, and nothing made up', function (): void {
+    expect(DeveloperGuide::contractBasenames())->toContain('TemeTestCase', 'InteractsWithTeme', 'FakeOutbound')
+        ->not->toContain('TemeTestKase');
+});
+
+it('lists the contracts reference among the generated pages', function (): void {
+    expect(DeveloperGuide::page('README.md')->body())->toContain('| [Contracts](../../reference/contracts.md) |');
+});
