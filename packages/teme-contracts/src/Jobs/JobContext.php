@@ -34,4 +34,14 @@ interface JobContext
      * @since 0.9.0
      */
     public function progress(int $done, int $total, string $message = ''): void;
+
+    /**
+     * The account ID this run acts for: the person who queued it, or for a
+     * schedule the administrator who enabled the plugin. Pass it to every
+     * door that acts for a person. Throws JobStopped for a run with no
+     * person to act for.
+     *
+     * @since 0.9.0
+     */
+    public function personId(): string;
 }
