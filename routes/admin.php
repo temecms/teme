@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Comments\CommentModeration;
+use App\Domain\Extensions\ExtensionsAccess;
 use App\Domain\Plugins\PluginAccess;
 use App\Domain\Themes\ManifestValidator;
 use App\Domain\Types\ContentTypeRegistry;
@@ -42,6 +43,7 @@ use App\Http\Admin\Contents\StructuredDataController;
 use App\Http\Admin\Dashboard\DashboardController;
 use App\Http\Admin\Dashboard\QuickDraftController;
 use App\Http\Admin\Dev\CatalogueController;
+use App\Http\Admin\ExtensionsController;
 use App\Http\Admin\InboxController;
 use App\Http\Admin\Media\ImportImageController;
 use App\Http\Admin\Media\MediaItemController;
@@ -207,6 +209,23 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::post('{code}/disable', [PluginsController::class, 'disable'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('disable');
+            });
+
+        // Plugins and themes installed from the admin (I-211): requests the installer carries out, the
+        // sources and uploads it reads, and Packagist's search. Each change asks for the password again.
+        Route::middleware('can:'.ExtensionsAccess::INSTALL)
+            ->prefix('extensions')
+            ->name('extensions.')
+            ->where(['id' => '[0-9a-hjkmnp-tv-z]{26}'])
+            ->group(function (): void {
+                Route::post('requests', [ExtensionsController::class, 'store'])->middleware('throttle:6,1')->name('requests.store');
+                Route::post('requests/{id}/cancel', [ExtensionsController::class, 'cancel'])->name('requests.cancel');
+                Route::post('requests/{id}/agree', [ExtensionsController::class, 'agree'])->name('requests.agree');
+                Route::get('requests/{id}', [ExtensionsController::class, 'show'])->name('requests.show');
+                Route::get('search', [ExtensionsController::class, 'search'])->middleware('throttle:60,1')->name('search');
+                Route::post('sources', [ExtensionsController::class, 'storeSource'])->name('sources.store');
+                Route::delete('sources/{id}', [ExtensionsController::class, 'destroySource'])->name('sources.destroy');
+                Route::post('uploads', [ExtensionsController::class, 'upload'])->middleware('throttle:6,1')->name('uploads.store');
             });
 
         // Site › Types (I-3302): the site's own content types, changed through
