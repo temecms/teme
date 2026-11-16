@@ -62,6 +62,8 @@ it('shows the ads.txt box on the Site code page', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/site-code')
             ->where('adsTxt', '')
+            ->where('adsTxtMode', 'text')
+            ->where('adsTxtRedirect', '')
             ->has('adsTxtVersion'));
 });
 
@@ -180,4 +182,26 @@ it('refuses an editor saving a redirect and writes nothing', function (): void {
     addrGet('/ads.txt')->assertNotFound();
     expect(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE))
         ->toBe(SiteCodeSettings::MODE_TEXT);
+});
+
+it('in text mode answers /ads.txt as plain UTF-8 after a redirect was saved before', function (): void {
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: '',
+        expectedVersion: 0,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'https://ads.example/ads.txt',
+    ));
+
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: 'google.com, pub-123, DIRECT, f08c47fec0942fa0',
+        expectedVersion: 1,
+        actorId: (string) $this->admin->id,
+        mode: 'text',
+        redirectUrl: 'https://ads.example/ads.txt',
+    ));
+
+    addrGet('/ads.txt')->assertOk()
+        ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
+        ->assertContent('google.com, pub-123, DIRECT, f08c47fec0942fa0');
 });
