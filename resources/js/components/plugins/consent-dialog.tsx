@@ -145,8 +145,18 @@ export function ConsentDialog({
                             data-test="consent-requires"
                             className="text-small grid gap-2"
                         >
-                            {plugin.requires.map((words) => (
-                                <li key={words}>{words}</li>
+                            {plugin.requires.map((line) => (
+                                <li
+                                    key={line.words}
+                                    className="flex flex-wrap items-baseline gap-2"
+                                >
+                                    <span>{line.words}</span>
+                                    {line.new && (
+                                        <span className="bg-accent text-on-accent text-caption rounded-sm px-2 font-semibold">
+                                            {__('NEW')}
+                                        </span>
+                                    )}
+                                </li>
                             ))}
                         </ul>
                     )}

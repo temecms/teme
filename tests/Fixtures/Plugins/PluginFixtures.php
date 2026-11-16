@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Plugins;
 
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\InstalledPackages;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\PluginRegistry;
 use Closure;
 use Composer\Autoload\ClassLoader;
@@ -47,6 +49,30 @@ final class PluginFixtures
         ]);
 
         app(PluginRegistry::class)->flush();
+    }
+
+    /**
+     * The consent EnablePlugin keeps for this manifest, agreeing to all it
+     * asks: its capabilities and hooks, no host, and the kinds of notice and
+     * the plugins it requires.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return array<string, mixed>
+     */
+    public static function agreed(array $manifest): array
+    {
+        $read = new Manifest($manifest);
+        $notices = Consent::declaredNotices($read);
+        $requires = Consent::declaredRequires($read);
+
+        return [
+            'capabilities' => $read->capabilities(),
+            'hosts' => [],
+            'hooks' => $read->hooks(),
+            ...($notices === [] ? [] : ['notices' => $notices]),
+            ...($requires === [] ? [] : ['requires' => $requires]),
+        ];
     }
 
     /**

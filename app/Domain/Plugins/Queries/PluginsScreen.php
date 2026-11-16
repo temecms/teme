@@ -6,7 +6,6 @@ namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Consent;
-use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\PluginRegistry;
@@ -100,7 +99,8 @@ final readonly class PluginsScreen
                 'asks' => [...$this->accessLines(
                     $row->asks['capabilities'],
                     $hosts,
-                    $row->consent === [] ? [] : $row->added['capabilities'],
+                    // A kind of notice no one agreed to marks the notices line NEW.
+                    $row->consent === [] ? [] : [...$row->added['capabilities'], ...(($row->added['notices'] ?? []) === [] ? [] : [Capability::NoticesSend->value])],
                     $row->consent === [] ? [] : $row->added['hosts'],
                     $manifest === null ? [] : Consent::routeLines($manifest),
                     $row->consent === [] ? [] : $row->added['routes'],
@@ -113,11 +113,14 @@ final readonly class PluginsScreen
                 )],
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 // The plugins it needs, then those that need it, by their own names (docs/plans/plugin-sockets-3.md).
-                'requires' => array_map(fn (string $name): string => PluginWords::needs($this->labelOf($name)), array_keys($manifest === null ? [] : Dependencies::required($manifest))),
+                'requires' => array_map(fn (string $name): array => [
+                    'words' => PluginWords::needs($this->labelOf($name)),
+                    'new' => $row->consent !== [] && in_array($name, $row->added['requires'] ?? [], true),
+                ], $manifest === null ? [] : Consent::declaredRequires($manifest)),
                 'requiredBy' => array_map($this->labelOf(...), $row->requiredBy),
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
-                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports,
+                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports || ($row->added['notices'] ?? []) !== [] || ($row->added['requires'] ?? []) !== [],
                 'tables' => $tables,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables left.
                 'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
@@ -230,7 +233,7 @@ final readonly class PluginsScreen
     {
         if ($row->state === PluginState::Waiting) {
             // Consent first: an update that asks for more access waits for that.
-            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports ? 'review' : 'migrate';
+            return $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports || ($row->added['notices'] ?? []) !== [] || ($row->added['requires'] ?? []) !== [] ? 'review' : 'migrate';
         }
 
         if ($enabled) {

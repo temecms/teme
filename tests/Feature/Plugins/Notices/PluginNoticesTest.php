@@ -33,7 +33,7 @@ beforeEach(function (): void {
         'name' => 'tests/relay',
         'code' => 'relay',
         'version' => $manifest['version'],
-        'consent' => ['capabilities' => $manifest['capabilities'], 'hosts' => [], 'hooks' => []],
+        'consent' => PluginFixtures::agreed($manifest),
     ]);
     // The registries as the next request builds them, once the plugin is enabled.
     app()->forgetScopedInstances();

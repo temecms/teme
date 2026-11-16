@@ -33,12 +33,12 @@ it('says which plugins a plugin needs and which need it, by their own names', fu
         'name' => 'tests/relay',
         'code' => 'relay',
         'version' => $manifest['version'],
-        'consent' => ['capabilities' => $manifest['capabilities'], 'hosts' => [], 'hooks' => []],
+        'consent' => PluginFixtures::agreed($manifest),
     ]);
 
     $rows = ($this->rows)();
 
-    expect($rows['tests/relay-pro']['requires'])->toBe(['Needs Relay, which must stay enabled.'])
+    expect($rows['tests/relay-pro']['requires'])->toBe([['words' => 'Needs Relay, which must stay enabled.', 'new' => false]])
         ->and($rows['tests/relay-pro']['requiredBy'])->toBe([])
         ->and($rows['tests/relay']['requires'])->toBe([])
         ->and($rows['tests/relay']['requiredBy'])->toBe(['Relay Pro']);

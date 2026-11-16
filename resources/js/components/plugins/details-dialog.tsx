@@ -111,8 +111,8 @@ export function DetailsDialog({
                             data-test="details-requires"
                             className="text-small grid gap-2"
                         >
-                            {plugin.requires.map((words) => (
-                                <li key={words}>{words}</li>
+                            {plugin.requires.map((line) => (
+                                <li key={line.words}>{line.words}</li>
                             ))}
                         </ul>
                     )}

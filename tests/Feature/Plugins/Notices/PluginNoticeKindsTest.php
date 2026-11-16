@@ -27,7 +27,7 @@ beforeEach(function (): void {
             'name' => $manifest['name'],
             'code' => $manifest['code'],
             'version' => $manifest['version'],
-            'consent' => ['capabilities' => $manifest['capabilities'] ?? [], 'hosts' => [], 'hooks' => $manifest['hooks'] ?? []],
+            'consent' => PluginFixtures::agreed($manifest),
             ...$changes,
         ]);
     };

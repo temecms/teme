@@ -176,6 +176,9 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->insertionHosts($manifest, $input->capabilities),
                 ...$this->imports($found),
                 ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
+                // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
+                ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
+                ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.
             'consented_by' => $consentedBy === null ? null : (int) $consentedBy,

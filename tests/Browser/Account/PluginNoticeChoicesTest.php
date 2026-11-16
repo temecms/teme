@@ -25,7 +25,7 @@ beforeEach(function (): void {
         'name' => 'tests/relay',
         'code' => 'relay',
         'version' => $manifest['version'],
-        'consent' => ['capabilities' => $manifest['capabilities'], 'hosts' => [], 'hooks' => []],
+        'consent' => PluginFixtures::agreed($manifest),
     ]);
     app()->forgetScopedInstances();
     app()->forgetInstance(PreferenceRegistry::class);
