@@ -2,7 +2,7 @@
 title: For agents
 type: how-to
 audience: both
-summary: How agents should read this handbook, llms.txt, and an AGENTS.md to put in a plugin.
+summary: How agents should read this handbook and llms.txt, choose a plugin's capabilities, and write an AGENTS.md for it.
 rests_on: [docs/guides/developers, docs/architecture/documentation.md]
 ---
 
@@ -23,6 +23,19 @@ php artisan teme:docs:handbook-index
 - Guides under `docs/guides/developers/` are written and tested against the code.
 - Files under `docs/reference/` are generated. Never edit them by hand; run the docs command that owns the file (for example `php artisan teme:docs:hooks`).
 - Architecture notes under `docs/architecture/` explain how this repository works for contributors. Prefer the handbook when you are building a plugin or theme as an outsider would.
+
+## Choosing capabilities
+
+When you build a plugin, decide its capabilities first, because they decide which doors its constructor may ask for. With v1:
+
+- `content.write` for creating, changing, publishing and scheduling items, through `ContentWriter`;
+- `media.write` for adding files from an agreed host to the media library, through `MediaWriter`;
+- `jobs` for background work, declared under `jobs` and `schedules` in the manifest and queued through `Jobs`;
+- `content.insert` for markup inside articles, through `InsertionContributor`.
+
+[The manifest](concepts/manifest.md) lists every capability, and what the `jobs` and `schedules` keys hold. Ask for none the plugin doesn't use: people enabling it read each one. A service that runs outside the site uses [the management API](outside/management-api.md) instead, with a key, not capabilities.
+
+Before writing code, read [Code standards for plugins and themes](start/code-standards.md): what Teme requires, and what it only recommends.
 
 ## An AGENTS.md for your plugin
 

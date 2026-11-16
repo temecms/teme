@@ -9,7 +9,7 @@ use App\Domain\Updates\TemeVersion;
  * Teme itself (slice 1.6b). `version` is the release this build is, from the
  * image (I-?? draft), and what a theme's `requires.teme` constraint is
  * checked against. Themes are Composer packages of type
- * `teme-theme`; `theme_paths` adds plain folders beside them, for tests and
+ * `teme-theme`; `theme_paths` (TEME_THEME_PATHS, folders separated by commas) adds plain folders beside them, for tests and
  * local work, and is always read live. `theme_cache` is where
  * `teme:themes:cache` writes Composer's themes, which `optimize` runs.
  * `disallow_site_code` is the host's switch for site code (I-288).
@@ -36,17 +36,17 @@ return [
         'hsts' => (string) env('TEME_HSTS', SecureTransport::DEFAULT_HSTS),
     ],
 
-    'theme_paths' => [],
+    'theme_paths' => array_values(array_filter(array_map(trim(...), explode(',', (string) env('TEME_THEME_PATHS', ''))))),
 
     'theme_cache' => base_path('bootstrap/cache/teme-themes.php'),
 
     /*
      * Plugins (I-3353) are Composer packages of type `teme-plugin`;
-     * `plugin_paths` adds plain folders beside them, for tests and local
+     * `plugin_paths` (TEME_PLUGIN_PATHS, folders separated by commas) adds plain folders beside them, for tests and local
      * work. `plugin_cache` is where `teme:plugins:cache`, which `optimize`
      * runs, writes what was found in them; nothing else writes it.
      */
-    'plugin_paths' => [],
+    'plugin_paths' => array_values(array_filter(array_map(trim(...), explode(',', (string) env('TEME_PLUGIN_PATHS', ''))))),
 
     'plugin_cache' => base_path('bootstrap/cache/teme-plugins.php'),
 
