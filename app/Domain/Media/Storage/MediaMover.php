@@ -233,6 +233,14 @@ final class MediaMover
             ->orderByDesc('started_at')
             ->first();
 
+        // Any other run of this kind and direction still marked running was killed too, with other
+        // options: it ends stopped, so it never blocks this one (resuming it is running its own options again).
+        MediaMove::query()
+            ->where(['kind' => $kind, 'from_location' => $from, 'to_location' => $to, 'state' => 'running'])
+            ->when($left !== null, fn ($query) => $query->whereKeyNot($left->id))
+            ->pluck('id')
+            ->each(fn (string $killed) => $this->end->execute(new EndMediaMoveInput($killed, 'stopped', __('This stopped before it finished: the process running it ended.'))));
+
         $id = $this->start->execute(new StartMediaMoveInput(
             kind: $kind,
             from: $from,

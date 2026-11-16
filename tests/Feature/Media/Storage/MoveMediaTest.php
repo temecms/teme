@@ -379,3 +379,28 @@ it('moves back from the bucket to the server', function (): void {
         ->and(Storage::disk('media-originals')->get("{$id}/v1/item.jpg"))->toBe("original bytes of {$id}")
         ->and(Storage::disk('media')->exists("{$id}/v1/item-w640.webp"))->toBeTrue();
 });
+
+it('ends as stopped a killed run of another scope in the same direction, and goes ahead', function (array $options): void {
+    foreach (range(1, 3) as $n) {
+        mvItem('image', ['w640']);
+    }
+
+    mvRun(['--from' => 'server', '--to' => 'bucket']);
+    test()->travel(1)->seconds();
+    mvStoppedAfter(1, chunk: 1);
+    // The process running it was killed: the row is left running.
+    $killed = MediaMove::query()->where('state', 'stopped')->sole();
+    DB::table('media_moves')->where('id', $killed->id)->update(['state' => 'running']);
+    test()->travel(1)->seconds();
+
+    [$code, $output] = mvRun(['--from' => 'server', '--to' => 'bucket', ...$options]);
+    $killed->refresh();
+
+    expect($code)->toBe(0, $output)
+        ->and($killed->state)->toBe('stopped')
+        ->and($killed->message)->toBe('This stopped before it finished: the process running it ended.')
+        ->and(MediaMove::query()->where('state', 'running')->count())->toBe(0);
+})->with([
+    'a catch-up' => [['--catch-up' => true]],
+    'a deep copy' => [['--deep' => true]],
+]);
