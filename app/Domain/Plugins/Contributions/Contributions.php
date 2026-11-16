@@ -62,7 +62,7 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, feedLinks: ($contributes['feedLinks'] ?? []) !== []), $name);
         }
 
         $links = $contributes['admin'] ?? [];

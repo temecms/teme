@@ -34,6 +34,9 @@ final class PageTags
     /** Every published article page that asks contributors for insertions, drawn or not (I-064). */
     public const string INSERTIONS = 'insertions';
 
+    /** Every feed, which carries the links plugins add to it (docs/plans/plugin-sockets-1.md, A3). */
+    public const string FEED_LINKS = 'feed-links';
+
     /**
      * Whether the tag names a list by its query (a type's, a term's, an
      * author's, a year's, a month's, an item's comments, the list of a

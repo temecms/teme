@@ -10,7 +10,8 @@
     },
     "plugin": "Tests\\Fixtures\\Plugins\\Hub\\Hub",
     "capabilities": [
-        "http"
+        "http",
+        "feeds.links"
     ],
     "hosts": [
         "api.example.com"
@@ -40,6 +41,16 @@
                 "type": "text",
                 "label": "Note",
                 "description": "A note for nobody."
+            }
+        ],
+        "feedLinks": [
+            {
+                "rel": "hub",
+                "href": "{hub_url}"
+            },
+            {
+                "rel": "hub",
+                "href": "{more_hubs}"
             }
         ]
     }

@@ -69,6 +69,7 @@ final class EnablePluginCommand extends Command
                 Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
                 Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
                 Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
+                Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
                 Capability::Http->value => $http,
                 default => $capability,

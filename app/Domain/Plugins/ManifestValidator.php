@@ -132,6 +132,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->hostsFrom($manifest, $read));
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
+        array_push($errors, ...$this->feedLinks($read));
         array_push($errors, ...$this->columns($read));
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
@@ -343,6 +344,20 @@ final readonly class ManifestValidator
         }
 
         return $errors;
+    }
+
+    /**
+     * Links in the feeds only with feeds.links (docs/plans/plugin-sockets-1.md, A3).
+     *
+     * @return list<string>
+     */
+    private function feedLinks(Manifest $read): array
+    {
+        $links = $read->contributes()['feedLinks'] ?? [];
+
+        return $links !== [] && ! in_array(Capability::FeedsLinks->value, $read->capabilities(), true)
+            ? [__('It adds links to the feeds, but the plugin doesn’t ask for feeds.links.')]
+            : [];
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Manifest;
@@ -163,6 +164,11 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'hosts' => $input->hosts,
         ]);
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
+
+        // Every stored feed is drawn again with its links, after commit (docs/plans/plugin-sockets-1.md, A3).
+        if (($manifest->contributes()['feedLinks'] ?? []) !== []) {
+            $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, [PageTags::FEED_LINKS]));
+        }
 
         // Article pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
         if (in_array(Capability::ContentInsert->value, $input->capabilities, true)) {

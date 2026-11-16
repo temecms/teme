@@ -15,7 +15,9 @@ namespace Teme\Contracts\Plugins;
  * declares under its manifest's `imports`, read from the WordPress site Teme
  * imports. FediverseRead unlocks the fediverse hooks and who follows the
  * site's accounts, and FediverseSend the door that sends activities to those
- * followers.
+ * followers. FeedsLinks lets the plugin add the links its manifest
+ * declares under `contributes.feedLinks`, such as a WebSub hub, to every
+ * feed (`@since 0.9.0`).
  *
  * @since 0.5.0
  */
@@ -32,4 +34,5 @@ enum Capability: string
     case ImportWordPress = 'import.wordpress';
     case FediverseRead = 'fediverse.read';
     case FediverseSend = 'fediverse.send';
+    case FeedsLinks = 'feeds.links';
 }
