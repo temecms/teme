@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Domain\Plugins\Seams\PluginServices;
 use Illuminate\Support\Facades\File;
+use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Settings\SettingsReader;
 
@@ -69,7 +70,8 @@ it('lists each contract a plugin’s constructor may ask for once, with the gran
     }
 
     expect($markdown)->toContain('| `'.SettingsReader::class.'` | always | 0.1.0 |')
-        ->and($markdown)->toContain('| `'.OutboundHttp::class.'` | granted `http` | 0.5.0 |');
+        ->and($markdown)->toContain('| `'.OutboundHttp::class.'` | granted `http` | 0.5.0 |')
+        ->and($markdown)->toContain('| `'.SiteAi::class.'` | granted `ai` and its manifest declares `contributes.aiTasks` | 0.9.0 |');
 });
 
 it('says the highest version this checkout’s contracts offer', function (): void {
