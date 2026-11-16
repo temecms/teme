@@ -1,0 +1,16 @@
+{
+    "name": "fixtures/needs-ext-nonexistent",
+    "description": "A plugin the installer's tests install.",
+    "type": "teme-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "teme/contracts": "*",
+        "ext-nonexistent": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fixtures\\NeedsExt\\": "src/"
+        }
+    }
+}

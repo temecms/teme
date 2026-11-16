@@ -1,0 +1,10 @@
+{
+    "manifest": 1,
+    "code": "hello-theme",
+    "name": "Hello Theme",
+    "version": "1.0.0",
+    "description": "A theme the installer's tests install.",
+    "requires": {
+        "teme": "^0.5"
+    }
+}

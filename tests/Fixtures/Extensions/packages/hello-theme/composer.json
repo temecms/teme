@@ -1,0 +1,7 @@
+{
+    "name": "fixtures/hello-theme",
+    "description": "A theme the installer's tests install.",
+    "type": "teme-theme",
+    "version": "1.0.0",
+    "license": "MIT"
+}
