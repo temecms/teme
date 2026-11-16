@@ -47,7 +47,7 @@ sudo -u teme-installer TEME_EXTENSIONS_PATH=/var/teme/extensions TEME_EXTENSIONS
 
 To check the installed plugins and themes against this version of Teme without carrying out any request, run `php artisan teme:installer --prepare-only`.
 
-To ask for a change from the server's shell instead of the admin, run `php artisan teme:extensions:request install acme/link-suggestions --constraint=^1.2` (or `update`, `remove`, `rollback`; add `--kind=theme` for a theme). It is recorded as the admin's requests are, from Packagist, and the installer carries it out. `php artisan teme:extensions:cancel` cancels the request that waits for the installer or for agreement.
+To ask for a change from the server's shell instead of the admin, run `php artisan teme:extensions:request install acme/link-suggestions --constraint=^1.2` (or `update`, `remove`, `rollback`; for a theme, `php artisan teme:extensions:request install acme/quiet --kind=theme`). It is recorded as the admin's requests are, from Packagist, and the installer carries it out. `php artisan teme:extensions:cancel` cancels the request that waits for the installer or for agreement.
 
 ## When Teme is updated
 
