@@ -538,6 +538,24 @@ Once the code was back, the first runs were red for real reasons, each fixed: a 
 - `php artisan test tests/Feature/Site/Insertions` and `php artisan test tests/Browser/Site/FixedInsertionsTest.php`.
 - With the `tests/billboard` fixture enabled (`TEME_PLUGIN_PATHS` pointing at `tests/Fixtures/plugins/billboard`), open the home page: a bar at the bottom labelled Sponsored, a rail on the right on a wide screen, and markup after the third item of the list.
 
+#### Follow-up R1
+
+The review's four IMPORTANT findings, each with its test written first and seen red, then fixed. The LATER findings (5 to 9) are not part of this follow-up.
+
+| Finding | Commit | Test, and its first failure before the fix |
+|---|---|---|
+| 1. Removing a plugin's data left its approvals cached | `61bc15f` | `PluginScriptsTest` "forgets a plugin's approvals with its data, so enabled again its old script is removed": `Expecting '<!doctype html>…' not to contain '(window.billboard = window.billboard \|\| []).push({});'` |
+| 2. A plugin could replace site code or core's fixed block by reusing its key | `abccb90` | `HeadInsertionsTest` "never replaces site code or core's fixed block with an insertion that reuses its key": `To contain: <div data-test="consent">Consent</div>` |
+| 3. An author archive's facts had no author | `9644145` | `PageInsertionsTest` "gives an author archive its author's ID": `Failed asserting that two arrays are identical` (`[]` where the author's ID was expected) |
+| 4. The handbook put approval on Settings › Site code | `a03a340` | Words only, no test: the page now says approval happens where the ad is written, by a control core draws, and that Site code lists approved and waiting scripts and revokes; both screens follow |
+
+- Fix 1: `RemovePluginData::invalidateCache()` calls `ApprovedScripts::forget()` after commit.
+- Fix 2: `PluginPlacements` keys each fragment `plugin.<code>.<key>`, or `plugin.` and a hash when that is too long for `Fragment::KEY_PATTERN`.
+- Fix 3: `ListingViews::forAuthor()` tells `PageInsertions` whose archive it draws; `PageFacts::$authorIds` holds that ID, as the contract says. `ListingViews.php` is one more file outside Owns (the plan lists it as changed).
+- B-13 stands: add `php artisan teme:docs:theme` to the Joining step, beside `plugin-manifest.md`.
+- Gate (`composer check`): Pint passed; PHPStan no errors; `npm run types:check` and `npm run check` passed; Architecture 139 passed; Unit and Feature 11,784 passed, 2 skipped, 4 failed: `GenerateManifestReferenceTest` and `ThemeReferenceTest` (B-13), and `DatabaseDownTest` and `DiscoveryTest`, which failed in a worker and pass alone (9 passed).
+- Baselines unchanged: 222 and 876 lines.
+
 ---
 
 ## Part C: three small sockets (`sockets2/small`)
