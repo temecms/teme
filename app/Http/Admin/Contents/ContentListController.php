@@ -11,6 +11,8 @@ use App\Domain\Contents\Queries\ContentListFilters;
 use App\Domain\Contents\Queries\HeldSchedules;
 use App\Domain\Contents\Queries\SingleItem;
 use App\Domain\Languages\SiteLanguages;
+use App\Domain\Plugins\Columns\DeclaredColumn;
+use App\Domain\Plugins\Columns\PluginColumns;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
 use App\Domain\Support\Queries\ListPages;
@@ -21,10 +23,12 @@ use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Domain\Users\Queries\AuthorOptions;
 use App\Http\Controllers\Controller;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Settings\SettingsReader;
 
 /**
@@ -35,7 +39,7 @@ use Teme\Contracts\Settings\SettingsReader;
  */
 final class ContentListController extends Controller
 {
-    public function index(Request $request, string $type, ContentList $list, AuthorOptions $authors, TaxonomyRegistry $taxonomies, SettingsReader $settings, TermPicker $termPicker): Response|RedirectResponse
+    public function index(Request $request, string $type, ContentList $list, AuthorOptions $authors, TaxonomyRegistry $taxonomies, SettingsReader $settings, TermPicker $termPicker, PluginColumns $pluginColumns, SiteLanguages $languages): Response|RedirectResponse
     {
         $contentType = $this->type($type);
         $singleItem = $contentType->single ? SingleItem::of($contentType->key) : null;
@@ -51,11 +55,12 @@ final class ContentListController extends Controller
         $typeTaxonomies = $taxonomies->forType($contentType->key);
         // The Comments column: a type that takes comments, while they're on (1.8c's D21).
         $takesComments = Modules::on(Modules::COMMENTS) && $contentType->comments !== null;
+        $person = $viewer === null ? [] : PreferencesFor::user($viewer);
         $filters = ContentListFilters::read($request->query(), $contentType, $settings->string('general', 'timezone'));
         $listRequest = $filters->request(
             $contentType,
             (int) $viewer?->getAuthIdentifier(),
-            $viewer === null ? 50 : (int) PreferencesFor::user($viewer)['lists.per_page'],
+            $viewer === null ? 50 : (int) $person['lists.per_page'],
             after: $this->optional($request, 'after'),
             before: $this->optional($request, 'before'),
             withComments: $takesComments,
@@ -63,6 +68,28 @@ final class ContentListController extends Controller
         );
         // The cursors reach the screen inside `paging`, beside the page numbers (I-3421).
         $page = array_diff_key($list->page($listRequest), ['newer' => true, 'older' => true]);
+        $shown = is_array($person["lists.{$contentType->key}.columns"] ?? null)
+            ? $person["lists.{$contentType->key}.columns"]
+            : [];
+        $pluginKeys = array_values(array_filter(
+            $shown,
+            fn (string $id): bool => str_starts_with($id, 'plugin:'),
+        ));
+        $offered = $pluginColumns->for($contentType->key);
+        $cells = $pluginColumns->cells(
+            $contentType->key,
+            $pluginKeys,
+            array_map(
+                fn (array $row): ListRow => new ListRow(
+                    id: (string) $row['id'],
+                    status: (string) $row['status'],
+                    language: $languages->isMultilingual() ? (is_string($row['language'] ?? null) ? $row['language'] : null) : null,
+                    updatedAt: CarbonImmutable::parse((string) $row['updatedAt'])->toIso8601String(),
+                    trashed: (bool) ($row['trashed'] ?? false),
+                ),
+                $page['rows'],
+            ),
+        );
 
         return Inertia::render('content/index', [
             'type' => $type,
@@ -106,6 +133,9 @@ final class ContentListController extends Controller
             // A flat taxonomy's filter has no select (I-1452), so the list
             // names its term, as a count on the term's screen opens it.
             'chosenTerms' => $this->chosenTerms($typeTaxonomies, $listRequest->terms, $termPicker),
+            'pluginColumns' => array_map(fn (DeclaredColumn $column): array => $column->toArray(), $offered),
+            'pluginCells' => $cells->values,
+            'pluginColumnProblems' => $cells->problems,
         ]);
     }
 

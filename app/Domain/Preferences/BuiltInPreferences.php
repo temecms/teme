@@ -8,6 +8,7 @@ use App\Domain\Dashboard\DashboardPanel;
 use App\Domain\Dashboard\DashboardRegistry;
 use App\Domain\Navigation\Queries\AdminNavigation;
 use App\Domain\Notices\NoticePreferences;
+use App\Domain\Plugins\Columns\PluginColumns;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
@@ -35,7 +36,7 @@ final class BuiltInPreferences
         // Account › Notifications draws them, worded for each person.
         NoticePreferences::declare($registry);
 
-        // Later (I-200): plugin columns join these options in phase 5, grouped under their plugin.
+        // Later (I-200): row actions, bulk actions and filters from plugins wait.
         // Later (I-416): a type's filterable fields join its options, as fields.{handle}, in phase 2.
         // Later (I-239): a Parent column for a hierarchical type arrives with hierarchy, which phase 1 does not have.
         foreach (app(ContentTypeRegistry::class)->all() as $type) {
@@ -45,13 +46,16 @@ final class BuiltInPreferences
             }
 
             $columns = self::columnsOf($type->key);
+            $typeKey = $type->key;
 
             $registry->register(new PreferenceDefinition(
                 "lists.{$type->key}.columns", 'list', $columns, "{$type->plural} columns",
                 // Featured image is offered, and never on until someone turns it on (I-3120);
-                // Languages too (docs/proposals/multilingual-screens.md, 4).
-                allowed: fn (): array => ['featured', 'languages', ...self::columnsOf($type->key)],
-                maxItems: count($columns) + 2,
+                // Languages too (docs/proposals/multilingual-screens.md, 4). Plugin columns join
+                // the same way. maxItems is null: the allowed set bounds the list, and a fixed
+                // number would have to know how many plugins run.
+                allowed: fn (): array => ['featured', 'languages', ...self::columnsOf($typeKey), ...app(PluginColumns::class)->keysFor($typeKey)],
+                maxItems: null,
             ));
         }
 

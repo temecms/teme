@@ -1,0 +1,25 @@
+{
+    "manifest": 1,
+    "name": "teme-examples/list-columns",
+    "code": "list-columns",
+    "label": "List columns",
+    "description": "The handbook's list-columns example: an SEO score badge on the Posts list.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.9"
+    },
+    "plugin": "TemeExamples\\ListColumns\\SeoPlugin",
+    "capabilities": ["content.read"],
+    "hooks": ["ContentSaved"],
+    "contributes": {
+        "columns": [
+            {
+                "id": "score",
+                "label": "SEO score",
+                "kind": "badge",
+                "width": "narrow",
+                "types": ["post", "page"]
+            }
+        ]
+    }
+}

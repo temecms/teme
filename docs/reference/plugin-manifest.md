@@ -58,6 +58,12 @@
 | `contributes.admin[].description` | string | no | What the entry opens. |  |
 | `contributes.admin[].icon` | enum | no |  | "plug", "link", "external-link", "settings", "send", "bell", "refresh-cw", "chart-line" |
 | `contributes.admin[].to` | string | yes | Where it leads: the plugin's settings, or an https address. | ^(settings\|https://.+)$ |
+| `contributes.columns` | array | no | Columns the plugin adds to the content lists. |  |
+| `contributes.columns[].id` | string | yes | The column's id. | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.columns[].label` | string | yes | The heading and the name in Columns. |  |
+| `contributes.columns[].kind` | enum | yes |  | "text", "number", "badge" |
+| `contributes.columns[].width` | enum | no |  | "narrow", "medium", "wide" |
+| `contributes.columns[].types` | array | no | Content type keys; absent means every listed type. |  |
 | `contributes.csp` | object | no |  |  |
 | `contributes.csp.style` | array | no |  |  |
 | `contributes.csp.font` | array | no |  |  |

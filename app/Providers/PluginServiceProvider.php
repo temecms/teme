@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Jobs\JobKinds;
+use App\Domain\Plugins\Columns\ColumnClock;
+use App\Domain\Plugins\Columns\SystemClock;
 use App\Domain\Plugins\Contributions\Contributions;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\Contributions\RecordedStatusFaults;
@@ -49,6 +51,7 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->bind(PluginServices::class, PluginDoors::class);
         $this->app->bind(PluginContributions::class, Contributions::class);
         $this->app->bind(ContributionsCheck::class, ContributionsValidator::class);
+        $this->app->bind(ColumnClock::class, SystemClock::class);
 
         // Over NavigationServiceProvider's binding: this provider registers last.
         $this->app->bind(StatusFaults::class, RecordedStatusFaults::class);

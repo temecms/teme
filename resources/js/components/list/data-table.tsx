@@ -1,4 +1,4 @@
-// Later (I-200): plugins contribute columns and actions to these lists in phase 5.
+// Later (I-200): row actions, bulk actions and filters from plugins wait.
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';

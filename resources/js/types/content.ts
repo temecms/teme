@@ -1,6 +1,7 @@
 import type { Discussion } from '@/lib/discussion';
 import type { FeaturedImage } from './media';
 import type { ListPages } from './list-pages';
+import type { PluginCellValue, PluginColumn } from './plugin-columns';
 
 export type TermChip = { id: string; name: string };
 
@@ -122,4 +123,10 @@ export type ContentIndexPage = {
      * isn't of that taxonomy, is left out.
      */
     chosenTerms: Record<string, string>;
+    /** Every plugin column offered for this type. */
+    pluginColumns: PluginColumn[];
+    /** Values for shown plugin columns only: key → row id → cell. */
+    pluginCells: Record<string, Record<string, PluginCellValue>>;
+    /** Plugin labels whose columns couldn't be shown this time. */
+    pluginColumnProblems: string[];
 };
