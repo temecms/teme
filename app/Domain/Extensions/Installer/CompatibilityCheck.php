@@ -24,6 +24,30 @@ final readonly class CompatibilityCheck
      */
     public function problems(string $release, array $pins): array
     {
+        return array_column($this->findings($release, $pins), 1);
+    }
+
+    /**
+     * The locked packages that no longer fit, which a rebuild lets move.
+     *
+     * @param  array{replace: array<string, string>, provide: array<string, string>, hash: string}  $pins
+     *
+     * @return list<string>
+     */
+    public function blocking(string $release, array $pins): array
+    {
+        return array_values(array_unique(array_column($this->findings($release, $pins), 0)));
+    }
+
+    /**
+     * Each locked package that no longer fits, with why.
+     *
+     * @param  array{replace: array<string, string>, provide: array<string, string>, hash: string}  $pins
+     *
+     * @return list<array{0: string, 1: string}>
+     */
+    private function findings(string $release, array $pins): array
+    {
         $problems = [];
         $parser = new VersionParser;
 
@@ -31,7 +55,7 @@ final readonly class CompatibilityCheck
             $name = $package['name'];
 
             if (isset($pins['replace'][$name])) {
-                $problems[] = "{$name} is now part of Teme itself.";
+                $problems[] = [$name, "{$name} is now part of Teme itself."];
             }
 
             foreach (is_array($package['require'] ?? null) ? $package['require'] : [] as $required => $constraint) {
@@ -40,7 +64,7 @@ final readonly class CompatibilityCheck
 
                 if ($required === 'php') {
                     if (! self::matches($parser, PHP_VERSION, $constraint)) {
-                        $problems[] = "{$name} needs PHP {$constraint}; this server runs ".PHP_VERSION.'.';
+                        $problems[] = [$name, "{$name} needs PHP {$constraint}; this server runs ".PHP_VERSION.'.'];
                     }
 
                     continue;
@@ -48,7 +72,7 @@ final readonly class CompatibilityCheck
 
                 if (str_starts_with($required, 'ext-')) {
                     if (! extension_loaded(substr($required, 4))) {
-                        $problems[] = "{$name} needs PHP’s {$required} extension.";
+                        $problems[] = [$name, "{$name} needs PHP’s {$required} extension."];
                     }
 
                     continue;
@@ -57,7 +81,7 @@ final readonly class CompatibilityCheck
                 $pinned = $pins['replace'][$required] ?? $pins['provide'][$required] ?? null;
 
                 if ($pinned !== null && ! self::matches($parser, $pinned, $constraint)) {
-                    $problems[] = "{$name} needs {$required} {$constraint}; this Teme has {$pinned}.";
+                    $problems[] = [$name, "{$name} needs {$required} {$constraint}; this Teme has {$pinned}."];
                 }
             }
         }

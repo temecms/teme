@@ -35,13 +35,14 @@ class ComposerRunner
      * Changes the release's packages as the request asks.
      *
      * @param  array<string, mixed>  $auth  COMPOSER_AUTH, merged from every source in use
+     * @param  list<string>  $blocking  for a rebuild, the locked packages that must move
      */
-    public function change(ExtensionRequest $request, string $release, #[SensitiveParameter] array $auth = []): ComposerResult
+    public function change(ExtensionRequest $request, string $release, #[SensitiveParameter] array $auth = [], array $blocking = []): ComposerResult
     {
         $command = match ($request->action) {
             ExtensionAction::Install, ExtensionAction::Update => ['require', "{$request->package}:{$request->constraint}", '--update-with-dependencies', '--update-no-dev'],
             ExtensionAction::Remove => ['remove', (string) $request->package, '--update-with-dependencies', '--update-no-dev'],
-            ExtensionAction::Rebuild => ['update', '--minimal-changes', '--no-dev'],
+            ExtensionAction::Rebuild => ['update', ...$blocking, '--with-all-dependencies', '--minimal-changes', '--no-dev'],
             ExtensionAction::Rollback => throw new LogicException('A rollback runs no Composer.'),
         };
 

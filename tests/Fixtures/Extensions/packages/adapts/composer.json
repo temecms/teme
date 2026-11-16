@@ -1,0 +1,16 @@
+{
+    "name": "fixtures/adapts",
+    "description": "A plugin whose newer version fits a newer core library.",
+    "type": "teme-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "teme/contracts": "*",
+        "fixtures/core-lib": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fixtures\\Adapts\\": "src/"
+        }
+    }
+}

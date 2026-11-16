@@ -277,7 +277,9 @@ final class InstallerRunner
             return true;
         }
 
-        $result = $this->composer->change($request, $this->stagePath($request), $this->auth($request));
+        $stage = $this->stagePath($request);
+        $blocking = $request->action === ExtensionAction::Rebuild ? $this->compatibility->blocking($stage, $this->pins) : [];
+        $result = $this->composer->change($request, $stage, $this->auth($request), $blocking);
 
         if (! $result->ok()) {
             throw new InstallerFailed("Composer couldn’t install the packages:\n".$result->lastLines());
