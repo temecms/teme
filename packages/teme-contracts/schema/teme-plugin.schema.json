@@ -151,6 +151,14 @@
                             "day",
                             "week"
                         ]
+                    },
+                    "enabledBy": {
+                        "type": "string",
+                        "description": "One of the plugin's boolean settings, which switches the schedule on and off."
+                    },
+                    "everyFrom": {
+                        "type": "string",
+                        "description": "One of the plugin's select settings whose options are all intervals above; how often the schedule runs, every when unset."
                     }
                 }
             }

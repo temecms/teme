@@ -27,7 +27,9 @@
     "schedules": [
         {
             "job": "publish-queue",
-            "every": "hour"
+            "every": "hour",
+            "enabledBy": "active",
+            "everyFrom": "frequency"
         }
     ],
     "contributes": {

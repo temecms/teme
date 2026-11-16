@@ -12,7 +12,7 @@ use App\Domain\Plugins\Manifest;
  * manifest ManifestValidator has already accepted.
  *
  * @phpstan-type JobDeclaration array{key: string, label: string, long: bool, tries: int, backoff: list<int>}
- * @phpstan-type ScheduleDeclaration array{job: string, every: string}
+ * @phpstan-type ScheduleDeclaration array{job: string, every: string, enabledBy: string|null, everyFrom: string|null}
  */
 final readonly class DeclaredJobs
 {
@@ -62,7 +62,12 @@ final readonly class DeclaredJobs
                 continue;
             }
 
-            $schedules[] = ['job' => $entry['job'], 'every' => $entry['every']];
+            $schedules[] = [
+                'job' => $entry['job'],
+                'every' => $entry['every'],
+                'enabledBy' => is_string($entry['enabledBy'] ?? null) ? $entry['enabledBy'] : null,
+                'everyFrom' => is_string($entry['everyFrom'] ?? null) ? $entry['everyFrom'] : null,
+            ];
         }
 
         return new self($jobs, $schedules);

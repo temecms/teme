@@ -2,7 +2,7 @@
 title: Jobs and schedules
 type: how-to
 audience: plugin
-summary: Who a plugin's background job acts for, and every limit a job's run works within.
+summary: Who a plugin's background job acts for, schedules its own settings switch and time, and every limit a job's run works within.
 rests_on: [packages/teme-contracts/src/Jobs, app/Domain/Plugins/Jobs, app/Domain/Plugins/Doors/PluginHttp.php, docs/architecture/plugins.md]
 ---
 
@@ -15,6 +15,15 @@ A plugin granted `jobs` declares its jobs and schedules in `teme-plugin.json`, i
 `JobContext` gives a handler its payload, its attempt and `progress()`, and with `personId()` the account ID the run acts for: the person who queued it, or for a scheduled run the administrator who enabled the plugin. Pass it to every door that acts for a person, such as `ContentWriter` and `ContentReader`. Don't keep a "write as" setting of your own.
 
 A run the operator queued from the command line acts for nobody: `personId()` throws `JobStopped`, and the handler stops.
+
+## Schedules your settings switch and time
+
+A schedule names a declared job and how often it runs: `{"job": "publish-queue", "every": "hour"}`, with `every` one of `minute`, `five-minutes`, `fifteen-minutes`, `hour`, `day` and `week`. Two optional entries hand the choice to the site's administrator, through the plugin's own settings (see [Settings](settings.md)):
+
+- `enabledBy` names one of the plugin's `boolean` settings. The schedule runs only while it is on, so with no `default` of `true` it starts off.
+- `everyFrom` names one of the plugin's `select` settings whose options are all intervals from the list above. The schedule runs as often as the chosen option says, and as often as `every` says if the setting can't be read.
+
+Core reads these settings each minute, when it checks what is due, so a change counts at the next minute's check. Turning a schedule on runs it at that check when its interval has already passed since its last run. A schedule that names a setting the plugin doesn't declare, or one of the wrong kind, stops the plugin from being enabled.
 
 ## Limits
 

@@ -570,6 +570,7 @@ final readonly class ManifestValidator
         }
 
         $errors = [];
+        $settings = null;
 
         foreach ($schedules as $entry) {
             if (! is_array($entry)) {
@@ -589,9 +590,69 @@ final readonly class ManifestValidator
             if (! is_string($every) || ! in_array($every, DeclaredJobs::EVERY, true)) {
                 $errors[] = 'schedules every must be one of minute, five-minutes, fifteen-minutes, hour, day, week.';
             }
+
+            $errors = [...$errors, ...$this->scheduleSettings($entry, $settings ??= self::declaredSettings($manifest))];
         }
 
         return $errors;
+    }
+
+    /**
+     * A schedule's own settings (docs/plans/plugin-sockets-3.md, scheduler
+     * port): `enabledBy` names one of the plugin's boolean settings, which
+     * switches it on and off, and `everyFrom` a select setting whose options
+     * are all intervals a schedule may take.
+     *
+     * @param  array<array-key, mixed>  $entry
+     * @param  array<string, array<array-key, mixed>>  $settings
+     *
+     * @return list<string>
+     */
+    private function scheduleSettings(array $entry, array $settings): array
+    {
+        $errors = [];
+
+        if (array_key_exists('enabledBy', $entry)) {
+            $key = $entry['enabledBy'];
+
+            if (! is_string($key) || ($settings[$key]['type'] ?? null) !== 'boolean') {
+                $errors[] = __('schedules enabledBy names ":key", which isn’t one of the plugin’s boolean settings.', ['key' => $this->show($key)]);
+            }
+        }
+
+        if (array_key_exists('everyFrom', $entry)) {
+            $key = $entry['everyFrom'];
+            $options = is_string($key) ? ($settings[$key]['options'] ?? null) : null;
+
+            if (! is_string($key) || ($settings[$key]['type'] ?? null) !== 'select' || ! is_array($options) || $options === []
+                || array_diff(array_map(strval(...), array_keys($options)), DeclaredJobs::EVERY) !== []) {
+                $errors[] = __('schedules everyFrom names ":key", which isn’t a select setting whose options are all minute, five-minutes, fifteen-minutes, hour, day or week.', ['key' => $this->show($key)]);
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * The settings the manifest declares under `contributes.settings`, by key.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return array<string, array<array-key, mixed>>
+     */
+    private static function declaredSettings(array $manifest): array
+    {
+        $contributes = $manifest['contributes'] ?? null;
+        $declared = is_array($contributes) && is_array($contributes['settings'] ?? null) ? $contributes['settings'] : [];
+        $settings = [];
+
+        foreach ($declared as $setting) {
+            if (is_array($setting) && is_string($setting['key'] ?? null)) {
+                $settings[$setting['key']] = $setting;
+            }
+        }
+
+        return $settings;
     }
 
     private function backoffOk(mixed $backoff): bool
