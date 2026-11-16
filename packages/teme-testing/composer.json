@@ -1,0 +1,14 @@
+{
+    "name": "teme/testing",
+    "description": "Tests for Teme plugins and themes, written against a real Teme site.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Teme\\Testing\\": "src/"
+        }
+    }
+}

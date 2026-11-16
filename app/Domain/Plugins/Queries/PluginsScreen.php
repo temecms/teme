@@ -92,6 +92,8 @@ final readonly class PluginsScreen
                 'tables' => $tables,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables left.
                 'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
+                // Same rule as ForgetPlugin: disabled, package gone, and no tables left.
+                'canForget' => ! $enabled && ($manifest === null) && ($record === null || $this->migrations->ownedTables($record->migrations) === []),
             ];
         }, $this->list->all());
     }

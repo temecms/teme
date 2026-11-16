@@ -1,0 +1,21 @@
+{
+    "manifest": 1,
+    "name": "tests/keyfile",
+    "code": "keyfile",
+    "label": "Keyfile",
+    "description": "A fixture that answers verification files at the site's root for the root-files tests.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Keyfile\\Keyfile",
+    "capabilities": ["routes.public"],
+    "rootFiles": [
+        { "id": "key", "name": "{site_key}.txt", "body": "{site_key}" },
+        { "id": "literal", "name": "keyfile-literal.txt", "body": "A literal body." }
+    ],
+    "contributes": {
+        "settings": [
+            { "key": "site_key", "type": "text", "label": "Site key", "description": "The key the service checks at the site's root.", "default": "" },
+            { "key": "api_token", "type": "secret", "label": "API token", "description": "A secret, which never names a root file." }
+        ]
+    }
+}

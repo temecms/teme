@@ -14,13 +14,25 @@ use InvalidArgumentException;
  */
 final readonly class ImportOutcome
 {
-    /** The record was brought across. */
+    /**
+     * The record was brought across.
+     *
+     * @since 0.9.0
+     */
     public const string IMPORTED = 'imported';
 
-    /** The record was left out on purpose. */
+    /**
+     * The record was left out on purpose.
+     *
+     * @since 0.9.0
+     */
     public const string SKIPPED = 'skipped';
 
-    /** The record couldn't be brought across; the run goes on. */
+    /**
+     * The record couldn't be brought across; the run goes on.
+     *
+     * @since 0.9.0
+     */
     public const string FAILED = 'failed';
 
     /**

@@ -2,8 +2,8 @@
 title: Hooks
 type: concept
 audience: plugin
-summary: The five verbs, the after-commit rule, capabilities, the Since version and requires.teme, and where the generated hook list lives.
-rests_on: [packages/teme-contracts/src/Hooks, docs/reference/hooks.md, docs/architecture/plugins.md]
+summary: The five verbs, the after-commit rule, capabilities, what happens when a listener fails, the Since version and requires.teme, and where the generated hook list lives.
+rests_on: [packages/teme-contracts/src/Hooks, app/Domain/Hooks/HookDispatcher.php, app/Domain/Plugins/Faults, docs/reference/hooks.md, docs/reference/contracts.md, docs/architecture/plugins.md]
 ---
 
 # Hooks
@@ -30,11 +30,24 @@ Hooks fire after the change is saved, never during the database transaction. A l
 
 A hook may require a capability, declared on the class. `ContentPublished` needs `content.read`. Teme refuses a subscription when the plugin did not ask for that capability in `teme-plugin.json`, and refuses enable when the manifest’s `hooks` and `capabilities` do not match.
 
+## When a listener fails
+
+A listener that throws, or answers a value of the wrong type, never breaks the page or the change that fired the hook. Teme reports the failure to the site's log with your plugin's name, the subscription and the hook, and then:
+
+- for a Notification, the other listeners still hear it;
+- for a Transform or a Collect, your listener is skipped and the others' work stands, unless the hook is marked to fail the change (`Failure` on the hook), when the whole change is refused instead;
+- for a Gate, the action is refused, with the words that your plugin couldn't check it, so it was stopped to be safe;
+- for a Resolve, the hook answers nothing, as if no listener had answered.
+
+A plugin whose `register()` throws is not started for that request, and anything it subscribed before throwing is removed. A job's handler that throws is reported and tried again, as [Jobs and schedules](../plugins/jobs.md) describes, and a public route's handler that throws answers the site's error page, as [Public routes](../plugins/public-routes.md) describes.
+
+Nothing counts a plugin's failures or turns a plugin off for failing yet: a listener that fails on every call fails on every call, and the log is where you see it.
+
 ## Since, and the Teme you require
 
-Every hook, interface and class in `teme/contracts` that a plugin or theme codes against carries a `@since` tag in its docblock: the Teme version that first offered it. The generated hooks reference shows it as **Since**: `ContentPublished`, for one, has been there since 0.5.0, and `SettingsReader` since 0.1.0. A contract added later, such as the ones v1 brings, carries the later version.
+Every hook, interface and class in `teme/contracts` that a plugin or theme codes against carries a `@since` tag in its docblock: the Teme version that first offered it. The generated hooks reference shows it as **Since**: `ContentPublished`, for one, has been there since 0.5.0, and `SettingsReader` since 0.1.0. A contract added later carries the later version: the jobs door and the content door, for two, since 0.9.0.
 
-Set `requires.teme` in your manifest to at least the highest **Since** of anything you use. A plugin that listens to `ContentPublished` needs Teme 0.5.0 or later, so `"^0.5"` or higher; the handbook's first plugin asks for `"^0.8"`. Teme refuses a package whose `requires.teme` doesn't accept the running version, so the check happens at enable rather than as an error on a live page.
+Set `requires.teme` in your manifest to at least the highest **Since** of anything you use. A plugin that listens to `ContentPublished` needs Teme 0.5.0 or later, so `"^0.5"` or higher; the handbook's first plugin asks for `"^0.9"`. The [contracts reference](../../../reference/contracts.md) gives the **Since** of every contract, and the newest version a checkout offers in its first lines. Teme refuses a package whose `requires.teme` doesn't accept the running version, so the check happens at enable rather than as an error on a live page.
 
 In your own plugin's or theme's code, use `@since` however you like, or not at all. Teme neither reads nor checks it there.
 

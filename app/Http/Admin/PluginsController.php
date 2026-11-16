@@ -6,8 +6,10 @@ namespace App\Http\Admin;
 
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\ForgetPlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\Operations\Input\ForgetPluginInput;
 use App\Domain\Plugins\Operations\Input\MigratePluginInput;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
@@ -123,12 +125,48 @@ final class PluginsController extends Controller
     }
 
     /**
+     * Forgets a disabled plugin whose package is gone, freeing its code.
+     */
+    public function forget(Request $request, string $code, PluginList $list, ForgetPlugin $forget): RedirectResponse
+    {
+        $name = $request->string('name')->toString();
+        $row = $this->rowByName($list, $name, $code);
+
+        try {
+            $forget->execute(new ForgetPluginInput($row->name, (string) $request->user()?->getAuthIdentifier()));
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return to_route('plugins.index');
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __(':name was forgotten. Its code is free for another package.', ['name' => $row->label])]);
+
+        return to_route('plugins.index');
+    }
+
+    /**
      * The plugin the code names, or a 404.
      */
     private function row(PluginList $list, string $code): PluginRow
     {
         foreach ($list->all() as $row) {
             if ($row->code === $code) {
+                return $row;
+            }
+        }
+
+        abort(404);
+    }
+
+    /**
+     * The plugin this name and code name together, so a renamed package that
+     * reuses the code does not steal the forget request, or a 404.
+     */
+    private function rowByName(PluginList $list, string $name, string $code): PluginRow
+    {
+        foreach ($list->all() as $row) {
+            if ($row->name === $name && $row->code === $code) {
                 return $row;
             }
         }

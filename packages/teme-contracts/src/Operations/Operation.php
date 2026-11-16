@@ -9,8 +9,15 @@ namespace Teme\Contracts\Operations;
  *
  * Admin controllers, API endpoints, queue jobs, console commands and AI
  * tools all call operations. None of them touch persistence directly.
+ *
+ * @since 0.1.0
  */
 interface Operation
 {
+    /**
+     * Returns what the operation made or changed, once it is committed.
+     *
+     * @since 0.1.0
+     */
     public function execute(OperationInput $input): mixed;
 }
