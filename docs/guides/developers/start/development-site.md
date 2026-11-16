@@ -54,7 +54,17 @@ You build a plugin or theme in its own folder or repository, and test it against
 
 5. Serve the site (Herd serves the folder for you; otherwise `php artisan serve`). Run `php artisan teme:setup-code`, open the address it prints, enter the code, and fill in the form: you are the site's first administrator.
 
-6. Enable your plugin: Plugins in the admin, or
+6. Start the scheduler and a queue worker, each in its own terminal, and leave them running while you work. Without them a plugin's jobs and schedules never run, and `teme:doctor` says the scheduler has never run:
+
+   ```bash
+   php artisan schedule:work
+   ```
+
+   ```bash
+   php artisan queue:work
+   ```
+
+7. Enable your plugin: Plugins in the admin, or
 
    ```bash
    php artisan teme:plugins:enable your/package --agree
