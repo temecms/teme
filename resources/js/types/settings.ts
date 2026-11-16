@@ -184,6 +184,8 @@ export type SiteCodeChange = {
 
 export type SiteCodePage = {
     adsTxt: string;
+    adsTxtMode: 'text' | 'redirect';
+    adsTxtRedirect: string;
     adsTxtVersion: number;
     locked: boolean;
     siteTimezone: string;
