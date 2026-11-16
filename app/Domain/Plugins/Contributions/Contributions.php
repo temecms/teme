@@ -145,15 +145,13 @@ final readonly class Contributions implements PluginContributions
             }
         }
 
-        if ($declared === [] && ! ($plugin instanceof HasListColumns)) {
-            return [];
+        if (! ($plugin instanceof HasListColumns)) {
+            return $declared === []
+                ? []
+                : ['It declares columns but doesn’t implement '.HasListColumns::class.'.'];
         }
 
-        if ($declared !== [] && ! ($plugin instanceof HasListColumns)) {
-            return ['It declares columns but doesn’t implement '.HasListColumns::class.'.'];
-        }
-
-        $handlers = $plugin instanceof HasListColumns ? array_keys($plugin->listColumns()) : [];
+        $handlers = array_keys($plugin->listColumns());
         $errors = [];
 
         foreach (array_keys($declared) as $id) {

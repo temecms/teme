@@ -72,7 +72,7 @@ final class ContentListController extends Controller
             : [];
         $pluginKeys = array_values(array_filter(
             $shown,
-            fn (mixed $id): bool => is_string($id) && str_starts_with($id, 'plugin:'),
+            fn (string $id): bool => str_starts_with($id, 'plugin:'),
         ));
         $offered = $pluginColumns->for($contentType->key);
         $cells = $pluginColumns->cells(

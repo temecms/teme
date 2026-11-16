@@ -217,7 +217,7 @@ final class ContributionsValidator implements ContributionsCheck
 
         foreach (array_keys($column) as $key) {
             if (! in_array($key, ['id', 'label', 'kind', 'width', 'types', 'sortable'], true)) {
-                $errors[] = __('A column can’t have :key.', ['key' => is_scalar($key) ? (string) $key : '']);
+                $errors[] = __('A column can’t have :key.', ['key' => (string) $key]);
             }
         }
 

@@ -72,7 +72,14 @@ final class PluginColumns
                 continue;
             }
 
-            $declared = $found[$record->name]->manifest?->contributes()['columns'] ?? null;
+            $foundPlugin = $found[$record->name] ?? null;
+            $manifest = $foundPlugin?->manifest;
+
+            if ($foundPlugin === null || $manifest === null) {
+                continue;
+            }
+
+            $declared = $manifest->contributes()['columns'] ?? null;
 
             if (! is_array($declared)) {
                 continue;
@@ -98,12 +105,12 @@ final class PluginColumns
                     };
 
                 $columns[] = new DeclaredColumn(
-                    key: 'plugin:'.$found[$record->name]->code.':'.$entry['id'],
+                    key: 'plugin:'.$foundPlugin->code.':'.$entry['id'],
                     owner: $record->name,
-                    code: $found[$record->name]->code,
+                    code: $foundPlugin->code,
                     id: $entry['id'],
                     label: is_string($entry['label'] ?? null) ? trim($entry['label']) : $entry['id'],
-                    plugin: $found[$record->name]->manifest?->label() ?? $found[$record->name]->code,
+                    plugin: $manifest->label(),
                     kind: $kind,
                     width: $width,
                 );
@@ -142,7 +149,7 @@ final class PluginColumns
         }
 
         $ids = array_fill_keys(array_map(fn (ListRow $row): string => $row->id, $rows), true);
-        $listRows = new ListRows($type, array_values($rows));
+        $listRows = new ListRows($type, $rows);
         $running = $this->loaded->running();
         $spent = 0;
         $values = [];
@@ -163,7 +170,11 @@ final class PluginColumns
             $started = $this->clock->nanoseconds();
 
             try {
-                $handler = $running[$column->owner]->listColumns()[$column->id] ?? null;
+                $owner = $running[$column->owner] ?? null;
+                if (! $owner instanceof HasListColumns) {
+                    throw new ColumnAnswerRefused("{$column->key} has no ListColumn.");
+                }
+                $handler = $owner->listColumns()[$column->id] ?? null;
                 if (! $handler instanceof ListColumn) {
                     throw new ColumnAnswerRefused("{$column->key} has no ListColumn.");
                 }
