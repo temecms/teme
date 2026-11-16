@@ -19,6 +19,17 @@ final class ScoreColumn implements ListColumn
     {
         ColumnMode::apply($this->mode, $rows);
 
+        if ($this->mode === 'wrong') {
+            $first = $rows->rows[0]->id ?? 'x';
+
+            return [
+                'unknown-row' => Cell::badge('x'),
+                $first => Cell::number(1),
+                ($rows->rows[1]->id ?? 'y') => 'plain',
+                ($rows->rows[2]->id ?? $first) => Cell::badge('Kept', 'ok'),
+            ];
+        }
+
         $cells = [];
 
         foreach ($rows->rows as $row) {

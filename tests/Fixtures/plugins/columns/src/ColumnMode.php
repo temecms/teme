@@ -6,31 +6,19 @@ namespace Tests\Fixtures\Plugins\Columns;
 
 use RuntimeException;
 use Teme\Contracts\Lists\ListRows;
+use Tests\Fixtures\Plugins\ListColumnCalls;
 
 /**
  * Shared mode switches for the columns fixture's handlers.
  */
 final class ColumnMode
 {
-    /** @var list<ListRows> */
-    public static array $seen = [];
-
-    public static function reset(): void
+    public static function apply(string $mode, ListRows $rows, bool $mayThrow = false): void
     {
-        self::$seen = [];
-    }
+        ListColumnCalls::record($rows);
 
-    public static function apply(string $mode, ListRows $rows): void
-    {
-        self::$seen[] = $rows;
-
-        if ($mode === 'throw') {
+        if ($mayThrow && $mode === 'throw') {
             throw new RuntimeException('The columns fixture threw on purpose.');
-        }
-
-        if ($mode === 'slow') {
-            // The fake ColumnClock advances across this call in the tests.
-            usleep(0);
         }
     }
 }

@@ -17,24 +17,15 @@ final class NoteColumn implements ListColumn
 
     public function cells(ListRows $rows): array
     {
-        ColumnMode::apply($this->mode, $rows);
+        ColumnMode::apply($this->mode, $rows, mayThrow: true);
 
         $cells = [];
 
         foreach ($rows->rows as $row) {
             $cells[$row->id] = match ($this->mode) {
                 'markup' => Cell::text('<img src=x onerror=alert(1)>'),
-                'wrong' => Cell::number(1),
                 default => Cell::text('A note'),
             };
-        }
-
-        if ($this->mode === 'wrong') {
-            return [
-                'unknown-row' => Cell::badge('x'),
-                ($rows->rows[0]->id ?? 'x') => 'plain',
-                ...$cells,
-            ];
         }
 
         return $cells;
