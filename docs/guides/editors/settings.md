@@ -128,6 +128,10 @@ The AI services Teme may use, the model each task uses, and how much people may 
 
 The language your site is written in, and the other languages it publishes in. For now this page only shows them: adding a language, and translating, come in a later release.
 
+### Management API
+
+Whether outside tools, such as an importer or a script, may write to the site, and the keys they sign in with. Each key acts as one person, with only the abilities chosen for it. Making a key asks you to confirm your password. Administrators change it.
+
 ## To find a setting
 
 Type in **Find a setting** at the top of **Settings**, for example "time zone". It lists the settings that match and takes you to their page.

@@ -2,8 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Api\Manage\Middleware\AnswerManageApi;
+use App\Http\Api\Manage\Middleware\AuthenticateApiKey;
+use App\Http\Api\Manage\Middleware\EnsureManageApiOn;
+use App\Http\Api\Manage\Middleware\ThrottleManageAddress;
+use App\Http\Api\Manage\Middleware\ThrottleManageKey;
+use App\Http\Api\Middleware\AnswerAsApi;
 use App\Http\Api\Middleware\EnsureApiOn;
 use App\Http\Api\V1\NotFoundController;
+use App\Http\Site\Middleware\MarkCacheable;
 use Illuminate\Support\Facades\Route;
 
 // The API (I-3324): loaded in the api group, before routes/public.php, so
@@ -18,6 +25,14 @@ Route::prefix('api/v1')->middleware(['throttle:api', EnsureApiOn::class])->group
     require __DIR__.'/api/catalogue.php';
     require __DIR__.'/api/items.php';
 });
+
+// The management API (docs/proposals/management-api.md): its own switch,
+// signed in with a key, limited per address and per key, and never stored
+// by the page cache, so the API group's ETag and cache mark are left out.
+Route::prefix('api/manage/v1')
+    ->middleware([AnswerManageApi::class, ThrottleManageAddress::class, EnsureManageApiOn::class, AuthenticateApiKey::class, ThrottleManageKey::class])
+    ->withoutMiddleware([AnswerAsApi::class, MarkCacheable::class])
+    ->group(base_path('routes/api/manage.php'));
 
 // Anything else under /api, in any case: a problem, never the public site,
 // whatever the switch says. The public site reads addresses in any case,

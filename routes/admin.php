@@ -307,6 +307,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         // translations' routes (I-3360).
         require __DIR__.'/admin/languages.php';
         require __DIR__.'/admin/translations.php';
+        require __DIR__.'/admin/management-api.php';
 
         Route::get('settings/{group}', [SettingsController::class, 'show'])
             ->where('group', '[a-z0-9_.-]+')
