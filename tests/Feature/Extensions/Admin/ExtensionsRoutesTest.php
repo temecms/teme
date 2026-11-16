@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Domain\Extensions\Sources\ExtensionRequest;
-use App\Domain\Extensions\Sources\ExtensionSource;
-use App\Domain\Extensions\Sources\SourceKind;
 use App\Domain\Support\Security\Elevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -132,7 +129,6 @@ it('searches Packagist and lists a package’s versions', function (): void {
 });
 
 it('saves a source with its key and never sends the key back, then removes it', function (): void {
-    app()->tag([ExtRoutesGitKind::class], 'teme.extensions.sources');
 
     $responses = [
         $this->actingAs($this->admin)->withSession($this->confirmed)->from('/admin/plugins')
@@ -181,26 +177,3 @@ it('refuses everyone without extensions.install on every route, recording nothin
         ->and(DB::table('extension_sources')->count())->toBe(0)
         ->and(DB::table('extension_uploads')->count())->toBe(0);
 })->with(['editor', 'author', 'contributor']);
-
-/**
- * Stands in for part C's Git source kind.
- */
-final readonly class ExtRoutesGitKind implements SourceKind
-{
-    public function key(): string
-    {
-        return 'git';
-    }
-
-    public function repositories(?ExtensionSource $source, string $extensionsPath): array
-    {
-        return [];
-    }
-
-    public function auth(?ExtensionSource $source): array
-    {
-        return [];
-    }
-
-    public function prepare(ExtensionRequest $request, string $releasePath, string $extensionsPath): void {}
-}

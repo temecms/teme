@@ -10,9 +10,6 @@ use App\Domain\Extensions\Operations\Input\RemoveExtensionSourceInput;
 use App\Domain\Extensions\Operations\Input\UploadExtensionInput;
 use App\Domain\Extensions\Operations\RemoveExtensionSource;
 use App\Domain\Extensions\Operations\UploadExtension;
-use App\Domain\Extensions\Sources\ExtensionRequest;
-use App\Domain\Extensions\Sources\ExtensionSource;
-use App\Domain\Extensions\Sources\SourceKind;
 use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\ElevationRequiredException;
@@ -30,7 +27,6 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
-    app()->tag([ExtFakeGitKind::class], 'teme.extensions.sources');
     $this->admin = extAdmin();
     $this->add = fn (array $values = [], ?string $actor = null) => fn () => app(AddExtensionSource::class)->execute(new AddExtensionSourceInput(...[
         'kind' => 'git', 'label' => 'Acme’s Git', 'url' => 'https://git.example.com/acme/hello.git', 'username' => null, 'credential' => 'ghp_secret-key-1234',
@@ -186,26 +182,3 @@ it('asks for the password again, and writes nothing without it', function (): vo
     expect(DB::table('extension_sources')->count())->toBe(1)
         ->and(DB::table('extension_uploads')->count())->toBe(0);
 });
-
-/**
- * Stands in for part C's Git source kind.
- */
-final readonly class ExtFakeGitKind implements SourceKind
-{
-    public function key(): string
-    {
-        return 'git';
-    }
-
-    public function repositories(?ExtensionSource $source, string $extensionsPath): array
-    {
-        return [];
-    }
-
-    public function auth(?ExtensionSource $source): array
-    {
-        return [];
-    }
-
-    public function prepare(ExtensionRequest $request, string $releasePath, string $extensionsPath): void {}
-}

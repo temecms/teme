@@ -6,9 +6,6 @@ use App\Domain\Extensions\ExtensionAction;
 use App\Domain\Extensions\ExtensionKind;
 use App\Domain\Extensions\Operations\Input\RequestExtensionChangeInput;
 use App\Domain\Extensions\Operations\RequestExtensionChange;
-use App\Domain\Extensions\Sources\ExtensionRequest;
-use App\Domain\Extensions\Sources\ExtensionSource;
-use App\Domain\Extensions\Sources\SourceKind;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Support\Security\DeniedElevation;
 use App\Domain\Support\Security\Elevation;
@@ -252,7 +249,6 @@ it('refuses a version Composer can’t read, an unknown source kind, and Packagi
 });
 
 it('records an upload’s request with the archive’s own version, and refuses an upload that holds another package', function (): void {
-    app()->tag([ExtFakeUploadKind::class], 'teme.extensions.sources');
     $upload = strtolower((string) Str::ulid());
     DB::statement("INSERT INTO extension_uploads (id, file_name, size, sha256, package, version, bytes, created_at) VALUES (?, 'hello.zip', 4, ?, 'acme/hello', '1.4.0', decode('UEsDBA==', 'base64'), now())", [$upload, str_repeat('a', 64)]);
 
@@ -265,26 +261,3 @@ it('records an upload’s request with the archive’s own version, and refuses 
         ->and($row->upload_id)->toBe($upload)
         ->and($row->constraint)->toBe('1.4.0');
 });
-
-/**
- * Stands in for part C's upload source kind.
- */
-final readonly class ExtFakeUploadKind implements SourceKind
-{
-    public function key(): string
-    {
-        return 'upload';
-    }
-
-    public function repositories(?ExtensionSource $source, string $extensionsPath): array
-    {
-        return [];
-    }
-
-    public function auth(?ExtensionSource $source): array
-    {
-        return [];
-    }
-
-    public function prepare(ExtensionRequest $request, string $releasePath, string $extensionsPath): void {}
-}
