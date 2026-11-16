@@ -47,7 +47,7 @@ $text = $answer->text;
 - `timeoutSeconds` is 1 to 55, or up to 600 inside a job declared `long`.
 - `itemId` names the item the request is about, when there is one. It is recorded with the request.
 
-The person must be the one the work acts for: the person who queued the job, or for a schedule the administrator who enabled the plugin. A request for anyone else, or from a run that acts for nobody, is refused.
+The person must be the one the work acts for: the person who queued the job, or for a schedule the administrator who enabled the plugin. A request for anyone else, or from a run that acts for nobody, is refused. So is one for a person whose role may not use AI, with the reason `no-permission`: a plugin spends AI only for people who could ask for it themselves.
 
 ## When it can't be asked
 

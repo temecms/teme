@@ -151,6 +151,12 @@ it('refuses, sending and recording nothing, whatever stands in the way', functio
 
         return null;
     }, 'no-person', 'A plugin writes only for the person who started this work.'],
+    'a person who may not use AI' => [function () {
+        $contributor = User::factory()->create()->assignRole('contributor');
+        scribeRunAs($contributor);
+
+        return (string) $contributor->id;
+    }, 'no-permission', 'The person this work runs for may not use AI.'],
     'an undeclared task' => [function (): void {
         $this->changes = ['task' => 'poems'];
     }, 'no-task', 'This plugin doesn’t declare the AI task poems.'],

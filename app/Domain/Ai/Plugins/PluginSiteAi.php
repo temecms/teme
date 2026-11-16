@@ -15,6 +15,7 @@ use App\Domain\Ai\ModelRef;
 use App\Domain\Ai\Operations\Input\RecordAiActivityInput;
 use App\Domain\Ai\Operations\RecordAiActivity;
 use App\Domain\Plugins\Doors\ActingPerson;
+use App\Domain\Users\Actors;
 use Illuminate\Support\Str;
 use Teme\Contracts\Ai\AiAnswer;
 use Teme\Contracts\Ai\AiAsk;
@@ -60,6 +61,11 @@ final readonly class PluginSiteAi implements SiteAi
             ActingPerson::require($actingPersonId);                 // the person of this work; never the operator
         } catch (WriteRefused $refused) {
             throw new AiRefused('no-person', $refused->getMessage());
+        }
+
+        // Spending AI is the person's right to use it, as when they ask in the admin (I-321).
+        if (app(Actors::class)->find($actingPersonId)?->can('ai.use') !== true) {
+            throw new AiRefused('no-permission', __('The person this work runs for may not use AI.'));
         }
 
         $task = app(PluginAiTasks::class)->declared($this->code, $ask->task)
