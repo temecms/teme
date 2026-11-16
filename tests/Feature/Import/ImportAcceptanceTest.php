@@ -321,6 +321,7 @@ function accSteps(): array
 
             return null;
         }],
+        'fediverse-replies' => ['fediverse-replies', $alone],
         'menus' => ['menus', function (ImportRun $run): null {
             $items = MenuImports::stored(Navigation::query()->findOrFail(DB::table('import_map')->where('object_type', 'menu')->where('object_id', '3')->value('teme_id')));
 
@@ -356,6 +357,11 @@ function accSteps(): array
         }],
         'translations' => ['translations', $alone],
         'language-words' => ['language-words', $alone],
+        'fediverse' => ['fediverse', function (ImportRun $run): null {
+            expect(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'fediverse.companion-too-old')->count())->toBe(1);
+
+            return null;
+        }],
         'check' => ['check', function (ImportRun $run): null {
             expect(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'check.other-host')->pluck('context')->map(fn (string $context): string => (string) json_decode($context, true)['host'])->all())->toBe(['cdn.example'])
                 ->and(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'like', 'check.%')->where('level', 'error')->count())->toBe(0);

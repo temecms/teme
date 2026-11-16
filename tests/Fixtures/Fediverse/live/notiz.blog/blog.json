@@ -1,0 +1,23 @@
+{
+    "id": "https://notiz.blog/@notiz.blog",
+    "type": "Group",
+    "preferredUsername": "notiz.blog",
+    "url": "https://notiz.blog",
+    "inbox": "https://notiz.blog/wp-api/activitypub/1.0/actors/0/inbox",
+    "outbox": "https://notiz.blog/wp-api/activitypub/1.0/actors/0/outbox",
+    "followers": "https://notiz.blog/wp-api/activitypub/1.0/actors/0/followers",
+    "following": "https://notiz.blog/wp-api/activitypub/1.0/actors/0/following",
+    "endpoints": {
+        "sharedInbox": "https://notiz.blog/wp-api/activitypub/1.0/inbox"
+    },
+    "publicKey": {
+        "id": "https://notiz.blog/@notiz.blog#main-key",
+        "owner": "https://notiz.blog/@notiz.blog",
+        "publicKeyPem": "-----BEGIN PUBLIC KEY-----\r\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA12njJ+Y3H4b8LF4iBoPo\r\n3Z956cSyHFEg0VcKF4YHIgsIeWJSFsZ6Qr+UtzASJfR26bHMyw1WwL7GK+eI9BnM\r\nXZ0renBHdQDJhGd2Gy+JzGl6YBICQYMkZS1DEfpmtT+Es5eJDLucRfrdMiXlertw\r\nEgen/39kafSh3sHfXj3CT3uGRZCS2EA47aKPao+UjfNWZH49o/WCgSKU6gDdZkeL\r\nxpo/gxRh3RhfiYqwgrkBOHYx5x6NspkJZUSlVV72kMisTtrfcuBHFppJk1DPWVT4\r\nRGYI36xYIKiFxVNg30rNXyy+DAaTL32xBqIhmfymiBnRshJju4ODEZ8s7fe1Jqa9\r\n7wIDAQAB\r\n-----END PUBLIC KEY-----"
+    },
+    "alsoKnownAs": [
+        "https://notiz.blog/?author=0",
+        "https://notiz.blog",
+        "https://notiz.blog/"
+    ]
+}

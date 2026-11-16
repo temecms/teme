@@ -52,6 +52,24 @@ You need:
 | 3.2 | Bring across what changed: `docker compose exec web php artisan teme:import https://old.example.com --catch-up`. | | |
 | 3.3 | Confirm the new post arrived, with its images. | | |
 
+## If the site has fediverse followers
+
+Skip this section unless the WordPress site uses the ActivityPub plugin. Teme brings the plugin's accounts across with their keys and followers, and keeps every account at its old address, so people who follow the site on Mastodon keep following it with nothing to do. Prove that on a staging copy before you move the real site.
+
+You need a staging copy of the WordPress site on a domain of its own, with the ActivityPub plugin active and Teme's companion plugin new enough to move followers (an import says when it isn't), and a throwaway account on a Mastodon server.
+
+| Fediverse step | What to do | Took | Surprise |
+|---|---|---|---|
+| F.1 | From the throwaway account, follow the staging site's blog account, and an author's account if the site has them. Note the follower counts the ActivityPub plugin shows in WordPress. | | |
+| F.2 | Import the staging copy into Teme, as in Stage 2. The report has a **fediverse-actor** row for each account and a **fediverse-follower** row for each follower, and no fediverse error. A line saying Teme made a new key is a warning to read: that account's followers' servers pick the new key up the next time they hear from it. | | |
+| F.3 | Open **Settings › Fediverse**. Each imported account is listed with the followers WordPress had, and the switch is on if the plugin was active. | | |
+| F.4 | Point the staging domain at Teme. Teme sends to the fediverse only from the site's own address, and outside production only when the configuration value `teme.fediverse.deliver_outside_production` is on: turn it on for the staging server for this test. | | |
+| F.5 | Ask for each account at its old address, as Mastodon does: `curl -H 'Accept: application/activity+json' https://staging.example.com/?author=0`, and the same for each author's `?author=` number. Each answers its account, with the same `id` and key the WordPress site gave. | | |
+| F.6 | Publish a new post in Teme. It arrives in the throwaway account's home timeline, from the account it already followed. | | |
+| F.7 | Reply to that post from the throwaway account. The reply arrives in Teme as a comment held for moderation. | | |
+| F.8 | Unfollow from the throwaway account. **Settings › Fediverse** shows one follower fewer. | | |
+| F.9 | Turn `teme.fediverse.deliver_outside_production` off on the staging server again. | | |
+
 ## Stage 4: Publish from Teme
 
 | Step | What to do | Took | Surprise |
