@@ -762,37 +762,6 @@ None.
 - `php artisan test --compact tests/Feature/Plugins/Sockets/ContentQueueTest.php tests/Feature/Plugins/Sockets/PeopleReaderTest.php tests/Feature/Plugins/Sockets/SiteChoiceSettingsTest.php tests/Feature/Plugins/Sockets/SettingSchedulesTest.php` for the scheduler port's additions; the `tests/scheduler` fixture shows a manifest using all four.
 - Enable the `tests/librarian` fixture on a development site (its folder in `teme.plugin_paths`), open Settings › Plugin settings › Librarian and choose a person for "Credit articles to"; queue its `write-as-person` job while signed in, and the draft it writes is yours.
 
----|---|---|
-| | | |
-
-#### Task 0
-
--
-
-#### Gate
-
--
-
-#### B-?? (draft)
-
--
-
-#### Contract changes
-
--
-
-#### STOP
-
--
-
-#### Changelog lines for the maintainers
-
--
-
-#### Try it
-
--
-
 ---
 
 ## Part D: hooks a plugin declares, plugin dependencies, notices from plugins (`sockets3/hooks-notices`)
