@@ -153,7 +153,18 @@ final readonly class StageValidator
             }
         }
 
+        $before = [];
+
+        foreach ($previous === null ? [] : self::locked($previous) as $entry) {
+            $before[$entry['name']] = $entry['dist']['reference'] ?? $entry['source']['reference'] ?? null;
+        }
+
         foreach ($locked as $name => $entry) {
+            // Agreed to when it came: only a package new to the release, or at another reference, is asked about.
+            if (array_key_exists($name, $before) && $before[$name] === ($entry['dist']['reference'] ?? $entry['source']['reference'] ?? null)) {
+                continue;
+            }
+
             $files = $entry['autoload']['files'] ?? [];
 
             if ($name !== $package && is_array($files) && $files !== []) {

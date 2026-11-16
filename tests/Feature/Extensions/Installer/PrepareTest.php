@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Extensions\Installer\ComposerRunner;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -119,5 +120,31 @@ it('says another request is open only when one is', function (): void {
     DB::table('extension_requests')->insert(['id' => strtolower((string) Str::ulid()), 'action' => 'install', 'kind' => 'plugin', 'package' => 'fixtures/hello-extension', 'status' => 'requested', 'requested_at' => now()]);
 
     expect($this->folder->runner(ExtensionsFolder::pinsWith(['fixtures/core-lib' => '2.0.0']))->prepare())->toContain('Another request is open')
+        ->and($this->folder->store->current())->toBe($id);
+})->group('composer');
+
+it('stops the start check, without checking again, once the rebuild waits for an administrator', function (): void {
+    $id = $this->folder->install('fixtures/grows', '1.0.0', pins: ExtensionsFolder::pinsWith(['fixtures/core-lib' => '1.2.0']));
+    $project = json_decode((string) file_get_contents($this->folder->store->path($id).'/composer.json'), true);
+    $project['require'] = ['fixtures/grows' => '^1.0'];
+    file_put_contents($this->folder->store->path($id).'/composer.json', json_encode($project));
+
+    $composer = new class((string) config('teme.extensions.composer'), $this->folder->root) extends ComposerRunner
+    {
+        public int $audits = 0;
+
+        public function audit(string $release): ?array
+        {
+            $this->audits++;
+
+            return [];
+        }
+    };
+
+    $held = $this->folder->runner(ExtensionsFolder::pinsWith(['fixtures/core-lib' => '2.0.0']), $composer)->prepare();
+
+    expect($held)->toContain('agree')
+        ->and($composer->audits)->toBe(1)
+        ->and(DB::table('extension_requests')->value('status'))->toBe('waiting')
         ->and($this->folder->store->current())->toBe($id);
 })->group('composer');

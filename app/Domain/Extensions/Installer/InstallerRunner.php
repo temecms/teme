@@ -155,7 +155,8 @@ final class InstallerRunner
         for ($pass = 0; $pass < 20; $pass++) {
             $row = DB::table('extension_requests')->where('id', $id)->first();
 
-            if ($row === null || ! RequestStatus::from((string) $row->status)->isOpen()) {
+            // A rebuild that waits for an administrator is looked at again by the loop, not here.
+            if ($row === null || ! RequestStatus::from((string) $row->status)->isOpen() || $row->status === RequestStatus::Waiting->value) {
                 break;
             }
 
@@ -163,6 +164,10 @@ final class InstallerRunner
         }
 
         $row = DB::table('extension_requests')->where('id', $id)->first();
+
+        if ($row !== null && $row->status === RequestStatus::Waiting->value) {
+            return 'The rebuild for this version of Teme waits for an administrator to agree to what it adds.';
+        }
 
         return $row !== null && $row->status === RequestStatus::Done->value ? null : (string) ($row->error ?? implode(' ', $problems));
     }

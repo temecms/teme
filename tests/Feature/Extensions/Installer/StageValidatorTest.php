@@ -224,3 +224,10 @@ it('refuses a package holding a link that points outside it, and takes one that 
         ->and($refusals[0])->toContain('fixtures/hello-theme')->toContain('public/build/settings.txt')
         ->and($refusals[1])->toContain('public/up');
 })->group('composer');
+
+it('asks again only about packages the release that runs doesn’t already hold', function (): void {
+    $this->folder->install('fixtures/files-dependency', '1.0.0');
+    $previous = $this->folder->store->path($this->folder->store->current());
+
+    expect(($this->validate)(($this->request)('fixtures/hello-extension'), ($this->staged)('fixtures/hello-extension'), $previous)->needs)->toBe([]);
+})->group('composer');

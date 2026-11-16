@@ -132,16 +132,22 @@ final class ExtensionsFolder
         return $id;
     }
 
-    /** A runner for this folder, with Packagist off and the fixtures as a source. */
-    public function runner(?array $pins = null): InstallerRunner
+    /**
+     * A runner for this folder, with Packagist off and the fixtures as a source.
+     *
+     * @param  array{replace: array<string, string>, provide: array<string, string>, hash: string}|null  $pins
+     */
+    public function runner(?array $pins = null, ?ComposerRunner $composer = null): InstallerRunner
     {
+        $composer ??= $this->composer();
+
         app()->instance('tests.fixtures-source', new FixturesSource);
         app()->tag('tests.fixtures-source', SourceKinds::TAG);
 
         return new InstallerRunner(
             $this->store,
-            $this->composer(),
-            app()->make(StageValidator::class, ['composer' => $this->composer(), 'imageVendor' => base_path('vendor'), 'imageCodes' => fn (): array => ['plugins' => [], 'themes' => []]]),
+            $composer,
+            app()->make(StageValidator::class, ['composer' => $composer, 'imageVendor' => base_path('vendor'), 'imageCodes' => fn (): array => ['plugins' => [], 'themes' => []]]),
             new CompatibilityCheck,
             new ReleaseCaches,
             new ProjectFile,
