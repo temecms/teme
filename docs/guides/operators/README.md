@@ -21,6 +21,7 @@ People who write and publish on the site have a guide of their own.
 6. When something is wrong: [Troubleshooting](troubleshooting.md).
 7. Before you move a real site: [The migration runbook](migration-runbook.md).
 8. To let outside tools write to the site: [The management API](management-api.md).
+9. To install plugins and themes from the admin: [Plugins and themes installed from the admin](extensions.md).
 
 ## How far each page is proved
 
@@ -49,3 +50,4 @@ A guide that tells you something nobody has seen working is worse than none, so 
 | [Troubleshooting](troubleshooting.md) | tests |
 | [The migration runbook](migration-runbook.md) | unproved |
 | [The management API](management-api.md) | tests |
+| [Plugins and themes installed from the admin](extensions.md) | unproved |
