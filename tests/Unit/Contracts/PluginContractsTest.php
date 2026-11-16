@@ -27,6 +27,7 @@ use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Site\SiteInfo;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
 use Teme\Contracts\Status\StatusNotice;
@@ -94,6 +95,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRows::class, '0.9.0'],
     [ListRow::class, '0.9.0'],
     [Cell::class, '0.9.0'],
+    [SiteInfo::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {

@@ -6,11 +6,13 @@ use App\Domain\Plugins\Doors\HostResolver;
 use App\Domain\Plugins\Doors\PluginDoors;
 use App\Domain\Plugins\Doors\PluginHttp;
 use App\Domain\Plugins\Doors\PluginSecrets;
+use App\Domain\Site\CoreSiteInfo;
 use Illuminate\Support\Facades\Http;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
+use Teme\Contracts\Site\SiteInfo;
 use Tests\Fixtures\Plugins\Lists\FakeResolver;
 
 beforeEach(function (): void {
@@ -31,10 +33,11 @@ it('offers the outbound door only to a plugin granted http, limited to its hosts
         ->and($without)->not->toHaveKey(OutboundHttp::class);
 });
 
-it('offers every plugin the settings reader and its own secrets', function (): void {
+it('offers every plugin the settings reader, its own secrets and the site’s public facts', function (): void {
     $offered = app(PluginDoors::class)->for('acme/feeds', 'feeds', [], []);
 
-    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class])
+    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class, SiteInfo::class])
+        ->and($offered[SiteInfo::class])->toBeInstanceOf(CoreSiteInfo::class)
         ->and($offered[SettingsReader::class])->toBe(app(SettingsReader::class))
         ->and($offered[SecretReader::class])->toBeInstanceOf(PluginSecrets::class)
         ->and($offered[SecretReader::class]->secret('backups', 'machine_key'))->toBeNull();
