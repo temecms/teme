@@ -82,7 +82,9 @@
                     "http",
                     "jobs",
                     "routes.public",
-                    "import.wordpress"
+                    "import.wordpress",
+                    "fediverse.read",
+                    "fediverse.send"
                 ]
             }
         },

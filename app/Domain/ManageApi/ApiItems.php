@@ -107,7 +107,6 @@ final readonly class ApiItems
                     contentId: (string) $content->id,
                     revisionId: (string) $content->working_revision_id,
                     actorId: $caller->personId,
-                    via: $caller->via(),
                 ));
             }
 
@@ -118,7 +117,6 @@ final readonly class ApiItems
                     action: 'publish',
                     runAt: Date::parse((string) $request->publishAt)->toIso8601String(),
                     actorId: $caller->personId,
-                    via: $caller->via(),
                 ));
             }
         } catch (Throwable $refusal) {

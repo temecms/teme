@@ -11,6 +11,8 @@ use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\Follower;
 use App\Domain\Fediverse\Models\RemoteActor;
 use App\Domain\Fediverse\Operations\Input\AcceptFollowInput;
+use App\Domain\Fediverse\Publishing\Deliveries;
+use App\Domain\Fediverse\Sockets\SentActivities;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Str;
@@ -73,7 +75,6 @@ final class AcceptFollow extends BaseOperation
             ],
         ]);
 
-        // Later (I-058): the publishing part's DeliverActivity sends what is queued here.
         Delivery::query()->create([
             'activity_id' => $accept->id,
             'inbox_url' => $remote->inbox_url,
@@ -83,5 +84,15 @@ final class AcceptFollow extends BaseOperation
         ]);
 
         return $accept;
+    }
+
+    /**
+     * Sends the Accept once the follow is stored, and tells the plugins.
+     */
+    protected function afterCommit(mixed $result): void
+    {
+        /** @var Activity $result */
+        app(Deliveries::class)->dispatch(Delivery::query()->where('activity_id', $result->id)->pluck('id')->map(fn (mixed $id): string => (string) $id)->all());
+        app(SentActivities::class)->announce([$result]);
     }
 }

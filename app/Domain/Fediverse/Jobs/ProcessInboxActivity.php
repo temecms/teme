@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Jobs;
 
+use App\Domain\Fediverse\BlockedHosts;
 use App\Domain\Fediverse\FediverseSwitch;
 use App\Domain\Fediverse\Models\RemoteActor;
 use App\Domain\Fediverse\Operations\AcceptFollow;
@@ -17,6 +18,7 @@ use App\Domain\Fediverse\Remote\FetchedKeyOwners;
 use App\Domain\Fediverse\Remote\FetchRefused;
 use App\Domain\Fediverse\Remote\RemoteFetcher;
 use App\Domain\Fediverse\Signatures\VerifiedSender;
+use App\Domain\Fediverse\Sockets\InboxActivities;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Validation\ValidationException;
@@ -52,14 +54,19 @@ final class ProcessInboxActivity implements ShouldQueue
             return;
         }
 
+        // Its server blocked since it was queued: nothing is taken, and no plugin hears of it.
+        if (BlockedHosts::blocks((string) parse_url($this->actorUri, PHP_URL_HOST))) {
+            return;
+        }
+
         $sender = new VerifiedSender($this->keyId, $this->actorUri);
+        app(InboxActivities::class)->received($this->activity, $sender);
 
         match ($this->activity['type'] ?? null) {
             'Follow' => $this->follow($sender, $documents, $fetcher),
             'Undo' => $this->undo($sender),
             'Delete' => $this->delete($sender),
-            // Later (I-058): replies, and plugins' handlers for the rest, are the publishing part's.
-            default => null,
+            default => app(InboxActivities::class)->other($this->activity, $sender),
         };
     }
 
@@ -100,8 +107,10 @@ final class ProcessInboxActivity implements ShouldQueue
 
     private function delete(VerifiedSender $sender): void
     {
-        // Only an account's Delete of itself; a reply's is the publishing part's.
+        // An account's Delete of itself ends its follows; any other is a reply's.
         if (self::id($this->activity['object'] ?? null) !== $sender->actorUri) {
+            app(InboxActivities::class)->other($this->activity, $sender);
+
             return;
         }
 

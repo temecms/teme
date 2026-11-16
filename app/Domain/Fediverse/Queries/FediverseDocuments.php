@@ -12,6 +12,8 @@ use App\Domain\Fediverse\Models\Activity;
 use App\Domain\Fediverse\Models\FediverseActor;
 use App\Domain\Fediverse\Models\FediverseObject;
 use App\Domain\Fediverse\Models\Follower;
+use App\Domain\Fediverse\Publishing\ObjectDocuments;
+use App\Domain\Fediverse\Sockets\ObjectTransforms;
 use App\Domain\People\Models\Person;
 use Teme\Contracts\Settings\SettingsReader;
 
@@ -56,8 +58,7 @@ final readonly class FediverseDocuments
             return ['@context' => ActivityPub::CONTEXT, 'id' => $object->uri, 'type' => 'Tombstone', 'deleted' => $object->deleted_at?->toIso8601ZuluString()];
         }
 
-        // Later (I-058): a post's own object document, which the publishing part answers.
-        return null;
+        return app(ObjectDocuments::class)->at($url);
     }
 
     /**
@@ -174,7 +175,7 @@ final readonly class FediverseDocuments
             default => ['Group', $this->settings->string('general', 'site_title'), $this->settings->string('general', 'tagline')],
         };
 
-        return array_filter([
+        return app(ObjectTransforms::class)->actor($actor->uri, array_filter([
             '@context' => [ActivityPub::CONTEXT, ActivityPub::SECURITY_CONTEXT],
             'id' => $actor->uri,
             'type' => $type,
@@ -190,7 +191,7 @@ final readonly class FediverseDocuments
             'manuallyApprovesFollowers' => false,
             'discoverable' => true,
             'publicKey' => ['id' => $actor->keyId(), 'owner' => $actor->uri, 'publicKeyPem' => $actor->public_key_pem],
-        ], fn (mixed $value): bool => $value !== null);
+        ], fn (mixed $value): bool => $value !== null));
     }
 
     /**

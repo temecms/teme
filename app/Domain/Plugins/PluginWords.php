@@ -47,6 +47,8 @@ final readonly class PluginWords
             Capability::Jobs->value => __('Run work in the background and on a schedule'),
             Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
             Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
+            Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
+            Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
             default => $capability,
         };
     }

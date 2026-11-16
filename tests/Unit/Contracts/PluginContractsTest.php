@@ -102,6 +102,8 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'jobs',
         'routes.public',
         'import.wordpress',
+        'fediverse.read',
+        'fediverse.send',
     ]);
 });
 
