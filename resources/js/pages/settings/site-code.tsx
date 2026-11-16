@@ -576,6 +576,7 @@ export default function SiteCodeSettings({
                                         }
                                         className="grid gap-2"
                                         aria-label={__('ads.txt')}
+                                        aria-describedby="site-code-ads-txt-mode-error"
                                     >
                                         <RadioGroupChoice
                                             id="site-code-ads-txt-mode-text"
@@ -592,7 +593,10 @@ export default function SiteCodeSettings({
                                             data-test="site-code-ads-txt-mode-redirect"
                                         />
                                     </RadioGroup>
-                                    <InputError message={errors.ads_txt_mode} />
+                                    <InputError
+                                        id="site-code-ads-txt-mode-error"
+                                        message={errors.ads_txt_mode}
+                                    />
                                     {mode === 'text' ? (
                                         <>
                                             <input
