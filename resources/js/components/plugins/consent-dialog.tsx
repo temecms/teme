@@ -140,6 +140,17 @@ export function ConsentDialog({
                         </section>
                     )}
 
+                    {plugin.requires.length > 0 && (
+                        <ul
+                            data-test="consent-requires"
+                            className="text-small grid gap-2"
+                        >
+                            {plugin.requires.map((words) => (
+                                <li key={words}>{words}</li>
+                            ))}
+                        </ul>
+                    )}
+
                     <DialogFooter>
                         <DialogClose asChild>
                             <Button type="button" variant="outline">

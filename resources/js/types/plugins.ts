@@ -63,6 +63,10 @@ export type PluginRowPage = {
     agreed: PluginAccessLine[];
     asks: PluginAccessLine[];
     listensFor: string[];
+    /** The sentences naming the plugins it needs (docs/plans/plugin-sockets-3.md). */
+    requires: string[];
+    /** The plugins that need it, by their own names. */
+    requiredBy: string[];
     shown: PluginEnablePost;
     agreedBefore: boolean;
     asksMore: boolean;

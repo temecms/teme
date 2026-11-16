@@ -105,6 +105,39 @@ export function DetailsDialog({
                             </ul>
                         </section>
                     )}
+
+                    {plugin.requires.length > 0 && (
+                        <ul
+                            data-test="details-requires"
+                            className="text-small grid gap-2"
+                        >
+                            {plugin.requires.map((words) => (
+                                <li key={words}>{words}</li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {plugin.requiredBy.length > 0 && (
+                        <section
+                            aria-labelledby="details-required-by"
+                            className="grid gap-2"
+                        >
+                            <h3
+                                id="details-required-by"
+                                className="text-small font-semibold"
+                            >
+                                {__('Needed by')}
+                            </h3>
+                            <ul
+                                data-test="details-required-by"
+                                className="text-small list-disc pl-5"
+                            >
+                                {plugin.requiredBy.map((label) => (
+                                    <li key={label}>{label}</li>
+                                ))}
+                            </ul>
+                        </section>
+                    )}
                 </DialogContent>
             )}
         </Dialog>

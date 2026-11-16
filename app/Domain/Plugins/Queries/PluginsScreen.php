@@ -6,7 +6,9 @@ namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
@@ -68,6 +70,7 @@ final readonly class PluginsScreen
             $newImports = $manifest !== null && $row->consent !== [] && array_key_exists('imports', Consent::added($row->consent, $manifest));
 
             $tables = $record === null ? [] : $this->tables($record);
+            $notices = $manifest === null ? [] : array_column(DeclaredNotices::of($manifest), 'label');
 
             return [
                 'name' => $row->name,
@@ -90,7 +93,7 @@ final readonly class PluginsScreen
                 'adds' => [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)],
                 'agreedVersion' => $record?->version,
                 'agreed' => [
-                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent)),
+                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), notices: $notices),
                     ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
                 ],
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
@@ -103,11 +106,15 @@ final readonly class PluginsScreen
                     $row->consent === [] ? [] : $row->added['routes'],
                     $manifest?->imports() ?? [],
                     $newImports,
+                    $notices,
                 ), ...$this->insertionHostsLine(
                     $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
                     $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
                 )],
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
+                // The plugins it needs, then those that need it, by their own names (docs/plans/plugin-sockets-3.md).
+                'requires' => array_map(fn (string $name): string => PluginWords::needs($this->labelOf($name)), array_keys($manifest === null ? [] : Dependencies::required($manifest))),
+                'requiredBy' => array_map($this->labelOf(...), $row->requiredBy),
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
                 'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports,
@@ -158,6 +165,14 @@ final readonly class PluginsScreen
         }
 
         return $hosts;
+    }
+
+    /**
+     * A found plugin's own label, or its Composer name when it isn't found.
+     */
+    private function labelOf(string $name): string
+    {
+        return $this->registry->find($name)?->manifest?->label() ?? $name;
     }
 
     /**
@@ -236,13 +251,14 @@ final readonly class PluginsScreen
      * @param  list<string>  $routes
      * @param  list<string>  $newRoutes
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
+     * @param  list<string>  $notices  the labels of the kinds of notice it declares
      *
      * @return list<array{words: string, new: bool}>
      */
-    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false): array
+    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false, array $notices = []): array
     {
         $lines = array_map(fn (string $capability): array => [
-            'words' => PluginWords::capability($capability, $hosts, $imports),
+            'words' => PluginWords::capability($capability, $hosts, $imports, $notices),
             'new' => in_array($capability, $newCapabilities, true) || ($capability === 'http' && $newHosts !== []) || ($capability === Capability::ImportWordPress->value && $newImports),
         ], $capabilities);
 
