@@ -14,6 +14,7 @@ use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
+use App\Domain\Users\Queries\AuthorOptions;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Fediverse\FediverseFollowers;
@@ -22,6 +23,7 @@ use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -31,7 +33,7 @@ use Teme\Contracts\Settings\SettingsReader;
  * secrets, the content and media write doors when granted, the outbound
  * door to its hosts when it was granted http, InsertionsChanged when it was
  * granted content.insert (I-064), the content reader when it was granted
- * content.read, and the other doors its capabilities open
+ * content.read, the people reader when it was granted people.read, and the other doors its capabilities open
  * (I-3353). Bound as the loader's
  * PluginServices.
  */
@@ -47,6 +49,7 @@ final readonly class PluginDoors implements PluginServices
         private PublishedItems $published,
         private ItemSnapshots $snapshots,
         private QueuedItems $queued,
+        private AuthorOptions $authors,
     ) {}
 
     /**
@@ -97,6 +100,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
             $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued);
+        }
+
+        if (in_array(Capability::PeopleRead->value, $capabilities, true)) {
+            $offered[PeopleReader::class] = new PluginPeopleReader($this->authors);
         }
 
         return $offered;

@@ -3,7 +3,7 @@ title: Reading content
 type: how-to
 audience: plugin
 summary: How a plugin with content.read lists the site's published items a page at a time, and reads an item's draft and the queue of unpublished items for the person its work acts for.
-rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentReader.php, app/Domain/Contents/Queries/PublishedItems.php, app/Domain/Contents/Queries/QueuedItems.php, docs/architecture/plugins.md]
+rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentReader.php, app/Domain/Contents/Queries/PublishedItems.php, app/Domain/Contents/Queries/QueuedItems.php, app/Domain/Plugins/Doors/PluginPeopleReader.php, docs/architecture/plugins.md]
 lands_with: sockets3/content-doors
 ---
 
@@ -38,6 +38,12 @@ The person must be the one the work acts for: the signed-in person of the reques
 `queue()` takes a `QueueQuery` and the person's account ID, and answers a `QueuePage`: the unpublished items that person may edit, oldest first, each a `QueuedItem` with its `ItemRef` and `scheduledFor`. It lists what was waiting before the plugin was enabled as well, so a plugin that keeps its own queue can start from the site's.
 
 `QueueQuery` takes the statuses to list, any of `draft`, `review` and `scheduled` (all three when not given), content-type keys (at most 10; none for every type), and a `limit` of 1 to 200. An editor who may edit anyone's items sees them all; an author sees their own. Items in the trash are never listed. Read on with `next` and `after` as for published items. The same person rule applies: another person or the operator gets `ReadRefused`, and an unknown status, a cursor the reader didn't give or a value outside the bounds throws InvalidArgumentException.
+
+## Name the people who write
+
+A plugin that lets someone pick who an item is for, or shows who wrote what, asks for `people.read` as well. The administrator is asked to let it "See the names of the people who write on this site". The plugin can then ask for `PeopleReader`, whose `writers()` lists the active people who may write content, a page of 1 to 200 at a time in account order, each a `PersonRef` with the account ID and display name only. It never gives an email address or anything else about them. Read on by passing the page's `next` back as `after`.
+
+The IDs are the ones `ContentWriter` credits and a `person` setting stores (see [Settings](settings.md)).
 
 `ContentSaved` stays small: it tells which item was saved and by whom. A listener that needs the words reads the draft with the hook's `actorId`, which is the signed-in person of that request.
 

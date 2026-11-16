@@ -84,7 +84,8 @@
                     "routes.public",
                     "import.wordpress",
                     "fediverse.read",
-                    "fediverse.send"
+                    "fediverse.send",
+                    "people.read"
                 ]
             }
         },

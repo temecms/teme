@@ -34,6 +34,9 @@ use Teme\Contracts\Lists\ListColumn;
 use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\People\PeopleReader;
+use Teme\Contracts\People\PersonPage;
+use Teme\Contracts\People\PersonRef;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
@@ -109,6 +112,9 @@ it('gives every new contract its @since and nothing from a framework', function 
     [QueueQuery::class, '0.9.0'],
     [QueuedItem::class, '0.9.0'],
     [QueuePage::class, '0.9.0'],
+    [PeopleReader::class, '0.9.0'],
+    [PersonRef::class, '0.9.0'],
+    [PersonPage::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -130,6 +136,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'import.wordpress',
         'fediverse.read',
         'fediverse.send',
+        'people.read',
     ]);
 });
 

@@ -49,6 +49,7 @@ final readonly class PluginWords
             Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
             Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
+            Capability::PeopleRead->value => __('See the names of the people who write on this site'),
             default => $capability,
         };
     }
