@@ -7,6 +7,7 @@ namespace App\Domain\Settings\Operations;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Plugins\Operations\AgreePluginHosts;
 use App\Domain\Plugins\Operations\Input\AgreePluginHostsInput;
+use App\Domain\Plugins\PluginSentences;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\SecretStore;
@@ -146,10 +147,11 @@ final class UpdateSettings extends BaseOperation implements RequiresElevation
             return [];
         }
 
-        return ["values.{$field}" => __('Agree to let :plugin connect to :hosts, or remove them.', [
+        // Core's own words only: a plugin's language file never re-words a refusal (docs/plans/plugin-sockets-1.md, A-W14).
+        return ["values.{$field}" => app(PluginSentences::class)->coreOnly(fn (): string => __('Agree to let :plugin connect to :hosts, or remove them.', [
             'plugin' => $plugin['label'],
             'hosts' => implode(', ', array_values(array_unique($missing))),
-        ])];
+        ]))];
     }
 
     /**

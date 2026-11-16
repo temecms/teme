@@ -9,6 +9,7 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Input\AgreePluginHostsInput;
 use App\Domain\Plugins\PluginAccess;
 use App\Domain\Plugins\PluginRecords;
+use App\Domain\Plugins\PluginSentences;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Users\Actors;
 use Carbon\CarbonImmutable;
@@ -49,7 +50,7 @@ final class AgreePluginHosts extends BaseOperation implements RequiresElevation
 
         foreach ($input->hosts as $host) {
             if (preg_match(HostPattern::PATTERN, $host) !== 1 || str_starts_with($host, '*.')) {
-                throw ValidationException::withMessages(['hosts' => [__(':host isn’t a host name.', ['host' => $host])]]);
+                throw ValidationException::withMessages(['hosts' => [app(PluginSentences::class)->coreOnly(fn (): string => __(':host isn’t a host name.', ['host' => $host]))]]);
             }
         }
     }
@@ -61,7 +62,7 @@ final class AgreePluginHosts extends BaseOperation implements RequiresElevation
     {
         /** @var AgreePluginHostsInput $input */
         $record = PluginRecord::query()->where('name', $input->name)->lockForUpdate()->first()
-            ?? throw ValidationException::withMessages(['plugin' => [__('No plugin is named ":name".', ['name' => $input->name])]]);
+            ?? throw ValidationException::withMessages(['plugin' => [app(PluginSentences::class)->coreOnly(fn (): string => __('No plugin is named ":name".', ['name' => $input->name]))]]);
 
         $consent = $record->consent;
         $agreed = array_values(array_filter((array) ($consent['settingHosts'] ?? []), is_string(...)));

@@ -76,7 +76,7 @@ The rules come in two parts. Teme enforces the first: an author can't break them
 ### Words
 
 - Every word a person reads goes through `__()`, so a site in another language can translate it. Write each sentence in American English as its own key.
-- A plugin keeps its translations in its package's `lang` folder, one JSON file per language, such as `lang/es.json`, in the same format as core's: `{"Hub sent the ping.": "El hub envió el ping."}`. Teme reads them while the plugin is enabled, in the reader's or the person's language as core chooses it. A sentence with no translation shows in English, and where a plugin's key is also one of core's own, core's translation wins. For a theme's words, see [Languages in a theme](../themes/languages.md).
+- A plugin keeps its translations in its package's `lang` folder, one JSON file per language, such as `lang/es.json`, in the same format as core's: `{"Hub sent the ping.": "El hub envió el ping."}`. Teme reads them while the plugin is enabled, in the reader's or the person's language as core chooses it. A plugin's file only adds sentences: Teme keeps a line only for a sentence the plugin's own code passes to `__()` as a plain string, that none of core's language files holds and that no plugin started before it claimed, and uses it only where core has no line of its own. The consent, password and refusal screens always use core's words. A sentence with no translation shows in English. For a theme's words, see [Languages in a theme](../themes/languages.md).
 
 ### License
 

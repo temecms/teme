@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\PluginSentences;
 use App\Domain\Plugins\PluginWords;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\Support\Security\Elevation;
@@ -28,7 +29,16 @@ final class EnablePluginCommand extends Command
     /** @var string */
     protected $description = 'Enable a plugin, agreeing to what it asks for';
 
-    public function handle(PluginRegistry $registry, EnablePlugin $enable): int
+    /**
+     * Runs with core's own words only: a plugin's language file never
+     * re-words what the operator agrees to (docs/plans/plugin-sockets-1.md, A-W14).
+     */
+    public function handle(PluginRegistry $registry, EnablePlugin $enable, PluginSentences $sentences): int
+    {
+        return $sentences->coreOnly(fn (): int => $this->enable($registry, $enable));
+    }
+
+    private function enable(PluginRegistry $registry, EnablePlugin $enable): int
     {
         $name = (string) $this->argument('name');
         $plugin = $registry->find($name);

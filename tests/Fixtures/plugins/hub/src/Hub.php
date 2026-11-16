@@ -20,4 +20,12 @@ final class Hub implements Plugin
     {
         //
     }
+
+    /**
+     * The words it says when a ping is sent, in the reader's language.
+     */
+    public function sent(): string
+    {
+        return __('Hub sent the ping.');
+    }
 }

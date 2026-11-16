@@ -13,6 +13,7 @@ use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
 use App\Domain\Plugins\Operations\MigratePlugin;
 use App\Domain\Plugins\Operations\RemovePluginData;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\PluginSentences;
 use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Plugins\Queries\PluginRow;
 use App\Domain\Plugins\Queries\PluginsScreen;
@@ -34,7 +35,8 @@ final class PluginsController extends Controller
 {
     public function index(PluginsScreen $screen, PluginRegistry $registry, SettingHosts $hosts): Response
     {
-        return Inertia::render('plugins/index', ['plugins' => $screen->rows(), 'settingHosts' => $this->settingHosts($registry, $hosts)]);
+        // Core's own words only: a plugin's language file never re-words what a person agrees to (docs/plans/plugin-sockets-1.md, A-W14).
+        return app(PluginSentences::class)->coreOnly(fn (): Response => Inertia::render('plugins/index', ['plugins' => $screen->rows(), 'settingHosts' => $this->settingHosts($registry, $hosts)]));
     }
 
     /**
@@ -42,6 +44,11 @@ final class PluginsController extends Controller
      * plugin that now asks for something different, is a toast.
      */
     public function enable(EnablePluginRequest $request, string $code, PluginList $list, EnablePlugin $enable): RedirectResponse
+    {
+        return app(PluginSentences::class)->coreOnly(fn (): RedirectResponse => $this->enableAs($request, $code, $list, $enable));
+    }
+
+    private function enableAs(EnablePluginRequest $request, string $code, PluginList $list, EnablePlugin $enable): RedirectResponse
     {
         $row = $this->row($list, $code);
 
