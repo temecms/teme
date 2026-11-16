@@ -121,7 +121,7 @@ final class NoticeChoices
      * own kinds, then each enabled plugin's under its label, in the order
      * the registry lists them (docs/plans/plugin-sockets-3.md).
      *
-     * @return array{core: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>, plugins: list<array{plugin: string, notices: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>}>}
+     * @return array{core: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>, plugins: list<array{name: string, plugin: string, notices: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>}>}
      */
     public function grouped(User $user): array
     {
@@ -138,7 +138,7 @@ final class NoticeChoices
                 continue;
             }
 
-            $plugins[$owner['name']] ??= ['plugin' => $owner['label'], 'notices' => []];
+            $plugins[$owner['name']] ??= ['name' => $owner['name'], 'plugin' => $owner['label'], 'notices' => []];
             $plugins[$owner['name']]['notices'][] = $row;
         }
 

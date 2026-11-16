@@ -1,5 +1,4 @@
 import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
-import { PlugIcon } from 'lucide-react';
 import NotificationsController from '@/actions/App/Http/Admin/Account/NotificationsController';
 import InputError from '@/components/input-error';
 import { FormPanel } from '@/components/patterns/form-page';
@@ -8,6 +7,7 @@ import { SettingsPage } from '@/components/patterns/settings-page';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { __ } from '@/lib/i18n';
 import { edit as editNotifications } from '@/routes/notifications';
 
@@ -33,6 +33,8 @@ type Props = {
     notices: Notice[];
     /** Each enabled plugin's kinds this person may turn off, under the plugin's own name. */
     pluginNotices: {
+        /** The plugin's Composer name, which keys its group. */
+        name: string;
         plugin: string;
         notices: Notice[];
     }[];
@@ -113,16 +115,12 @@ export default function Notifications({
 
                                 {/* Each plugin's kinds after core's, named once, by the plugin's own name with its mark. */}
                                 {pluginNotices.map((group) => (
-                                    <FormPanel key={group.plugin}>
-                                        <h2
-                                            data-test="plugin-notices"
-                                            className="text-lead text-ink flex items-center gap-2 font-semibold"
-                                        >
-                                            <PlugIcon
-                                                aria-hidden="true"
-                                                className="text-ink-3 size-4 shrink-0"
+                                    <FormPanel key={group.name}>
+                                        <h2 data-test="plugin-notices">
+                                            <PluginMark
+                                                name={group.plugin}
+                                                className="text-lead text-ink gap-2 font-semibold"
                                             />
-                                            {group.plugin}
                                         </h2>
                                         <Choices
                                             legend={group.plugin}

@@ -56,6 +56,7 @@ it('lists a plugin’s kinds after core’s, in one group named once by the plug
             ->component('account/notifications')
             ->where('notices', fn ($notices): bool => collect($notices)->pluck('key')->filter(fn (string $key): bool => str_contains($key, 'plugin_'))->isEmpty())
             ->where('pluginNotices', [[
+                'name' => 'tests/relay',
                 'plugin' => 'Relay',
                 'notices' => [
                     ['key' => $this->failed, 'label' => 'Email me when an article I started fails', 'channels' => [['key' => 'mail', 'label' => 'Email', 'on' => false], ['key' => 'inbox', 'label' => 'Inbox', 'on' => true]], 'disabled' => false, 'switchedOff' => null],
