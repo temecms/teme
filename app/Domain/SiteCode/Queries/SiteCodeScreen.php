@@ -113,6 +113,21 @@ final readonly class SiteCodeScreen
     }
 
     /**
+     * The entries an editor may place with the Custom HTML card (I-3127): each
+     * one's ID, name and whether it is on, in the order added, and never its
+     * code, which only administrators see.
+     *
+     * @return list<array{id: string, name: string, on: bool}>
+     */
+    public static function placed(): array
+    {
+        return SiteCodeEntry::query()->where('placement', SiteCode::PLACED)->orderBy('id')->get(['id', 'name', 'enabled'])
+            ->map(fn (SiteCodeEntry $entry): array => ['id' => (string) $entry->id, 'name' => (string) $entry->name, 'on' => (bool) $entry->enabled])
+            ->values()
+            ->all();
+    }
+
+    /**
      * The origins worked out from the code itself (I-3375), every
      * directive's, each once and sorted.
      *

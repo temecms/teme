@@ -12,9 +12,14 @@ export type CardManifestEntry = {
     icon: string;
     /** Whether + Insert and the slash menu offer it (CardMenuEntry::$inMenus). */
     inMenus: boolean;
+    /** Whether it belongs in theme regions only, so the menus offer it only there (CardMenuEntry::$regionOnly, I-3127). */
+    regionOnly: boolean;
     /** Each attribute's default, and its allowed values when its rule lists them. */
     attributes: { name: string; default: unknown; options: string[] | null }[];
 };
+
+/** A site code entry the Custom HTML card may place: its name and whether it is on, never its code (I-3127). */
+export type PlacedCode = { id: string; name: string; on: boolean };
 
 /** A provider an embed card may frame, from config/embeds.php. */
 export type EmbedProvider = {
@@ -272,6 +277,10 @@ export type ContentEditPage = {
     allowedCards: string[] | null;
     /** The theme region this item fills, its theme, and what it takes, in words. Null for any other item. */
     themeRegion: { label: string; themeName: string; takes: string } | null;
+    /** The code the Custom HTML card may place, by name; null for any item that isn't a theme region. */
+    placedCode: PlacedCode[] | null;
+    /** Whether the host has switched site code off; null for any item that isn't a theme region. */
+    siteCodeLocked: boolean | null;
     siteUrl: string;
     /** The site's zone, as an IANA name: every time the editor shows is on its clock. */
     siteTimezone: string;

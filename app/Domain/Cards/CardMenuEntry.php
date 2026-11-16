@@ -21,5 +21,7 @@ final readonly class CardMenuEntry
         public string $icon,
         /** Whether + Insert and the slash menu offer it: false for a card only the importer adds (I-329). */
         public bool $inMenus = true,
+        /** Whether it belongs in theme regions only, so the editor offers it nowhere else (I-3127). */
+        public bool $regionOnly = false,
     ) {}
 }
