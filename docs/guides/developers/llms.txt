@@ -20,6 +20,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Public routes](plugins/public-routes.md): How a plugin will register routes reachable without signing in.
 - [The plugin import socket](plugins/import.md): How a plugin will take part in site import.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
+- [Content on every page](plugins/page-insertions.md): How a plugin with pages.insert places markup in the head, at the top and bottom of every page, between list items, around a theme's regions and fixed to the screen's edge, and what core cleans, caps and leaves out.
 - [The fediverse](plugins/fediverse.md): What core does on the fediverse by itself, and the sockets a plugin can use to hear activities, handle them, change what is sent, and send its own.
 - [List columns](plugins/list-columns.md): How a plugin adds a column to the admin's content lists.
 - [Languages in a theme](themes/languages.md): What a multilingual site gives a theme, from the page's language and direction, its other language versions, the language switcher, and the theme's own words.
