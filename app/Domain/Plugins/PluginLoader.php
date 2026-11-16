@@ -140,6 +140,18 @@ final readonly class PluginLoader
         }
 
         $this->loaded->started($plugin->name, $instance);
+        $this->words($plugin);
+    }
+
+    /**
+     * The started plugin's own words, its lang/<locale>.json, read after
+     * core's so core's own words win a clash (docs/plans/plugin-sockets-1.md, A-W14).
+     */
+    private function words(FoundPlugin $plugin): void
+    {
+        if (is_dir($plugin->path.'/lang')) {
+            app('translator')->addJsonPath($plugin->path.'/lang');
+        }
     }
 
     /**
