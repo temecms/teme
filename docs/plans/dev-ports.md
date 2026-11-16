@@ -11,7 +11,7 @@ There is no plan file for this part: issue #341 and the bug brief were the plan.
 ### Commits
 
 1. `3d41d22` `fix(dev): let the environment choose Compose and phpunit ports`
-2. (this) `docs(plans): dev-ports' records`
+2. `fbd84b7` `docs(plans): dev-ports' records`
 
 ### Tests seen failing
 
