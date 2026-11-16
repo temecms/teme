@@ -184,6 +184,28 @@ it('refuses an editor saving a redirect and writes nothing', function (): void {
         ->toBe(SiteCodeSettings::MODE_TEXT);
 });
 
+it('refuses junk in the redirect field while saving text mode and writes nothing', function (): void {
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        'kept.com, pub-1, DIRECT',
+        0,
+        (string) $this->admin->id,
+    ));
+
+    expect(fn () => app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: 'kept.com, pub-1, DIRECT',
+        expectedVersion: 1,
+        actorId: (string) $this->admin->id,
+        mode: 'text',
+        redirectUrl: 'http://junk.example/ads.txt',
+    )))->toThrow(ValidationException::class);
+
+    expect(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE))
+        ->toBe(SiteCodeSettings::MODE_TEXT)
+        ->and(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_REDIRECT))
+        ->toBe('');
+    addrGet('/ads.txt')->assertOk()->assertContent('kept.com, pub-1, DIRECT');
+});
+
 it('in text mode answers /ads.txt as plain UTF-8 after a redirect was saved before', function (): void {
     app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
         adsTxt: '',

@@ -66,7 +66,7 @@ final class UpdateAdsTxt extends BaseOperation
             $problems[SiteCodeSettings::ADS_TXT_MODE] = __('Choose text or a redirect.');
         }
 
-        if ($mode === SiteCodeSettings::MODE_REDIRECT) {
+        if ($mode === SiteCodeSettings::MODE_REDIRECT || $redirect !== '') {
             $problem = self::redirectProblem($redirect);
 
             if ($problem !== null) {
