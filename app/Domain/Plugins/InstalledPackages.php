@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Extensions\ActiveRelease;
 use Illuminate\Support\Env;
 
 /**
  * What Composer actually installed (I-3353): each package's entry in
- * vendor/composer/installed.json, the file Composer's autoloader and
+ * vendor/composer/installed.json, the image's then the extensions release's, the file Composer's autoloader and
  * Laravel's discovery read, which can differ from the package's own
  * composer.json (a private or `package` repository).
  */
@@ -46,15 +47,22 @@ final class InstalledPackages
             return $this->entries;
         }
 
-        $file = $this->file ?? (Env::get('COMPOSER_VENDOR_DIR') ?: base_path('vendor')).'/composer/installed.json';
-        $installed = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
-        $packages = is_array($installed) ? ($installed['packages'] ?? $installed) : [];
+        $files = $this->file !== null ? [$this->file] : [
+            (Env::get('COMPOSER_VENDOR_DIR') ?: base_path('vendor')).'/composer/installed.json',
+            // The extensions folder's release after the image's: the image's own packages always win.
+            app(ActiveRelease::class)->installedJson(),
+        ];
         $entries = [];
 
-        foreach (is_array($packages) ? $packages : [] as $package) {
-            if (is_array($package) && is_string($package['name'] ?? null)) {
-                /** @var array<string, mixed> $package */
-                $entries[$package['name']] = $package;
+        foreach (array_filter($files) as $file) {
+            $installed = is_file($file) ? json_decode((string) file_get_contents($file), true) : null;
+            $packages = is_array($installed) ? ($installed['packages'] ?? $installed) : [];
+
+            foreach (is_array($packages) ? $packages : [] as $package) {
+                if (is_array($package) && is_string($package['name'] ?? null) && ! isset($entries[$package['name']])) {
+                    /** @var array<string, mixed> $package */
+                    $entries[$package['name']] = $package;
+                }
             }
         }
 

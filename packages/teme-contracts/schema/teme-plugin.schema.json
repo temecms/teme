@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "urn:teme:plugin-manifest:1",
     "title": "Teme plugin manifest, version 1",
-    "description": "teme-plugin.json. A preview until Teme 1.0 (I-3187).",
+    "description": "teme-plugin.json. A preview until Teme 1.0.",
     "$comment": "@since 0.5.0",
     "type": "object",
     "required": [
@@ -97,6 +97,8 @@
                     "import.wordpress",
                     "fediverse.read",
                     "fediverse.send",
+                    "feeds.links",
+                    "pages.insert",
                     "notices.send",
                     "content.links"
                 ]
@@ -104,7 +106,7 @@
         },
         "jobs": {
             "type": "array",
-            "description": "Background jobs the plugin declares (I-3445).",
+            "description": "Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key.",
             "items": {
                 "type": "object",
                 "required": ["key", "label"],
@@ -112,27 +114,32 @@
                 "properties": {
                     "key": {
                         "type": "string",
-                        "pattern": "^[a-z][a-z0-9-]{0,47}$"
+                        "pattern": "^[a-z][a-z0-9-]{0,47}$",
+                        "description": "The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters."
                     },
                     "label": {
                         "type": "string",
                         "minLength": 1,
-                        "maxLength": 80
+                        "maxLength": 80,
+                        "description": "The name people see for its runs, up to 80 characters."
                     },
                     "long": {
                         "type": "boolean",
-                        "default": false
+                        "default": false,
+                        "description": "Whether a run may take long: up to 30 minutes, on the long queue, with 5 minutes for each outbound call, instead of 75 seconds and 10."
                     },
                     "tries": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 5,
-                        "default": 3
+                        "default": 3,
+                        "description": "How many times a run is tried before it is marked failed: 1 to 5, 3 by default."
                     },
                     "backoff": {
                         "type": "array",
                         "minItems": 1,
                         "maxItems": 5,
+                        "description": "The seconds to wait before each new try, 1 to 3,600 each; 30, 120 and 600 by default.",
                         "items": {
                             "type": "integer",
                             "minimum": 1,
@@ -144,7 +151,7 @@
         },
         "schedules": {
             "type": "array",
-            "description": "How often a declared job should run (I-3445).",
+            "description": "How often a declared job runs, counted from its last queued run.",
             "items": {
                 "type": "object",
                 "required": ["job", "every"],
@@ -152,10 +159,12 @@
                 "properties": {
                     "job": {
                         "type": "string",
-                        "pattern": "^[a-z][a-z0-9-]{0,47}$"
+                        "pattern": "^[a-z][a-z0-9-]{0,47}$",
+                        "description": "The key of a job the plugin declares under jobs."
                     },
                     "every": {
                         "type": "string",
+                        "description": "How often it runs.",
                         "enum": [
                             "minute",
                             "five-minutes",
@@ -178,19 +187,140 @@
                 "properties": {
                     "id": {
                         "type": "string",
-                        "pattern": "^[a-z][a-z0-9_-]*$"
+                        "pattern": "^[a-z][a-z0-9_-]*$",
+                        "description": "The route's id, unique in the plugin: lower-case letters, digits, hyphens and underscores."
                     },
                     "method": {
                         "type": "string",
-                        "enum": ["GET", "POST"]
+                        "enum": ["GET", "POST"],
+                        "description": "The one method it answers; a GET also answers HEAD."
                     },
                     "path": {
                         "type": "string",
-                        "minLength": 1
+                        "minLength": 1,
+                        "description": "The address it answers, starting with a slash; {code} stands for the plugin's code and {name} for one segment. Without a condition it must sit under /{code}/ or /.well-known/."
                     },
                     "handler": {
                         "type": "string",
-                        "minLength": 1
+                        "minLength": 1,
+                        "description": "The class that answers it, implementing the PublicRoute contract, built with no constructor arguments."
+                    },
+                    "when": {
+                        "type": "object",
+                        "description": "A condition a request must meet, which lets the path sit outside the plugin's own: query parameters, Accept types, or both.",
+                        "properties": {
+                            "query": {
+                                "type": "object",
+                                "description": "Query parameters the request must carry, each with a regular expression its value must match.",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            },
+                            "accept": {
+                                "type": "array",
+                                "description": "Media types, one of which the request's Accept header must name.",
+                                "items": {
+                                    "type": "string",
+                                    "minLength": 1
+                                }
+                            }
+                        }
+                    },
+                    "verify": {
+                        "type": "object",
+                        "description": "How a POST proves it is genuine; every POST route needs one.",
+                        "properties": {
+                            "kind": {
+                                "type": "string",
+                                "enum": ["secret", "hmac", "custom"],
+                                "description": "secret compares a value the request carries with the secret setting; hmac checks a header holding the body's SHA-256 HMAC under that secret; custom asks the class named in class."
+                            },
+                            "secret": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "The key of one of the plugin's own settings of type secret; needed for secret and hmac."
+                            },
+                            "from": {
+                                "type": "string",
+                                "pattern": "^(header|field|query):.+$",
+                                "description": "For secret: where the request carries the value, as header:, field: or query: and a name."
+                            },
+                            "header": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "For hmac: the header that holds the signature."
+                            },
+                            "class": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "For custom: the class that checks the request, implementing the InboundVerifier contract, built with no constructor arguments and given the secret's value."
+                            }
+                        }
+                    },
+                    "cache": {
+                        "type": "object",
+                        "description": "For a GET: lets the page cache keep its answer. The key must carry everything the condition reads.",
+                        "properties": {
+                            "lifetime": {
+                                "type": "integer",
+                                "description": "The most seconds a shared cache in front of the site may keep the answer: it is told this, at most 60, and 60 when it is left out."
+                            },
+                            "query": {
+                                "type": "array",
+                                "description": "The query parameters the cached answer varies by; every query parameter in the condition must be named.",
+                                "items": {
+                                    "type": "string",
+                                    "minLength": 1
+                                }
+                            },
+                            "varyAccept": {
+                                "type": "boolean",
+                                "description": "Whether the cached answer varies by Accept type; needed when the condition reads Accept."
+                            }
+                        }
+                    },
+                    "maxBody": {
+                        "type": "integer",
+                        "description": "For a POST: the largest body it accepts, in bytes; 1 MB by default, held between 1 byte and 10 MB. A larger one is refused before it is read."
+                    },
+                    "throttle": {
+                        "type": "integer",
+                        "description": "Requests a minute it answers from one address: 120 for a GET and 30 for a POST by default, held between 1 and 240 for a GET, 60 for a POST."
+                    },
+                    "where": {
+                        "type": "object",
+                        "description": "For each {name} in the path, a regular expression its segment must match; one segment of anything but a slash by default.",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "rootFiles": {
+            "type": "array",
+            "description": "Plain-text files at the site's root that core serves for the plugin when it is granted routes.public, such as a verification key: at most 2, each never stored and never indexed.",
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "required": ["id", "name", "body"],
+                "additionalProperties": false,
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_-]*$",
+                        "description": "The file's id, once per plugin."
+                    },
+                    "name": {
+                        "type": "string",
+                        "pattern": "^(?:[A-Za-z0-9-]{8,128}\\.txt|\\{[a-z][a-z0-9_]*\\}\\.txt)$",
+                        "description": "The file's name: 8 to 128 letters, digits and hyphens, then .txt, or {key}.txt to take it from one of the plugin's own text settings."
+                    },
+                    "body": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 1024,
+                        "description": "What the file says: at most 1,024 bytes, or {key} to take it from one of the plugin's own text settings."
                     }
                 }
             }
@@ -247,6 +377,16 @@
                 "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
             }
         },
+        "hostsFrom": {
+            "type": "array",
+            "description": "Up to 3 of the plugin's own url or urls settings whose hosts it may reach once a person agrees, at enable or when saving the setting. Needs http.",
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{1,40}$"
+            }
+        },
         "hooks": {
             "type": "array",
             "description": "The hooks the plugin listens to, by name: a Teme hook's, or another plugin's as code:Name.",
@@ -260,6 +400,12 @@
             "additionalProperties": false,
             "description": "What the plugin adds to the admin.",
             "properties": {
+                "fixedLabel": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 24,
+                    "description": "The label core draws on the plugin's fixed insertions; Advertisement when absent."
+                },
                 "settings": {
                     "type": "array",
                     "description": "Settings the plugin declares.",
@@ -373,73 +519,6 @@
                         }
                     }
                 },
-                "notices": {
-                    "type": "array",
-                    "maxItems": 5,
-                    "description": "Kinds of notice the plugin sends through Notices, with notices.send; never required.",
-                    "items": {
-                        "type": "object",
-                        "required": ["id", "label", "audience", "channels"],
-                        "additionalProperties": false,
-                        "properties": {
-                            "id": {
-                                "type": "string",
-                                "pattern": "^[a-z][a-z0-9_]{1,31}$",
-                                "description": "Its id within the plugin."
-                            },
-                            "label": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 120,
-                                "description": "The choice as Account › Notifications words it."
-                            },
-                            "audience": {
-                                "enum": ["starter", "plugins.manage"],
-                                "description": "Who may receive it: only the person the plugin's work acts for, or those who manage plugins."
-                            },
-                            "channels": {
-                                "type": "array",
-                                "minItems": 1,
-                                "uniqueItems": true,
-                                "items": { "enum": ["mail", "inbox"] }
-                            },
-                            "defaults": {
-                                "type": "array",
-                                "uniqueItems": true,
-                                "items": { "enum": ["mail", "inbox"] },
-                                "description": "The channels on until the person chooses; some of its channels."
-                            }
-                        }
-                    }
-                },
-                "hooks": {
-                    "type": "array",
-                    "maxItems": 10,
-                    "description": "Hooks the plugin declares for other plugins, which it sends through HookSender.",
-                    "items": {
-                        "type": "object",
-                        "required": ["name", "class", "description"],
-                        "additionalProperties": false,
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "pattern": "^[A-Z][A-Za-z]{2,47}$",
-                                "description": "Its name; other plugins list it as code:Name."
-                            },
-                            "class": {
-                                "type": "string",
-                                "minLength": 1,
-                                "description": "Its class, in the plugin's own namespace: a Notification, Transform or Collect hook with #[HookContract]."
-                            },
-                            "description": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 200,
-                                "description": "What it is for, in one sentence."
-                            }
-                        }
-                    }
-                },
                 "columns": {
                     "type": "array",
                     "maxItems": 3,
@@ -477,9 +556,122 @@
                         }
                     }
                 },
+                "feedLinks": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "description": "Links core writes in every feed, after its own rel=\"self\". Needs feeds.links.",
+                    "items": {
+                        "type": "object",
+                        "required": ["rel", "href"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "rel": {
+                                "enum": ["hub"]
+                            },
+                            "href": {
+                                "type": "string",
+                                "maxLength": 2048,
+                                "pattern": "^(https://.+|\\{[a-z][a-z0-9_]{1,40}\\})$",
+                                "description": "An https:// address, or {key} naming one of the plugin's own url or urls settings (a urls setting gives a link for each address, at most 5)."
+                            }
+                        }
+                    }
+                },
+                "actions": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "description": "Buttons on the plugin's settings page, each queuing one of its declared jobs. Needs jobs.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "job"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The action's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The button's words."
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 160,
+                                "description": "What the action does, beside the button."
+                            },
+                            "job": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{0,47}$",
+                                "description": "The key of the declared job it queues."
+                            }
+                        }
+                    }
+                },
+                "lists": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "description": "Small tables on the plugin's settings page.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "columns"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The list's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "The list's heading."
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "What the list shows."
+                            },
+                            "columns": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 6,
+                                "items": {
+                                    "type": "object",
+                                    "required": ["id", "label", "kind"],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                            "description": "The column's id."
+                                        },
+                                        "label": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 40,
+                                            "description": "The column's heading."
+                                        },
+                                        "kind": {
+                                            "enum": ["text", "number", "badge"]
+                                        }
+                                    }
+                                }
+                            },
+                            "rows": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50,
+                                "description": "The most rows it shows; 20 when absent."
+                            }
+                        }
+                    }
+                },
                 "csp": {
                     "type": "object",
                     "additionalProperties": false,
+                    "description": "The hosts the content the plugin inserts loads from, by kind. Read only for a plugin granted content.insert or pages.insert, listed in the consent, and added to a page's policy only where that plugin's insertions were drawn.",
                     "properties": {
                         "style": {
                             "type": "array",
@@ -530,6 +722,77 @@
                             }
                         }
                     }
+                },
+                "notices": {
+                    "type": "array",
+                    "maxItems": 5,
+                    "description": "Kinds of notice the plugin sends through Notices, with notices.send; never required.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "audience", "channels"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{1,31}$",
+                                "description": "Its id within the plugin."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "description": "The choice as Account › Notifications words it."
+                            },
+                            "audience": {
+                                "enum": ["starter", "plugins.manage"],
+                                "description": "Who may receive it: only the person the plugin's work acts for, or those who manage plugins."
+                            },
+                            "channels": {
+                                "type": "array",
+                                "minItems": 1,
+                                "uniqueItems": true,
+                                "items": {
+                                    "enum": ["mail", "inbox"]
+                                }
+                            },
+                            "defaults": {
+                                "type": "array",
+                                "uniqueItems": true,
+                                "items": {
+                                    "enum": ["mail", "inbox"]
+                                },
+                                "description": "The channels on until the person chooses; some of its channels."
+                            }
+                        }
+                    }
+                },
+                "hooks": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "description": "Hooks the plugin declares for other plugins, which it sends through HookSender.",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "class", "description"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "pattern": "^[A-Z][A-Za-z]{2,47}$",
+                                "description": "Its name; other plugins list it as code:Name."
+                            },
+                            "class": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Its class, in the plugin's own namespace: a Notification, Transform or Collect hook with #[HookContract]."
+                            },
+                            "description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "What it is for, in one sentence."
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -537,12 +800,12 @@
             "type": "object",
             "additionalProperties": false,
             "required": ["tables"],
-            "description": "Tables this plugin creates (slice 5.2). Each name starts with the plugin’s code as a prefix (hyphens become underscores).",
+            "description": "Tables this plugin creates. Each name starts with the plugin’s code as a prefix (hyphens become underscores).",
             "properties": {
                 "tables": {
                     "type": "array",
                     "uniqueItems": true,
-                    "description": "Table names the plugin’s migrations create.",
+                    "description": "Table names the plugin’s migrations create: lower-case letters, digits and underscores, starting with the prefix, at most 63 characters.",
                     "items": {
                         "type": "string",
                         "pattern": "^[a-z][a-z0-9_]*$",

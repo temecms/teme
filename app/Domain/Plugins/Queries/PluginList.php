@@ -7,6 +7,7 @@ namespace App\Domain\Plugins\Queries;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestValidator;
@@ -33,6 +34,7 @@ final readonly class PluginList
         private LoadedPlugins $loaded,
         private PluginLoader $loader,
         private PluginMigrations $migrations,
+        private ScheduleRunner $schedules,
         private Dependencies $dependencies,
     ) {}
 
@@ -80,6 +82,7 @@ final readonly class PluginList
             asks: ['capabilities' => $manifest?->capabilities() ?? [], 'hosts' => $manifest?->hosts() ?? [], 'hooks' => $manifest?->hooks() ?? []],
             added: $manifest === null ? ['capabilities' => [], 'hosts' => [], 'routes' => []] : Consent::added($consent, $manifest),
             stopped: array_keys($stopped),
+            schedules: $record === null ? null : $this->schedules->problem($record),
             requiredBy: $this->dependencies->requiredBy($name),
         );
     }

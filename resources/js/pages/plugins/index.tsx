@@ -1,23 +1,30 @@
 import { Head, router, setLayoutProps } from '@inertiajs/react';
-import { Plug } from 'lucide-react';
+import { Plug, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import PluginsController from '@/actions/App/Http/Admin/PluginsController';
+import { useInstaller } from '@/components/extensions/installer';
+import { RequestsList } from '@/components/extensions/requests-list';
 import { ListPage } from '@/components/patterns/list-page';
 import { ConsentDialog } from '@/components/plugins/consent-dialog';
 import { DetailsDialog } from '@/components/plugins/details-dialog';
+import { ForgetDialog } from '@/components/plugins/forget-dialog';
 import { PluginRow } from '@/components/plugins/plugin-row';
 import { RemoveDataDialog } from '@/components/plugins/remove-data-dialog';
+import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { __ } from '@/lib/i18n';
 import { index as pluginsIndex } from '@/routes/plugins';
 import type { PluginEnablePost, PluginRowPage, PluginsPage } from '@/types';
 
-type Tab = 'all' | 'enabled' | 'disabled' | 'attention';
+type PluginTab = 'all' | 'enabled' | 'disabled' | 'attention';
+
+/** The plugin views, then Install requests for someone who may install. */
+type Tab = PluginTab | 'requests';
 
 /** The tabs, in order, and the plugins each one holds. */
 const TABS: {
-    key: Tab;
+    key: PluginTab;
     holds: (p: PluginRowPage) => boolean;
 }[] = [
     { key: 'all', holds: () => true },
@@ -40,7 +47,7 @@ const TABS: {
 ];
 
 /** A tab's label, looked up while the page draws, never where the module loads. */
-function tabLabel(key: Tab): string {
+function tabLabel(key: PluginTab): string {
     switch (key) {
         case 'all':
             return __('All');
@@ -53,6 +60,17 @@ function tabLabel(key: Tab): string {
     }
 }
 
+/** The tab the address names: ?tab=requests opens Install requests, as Themes links to it. */
+function firstTab(canInstall: boolean): Tab {
+    if (!canInstall || typeof window === 'undefined') {
+        return 'all';
+    }
+
+    return new URLSearchParams(window.location.search).get('tab') === 'requests'
+        ? 'requests'
+        : 'all';
+}
+
 /** Where a password-gated request waits while the person types their password. */
 const PENDING_KEY = 'teme.plugins.pending';
 
@@ -61,7 +79,12 @@ const PENDING_MINUTES = 10;
 
 type Pending =
     | { kind: 'enable'; code: string; post: PluginEnablePost; at: number }
-    | { kind: 'migrate' | 'remove-data'; code: string; at: number };
+    | {
+          kind: 'migrate' | 'remove-data' | 'forget';
+          code: string;
+          name?: string;
+          at: number;
+      };
 
 /** Storage may be missing or refuse; the page then works as it does with no marker. */
 function readPending(): Pending | null {
@@ -83,8 +106,20 @@ function readPending(): Pending | null {
             return null;
         }
 
-        if (parsed.kind === 'migrate' || parsed.kind === 'remove-data') {
-            return { kind: parsed.kind, code: parsed.code, at: parsed.at };
+        if (
+            parsed.kind === 'migrate' ||
+            parsed.kind === 'remove-data' ||
+            parsed.kind === 'forget'
+        ) {
+            return {
+                kind: parsed.kind,
+                code: parsed.code,
+                name:
+                    typeof (parsed as { name?: string }).name === 'string'
+                        ? (parsed as { name?: string }).name
+                        : undefined,
+                at: parsed.at,
+            };
         }
 
         // A saved sign-in marker with no kind is enable when it has a post.
@@ -130,19 +165,38 @@ function pendingUrl(pending: Pending): string {
             return PluginsController.migrate.url({ code: pending.code });
         case 'remove-data':
             return PluginsController.removeData.url({ code: pending.code });
+        case 'forget':
+            return PluginsController.forget.url({ code: pending.code });
     }
 }
 
 /**
  * Site › Plugins: every plugin with its state and why, enabled through a
  * consent dialog, migrated or cleared of data after the password screen, and
- * disabled with one click (I-3353, I-3442, I-3342).
+ * disabled with one click (I-3353, I-3442, I-3342). Someone who may install
+ * also adds, updates and removes plugins here, and follows every plugin and
+ * theme request on Install requests (I-211).
  */
-export default function Plugins({ plugins }: PluginsPage) {
-    const [tab, setTab] = useState<Tab>('all');
+export default function Plugins({
+    plugins,
+    settingHosts,
+    extensions,
+}: PluginsPage) {
+    const [tab, setTab] = useState<Tab>(() => firstTab(extensions !== null));
+    const installer = useInstaller(
+        extensions,
+        'plugin',
+        plugins
+            .filter((plugin) => plugin.origin === 'extensions')
+            .map((plugin) => ({
+                package: plugin.name,
+                version: plugin.version,
+            })),
+    );
     const [asking, setAsking] = useState<PluginRowPage | null>(null);
     const [details, setDetails] = useState<PluginRowPage | null>(null);
     const [removing, setRemoving] = useState<PluginRowPage | null>(null);
+    const [forgetting, setForgetting] = useState<PluginRowPage | null>(null);
     // What opened a dialog, so closing it puts focus back there.
     const [opener, setOpener] = useState<HTMLElement | null>(null);
 
@@ -156,11 +210,12 @@ export default function Plugins({ plugins }: PluginsPage) {
             asking === null &&
             details === null &&
             removing === null &&
+            forgetting === null &&
             opener !== null
         ) {
             opener.focus();
         }
-    }, [asking, details, removing, opener]);
+    }, [asking, details, removing, forgetting, opener]);
 
     // Back from the password screen: the request is made again, once.
     useEffect(() => {
@@ -181,7 +236,11 @@ export default function Plugins({ plugins }: PluginsPage) {
 
         router.post(
             pendingUrl(pending),
-            pending.kind === 'enable' ? pending.post : {},
+            pending.kind === 'enable'
+                ? pending.post
+                : pending.kind === 'forget'
+                  ? { name: pending.name ?? '' }
+                  : {},
             {
                 headers: { 'X-Teme-Ask-In-Place': '1' },
                 onHttpException: (response) => {
@@ -195,24 +254,25 @@ export default function Plugins({ plugins }: PluginsPage) {
 
     const enable = (plugin: PluginRowPage) => {
         setAsking(null);
-        router.post(
-            PluginsController.enable.url({ code: plugin.code }),
-            plugin.shown,
-            {
-                onBefore: () =>
-                    writePending({
-                        kind: 'enable',
-                        code: plugin.code,
-                        post: plugin.shown,
-                        at: Date.now(),
-                    }),
-                onSuccess: (page) => {
-                    if (page.component === 'plugins/index') {
-                        removePending();
-                    }
-                },
+        // The hosts its settings name now, as the dialog showed them (docs/plans/plugin-sockets-1.md, A2).
+        const post: PluginEnablePost = {
+            ...plugin.shown,
+            settingHosts: settingHosts[plugin.name]?.hosts ?? [],
+        };
+        router.post(PluginsController.enable.url({ code: plugin.code }), post, {
+            onBefore: () =>
+                writePending({
+                    kind: 'enable',
+                    code: plugin.code,
+                    post,
+                    at: Date.now(),
+                }),
+            onSuccess: (page) => {
+                if (page.component === 'plugins/index') {
+                    removePending();
+                }
             },
-        );
+        });
     };
 
     const migrate = (plugin: PluginRowPage) => {
@@ -256,6 +316,28 @@ export default function Plugins({ plugins }: PluginsPage) {
         );
     };
 
+    const forget = (plugin: PluginRowPage) => {
+        setForgetting(null);
+        router.post(
+            PluginsController.forget.url({ code: plugin.code }),
+            { name: plugin.name },
+            {
+                onBefore: () =>
+                    writePending({
+                        kind: 'forget',
+                        code: plugin.code,
+                        name: plugin.name,
+                        at: Date.now(),
+                    }),
+                onSuccess: (page) => {
+                    if (page.component === 'plugins/index') {
+                        removePending();
+                    }
+                },
+            },
+        );
+    };
+
     const disable = (plugin: PluginRowPage) => {
         router.post(PluginsController.disable.url({ code: plugin.code }), {});
     };
@@ -275,6 +357,10 @@ export default function Plugins({ plugins }: PluginsPage) {
         setRemoving(row);
     };
 
+    const onForget = (row: PluginRowPage, button: HTMLElement | null) => {
+        setOpener(button);
+        setForgetting(row);
+    };
     return (
         <>
             <Head title={__('Plugins')} />
@@ -284,8 +370,21 @@ export default function Plugins({ plugins }: PluginsPage) {
                 description={__(
                     'Plugins are Composer packages, added to the site’s build by whoever runs the server. Plugins don’t run on this page, so you can always disable one here.',
                 )}
+                actions={
+                    extensions !== null && (
+                        <Button
+                            type="button"
+                            onClick={installer.openAdd}
+                            data-test="plugins-add"
+                        >
+                            <Plus aria-hidden="true" />
+                            {__('Add plugin')}
+                        </Button>
+                    )
+                }
             >
-                {plugins.length === 0 ? (
+                {plugins.length === 0 &&
+                (extensions === null || extensions.requests.length === 0) ? (
                     <Panel
                         data-test="plugins-empty"
                         className="grid justify-items-center gap-3 px-6 py-12 text-center"
@@ -298,9 +397,13 @@ export default function Plugins({ plugins }: PluginsPage) {
                             {__('No plugins are installed')}
                         </p>
                         <p className="text-body text-ink-2">
-                            {__(
-                                'Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.',
-                            )}
+                            {extensions === null
+                                ? __(
+                                      'Whoever runs the server adds a plugin to the site’s build; it then appears here, disabled.',
+                                  )
+                                : __(
+                                      'Add one with Add plugin, or whoever runs the server adds one to the site’s build. It then appears here, disabled.',
+                                  )}
                         </p>
                     </Panel>
                 ) : (
@@ -322,6 +425,15 @@ export default function Plugins({ plugins }: PluginsPage) {
                                     {tabLabel(item.key)}
                                 </TabsTrigger>
                             ))}
+                            {extensions !== null && (
+                                <TabsTrigger
+                                    value="requests"
+                                    count={extensions.requests.length}
+                                    data-test="plugins-tab-requests"
+                                >
+                                    {__('Install requests')}
+                                </TabsTrigger>
+                            )}
                         </TabsList>
                         {TABS.map((item) => {
                             const shown = plugins.filter(item.holds);
@@ -346,6 +458,12 @@ export default function Plugins({ plugins }: PluginsPage) {
                                                         onRemoveData={
                                                             onRemoveData
                                                         }
+                                                        onChange={
+                                                            extensions === null
+                                                                ? undefined
+                                                                : installer.openChange
+                                                        }
+                                                        onForget={onForget}
                                                     />
                                                 ))}
                                             </ul>
@@ -354,11 +472,24 @@ export default function Plugins({ plugins }: PluginsPage) {
                                 </TabsContent>
                             );
                         })}
+                        {extensions !== null && (
+                            <TabsContent value="requests">
+                                <RequestsList
+                                    data={extensions}
+                                    onOpen={installer.openRequest}
+                                />
+                            </TabsContent>
+                        )}
                     </Tabs>
                 )}
 
                 <ConsentDialog
                     plugin={asking}
+                    settingHosts={
+                        asking === null
+                            ? null
+                            : (settingHosts[asking.name] ?? null)
+                    }
                     onClose={() => setAsking(null)}
                     onConfirm={enable}
                 />
@@ -370,6 +501,12 @@ export default function Plugins({ plugins }: PluginsPage) {
                     plugin={removing}
                     onClose={() => setRemoving(null)}
                     onConfirm={removeData}
+                />
+                {installer.sheets}
+                <ForgetDialog
+                    plugin={forgetting}
+                    onClose={() => setForgetting(null)}
+                    onConfirm={forget}
                 />
             </ListPage>
         </>

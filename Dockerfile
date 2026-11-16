@@ -99,6 +99,10 @@ RUN chown root:root /var/www/html \
     && php artisan teme:themes:link \
     && php artisan teme:themes:cache \
     && php artisan teme:plugins:cache \
+    && php artisan teme:extensions:pins \
+    && groupadd --system --gid 9990 teme-installer \
+    && useradd --system --uid 9990 --gid 9990 --no-create-home --shell /usr/sbin/nologin teme-installer \
+    && install -d -o 9990 -g 9990 -m 0755 /var/teme/extensions \
     && rm -f package.json package-lock.json .npmrc tsconfig.json vite.config.ts vite.theme.config.ts \
     && chown -R www-data:www-data storage \
     && RESTIC_VERSION="${RESTIC_VERSION}" sh docker/teme/build-checks.sh

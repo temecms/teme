@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/grows",
+    "code": "grows",
+    "label": "Grows",
+    "description": "A plugin whose newer version, for a newer core library, needs a library with autoload.files.",
+    "version": "1.1.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\Grows\\Grows",
+    "capabilities": [],
+    "hooks": []
+}

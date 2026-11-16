@@ -1,0 +1,15 @@
+{
+    "name": "fixtures/wrong-type",
+    "description": "A plugin the installer's tests install.",
+    "type": "library",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "teme/contracts": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fixtures\\WrongType\\": "src/"
+        }
+    }
+}

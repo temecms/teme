@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/autoloads-app",
+    "code": "autoloads-app",
+    "label": "Autoloads App",
+    "description": "A plugin the installer's tests install.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\AutoloadsApp\\AutoloadsApp",
+    "capabilities": [],
+    "hooks": []
+}

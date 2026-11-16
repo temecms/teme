@@ -6,19 +6,23 @@ namespace App\Domain\Cache;
 
 use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Visibility;
+use App\Domain\Hooks\HookDispatcher;
 use App\Domain\People\Credits;
 use App\Domain\Site\SiteDates;
 use App\Domain\Taxonomy\Queries\TermTree;
 use App\Domain\Types\CoreTypes;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Teme\Contracts\Feeds\FeedsChanged;
 
 /**
  * The page-cache tags of the pages that show one thing or list it, as the
  * thing stands (docs/architecture/page-cache.md): an Operation reads a
  * thing's under its lock before its change and again after, and both are
  * purged after the outermost commit (I-263). While the page cache is off
- * nothing is stored, so nothing is read and every footprint is empty.
+ * nothing is stored, so nothing is read and every footprint is empty,
+ * unless a plugin listens for the feeds a change touched, which are read
+ * from these tags (docs/plans/plugin-sockets-1.md, A4).
  */
 final class Footprints
 {
@@ -51,7 +55,7 @@ final class Footprints
             $id = (string) $content->id;
             $footprints[$id] = [];
 
-            if (! PageCache::enabled()) {
+            if (! self::read()) {
                 continue;
             }
 
@@ -122,7 +126,7 @@ final class Footprints
     {
         $footprints = array_fill_keys($ids, []);
 
-        if ($ids === [] || ! PageCache::enabled()) {
+        if ($ids === [] || ! self::read()) {
             return $footprints;
         }
 
@@ -148,7 +152,7 @@ final class Footprints
      */
     public static function termAndBeneath(string $termId): array
     {
-        return PageCache::enabled() ? self::terms(app(TermTree::class)->descendantIds($termId)) : [];
+        return self::read() ? self::terms(app(TermTree::class)->descendantIds($termId)) : [];
     }
 
     /**
@@ -186,7 +190,7 @@ final class Footprints
     {
         $footprints = array_fill_keys($ids, []);
 
-        if ($ids === [] || ! PageCache::enabled()) {
+        if ($ids === [] || ! self::read()) {
             return $footprints;
         }
 
@@ -202,5 +206,14 @@ final class Footprints
         }
 
         return $footprints;
+    }
+
+    /**
+     * Whether footprints are read: while the page cache is on, or while a
+     * plugin listens for FeedsChanged.
+     */
+    private static function read(): bool
+    {
+        return PageCache::enabled() || app(HookDispatcher::class)->wants(FeedsChanged::class);
     }
 }

@@ -33,6 +33,9 @@ final class InsertionPoints
     /** @var list<array{string, InsertionContributor}> owner, contributor */
     private array $bound = [];
 
+    /** @var array<string, string> each started plugin's code, by its name */
+    private array $codes = [];
+
     public function __construct(
         private Container $container,
         private LoadedPlugins $loaded,
@@ -62,6 +65,18 @@ final class InsertionPoints
      */
     public function for(ArticleFacts $article): array
     {
+        return array_map(fn (array $entry): Insertion => $entry['insertion'], $this->owned($article));
+    }
+
+    /**
+     * This article's insertions as for() gives them, each with the code of
+     * the plugin that gave it, whose approved scripts and declared hosts it
+     * may use; null for a contributor that isn't a plugin.
+     *
+     * @return list<array{code: string|null, insertion: Insertion}>
+     */
+    public function owned(ArticleFacts $article): array
+    {
         $kept = [];
 
         foreach ($this->ordered() as [$owner, $contributor]) {
@@ -74,7 +89,7 @@ final class InsertionPoints
             }
 
             foreach (self::onlyInsertions($given) as $insertion) {
-                $kept[$insertion->key] ??= $insertion;
+                $kept[$insertion->key] ??= ['code' => $this->codes[$owner] ?? null, 'insertion' => $insertion];
             }
         }
 
@@ -152,6 +167,7 @@ final class InsertionPoints
 
             if ($plugin instanceof InsertionContributor && self::granted($record->consent['capabilities'] ?? [])) {
                 $contributors[] = [$record->name, $plugin];
+                $this->codes[$record->name] = (string) $record->code;
             }
         }
 

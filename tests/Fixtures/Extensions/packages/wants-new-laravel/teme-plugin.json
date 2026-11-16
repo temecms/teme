@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/wants-new-laravel",
+    "code": "wants-new-laravel",
+    "label": "Wants New Laravel",
+    "description": "A plugin the installer's tests install.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\WantsNewLaravel\\WantsNewLaravel",
+    "capabilities": [],
+    "hooks": []
+}

@@ -10,16 +10,20 @@ use App\Domain\Cards\LinkResolver;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Regions\Regions;
+use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Themes\ActiveTheme;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Teme\Contracts\Insertions\PagePosition;
 
 /**
  * `<x-teme::region name="after-content" />`: the site's own content a theme
  * places, such as a newsletter box after the article (study B §3e), drawn
  * from the region's published revision, its cards recorded for the page's
  * head (I-248). Nothing for a region that's empty or unpublished; outside
- * production, a note for a name the theme's manifest doesn't declare.
+ * production, a note for a name the theme's manifest doesn't declare. What
+ * plugins place before or after a declared region is drawn around it, also
+ * when it is empty (docs/plans/plugin-sockets-2.md, B2).
  */
 final class Region extends Component
 {
@@ -29,6 +33,12 @@ final class Region extends Component
     public ?string $html;
 
     public bool $undeclared;
+
+    /** What plugins place before the region, cleaned, or ''. */
+    public string $before = '';
+
+    /** What plugins place after the region, cleaned, or ''. */
+    public string $after = '';
 
     /**
      * @param  string  $name  the region's slug, as the theme's manifest declares it
@@ -48,6 +58,19 @@ final class Region extends Component
         $this->name = $name;
         $this->html = trim($html) === '' ? null : $html;
         $this->undeclared = $theme !== null && ! $declared && ! app()->isProduction();
+
+        if ($declared) {
+            $insertions = app(PageInsertions::class);
+
+            foreach ($insertions->at(PagePosition::REGION) as $entry) {
+                $at = $entry['insertion']->at;
+
+                if (($at->args['slug'] ?? null) === $name) {
+                    $html = $insertions->draw($entry);
+                    ($at->args['where'] ?? 'after') === 'before' ? $this->before .= $html : $this->after .= $html;
+                }
+            }
+        }
     }
 
     public function render(): View

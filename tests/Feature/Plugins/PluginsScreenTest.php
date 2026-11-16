@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginWords;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -53,6 +55,26 @@ it('says each state’s reason in words', function (): void {
     expect($rows['tests/hello']['reason'])->toBe('Installed, not enabled yet.')
         ->and($rows['tests/gone']['reason'])->toBe('Its code is no longer installed. Its settings are kept.')
         ->and($rows['tests/widened'])->toMatchArray(['badge' => 'Stopped by Teme', 'needsAttention' => true, 'reason' => 'Teme disabled it after it failed to start five times: It broke.', 'action' => 'enable']);
+});
+
+it('shows the reason an enabled plugin was skipped at load', function (): void {
+    PluginFixtures::use('broken-start');
+    PluginRecord::factory()->enabled()->create([
+        'name' => 'tests/broken-start',
+        'code' => 'broken-start',
+        'consent' => ['capabilities' => ['content.read'], 'hosts' => [], 'hooks' => ['ContentPublished']],
+    ]);
+    app()->instance(LoadedPlugins::class, new LoadedPlugins);
+    app(PluginLoader::class)->load();
+
+    expect(($this->rows)()['tests/broken-start'])->toMatchArray([
+        'state' => 'cant_be_used',
+        'badge' => 'Can’t be used',
+        'enabled' => true,
+        'needsAttention' => true,
+        'reason' => 'It failed to start: The broken plugin broke.',
+        'action' => 'disable',
+    ]);
 });
 
 it('offers Review access for an update that asks for more than was agreed, and says so', function (): void {

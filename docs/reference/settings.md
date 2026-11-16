@@ -36,6 +36,7 @@ Changing these requires `settings.modules.manage`. Since 0.1.0.
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
 | `modules.comments` | select | `"on"` | Off, the site takes no comments, and visitors see no comments, form or counts. Comments leaves the menu and the editor. Stored comments and these settings are kept. | 0.1.0 |
+| `modules.fediverse` | select | `"off"` | On, people on Mastodon and other fediverse servers can follow the site. Off, it is paused: nothing is sent or received, and its followers and keys are kept. | 0.9.0 |
 
 ## Languages
 
@@ -193,6 +194,18 @@ Changing these requires `backups.manage`. Since 0.1.0.
 | `backups.keep_monthly` | number | `12` | Then one from each of this many months before those. | 0.1.0 |
 | `backups.machine_key` | secret | — | The key Teme’s scheduled backups open the backups with, made when backups are set up. Nobody types it. A server can supply it as TEME_BACKUP_MACHINE_KEY instead. | 0.1.0 |
 
+## Site code
+
+Code added to every public page, and the ads.txt file for ad buyers.
+
+Changing these requires `site-code.manage`. Since 0.8.0.
+
+| Setting | Type | Default | Description | Since |
+|---|---|---|---|---|
+| `site_code.ads_txt` | textarea | `""` | Shown at /ads.txt for advertising buyers. Leave empty for a 404. | 0.8.0 |
+| `site_code.ads_txt_mode` | select | `"text"` | Serve the text, or send buyers to another host’s ads.txt. | 0.9.0 |
+| `site_code.ads_txt_redirect` | url | `""` | The https address on another host to send /ads.txt to. | 0.9.0 |
+
 ## Media
 
 Limits on the files people can upload, and the image widths Teme makes.
@@ -279,4 +292,25 @@ Changing these requires `settings.design.manage`. Since 0.1.0.
 | `theme.default.show_card_meta` | boolean | `true` | Show author and date on cards | 0.1.0 |
 | `theme.default.nav_primary` | text | `""` | The menu shown in this place. | 0.1.0 |
 | `theme.default.nav_footer` | text | `""` | The menu shown in this place. | 0.1.0 |
+
+## Management API
+
+Lets outside tools create drafts, upload media and publish, each with a key you make here.
+
+Changing these requires `api.keys.manage`. Since 0.9.0.
+
+| Setting | Type | Default | Description | Since |
+|---|---|---|---|---|
+| `management_api.enabled` | boolean | `false` | Lets outside tools sign in with a key at /api/manage/v1. While it is off, every key is refused. | 0.9.0 |
+| `management_api.per_minute` | number | `60` | How many requests one key may make in a minute before it is asked to wait. | 0.9.0 |
+
+## Fediverse
+
+Let people on Mastodon and other fediverse servers follow the site and its authors.
+
+Changing these requires `settings.fediverse.manage`. Since 0.9.0.
+
+| Setting | Type | Default | Description | Since |
+|---|---|---|---|---|
+| `fediverse.followable` | select | `"blog"` | The blog’s account shares every post. An author’s account shares only their own, once you turn it on below. | 0.9.0 |
 

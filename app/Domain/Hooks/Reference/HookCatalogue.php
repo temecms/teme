@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Hooks\Reference;
 
-use Teme\Contracts\Content\ArticleLinks;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Hooks\PluginHookCatalogue;
 use App\Domain\Plugins\ManifestValidator;
 use Teme\Contracts\Comments\CommentStatusChanged;
+use Teme\Contracts\Content\ArticleLinks;
 use Teme\Contracts\Content\ContentDeleted;
 use Teme\Contracts\Content\ContentPublished;
 use Teme\Contracts\Content\ContentRestored;
@@ -23,6 +23,7 @@ use Teme\Contracts\Fediverse\ActorDocumentBuilt;
 use Teme\Contracts\Fediverse\CollectActivityHandlers;
 use Teme\Contracts\Fediverse\CollectObjectBuilders;
 use Teme\Contracts\Fediverse\ObjectBuilt;
+use Teme\Contracts\Feeds\FeedsChanged;
 use Teme\Contracts\Hooks\Hook;
 use Teme\Contracts\Media\MediaStored;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
@@ -55,6 +56,7 @@ final class HookCatalogue
         CollectObjectBuilders::class,
         ObjectBuilt::class,
         ActorDocumentBuilt::class,
+        FeedsChanged::class,
         ArticleLinks::class,
     ];
 

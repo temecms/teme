@@ -23,7 +23,7 @@ The rules come in two parts. Teme enforces the first: an author can't break them
 ### Code only against the contracts
 
 - **No reaching into Teme.** Teme scans a plugin's code when it is enabled, without running it, and refuses a plugin that names a class in Teme's own App namespace, whose class doesn't implement `Teme\Contracts\Plugins\Plugin`, or that extends a class outside its own code. It also refuses a package that has Composer load files on every request. See [Operations](../concepts/operations.md).
-- **Only the doors Teme offers.** A plugin's constructor may ask only for what Teme hands plugins, such as `SettingsReader`, `SecretReader` or `OutboundHttp`, and only for the doors its capabilities open. Anything else is refused at enable.
+- **Only the doors Teme offers.** A plugin's constructor may ask only for what Teme hands plugins, such as `SettingsReader`, `SecretReader` or `OutboundHttp`, and only for the doors its capabilities open. Anything else is refused at enable. A public route's handler is built the same way, by the same rules.
 
 ### Agreement
 
@@ -37,7 +37,7 @@ The rules come in two parts. Teme enforces the first: an author can't break them
 
 ### Outside the site
 
-- **Outbound calls only to declared hosts.** `OutboundHttp` speaks only `https` to port 443, only to hosts the administrator agreed to, and only to public addresses: a host that resolves to a private or reserved address is refused, redirects are never followed, and each call is limited to 10 seconds and 1 MB each way.
+- **Outbound calls only to agreed hosts.** `OutboundHttp` speaks only `https` to port 443, only to hosts a person agreed to, the manifest's `hosts` or those typed into the settings its `hostsFrom` names, and only to public addresses: a host that resolves to a private or reserved address is refused, redirects are never followed, and each call, JSON or a form, is limited to 10 seconds and 1 MB each way. See [Hosts from your settings](../plugins/settings.md#hosts-from-your-settings).
 - **Insertions are cleaned.** Markup a plugin places inside articles loses its inline scripts, its `on` attributes and any address that runs script, before it is drawn. See [Content inside articles](../plugins/insertions.md).
 - **Public routes are fenced.** A plugin's public addresses live under its own `code`, or under `.well-known`, unless a condition narrows them, and never on an address core reserves or that another route could also answer. A POST must name how it is verified, a body over its limit (1 MB unless the plugin declares up to 10 MB) is refused before it is read, a handler runs for at most 30 seconds, and one that throws is recorded against its plugin. See [Public routes](../plugins/public-routes.md).
 
@@ -75,7 +75,9 @@ The rules come in two parts. Teme enforces the first: an author can't break them
 
 ### Words
 
-- Every word a person reads goes through `__()`, so a site in another language can translate it. Keep the translations in the package's own `lang` folder, as themes do; see [Languages in a theme](../themes/languages.md).
+- Every word a person reads goes through `__()`, with the English sentence as its key, so a site in another language can translate it.
+- A theme keeps its translations in its own `lang` folder, and Teme loads the active theme's; see [Languages in a theme](../themes/languages.md).
+- A plugin keeps its translations in its package's `lang` folder, one JSON file per language, such as `lang/es.json`, in the same format as core's: `{"Hub sent the ping.": "El hub envió el ping."}`. Teme reads them while the plugin is enabled, in the reader's or the person's language as core chooses it. A plugin's file only adds sentences: Teme keeps a line only for a sentence the plugin's own code passes to `__()` as a plain string, that none of core's language files holds and that no plugin started before it claimed, and uses it only where core has no line of its own. The consent, password and refusal screens always use core's words. A sentence with no translation shows in English.
 
 ### License
 

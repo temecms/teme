@@ -35,7 +35,7 @@ final class ListPlugins extends Command
 
         $this->table(
             [__('Plugin'), __('Version'), __('State'), __('Why'), __('Requires'), __('Required by')],
-            array_map(fn (PluginRow $row): array => [$row->name, $row->version, $row->state->label(), $row->reason, $this->requires($registry, $row->name), implode(', ', $row->requiredBy)], $rows),
+            array_map(fn (PluginRow $row): array => [$row->name, $row->version, $row->state->label(), trim($row->reason.' '.($row->schedules ?? '')), $this->requires($registry, $row->name), implode(', ', $row->requiredBy)], $rows),
         );
 
         return self::SUCCESS;

@@ -29,6 +29,7 @@ final class EncryptedValues
             new EncryptedColumn('contents', 'reader_password', 'id', EncryptedForm::String, 'Reader passwords', 'item'),
             new EncryptedColumn('import_sources', 'credential', 'id', EncryptedForm::String, 'Import sources’ passwords', 'import source'),
             new EncryptedColumn('fediverse_actors', 'private_key', 'id', EncryptedForm::String, 'Fediverse accounts’ private keys', 'fediverse account'),
+            new EncryptedColumn('extension_sources', 'credential', 'id', EncryptedForm::String, 'Package sources’ keys', 'package source'),
         ];
     }
 }

@@ -17,28 +17,36 @@ use App\Domain\Plugins\Notices\NoticeRate;
 use App\Domain\Plugins\Notices\PluginNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Plugins\SettingHosts;
+use App\Domain\Site\CoreSiteInfo;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
+use App\Domain\Site\Insertions\Scripts\PluginInlineScripts;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
+use Teme\Contracts\Site\SiteInfo;
 
 /**
  * What Teme offers a plugin's constructor: the settings reader, its own
- * secrets, the content and media write doors when granted, the outbound
- * door to its hosts when it was granted http, InsertionsChanged when it was
- * granted content.insert (I-064), the other doors its capabilities open
- * (I-3353), HookSender when it declares hooks of its own, and Notices for
- * its declared kinds when it was granted notices.send. Bound as the loader's
- * PluginServices.
+ * secrets, the site's public facts, the content and media write doors when granted, the outbound
+ * door to its hosts and those agreed in its settings when it was granted
+ * http, InsertionsChanged and the InlineScripts door when it was granted
+ * content.insert or pages.insert (I-064), and the other doors its capabilities open
+ * (I-3353), the writer of its own settings when it declares any,
+ * HookSender when it declares hooks of its own, and Notices for its
+ * declared kinds when it was granted notices.send.
+ * Bound as the loader's PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
 {
@@ -49,6 +57,8 @@ final readonly class PluginDoors implements PluginServices
         private StartJob $start,
         private PluginRegistry $registry,
         private CoreInsertionsChanged $insertionsChanged,
+        private SettingHosts $settingHosts,
+        private CoreSiteInfo $site,
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
     ) {}
@@ -79,15 +89,17 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
-            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS);
+            // The hosts agreed in its settings are read at each call, never fixed here (docs/plans/plugin-sockets-1.md, A2).
+            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS, settingHosts: fn (): array => $this->settingHosts->reachable($name));
         }
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
             $offered[Jobs::class] = new PluginJobs($name, $code, $this->start, $this->registry);
         }
 
-        if (in_array(Capability::ContentInsert->value, $capabilities, true)) {
+        if (in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true)) {
             $offered[InsertionsChanged::class] = $this->insertionsChanged;
+            $offered[InlineScripts::class] = new PluginInlineScripts($code);
         }
 
         if (in_array(Capability::FediverseRead->value, $capabilities, true)) {
@@ -96,6 +108,15 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::FediverseSend->value, $capabilities, true)) {
             $offered[FediverseSender::class] = new PluginSender($name);
+        }
+
+        $offered[SiteInfo::class] = $this->site;
+
+        // Its own settings group only, for the person its work runs for (docs/proposals/plugin-sockets-1.md).
+        $settings = $this->registry->find($name)?->manifest?->contributes()['settings'] ?? null;
+
+        if (is_array($settings) && $settings !== []) {
+            $offered[PluginSettingsWriter::class] = new PluginSettingsWrites($code);
         }
 
         $manifest = $this->registry->find($name)?->manifest;

@@ -11,6 +11,7 @@ use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Plugins\Tables\PluginMigrations;
+use App\Domain\PublicRoutes\RootFile;
 use Composer\Autoload\ClassLoader;
 use ReflectionClass;
 use ReflectionNamedType;
@@ -48,6 +49,10 @@ final readonly class PluginLoader
      */
     public function load(): void
     {
+        // A fresh set of plugins' sentences each load, and none until a plugin with words starts (docs/plans/plugin-sockets-1.md, A-W14).
+        app('translator')->handleMissingKeysUsing(null);
+        app()->instance(PluginSentences::class, new PluginSentences(app(CodeScan::class)));
+
         // Before any plugin file is opened: a safe page, the server's switch for all, no plugin installed, or none enabled starts nothing.
         if ($this->safeMode->active() || $this->disabledOnServer() === true || ! $this->registry->anyInstalled()) {
             return;
@@ -134,7 +139,7 @@ final readonly class PluginLoader
 
             $instance->register($hooks);
             $jobs = $manifest->raw()['jobs'] ?? [];
-            $problems = $this->contributions->add($plugin->name, $plugin->code, $manifest->label(), $manifest->version(), $manifest->contributes(), $instance, is_array($jobs) ? array_values($jobs) : []);
+            $problems = $this->contributions->add($plugin->name, $plugin->code, $manifest->label(), $manifest->version(), $manifest->contributes(), $instance, is_array($jobs) ? array_values($jobs) : [], rootFiles: RootFile::declaredIn($manifest) !== []);
 
             if ($problems !== []) {
                 throw new PluginRefused($problems[0]);
@@ -150,6 +155,16 @@ final readonly class PluginLoader
         }
 
         $this->loaded->started($plugin->name, $instance);
+        $this->words($plugin);
+    }
+
+    /**
+     * The started plugin's own words, its lang/<locale>.json, which only
+     * add sentences core and earlier plugins don't hold (docs/plans/plugin-sockets-1.md, A-W14).
+     */
+    private function words(FoundPlugin $plugin): void
+    {
+        app(PluginSentences::class)->add($plugin, app('translator'));
     }
 
     /**

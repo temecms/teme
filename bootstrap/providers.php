@@ -14,6 +14,7 @@ use App\Providers\ContentServiceProvider;
 use App\Providers\CrawlersServiceProvider;
 use App\Providers\DashboardServiceProvider;
 use App\Providers\DeploymentServiceProvider;
+use App\Providers\ExtensionSourcesServiceProvider;
 use App\Providers\FediversePublishingServiceProvider;
 use App\Providers\FediverseServiceProvider;
 use App\Providers\FeedsServiceProvider;
@@ -99,6 +100,7 @@ return [
     ImportServiceProvider::class,
     UpdatesServiceProvider::class,
     PluginServiceProvider::class,
+    ExtensionSourcesServiceProvider::class,
     ManageApiServiceProvider::class,
     FediverseServiceProvider::class,
     FediversePublishingServiceProvider::class,

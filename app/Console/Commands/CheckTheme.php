@@ -99,6 +99,11 @@ final class CheckTheme extends Command
             }
         }
 
+        // A note, not a failure: plugins place content between a list's items only where the theme asks (docs/plans/plugin-sockets-2.md, B2).
+        if (! self::drawsBetweenItems($theme->path)) {
+            $warnings[] = __('Lists don’t call x-teme::between-items, so plugins can’t place content between items.');
+        }
+
         $css = array_sum(array_map(fn (array $file): int => str_ends_with($file['file'], '.css') ? $file['bytes'] : 0, $files));
         $js = array_sum(array_map(fn (array $file): int => str_ends_with($file['file'], '.js') ? $file['bytes'] : 0, $files));
 
@@ -131,6 +136,17 @@ final class CheckTheme extends Command
         app(PageLanguage::class)->use(app(SiteLanguages::class)->of($answer['language'] ?? null));
 
         return (string) PublicPage::render($answer['intent'], $answer['model'], 200, $answer['pageNumber'] ?? 1)->getContent();
+    }
+
+    /**
+     * Whether the theme's listing templates, those it has, call
+     * x-teme::between-items; true for a theme with none.
+     */
+    private static function drawsBetweenItems(string $path): bool
+    {
+        $listings = array_filter(array_map(fn (string $name): string => "{$path}/views/templates/{$name}.blade.php", ['archive', 'latest', 'search']), is_file(...));
+
+        return $listings === [] || array_any($listings, fn (string $file): bool => str_contains((string) file_get_contents($file), 'x-teme::between-items'));
     }
 
     /**

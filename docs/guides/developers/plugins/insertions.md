@@ -11,7 +11,7 @@ lands_with: render/insertion-points
 
 A plugin can place its own markup inside published articles: an ad after the second paragraph, a newsletter box before the last one, a related link after the first subheading. Core decides where each piece can go, cleans it, and leaves it out wherever it doesn't belong. The plugin never edits the article.
 
-This page describes the code on the `render/insertion-points` branch, which joins `main` with v1. The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.8.0.
+This page describes the code on the `render/insertion-points` branch, which joins `main` with v1. The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0.
 
 ## Ask for content.insert
 
@@ -55,22 +55,28 @@ Every insertion is cleaned before it is drawn, in HTML, SVG and MathML alike:
 - an `href`, `src`, `xlink:href`, `action` or `formaction` that starts with `javascript:` or `data:text/html` is removed, compared as a browser reads it;
 - an SVG `animate` or `set` that would change an `href` is removed.
 
+Everything else is kept as written: a `<style>`, an ad network's `<ins>` with its `data-*` attributes, a `<script src>`, an `<iframe>` and an `<img>`. An inline script is kept only when a person approved its exact text for your plugin; see [Inline scripts](page-insertions.md#inline-scripts).
+
 A `<script src>`, an `<iframe>` and an `<img>` are kept. Their `https` origins are added to that page's content security policy, under `script-src`, `frame-src` and `img-src`, so an ad network's script loads without the site allowing it everywhere.
 
 ## Where nothing is drawn
 
 Insertions are drawn only on the public web page of a published article. A preview, the feeds, the Markdown version of a page and the read API never carry them.
 
-Editors can turn them off on one item with the built-in field **No inserted content**, handle `insertions_off`, which every content type that supports search and social has. On such an item no contributor is asked at all.
+Editors can turn them off on one item with the built-in field **No inserted content**, handle `insertions_off`. Stored values use the field's ID, `01K5Z0F1ED00000000000000XF`. Every content type that supports search and social has it. On such an item no contributor is asked at all.
 
 ## When your rules change
 
-Pages that asked for insertions are kept in the page cache under the `insertions` tag. Core purges them after it enables or disables a plugin that has `content.insert`.
+Pages that asked for insertions are kept in the page cache under the `insertions` tag. Core purges them after it enables or disables a plugin that has `content.insert`, and after someone saves that plugin's settings, so a plugin whose rules live in its own settings needs no `notify()`.
 
-When your own rules change, for example after someone saves your plugin's settings, ask for `InsertionsChanged` in your plugin's constructor and call `notify()` inside an Operation. Core purges those pages after that Operation commits, never before. Outside an Operation it does nothing useful and may refuse.
+When your rules change any other way, ask for `InsertionsChanged` in your plugin's constructor and call `notify()` inside an Operation. Core purges those pages, and the pages of plugins with `pages.insert`, after that Operation commits, never before. Outside an Operation it does nothing useful and may refuse.
+
+A page is cached whole, for everyone. A random or weighted pick, and anything chosen per visitor, is frozen into the cached copy until it is purged. Choose per device with CSS media queries, never on the server, and per visitor only in the browser, with a script your plugin serves from its own route or an approved inline script.
+
+`ArticleFacts` also carries the article's address, relative, as `path`, from Teme 0.9.0.
 
 ## ads.txt
 
 Ad buyers read `/ads.txt`. It belongs to the site, not to a plugin: an administrator writes it under **Settings › Site code**, in the ads.txt box, up to 64 KB. Teme serves it as plain UTF-8 text, and answers 404 while it is empty. The box stays editable even when the host has switched site code off. A plugin has no socket that writes it; tell your users what lines to paste there.
 
-Next: [Hooks](../concepts/hooks.md) and [Plugin settings and secrets](settings.md).
+Next: [Content on every page](page-insertions.md), [Hooks](../concepts/hooks.md) and [Plugin settings and secrets](settings.md).

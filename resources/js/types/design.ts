@@ -1,3 +1,4 @@
+import type { ExtensionOrigin, ExtensionsData } from './extensions';
 import type { RegionsIndexPage } from './regions';
 import type { FieldType } from './settings';
 
@@ -45,6 +46,12 @@ export type DesignTheme = {
     live: boolean;
     state: ThemeState;
     screenshot: string | null;
+    /** Part of the site's build, or installed here from the admin (I-211). */
+    origin: ExtensionOrigin;
+    /** The source kind it was installed from, when installed here. */
+    source: string | null;
+    /** Its Composer package, when installed here. */
+    package: string | null;
 };
 
 export type DesignSlot = {
@@ -93,10 +100,12 @@ export type DesignPage = {
     previewRegions: RegionsIndexPage | null;
     /** Whether the viewer may edit regions, so each links to where it is edited. */
     canEditRegions: boolean;
+    /** Installing from the admin; null for anyone who may not install. */
+    extensions: ExtensionsData | null;
 };
 
 /** A theme's own settings page: what Themes sends, without the regions. */
 export type DesignSettingsPage = Omit<
     DesignPage,
-    'regions' | 'previewRegions' | 'canEditRegions'
+    'regions' | 'previewRegions' | 'canEditRegions' | 'extensions'
 >;
