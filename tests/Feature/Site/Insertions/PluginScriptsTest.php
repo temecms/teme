@@ -228,3 +228,45 @@ it('forgets a plugin\'s scripts when its data is removed, and only that plugin\'
 
     expect(PluginScript::query()->pluck('plugin_code')->all())->toBe(['billboard']);
 });
+
+it('forgets a plugin\'s approvals with its data, so enabled again its old script is removed', function (): void {
+    $copy = PluginFixtures::copy('billboard', ['owns' => ['tables' => ['billboard_slots']]], files: [
+        'database/migrations/2027_01_01_000000_create_billboard_slots.php' => <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('billboard_slots', function (Blueprint $table): void {
+            $table->id();
+        });
+    }
+};
+PHP,
+    ]);
+    $enable = function (): void {
+        $manifest = app(PluginRegistry::class)->all()['tests/billboard']->manifest;
+        scElevated(fn (): string => app(EnablePlugin::class)->execute(new EnablePluginInput('tests/billboard', $manifest->version(), $manifest->capabilities(), $manifest->hosts(), $manifest->hooks(), null)));
+    };
+    $disable = fn (): mixed => scElevated(fn (): mixed => app(DisablePlugin::class)->execute(new DisablePluginInput('tests/billboard', null)));
+
+    $disable();
+    PluginFixtures::use($copy);
+    $enable();
+    psRequest($this->author);
+    psDecide('approve', $this->admin);
+    expect((string) addrGet('/')->getContent())->toContain(Billboard::SCRIPT);
+
+    $disable();
+    scElevated(fn (): array => app(RemovePluginData::class)->execute(new RemovePluginDataInput('tests/billboard', null)));
+    $enable();
+
+    expect(PluginScript::query()->count())->toBe(0)
+        ->and((string) addrGet('/')->getContent())->toContain('data-test="billboard-bottom"')
+        ->not->toContain(Billboard::SCRIPT);
+});

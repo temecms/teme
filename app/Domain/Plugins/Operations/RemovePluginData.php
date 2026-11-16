@@ -12,6 +12,7 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
+use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
 use App\Domain\Site\Insertions\Scripts\PluginScript;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\DB;
@@ -113,6 +114,16 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
         DB::afterCommit(fn () => $this->records->changed());
 
         return $tables;
+    }
+
+    /**
+     * Run by BaseOperation after commit: the plugin's script approvals left
+     * with its rows, so none is still read from the cache (docs/plans/plugin-sockets-2.md, B4).
+     */
+    protected function invalidateCache(mixed $result): void
+    {
+        ApprovedScripts::forget();
+        parent::invalidateCache($result);
     }
 
     /**
