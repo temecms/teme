@@ -53,7 +53,7 @@ A post that fails its check gets 401 and never reaches the handler. Its body may
 
 ## Caching and limits
 
-A GET route with a `cache` block may be kept by the site's page cache and by a cache in front of the site. `lifetime` is the most seconds a shared cache may keep the answer: it is told at most 60, and 3,600 is the default. `query` names the query parameters that make a different answer, and must name every parameter in `when.query`. `varyAccept` keeps a different answer for each Accept header, and a cached route that matches on Accept must set it. Enabling or disabling the plugin clears what was kept. A route without `cache` is never kept.
+A GET route with a `cache` block may be kept by the site's page cache and by a cache in front of the site. `lifetime` is the most seconds a shared cache may keep the answer, at most 60; left out, it is 60. `query` names the query parameters that make a different answer, and must name every parameter in `when.query`. `varyAccept` keeps a different answer for each Accept header, and a cached route that matches on Accept must set it. Enabling or disabling the plugin clears what was kept. A route without `cache` is never kept.
 
 Each route counts requests per client address, a minute at a time: 120 GET or 30 POST requests by default. `throttle` lowers or raises that, to at most 240 for GET and 60 for POST.
 
