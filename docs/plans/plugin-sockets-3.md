@@ -357,6 +357,48 @@ Seen red with the part's code under `app/`, `packages/`, `database/` and `resour
 - Enable a plugin that asks for `ai` and declares `contributes.aiTasks` (the test fixture `tests/Fixtures/plugins/scribe` is one); the consent lists each task and what it sends.
 - In Settings › AI, choose a model for its task under Plugins, then have the plugin call `SiteAi::ask()` from a job started by a person; the request appears in Tools › AI activity under the plugin.
 
+#### Follow-up R1
+
+The review of 2026-11-16 (verdict: merge after fixes). Findings 1, 2, 8 and 9 fixed; 3 is for the join; the other LATER items are listed below for issues.
+
+Commits:
+
+- `d36fa27e` Merge origin/main (plugin sockets rounds 1 and 2, PR #380). Every conflict kept both sides' additions: Capability (main's `feeds.links` and `pages.insert`, then `ai`), PluginServices::OFFERED, PluginDoors (SiteInfo and the settings writer, then SiteAi), Consent (`csp`/`insertionHosts` beside `aiTasks`), ContributionsValidator's surfaces and errors, ManifestValidator's door checks, EnablePlugin, EnablePluginCommand, PluginWords, PluginsScreen, PluginRow and PluginList (main's `schedules`, then A's `ai`, passed by name), the TS row type, PluginContractsTest and ContributionsSchemaTest rows, the handbook index and README. The manifest schema was rebuilt by loading both sides (main's file plus A's `ai` and `contributes.aiTasks`), and `llms.txt` regenerated. After it: Architecture 139 passed; `tests/Unit/Contracts` 148, `tests/Feature/Plugins` 782, `tests/Feature/Ai` 490, `tests/Feature/Guides` 580 passed.
+- `72e710e9` fix(ai): refuse a plugin's AI request inside a database transaction (finding 1).
+- `c607eb1d` fix(ai): offer and answer only the AI tasks that were agreed to (finding 2).
+- `60b65183` fix(ai): ask AI for a plugin only for a person who may use AI (finding 8, the maintainers' decision).
+- `aac1df2d` fix(ai): show the Asked by filter only once a plugin has asked (finding 9: hidden, as asked).
+- `ef233b6f` fix(docs): the contracts reference names SiteAi's grant and declaration. Main's `teme:docs:contracts` (round 2) probes the doors with a plugin that has no manifest, so it never meets SiteAi, which needs both the `ai` grant and `contributes.aiTasks`; the command now takes it as stated: "granted `ai` and its manifest declares `contributes.aiTasks`".
+
+Tests seen red:
+
+| Finding | Test | First failure |
+|---|---|---|
+| 1 | `SiteAiTest` "refuses inside a database transaction…" | `The door didn’t refuse.` |
+| 2 | `SiteAiTest` "leaves out a task an update added or widened…" | `['no-model', 'Write a poem is off until an administrator chooses its model in Settings › AI.']` where `['no-task', …]` was expected |
+| 8 | `SiteAiTest` refusal row "a person who may not use AI" | `The door didn’t refuse.` |
+| (merge) | `GenerateContractsReferenceTest` "lists each contract a plugin’s constructor may ask for once…", with SiteAi's row added | `Teme\Contracts\Ai\SiteAi is listed as offered, but no grant gives it.` (exit 1) |
+| 9 | `tests/Browser/Ai/PluginAiSettingsTest.php` "leaves the Asked by filter out while only Teme has asked" | `Expected element [#ai-plugin] not to be present in the DOM … but it was found.` |
+
+Decisions:
+
+- **B-22 (draft), refusing inside a transaction.** `ask()` refuses first, with `in-transaction` ("A plugin asks AI only outside a database transaction."), before anything is sent, because a rollback would take the record and both month additions with it while the service still bills, and the answer would hold the transaction open. It reads Laravel's transactions manager (`callbackApplicableTransactions()`), the same that runs after-commit work, so a test's wrapping transaction doesn't count. The reason is not one of AiStanding's, since it concerns the call, not the task. One line in `plugins/ai.md`. `72e710e9`.
+- **B-23 (draft), tasks as agreed.** Options: skip a plugin whose consent doesn't cover its manifest, or drop only the tasks `PluginAiTasks::added()` lists. Chose the second: an update waiting for, say, a new host keeps the AI tasks already agreed, while a task an update added, or made send or need more, is left out of Settings › AI and refused with `no-task` until someone agrees. `c607eb1d`.
+- **B-24 (draft), ai.use.** After the person check, `ask()` refuses with `no-permission` ("The person this work runs for may not use AI.") when the person doesn't hold `ai.use`, as the maintainers decided. A schedule's run acts for the administrator who enabled the plugin, who holds it. One line in `plugins/ai.md`. `60b65183`.
+- **B-25 (draft), SENDS's order** (the review's note). `PluginAiTasks::SENDS` is `brief`, `published`, `draft`, narrowest first; `added()` reads a later one as wider. The plan lists them unordered. `8a4f0d2`.
+- **B-18, corrected.** The first record said the filter showed only once a plugin had asked; the code showed it always. It now does what the record said: "Asked by" is drawn when a plugin has requests or the address names one. `aac1df2d`.
+- **For the join (finding 3).** Pass every later parameter of `PluginDoors::for()` and `PluginServices::for()` by name: Part C's `PluginLoader` passes `$answerBytes` by position, which lands in A's `bool $long`. A itself never passes `long`.
+
+For issues (LATER, not fixed here):
+
+- `RunPluginJob` runs a Waiting plugin's jobs; it should treat one as it treats a disabled plugin (finding 2's second half).
+- The filter value `teme` is also a valid plugin code; use a value the code pattern refuses, or reserve `teme` (finding 4).
+- `Models/AiActivity.php`'s docblock still lists `subject_id` as a string and doesn't mention `plugin` (finding 5).
+- A plugin task id equal to a core task id (such as `tidy`) mixes into the Task filter; narrow it to core requests (finding 6).
+- A non-string `AiAsk` input reaches `AiPrompt::messages()` as a TypeError, and an invalid `AiRequest` built in ModelCall's closure escapes as InvalidArgumentException; an `is_string` check in `AiAsk` would match its documented type (finding 7).
+
+Gate: `composer check` after the merge and fixes 1, 2, 8 and 9: Pint, PHPStan, type and lint checks passed; tests 12,559 passed, 45 skipped, 5 failed. Three were `GenerateContractsReferenceTest`'s, fixed by `ef233b6f` (now 5 of its 6 pass). The two left are the committed generated references, `docs/reference/plugin-manifest.md` and `docs/reference/contracts.md`, out of step until the join regenerates them, as the brief says.
+
 ---
 
 ## Part B: a plugin's panel in the editor (`sockets3/editor-panels`)
