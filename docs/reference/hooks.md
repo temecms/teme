@@ -221,6 +221,20 @@ Lets plugins change an item's object before it is answered or sent, such as addi
 | `object` |  |
 | `item` | the item it is built from |
 
+## FeedsChanged
+
+Feeds a change touched: the main feeds, a type's, a term's or an author's, as the public sees them. Sent after the change is saved, only when a plugin listens, never during an import run. It carries only public addresses, so it needs no capability.
+
+- **Class:** `Teme\Contracts\Feeds\FeedsChanged`
+- **Verb:** Notification
+- **Capability:** none
+- **Since:** 0.9.0
+
+| Parameter | Description |
+|---|---|
+| `urls` | the feeds' absolute addresses, each once, at most 200 |
+| `all` | true when the change may touch every feed, such as the site's name |
+
 ## MediaStored
 
 A file was stored in the media library: a new upload, or a new file in place of an item's old one. Sent after the change is saved, never during an import run.
