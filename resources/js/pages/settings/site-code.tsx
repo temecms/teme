@@ -508,6 +508,31 @@ export default function SiteCodeSettings({
                 <SiteCodeNotice locked={locked} />
 
                 <div className="grid gap-4">
+                    {places.map((place) => (
+                        <SettingsPanel
+                            key={place.key}
+                            as="section"
+                            title={place.label}
+                            description={place.where}
+                        >
+                            {place.entries.length === 0 ? (
+                                <p className="text-ink-2 text-sm">
+                                    Nothing here.
+                                </p>
+                            ) : (
+                                place.entries.map((entry) => (
+                                    <EntryRow
+                                        key={entry.id}
+                                        entry={entry}
+                                        locked={locked}
+                                        siteTimezone={siteTimezone}
+                                        onEdit={setEditing}
+                                    />
+                                ))
+                            )}
+                        </SettingsPanel>
+                    ))}
+
                     <SettingsPanel
                         as="section"
                         title={__('ads.txt')}
@@ -566,31 +591,6 @@ export default function SiteCodeSettings({
                             )}
                         </Form>
                     </SettingsPanel>
-
-                    {places.map((place) => (
-                        <SettingsPanel
-                            key={place.key}
-                            as="section"
-                            title={place.label}
-                            description={place.where}
-                        >
-                            {place.entries.length === 0 ? (
-                                <p className="text-ink-2 text-sm">
-                                    Nothing here.
-                                </p>
-                            ) : (
-                                place.entries.map((entry) => (
-                                    <EntryRow
-                                        key={entry.id}
-                                        entry={entry}
-                                        locked={locked}
-                                        siteTimezone={siteTimezone}
-                                        onEdit={setEditing}
-                                    />
-                                ))
-                            )}
-                        </SettingsPanel>
-                    ))}
 
                     <SettingsPanel
                         as="section"
