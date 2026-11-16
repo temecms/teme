@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Settings\Queries;
 
 use App\Domain\Cards\CardMedia;
+use App\Domain\Plugins\Contributions\DeclaredSettings;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SecretStore;
 use App\Domain\Settings\SettingsRegistry;
@@ -40,6 +41,7 @@ final class SettingsForm
      * who may write, by name, and the chosen person while they have an
      * account. A list, not a map, so the browser keeps its order. Each
      * field carries its `visibleWhen`: the other settings' values it shows for.
+     * A plugin's group carries its words in the person's language.
      *
      * @return array{
      *     group: array{key: string, label: string, description: string, sensitive: bool},
@@ -80,7 +82,7 @@ final class SettingsForm
         $images = $this->media->forIds(array_values($chosen));
         $media = array_map(fn (string $id): ?array => $images[$id] ?? null, $chosen);
 
-        return [
+        $form = [
             'group' => [
                 'key' => $definition->key,
                 'label' => $definition->label,
@@ -95,6 +97,9 @@ final class SettingsForm
             'media' => $media,
             'version' => (int) (SettingsGroupRecord::query()->whereKey($group)->value('version') ?? 0),
         ];
+
+        // A plugin's words in the person's language, from its own lang folder (docs/plans/plugin-sockets-2.md).
+        return str_starts_with($group, 'plugin.') ? DeclaredSettings::translated($form, app()->getLocale()) : $form;
     }
 
     /**

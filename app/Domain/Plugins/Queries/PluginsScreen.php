@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
@@ -18,7 +19,8 @@ use Teme\Contracts\Plugins\Capability;
  * What Site › Plugins shows (I-3353, I-3442): every plugin from PluginList
  * with its badge, reason, the access it asks for in words and as the plain
  * lists the enable request posts back, what the person agreed to before,
- * which action the row offers, and the tables recorded for removing data.
+ * which action the row offers, and the tables recorded for removing data;
+ * its manifest's words in the person's language.
  * It reads each plugin's files only as text and runs none of its code.
  */
 final readonly class PluginsScreen
@@ -68,13 +70,16 @@ final readonly class PluginsScreen
             $newImports = $manifest !== null && $row->consent !== [] && array_key_exists('imports', Consent::added($row->consent, $manifest));
 
             $tables = $record === null ? [] : $this->tables($record);
+            // Its manifest's words in the person's language, from its own lang folder (docs/plans/plugin-sockets-2.md).
+            $words = ManifestText::for($row->code);
+            $locale = app()->getLocale();
 
             return [
                 'name' => $row->name,
                 'code' => $row->code,
-                'label' => $row->label,
+                'label' => $words->text($row->label, $locale),
                 'version' => $row->version,
-                'description' => $row->description,
+                'description' => $words->text($row->description, $locale),
                 'author' => $row->author,
                 'authorUrl' => $row->authorUrl,
                 'homepage' => $row->homepage,
@@ -87,7 +92,7 @@ final readonly class PluginsScreen
                 'needsAttention' => in_array($row->state, self::NEEDS_ATTENTION, true),
                 'action' => $this->action($row, $enabled, $newImports),
                 'hasSettings' => $this->labels($manifest?->contributes()['settings'] ?? null) !== [],
-                'adds' => [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)],
+                'adds' => array_map(fn (string $label): string => $words->text($label, $locale), [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)]),
                 'agreedVersion' => $record?->version,
                 'agreed' => [
                     ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent)),
