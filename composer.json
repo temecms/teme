@@ -59,6 +59,7 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/",
+            "Teme\\Testing\\": "packages/teme-testing/src/",
             "Tests\\Fixtures\\Themes\\Good\\": "tests/Fixtures/themes/good/composers/",
             "Tests\\Fixtures\\Themes\\Greedy\\": "tests/Fixtures/themes/greedy/composers/"
         }
@@ -99,9 +100,15 @@
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
         ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+        "boost": [
             "@php artisan boost:update --ansi"
+        ],
+        "check:plugins": [
+            "@php artisan test --compact --testsuite=Plugins",
+            "@php vendor/bin/phpstan analyse -c phpstan-plugins.neon --memory-limit=2G --no-progress"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
