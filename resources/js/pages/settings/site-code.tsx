@@ -592,9 +592,7 @@ export default function SiteCodeSettings({
                                             data-test="site-code-ads-txt-mode-redirect"
                                         />
                                     </RadioGroup>
-                                    <InputError
-                                        message={errors.ads_txt_mode}
-                                    />
+                                    <InputError message={errors.ads_txt_mode} />
                                     {mode === 'text' ? (
                                         <>
                                             <input
