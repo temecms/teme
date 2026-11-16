@@ -160,7 +160,7 @@ final class CodeScripts
             $value = $values[$setting->key] ?? null;
 
             if ($setting->type === SettingType::Code && $setting->scripts && is_string($value) && $value !== '') {
-                $markups["{$path}.{$setting->key}"] = ['name' => 'Settings: '.$setting->label, 'markup' => $value];
+                $markups["{$path}.{$setting->key}"] = ['name' => __('Settings: :label', ['label' => $setting->label]), 'markup' => $value];
             }
 
             if ($setting->type === SettingType::Repeater && is_array($value)) {

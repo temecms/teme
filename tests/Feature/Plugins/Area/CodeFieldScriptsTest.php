@@ -92,6 +92,15 @@ it('asks for a code setting’s scripts when a plugin’s settings are saved', f
     expect(($this->waiting)())->toBe(['window.fallback = 1;']);
 });
 
+it('names a code setting’s script in words that translate', function (): void {
+    app('translator')->addLines(['*.Settings: :label' => 'Ajustes: :label'], 'es');
+    app()->setLocale('es');
+    $version = (int) DB::table('settings')->where('group_key', 'plugin.placard')->value('version');
+    app(UpdateSettings::class)->execute(new UpdateSettingsInput('plugin.placard', ['fallback' => '<script>window.fallback = 1;</script>'], [], [], $version, (string) $this->admin->id));
+
+    expect(PluginScript::query()->sole()->name)->toBe('Ajustes: Fallback code');
+});
+
 it('says under the field which scripts wait, and offers approval only to a person who may change site code', function (): void {
     $saved = ($this->save)($this->unit);
     $script = PluginScript::query()->sole();

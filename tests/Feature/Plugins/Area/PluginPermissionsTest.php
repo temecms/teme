@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\LoadedPlugins;
@@ -79,6 +80,15 @@ it('gives a role an update adds once it is agreed to, and still never gives back
     ($this->enable)();
 
     expect(($this->holders)('plugin.placard.manage'))->toBe(['administrator', 'author']);
+});
+
+it('says in the consent who is given each permission in words that translate', function (): void {
+    app('translator')->addLines(['*.authors' => 'autores', '*.editors' => 'editores', '*.:first and :second' => ':first y :second', '*.Lets :roles :label' => 'Permite a :roles :label'], 'es');
+    app()->setLocale('es');
+    $declared = PluginFixtures::manifest('placard');
+    $declared['contributes']['permissions'][0]['roles'] = ['editor', 'author'];
+
+    expect(PluginPermissions::consentWords(new Manifest($declared)))->toBe(['Permite a autores y editores manage ads']);
 });
 
 it('keeps the permission while the plugin is disabled, and removing its data deletes it', function (): void {

@@ -100,7 +100,28 @@ final class PluginPermissions
     {
         return array_map(fn (array $permission): string => $permission['roles'] === []
             ? __('Administrators only: :label', ['label' => $permission['label']])
-            : __('Lets :roles :label', ['roles' => implode(__(' and '), array_map(fn (string $role): string => __(Str::plural($role)), $permission['roles'])), 'label' => Str::lcfirst($permission['label'])]), self::declared($manifest));
+            : __('Lets :roles :label', ['roles' => self::roleList($permission['roles']), 'label' => Str::lcfirst($permission['label'])]), self::declared($manifest));
+    }
+
+    /**
+     * The roles a permission is given to, as the consent names them: one,
+     * two or all three, each a fixed word.
+     *
+     * @param  list<string>  $roles
+     */
+    private static function roleList(array $roles): string
+    {
+        $words = array_map(fn (string $role): string => match ($role) {
+            'editor' => __('editors'),
+            'author' => __('authors'),
+            default => __('contributors'),
+        }, $roles);
+
+        return match (count($words)) {
+            1 => $words[0],
+            2 => __(':first and :second', ['first' => $words[0], 'second' => $words[1]]),
+            default => __(':first, :second and :third', ['first' => $words[0], 'second' => $words[1], 'third' => $words[2] ?? '']),
+        };
     }
 
     /**
