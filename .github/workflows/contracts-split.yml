@@ -1,0 +1,49 @@
+# Copies packages/teme-contracts to the read-only repository temecms/contracts,
+# which Packagist reads as teme/contracts (I-3460). Every push to main that
+# changes the package copies it; every release tag tags the copy the same,
+# since @since in the contracts names Teme's own versions.
+name: contracts split
+
+on:
+  push:
+    branches: [main]
+    paths: ['packages/teme-contracts/**']
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contracts-split
+  cancel-in-progress: false
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.CONTRACTS_SPLIT_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy the contracts
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: danharrin/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893 # v2.4.5
+        with:
+          package_directory: packages/teme-contracts
+          repository_organization: temecms
+          repository_name: contracts
+          branch: main
+          user_name: TemeCMS
+          user_email: 4592796+iamkingsleyf@users.noreply.github.com
+
+      - name: Copy and tag the contracts
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: danharrin/monorepo-split-github-action@14e42e2437f674b8987c1f50ca3689116aea1893 # v2.4.5
+        with:
+          tag: ${{ github.ref_name }}
+          package_directory: packages/teme-contracts
+          repository_organization: temecms
+          repository_name: contracts
+          branch: main
+          user_name: TemeCMS
+          user_email: 4592796+iamkingsleyf@users.noreply.github.com
