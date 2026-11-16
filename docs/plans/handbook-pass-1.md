@@ -178,7 +178,8 @@ Setup log: `none`. Working directory: `/home/user/teme`. Built from `origin/main
 - B-11: the README's Contracts row and the for-agents line went in with Task 5, not Task 1, since each file is staged whole. Commit `35b02d9`.
 - B-12: `llms.txt` was regenerated in Task 5 so that commit stays green. Commit `35b02d9`.
 - B-13: no full `composer check` before building, as the brief asks for one at the end; the baseline counts were read from their files. No commit.
-- B-14 to B-20: not used.
+- B-14: the review's suggested fix for finding 1, starting the plugin again through the loader, fails with `Settings group [plugin.contributor] is already registered.`: what a plugin adds to the admin can't be removed or added twice in one process. Options: change core's registries, or have the kit subscribe the still-held plugin's hooks again, as the loader does. Chose the kit, so no core file changes; the kit now also fails the test when the loader recorded a failure for a plugin it still lists as running. Commit `11baecc`.
+- B-15 to B-20: not used.
 
 ### STOP
 
@@ -197,3 +198,19 @@ None.
 - `php artisan test docs/guides/developers/examples/plugins/first-plugin/tests` runs the first plugin's own test through the kit.
 - `php artisan test tests/Feature/Testing` runs the kit's own tests.
 - Read `docs/guides/developers/testing.md` and `docs/guides/developers/plugins/tables.md`.
+
+### Follow-up R1
+
+Fixed the review's three IMPORTANT findings; the LATER ones are left for the maintainers to file.
+
+- `11baecc` fix(testing): hear a plugin's hooks again when it is enabled after being disabled (finding 1, B-14).
+- `e29c8b4` test(docs): enable the first-plugin example with the command its page names (finding 2).
+- `812aa84` docs(handbook): say a public route's cache lifetime is at most 60 seconds, and 60 by default (finding 3).
+
+Each test seen red:
+
+- Finding 1, `tests/Feature/Testing/PluginsTest.php` "starts a plugin again when it is enabled after being disabled": `Expected 1 matching request(s) sent; 0 were.`
+- Finding 2, `tests/Feature/Guides/Developers/ExamplesTest.php` "enables the first-plugin example with the command its page tells readers to run": it restores an assertion on behavior that already worked, so it passed at once; with the name changed for a moment it failed with `Expected status code 0 but received 1.`, then the name was put back.
+- Finding 3 is wording only, with no behavior to test.
+
+Gate: full `composer check` passed. Pint passed; PHPStan no errors; Architecture 139 passed (1,358 assertions); Unit and Feature 11,782 passed, 2 skipped (60,617 assertions). Baselines unchanged: 876 and 144.
