@@ -25,6 +25,8 @@ x-teme-environment: &teme-environment
     # Media in object storage (docs/guides/operators/object-storage.md); every
     # part reads the same disks, or a worker writes where web doesn't read.
     MEDIA_STORAGE: ${MEDIA_STORAGE:-server}
+    MEDIA_DISK: ${MEDIA_DISK:-}
+    MEDIA_ORIGINALS_DISK: ${MEDIA_ORIGINALS_DISK:-}
     MEDIA_URL: ${MEDIA_URL:-}
     MEDIA_BUCKET: ${MEDIA_BUCKET:-}
     MEDIA_ORIGINALS_BUCKET: ${MEDIA_ORIGINALS_BUCKET:-}
