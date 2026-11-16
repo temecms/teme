@@ -28,7 +28,6 @@ use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Plugins\Plugin;
 use Tests\Fixtures\Plugins\ListColumnCalls;
 use Tests\Fixtures\Plugins\PluginFixtures;
-use Throwable;
 
 uses(RefreshDatabase::class);
 
