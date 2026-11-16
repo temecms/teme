@@ -262,6 +262,13 @@ describe('the installer’s Operations', function (): void {
     });
 });
 
+it('fails a request with the source’s own reason when the source refuses to prepare it', function (): void {
+    $row = ($this->settle)(($this->ask)('install', 'acme/gone', '1.0.0', ['source_kind' => 'upload']));
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toBe('The uploaded file for this request is gone. Upload it again, then ask again.');
+});
+
 it('deletes an unpacked upload no kept release names when its request fails, and when one is cancelled', function (): void {
     $root = $this->folder->root;
     $kept = $this->folder->stage();

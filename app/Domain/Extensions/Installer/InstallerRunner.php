@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RuntimeException;
 use SplFileInfo;
 use Throwable;
 
@@ -283,7 +284,12 @@ final class InstallerRunner
             $sources,
         ));
 
-        $kind?->prepare($request, $release, $this->store->root());
+        try {
+            $kind?->prepare($request, $release, $this->store->root());
+        } catch (RuntimeException $refused) {
+            // A source refuses in words people read (an unsafe archive, a private address, a removed source).
+            throw $refused instanceof InstallerFailed ? $refused : new InstallerFailed($refused->getMessage(), previous: $refused);
+        }
 
         return true;
     }
