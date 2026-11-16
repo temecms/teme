@@ -144,3 +144,16 @@ it('refuses, approving nothing, a person who may not change site code, or one wh
         $this->actingAs($this->admin)->post(route('plugins.area.script', ['code' => 'billboard', 'script' => $id]))->assertNotFound();
     }],
 ]);
+
+it('never approves another plugin’s script through this plugin’s form', function (): void {
+    ($this->save)($this->unit);
+    $other = PluginScript::query()->sole()->replicate();
+    $other->plugin_code = 'billboard';
+    $other->save();
+
+    $this->actingAs($this->admin)->withSession(scConfirmed())
+        ->post(route('plugins.area.script', ['code' => 'placard', 'script' => $other->id]))
+        ->assertNotFound();
+
+    expect($other->fresh()?->state)->toBe(PluginScript::WAITING);
+});
