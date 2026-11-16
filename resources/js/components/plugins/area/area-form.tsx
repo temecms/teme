@@ -1,4 +1,10 @@
+import { router } from '@inertiajs/react';
+import { createContext, useContext, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
+import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController';
 import { CodeField } from '@/components/fields/code-field';
+import type { WaitingScript } from '@/components/fields/code-field';
+import { FreshPasswordDialog } from '@/components/patterns/fresh-password';
 import { RepeaterField } from '@/components/fields/repeater-field';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
@@ -12,6 +18,81 @@ import { visibleKeys } from '@/lib/visible-when';
 import type { AreaField } from '@/types/plugin-area';
 
 type Values = Record<string, unknown>;
+
+/**
+ * The form's waiting scripts by their field's path, and, for a person who
+ * may change site code, how to approve one (the decided Q2).
+ */
+type AreaScripts = {
+    waiting: Record<string, WaitingScript[]>;
+    approve?: (id: string) => void;
+    busy: boolean;
+};
+
+const ScriptsContext = createContext<AreaScripts>({ waiting: {}, busy: false });
+
+/** Hands the form's waiting scripts to every code field under it. */
+export const AreaScriptsProvider = ScriptsContext.Provider;
+
+/**
+ * Approves one of a plugin's waiting scripts from its form, asking for the
+ * password in place when its window has closed (bootstrap/app.php answers
+ * 423), then sending it again, so nothing typed in the form is lost.
+ */
+export function useScriptApproval(code: string): {
+    approve: (id: string) => void;
+    busy: boolean;
+    password: ReactNode;
+} {
+    const [busy, setBusy] = useState(false);
+    const [asking, setAsking] = useState(false);
+    const again = useRef<string | null>(null);
+
+    const approve = (id: string) => {
+        setBusy(true);
+        router.post(
+            PluginAreaController.approveScript.url({ code, script: id }),
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                headers: { 'X-Teme-Ask-In-Place': '1' },
+                onHttpException: (response) => {
+                    if (response.status === 423) {
+                        again.current = id;
+                        setAsking(true);
+
+                        return false;
+                    }
+                },
+                onFinish: () => setBusy(false),
+            },
+        );
+    };
+
+    return {
+        approve,
+        busy,
+        password: (
+            <FreshPasswordDialog
+                open={asking}
+                onOpenChange={setAsking}
+                title={__('Confirm your password')}
+                text={__(
+                    'Approving a script for the site’s pages asks for your password.',
+                )}
+                onConfirmed={() => {
+                    const id = again.current;
+                    again.current = null;
+
+                    if (id !== null) {
+                        approve(id);
+                    }
+                }}
+            />
+        ),
+    };
+}
 
 /** A value as a text box shows it. */
 function text(value: unknown): string {
@@ -95,7 +176,6 @@ export function AreaFieldInput({
     onChange,
     errors,
     path,
-    waiting = 0,
 }: {
     field: AreaField;
     value: unknown;
@@ -103,9 +183,8 @@ export function AreaFieldInput({
     errors: Record<string, string>;
     /** Where its error is keyed, as in values.name or values.versions.0.code. */
     path: string;
-    /** For a code field that may hold scripts: how many wait for approval. */
-    waiting?: number;
 }) {
+    const scripts = useContext(ScriptsContext);
     const id = `field-${path.replaceAll('.', '-')}`;
     const error = errors[path];
     const describedBy = field.description !== '' ? `${id}-help` : undefined;
@@ -217,7 +296,11 @@ export function AreaFieldInput({
                         onChange={onChange}
                         describedBy={describedBy}
                         invalid={error !== undefined}
-                        waiting={field.scripts ? waiting : 0}
+                        waiting={
+                            field.scripts ? (scripts.waiting[path] ?? []) : []
+                        }
+                        approve={scripts.approve}
+                        busy={scripts.busy}
                     />
                 );
             case 'select':

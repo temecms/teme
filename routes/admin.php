@@ -228,6 +228,7 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->where(['code' => ManifestValidator::CODE_PATTERN, 'record' => '[a-z][a-z0-9-]{1,39}', 'id' => '(?!new$|act$)[A-Za-z0-9_.:-]{1,64}', 'action' => '[a-z][a-z0-9-]{1,39}'])
             ->group(function (): void {
                 Route::post('actions/{action}', [PluginAreaController::class, 'action'])->name('action');
+                Route::post('scripts/{script}', [PluginAreaController::class, 'approveScript'])->where('script', '[0-9a-z]{26}')->name('script');
                 Route::get('records/{record}/new', [PluginAreaController::class, 'create'])->name('new');
                 Route::post('records/{record}/act', [PluginAreaController::class, 'act'])->name('act');
                 Route::get('records/{record}/{id}', [PluginAreaController::class, 'edit'])->name('edit');

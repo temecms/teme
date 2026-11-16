@@ -6,6 +6,8 @@ namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Plugins\Area\AreaContexts;
 use App\Domain\Plugins\Area\AreaForms;
+use App\Domain\Plugins\Area\AreaWords;
+use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Operations\Concerns\WritesPluginArea;
 use App\Domain\Plugins\Operations\Input\SavePluginRecordInput;
 use App\Domain\Support\Operations\BaseOperation;
@@ -50,6 +52,10 @@ final class SavePluginRecord extends BaseOperation
         $plugin = $this->writable($input->code, $input->record, $input->actorId);
         $values = AreaForms::validated($plugin->area->fields($input->record), $input->values);
         $context = AreaContexts::for($input->actorId);
+        $record = AreaWords::text($plugin->code, (string) ($plugin->area->record($input->record)['label'] ?? ''));
+
+        // The code fields' inline scripts wait for approval, asked in this transaction (A-T9).
+        CodeScripts::request($plugin->code, CodeScripts::inArea($record, $plugin->area->fields($input->record), $values), $input->actorId);
 
         $saved = $this->write($plugin, fn (PluginArea $data): Saved => $data->save($input->record, $input->id, $values, $context));
 

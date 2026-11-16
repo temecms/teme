@@ -6,7 +6,11 @@ import PluginAreaController from '@/actions/App/Http/Admin/PluginAreaController'
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { SaveBar } from '@/components/patterns/save-bar';
 import { SectionTabs } from '@/components/patterns/section-tabs';
-import { AreaFieldInput } from '@/components/plugins/area/area-form';
+import {
+    AreaFieldInput,
+    AreaScriptsProvider,
+    useScriptApproval,
+} from '@/components/plugins/area/area-form';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -46,6 +50,13 @@ export default function PluginRecord(props: PluginRecordPageProps) {
             : title !== ''
               ? title
               : record.label;
+
+    const approval = useScriptApproval(plugin.code);
+    const scripts = {
+        waiting: props.scripts.waiting,
+        approve: props.scripts.approver ? approval.approve : undefined,
+        busy: approval.busy,
+    };
 
     setLayoutProps({ breadcrumbs: [{ title: plugin.name, href: back }] });
 
@@ -93,91 +104,92 @@ export default function PluginRecord(props: PluginRecordPageProps) {
                     }))}
                 />
             )}
-            <form onSubmit={submit} noValidate data-test="record-form">
-                {(failed !== null || errors.record !== undefined) && (
-                    <Notice
-                        tone="danger"
-                        className="mb-4"
-                        data-test="record-refused"
-                    >
-                        {errors.record ?? failed}
-                    </Notice>
-                )}
-                {sections.map((section) => {
-                    const visible = section.fields.filter((field) =>
-                        shown.has(field.key),
-                    );
-
-                    if (visible.length === 0) {
-                        return null;
-                    }
-
-                    return (
-                        <div
-                            key={section.id}
-                            id={`record-section-${section.id}`}
-                            tabIndex={-1}
-                            className="scroll-mt-16 [&+&]:mt-4"
+            {approval.password}
+            <AreaScriptsProvider value={scripts}>
+                <form onSubmit={submit} noValidate data-test="record-form">
+                    {(failed !== null || errors.record !== undefined) && (
+                        <Notice
+                            tone="danger"
+                            className="mb-4"
+                            data-test="record-refused"
                         >
-                            <FormPanel
-                                title={
-                                    sections.length > 1 || section.label !== ''
-                                        ? section.label
-                                        : undefined
-                                }
-                                description={
-                                    section.description !== ''
-                                        ? section.description
-                                        : undefined
-                                }
+                            {errors.record ?? failed}
+                        </Notice>
+                    )}
+                    {sections.map((section) => {
+                        const visible = section.fields.filter((field) =>
+                            shown.has(field.key),
+                        );
+
+                        if (visible.length === 0) {
+                            return null;
+                        }
+
+                        return (
+                            <div
+                                key={section.id}
+                                id={`record-section-${section.id}`}
+                                tabIndex={-1}
+                                className="scroll-mt-16 [&+&]:mt-4"
                             >
-                                {visible.map((field) => (
-                                    <AreaFieldInput
-                                        key={field.key}
-                                        field={field}
-                                        value={values[field.key]}
-                                        onChange={(next) =>
-                                            setValues((now) => ({
-                                                ...now,
-                                                [field.key]: next,
-                                            }))
-                                        }
-                                        errors={errors}
-                                        path={`values.${field.key}`}
-                                        waiting={
-                                            props.waiting?.[field.key] ?? 0
-                                        }
-                                    />
-                                ))}
-                            </FormPanel>
-                        </div>
-                    );
-                })}
-                {id !== null && deletable && (
-                    <FormPanel
-                        title={__('Delete this :item', {
-                            item: record.label.toLowerCase(),
-                        })}
-                    >
-                        <div>
-                            <Button
-                                type="button"
-                                variant="danger"
-                                data-test="record-delete"
-                                onClick={() => setDeleting(true)}
-                            >
-                                {__('Delete')}
-                            </Button>
-                        </div>
-                    </FormPanel>
-                )}
-                <SaveBar
-                    dirty={dirty}
-                    processing={processing}
-                    onDiscard={() => setValues(props.values)}
-                    what={heading}
-                />
-            </form>
+                                <FormPanel
+                                    title={
+                                        sections.length > 1 ||
+                                        section.label !== ''
+                                            ? section.label
+                                            : undefined
+                                    }
+                                    description={
+                                        section.description !== ''
+                                            ? section.description
+                                            : undefined
+                                    }
+                                >
+                                    {visible.map((field) => (
+                                        <AreaFieldInput
+                                            key={field.key}
+                                            field={field}
+                                            value={values[field.key]}
+                                            onChange={(next) =>
+                                                setValues((now) => ({
+                                                    ...now,
+                                                    [field.key]: next,
+                                                }))
+                                            }
+                                            errors={errors}
+                                            path={`values.${field.key}`}
+                                        />
+                                    ))}
+                                </FormPanel>
+                            </div>
+                        );
+                    })}
+                    {id !== null && deletable && (
+                        <FormPanel
+                            title={__('Delete this :item', {
+                                item: record.label.toLowerCase(),
+                            })}
+                        >
+                            <div>
+                                <Button
+                                    type="button"
+                                    variant="danger"
+                                    data-test="record-delete"
+                                    onClick={() => setDeleting(true)}
+                                >
+                                    {__('Delete')}
+                                </Button>
+                            </div>
+                        </FormPanel>
+                    )}
+                    <SaveBar
+                        dirty={dirty}
+                        processing={processing}
+                        onDiscard={() => setValues(props.values)}
+                        what={heading}
+                    />
+                </form>
+            </AreaScriptsProvider>
             <Dialog open={deleting} onOpenChange={setDeleting}>
                 <DialogContent size="sm" data-test="record-delete-confirm">
                     <DialogHeader>

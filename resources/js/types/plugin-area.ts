@@ -160,6 +160,12 @@ export type PluginRecordPageProps = {
     values: Record<string, unknown>;
     failed: string | null;
     deletable: boolean;
-    /** For each code field that may hold scripts: how many wait for approval. */
-    waiting?: Record<string, number>;
+    /**
+     * The code fields' scripts that wait for approval, by the field's path,
+     * and whether this person may approve them here (the decided Q2).
+     */
+    scripts: {
+        waiting: Record<string, { id: string; script: string }[]>;
+        approver: boolean;
+    };
 };

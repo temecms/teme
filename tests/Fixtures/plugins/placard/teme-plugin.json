@@ -10,7 +10,8 @@
     },
     "plugin": "Tests\\Fixtures\\Plugins\\Placard\\Placard",
     "capabilities": [
-        "jobs"
+        "jobs",
+        "content.insert"
     ],
     "owns": {
         "tables": [

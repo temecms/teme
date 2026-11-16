@@ -218,12 +218,10 @@ export function CodeSetting({
     field,
     value,
     error,
-    waiting = 0,
 }: {
     field: FieldDefinition;
     value: unknown;
     error?: string;
-    waiting?: number;
 }) {
     const id = `field-${field.key}`;
 
@@ -240,7 +238,6 @@ export function CodeSetting({
                 name={`values[${field.key}]`}
                 defaultValue={typeof value === 'string' ? value : ''}
                 invalid={error !== undefined}
-                waiting={waiting}
             />
         </Field>
     );

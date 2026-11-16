@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Admin;
 
 use App\Domain\Plugins\Area\AreaPlugin;
+use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Operations\ActOnPluginRecords;
 use App\Domain\Plugins\Operations\Input\ActOnPluginRecordsInput;
@@ -14,6 +15,8 @@ use App\Domain\Plugins\Operations\RunPluginAction;
 use App\Domain\Plugins\Operations\SavePluginRecord;
 use App\Domain\Plugins\Queries\PluginAreaScreen;
 use App\Domain\Plugins\Queries\PluginRecordForm;
+use App\Domain\Site\Insertions\Operations\ApprovePluginScript;
+use App\Domain\Site\Insertions\Operations\Input\ApprovePluginScriptInput;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -117,10 +120,34 @@ final class PluginAreaController extends Controller
         return back();
     }
 
+    /**
+     * Approves one of this plugin's waiting scripts where it was written
+     * (the decided Q2): the operation asks who may change site code, and for
+     * the password, which a form asking in place gets as a 423.
+     */
+    public function approveScript(Request $request, string $code, string $script, ApprovePluginScript $approve): RedirectResponse
+    {
+        abort_unless(CodeScripts::belongs($script, $code), 404);
+
+        try {
+            $approved = $approve->execute(new ApprovePluginScriptInput($script, (string) $request->user()?->getAuthIdentifier()));
+        } catch (AuthorizationException|ValidationException $refused) {
+            $message = $refused instanceof ValidationException ? (string) collect($refused->errors())->flatten()->first() : $refused->getMessage();
+            Inertia::flash('toast', ['type' => 'error', 'message' => $message]);
+
+            return back();
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Script approved for :name.', ['name' => $approved['name']])]);
+
+        return back();
+    }
+
     private function form(Request $request, string $code, string $record, ?string $id, PluginAreaScreen $screen, PluginRecordForm $form): Response
     {
         $plugin = $this->plugin($request, $code, $screen);
-        $found = $form->find($plugin, $record, $id, (string) $request->user()?->getAuthIdentifier());
+        $user = $request->user();
+        $found = $form->find($plugin, $record, $id, (string) $user?->getAuthIdentifier());
 
         abort_if($found === null, 404);
 
@@ -129,6 +156,11 @@ final class PluginAreaController extends Controller
             // Where the form's top bar leads: the page listing these records.
             'back' => $this->listing($code, $record),
             ...$found,
+            // The code fields' scripts that wait, and whether this person may approve them here (the decided Q2).
+            'scripts' => [
+                'waiting' => CodeScripts::waiting($plugin->code, CodeScripts::inArea($found['record']['label'], $plugin->area->fields($record), $found['values'])),
+                'approver' => CodeScripts::approver($user),
+            ],
         ]);
     }
 

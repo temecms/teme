@@ -6,6 +6,8 @@ use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginLoader;
+use App\Domain\Site\Insertions\Scripts\PluginScript;
+use App\Domain\Site\Insertions\Scripts\ScriptRequests;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
@@ -201,6 +203,36 @@ it('asks before it deletes an ad from its form, then leaves for the table', func
     $page->click('[data-test="record-delete-go"]');
     cmWaitUntil($page, 'location.pathname === "/admin/plugin/placard/ads"');
     expect(DB::table('placard_ads')->where('name', 'Ad 01')->exists())->toBeFalse();
+    cmNoJavaScriptErrors($page);
+});
+
+it('shows under a code field which scripts wait, and lets a person who may change site code approve one there, with the password', function (): void {
+    $admin = User::factory()->create()->assignRole('administrator');
+    $unit = '<ins class="adsbygoogle"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script>';
+    DB::table('placard_ads')->where('name', 'Ad 01')->update(['data' => json_encode(['location' => 'between_items', 'versions' => [['label' => 'Wide', 'code' => $unit, 'weight' => 1]], 'types' => [], 'terms' => []])]);
+    ScriptRequests::fromMarkup('placard', 'Ad: Ad code', $unit, (string) $this->editor->id);
+    $form = '/admin/plugin/placard/records/ad/'.($this->id)('Ad 01');
+    $waiting = 'document.querySelector(\'[data-test="waiting-script"]\') !== null';
+
+    $page = cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $form);
+    cmWaitUntil($page, $waiting);
+    $page->assertSee('Waiting for approval')
+        ->assertScript('document.querySelector(\'[data-test="approve-script"]\') === null', true);
+
+    $page = cmNavigate(cmSignIn($admin)->resize(375, 812), $form);
+    cmWaitUntil($page, $waiting);
+    expect(cmAxeViolations($page))->toBe([])
+        ->and(cmSmallTargets($page)['small'])->toBe([])
+        ->and(($this->sideways)($page))->toBe(0);
+    $page->screenshot(true, 'plugin-area-waiting-script-375');
+
+    $page->click('[data-test="approve-script"]');
+    shellSettled($page, '[data-test="fresh-password-input"]');
+    $page->type('[data-test="fresh-password-input"]', 'password');
+    $page->click('[data-test="fresh-password-confirm"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="waiting-script"]\') === null');
+
+    expect(PluginScript::query()->sole()->state)->toBe(PluginScript::APPROVED);
     cmNoJavaScriptErrors($page);
 });
 

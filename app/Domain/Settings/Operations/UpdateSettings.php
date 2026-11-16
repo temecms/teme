@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Settings\Operations;
 
+use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Area\VisibleWhen;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Plugins\Operations\AgreePluginHosts;
@@ -234,6 +235,12 @@ final class UpdateSettings extends BaseOperation implements RequiresElevation
             actorId: $input->actorId(),
             origin: $input->origin,
         ));
+
+        // A plugin's code settings: their inline scripts wait for approval, asked in this transaction (docs/plans/plugin-sockets-2.md).
+        if (str_starts_with($input->group, 'plugin.')) {
+            $stored = $this->normalised($input, array_map(strval(...), array_keys($this->shown($definition, $input))));
+            CodeScripts::request(substr($input->group, strlen('plugin.')), CodeScripts::inSettings($definition->settings, $stored), $input->actorId());
+        }
 
         $agreed = $this->agreedNow($input);
         $plugin = $agreed === [] ? null : $this->settingHosts->forGroup($input->group);
