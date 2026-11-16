@@ -38,6 +38,50 @@
                 ]
             }
         ],
+        "settingsSections": [
+            {
+                "id": "general",
+                "label": "General",
+                "description": "How ads show everywhere."
+            },
+            {
+                "id": "network",
+                "label": "Ad network"
+            }
+        ],
+        "settings": [
+            {
+                "key": "label_text",
+                "type": "text",
+                "label": "Label",
+                "description": "The word shown above each ad.",
+                "maxLength": 24,
+                "section": "general"
+            },
+            {
+                "key": "provider",
+                "type": "select",
+                "label": "Provider",
+                "description": "Who serves the ads.",
+                "options": {
+                    "none": "None",
+                    "adsense": "AdSense"
+                },
+                "section": "network"
+            },
+            {
+                "key": "publisher_id",
+                "type": "text",
+                "label": "Publisher ID",
+                "description": "Your AdSense publisher ID.",
+                "maxLength": 40,
+                "required": true,
+                "visibleWhen": {
+                    "provider": "adsense"
+                },
+                "section": "network"
+            }
+        ],
         "actions": [
             {
                 "id": "prune-now",

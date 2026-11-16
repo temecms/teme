@@ -157,6 +157,7 @@ final class SettingsForm
             'example' => $setting->example,
             'unit' => $setting->unit,
             'visibleWhen' => $setting->visibleWhen,
+            'section' => $setting->section,
         ];
     }
 }

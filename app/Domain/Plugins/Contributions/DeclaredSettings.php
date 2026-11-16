@@ -109,6 +109,17 @@ final class DeclaredSettings
             $setting = $setting->unit($declared['unit']);
         }
 
+        // Its condition and its section on the plugin's settings page (docs/plans/plugin-sockets-2.md, A4).
+        if (is_array($declared['visibleWhen'] ?? null) && $declared['visibleWhen'] !== []) {
+            /** @var array<string, scalar|list<scalar>> $conditions */
+            $conditions = $declared['visibleWhen'];
+            $setting = $setting->visibleWhen($conditions);
+        }
+
+        if (is_string($declared['section'] ?? null)) {
+            $setting = $setting->section($declared['section']);
+        }
+
         return $setting;
     }
 

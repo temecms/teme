@@ -52,6 +52,8 @@ final class Setting
         public readonly ?string $fieldset = null,
         public readonly array $visibleWhen = [],
         public readonly ?string $unit = null,
+        /** @since 0.9.0 */
+        public readonly ?string $section = null,
     ) {}
 
     /** @since 0.1.0 */
@@ -294,6 +296,21 @@ final class Setting
     public function visibleWhen(array $conditions): self
     {
         return $this->with(['visibleWhen' => $conditions]);
+    }
+
+    /**
+     * The section of a plugin's settings page this setting sits in: the id of
+     * one of the plugin's settingsSections.
+     *
+     * @since 0.9.0
+     */
+    public function section(string $id): self
+    {
+        if (preg_match('/^[a-z][a-z0-9-]{1,39}$/D', $id) !== 1) {
+            throw new InvalidArgumentException("Setting [{$this->key}] names a section whose id isn't 2 to 40 lower-case letters, digits and hyphens.");
+        }
+
+        return $this->with(['section' => $id]);
     }
 
     /**
