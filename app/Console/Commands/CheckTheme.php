@@ -4,18 +4,28 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Languages\PageLanguage;
+use App\Domain\Languages\SiteLanguages;
+use App\Domain\Site\PathResolver;
+use App\Domain\Site\ReaderKeys;
 use App\Domain\Themes\ActiveTheme;
 use App\Domain\Themes\Theme;
+use App\Domain\Themes\ThemeH1Check;
 use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Themes\ThemeScripts;
+use App\Http\Site\PublicPage;
 use Illuminate\Console\Command;
+use Illuminate\Http\Request;
+use RuntimeException;
 
 /**
  * `teme:theme:check {code?}`: the preflight check for a theme, the active one
  * by default. It lists every manifest error, finds the built assets and
  * measures each file compressed, and warns past the budgets (study Q §4:
  * 15 KB of CSS, 5 KB of JavaScript). It refuses an inline script in the
- * theme's views. It fails when there are errors.
+ * theme's views. It draws the home page and a published item's page with the
+ * theme, as the public site does, and refuses a page with no `<h1>` or more
+ * than one. It fails when there are errors.
  */
 final class CheckTheme extends Command
 {
@@ -55,6 +65,9 @@ final class CheckTheme extends Command
         $errors = [...$theme->errors, ...ThemeScripts::refusals($theme->path)];
         $warnings = [];
         $files = [];
+        $headings = app(ThemeH1Check::class)->run($theme, $this->draw(...));
+        $errors = [...$errors, ...$headings['errors']];
+        $warnings = $headings['warnings'];
         $manifest = $theme->manifest;
         $built = $manifest?->assetsManifest() ?? '';
         $entries = $manifest?->assetEntries() ?? [];
@@ -98,6 +111,26 @@ final class CheckTheme extends Command
         }
 
         return ['code' => $theme->code, 'errors' => $errors, 'warnings' => $warnings, 'files' => array_values($files), 'css' => $css, 'js' => $js];
+    }
+
+    /**
+     * The HTML the public site answers at an address, drawn through the
+     * template its address resolves to, as PublicController does.
+     */
+    private function draw(string $path): string
+    {
+        $request = Request::create($path, 'GET');
+        PublicPage::start($request);
+
+        $answer = PathResolver::resolve($request->getPathInfo(), '', ReaderKeys::from($request));
+
+        if ($answer['kind'] !== 'view' || ! isset($answer['intent'], $answer['model'])) {
+            throw new RuntimeException(__('the address answers with :kind, not a page', ['kind' => $answer['kind']]));
+        }
+
+        app(PageLanguage::class)->use(app(SiteLanguages::class)->of($answer['language'] ?? null));
+
+        return (string) PublicPage::render($answer['intent'], $answer['model'], 200, $answer['pageNumber'] ?? 1)->getContent();
     }
 
     /**
