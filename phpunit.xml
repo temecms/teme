@@ -17,6 +17,10 @@
         <testsuite name="Browser">
             <directory>tests/Browser</directory>
         </testsuite>
+        <!-- First-party plugins' own tests, run by `composer check:plugins` and the plugins workflow (docs/guides/developers/testing.md). -->
+        <testsuite name="Plugins">
+            <directory>plugins/*/tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>

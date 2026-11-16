@@ -1,0 +1,14 @@
+# First-party plugins' analysis (docs/guides/developers/testing.md): on its own, so
+# phpstan.neon, `composer check` and tests.yml stay as they are. Run by
+# `composer check:plugins` and the plugins workflow.
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - tests/PHPStan/rules.neon
+
+parameters:
+    level: 6
+    paths:
+        - plugins
+    excludePaths:
+        - plugins/*/vendor/*
+    tmpDir: build/phpstan-plugins
