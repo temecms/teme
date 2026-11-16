@@ -860,7 +860,8 @@ Each run with `app/` and `packages/` stashed, the tests and fixtures in place.
 #### STOP
 
 - Task 5 (permission audience and area link) waits: `sockets2/plugin-area` is not on `main`.
-- Task 6 (Account › Notifications, `PluginNoticeChoicesTest`) is stopped before it starts: the drawing (proposal, screen 5) isn't approved. `NoticeChoices` (the plugin's label beside its kinds) waits with it, since its shape follows the drawing.
+- Screens built from the approved drawings, with the two rules. The maintainers approved five round 3 drawings on 2026-11-16; this part's one among them is the refusal when disabling a plugin others need. It needs no new screen code: the Plugins page shows the refusal as its error toast, naming the dependents once ("Relay Pro needs it. Disable Relay Pro first."), and no heading repeats. `PluginDependenciesTest` now proves that through the page's own route; it passed at once, since Task 2 already sends the refusal there.
+- Task 6 (Account › Notifications, `PluginNoticeChoicesTest`) stays stopped: Account › Notifications (proposal, screen 5) is not among the approved drawings. `NoticeChoices` (the plugin's label beside its kinds) waits with it, since its shape follows the drawing.
 - Left open for the screens: the Plugins screen's consent lines for notice kinds, required plugins and declared hooks are in `PluginWords`, `EnablePluginCommand` and `PluginRow::$requiredBy`, but `PluginsScreen` and `plugins/index.tsx` are not this part's files.
 
 #### Changelog lines for the maintainers

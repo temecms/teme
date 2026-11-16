@@ -13,6 +13,8 @@ use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\Queries\PluginList;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Validation\ValidationException;
@@ -117,4 +119,20 @@ it('lists what each plugin requires and is required by on teme:plugins', functio
         ->toMatch('/tests\/relay-pro\s*\|[^\n]*\|\s*tests\/relay \^1\.0\s*\|/')
         ->toMatch('/tests\/relay\s*\|[^\n]*\|\s*\|\s*tests\/relay-pro\s*\|/')
         ->and(($this->row)('tests/relay')?->requiredBy)->toBe(['tests/relay-pro']);
+});
+
+it('shows the refusal on the Plugins page when disabling a plugin another one needs, naming it once', function (): void {
+    $this->seed(RoleSeeder::class);
+    $admin = User::factory()->create()->assignRole('administrator');
+    PluginFixtures::use('relay', 'relay-pro');
+    ($this->enable)(PluginFixtures::path('relay'));
+    ($this->enable)(PluginFixtures::path('relay-pro'));
+    app()->forgetInstance(Elevation::class);
+
+    $this->actingAs($admin)->post('/admin/plugins/relay/disable')
+        ->assertRedirect(route('plugins.index'))
+        ->assertInertiaFlash('toast.type', 'error')
+        ->assertInertiaFlash('toast.message', 'Relay Pro needs it. Disable Relay Pro first.');
+
+    expect(($this->state)('tests/relay'))->toBe('enabled');
 });
