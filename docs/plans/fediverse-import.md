@@ -116,7 +116,8 @@ No change to a contract this plan names. The spec `docs/specs/companion-fedivers
 ### Left open
 
 - **STOP:** before T5, `git merge origin/import/plugin-socket` (286359d, the socket's review fixes) conflicted in `app/Domain/Plugins/Consent.php`, `app/Domain/Plugins/Operations/EnablePlugin.php` and `app/Domain/Plugins/Queries/PluginsScreen.php`. These aren't two additions at one spot: both sides rewrote the consent record's shape (routes against agreed imports), the same docblocks and the same lines of `added()` and the screen's helper. Joining them is a decision about what a plugin's consent covers, in another part's files. I aborted that merge and built T5 and T6 on the earlier join, which no task of this plan depends on beyond it. This branch still has the socket at e06506c.
-- `docs/reference/plugin-manifest.md` needs regenerating after the join (the full check above).
+- **For the maintainer's join (owner's note F3c):** this branch is built on the socket before its R7 consent fixes (e06506c, not 286359d); the owner left that consent conflict for the maintainer's join, and the R7 fixes are not merged here.
+- At that join, `php artisan teme:docs:manifest` must run, so `docs/reference/plugin-manifest.md` matches the joined schema (the full check above).
 - The sites actually being moved need their own fixtures (B-09).
 - The F1 findings above, and the Announce difference.
 - The staging proof (the runbook's F.1–F.9) is for a person to run.
