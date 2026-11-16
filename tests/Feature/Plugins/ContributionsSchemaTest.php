@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Ai\AiKeys;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 
 it('states the contributions’ types, surfaces, icons and patterns as the validator does', function (): void {
@@ -14,7 +16,7 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $column = $contributes['columns']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns'])
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'aiTasks'])
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
         ->and($link['surface']['enum'])->toBe(ContributionsValidator::SURFACES)
         ->and($link['icon']['enum'])->toBe(ContributionsValidator::ICONS)
@@ -24,5 +26,9 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
         ->and($column['kind']['enum'])->toBe(ContributionsValidator::COLUMN_KINDS)
         ->and($column['width']['enum'])->toBe(array_keys(ContributionsValidator::COLUMN_WIDTHS))
         ->and($column['id']['pattern'])->toBe($between(ContributionsValidator::COLUMN_ID))
-        ->and($column['types']['items']['pattern'])->toBe($between(ContributionsValidator::TYPE_KEY));
+        ->and($column['types']['items']['pattern'])->toBe($between(ContributionsValidator::TYPE_KEY))
+        ->and($contributes['aiTasks']['maxItems'])->toBe(PluginAiTasks::MOST)
+        ->and($contributes['aiTasks']['items']['properties']['needs']['items']['enum'])->toBe(PluginAiTasks::NEEDS)
+        ->and($contributes['aiTasks']['items']['properties']['sends']['enum'])->toBe(PluginAiTasks::SENDS)
+        ->and('/'.$contributes['aiTasks']['items']['properties']['id']['pattern'].'/')->toBe(AiKeys::PATTERN);
 });

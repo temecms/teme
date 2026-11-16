@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Models\PluginRecord;
@@ -139,6 +140,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 'hooks' => $input->hooks,
                 'routes' => Consent::routeLines($manifest),
                 ...$this->imports($found),
+                ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
             ],
             'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
             'consented_at' => $now,

@@ -13,6 +13,7 @@ use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
 use Composer\Semver\Semver;
 use ReflectionClass;
+use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Http\OutboundHttp;
@@ -132,6 +133,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
         array_push($errors, ...$this->columns($read));
+        array_push($errors, ...$this->aiTasks($read));
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
@@ -161,6 +163,22 @@ final readonly class ManifestValidator
         }
 
         return [];
+    }
+
+    /**
+     * AI tasks spend the site's AI budget, so ai is required.
+     *
+     * @return list<string>
+     */
+    private function aiTasks(Manifest $read): array
+    {
+        $tasks = $read->contributes()['aiTasks'] ?? null;
+
+        if (! is_array($tasks) || $tasks === [] || in_array(Capability::Ai->value, $read->capabilities(), true)) {
+            return [];
+        }
+
+        return [__('It declares AI tasks, but the plugin doesn’t ask for ai.')];
     }
 
     /**
@@ -277,6 +295,8 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for jobs, but the plugin doesn’t ask for jobs.";
             } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! in_array(Capability::ContentInsert->value, $read->capabilities(), true)) {
                 $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
+            } elseif (strtolower((string) $type) === strtolower(SiteAi::class) && ! in_array(Capability::Ai->value, $read->capabilities(), true)) {
+                $errors[] = __(':class asks for SiteAi, but the plugin doesn’t ask for ai.', ['class' => $class]);
             }
         }
 

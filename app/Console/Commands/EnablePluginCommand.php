@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Ai\Plugins\DeclaredAiTask;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\PluginWords;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
@@ -48,6 +51,7 @@ final class EnablePluginCommand extends Command
         $version = $manifest?->version() ?? '';
         $capabilities = $manifest?->capabilities() ?? [];
         $hosts = $manifest?->hosts() ?? [];
+        $aiTasks = $manifest === null ? [] : PluginAiTasks::of($manifest);
 
         $this->line(__(':label :version asks to:', ['label' => $label, 'version' => $version]));
 
@@ -64,8 +68,15 @@ final class EnablePluginCommand extends Command
                 Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
                 Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
+                Capability::Ai->value => PluginWords::capability($capability, aiTasks: array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks)),
                 default => $capability,
             });
+
+            if ($capability === Capability::Ai->value) {
+                foreach ($aiTasks as $task) {
+                    $this->line('    '.PluginWords::aiTask($task));
+                }
+            }
         }
 
         if (! $this->option('agree')) {

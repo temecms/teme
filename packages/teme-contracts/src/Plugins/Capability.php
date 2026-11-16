@@ -15,7 +15,8 @@ namespace Teme\Contracts\Plugins;
  * declares under its manifest's `imports`, read from the WordPress site Teme
  * imports. FediverseRead unlocks the fediverse hooks and who follows the
  * site's accounts, and FediverseSend the door that sends activities to those
- * followers.
+ * followers. Ai opens SiteAi, the site's own AI connection, for the tasks
+ * the plugin declares (0.9.0).
  *
  * @since 0.5.0
  */
@@ -32,4 +33,5 @@ enum Capability: string
     case ImportWordPress = 'import.wordpress';
     case FediverseRead = 'fediverse.read';
     case FediverseSend = 'fediverse.send';
+    case Ai = 'ai';
 }

@@ -6,6 +6,11 @@ use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
+use Teme\Contracts\Ai\AiAnswer;
+use Teme\Contracts\Ai\AiAsk;
+use Teme\Contracts\Ai\AiRefused;
+use Teme\Contracts\Ai\AiStanding;
+use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
 use Teme\Contracts\Content\NewItem;
@@ -93,6 +98,11 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRows::class, '0.9.0'],
     [ListRow::class, '0.9.0'],
     [Cell::class, '0.9.0'],
+    [SiteAi::class, '0.9.0'],
+    [AiAsk::class, '0.9.0'],
+    [AiAnswer::class, '0.9.0'],
+    [AiStanding::class, '0.9.0'],
+    [AiRefused::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -114,6 +124,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'import.wordpress',
         'fediverse.read',
         'fediverse.send',
+        'ai',
     ]);
 });
 

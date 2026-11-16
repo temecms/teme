@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
@@ -67,7 +68,7 @@ final class ContributionsValidator implements ContributionsCheck
             // Reserved in the manifest's shape, read by nothing yet (I-3375).
             if ($surface === 'csp') {
                 $errors[] = __('A plugin\'s csp is read only with the site.output permission, which Teme doesn\'t offer yet.');
-            } elseif ($surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns') {
+            } elseif ($surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns' && $surface !== 'aiTasks') {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -101,6 +102,10 @@ final class ContributionsValidator implements ContributionsCheck
 
         $columns = $contributes['columns'] ?? [];
         $errors = [...$errors, ...$this->columnErrors(is_array($columns) ? $columns : [null])];
+
+        if (array_key_exists('aiTasks', $contributes)) {
+            $errors = [...$errors, ...PluginAiTasks::errors($contributes['aiTasks'])];
+        }
 
         return $errors;
     }

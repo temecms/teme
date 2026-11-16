@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\PublicRoutes\DeclaredRoute;
 
 /**
@@ -12,6 +13,7 @@ use App\Domain\PublicRoutes\DeclaredRoute;
  * that asks for more waits until someone agrees. Declared public routes count
  * as access too: a new METHOD path, a GET turned into a POST, or a new
  * `.well-known` name needs another yes (`docs/plans/plugin-public-routes.md`).
+ * So do declared AI tasks: a new one, or one that sends or needs more.
  */
 final readonly class Consent
 {
@@ -19,14 +21,18 @@ final readonly class Consent
      * Whether the access agreed to covers what the manifest asks for now: every
      * capability agreed, every host covered by an agreed host (HostPattern),
      * every declared public route's METHOD path, and every name it declares
-     * to import. Hooks are shown, never agreed to: a new hook that needs no
-     * new capability needs no new yes.
+     * to import, and every AI task as it stands. Hooks are shown, never
+     * agreed to: a new hook that needs no new capability needs no new yes.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, aiTasks?: array<string, mixed>}  $consent
      */
     public static function covers(array $consent, Manifest $manifest): bool
     {
         if (array_diff($manifest->capabilities(), $consent['capabilities'] ?? []) !== []) {
+            return false;
+        }
+
+        if (PluginAiTasks::added($consent['aiTasks'] ?? [], $manifest) !== []) {
             return false;
         }
 
@@ -65,21 +71,23 @@ final readonly class Consent
      * What the manifest asks for that was never agreed to: its new
      * capabilities, its hosts no agreed host covers, its new route lines,
      * and, only when there are any, the names it declares to import that
-     * were never agreed.
+     * were never agreed and the ids of its AI tasks never agreed as they stand.
      *
-     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>}  $consent
+     * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, aiTasks?: array<string, mixed>}  $consent
      *
-     * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}}
+     * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}, aiTasks?: list<string>}
      */
     public static function added(array $consent, Manifest $manifest): array
     {
         $imports = self::importsAdded($consent, $manifest);
+        $aiTasks = PluginAiTasks::added($consent['aiTasks'] ?? [], $manifest);
 
         return [
             'capabilities' => array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? [])),
             'hosts' => array_values(array_filter($manifest->hosts(), fn (string $host): bool => ! HostPattern::anyCovers($consent['hosts'] ?? [], $host))),
             'routes' => array_values(array_diff(self::routeLines($manifest), $consent['routes'] ?? [])),
             ...($imports === [] ? [] : ['imports' => $imports]),
+            ...($aiTasks === [] ? [] : ['aiTasks' => $aiTasks]),
         ];
     }
 
