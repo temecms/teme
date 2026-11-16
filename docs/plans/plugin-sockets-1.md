@@ -494,14 +494,17 @@ Setup: `/tmp/teme-cloud-setup.log` "2026-11-16T07:45:31Z ran in /home/user/teme 
 - `47f1d54` feat(plugins): root files a plugin declares, served by core (Task 1)
 - `050abf0` ci(plugins): run first-party plugins' tests and analysis when they change (Task 3)
 - `17f9ead` docs(guides): running a first-party plugin's tests, and a link to root files (Task 4)
-- this commit: docs(plans): root files part's records
+- `5dbd555` docs(plans): root files part's records
+- `8876f99` feat(contracts): ItemRef says whether its page is indexable (Task 2, follow-up R1)
+- this commit: docs(plans): root files part's records, follow-up R1
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
 | 1 | tests/Feature/Plugins/Sockets/RootFilesTest.php | `Unknown named parameter $rootFiles` (12 tests); the manifest refusals `Failed asserting that an array contains 'It declares root files but doesn’t ask for routes.public.'`; the consent lines `Failed asserting that two arrays are identical`; the console `Output does not contain "GET /{site_key}.txt …"` |
-| 2 | tests/Feature/Plugins/Sockets/ItemIndexableTest.php | `Undefined property: Teme\Contracts\Content\ItemRef::$indexable` (not committed: see STOP) |
+| 2 | tests/Feature/Plugins/Sockets/ItemIndexableTest.php | `Undefined property: Teme\Contracts\Content\ItemRef::$indexable` (6 tests) |
+| 2 (R1) | tests/Unit/Contracts/HookContractsTest.php | `Failed asserting that two arrays are identical`, with a parameter without a default planted after `language` in `ItemRef` (removed before the commit) |
 
 #### Task 0
 
@@ -539,21 +542,33 @@ Setup: `/tmp/teme-cloud-setup.log` "2026-11-16T07:45:31Z ran in /home/user/teme 
 - B-07: Outside production, `NoindexOutsideProduction` turns the answer's `X-Robots-Tag` into `noindex, nofollow`; the test checks it contains `noindex`. In production the header is `noindex`. `47f1d54`.
 - B-08: The "two still meet" test writes the second plugin's value straight to the settings table (`cmSettings`), as a value saved before the first plugin took the name would stand; `SettingsWriter` outside an Operation refuses a group with cache tags. `47f1d54`.
 - B-09: The workflow checks for `plugins/*/tests` before installing anything, so a run with no plugin tests takes seconds; analysis passes `--memory-limit=2G` as `composer check:plugins` does. `050abf0`.
+- B-11: ItemRef grows at the end, per .ai/rules/contracts.md. The maintainers' decision (follow-up R1): the order test, renamed "gives an item reference its first values in this order, and anything added later at the end with a default (I-3360, contracts rule)", proves the first six parameters are exactly `id, type, title, status, url, language`, none of them has a default, and every later parameter has one. `indexable = true` passes it; a later parameter without a default fails it. `8876f99`.
 - B-10: `testing.md` shows `vendor/bin/pest --testsuite=Plugins` rather than `php artisan test --testsuite=Plugins`: the guides' check reads artisan's own options and refuses `--testsuite`. `17f9ead`.
 
 #### Contract changes
 
-- `packages/teme-contracts/schema/teme-plugin.schema.json`: `rootFiles` added (the plan names it). No PHP contract changed: `ItemRef` is untouched (see STOP).
+- `packages/teme-contracts/schema/teme-plugin.schema.json`: `rootFiles` added (the plan names it). `Teme\Contracts\Content\ItemRef` gains a last parameter `public bool $indexable = true` (`@since 0.9.0`), and joins the `PluginContractsTest` list at `@since 0.5.0` (`8876f99`).
 
 #### STOP
 
-- **Task 2 (indexable) is not committed.** `tests/Unit/Contracts/HookContractsTest.php` "gives an item reference its values in this order, its language last (I-3360)" asserts `ItemRef`'s parameters are exactly `id, type, title, status, url, language` and that none has a default. Adding `indexable = true` last, as C2 and the contracts rule require, makes it fail, and making it pass changes what it proves (language last, no defaults). The brief makes that a STOP. The work is ready: `ItemRef` gains `public bool $indexable = true` (`@since 0.9.0`); `Payloads::item()` sets it to `$url !== null && ! in_array('noindex', RobotsMeta::directives($kind, $hidden, $fields))`, with the published revision's fields, `hidesType()` except for the home page and its language versions, and kind `protected` for a protected item; `ItemIndexableTest` (6 tests: published true; own box, type hidden, site discouraged false and agreeing with the page's robots meta; a draft false; the parameter last with its default and `@since 0.9.0`) passed with it. Needs the maintainers' word on the HookContractsTest line (for example, the six in order with no default, then `indexable` last with one). Task 3 and Task 4 don't depend on it and are done.
+- **Resolved by follow-up R1 (B-11); Task 2 is committed as `8876f99`.** Was: **Task 2 (indexable) is not committed.** `tests/Unit/Contracts/HookContractsTest.php` "gives an item reference its values in this order, its language last (I-3360)" asserts `ItemRef`'s parameters are exactly `id, type, title, status, url, language` and that none has a default. Adding `indexable = true` last, as C2 and the contracts rule require, makes it fail, and making it pass changes what it proves (language last, no defaults). The brief makes that a STOP. The work is ready: `ItemRef` gains `public bool $indexable = true` (`@since 0.9.0`); `Payloads::item()` sets it to `$url !== null && ! in_array('noindex', RobotsMeta::directives($kind, $hidden, $fields))`, with the published revision's fields, `hidesType()` except for the home page and its language versions, and kind `protected` for a protected item; `ItemIndexableTest` (6 tests: published true; own box, type hidden, site discouraged false and agreeing with the page's robots meta; a draft false; the parameter last with its default and `@since 0.9.0`) passed with it. Needs the maintainers' word on the HookContractsTest line (for example, the six in order with no default, then `indexable` last with one). Task 3 and Task 4 don't depend on it and are done.
 
 #### Changelog lines for the maintainers
 
 - Added: a plugin granted routes.public can declare up to two `rootFiles`, plain-text files at the site's root (such as an IndexNow key), named and filled literally or from its own text settings; core serves them with noindex, nosniff and no-store, never stores them, and refuses a name another plugin or core already answers.
 - Added: the consent lists each root file, and an update that adds one asks again.
+- Added: `ItemRef::$indexable`, whether search engines may list the item's page, as its robots meta says.
 - Added: a `Plugins` test suite, `phpstan-plugins.neon` and a `plugins` workflow that run first-party plugins' tests and analysis only when plugin or socket code changes.
+
+#### Follow-up R1
+
+- Decision: B-11, ItemRef grows at the end, per .ai/rules/contracts.md. The order test was reshaped as the maintainers set out, then Task 2 was finished as written.
+- Seen red: `HookContractsTest` (the reshaped test) `Failed asserting that two arrays are identical` with a planted parameter without a default; `ItemIndexableTest` `Undefined property: Teme\Contracts\Content\ItemRef::$indexable` (6 failed), before the code.
+- Quick check: Pint, PHPStan, Architecture 139 passed (1358 assertions); `tests/Feature/Plugins` 626, `tests/Unit/Contracts` 130, `tests/Feature/Hooks` 78, `tests/Feature/Cache` 322, `tests/Feature/Seo` 195, all passed.
+- `composer check`: Pint, PHPStan, types and `npm run check` pass; Architecture 139 passed (1358 assertions); Unit and Feature 11,747 passed, 2 skipped, **2 failed** (60,450 assertions):
+  - `GenerateManifestReferenceTest` "keeps the committed reference in step": as before, the join regenerates `docs/reference/plugin-manifest.md`.
+  - `DiscoveryTest` "finds the configured folders…": under parallel load it found a third fixture, `tests/jobs`, which another test had configured; it passes alone (8 passed). Not touched by this part. (`MediaFiltersTest` passed this run.)
+- Baselines unchanged: design-system 222, admin-words 876.
 
 #### Try it
 
