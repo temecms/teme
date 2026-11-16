@@ -736,31 +736,83 @@ As an administrator, open Site › Plugins and press **Add plugin**. On Packagis
 
 ### Part C — `installer/sources`
 
+**Setup:** `2026-11-16T06:20:06Z ran in /home/user/teme as root` / `2026-11-16T06:32:13Z finished`; `pwd` `/home/user/teme`. PHP 8.4.27, PostgreSQL on 5433 and Valkey on 6380 answered after `scripts/cloud-setup.sh`. Branched from `origin/installer/service` at `b897bbd` ("the seam"), nothing else of A's.
+
+**C0, the start:** the seam gives `SourceKind` (`key`, `repositories(?ExtensionSource, string)`, `auth(?ExtensionSource)`, `prepare(ExtensionRequest, string $releasePath, string $extensionsPath)`), `SourceKinds::TAG = 'teme.extensions.sources'`, the readonly `ExtensionSource` (credential `#[SensitiveParameter]`, `__debugInfo` without it) and `ExtensionRequest` (`sourceId`, `uploadId`, `kind`, `package`), `ExtensionSourceRecord` (credential cast `encrypted`) and `ExtensionUploadRecord::archive()`, and `config('teme.extensions.private_hosts')`. The plugin HTTP guard's ranges are `App\Domain\Plugins\Doors\PublicAddress::is()` with the door's `HostResolver` (bound to `DnsResolver` in `NavigationServiceProvider`, line 41; used by `PluginHttp::publicAddress()`, `app/Domain/Plugins/Doors/PluginHttp.php` line 251); `SafeAddress` reuses both.
+
 #### Commits
+
+- `83ee1f9` feat(extensions): check Git and vendor addresses before Composer fetches (C1)
+- `0e3bccb` feat(extensions): Git addresses and vendors' Composer sources (C2)
+- `8096608` feat(extensions): unpack uploaded ZIPs in the installer (C3)
+- `9a69833` test(extensions): Composer installs an unpacked upload from packages/ (C3, proves B-15)
+- this records commit (C4)
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
+| C1 | `tests/Feature/Extensions/Sources/SafeAddressTest.php` | `Target class [App\Domain\Extensions\Sources\SafeAddress] does not exist.` (15 failed) |
+| C2 | `tests/Feature/Extensions/Sources/PrivateSourcesTest.php` | `Target class [App\Domain\Extensions\Sources\GitSource] does not exist.`; the registration test: `No package source is registered as "git".` (14 failed) |
+| C3 | `tests/Feature/Extensions/Sources/UploadsTest.php` | `Target class [App\Domain\Extensions\Sources\ArchiveReader] does not exist.`; the registration test: `No package source is registered as "upload".` (27 failed) |
+
+The Composer test added in `9a69833` (group `composer`) checks code already built, so it was not red first.
 
 #### B-?? (draft)
 
-- **B-15 (draft):**
-- **B-16 (draft):**
-- **B-17 (draft):**
-- **B-18 (draft):**
-- **B-19 (draft):**
-- **B-20 (draft):**
+- **B-15 (draft):** `SourceKind::repositories()` receives the saved source (null for an upload) and no request, so `UploadSource` can't know the uploaded package's name and version that the plan's entry (`packages/<vendor>/<name>/<version>` with `options.versions`) needs; and D5 adds repositories before `prepare()` unpacks. Options: (a) one path entry with a wildcard, `{"type": "path", "url": "<extensions>/packages/*/*/*", "options": {"symlink": false}}`, read by Composer when it runs, after `prepare()`; (b) `prepare()` edits the release's `composer.json` to add the exact entry; (c) list the folders already on disk in `repositories()` (misses the new upload). Chose (a): Composer reads each package's version from its `composer.json`, which `ArchiveReader` has checked equals the upload row's, so `versions` adds nothing; the hidden staging folders (`.<version>.<random>`) never match `*`. A `composer`-group test installs 1.0.0 with 1.1.0 also unpacked, copied, not linked. Commits `8096608`, `9a69833`.
+- **B-16 (draft):** registering `ExtensionSourcesServiceProvider` needs one line in `bootstrap/providers.php` (and its `use`), not in part C's Owns. Added after `PluginServiceProvider`. Commit `0e3bccb`.
+- **B-17 (draft):** the seam has no exception for a source's refusal (`InstallerFailed` is part A's, after the seam). Options: a new exception class (outside Owns), A's class (not on this branch), PHP's own. Chose: `SafeAddress` throws the existing `App\Domain\Support\Network\AddressRefused` (its existing words: scheme, credentials, unknown host, private network, malformed), and the archive, upload and missing-source refusals throw `RuntimeException` with the reason through `__()` as the message. The runner records the message either way; the joiner may wrap them in `InstallerFailed`.
+- **B-18 (draft):** `SafeAddress` goes slightly past the plan's list: it also refuses a user name or key written into the address (it would be written into the release's `composer.json`, a file) and a trailing dot, as `PublicAddresses` does. `prepare()` reads only the source's `url` (`SafeAddress::checkSource()`), so the key is not even decrypted there. `ArchiveReader` also refuses an entry name twice, empty and `.` path parts, and checks the package name against Composer's pattern and the version against a one-folder pattern before using either in a path.
+- **B-19 (draft):** part A's `tests/Feature/Extensions/Installer/SeamTest.php` ("resolves Packagist and a tagged kind by key") asserts `keys()` is exactly `['packagist', 'vendor_test']`; with part C's kinds registered it is `['packagist', 'git', 'composer', 'upload', 'vendor_test']`, so it fails on this branch and will at the join. It's A's file, so it is unchanged here; A's builder was told. Its meaning holds with "Packagist first, `vendor_test` present".
+- **B-20 (draft):** the ZIP fixtures are built by the tests, in a temporary folder, from part A's fixture folders in `tests/Fixtures/Extensions/packages/` (`hello-extension`, `hello-extension-1.1.0`, `hello-theme`), with entries added, replaced or left out per case; no `tests/Fixtures/Extensions/zips/` folder was needed, and nothing binary is committed.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
+| `admin-words-baseline.txt` | 876 lines | 876 lines |
+| `design-system-baseline.txt` | 222 lines | 222 lines |
 
 #### Gate
 
+- **Before** (at `b897bbd`): Pint passed; PHPStan no errors; Architecture 139 passed (1361 assertions); Unit and Feature 1 failed, 2 skipped, 11601 passed (60019 assertions). The failure, `Plugins\DiscoveryTest` "finds the configured folders", is a parallel-run flake (an extra `tests/jobs` fixture folder seen).
+- **After** (at `9a69833`): Pint passed; PHPStan no errors; Architecture 139 passed (1361 assertions); Unit and Feature 2 failed, 2 skipped, 11657 passed (60160 assertions). The failures: `Extensions\Installer\SeamTest` (B-19), and `Plugins\DatabaseDownTest` "serves an ordinary request", which passes alone (1 passed), a parallel-run flake.
+- Part C's quick check: `tests/Feature/Extensions/Sources` 57 passed (139 assertions). No Browser tests in this part.
+
 #### STOP
+
+None.
+
+#### Left open
+
+- `SafeAddress` checks the host when `prepare()` runs; Composer looks the name up again when it fetches, and Teme can't pin Composer's connection, so a host that changes its DNS answer between the two isn't caught. `secure-http` stays on.
+- An archive made by macOS's Finder carries a `__MACOSX/` folder beside the package folder, and is refused as "more than one package". The plan's rule, built as written; the Add sheet may want to say so.
+- The second count of unpacked bytes, while writing, has no test of its own (it needs an archive whose central directory lies); the sum from the central directory is tested with the 300 MB entry.
 
 #### Changelog lines for the maintainer
 
+- Plugins and themes can be installed from a Git address, public or private with a token, and from a vendor's Composer source with a license key; keys go to Composer only inside the installer and are never written to a file or a log.
+- Git and vendor addresses must use https and point outside the server's own network, unless the operator allows private hosts (`TEME_EXTENSIONS_ALLOW_PRIVATE_HOSTS`).
+- Uploaded ZIPs are unpacked by the installer only after checking for unsafe paths, symbolic links, archive bombs (20,000 files, 256 MB unpacked) and a `composer.json` and manifest that match the upload; a different archive with the same name and version is refused.
+
 #### Try it
+
+`php artisan test --compact tests/Feature/Extensions/Sources` (57 tests; the `composer` group runs Composer against a temporary folder, with Packagist off). By hand, in `php artisan tinker`: `app(App\Domain\Extensions\Sources\SafeAddress::class)->check('https://127.0.0.1/x.git')` throws "127.0.0.1 is on a private network, so Teme won’t connect to it."; `app(App\Domain\Extensions\Sources\SourceKinds::class)->keys()` lists `packagist`, `git`, `composer`, `upload`. The end-to-end run waits for the join.
+
+#### Follow-up R1
+
+The review of 2026-11-16 (verdict: merge after fixes). Fixed on this branch:
+
+- **IMPORTANT 1, the file modes test on Windows:** `UploadsTest` "writes files 0644 and folders 0755, whatever the umask" now ends `->skipOnWindows()`. Commit `b68a015`. Not seen red: the failure happens only on Windows, and this container is Linux, where the test still runs and passes (1 passed, 4 assertions).
+- **LATER 7, composer.json read without a size cap:** `ArchiveReader` checks the entry's size from the archive's directory against `MOST_COMPOSER_BYTES` (1 MB) and caps `getFromName` at it. Seen red first: the new dataset case "a composer.json over 1 MB" failed with `Exception [RuntimeException] not thrown.`; it now gives "The archive’s composer.json is larger than 1 MB." Commit `3cb3ced`.
+- **LATER 6, British spelling:** "licence key" is "license key" in `ComposerSource`'s docblock, in the test's planted values, and in the changelog line above. Commit `4065014`. The proposal's own "licence" is outside part C's files and stays.
+
+Left for the join, as the review marks them: **2** (delete an unpacked upload's folder on a failed or cancelled request when no kept release's lock names it, and at prune) and **3** (check every `vcs` and `composer` repository in the staged `composer.json` with `SafeAddress::check()` before `fetching`, not only the request's own source).
+
+Recorded for later, as the review asks (a builder can't write `docs/ideas.md`):
+
+- **4:** `SafeAddress` covers only the first connection. Composer follows redirects, `git` follows them on its first request, and a vendor's `packages.json` may list dist addresses on any https host, internal ones included. Wants an ideas entry and an issue.
+- **5:** two sources on the same host keep only one key, because the runner merges `auth()` with `array_replace_recursive` and the keys are by host (two private GitHub repositories with different tokens, or two vendors on one host). Wants a line in the operators' guide (part A's file).
+
+**Gate after R1** (at `4065014`): Pint passed; PHPStan no errors; Architecture 139 passed (1361 assertions); Unit and Feature 1 failed, 2 skipped, 11659 passed (60165 assertions). The one failure is A's `SeamTest`, B-19, already changed on `installer/service`. Part C's own: 58 passed (142 assertions). Baselines unchanged: 876 and 222 lines.
