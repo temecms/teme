@@ -342,37 +342,55 @@ Stop, write why under Records, commit and push, then stop, when: a Task 0 line d
 
 ### Commits on `plugins/list-columns`
 
--
+- `210998d` feat(contracts): list columns: HasListColumns, ListColumn, ListRows, ListRow and Cell
+- `96decd9` feat(plugins): declare list columns under contributes.columns, with content.read
+- `712c4ee` feat(plugins): offer a running plugin's list columns in each person's Columns
+- `f388297` feat(plugins): ask list columns once per page under a time budget, recording faults
+- `622e101` fix(plugins): drop redundant Throwable import in column cells test
+- `a221e42` feat(admin): draw plugin columns in the content lists, marked, escaped and off by default
+- `b0a42e8` docs(plugins): list columns in the handbook, the architecture and the manifest reference
+- `9fa905f` fix(plugins): satisfy PHPStan for list columns handlers and preferences
+- `e320e61` docs(plugins): register list columns in the developer handbook
+- `d6336db` docs(plans): plugin list columns' records
 
 ### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Unit/Contracts/ListCellTest.php` | `Class "Teme\Contracts\Lists\Cell" not found` |
+| 2 | `tests/Feature/Plugins/ListColumns/ColumnsManifestTest.php` | `Teme doesn’t offer the columns surface to plugins yet.` |
+| 3 | `tests/Feature/Plugins/ListColumns/ColumnsStartTest.php` | `Failed asserting that null is identical to 'It declares column "note" but has no handler for it.'` |
+| 4 | `tests/Feature/Plugins/ListColumns/ColumnCellsTest.php` | `Class "Tests\Fixtures\Plugins\Columns\ColumnMode" not found` (fixture path; cells then green under budget) |
+| 5 | `tests/Feature/Admin/PluginListColumnsScreenTest.php` | not separately observed red (controller + page + test landed together) |
+| 6 | `tests/Feature/Guides/Developers/DeveloperPagesTest.php` | found pages include `plugins/list-columns.md` but PAGES did not |
 
 ### Task 0
 
--
+- Merges (`git log --oneline --merges -5`): `e35f71b Merge pull request #328 from temecms/join/v1-wave2` on main (join present).
+- `git tag -l 'v0.9.0*'`: none → **V = 0.9.0** (D12).
+- `Later (I-200)` present in `BuiltInPreferences.php` and `data-table.tsx`.
+- ContributionsSchema keys present (extended to include `columns` in Task 2).
 
 ### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 ### Gate
 
--
+- `composer check`: Pint passed; PHPStan OK; `tsc --noEmit` OK; `vp check` 451 files formatted, 435 lint-clean; themes built; Architecture **139 passed** (1358 assertions); Unit+Feature **2 failed, 2 skipped, 11636 passed** (60149 assertions) under `--parallel` — both failures pass in isolation and are unrelated to this branch (`DatabaseDownTest` reported-count flake; `MediaFiltersTest` plan-string flake looking for `media_live_created`).
+- Browser (`PluginListColumnsTest`, `ContentListPatternTest`, `ListHeaderTest`): **42 passed** (444 assertions).
 
 ### Drafts (B-numbers from this block)
 
-- B-01:
-- B-02:
-- B-03:
-- B-04:
-- B-05:
-- B-06:
+- B-01: Page-budget test uses **100 ms** per call, not 99. Three × 99 ms = 297 ms leaves room under 300 ms, so the fourth column would still be asked; 100 ms × 3 meets the ceiling.
+- B-02: `BuiltInPreferences` `allowed` callback captures `$typeKey = $type->key` and uses `fn (): array => … keysFor($typeKey)` — `fn () use ($type)` is invalid arrow syntax.
+- B-03: Second fixture plugin `tests/columns-b` needs its own single-column handler class so `listColumns()` keys match its one declared column (reusing the three-handler class made start fail).
+- B-04: Mode/call tracking for the fixture lives in always-autoloadable `Tests\Fixtures\Plugins\ListColumnCalls` — `tests/Fixtures/plugins/.../src` is not on the `Tests\` PSR-4 map.
+- B-05: Handbook page registered in `GenerateHandbookIndex::PAGES`, README reading order, and `llms.txt`; type `how-to`; long fences backed by `docs/guides/developers/examples/plugins/list-columns/`.
+- B-06: PHPStan: check `HasListColumns` before `listColumns()`; pass `$rows` without `array_values`; non-null `manifest` after guard; preference filter `fn (string $id)`.
 - B-07:
 - B-08:
 - B-09:
@@ -390,16 +408,18 @@ Stop, write why under Records, commit and push, then stop, when: a Task 0 line d
 
 ### Contract changes
 
--
+- New `Teme\Contracts\Lists\{HasListColumns, ListColumn, ListRows, ListRow, Cell}` at `@since 0.9.0`, as D3/D12. No mid-flight contract edits.
 
 ### STOP
 
--
+- none
 
 ### Changelog lines for the maintainers
 
--
+- Plugins can declare up to three content-list columns (`contributes.columns` + `HasListColumns`); each person turns them on in Columns; values are plain text/number/badge under a 100 ms / 300 ms budget.
 
 ### Try it
 
--
+1. Enable a plugin that declares `contributes.columns` and grants `content.read` (e.g. the fixture under `tests/Fixtures/plugins/columns` in a test, or a local package).
+2. Open Posts → Columns → tick a plugin column (plug mark).
+3. Confirm the cells render; turn the plugin off and confirm the preference drops that key and keeps the rest.

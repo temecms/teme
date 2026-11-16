@@ -1,0 +1,21 @@
+{
+    "manifest": 1,
+    "name": "tests/columns",
+    "code": "columns",
+    "label": "Columns",
+    "description": "A plugin the tests use to add list columns, with one setting that switches its answers.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Columns\\Columns",
+    "capabilities": ["content.read"],
+    "contributes": {
+        "settings": [
+            { "key": "mode", "type": "text", "label": "Mode", "description": "How the column handlers answer: answer, throw, slow, wrong, markup." }
+        ],
+        "columns": [
+            { "id": "score", "label": "SEO score", "kind": "badge" },
+            { "id": "views", "label": "Views", "kind": "number", "types": ["post"] },
+            { "id": "note", "label": "Note", "kind": "text", "width": "wide" }
+        ]
+    }
+}

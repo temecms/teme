@@ -23,7 +23,9 @@ import {
     FilterRow,
     TermSearchFilter,
 } from '@/components/list/filter-row';
+import { LanguageMarks } from '@/components/list/language-marks';
 import { NumberedPager } from '@/components/list/numbered-pager';
+import { PluginCell } from '@/components/list/plugin-cell';
 import type { RowAction } from '@/components/list/row-actions';
 import { RowLine } from '@/components/list/row-line';
 import { RowMenu } from '@/components/list/row-menu';
@@ -32,7 +34,6 @@ import {
     SelectAllMatching,
 } from '@/components/list/select-all-matching';
 import type { MatchingAction } from '@/components/list/select-all-matching';
-import { LanguageMarks } from '@/components/list/language-marks';
 import { TitleCell } from '@/components/list/title-cell';
 import { MediaModal } from '@/components/media/media-modal';
 import { InPageNav } from '@/components/patterns/in-page-nav';
@@ -43,6 +44,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { SelectField } from '@/components/ui/select-field';
 import {
     Sheet,
@@ -1122,6 +1124,32 @@ export default function ContentIndex(page: ContentIndexPage) {
             sort: sortBy(dateSort),
             cell: (row) => <DateCell row={row} page={page} />,
         },
+        ...page.pluginColumns.map(
+            (
+                column,
+            ): Column<ContentRow> & { label: string; plugin: string } => ({
+                id: column.key,
+                owner: column.plugin,
+                header: (
+                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                        {column.label}
+                        <PluginMark name={column.plugin} iconOnly />
+                    </span>
+                ),
+                label: column.label,
+                plugin: column.plugin,
+                width: column.width,
+                className:
+                    column.kind === 'number'
+                        ? 'text-end tabular-nums'
+                        : undefined,
+                cell: (row) => (
+                    <PluginCell
+                        value={page.pluginCells[column.key]?.[row.id]}
+                    />
+                ),
+            }),
+        ),
     ];
     const menu: Column<ContentRow> = {
         id: 'menu',
@@ -1158,11 +1186,17 @@ export default function ContentIndex(page: ContentIndexPage) {
         ...ordered.filter((column) => isShown(column.id)),
         menu,
     ];
+    const pluginFactIds = ordered
+        .filter(
+            (column) => isShown(column.id) && column.id.startsWith('plugin:'),
+        )
+        .map((column) => column.id)
+        .slice(0, 2);
     const cards: CardLayout = {
         titleColumn: 'title',
         select: 'select',
         menu: 'menu',
-        facts: ['status', 'date', 'author'],
+        facts: ['status', 'date', 'author', ...pluginFactIds],
         selectLabel: __('Select all :count :plural shown', {
             count: editable.length,
             plural,
@@ -1392,6 +1426,11 @@ export default function ContentIndex(page: ContentIndexPage) {
                             id: column.id,
                             label: column.label,
                             width: column.width,
+                            plugin:
+                                'plugin' in column &&
+                                typeof column.plugin === 'string'
+                                    ? column.plugin
+                                    : undefined,
                         }))}
                         shown={ordered
                             .filter((column) => isShown(column.id))
@@ -1401,6 +1440,15 @@ export default function ContentIndex(page: ContentIndexPage) {
                     />
                 }
             />
+
+            {page.pluginColumnProblems.length > 0 && (
+                <p role="status" className="text-small text-ink-2">
+                    {__(
+                        'Some plugin columns could not be shown this time: :plugins. The rest of the list is unaffected.',
+                        { plugins: page.pluginColumnProblems.join(', ') },
+                    )}
+                </p>
+            )}
 
             {reviewFilter !== undefined && (
                 <div className="flex flex-wrap items-center gap-1">

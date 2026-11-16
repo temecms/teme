@@ -40,6 +40,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/import.md',
         'plugins/insertions.md',
         'plugins/fediverse.md',
+        'plugins/list-columns.md',
         'themes/languages.md',
         'outside/management-api.md',
     ];

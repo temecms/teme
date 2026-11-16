@@ -127,7 +127,7 @@ Each task goes in the **smallest surface that fits it**. Small surfaces are data
 
 | # | Surface | Drawn by | Budget |
 |---|---|---|---|
-| 1 | **Inline mark**: a list cell, a badge, an editor decoration | Core | Text, number, status or icon. Sortable only if backed by an indexed value the plugin declares |
+| 1 | **Inline mark**: a list cell, a badge, an editor decoration | Core | Text, number, status or icon. Sortable only if backed by an indexed value the plugin declares. List columns: at most 3 per plugin, asked once per page under 100 ms each and 300 ms a page (`docs/guides/developers/plugins/list-columns.md`) |
 | 2 | **Field input** | Core's field components, or the plugin's own | One field in a form |
 | 3 | **Selection button** | Core | The toolbar holds core formats only. Plugin buttons go in the selection bubble's More group, and a person may pin one |
 | 4 | **Menu entry**: row action, bulk action, Insert, More | Core | Two visible row actions per plugin; the rest under More |
