@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Auth;
 use LogicException;
 use PHPUnit\Framework\Assert;
 use Teme\Contracts\Jobs\Jobs;
+use Teme\Contracts\Plugins\Plugin;
 use Throwable;
 
 /**
@@ -206,11 +207,20 @@ final class PluginUnderTest
 
     /**
      * Starts the enabled plugins not yet running, as the next request would,
-     * and fails the test when this one doesn't start.
+     * and fails the test when this one doesn't start. One still held from
+     * before it was disabled hears its hooks again instead, since what it
+     * added to the admin can't be added twice in one process.
      */
     private function start(): void
     {
         $loaded = app(LoadedPlugins::class);
+
+        if (isset($loaded->running()[$this->name])) {
+            $this->subscribeAgain($loaded->running()[$this->name]);
+
+            return;
+        }
+
         $before = (string) config('teme.plugins.disabled');
 
         // Those already running keep running: the server's own switch passes over them.
@@ -224,8 +234,30 @@ final class PluginUnderTest
 
         $state = $loaded->state($this->name);
 
-        if ($state !== PluginState::Enabled) {
+        if ($state !== PluginState::Enabled || $loaded->failure($this->name) !== null) {
             Assert::fail("{$this->name} didn't start: ".($loaded->failure($this->name) ?? $state->value ?? 'the loader never came to it.'));
+        }
+    }
+
+    /**
+     * Subscribes the running plugin's hooks again, as the loader subscribes
+     * them when it starts: those its consent allows, less any quarantined
+     * for this version.
+     */
+    private function subscribeAgain(Plugin $plugin): void
+    {
+        $record = PluginRecord::query()->where('name', $this->name)->sole();
+        $manifest = app(PluginRegistry::class)->find($this->name)->manifest ?? Assert::fail("{$this->name} has no teme-plugin.json Teme can read.");
+        $quarantined = array_keys(array_filter($record->quarantine, fn (mixed $entry): bool => is_array($entry) && ($entry['version'] ?? null) === $manifest->version()));
+        $subscriptions = app(HookSubscriptions::class);
+
+        $subscriptions->forget($this->name);
+        $hooks = $subscriptions->for($this->name, $record->consent['capabilities'] ?? [], $manifest->hooks(), $quarantined);
+
+        try {
+            $plugin->register($hooks);
+        } finally {
+            $subscriptions->close($hooks);
         }
     }
 }

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\AssertionFailedError;
 use Teme\Testing\InteractsWithTeme;
+use Teme\Testing\SentRequest;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class, InteractsWithTeme::class);
@@ -67,4 +68,13 @@ it('disables a plugin through the Operation', function (): void {
     $this->plugin(PluginFixtures::path('hello'))->enable()->disable();
 
     expect(PluginRecord::query()->where('name', 'tests/hello')->value('state'))->toBe(PluginRecord::DISABLED);
+});
+
+it('starts a plugin again when it is enabled after being disabled, and it hears each hook once', function (): void {
+    $this->plugin(PluginFixtures::path('contributor'))->enable()->disable()->enable();
+    $outbound = $this->outbound();
+
+    $item = $this->publish('Heard once');
+
+    $outbound->assertSent(fn (SentRequest $sent): bool => $sent->url === 'https://api.example.com/published' && $sent->json()['id'] === $item->id);
 });
