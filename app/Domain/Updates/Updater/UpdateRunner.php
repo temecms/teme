@@ -427,6 +427,14 @@ final readonly class UpdateRunner
     {
         $asked = "asked to start on {$update->to}";
 
+        // In one Application the updater is in the container the new release replaced: it is already on it.
+        if (! $this->platform->hasUpdaterOfItsOwn()) {
+            $this->record($update, UpdateStep::Updater, UpdateStep::DONE, 'runs in the site’s container');
+            $this->end($update, UpdateStatus::Done, null);
+
+            return;
+        }
+
         // A new updater that started before the old one ended the row: nothing is left to ask.
         if (TemeVersion::current() === $update->to) {
             $this->record($update, UpdateStep::Updater, UpdateStep::DONE, $asked);

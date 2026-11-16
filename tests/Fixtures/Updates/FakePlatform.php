@@ -57,6 +57,14 @@ final class FakePlatform implements Platform
         return 'Fake';
     }
 
+    /** Whether the updater is a service of its own, as in a Compose service; false as in one Application. */
+    public bool $updaterOfItsOwn = true;
+
+    public function hasUpdaterOfItsOwn(): bool
+    {
+        return $this->updaterOfItsOwn;
+    }
+
     public function image(ImageSetting $setting): ?string
     {
         $this->guard();
