@@ -6,9 +6,11 @@ use App\Domain\Extensions\Installer\ComposerResult;
 use App\Domain\Extensions\Installer\ComposerRunner;
 use App\Domain\Extensions\Installer\InstallerFailed;
 use App\Domain\Extensions\Models\ExtensionSourceRecord;
+use App\Domain\Extensions\Operations\AgreeToExtensionRequest;
 use App\Domain\Extensions\Operations\BeginExtensionRequest;
 use App\Domain\Extensions\Operations\CancelExtensionRequest;
 use App\Domain\Extensions\Operations\EndExtensionRequest;
+use App\Domain\Extensions\Operations\Input\AgreeToExtensionRequestInput;
 use App\Domain\Extensions\Operations\Input\BeginExtensionRequestInput;
 use App\Domain\Extensions\Operations\Input\CancelExtensionRequestInput;
 use App\Domain\Extensions\Operations\Input\EndExtensionRequestInput;
@@ -123,6 +125,30 @@ it('waits for agreement, then goes on once what was found is agreed to', functio
     expect($row->status)->toBe('done', (string) $row->error)
         ->and($this->folder->store->current())->toBe($row->to_release);
 })->group('composer');
+
+it('goes on once an administrator agrees, through the admin’s Operation, to every key it found', function (): void {
+    $this->seed(RoleSeeder::class);
+    $admin = User::factory()->create()->assignRole('administrator');
+    $needs = [
+        'files' => ['fixtures/with-files' => ['helpers.php']],
+        'composer_plugins' => ['fixtures/marker-plugin'],
+        'source' => ['package' => 'fixtures/hello-extension', 'from' => 'packagist', 'to' => 'upload'],
+        'replace' => ['package' => 'fixtures/hello-extension', 'from' => '1.0.0', 'to' => '1.1.0'],
+    ];
+    $id = ($this->ask)('update', 'fixtures/hello-extension', '1.1.0', ['status' => 'waiting', 'step' => 'validating', 'started_at' => now(), 'needs' => json_encode($needs)]);
+
+    $this->runner->tick();
+    expect(DB::table('extension_requests')->where('id', $id)->value('status'))->toBe('waiting');
+
+    $shown = json_decode((string) DB::table('extension_requests')->where('id', $id)->value('needs'), true);
+    app(AgreeToExtensionRequest::class)->execute(new AgreeToExtensionRequestInput($id, $shown, (string) $admin->id));
+    $this->runner->tick();
+    $row = DB::table('extension_requests')->where('id', $id)->first();
+
+    expect($row->status)->toBe('running')
+        ->and($row->step)->toBe('validating')
+        ->and((int) $row->agreed_by)->toBe($admin->id);
+});
 
 it('cancels a request that waited over a day, and deletes its release', function (): void {
     $id = ($this->ask)('install', 'fixtures/files-dependency', '1.0.0');

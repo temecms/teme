@@ -147,11 +147,12 @@ function needHeading(key: string): string {
     switch (key) {
         case 'files':
             return __('Files that run on every request');
-        case 'composerPlugins':
+        // The keys the installer's StageValidator writes.
+        case 'composer_plugins':
             return __('Composer plugins, which won’t run here');
         case 'source':
             return __('A different source than before');
-        case 'replaces':
+        case 'replace':
             return __('An upload that replaces an installed version');
         default:
             return key;
