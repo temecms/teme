@@ -1,4 +1,4 @@
-{{-- A link to each language version of the page, unstyled (I-3360); nothing on a page with no other version. --}}
+{{-- A link to each language version of the page, unstyled; nothing on a page with no other version. --}}
 @if ($links !== [])
 <ul {{ $attributes }}>
 @foreach ($links as $link)

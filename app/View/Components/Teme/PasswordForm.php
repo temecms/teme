@@ -9,8 +9,8 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * `<x-teme::password-form>`: core's form for an item protected by a password
- * (I-1700), which a theme places and styles.
+ * `<x-teme::password-form>`: core's form for an item protected by a password,
+ * which a theme places and styles.
  */
 final class PasswordForm extends Component
 {

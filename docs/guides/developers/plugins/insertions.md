@@ -4,14 +4,13 @@ type: how-to
 audience: plugin
 summary: How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
 rests_on: [packages/teme-contracts/src/Insertions, app/Domain/Site/Insertions, docs/architecture/plugins.md]
-lands_with: render/insertion-points
 ---
 
 # Content inside articles
 
 A plugin can place its own markup inside published articles: an ad after the second paragraph, a newsletter box before the last one, a related link after the first subheading. Core decides where each piece can go, cleans it, and leaves it out wherever it doesn't belong. The plugin never edits the article.
 
-This page describes the code on the `render/insertion-points` branch, which joins `main` with v1. The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0.
+The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0.
 
 ## Ask for content.insert
 

@@ -6,7 +6,7 @@
  * build's and media. The value and its conditions are Teme's own rule,
  * SecureTransport::hsts(), read from the environment as config/app.php and
  * config/teme.php read it, so nginx and Teme never disagree. The start step
- * writes what this prints to /etc/nginx/conf.d/teme-hsts.conf (I-380).
+ * writes what this prints to /etc/nginx/conf.d/teme-hsts.conf.
  */
 
 declare(strict_types=1);

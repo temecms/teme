@@ -1,5 +1,5 @@
 #!/bin/sh
-# The image's build checks (I-375): the build stops here, naming what is
+# The image's build checks: the build stops here, naming what is
 # missing, rather than ship an image that fails on a server later. The
 # Dockerfile runs it last, as root, with RESTIC_VERSION set.
 set -eu

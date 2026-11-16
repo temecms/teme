@@ -1,5 +1,5 @@
 #!/bin/sh
-# Teme's database role and its two databases (I-379), made once, when the
+# Teme's database role and its two databases, made once, when the
 # PostgreSQL image first creates its cluster, as the image's superuser,
 # which Teme is never given. The role logs in and owns both databases, and
 # so their public schema, but can't create databases or roles. The second

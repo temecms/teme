@@ -1,4 +1,4 @@
-{{-- Core's error page: drawn when the theme has none, or its own fails (I-249). Reads only $page. --}}
+{{-- Core's error page: drawn when the theme has none, or its own fails. Reads only $page. --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>

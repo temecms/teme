@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-{{-- Later (I-162): dir from the admin's language, with the admin's right-to-left. --}}
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
@@ -31,7 +30,7 @@
             }
         </style>
 
-        {{-- Teme's own icon marks the admin's tab until a site uploads its own (I-1390); a site's public pages never carry it. --}}
+        {{-- Teme's own icon marks the admin's tab until a site uploads its own; a site's public pages never carry it. --}}
         <link rel="icon" href="/teme/icon.ico" sizes="any">
         <link rel="icon" href="/teme/icon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/teme/apple-touch-icon.png">

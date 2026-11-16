@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Site\ViewModels;
 
 /**
- * One language version of the page being drawn, as `$alternates` lists it
- * (I-3360): its language's tag and own name, its address, absolute, whether
+ * One language version of the page being drawn, as `$alternates` lists it:
+ * its language's tag and own name, its address, absolute, whether
  * it is this page, and whether it is in the site's default language.
  */
 final readonly class Alternate

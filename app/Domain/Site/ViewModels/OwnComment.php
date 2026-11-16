@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Site\ViewModels;
 
 /**
- * One of a browser's own comments, as core's script puts it in place (1.8b′'s
- * D7): its ID, the comment it's stored under, and what the theme draws: the
+ * One of a browser's own comments, as core's script puts it in place: its ID, the comment it's stored under, and what the theme draws: the
  * comment itself, or, for a reply, the comment it's stored under holding it
  * as its only reply.
  */

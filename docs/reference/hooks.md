@@ -252,7 +252,7 @@ A file was stored in the media library: a new upload, or a new file in place of 
 
 ## CollectPersonalDataHolders
 
-Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed. A preview until Teme 1.0 (I-3187).
+Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed. A preview until Teme 1.0.
 
 - **Class:** `Teme\Contracts\Privacy\CollectPersonalDataHolders`
 - **Verb:** Collect

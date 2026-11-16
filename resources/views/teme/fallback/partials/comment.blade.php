@@ -1,4 +1,4 @@
-{{-- One place in core's own thread, and its replies (1.8b's D10): a comment, a tombstone or a ping. Reads only $comment, a CommentView. --}}
+{{-- One place in core's own thread, and its replies: a comment, a tombstone or a ping. Reads only $comment, a CommentView. --}}
 <li id="comment-{{ $comment->id }}">
     @if ($comment->removed)
         <p>{{ __('This comment was removed.') }}</p>

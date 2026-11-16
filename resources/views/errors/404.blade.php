@@ -1,4 +1,4 @@
-{{-- Laravel's own 404 page, drawn on the one card for anything a theme does not answer (docs/proposals/sign-in-pages.md). --}}
+{{-- Laravel's own 404 page, drawn on the one card for anything a theme does not answer. --}}
 @php
     $code = 404;
     $page = app(\App\Http\Standalone\StandalonePage::class);

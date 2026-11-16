@@ -8,7 +8,7 @@ namespace Teme\Contracts\Notices;
  * One kind of notice Teme or a plugin sends: who may receive it, by which
  * channels, which are on until the person changes them, and whether the
  * person may turn it off at all. Words are written in English and
- * translated when drawn. A preview until Teme 1.0 (I-3187).
+ * translated when drawn. A preview until Teme 1.0.
  *
  * @since 0.5.0
  */

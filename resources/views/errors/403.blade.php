@@ -1,4 +1,4 @@
-{{-- Laravel's own 403 page, drawn on the one card for anything a theme does not answer (docs/proposals/sign-in-pages.md). --}}
+{{-- Laravel's own 403 page, drawn on the one card for anything a theme does not answer. --}}
 @php
     $code = 403;
     $page = app(\App\Http\Standalone\StandalonePage::class);

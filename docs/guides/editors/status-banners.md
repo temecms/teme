@@ -99,7 +99,7 @@ The banner says a content type saved on this site can't be used: its key or admi
 
 <!-- banner: StoredTaxonomiesRefused -->
 
-The banner says a taxonomy saved on this site can't be used: its key or admin address now clashes with code, or it names a content type that is gone. One saved taxonomy is named with the reason; several are listed together. Administrators who may manage types see it. Until it is put right, its term screen, its pickers in the editor and its public pages are missing. Choose **Open Types** to see which types use it, or bring a corrected file with `php artisan teme:types:import`. A Taxonomies screen to edit it directly comes in a later update.
+The banner says a taxonomy saved on this site can't be used: its key or admin address now clashes with code, or it names a content type that is gone. One saved taxonomy is named with the reason; several are listed together. Administrators who may manage types see it. Until it is put right, its term screen, its pickers in the editor and its public pages are missing. Choose **Open Types** to see which types use it, or bring a corrected file with `php artisan teme:types:import`.
 
 ## What to do when the banner says a Teme release is available
 
