@@ -22,6 +22,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
 - [The fediverse](plugins/fediverse.md): What core does on the fediverse by itself, and the sockets a plugin can use to hear activities, handle them, change what is sent, and send its own.
 - [List columns](plugins/list-columns.md): How a plugin adds a column to the admin's content lists.
+- [The site's AI connection](plugins/ai.md): How a plugin asks the site's own AI connection for the tasks it declares, and what Teme records and limits for it.
 - [Languages in a theme](themes/languages.md): What a multilingual site gives a theme, from the page's language and direction, its other language versions, the language switcher, and the theme's own words.
 - [The management API](outside/management-api.md): For a service outside the site, not a plugin, with keys and abilities, the endpoints, the problems it answers, and its limits.
 
