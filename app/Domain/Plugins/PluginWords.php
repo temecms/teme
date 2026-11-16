@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
+use App\Domain\Ai\Plugins\DeclaredAiTask;
 use Closure;
 use Teme\Contracts\Plugins\Capability;
 
@@ -31,14 +32,16 @@ final readonly class PluginWords
 
     /**
      * The sentence for one capability a plugin asks for; the outbound door
-     * names its hosts, and import.wordpress what it reads.
+     * names its hosts, import.wordpress what it reads, and ai its tasks.
      *
      * @param  list<string>  $hosts
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
+     * @param  list<string>  $aiTasks  the declared AI tasks' labels
      */
-    public static function capability(string $capability, array $hosts = [], array $imports = []): string
+    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = []): string
     {
         return self::core(fn (): string => match ($capability) {
+            Capability::Ai->value => __('Use your site’s AI connection (Settings › AI) for: :tasks. What it sends goes to the AI service chosen there, and it spends your site’s AI budget.', ['tasks' => implode(', ', $aiTasks)]),
             Capability::ImportWordPress->value => self::imports($imports),
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
@@ -123,6 +126,28 @@ final readonly class PluginWords
     public static function insertionHosts(array $hosts): string
     {
         return __('Lets the content it inserts load from: :hosts', ['hosts' => implode(', ', $hosts)]);
+    }
+
+    /**
+     * One declared AI task as the consent lists it: its label and what it sends.
+     */
+    public static function aiTask(DeclaredAiTask $task): string
+    {
+        return __(':label: sends :what', ['label' => $task->label, 'what' => self::aiSends($task->sends)]);
+    }
+
+    /**
+     * What an AI task sends, in words: its own brief, an item's unpublished
+     * text, or published text only.
+     */
+    public static function aiSends(string $sends): string
+    {
+        return match ($sends) {
+            'brief' => __('only what the plugin writes itself'),
+            'draft' => __('an item’s unpublished text'),
+            'published' => __('published text only'),
+            default => $sends,
+        };
     }
 
     /**

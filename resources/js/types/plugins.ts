@@ -73,6 +73,8 @@ export type PluginRowPage = {
     /** The source kind it was installed from, when installed here. */
     source: string | null;
     canForget: boolean;
+    /** For a plugin granted ai: its AI cost this month and its own budget (null: the site's only), in micro-dollars; else null. */
+    ai: { costMicrounits: number; budgetMicrounits: number | null } | null;
 };
 
 export type PluginsPage = {

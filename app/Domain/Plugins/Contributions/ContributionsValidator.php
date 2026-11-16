@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
@@ -100,7 +101,7 @@ final class ContributionsValidator implements ContributionsCheck
                 if (! is_string($label) || trim($label) === '' || mb_strlen($label) > 24) {
                     $errors[] = __('fixedLabel must be text of 1 to 24 characters.');
                 }
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -143,6 +144,10 @@ final class ContributionsValidator implements ContributionsCheck
 
         $lists = $contributes['lists'] ?? [];
         $errors = [...$errors, ...$this->listErrors(is_array($lists) ? $lists : [null])];
+
+        if (array_key_exists('aiTasks', $contributes)) {
+            $errors = [...$errors, ...PluginAiTasks::errors($contributes['aiTasks'])];
+        }
 
         return $errors;
     }

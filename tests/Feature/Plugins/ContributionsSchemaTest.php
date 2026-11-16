@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Ai\AiKeys;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 
 it('states the contributions’ types, surfaces, icons and patterns as the validator does', function (): void {
@@ -16,7 +18,7 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $feedLink = $contributes['feedLinks']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel'])
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel', 'aiTasks'])
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
         ->and($link['surface']['enum'])->toBe(ContributionsValidator::SURFACES)
         ->and($link['icon']['enum'])->toBe(ContributionsValidator::ICONS)
@@ -36,5 +38,9 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
         ->and($contributes['lists']['items']['properties']['id']['pattern'])->toBe($between(ContributionsValidator::LINK_ID))
         ->and($contributes['lists']['items']['properties']['columns']['maxItems'])->toBe(ContributionsValidator::MOST_LIST_COLUMNS)
         ->and($contributes['lists']['items']['properties']['columns']['items']['properties']['kind']['enum'])->toBe(ContributionsValidator::COLUMN_KINDS)
-        ->and($contributes['lists']['items']['properties']['rows']['maximum'])->toBe(ContributionsValidator::MOST_LIST_ROWS);
+        ->and($contributes['lists']['items']['properties']['rows']['maximum'])->toBe(ContributionsValidator::MOST_LIST_ROWS)
+        ->and($contributes['aiTasks']['maxItems'])->toBe(PluginAiTasks::MOST)
+        ->and($contributes['aiTasks']['items']['properties']['needs']['items']['enum'])->toBe(PluginAiTasks::NEEDS)
+        ->and($contributes['aiTasks']['items']['properties']['sends']['enum'])->toBe(PluginAiTasks::SENDS)
+        ->and('/'.$contributes['aiTasks']['items']['properties']['id']['pattern'].'/')->toBe(AiKeys::PATTERN);
 });

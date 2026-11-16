@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Ai\Plugins\DeclaredAiTask;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -64,6 +66,7 @@ final class EnablePluginCommand extends Command
         $version = $manifest?->version() ?? '';
         $capabilities = $manifest?->capabilities() ?? [];
         $hosts = $manifest?->hosts() ?? [];
+        $aiTasks = $manifest === null ? [] : PluginAiTasks::of($manifest);
         $fromSettings = $manifest === null ? [] : SettingHosts::declared($manifest);
         $settingHosts = $manifest === null || $fromSettings === [] ? [] : app(SettingHosts::class)->current($manifest);
         $http = $manifest === null || $fromSettings === []
@@ -87,8 +90,15 @@ final class EnablePluginCommand extends Command
                 Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
                 Capability::Http->value => $http,
+                Capability::Ai->value => PluginWords::capability($capability, aiTasks: array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks)),
                 default => $capability,
             });
+
+            if ($capability === Capability::Ai->value) {
+                foreach ($aiTasks as $task) {
+                    $this->line('    '.PluginWords::aiTask($task));
+                }
+            }
 
             // Each file it answers at the site's root, as the consent lists it (docs/guides/developers/plugins/root-files.md).
             if ($capability === Capability::RoutesPublic->value) {

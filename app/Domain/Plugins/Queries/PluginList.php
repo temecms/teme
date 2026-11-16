@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
+use App\Domain\Ai\Plugins\PluginAiSection;
+use App\Domain\Ai\Plugins\PluginAiSpend;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
@@ -18,6 +20,7 @@ use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Site\SiteDates;
 use App\Models\User;
 use Composer\Semver\Semver;
+use Teme\Contracts\Plugins\Capability;
 use UnexpectedValueException;
 
 /**
@@ -34,6 +37,8 @@ final readonly class PluginList
         private PluginLoader $loader,
         private PluginMigrations $migrations,
         private ScheduleRunner $schedules,
+        private PluginAiSpend $aiSpend,
+        private PluginAiSection $aiSection,
     ) {}
 
     /**
@@ -81,7 +86,18 @@ final readonly class PluginList
             added: $manifest === null ? ['capabilities' => [], 'hosts' => [], 'routes' => []] : Consent::added($consent, $manifest),
             stopped: array_keys($stopped),
             schedules: $record === null ? null : $this->schedules->problem($record),
+            ai: in_array(Capability::Ai->value, $consent['capabilities'] ?? [], true) && $plugin !== null ? $this->ai($plugin->code) : null,
         );
+    }
+
+    /**
+     * This month's AI cost for a plugin granted ai, and its own budget.
+     *
+     * @return array{costMicrounits: int, budgetMicrounits: int|null}
+     */
+    private function ai(string $code): array
+    {
+        return ['costMicrounits' => $this->aiSpend->month($code)->costMicrounits, 'budgetMicrounits' => $this->aiSection->budgetMicrounits($code)];
     }
 
     /**

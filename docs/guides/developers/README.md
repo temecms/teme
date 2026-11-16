@@ -33,6 +33,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [The fediverse](plugins/fediverse.md)
 - [List columns](plugins/list-columns.md)
 - [Feeds and the site](plugins/feeds-and-site.md)
+- [The site's AI connection](plugins/ai.md)
 - [Languages in a theme](themes/languages.md)
 - [The management API](outside/management-api.md)
 

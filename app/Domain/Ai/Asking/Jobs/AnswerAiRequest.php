@@ -7,15 +7,11 @@ namespace App\Domain\Ai\Asking\Jobs;
 use App\Domain\Ai\AiAvailability;
 use App\Domain\Ai\AiFailure;
 use App\Domain\Ai\AiFailureType;
-use App\Domain\Ai\AiImage;
 use App\Domain\Ai\AiOutcome;
 use App\Domain\Ai\AiPrompt;
-use App\Domain\Ai\AiProviders;
 use App\Domain\Ai\AiRequest;
-use App\Domain\Ai\AiResult;
 use App\Domain\Ai\AiSubject;
 use App\Domain\Ai\AiSubjectType;
-use App\Domain\Ai\AiTask;
 use App\Domain\Ai\AiTasks;
 use App\Domain\Ai\AiUsage;
 use App\Domain\Ai\Asking\AiSuggestions;
@@ -23,6 +19,7 @@ use App\Domain\Ai\Asking\AiTargets;
 use App\Domain\Ai\Asking\Suggestion;
 use App\Domain\Ai\Asking\SuggestionCheck;
 use App\Domain\Ai\Exceptions\ActivityAlreadySettled;
+use App\Domain\Ai\ModelCall;
 use App\Domain\Ai\ModelChoices;
 use App\Domain\Ai\ModelRef;
 use App\Domain\Ai\Operations\Input\RecordAiActivityInput;
@@ -34,7 +31,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Queue\Queueable;
-use RuntimeException;
 use Throwable;
 
 /**
@@ -52,7 +48,7 @@ final class AnswerAiRequest implements ShouldQueue
     public const int DEADLINE_SECONDS = 55;
 
     /** The fallback isn't asked with less time than this left (I-1321). */
-    public const int FALLBACK_FLOOR_SECONDS = 10;
+    public const int FALLBACK_FLOOR_SECONDS = ModelCall::FALLBACK_FLOOR_SECONDS;
 
     /** A retry would pay for the answer twice. */
     public int $tries = 1;
@@ -74,7 +70,7 @@ final class AnswerAiRequest implements ShouldQueue
         public string $actorId,
     ) {}
 
-    public function handle(AiTasks $tasks, AiProviders $providers, ModelChoices $choices, AiAvailability $availability, AiSuggestions $suggestions, AiTargets $targets, SuggestionCheck $check, SiteLanguage $language): void
+    public function handle(AiTasks $tasks, ModelCall $modelCall, ModelChoices $choices, AiAvailability $availability, AiSuggestions $suggestions, AiTargets $targets, SuggestionCheck $check, SiteLanguage $language): void
     {
         $started = CarbonImmutable::now();
 
@@ -117,37 +113,28 @@ final class AnswerAiRequest implements ShouldQueue
             return;
         }
 
-        $sentTo = [];
-        $ref = $choice->primary;
+        $call = $modelCall->ask(
+            $choice,
+            fn (ModelRef $ref, int $seconds): AiRequest => new AiRequest($ref->model, $task->prompt()->messages($fields), $task->maxOutputTokens(), $seconds, $input->images, $task->outputSchema()),
+            self::DEADLINE_SECONDS,
+            $task->timeoutSeconds(),
+            fn (): bool => ! $suggestions->cancelled($this->id),
+            $started,
+        );
+        $sentTo = $call->sentTo;
+        $ref = $call->ref;
 
-        try {
-            try {
-                $result = $this->ask($providers, $task, $ref, $fields, $input->images, $task->timeoutSeconds(), $sentTo);
-            } catch (AiFailure $failure) {
-                $left = self::DEADLINE_SECONDS - (int) ceil($this->elapsedMs($started) / 1000);
-                $fallback = $choice->fallback;
-
-                if (! $failure->type->fallsBack() || $fallback === null || $left < self::FALLBACK_FLOOR_SECONDS
-                    || ! ($providers->find($fallback->provider)?->ready() ?? false) || $suggestions->cancelled($this->id)) {
-                    throw $failure;
-                }
-
-                // Exactly the time that is left under the deadline (I-1321).
-                $ref = $fallback;
-                $result = $this->ask($providers, $task, $ref, $fields, $input->images, $left, $sentTo);
-            }
-        } catch (AiFailure $failure) {
-            $outcome = $failure->type === AiFailureType::Refused ? AiOutcome::Refused : AiOutcome::Failed;
-            // A failure the service billed carries its tokens, and they count (I-1322).
-            $usage = $failure->usage ?? new AiUsage;
-            $cost = $failure->usage === null ? null : $providers->cost($ref, $failure->usage);
-            $this->record($prompt, $outcome, $failure->type, $ref->provider, $ref->model, $usage, $cost, $started);
-            $suggestions->fail($this->id, $failure->type->value, $sentTo);
+        if ($call->failure !== null || $call->result === null) {
+            $type = $call->failure ?? AiFailureType::Unavailable;
+            $outcome = $type === AiFailureType::Refused ? AiOutcome::Refused : AiOutcome::Failed;
+            $this->record($prompt, $outcome, $type, $ref->provider, $ref->model, $call->usage, $call->cost, $started);
+            $suggestions->fail($this->id, $type->value, $sentTo);
 
             return;
         }
 
-        $cost = $providers->cost($ref, $result->usage);
+        $result = $call->result;
+        $cost = $call->cost;
 
         try {
             $values = $check->values($task, $subject, $result);
@@ -189,37 +176,6 @@ final class AnswerAiRequest implements ShouldQueue
     public function failed(?Throwable $exception): void
     {
         app(AiSuggestions::class)->fail($this->id, AiFailureType::Unavailable->value, []);
-    }
-
-    /**
-     * One call to one model, its provider added to who the text was sent to.
-     *
-     * @param  array<string, string>  $fields
-     * @param  list<AiImage>  $images
-     * @param  list<string>  $sentTo
-     *
-     * @throws AiFailure
-     */
-    private function ask(AiProviders $providers, AiTask $task, ModelRef $ref, array $fields, array $images, int $timeout, array &$sentTo): AiResult
-    {
-        $provider = $providers->find($ref->provider) ?? throw AiFailure::unavailable();
-
-        if (! in_array($provider->label(), $sentTo, true)) {
-            $sentTo[] = $provider->label();
-        }
-
-        $request = new AiRequest($ref->model, $task->prompt()->messages($fields), $task->maxOutputTokens(), $timeout, $images, $task->outputSchema());
-
-        try {
-            return $provider->complete($request);
-        } catch (AiFailure $failure) {
-            throw $failure;
-        } catch (Throwable $unexpected) {
-            // Its message may quote the prompt (I-320), so only its class is reported.
-            report(new RuntimeException('An AI provider threw '.$unexpected::class.'; its message isn\'t kept, since it may quote the prompt.'));
-
-            throw AiFailure::unavailable();
-        }
     }
 
     /**

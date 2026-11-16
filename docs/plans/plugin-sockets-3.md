@@ -251,50 +251,153 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+Setup: `cat /tmp/teme-cloud-setup.log` gave "2026-11-16T10:33:47Z ran in /home/user/teme as root" and "2026-11-16T10:47:20Z finished"; `pwd` gave `/home/user/teme`.
+
 #### Commits on `sockets3/plugin-ai`
 
--
+- `8a4f0d2` feat(plugins): declared AI tasks, the ai capability and their consent (T1)
+- `8c7a2c0` feat(ai): record a plugin's AI requests and its monthly spend (T2)
+- `e8d7f99` feat(plugins): the SiteAi door, asking the site's AI for a plugin's declared task (T3)
+- `4015d8b` feat(ai): long AI requests of up to 600 seconds inside a long job (T4)
+- `f5d94f2` feat(ai): plugin AI settings, activity by plugin and the Plugins screen's AI figures (T5)
+- `5df8f5b` docs(handbook): the site's AI connection for plugins (T7)
+- `27c4173` docs(plans): plugin AI part's records
+- `f25e0fa` feat(ai): the plugin AI screens: a panel per plugin, activity by plugin, and the Plugins screen's AI line (T6)
+- `aa9847d` docs(handbook): each plugin's own panel on Settings › AI (T6)
+- `c316186` docs(plans): plugin AI part's records for the screens
+- `ec0d4f8` feat(ai): Tools › AI activity's By plugin table, Teme-only filter and plug marks, as drawn (T6)
+- Screen 2 built from the approved drawings, with the two rules (the owner's second note of 2026-11-16: a By plugin table above the requests, with Teme's own row and each plugin by its own name with the plug mark, its requests, cost and budget, "used up" or "No limit"; a filter "Teme and plugins", "Teme only", then each plugin; the plugin's name with the plug mark under the task in each request).
+- T6: screens built from the approved drawings, with the two rules (the owner's note of 2026-11-16: a plugin's name appears once, in its panel's header, and sections are named for what they do; the top bar shows only parents). The drawings themselves are not in this repository, so the screens follow the plan's screen descriptions and that note.
+- The quick check ran on the whole part before the commits were split by task, so an intermediate commit was not checked on its own.
 
 #### Tests seen red (first line of the failure)
 
+Seen red with the part's code under `app/`, `packages/`, `database/` and `resources/` set aside, and the tests and fixture in place.
+
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Ai/Plugins/PluginAiTasksTest.php` | 17 failed, 2 passed: the scribe manifest is refused (`ai` is no capability, `aiTasks` no surface); `Failed asserting that an array contains 'A plugin can declare at most 8 AI tasks.'` |
+| 2 | `tests/Feature/Ai/Plugins/PluginAiActivityTest.php` | 9 failed: `Undefined constant App\Domain\Ai\AiSubjectType::None`; the plugin column and month table are missing |
+| 3 | `tests/Feature/Ai/Plugins/SiteAiTest.php` | 20 failed: `ScribePlugin asks for Teme\Contracts\Ai\SiteAi; a plugin may ask only for what Teme offers plugins.` (contract missing) |
+| 4 | `tests/Feature/Ai/Plugins/LongAiRequestTest.php` | 3 failed: the same refusal of `SiteAi`; with it, `AiRequest` refuses any timeout over 55 |
+| 5 | `tests/Feature/Ai/Plugins/PluginAiSettingsTest.php` | 6 failed: the same refusal of `SiteAi`; no Plugins section, filter or AI line exists |
+| 6, screen 2 | `tests/Browser/Ai/PluginAiSettingsTest.php` and `tests/Feature/Ai/Plugins/PluginAiSettingsTest.php` (on the first screens' build) | browser 2 failed: `Expected to see text [People’s own requests] within element [[data-test="ai-activity-plugin-month-teme"]]`; feature 1 failed: `Property [plugins] does not match the expected value.` |
+| 6 | `tests/Browser/Ai/PluginAiSettingsTest.php` (built from the screens without T6's changes) | 8 failed: `Expected to see text [$0.0011, 1 request] within element [[data-test="ai-plugin-month-scribe"]]` (no plugin panel, no activity totals, no Plugins screen line) |
 
 #### Task 0
 
--
+- V = `0.9.0`: no `v0.9.0*` tag exists. `git log --oneline -1` at the start: `11813b3 Merge pull request #352 from temecms/docs/plan-sockets-3`.
+- `LibraryProvider` passes the timeout as `$agent->prompt(..., timeout: $request->timeoutSeconds)` and does not stream. Whether each provider accepts a 600-second, 64,000-token request unstreamed could not be tried here (no service keys in the cloud). Left open for a run with real keys; nothing streams yet.
+- The words for each failure are `AiFailureType::sentence()`, reused through `__()` (the plan's `AiFailureWords`).
+- `plugin_9_writer_article_model` passes the settings key pattern `/^[a-z][a-z0-9_]*$/`.
+- A long job's doors: `RunPluginJob` → `PluginLoader::instance(…, 300)` → `PluginDoors::for(…, $httpSeconds)`. The door treats `httpSeconds !== null` as a long run (B-07).
+- `ai_activity`'s checks are named `ai_activity_subject_type_check` and `ai_activity_outcome_check`, as the migration re-creates them. The error-type check already accepts `answered` with a null type, so it is left as it is.
+- No line differs in a way that changes a decision.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Base at `11813b3`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,874 passed, 2 skipped, 1 failed (`Plugins/DiscoveryTest` "finds the configured folders", known to be flaky; a stray `tests/jobs` folder appeared).
+- After, the full `composer check` on `5df8f5b`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,944 passed, 2 skipped, 2 failed (61,395 assertions, 1,910 s).
+- The two failures: `Console/GenerateManifestReferenceTest`, because `docs/reference/plugin-manifest.md` doesn't list the new `ai` capability; the plan says not to regenerate it, and the join does. And `Plugins/DatabaseDownTest`, known to be flaky; it passed when run alone.
+- After T6, the full `composer check` on `aa9847d`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,943 passed, 2 skipped, 3 failed (61,394 assertions, 1,893 s): `GenerateManifestReferenceTest` as above; `Plugins/DatabaseDownTest` and `Backups/PostgresToolsTest` (restic's error words), which this part doesn't touch, both passed when run alone.
+- After screen 2, the full `composer check` on `ec0d4f8`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,944 passed, 2 skipped, 2 failed (61,409 assertions, 1,940 s): `GenerateManifestReferenceTest` as above, and `Plugins/DiscoveryTest`, the base's known flaky test, which passed when run alone.
+- Browser, one file at a time after `npm run build`: `Ai/PluginAiSettingsTest` 8 passed (101 assertions after screen 2), `AiSettingsScreenTest` 5 passed, `AiActivityScreenTest` 6 passed, `Plugins/PluginsScreenTest` 19 passed.
 
 #### B-?? (draft)
 
--
+- **B-01 (draft), ManifestValidator.** The shared table says A adds nothing there. Options: put the "declares AI tasks without `ai`" and "asks for `SiteAi` without `ai`" refusals in `ContributionsValidator`, or in `ManifestValidator` beside the other capability checks. Chose `ManifestValidator` (two lines of my own, `aiTasks()` and the constructor check), because that is where capabilities are known. `8a4f0d2`.
+- **B-02 (draft), EnablePlugin.** The table says none for A. The consent record must keep the agreed tasks for `Consent::covers()`, so one line stores `consent['aiTasks']` from `PluginAiTasks::consentOf()`. `8a4f0d2`.
+- **B-03 (draft), PluginsScreen.** Not in Owns; the table names `plugins/index.tsx` for the AI task lines. The lines are built in `PluginsScreen` (the action, `asksMore` and the agreed and asked lines), and they already show in the existing dialog's list before T6. `8a4f0d2`, `f5d94f2` (`ai`).
+- **B-04 (draft), AiServiceProvider.** One line tags `PluginAiSection` under `AiSettings::SECTIONS` and `SettingsCheck::TAG`; nothing else registers sections. `e8d7f99`.
+- **B-05 (draft), AiSettingsScreen and AiActivityRequest.** Not named; they build the props the plan gives `AiSettingsController` and `AiActivityController`. The Plugins section gets kind `plugins` with its generic fields kept, so today's `settings/ai.tsx` still draws its controls until T6. `f5d94f2`.
+- **B-06 (draft), the Plugins section's order and when it shows.** The plan says order 250, but `AiSettingsScreenTest` registers a third-party section at 250 and orders must differ. Options: change that test, or take 260 (still after Models at 200 and before Limits at 300). Chose 260. The section is also left out of the screen while no enabled plugin declares an AI task, so `AiSettingsScreenTest`'s list of sections is unchanged. `e8d7f99`, `f5d94f2`.
+- **B-07 (draft), long doors.** Options: a new `long` argument through `PluginLoader`, or reading `httpSeconds !== null` (only a long job's run sets it) in `PluginDoors::for()`. Chose the second, so `PluginLoader` is untouched; `for()` still gains `bool $long = false` as the plan says. `e8d7f99`.
+- **B-08 (draft), ModelCall's signature.** The plan's `ask(ModelChoice, Closure, int $deadlineSeconds)` loses three things `AnswerAiRequest` does today: its first attempt's own seconds, the "still wanted" check before the fallback, and the start time of the deadline. Chose optional trailing `?int $firstSeconds`, `?Closure $stillWanted` and `?CarbonImmutable $since`, so `AnswerAiRequest` behaves exactly as before. `ModelCallResult` is a new class beside it. `e8d7f99`.
+- **B-09 (draft), refusal words the plan doesn't quote.** Reasons and sentences: `no-person` (ActingPerson's own sentence), `no-task` ("This plugin doesn’t declare the AI task :task."), `too-many-tokens` (":task answers with at most :tokens tokens."), `no-schema` (":task doesn’t need structured-output, so it can’t be sent a schema."), and the standing reasons `ai-off`, `plugin-off`, `model-lacks`, `site-budget`, `plugin-budget`, `hourly-limit` with the sentences in `PluginAiStanding`. `e8d7f99`.
+- **B-10 (draft), tests with exact shapes.** `ContributionsSchemaTest` lists the contribution keys exactly, `AiActivityScreenTest` the filters and `AiActivityListTest` a row. Each gains the new key (`aiTasks`, `'plugin' => null`) and nothing else; what they prove is unchanged. `8a4f0d2`, `f5d94f2`.
+- **B-11 (draft), the handbook page's index.** `DeveloperPagesTest` needs every page in `GenerateHandbookIndex::PAGES` and the README table, so each gains one line, and `llms.txt` is regenerated with `php artisan teme:docs:handbook-index`. `5df8f5b`.
+- **B-12 (draft), a row with no item.** Tools › AI activity shows a plugin's request with no item as "No item" (state `none`). `f5d94f2`.
+- **B-13 (draft), test helpers.** The scribe helpers live in `tests/Feature/Ai/Plugins/helpers.php`, inside Owns, not in `tests/Pest.php`. `8a4f0d2`.
+- **B-15 (draft), one panel per plugin.** Options: one Plugins panel holding every plugin, or a panel per plugin after Models. Chose a panel per plugin, titled with the plugin's name, because the owner's rule says a plugin's name appears once, in its header; inside, the controls read "AI on", "Monthly budget, in US dollars" and "Requests an hour" (the settings' own labels name the plugin, so the panel draws them with its own words), and each task says what it sends. `f25e0fa`.
+- **B-16 (draft), files outside Owns for T6.** The Plugins screen's row is drawn in `components/plugins/plugin-row.tsx`, not `plugins/index.tsx`, and the activity page's types are in `types/tools.ts`, with the row's in `types/plugins.ts`. Each gains only additions (the `ai` line; `plugin`, `plugins`, `pluginMonths`, `answered`, `none`). `f25e0fa`.
+- **B-17 (draft), a row with no item, again.** `AiSubject` (not owned) draws a title and a kind, so a plugin request with no item now reads "No item" with "A plugin’s own request" under it, instead of "Untitled". `f25e0fa`.
+- **B-18 (draft), the labelled-select count.** `AiActivityScreenTest` "labels every select on the page" counts the page's controls; the Plugin filter makes 4, and the test still checks each is labelled. The Plugin filter shows only once a plugin has asked. `f25e0fa`.
+- **B-19 (draft), the top bar.** The pages pass their trail as every page does today; the shell draws it, and the "parents only" rule belongs to issue #349's shell work, so no crumb was changed here. `f25e0fa`.
+- **B-20 (draft), Teme's budget in the By plugin table.** Options: no budget for Teme's row, or the site's. Chose the site's, shown against the site's whole spend ("$4.20 of $50.00"), because the site's budget is the one that stops people's own requests and it counts every request. Teme's own cost and requests are the site's month less every plugin's. Budgets show only for this month; a past month's table has no Budget column. The table shows once a plugin has asked that month. `ec0d4f8`.
+- **B-21 (draft), the filter's label.** The drawing gives the choices, not the label; it reads "Asked by", never "Plugin", by rule 2. The panel line on Settings › AI lost its opening "A plugin." for the same rule. `ec0d4f8`.
+- **B-14 (draft), AiAsk's inputs.** The contract checks each input's name against `^[a-z][a-z_]*$` and trusts its documented `array<string, string>` for the values, as the other contracts trust their documented types. `8a4f0d2`.
 
 #### Contract changes
 
--
+- New in `teme/contracts` (`@since 0.9.0`): `Teme\Contracts\Ai\SiteAi`, `AiAsk`, `AiAnswer`, `AiStanding`, `AiRefused`.
+- `Capability::Ai` (`ai`); the schema's `ai` capability and `contributes.aiTasks`.
+- `PluginServices::for()` gains a last parameter `bool $long = false`.
 
 #### STOP
 
--
+- None. T6 was first left for the drawings' approval, then built after the maintainers approved them.
 
 #### Changelog lines for the maintainers
 
--
+- Added: plugins can use the site's AI connection for the tasks they declare (`ai` capability, `contributes.aiTasks`, the `SiteAi` door), with consent naming each task and what it sends.
+- Added: Settings › AI has a model and fallback for each plugin task, and per plugin a switch, a monthly budget and an hourly limit.
+- Added: Tools › AI activity records and filters plugins' requests, with this month's totals by plugin; the Plugins screen's row carries the plugin's AI cost this month.
+- Added: AI requests of up to 600 seconds inside a plugin's long job.
+- Added: Settings › AI gives each plugin with AI tasks its own panel; Tools › AI activity has a By plugin table (Teme and each plugin, with budgets), a "Teme and plugins" / "Teme only" / plugin filter and the plugin's mark under each task; the Plugins screen shows "AI this month".
 
 #### Try it
 
--
+- Enable a plugin that asks for `ai` and declares `contributes.aiTasks` (the test fixture `tests/Fixtures/plugins/scribe` is one); the consent lists each task and what it sends.
+- In Settings › AI, choose a model for its task under Plugins, then have the plugin call `SiteAi::ask()` from a job started by a person; the request appears in Tools › AI activity under the plugin.
+
+#### Follow-up R1
+
+The review of 2026-11-16 (verdict: merge after fixes). Findings 1, 2, 8 and 9 fixed; 3 is for the join; the other LATER items are listed below for issues.
+
+Commits:
+
+- `d36fa27e` Merge origin/main (plugin sockets rounds 1 and 2, PR #380). Every conflict kept both sides' additions: Capability (main's `feeds.links` and `pages.insert`, then `ai`), PluginServices::OFFERED, PluginDoors (SiteInfo and the settings writer, then SiteAi), Consent (`csp`/`insertionHosts` beside `aiTasks`), ContributionsValidator's surfaces and errors, ManifestValidator's door checks, EnablePlugin, EnablePluginCommand, PluginWords, PluginsScreen, PluginRow and PluginList (main's `schedules`, then A's `ai`, passed by name), the TS row type, PluginContractsTest and ContributionsSchemaTest rows, the handbook index and README. The manifest schema was rebuilt by loading both sides (main's file plus A's `ai` and `contributes.aiTasks`), and `llms.txt` regenerated. After it: Architecture 139 passed; `tests/Unit/Contracts` 148, `tests/Feature/Plugins` 782, `tests/Feature/Ai` 490, `tests/Feature/Guides` 580 passed.
+- `72e710e9` fix(ai): refuse a plugin's AI request inside a database transaction (finding 1).
+- `c607eb1d` fix(ai): offer and answer only the AI tasks that were agreed to (finding 2).
+- `60b65183` fix(ai): ask AI for a plugin only for a person who may use AI (finding 8, the maintainers' decision).
+- `aac1df2d` fix(ai): show the Asked by filter only once a plugin has asked (finding 9: hidden, as asked).
+- `ef233b6f` fix(docs): the contracts reference names SiteAi's grant and declaration. Main's `teme:docs:contracts` (round 2) probes the doors with a plugin that has no manifest, so it never meets SiteAi, which needs both the `ai` grant and `contributes.aiTasks`; the command now takes it as stated: "granted `ai` and its manifest declares `contributes.aiTasks`".
+
+Tests seen red:
+
+| Finding | Test | First failure |
+|---|---|---|
+| 1 | `SiteAiTest` "refuses inside a database transaction…" | `The door didn’t refuse.` |
+| 2 | `SiteAiTest` "leaves out a task an update added or widened…" | `['no-model', 'Write a poem is off until an administrator chooses its model in Settings › AI.']` where `['no-task', …]` was expected |
+| 8 | `SiteAiTest` refusal row "a person who may not use AI" | `The door didn’t refuse.` |
+| (merge) | `GenerateContractsReferenceTest` "lists each contract a plugin’s constructor may ask for once…", with SiteAi's row added | `Teme\Contracts\Ai\SiteAi is listed as offered, but no grant gives it.` (exit 1) |
+| 9 | `tests/Browser/Ai/PluginAiSettingsTest.php` "leaves the Asked by filter out while only Teme has asked" | `Expected element [#ai-plugin] not to be present in the DOM … but it was found.` |
+
+Decisions:
+
+- **B-22 (draft), refusing inside a transaction.** `ask()` refuses first, with `in-transaction` ("A plugin asks AI only outside a database transaction."), before anything is sent, because a rollback would take the record and both month additions with it while the service still bills, and the answer would hold the transaction open. It reads Laravel's transactions manager (`callbackApplicableTransactions()`), the same that runs after-commit work, so a test's wrapping transaction doesn't count. The reason is not one of AiStanding's, since it concerns the call, not the task. One line in `plugins/ai.md`. `72e710e9`.
+- **B-23 (draft), tasks as agreed.** Options: skip a plugin whose consent doesn't cover its manifest, or drop only the tasks `PluginAiTasks::added()` lists. Chose the second: an update waiting for, say, a new host keeps the AI tasks already agreed, while a task an update added, or made send or need more, is left out of Settings › AI and refused with `no-task` until someone agrees. `c607eb1d`.
+- **B-24 (draft), ai.use.** After the person check, `ask()` refuses with `no-permission` ("The person this work runs for may not use AI.") when the person doesn't hold `ai.use`, as the maintainers decided. A schedule's run acts for the administrator who enabled the plugin, who holds it. One line in `plugins/ai.md`. `60b65183`.
+- **B-25 (draft), SENDS's order** (the review's note). `PluginAiTasks::SENDS` is `brief`, `published`, `draft`, narrowest first; `added()` reads a later one as wider. The plan lists them unordered. `8a4f0d2`.
+- **B-18, corrected.** The first record said the filter showed only once a plugin had asked; the code showed it always. It now does what the record said: "Asked by" is drawn when a plugin has requests or the address names one. `aac1df2d`.
+- **For the join (finding 3).** Pass every later parameter of `PluginDoors::for()` and `PluginServices::for()` by name: Part C's `PluginLoader` passes `$answerBytes` by position, which lands in A's `bool $long`. A itself never passes `long`.
+
+For issues (LATER, not fixed here):
+
+- `RunPluginJob` runs a Waiting plugin's jobs; it should treat one as it treats a disabled plugin (finding 2's second half).
+- The filter value `teme` is also a valid plugin code; use a value the code pattern refuses, or reserve `teme` (finding 4).
+- `Models/AiActivity.php`'s docblock still lists `subject_id` as a string and doesn't mention `plugin` (finding 5).
+- A plugin task id equal to a core task id (such as `tidy`) mixes into the Task filter; narrow it to core requests (finding 6).
+- A non-string `AiAsk` input reaches `AiPrompt::messages()` as a TypeError, and an invalid `AiRequest` built in ModelCall's closure escapes as InvalidArgumentException; an `is_string` check in `AiAsk` would match its documented type (finding 7).
+
+Gate: `composer check` after the merge and fixes 1, 2, 8 and 9: Pint, PHPStan, type and lint checks passed; tests 12,559 passed, 45 skipped, 5 failed. Three were `GenerateContractsReferenceTest`'s, fixed by `ef233b6f` (now 5 of its 6 pass). The two left are the committed generated references, `docs/reference/plugin-manifest.md` and `docs/reference/contracts.md`, out of step until the join regenerates them, as the brief says.
 
 ---
 

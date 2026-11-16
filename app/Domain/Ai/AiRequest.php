@@ -10,11 +10,14 @@ use InvalidArgumentException;
  * One request to one model: its messages, the
  * images that go with the user's, an optional JSON schema the answer must
  * follow, a limit on the answer's tokens and a timeout. The timeout stays
- * under the queue worker's 60 seconds (I-320).
+ * under the queue worker's 60 seconds (I-320); a long request, made only
+ * inside a long job whose worker allows 1,800, may wait up to 600.
  */
 final readonly class AiRequest
 {
     public const int MAX_TIMEOUT = 55;
+
+    public const int MAX_LONG_TIMEOUT = 600;
 
     public const int MAX_OUTPUT_TOKENS = 64_000;
 
@@ -30,6 +33,7 @@ final readonly class AiRequest
         public int $timeoutSeconds,
         public array $images = [],
         public ?array $schema = null,
+        public bool $long = false,
     ) {
         if (trim($model) === '') {
             throw new InvalidArgumentException('An AI request\'s model needs a name.');
@@ -45,8 +49,10 @@ final readonly class AiRequest
             throw new InvalidArgumentException("An AI request's output limit [{$maxOutputTokens}] must be between 1 and 64000 tokens.");
         }
 
-        if ($timeoutSeconds < 1 || $timeoutSeconds > self::MAX_TIMEOUT) {
-            throw new InvalidArgumentException("An AI request's timeout [{$timeoutSeconds}] must be between 1 and 55 seconds.");
+        $most = $long ? self::MAX_LONG_TIMEOUT : self::MAX_TIMEOUT;
+
+        if ($timeoutSeconds < 1 || $timeoutSeconds > $most) {
+            throw new InvalidArgumentException("An AI request's timeout [{$timeoutSeconds}] must be between 1 and {$most} seconds.");
         }
 
         if ($schema !== null && ($schema['type'] ?? null) !== 'object') {

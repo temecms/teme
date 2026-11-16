@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
 
+use App\Domain\Ai\Plugins\DeclaredAiTask;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\ManifestText;
@@ -68,6 +70,8 @@ final readonly class PluginsScreen
             $hosts = $row->asks['hosts'];
             $manifest = $this->registry->find($row->name)?->manifest;
             $newImports = $manifest !== null && $row->consent !== [] && array_key_exists('imports', Consent::added($row->consent, $manifest));
+            $aiTasks = $manifest === null ? [] : PluginAiTasks::of($manifest);
+            $newAiTasks = $row->consent === [] ? [] : ($row->added['aiTasks'] ?? []);
 
             $tables = $record === null ? [] : $this->tables($record);
             // Its manifest's words in the person's language, from its own lang folder (docs/plans/plugin-sockets-2.md).
@@ -90,12 +94,12 @@ final readonly class PluginsScreen
                 'schedules' => $row->schedules,
                 'enabled' => $enabled,
                 'needsAttention' => in_array($row->state, self::NEEDS_ATTENTION, true),
-                'action' => $this->action($row, $enabled, $newImports),
+                'action' => $this->action($row, $enabled, $newImports || ($row->added['aiTasks'] ?? []) !== []),
                 'hasSettings' => $this->labels($manifest?->contributes()['settings'] ?? null) !== [],
                 'adds' => array_map(fn (string $label): string => $words->text($label, $locale), [...$this->labels($manifest?->contributes()['settings'] ?? null), ...$this->labels($manifest?->contributes()['admin'] ?? null)]),
                 'agreedVersion' => $record?->version,
                 'agreed' => [
-                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent)),
+                    ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : [])))),
                     ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
                 ],
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
@@ -108,6 +112,8 @@ final readonly class PluginsScreen
                     $row->consent === [] ? [] : $row->added['routes'],
                     $manifest?->imports() ?? [],
                     $newImports,
+                    $aiTasks,
+                    $newAiTasks,
                 ), ...$this->insertionHostsLine(
                     $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
                     $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
@@ -115,8 +121,9 @@ final readonly class PluginsScreen
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 'shown' => ['version' => $row->version, ...$row->asks],
                 'agreedBefore' => $row->consent !== [],
-                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports,
+                'asksMore' => $row->added['capabilities'] !== [] || $row->added['hosts'] !== [] || $row->added['routes'] !== [] || ($row->added['insertionHosts'] ?? []) !== [] || $newImports || $newAiTasks !== [],
                 'tables' => $tables,
+                'ai' => $row->ai,
                 // Same rule as RemovePluginData: disabled (or code gone) and tables left.
                 'canRemoveData' => $tables !== [] && (! $enabled || $row->state === PluginState::CodeGone),
                 // Installed from the admin, or part of the site's build (I-211).
@@ -212,7 +219,8 @@ final readonly class PluginsScreen
 
     /**
      * The one button a row offers: enable, review access, run database
-     * changes, disable, or none.
+     * changes, disable, or none. $newImports also stands for AI tasks never
+     * agreed to as they stand.
      *
      * @return 'enable'|'review'|'migrate'|'disable'|null
      */
@@ -232,7 +240,8 @@ final readonly class PluginsScreen
 
     /**
      * The sentences for a list of capabilities, then each declared public
-     * route as `METHOD path`, each with whether it is new.
+     * route as `METHOD path`, then each AI task with what it sends, each with
+     * whether it is new.
      *
      * @param  list<string>  $capabilities
      * @param  list<string>  $hosts
@@ -241,15 +250,24 @@ final readonly class PluginsScreen
      * @param  list<string>  $routes
      * @param  list<string>  $newRoutes
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
+     * @param  list<DeclaredAiTask>  $aiTasks
+     * @param  list<string>  $newAiTasks
      *
      * @return list<array{words: string, new: bool}>
      */
-    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false): array
+    private function accessLines(array $capabilities, array $hosts, array $newCapabilities, array $newHosts = [], array $routes = [], array $newRoutes = [], array $imports = [], bool $newImports = false, array $aiTasks = [], array $newAiTasks = []): array
     {
+        $labels = array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks);
         $lines = array_map(fn (string $capability): array => [
-            'words' => PluginWords::capability($capability, $hosts, $imports),
+            'words' => PluginWords::capability($capability, $hosts, $imports, $labels),
             'new' => in_array($capability, $newCapabilities, true) || ($capability === 'http' && $newHosts !== []) || ($capability === Capability::ImportWordPress->value && $newImports),
         ], $capabilities);
+
+        if (in_array(Capability::Ai->value, $capabilities, true)) {
+            foreach ($aiTasks as $task) {
+                $lines[] = ['words' => PluginWords::aiTask($task), 'new' => in_array($task->id, $newAiTasks, true)];
+            }
+        }
 
         if (! in_array(Capability::RoutesPublic->value, $capabilities, true)) {
             return $lines;

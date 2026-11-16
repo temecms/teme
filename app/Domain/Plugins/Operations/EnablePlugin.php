@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
@@ -163,6 +164,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->insertionHosts($manifest, $input->capabilities),
                 ...$this->imports($found),
                 ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
+                ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.
             'consented_by' => $consentedBy === null ? null : (int) $consentedBy,
