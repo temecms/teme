@@ -367,45 +367,88 @@ Test disks: two locations under test config (`config(['media.locations' => […]
 
 <!-- Filled in while building: setup; commits; each test seen red (first line of the failure); B-?? decisions with the options weighed; architecture baselines before and after; the full gate's totals; STOP; changelog lines for the maintainer; try it. -->
 
+**Setup.** `/tmp/teme-cloud-setup.log`: "2026-11-16T05:51:42Z ran in /home/user/teme as root" … "2026-11-16T06:03:33Z finished" (a first run at 05:49:57Z broke on a download and was run again); `pwd` `/home/user/teme`; PHP 8.4.27, PostgreSQL 18 and Valkey answering. Waited for `origin/main` to hold the join/v1-wave2 merge (`e35f71b`, pull request #328); branch `media/object-storage` starts there. Base `composer check` at `e35f71b`: Pint passed; Architecture **139** passed (1357 assertions); Unit and Feature **11577** passed, **2** skipped, **1** failed (`Plugins/DiscoveryTest`, a parallel flake that passes alone), 59956 assertions, 1761 s.
+
 ### Commits on `media/object-storage`
+
+- `f0b191e` build(deps): add league/flysystem-aws-s3-v3 at exactly 3.35.3 (Task 0; `composer.json` and `composer.lock` only)
+- `d954611` feat(media): object storage disks, media addresses and MEDIA_STORAGE (Task 1)
+- `8bf65cf` feat(media): recognize media addresses from every storage location (Task 2)
+- `89ab88c` feat(media): download originals from a bucket through a five-minute signed address (Task 3)
+- `485d167` feat(media): teme:media:bucket-check proves a bucket setup before a move (Task 4)
+- `75faadc` feat(media): media_moves and the operator's three move Operations (Task 5)
+- `c86e33a` feat(media): teme:media:move copies a library between locations, resumable and verified (Task 6)
+- `6e85ee2` feat(media): delete the source's copies only after a verified move (Task 7)
+- `9ddfced` feat(backups): back up the database when media is in object storage, and say so (Task 8)
+- `ed1ff11` fix(media): point a move's missing files at its status list, not the regenerate command (B-20)
+- `d699692` docs(media): object storage, the move and backups (Task 9)
+- this records commit
+
+Task 0 confirmed in the installed 3.35.3: the disk's `options` become every write's options (`CacheControl`, `ACL`); `upload()` sends `$options['params']['ACL'] ?? determineAcl()`, so a disk without `ACL` sends `private`; extra disk keys such as `handler` reach `new S3Client`; `temporaryUrl()` with `ResponseContentDisposition` signs `response-content-disposition`. Every Operation that writes a file moves `updated_at`.
 
 ### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
+| 1 | `tests/Feature/Media/Storage/MediaDisksConfigTest.php` | `Disk [media-bucket] does not have a configured driver.` (the adapter was already in its own commit, so not "Driver [s3] not supported"); the `MEDIA_URL` case: `Failed asserting that two strings are identical.` |
+| 2 | `tests/Feature/Addresses/PathLinkResolverTest.php` | `Failed asserting that null is identical to Array` (the server's address once the bucket is in use) |
+| 3 | `tests/Feature/Media/Storage/OriginalDownloadTest.php` | `Failed asserting that 500 is identical to 302.` (the controller streamed through PHP: a HeadObject to the fake bucket) |
+| 4 | `tests/Feature/Media/Storage/BucketCheckTest.php` | `CommandNotFoundException: The command "teme:media:bucket-check" does not exist.` |
+| 5 | `tests/Feature/Media/Storage/MediaMoveOperationsTest.php` | `BindingResolutionException: Target class [App\Domain\Media\Operations\StartMediaMove] does not exist.` |
+| 6 | `tests/Feature/Media/Storage/MoveMediaTest.php` | `CommandNotFoundException: The command "teme:media:move" does not exist.` |
+| 7 | `tests/Feature/Media/Storage/DeleteSourceTest.php` | `InvalidOptionException: The "--delete-source" option does not exist.` |
+| 8 | `tests/Feature/Backups/BackupSiteTest.php`, `ManifestTest.php` | `BackupRefused: The media disk “media-originals-bucket” isn’t a folder on this server, so Teme can’t back its files up.` The screen's test failed on the missing `mediaInBucket` prop. The new `MediaCheck` case in `RestorePreflightTest.php` was run against the code before it, but its failure line was not read back (expected: `Undefined array key "public"`). |
 
 ### B-?? (draft)
 
-- **B-01 (draft):**
-- **B-02 (draft):**
-- **B-03 (draft):**
-- **B-04 (draft):**
-- **B-05 (draft):**
-- **B-06 (draft):**
-- **B-07 (draft):**
-- **B-08 (draft):**
-- **B-09 (draft):**
-- **B-10 (draft):**
-- **B-11 (draft):**
-- **B-12 (draft):**
-- **B-13 (draft):**
-- **B-14 (draft):**
-- **B-15 (draft):**
-- **B-16 (draft):**
-- **B-17 (draft):**
-- **B-18 (draft):**
-- **B-19 (draft):**
-- **B-20 (draft):**
+- **B-01 (draft):** the dependency. Options: add it in Task 1's commit, or alone. Chose its own `build(deps)` commit touching only `composer.json` and `composer.lock`, and reverted what `composer require` changed besides the package: the lock's `teme/contracts` version and `plugin-api-version`, and the files `boost:update` regenerated (`AGENTS.md`, `CLAUDE.md`, `boost.json`, the skills). Why: the brief allows that one package and nothing else. `f0b191e`.
+- **B-02 (draft):** `.env.example` sets `MEDIA_DISK=media` and `MEDIA_ORIGINALS_DISK=media-originals`, which override `MEDIA_STORAGE`. Options: edit `.env.example` (not owned), or read the overrides with `?:` so an empty value counts as unset. Chose `?:` everywhere in both configs, left `.env.example` as it is, and the guide says to leave them unset. A site made from `.env.example` must delete those two lines before `MEDIA_STORAGE=bucket` works; worth a maintainer's look. `d954611`.
+- **B-03 (draft):** the tests' bucket. Options: Guzzle's bare `MockHandler` queue, or a stateful AWS SDK handler. Chose `FakeBucket`, which keeps objects and answers PutObject, HeadObject, GetObject and DeleteObject, so a test reads back what it wrote, as the move needs. `d954611`.
+- **B-04 (draft):** `configure.md`'s media section came in Task 1, not Task 9, since `InstallationTest` requires every `SecretFiles` name in the page. Its link to `object-storage.md` waited for Task 9 (`OperatorPagesTest` fails on a link to a missing page). `d954611`, `d699692`.
+- **B-05 (draft):** `teme:media:bucket-check` gains `--only=public|originals`, so the mixed setup (no originals bucket) can be checked; refusals exit 1, as D5 says, not 2. `485d167`.
+- **B-06 (draft):** the check also refuses an `http://` `MEDIA_BUCKET_URL` on the internet, as D5 does for the endpoint. "Local" means `localhost`, a private or loopback IP, or a name without a dot (a container service, such as `minio`). `485d167`.
+- **B-07 (draft):** the migration adds two checks beyond D10's list: `site_disks` is a JSON object, and `finished_at` is set exactly when the state is `finished`; and `MediaMove`'s `site_disks` writes `{}` for an empty array, as the models rule asks of a JSONB object. `75faadc`.
+- **B-08 (draft):** each move Operation authorizes inline (operator only). Options: a shared trait (a new file outside Owns) or three short methods. Chose the methods. `75faadc`.
+- **B-09 (draft):** `CorruptingAdapter` extends Flysystem's `LocalFilesystemAdapter` (not final) rather than wrapping it, so a test damages a chosen write and everything else is the real local disk. `c86e33a`.
+- **B-10 (draft):** the progress bar draws only on a decorated output (a person's terminal); the line after each chunk is always written. Why: in a log the bar is noise. `c86e33a`.
+- **B-11 (draft):** `--catch-up` with no finished copy in that direction for the same roles is refused, exit 2: "Run a full copy first". `c86e33a`.
+- **B-12 (draft):** a hole is named in `problems` with "missing in both locations" and counted in `holes`, not `failures`. `c86e33a`.
+- **B-13 (draft):** a run is resumed only when kind, direction, roles, scope, `changed_since` and `deep` all match; a resumed run keeps the `items_total` counted at its start. `c86e33a`.
+- **B-14 (draft):** the stop test drives `MediaMover`'s stopping hook, which the command's trap on signals 2 and 15 sets, rather than sending a real signal to the test process. `c86e33a`.
+- **B-15 (draft):** a backup that starts during a `--delete-source` run stops the run (ended `stopped`, exit 3) instead of waiting for it. Why: the gate's promise is that nothing is deleted beside a backup, and waiting inside a long run hides that. `6e85ee2`.
+- **B-16 (draft):** the gate reads its chain among finished copies with the same roles; the copy options refused beside `--delete-source` are `--catch-up` and `--deep`. `6e85ee2`.
+- **B-17 (draft):** Task 8 needed four files outside Owns: `BackupSite.php` (the media part and the `media_in_bucket` figure), `Restore/MediaCheck.php` (skip a bucket role, which otherwise fails with an undefined key), `Restore/RestorePoints.php` (carry the restore's notes into the plan) and `resources/js/types/backups.ts` (the screen's prop). Options: stop, or treat Owns as missing them. Chose to change them, with only the lines D8 needs, since D8 can't be built without them and no other part owns them. `9ddfced`.
+- **B-18 (draft):** with both roles in a bucket there is no folder for restic. Options: no media snapshot (but the run's check expects four parts), or a media snapshot from standard input. Chose `--stdin --stdin-filename media-in-object-storage.json` holding the locations, so every run still has its four parts and its check is unchanged. `9ddfced`.
+- **B-19 (draft):** Task 9 adds the new page to `tests/Fixtures/Guides/OperatorGuide.php` `PAGES` and a row and reading-order line to `docs/guides/operators/README.md`, both outside Owns, since `OperatorPagesTest` requires every page in both. The page is marked `unproved`: nobody has moved a site to a real provider. `d699692`.
+- **B-20 (draft):** D6 says the report points at `teme:media:regenerate` for holes, but that command remakes only images made with an older variant set and images lacking share images, not a missing variant. Chose to name the holes in `--status` instead, and the guide doesn't claim regenerate remakes them. A command that remakes missing variants is for the maintainers to decide. `ed1ff11`.
+
+Open questions left as the plan has them: Q1 (whether D8 is the default) and Q4 (whether R2, B2 and Spaces accept `ACL: private` on a PUT) are for the maintainers, by hand on each provider.
 
 ### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
+| `tests/Architecture/admin-words-baseline.txt` | 876 lines | 876 lines |
+| `tests/Architecture/design-system-baseline.txt` | 222 lines | 222 lines |
 
 ### Gate
 
+`composer check` once, at `d699692`: Pint passed; PHPStan no errors; Architecture **139** passed (1357 assertions); Unit and Feature **11656** passed, **2** skipped, **2** failed, 60318 assertions, 1832 s. The two failures pass alone (23 passed): `Plugins/LockOutTest` (plugin loading in a parallel run, like the base's `DiscoveryTest`), and `Site/DocumentShellTest`, whose script needs `URLPattern`, which the run's Node 22 lacks; with `/opt/node24/bin` first on the PATH it passes. Neither touches a file this part changed. Quick checks after each task passed, the last with `tests/Feature/Backups` (542 passed), `tests/Feature/Media/Storage` (64 passed) and `tests/Feature/Guides` (418 passed).
+
 ### STOP
+
+None.
 
 ### Changelog lines for the maintainer
 
+- Media can live in S3-compatible object storage (Cloudflare R2, DigitalOcean Spaces, Backblaze B2, Amazon S3, MinIO): set `MEDIA_STORAGE=bucket` and the `MEDIA_BUCKET_*` variables. Two buckets, a public one behind a CDN and a private one for originals.
+- `MEDIA_URL` puts a pull CDN in front of media kept on the server.
+- `php artisan teme:media:bucket-check` proves a bucket setup before anything moves.
+- `php artisan teme:media:move` copies the media library between the server and a bucket, in either direction, with the site live: resumable, every original verified by its checksum, `--catch-up` for what changed, and `--delete-source` only after a verified move.
+- Editors download an original from a bucket through an address signed for five minutes.
+- Media addresses pasted into content keep working after a move.
+- Backups: when media is in a bucket, a backup holds the database, the app key and the list of every original with its checksum, not the files, and Tools › Backups says so. Before, such a backup failed.
+
 ### Try it
+
+With MinIO or a provider's two buckets set in the `MEDIA_BUCKET_*` variables and `MEDIA_STORAGE` still `server`: `php artisan teme:media:bucket-check`; `php artisan teme:media:move --dry-run`; `php artisan teme:media:move`; set `MEDIA_STORAGE=bucket`, clear the config cache, `php artisan teme:media:move --catch-up`; upload an image and see its address on `MEDIA_BUCKET_URL`; download its original from the admin (a 302 to a signed address); `php artisan teme:media:move --delete-source --dry-run`, then without `--dry-run`; `php artisan teme:media:move --status`; open Tools › Backups and read the sentence; run `php artisan teme:backup:run`. `docs/guides/operators/object-storage.md` gives the order on a live site.
