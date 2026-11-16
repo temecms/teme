@@ -183,7 +183,8 @@ final readonly class PluginAiTasks
 
     /**
      * Returns the enabled plugins granted `ai` that declare a task, by code,
-     * ordered by name: each one's label and its tasks. Nothing when the
+     * ordered by name: each one's label and its tasks as agreed, leaving out
+     * any an update added or made send or need more. Nothing when the
      * plugins can't be read, so Settings › AI never fails for them.
      *
      * @return array<string, array{name: string, label: string, tasks: list<DeclaredAiTask>}>
@@ -204,7 +205,9 @@ final readonly class PluginAiTasks
                 }
 
                 $manifest = $this->registry->find($record->name)?->manifest;
-                $tasks = $manifest === null ? [] : self::of($manifest);
+                // Only what was agreed: a task an update added, or made send or need more, waits for a new yes.
+                $waiting = $manifest === null ? [] : self::added(is_array($record->consent['aiTasks'] ?? null) ? $record->consent['aiTasks'] : [], $manifest);
+                $tasks = $manifest === null ? [] : array_values(array_filter(self::of($manifest), fn (DeclaredAiTask $task): bool => ! in_array($task->id, $waiting, true)));
 
                 if ($manifest !== null && $tasks !== []) {
                     $plugins[$manifest->code()] = ['name' => $record->name, 'label' => $manifest->label(), 'tasks' => $tasks];

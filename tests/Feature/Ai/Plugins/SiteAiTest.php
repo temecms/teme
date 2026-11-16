@@ -12,9 +12,11 @@ use App\Domain\Ai\AiSubjectType;
 use App\Domain\Ai\AiUsage;
 use App\Domain\Ai\Models\AiActivity;
 use App\Domain\Ai\Plugins\PluginAiSection;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\Queries\AiSpend;
 use App\Domain\Ai\UsageLimits;
 use App\Domain\Plugins\Doors\PluginDoors;
+use App\Domain\Settings\SettingsRegistry;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -197,6 +199,33 @@ it('refuses inside a database transaction, sending and recording nothing, so a r
     }
 
     ($this->nothing)();
+});
+
+it('leaves out a task an update added or widened until someone agrees again', function (): void {
+    $copy = PluginFixtures::copy('scribe', ['version' => '1.1.0', 'contributes' => ['aiTasks' => [
+        ['id' => 'article', 'label' => 'Write an article', 'needs' => ['text'], 'sends' => 'draft', 'maxOutputTokens' => 32000],
+        ['id' => 'titles', 'label' => 'Suggest titles', 'needs' => ['text', 'structured-output'], 'sends' => 'draft', 'maxOutputTokens' => 2000],
+        ['id' => 'poems', 'label' => 'Write a poem', 'needs' => ['text'], 'sends' => 'brief', 'maxOutputTokens' => 2000],
+    ]]]);
+    PluginFixtures::use($copy);
+    PluginFixtures::installed(['tests/scribe' => $copy]);
+    scribeSettings();
+    $this->fake->answer(aiText('Never sent.'));
+
+    foreach (['poems' => 'This plugin doesn’t declare the AI task poems.', 'article' => 'This plugin doesn’t declare the AI task article.'] as $task => $sentence) {
+        try {
+            scribeDoor()->ask(($this->ask)(['task' => $task, 'maxOutputTokens' => 100]), (string) $this->admin->id);
+            $this->fail("The door didn’t refuse {$task}.");
+        } catch (AiRefused $refused) {
+            expect([$refused->reason, $refused->getMessage()])->toBe(['no-task', $sentence]);
+        }
+    }
+
+    ($this->nothing)();
+
+    // Settings › AI offers only what was agreed: the unchanged task.
+    expect(array_map(fn ($task): string => $task->id, app(PluginAiTasks::class)->enabled()['scribe']['tasks']))->toBe(['titles'])
+        ->and(app(SettingsRegistry::class)->find(AiSettings::KEY)?->setting(PluginAiSection::modelKey('scribe', 'poems')))->toBeNull();
 });
 
 it('says where a task stands, and this plugin’s month', function (): void {
