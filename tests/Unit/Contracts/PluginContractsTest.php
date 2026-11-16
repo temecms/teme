@@ -6,9 +6,14 @@ use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
+use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
+use Teme\Contracts\Content\ItemPage;
+use Teme\Contracts\Content\ItemQuery;
+use Teme\Contracts\Content\ItemSnapshot;
 use Teme\Contracts\Content\NewItem;
+use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
@@ -93,6 +98,11 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRows::class, '0.9.0'],
     [ListRow::class, '0.9.0'],
     [Cell::class, '0.9.0'],
+    [ContentReader::class, '0.9.0'],
+    [ItemQuery::class, '0.9.0'],
+    [ItemPage::class, '0.9.0'],
+    [ItemSnapshot::class, '0.9.0'],
+    [ReadRefused::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {

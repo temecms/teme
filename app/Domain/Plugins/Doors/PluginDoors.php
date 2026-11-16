@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
 
+use App\Domain\Contents\Queries\ItemSnapshots;
+use App\Domain\Contents\Queries\PublishedItems;
 use App\Domain\Fediverse\Sockets\PluginFollowers;
 use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Jobs\Operations\StartJob;
@@ -11,6 +13,7 @@ use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
+use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
@@ -26,7 +29,8 @@ use Teme\Contracts\Settings\SettingsReader;
  * What Teme offers a plugin's constructor: the settings reader, its own
  * secrets, the content and media write doors when granted, the outbound
  * door to its hosts when it was granted http, InsertionsChanged when it was
- * granted content.insert (I-064), and the other doors its capabilities open
+ * granted content.insert (I-064), the content reader when it was granted
+ * content.read, and the other doors its capabilities open
  * (I-3353). Bound as the loader's
  * PluginServices.
  */
@@ -39,6 +43,8 @@ final readonly class PluginDoors implements PluginServices
         private StartJob $start,
         private PluginRegistry $registry,
         private CoreInsertionsChanged $insertionsChanged,
+        private PublishedItems $published,
+        private ItemSnapshots $snapshots,
     ) {}
 
     /**
@@ -48,10 +54,11 @@ final readonly class PluginDoors implements PluginServices
      * @param  list<string>  $capabilities  what the plugin was granted
      * @param  list<string>  $hosts  the hosts the outbound door may reach
      * @param  int|null  $httpSeconds  outbound ceiling; null keeps the ordinary 10 seconds
+     * @param  int|null  $answerBytes  outbound answer ceiling; null keeps the ordinary 1 MB
      *
      * @return array<class-string, object>
      */
-    public function for(string $name, string $code, array $capabilities, array $hosts, ?int $httpSeconds = null): array
+    public function for(string $name, string $code, array $capabilities, array $hosts, ?int $httpSeconds = null, ?int $answerBytes = null): array
     {
         $offered = [
             SettingsReader::class => $this->settings,
@@ -67,7 +74,7 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::Http->value, $capabilities, true)) {
-            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS);
+            $offered[OutboundHttp::class] = new PluginHttp($hosts, $this->resolver, maxBytes: $answerBytes ?? PluginHttp::MOST_BYTES, mostSeconds: $httpSeconds ?? PluginHttp::MOST_SECONDS);
         }
 
         if (in_array(Capability::Jobs->value, $capabilities, true)) {
@@ -84,6 +91,10 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::FediverseSend->value, $capabilities, true)) {
             $offered[FediverseSender::class] = new PluginSender($name);
+        }
+
+        if (in_array(Capability::ContentRead->value, $capabilities, true)) {
+            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots);
         }
 
         return $offered;
