@@ -162,46 +162,72 @@ The `.ai/rules/builders.md` gate after each task, with `php artisan test --paral
 
 #### Commits on `sockets/outbound-feeds`
 
--
+- `0100522` feat(plugins): a form POST through the outbound door
+- `08d6a8d` feat(plugins): hosts a plugin reaches from its own settings, agreed by a person
+- `7412127` feat(plugins): agree to a plugin's new hosts on its settings page
+- `b29bc45` feat(plugins): links a plugin adds to every feed
+- `4c17645` feat(plugins): the site's public facts for every plugin
+- `cbe2f65` feat(plugins): tell plugins the feeds a change touched
+- `736a196` feat(plugins): a route's handler gets its plugin's doors (A-W13)
+- `37c5d52` feat(plugins): a plugin's own words translate (A-W14)
+- `6c7a23f` feat(plugins): the consent dialog lists the hosts a plugin's settings name
+- `b9925b9` docs(plugins): feeds, the site and hosts from settings in the handbook
+- this commit: docs(plans): part A's records
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `OutboundFormTest.php` | Call to undefined method App\Domain\Plugins\Doors\PluginHttp::postForm() |
+| 2 | `HostsFromSettingsTest.php` | Unknown named parameter $settingHosts; the manifest refusals' words missing |
+| 2 | `HostsFromSettingsTest.php` (plugins page) | Property [settingHosts.tests/hub] does not exist. |
+| 3 | `tests/Browser/PluginHostsAgreementTest.php` | Timeout 5000ms exceeded, waiting for `[data-test="hosts-agreement"]` |
+| 4 | `FeedLinksTest.php` | "feeds.links" isn’t something a plugin can ask for. |
+| 5 | `SiteInfoTest.php` | Undefined array key "Teme\Contracts\Site\SiteInfo" |
+| 6 | `FeedsChangedTest.php` | HookRefused (FeedsChanged unknown), then: Target class [App\Domain\Feeds\ChangedFeeds] does not exist. |
+| A-W13 | `RouteHandlerDoorsTest.php` | ArgumentCountError: Too few arguments to HubPage::__construct(), 0 passed; the refusal's words missing |
+| A-W14 | `PluginTranslationsTest.php` | Failed asserting that 'Hub sent the ping.' is identical to 'El hub envió el ping.' |
 
 #### Task 0
 
--
+- V = 0.9.0: `git tag -l 'v0.9.0*'` lists nothing. Built on `origin/main` at `9b29abb`.
+- The site's address `Addresses::urlFor()` uses: `url('/')`, the request's root in a request and `app.url` outside one. `CoreSiteInfo` reads the same.
+- `PublicChanges::close()` returns the innermost Operation's tags, each once, sorted, and gathers them while the page cache is off; `purge()` alone checks `PageCache::enabled()`. **But** `Footprints` reads nothing while the page cache is off, so most of an Operation's tags were empty then (found in Task 6; B-07).
+- `FeedBuilder`'s main feed lists `ListingTypes::onHome()`.
+- `Contributions::add()` passes `$plugin instanceof InsertionContributor` into `DeclaredSettings::group()`: the precedent the `feedLinks` flag follows.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Before (`9b29abb`): Pint and PHPStan clean; Architecture 139 passed (1358 assertions); Unit and Feature 11711 passed, 2 skipped (60332 assertions).
+- After (`b9925b9`): Pint and PHPStan clean; Architecture 139 passed (1358 assertions); Unit and Feature 11775 passed, 2 skipped, 3 failed (60549 assertions).
+  - `GenerateManifestReferenceTest` and `GenerateHooksReferenceTest` fail as expected: the new manifest keys and `FeedsChanged` aren't in `docs/reference/plugin-manifest.md` and `hooks.md`, which this part must not regenerate; the join does.
+  - `DatabaseDownTest` failed once in the parallel run and passes alone and in `tests/Feature/Plugins` run in parallel; nothing in this part touches it. Worth watching.
+- Browser, after `npm run build`, one at a time: `PluginHostsAgreementTest` 4 passed; `Plugins/PluginsScreenTest` 19; `SettingControlsTest` 2; `SettingsSaveBarTest` 8; `SettingsPanelsTest` 18; `SettingsPlacementsTest` 10.
 
 #### Drafts (B-numbers from this block)
 
-- B-01:
-- B-02:
-- B-03:
-- B-04:
-- B-05:
-- B-06:
-- B-07:
-- B-08:
-- B-09:
-- B-10:
-- B-11:
-- B-12:
-- B-13:
-- B-14:
-- B-15:
+- B-01: `PluginContractsTest`'s rows take an optional third value, method => `@since`, so `OutboundHttp` keeps 0.5.0 and `postForm` says 0.9.0. Options: a separate row for the method, or this. Chose this: one row per contract, as the file already is. `0100522`.
+- B-02: `Consent::added()` lists `http` as new when an update adds a `hostsFrom` key, so Site › Plugins offers the review without a change to `PluginsScreen` (B's). Options: a new consent line in `PluginsScreen`. Chose this: no other part's file. `08d6a8d`.
+- B-03: a re-enable keeps the hosts agreed before and their history, adding the new ones. Options: replace them. Chose keep: an agreement is never lost by a disable. `08d6a8d`.
+- B-04: `UpdateSettings` counts a host as new only when neither `consent.settingHosts` nor the manifest's agreed `hosts` hold it. Options: setting hosts alone. Chose this: a manifest host typed into a setting is already agreed. `08d6a8d`.
+- B-05: feeds carry `plugin:{code}` for each plugin that adds links, so `DisablePlugin`'s existing purge clears them without editing it; `EnablePlugin` purges `PageTags::FEED_LINKS`. Options: edit `DisablePlugin` (not in Owns). Chose the tag. `b29bc45`.
+- B-06: `ContributionsSchemaTest` (outside Owns) lists `feedLinks` among the surfaces and checks the new constants against the schema; its meaning is unchanged. `b29bc45`.
+- B-07: `Footprints` (outside Owns) reads footprints while the page cache is on **or a plugin listens for `FeedsChanged`**, so the notification comes from the same tags whether or not the page cache is on. Options: build the feeds from the changed rows instead (a second inference, which A4 rules out), or send only with the cache on. Chose this: nothing is read when nobody listens and the cache is off, as before. `cbe2f65`.
+- B-08: `FeedsChanged` is added to `HookCatalogue` (outside Owns; no part owns it), and `HookContractsTest`'s count of hooks goes from 18 to 19; it still proves each short name is unique. `cbe2f65`.
+- B-09: a type's archive feed is named in the default language only; a term's and an author's come from their stored paths. Options: one per language. Chose this: the archive pages' addresses in other languages aren't stored apart. `cbe2f65`.
+- B-10: `SiteInfo` is offered last in `PluginDoors::for()`, and `PluginDoorsTest` and `PluginSettingsReadTest` (outside Owns) list it among what every plugin is offered; their meaning is unchanged. Last, so `JoinTest`'s positional build still lines up. `4c17645`.
+- B-11: `SiteInfo::feeds()` lists the languages readers are shown (`SiteLanguages::shown()`), not the hidden ones. `4c17645`.
+- B-12: A-W13 reads each route handler with `CodeScan::pluginClass()` beside the plugin's class (`ManifestValidator::classReading()` gains `handlers`), checks it with the plugin class's rules and words, and `RouteDispatcher` builds it with `PluginServices::for()` by the enabled record's consent; a handler with no constructor reads no consent. `PluginRegistry`'s cache `FORMAT` goes from 4 to 5 so an older cache is read again. Files outside Owns: `ManifestValidator`, `PluginRegistry`, `RouteDispatcher`. A handler whose file isn't found is left to the route's own checks, as before. `736a196`.
+- B-13: A-W14 adds `lang/` with `addJsonPath()` when a plugin starts, so a plugin that doesn't start loads no words; Laravel reads the main `lang` folder last, so core wins a clash. The test checks the translator in Spanish rather than a whole Spanish page. File outside Owns: `PluginLoader`. The paragraph rewritten is in `rules/plugins-and-themes.md`. `37c5d52`.
+- B-14: the web consent dialog lists the setting hosts from a new `settingHosts` prop that `PluginsController::index()` builds, not from `PluginsScreen` (B's), and the enable posts them; `EnablePluginRequest`, `PluginsController` and `components/plugins/consent-dialog.tsx` are outside Owns. `6c7a23f`.
+- B-15: the new handbook page is listed in `GenerateHandbookIndex::PAGES` (outside Owns) and the README, and `llms.txt` is regenerated, as the guide tests require. `b9925b9`.
 - B-16:
 - B-17:
 - B-18:
@@ -210,19 +236,30 @@ The `.ai/rules/builders.md` gate after each task, with `php artisan test --paral
 
 #### Contract changes
 
--
+- `OutboundHttp::postForm()`, `@since 0.9.0`.
+- `Teme\Contracts\Site\SiteInfo` (new), `@since 0.9.0`, offered to every plugin.
+- `Teme\Contracts\Feeds\FeedsChanged` (new hook, Notification, no capability), `@since 0.9.0`.
+- `Capability::FeedsLinks` (`feeds.links`).
+- Schema: `hostsFrom`; `contributes.feedLinks`; `feeds.links` in `capabilities`.
 
 #### STOP
 
--
+- None.
 
 #### Changelog lines for the maintainers
 
--
+- Plugins can post a form to an agreed host with `OutboundHttp::postForm()`.
+- Plugins can reach hosts a person types into their url settings (`hostsFrom`), once that person agrees on the settings page or when enabling.
+- Plugins with `feeds.links` can add a hub link to every feed.
+- Every plugin can read the site's address, name, language, home page and feeds through `SiteInfo`.
+- Plugins can hear which feeds a change touched with the `FeedsChanged` hook.
+- A public route's handler can ask for its plugin's doors in its constructor.
+- A plugin's `lang/<locale>.json` files translate its words while it is enabled.
 
 #### Try it
 
--
+- Copy `tests/Fixtures/plugins/hub` into a plugin path, run `php artisan teme:plugins:enable tests/hub --agree`, open `/feed/` and see `<atom:link rel="hub" href="https://hub.example.com/"/>` after the self link.
+- Open Settings › Hub, type `https://hub.example.net/` into More hubs: the agreement box appears; save without it and see the refusal; tick it, confirm the password, and the host is kept.
 
 ---
 
