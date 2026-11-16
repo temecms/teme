@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Deployment;
 
-use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use PDOException;
@@ -76,7 +76,7 @@ final class PrepareDatabase
      *
      * @throws DatabasePrepareFailed
      */
-    private function connect(#[SensitiveParameter] array $given, string $database): ConnectionInterface
+    private function connect(#[SensitiveParameter] array $given, string $database): Connection
     {
         $name = 'teme_prepare_'.bin2hex(random_bytes(4));
         /** @var array<string, mixed> $base */
@@ -106,7 +106,7 @@ final class PrepareDatabase
         }
     }
 
-    private function makeLogin(ConnectionInterface $session, string $login, #[SensitiveParameter] string $password): void
+    private function makeLogin(Connection $session, string $login, #[SensitiveParameter] string $password): void
     {
         if ($session->selectOne('SELECT 1 AS found FROM pg_roles WHERE rolname = ?', [$login]) === null) {
             $session->statement('CREATE ROLE '.self::identifier($session, $login).' LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS');
@@ -115,13 +115,13 @@ final class PrepareDatabase
         $session->statement('ALTER ROLE '.self::identifier($session, $login).' PASSWORD '.self::literal($session, $password));
     }
 
-    private function giveDatabase(ConnectionInterface $session, string $database, string $login): void
+    private function giveDatabase(Connection $session, string $database, string $login): void
     {
         $session->statement('ALTER DATABASE '.self::identifier($session, $database).' OWNER TO '.self::identifier($session, $login));
         $session->statement('REVOKE ALL ON DATABASE '.self::identifier($session, $database).' FROM PUBLIC');
     }
 
-    private function makeSpare(ConnectionInterface $session, string $spare, string $login): void
+    private function makeSpare(Connection $session, string $spare, string $login): void
     {
         if ($session->selectOne('SELECT 1 AS found FROM pg_database WHERE datname = ?', [$spare]) === null) {
             $session->statement('CREATE DATABASE '.self::identifier($session, $spare).' OWNER '.self::identifier($session, $login).' TEMPLATE template0 ENCODING \'UTF8\'');
@@ -134,7 +134,7 @@ final class PrepareDatabase
      * Gives the login the tables, sequences and views in the site's public schema that the given user made, so a
      * migration run as the login can change them.
      */
-    private function handOverTables(ConnectionInterface $session, string $login): void
+    private function handOverTables(Connection $session, string $login): void
     {
         $session->select("SELECT set_config('teme.login', ?, false)", [$login]);
         $session->statement(<<<'SQL'
@@ -156,12 +156,12 @@ final class PrepareDatabase
             SQL);
     }
 
-    private static function identifier(ConnectionInterface $session, string $name): string
+    private static function identifier(Connection $session, string $name): string
     {
         return (string) $session->scalar('SELECT quote_ident(?)', [$name]);
     }
 
-    private static function literal(ConnectionInterface $session, #[SensitiveParameter] string $value): string
+    private static function literal(Connection $session, #[SensitiveParameter] string $value): string
     {
         return (string) $session->scalar('SELECT quote_literal(?)', [$value]);
     }
