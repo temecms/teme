@@ -75,6 +75,7 @@ final class DeclaredSettings
             'email' => Setting::email($key, $label, $description, $version),
             'secret' => Setting::secret($key, $label, $description, $version),
             'color' => Setting::color($key, $label, $description, $version),
+            'person' => Setting::person($key, $label, $description, $version),
             default => throw new InvalidArgumentException("Setting [{$group}.{$key}] has an unknown type [{$type}]."),
         };
 

@@ -270,7 +270,8 @@
                                     "urls",
                                     "email",
                                     "secret",
-                                    "color"
+                                    "color",
+                                    "person"
                                 ]
                             },
                             "label": {
