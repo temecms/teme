@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Themes;
 
+use App\Domain\Support\HttpsLink;
+
 /**
  * A theme's teme-theme.json, read into typed getters (study B §3a, I-243).
  * It holds what the file says even when ManifestValidator found errors, so a
@@ -56,7 +58,7 @@ final readonly class Manifest
      */
     public function authorUrl(): string
     {
-        return $this->string('author_url');
+        return HttpsLink::or($this->string('author_url'));
     }
 
     /**
@@ -64,7 +66,7 @@ final readonly class Manifest
      */
     public function homepage(): string
     {
-        return $this->string('homepage');
+        return HttpsLink::or($this->string('homepage'));
     }
 
     /**
