@@ -92,4 +92,14 @@ it('keeps the ads.txt box editable while the host disallows site code, since ads
     $page->assertSee('The host has switched site code off.')
         ->assertPresent('[data-test="site-code-ads-txt-save"]')
         ->assertScript('document.querySelector(\'[data-test="site-code-ads-txt"]\')?.disabled === false');
+
+    $page->click('[data-test="site-code-ads-txt-mode-redirect"]');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="site-code-ads-txt-redirect"]\') !== null');
+    $page->type('#site-code-ads-txt-redirect', 'https://ads.example/ads.txt')
+        ->click('[data-test="site-code-ads-txt-save"]');
+    cmWaitUntil($page, 'document.body.innerText.includes('.json_encode('ads.txt saved.', JSON_THROW_ON_ERROR).')');
+
+    $page->navigate('/admin/settings/site-code');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="site-code-ads-txt-mode-redirect"]\')?.getAttribute(\'aria-checked\') === \'true\'');
+    $page->assertValue('#site-code-ads-txt-redirect', 'https://ads.example/ads.txt');
 });

@@ -73,6 +73,8 @@ final class SiteCodeController extends Controller
                 adsTxt: (string) $request->input('ads_txt', ''),
                 expectedVersion: $request->integer('expected_version'),
                 actorId: (string) $request->user()?->getAuthIdentifier(),
+                mode: (string) $request->input('ads_txt_mode', 'text'),
+                redirectUrl: (string) $request->input('ads_txt_redirect', ''),
             ));
         } catch (StaleSettingsException) {
             throw ValidationException::withMessages([

@@ -42,13 +42,15 @@ final class StoreRules
     public static function refusal(Request $request, Response $response, ?string $renderRefusal): ?string
     {
         $status = $response->getStatusCode();
+        $adsTxtRedirect = $request->attributes->get(PageCache::REDIRECT_OK) === true && $status === 301;
 
         return match (true) {
             // Symfony empties a HEAD's body before any middleware sees it.
             ! $request->isMethod('GET') => 'head',
-            $response->isRedirection() => 'redirect',
+            // Only /ads.txt's permanent redirect to another host is stored like its text.
+            $response->isRedirection() && ! $adsTxtRedirect => 'redirect',
             $response->isServerError() => 'server error',
-            ! in_array($status, [200, 404], true) => "status {$status}",
+            ! in_array($status, $adsTxtRedirect ? [200, 301, 404] : [200, 404], true) => "status {$status}",
             // An API address's key keeps every parameter, so each value anyone sends would store a 404 (I-3324).
             $status === 404 && ApiPaths::is($request->getPathInfo()) && $request->getQueryString() !== null => 'not found with a query',
             $response->getContent() === false => 'streamed',
