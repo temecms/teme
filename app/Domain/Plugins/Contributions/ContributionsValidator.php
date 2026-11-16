@@ -17,7 +17,7 @@ use InvalidArgumentException;
 final class ContributionsValidator implements ContributionsCheck
 {
     /** The setting types a plugin may declare. */
-    public const array TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'secret', 'color', 'person'];
+    public const array TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'secret', 'color', 'person', 'term', 'type'];
 
     /** Where a plugin may add a link: Tools alone in the first release. */
     public const array SURFACES = ['tools'];
@@ -128,6 +128,14 @@ final class ContributionsValidator implements ContributionsCheck
 
             if (! is_string($setting['description'] ?? null)) {
                 $errors[] = __('A setting needs a description.');
+            }
+
+            if (($setting['type'] ?? null) === 'term' && (! is_string($setting['taxonomy'] ?? null) || preg_match(self::TYPE_KEY, $setting['taxonomy']) !== 1)) {
+                $errors[] = __('A term setting names the taxonomy its terms come from.');
+            }
+
+            if (array_key_exists('multiple', $setting) && ! is_bool($setting['multiple'])) {
+                $errors[] = __('A setting’s multiple is true or false.');
             }
         }
 

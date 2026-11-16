@@ -272,8 +272,19 @@
                                     "email",
                                     "secret",
                                     "color",
-                                    "person"
+                                    "person",
+                                    "term",
+                                    "type"
                                 ]
+                            },
+                            "taxonomy": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,31}$",
+                                "description": "For a term: the taxonomy its terms come from."
+                            },
+                            "multiple": {
+                                "type": "boolean",
+                                "description": "For a term: whether several may be chosen."
                             },
                             "label": {
                                 "type": "string",

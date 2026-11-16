@@ -76,6 +76,8 @@ final class DeclaredSettings
             'secret' => Setting::secret($key, $label, $description, $version),
             'color' => Setting::color($key, $label, $description, $version),
             'person' => Setting::person($key, $label, $description, $version),
+            'term' => Setting::term($key, $label, $description, $version, self::text($declared, 'taxonomy'), ($declared['multiple'] ?? false) === true),
+            'type' => Setting::contentType($key, $label, $description, $version),
             default => throw new InvalidArgumentException("Setting [{$group}.{$key}] has an unknown type [{$type}]."),
         };
 

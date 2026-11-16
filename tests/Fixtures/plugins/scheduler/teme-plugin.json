@@ -1,0 +1,80 @@
+{
+    "manifest": 1,
+    "name": "tests/scheduler",
+    "code": "scheduler",
+    "label": "Scheduler",
+    "description": "A plugin the tests enable: it publishes a queue on a schedule its settings switch and time, for a person and topics chosen from the site.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Tests\\Fixtures\\Plugins\\Scheduler\\Scheduler",
+    "capabilities": [
+        "content.read",
+        "people.read",
+        "jobs"
+    ],
+    "jobs": [
+        {
+            "key": "publish-queue",
+            "label": "Publish the next item in the queue",
+            "tries": 1,
+            "backoff": [
+                1
+            ]
+        }
+    ],
+    "schedules": [
+        {
+            "job": "publish-queue",
+            "every": "hour"
+        }
+    ],
+    "contributes": {
+        "settings": [
+            {
+                "key": "author",
+                "type": "person",
+                "label": "Publish for",
+                "description": "The person whose queue the plugin publishes."
+            },
+            {
+                "key": "topics",
+                "type": "term",
+                "taxonomy": "category",
+                "multiple": true,
+                "label": "Topics",
+                "description": "The categories whose items it publishes."
+            },
+            {
+                "key": "section",
+                "type": "term",
+                "taxonomy": "category",
+                "label": "Section",
+                "description": "The category it files what it publishes under."
+            },
+            {
+                "key": "kind",
+                "type": "type",
+                "label": "Content type",
+                "description": "The type of item it publishes."
+            },
+            {
+                "key": "active",
+                "type": "boolean",
+                "label": "Publish on a schedule",
+                "description": "Whether the plugin publishes from the queue on its own."
+            },
+            {
+                "key": "frequency",
+                "type": "select",
+                "label": "How often",
+                "description": "How often it publishes the next item.",
+                "options": {
+                    "hour": "Every hour",
+                    "day": "Every day"
+                }
+            }
+        ]
+    }
+}
