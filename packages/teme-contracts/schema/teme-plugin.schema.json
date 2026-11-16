@@ -359,6 +359,43 @@
                         }
                     }
                 },
+                "columns": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "description": "Columns the plugin adds to the content lists.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "kind"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The column's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The heading and the name in Columns."
+                            },
+                            "kind": {
+                                "enum": ["text", "number", "badge"]
+                            },
+                            "width": {
+                                "enum": ["narrow", "medium", "wide"]
+                            },
+                            "types": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                                },
+                                "description": "Content type keys; absent means every listed type."
+                            }
+                        }
+                    }
+                },
                 "csp": {
                     "type": "object",
                     "additionalProperties": false,

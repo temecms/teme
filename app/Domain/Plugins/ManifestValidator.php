@@ -131,6 +131,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->hosts($manifest, $read));
         array_push($errors, ...$this->hooks($manifest, $read));
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
+        array_push($errors, ...$this->columns($read));
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
@@ -138,6 +139,26 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->imports($manifest, $read));
 
         return $errors;
+    }
+
+    /**
+     * Columns describe content, including drafts, so content.read is required.
+     *
+     * @return list<string>
+     */
+    private function columns(Manifest $read): array
+    {
+        $columns = $read->contributes()['columns'] ?? null;
+
+        if (! is_array($columns) || $columns === []) {
+            return [];
+        }
+
+        if (! in_array(Capability::ContentRead->value, $read->capabilities(), true)) {
+            return ['It adds columns to the content lists, but the plugin doesn’t ask for content.read.'];
+        }
+
+        return [];
     }
 
     /**

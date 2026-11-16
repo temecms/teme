@@ -12,11 +12,17 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
     // The PHP patterns end with the D modifier, so $ is the true end; JSON Schema's $ already is.
     $between = fn (string $pattern): string => str_ends_with($pattern, 'D') ? substr($pattern, 1, -2) : $pattern;
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp'])
+    $column = $contributes['columns']['items']['properties'];
+
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns'])
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
         ->and($link['surface']['enum'])->toBe(ContributionsValidator::SURFACES)
         ->and($link['icon']['enum'])->toBe(ContributionsValidator::ICONS)
         ->and($setting['key']['pattern'])->toBe($between(ContributionsValidator::KEY))
         ->and($link['id']['pattern'])->toBe($between(ContributionsValidator::LINK_ID))
-        ->and($link['to']['pattern'])->toBe($between(ContributionsValidator::TO));
+        ->and($link['to']['pattern'])->toBe($between(ContributionsValidator::TO))
+        ->and($column['kind']['enum'])->toBe(ContributionsValidator::COLUMN_KINDS)
+        ->and($column['width']['enum'])->toBe(array_keys(ContributionsValidator::COLUMN_WIDTHS))
+        ->and($column['id']['pattern'])->toBe($between(ContributionsValidator::COLUMN_ID))
+        ->and($column['types']['items']['pattern'])->toBe($between(ContributionsValidator::TYPE_KEY));
 });

@@ -34,6 +34,21 @@ final class ContributionsValidator implements ContributionsCheck
     /** Where a link leads: the plugin's settings, or an https address. */
     public const string TO = '#^(settings|https://.+)$#D';
 
+    /** The kinds a list column may take. */
+    public const array COLUMN_KINDS = ['text', 'number', 'badge'];
+
+    /** The widths a list column may take, in pixels. */
+    public const array COLUMN_WIDTHS = ['narrow' => 100, 'medium' => 128, 'wide' => 168];
+
+    /** A list column's id. */
+    public const string COLUMN_ID = '/^[a-z][a-z0-9-]{1,39}$/D';
+
+    /** A content type key a column may name. */
+    public const string TYPE_KEY = '/^[a-z][a-z0-9_]{0,31}$/D';
+
+    /** At most this many columns per plugin. */
+    public const int MOST_COLUMNS = 3;
+
     /** The code the settings are checked under; the real group takes the plugin's. */
     private const string CHECKED_CODE = 'settings';
 
@@ -52,7 +67,7 @@ final class ContributionsValidator implements ContributionsCheck
             // Reserved in the manifest's shape, read by nothing yet (I-3375).
             if ($surface === 'csp') {
                 $errors[] = __('A plugin\'s csp is read only with the site.output permission, which Teme doesn\'t offer yet.');
-            } elseif ($surface !== 'settings' && $surface !== 'admin') {
+            } elseif ($surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns') {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -83,6 +98,9 @@ final class ContributionsValidator implements ContributionsCheck
 
             $ids[] = $id;
         }
+
+        $columns = $contributes['columns'] ?? [];
+        $errors = [...$errors, ...$this->columnErrors(is_array($columns) ? $columns : [null])];
 
         return $errors;
     }
@@ -150,6 +168,90 @@ final class ContributionsValidator implements ContributionsCheck
 
         if (preg_match(self::TO, $to) !== 1) {
             $errors[] = __('A link must go to settings or to an https:// address.');
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $columns
+     *
+     * @return list<string>
+     */
+    private function columnErrors(array $columns): array
+    {
+        $errors = [];
+
+        if (count($columns) > self::MOST_COLUMNS) {
+            $errors[] = __('A plugin can add at most 3 columns.');
+        }
+
+        $ids = [];
+
+        foreach ($columns as $column) {
+            $errors = [...$errors, ...$this->oneColumnErrors(is_array($column) ? $column : [])];
+            $id = is_array($column) && is_string($column['id'] ?? null) ? $column['id'] : null;
+
+            if ($id !== null && in_array($id, $ids, true)) {
+                $errors[] = __('Two columns can’t share the id :id.', ['id' => $id]);
+            }
+
+            $ids[] = $id;
+        }
+
+        return $errors;
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $column
+     *
+     * @return list<string>
+     */
+    private function oneColumnErrors(array $column): array
+    {
+        $errors = [];
+
+        if (array_key_exists('sortable', $column)) {
+            $errors[] = __('Teme doesn’t sort a list by a plugin’s column yet.');
+        }
+
+        foreach (array_keys($column) as $key) {
+            if (! in_array($key, ['id', 'label', 'kind', 'width', 'types', 'sortable'], true)) {
+                $errors[] = __('A column can’t have :key.', ['key' => is_scalar($key) ? (string) $key : '']);
+            }
+        }
+
+        if (preg_match(self::COLUMN_ID, is_string($column['id'] ?? null) ? $column['id'] : '') !== 1) {
+            $errors[] = __('A column’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
+        }
+
+        $label = is_string($column['label'] ?? null) ? trim($column['label']) : '';
+
+        if ($label === '' || mb_strlen($label) > 40) {
+            $errors[] = __('A column’s label must be 1 to 40 characters.');
+        }
+
+        if (! in_array($column['kind'] ?? null, self::COLUMN_KINDS, true)) {
+            $errors[] = __('A column’s kind must be text, number or badge.');
+        }
+
+        if (array_key_exists('width', $column) && ! array_key_exists($column['width'], self::COLUMN_WIDTHS)) {
+            $errors[] = __('A column’s width must be narrow, medium or wide.');
+        }
+
+        $types = $column['types'] ?? null;
+
+        if ($types !== null) {
+            if (! is_array($types) || ! array_is_list($types)) {
+                $errors[] = __('A column’s type must be a lower-case content type key.');
+            } else {
+                foreach ($types as $type) {
+                    if (! is_string($type) || preg_match(self::TYPE_KEY, $type) !== 1) {
+                        $errors[] = __('A column’s type must be a lower-case content type key.');
+                        break;
+                    }
+                }
+            }
         }
 
         return $errors;
