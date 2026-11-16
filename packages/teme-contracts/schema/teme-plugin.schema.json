@@ -396,6 +396,39 @@
                         }
                     }
                 },
+                "actions": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "description": "Buttons on the plugin's settings page, each queuing one of its declared jobs. Needs jobs.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "job"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The action's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The button's words."
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 160,
+                                "description": "What the action does, beside the button."
+                            },
+                            "job": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{0,47}$",
+                                "description": "The key of the declared job it queues."
+                            }
+                        }
+                    }
+                },
                 "lists": {
                     "type": "array",
                     "maxItems": 2,

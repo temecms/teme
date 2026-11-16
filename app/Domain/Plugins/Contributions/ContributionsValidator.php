@@ -49,6 +49,9 @@ final class ContributionsValidator implements ContributionsCheck
     /** At most this many columns per plugin. */
     public const int MOST_COLUMNS = 3;
 
+    /** At most this many actions per plugin. */
+    public const int MOST_ACTIONS = 3;
+
     /** At most this many lists per plugin. */
     public const int MOST_LISTS = 2;
 
@@ -79,7 +82,7 @@ final class ContributionsValidator implements ContributionsCheck
             // Reserved in the manifest's shape, read by nothing yet (I-3375).
             if ($surface === 'csp') {
                 $errors[] = __('A plugin\'s csp is read only with the site.output permission, which Teme doesn\'t offer yet.');
-            } elseif (! in_array($surface, ['settings', 'admin', 'columns', 'lists'], true)) {
+            } elseif (! in_array($surface, ['settings', 'admin', 'columns', 'actions', 'lists'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -113,6 +116,9 @@ final class ContributionsValidator implements ContributionsCheck
 
         $columns = $contributes['columns'] ?? [];
         $errors = [...$errors, ...$this->columnErrors(is_array($columns) ? $columns : [null])];
+
+        $actions = $contributes['actions'] ?? [];
+        $errors = [...$errors, ...$this->actionErrors(is_array($actions) ? $actions : [null])];
 
         $lists = $contributes['lists'] ?? [];
         $errors = [...$errors, ...$this->listErrors(is_array($lists) ? $lists : [null])];
@@ -267,6 +273,56 @@ final class ContributionsValidator implements ContributionsCheck
                     }
                 }
             }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Actions: buttons on the plugin's settings page that queue one of its
+     * declared jobs (docs/proposals/plugin-sockets-1.md). Contributions::add
+     * checks that the job is declared.
+     *
+     * @param  array<array-key, mixed>  $actions
+     *
+     * @return list<string>
+     */
+    private function actionErrors(array $actions): array
+    {
+        $errors = [];
+
+        if (count($actions) > self::MOST_ACTIONS) {
+            $errors[] = __('A plugin can add at most 3 actions.');
+        }
+
+        $ids = [];
+
+        foreach ($actions as $action) {
+            $action = is_array($action) ? $action : [];
+            $id = is_string($action['id'] ?? null) ? $action['id'] : null;
+            $label = $action['label'] ?? null;
+
+            if (preg_match(self::LINK_ID, $id ?? '') !== 1) {
+                $errors[] = __('An action’s id must be 2 to 40 lower-case letters, digits and hyphens, starting with a letter.');
+            }
+
+            if (! is_string($label) || trim($label) === '' || mb_strlen($label) > 40) {
+                $errors[] = __('An action needs a label of 1 to 40 characters.');
+            }
+
+            if (array_key_exists('description', $action) && (! is_string($action['description']) || mb_strlen($action['description']) > 160)) {
+                $errors[] = __('An action’s description must be text of at most 160 characters.');
+            }
+
+            if (! is_string($action['job'] ?? null) || $action['job'] === '') {
+                $errors[] = __('An action must name the job it queues.');
+            }
+
+            if ($id !== null && in_array($id, $ids, true)) {
+                $errors[] = __('Two actions can’t share the id :id.', ['id' => $id]);
+            }
+
+            $ids[] = $id;
         }
 
         return $errors;

@@ -14,9 +14,9 @@ use Teme\Contracts\Plugins\Plugin;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 
 /**
- * A fixture plugin that writes its own settings from its job, offers a
- * list on its settings page, and runs its job on a schedule. The tests set
- * what the job and the list do.
+ * A fixture plugin that writes its own settings from its job, offers an
+ * action and a list on its settings page, and runs its job on a schedule.
+ * The tests set what the job and the list do.
  */
 final class Workbench implements HasPluginLists, Plugin, PluginHasJobs
 {

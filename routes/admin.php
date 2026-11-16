@@ -49,6 +49,7 @@ use App\Http\Admin\Media\MediaLibraryController;
 use App\Http\Admin\Media\MediaPickerController;
 use App\Http\Admin\MyJobsController;
 use App\Http\Admin\NavigationController;
+use App\Http\Admin\PluginActionController;
 use App\Http\Admin\PluginsController;
 use App\Http\Admin\RegionsController;
 use App\Http\Admin\SearchController;
@@ -207,6 +208,10 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
                 Route::post('{code}/disable', [PluginsController::class, 'disable'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('disable');
+                Route::post('{code}/actions/{action}', [PluginActionController::class, 'run'])
+                    ->where('code', ManifestValidator::CODE_PATTERN)
+                    ->where('action', '[a-z][a-z0-9-]{1,39}')
+                    ->name('actions.run');
             });
 
         // Site › Types (I-3302): the site's own content types, changed through

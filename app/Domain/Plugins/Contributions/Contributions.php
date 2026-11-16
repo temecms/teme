@@ -49,6 +49,7 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->jobHandlers($jobs, $plugin));
         array_push($errors, ...$this->columnHandlers($contributes['columns'] ?? [], $plugin));
         array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
+        array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
 
         if ($errors !== []) {
             return $errors;
@@ -206,6 +207,35 @@ final readonly class Contributions implements PluginContributions
         foreach ($handlers as $id) {
             if (! isset($declared[$id])) {
                 $errors[] = "It has a class for list \"{$id}\", which isn’t declared.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Each action must queue a job the plugin declares, which needs jobs
+     * (docs/proposals/plugin-sockets-1.md).
+     *
+     * @param  list<mixed>  $jobs
+     *
+     * @return list<string>
+     */
+    private function actionJobs(mixed $actions, array $jobs): array
+    {
+        $declared = [];
+
+        foreach ($jobs as $entry) {
+            if (is_array($entry) && is_string($entry['key'] ?? null)) {
+                $declared[$entry['key']] = true;
+            }
+        }
+
+        $errors = [];
+
+        foreach (is_array($actions) ? $actions : [] as $action) {
+            if (is_array($action) && is_string($action['id'] ?? null) && is_string($action['job'] ?? null) && ! isset($declared[$action['job']])) {
+                $errors[] = "Its action \"{$action['id']}\" queues the job \"{$action['job']}\", which it doesn’t declare.";
             }
         }
 

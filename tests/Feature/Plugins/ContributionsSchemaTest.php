@@ -14,7 +14,7 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $column = $contributes['columns']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'lists'])
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'actions', 'lists'])
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
         ->and($link['surface']['enum'])->toBe(ContributionsValidator::SURFACES)
         ->and($link['icon']['enum'])->toBe(ContributionsValidator::ICONS)
@@ -25,6 +25,8 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
         ->and($column['width']['enum'])->toBe(array_keys(ContributionsValidator::COLUMN_WIDTHS))
         ->and($column['id']['pattern'])->toBe($between(ContributionsValidator::COLUMN_ID))
         ->and($column['types']['items']['pattern'])->toBe($between(ContributionsValidator::TYPE_KEY))
+        ->and($contributes['actions']['maxItems'])->toBe(ContributionsValidator::MOST_ACTIONS)
+        ->and($contributes['actions']['items']['properties']['id']['pattern'])->toBe($between(ContributionsValidator::LINK_ID))
         ->and($contributes['lists']['maxItems'])->toBe(ContributionsValidator::MOST_LISTS)
         ->and($contributes['lists']['items']['properties']['id']['pattern'])->toBe($between(ContributionsValidator::LINK_ID))
         ->and($contributes['lists']['items']['properties']['columns']['maxItems'])->toBe(ContributionsValidator::MOST_LIST_COLUMNS)
