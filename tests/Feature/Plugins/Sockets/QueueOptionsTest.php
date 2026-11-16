@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Models\TrackedJob;
+use App\Domain\Jobs\Operations\Input\RetryJobInput;
+use App\Domain\Jobs\Operations\RetryJob;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -20,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\QueueOptions;
 use Tests\Fixtures\Plugins\PluginFixtures;
@@ -126,4 +129,27 @@ it('refuses, in the database, a second waiting run with the same key', function 
         'created_at' => now(),
         'updated_at' => now(),
     ]))->toThrow(QueryException::class);
+});
+
+it('refuses to retry a failed keyed run while another with its key waits, writing nothing', function (): void {
+    $failed = $this->jobs->queue('write-line', ['line' => 'first'], null, new QueueOptions(uniqueKey: 'batch'));
+    TrackedJob::query()->whereKey($failed)->update(['state' => JobState::Failed->value, 'ended_at' => now()]);
+    $waiting = $this->jobs->queue('write-line', ['line' => 'second'], null, new QueueOptions(uniqueKey: 'batch'));
+    Queue::fake();
+
+    expect(fn () => app(RetryJob::class)->execute(new RetryJobInput($failed, (string) $this->admin->id)))
+        ->toThrow(ValidationException::class, 'A run of this job is already waiting.');
+
+    expect(TrackedJob::query()->findOrFail($failed)->state)->toBe(JobState::Failed)
+        ->and(TrackedJob::query()->where('owner', 'jobs')->where('state', JobState::Waiting->value)->pluck('id')->all())->toBe([$waiting]);
+    Queue::assertNothingPushed();
+});
+
+it('retries a failed keyed run when nothing with its key waits', function (): void {
+    $failed = $this->jobs->queue('write-line', [], null, new QueueOptions(uniqueKey: 'batch'));
+    TrackedJob::query()->whereKey($failed)->update(['state' => JobState::Failed->value, 'ended_at' => now()]);
+
+    app(RetryJob::class)->execute(new RetryJobInput($failed, (string) $this->admin->id));
+
+    expect(TrackedJob::query()->findOrFail($failed)->state)->toBe(JobState::Waiting);
 });
