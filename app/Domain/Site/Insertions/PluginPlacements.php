@@ -43,7 +43,7 @@ final readonly class PluginPlacements implements PlacementContributor
             $html = $this->insertions->draw($entry, $placement === Placement::Head);
 
             if (trim($html) !== '') {
-                $fragments[] = new Fragment($entry['insertion']->key, $html);
+                $fragments[] = new Fragment(self::key($entry['code'] ?? $entry['owner'], $entry['insertion']->key), $html);
             }
         }
 
@@ -56,5 +56,18 @@ final readonly class PluginPlacements implements PlacementContributor
         }
 
         return $fragments;
+    }
+
+    /**
+     * A plugin fragment's key, in plugins' own key space, so a plugin that
+     * reuses a key of site code or of core's never replaces it (I-3418):
+     * `plugin.` and its code and key, or a hash of them when they're long.
+     */
+    private static function key(string $owner, string $key): string
+    {
+        $tail = strtolower((string) preg_replace('/[^a-z0-9._-]+/i', '-', $owner).'.'.$key);
+        $fragment = 'plugin.'.$tail;
+
+        return preg_match(Fragment::KEY_PATTERN, $fragment) === 1 ? $fragment : 'plugin.'.hash('sha256', $tail);
     }
 }

@@ -104,3 +104,20 @@ it('draws the top and bottom of the body cleaned as article insertions are', fun
         ->and($top)->toBeLessThan($bottom)
         ->and($bottom)->toBeLessThan((int) strpos($html, 'data-teme="session"'));
 });
+
+it('never replaces site code or core\'s fixed block with an insertion that reuses its key (I-3418)', function (): void {
+    $admin = User::factory()->create()->assignRole('administrator');
+    $entry = scAdd($admin, 'Consent manager', 'body-end', '<div data-test="consent">Consent</div>');
+    Billboard::$gives = [
+        new PageInsertion('site-code.'.$entry->id, PagePosition::bodyEnd(), '<div data-test="twin">Twin</div>'),
+        new PageInsertion('teme.fixed-insertions', PagePosition::bodyEnd(), '<div data-test="fixed-twin">Twin</div>'),
+        new PageInsertion('billboard.bar', PagePosition::fixed('bottom'), '<div data-test="billboard-bar">Bar</div>'),
+    ];
+
+    $html = (string) addrGet('/')->assertOk()->getContent();
+
+    expect($html)->toContain('<div data-test="consent">Consent</div>')
+        ->toContain('<div data-test="twin">Twin</div>')
+        ->toContain('<div data-test="fixed-twin">Twin</div>')
+        ->toContain('data-teme-fixed="billboard.bar"');
+});
