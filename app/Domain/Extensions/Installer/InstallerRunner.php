@@ -24,6 +24,7 @@ use Closure;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -100,6 +101,9 @@ final class InstallerRunner
         $row = DB::table('extension_requests')->whereIn('status', ['requested', 'running', 'waiting'])->orderBy('requested_at')->first();
 
         if ($row === null) {
+            // A request cancelled from the admin ended without the installer: what it left is cleared here.
+            $this->sweep();
+
             return;
         }
 
@@ -370,6 +374,7 @@ final class InstallerRunner
     {
         Artisan::call('queue:restart');
         $this->store->prune();
+        $this->sweep();
 
         [$plugins, $themes] = $this->touched($request->fromRelease, (string) $request->toRelease);
 
@@ -399,6 +404,7 @@ final class InstallerRunner
         if ($since->addHours(self::WAITS_FOR)->isPast()) {
             $this->discard($request);
             app(EndExtensionRequest::class)->execute(new EndExtensionRequestInput($request->id, RequestStatus::Cancelled, 'Nobody agreed within a day, so the request was cancelled.'));
+            $this->sweep();
         }
     }
 
@@ -414,6 +420,55 @@ final class InstallerRunner
         }
 
         app(EndExtensionRequest::class)->execute(new EndExtensionRequestInput($request->id, RequestStatus::Failed, $this->scrub($reason), $this->scrub($this->report($request))));
+        $this->sweep();
+    }
+
+    /**
+     * Clears what ended requests left: each release a failed or cancelled
+     * request built that never went live, then each unpacked upload under
+     * packages/ that no kept release's lock names.
+     */
+    private function sweep(): void
+    {
+        $current = $this->store->current();
+        $live = DB::table('extension_requests')->whereNotNull('from_release')->pluck('from_release')
+            ->merge(DB::table('extension_requests')->where('status', RequestStatus::Done->value)->pluck('to_release'))
+            ->filter()->all();
+        $abandoned = DB::table('extension_requests')
+            ->whereIn('status', [RequestStatus::Failed->value, RequestStatus::Cancelled->value])
+            ->where('action', '!=', ExtensionAction::Rollback->value)
+            ->whereNotNull('to_release')
+            ->pluck('to_release')->all();
+
+        foreach ($this->store->all() as $id) {
+            if ($id !== $current && in_array($id, $abandoned, true) && ! in_array($id, $live, true)) {
+                $this->store->delete($id);
+            }
+        }
+
+        $named = [];
+
+        foreach ($this->store->all() as $id) {
+            foreach (StageValidator::locked($this->store->path($id)) as $package) {
+                $named[$package['name'].'/'.($package['version'] ?? '')] = true;
+
+                if (is_string($package['dist']['url'] ?? null)) {
+                    $named[str_replace('\\', '/', $package['dist']['url'])] = true;
+                }
+            }
+        }
+
+        $packages = $this->store->root().'/packages';
+
+        foreach (glob("{$packages}/*/*/*", GLOB_ONLYDIR) ?: [] as $folder) {
+            $relative = substr(str_replace('\\', '/', $folder), strlen($packages) + 1);
+
+            if (! isset($named[$relative]) && ! isset($named[str_replace('\\', '/', $folder)])) {
+                File::deleteDirectory($folder);
+                @rmdir(dirname($folder));
+                @rmdir(dirname($folder, 2));
+            }
+        }
     }
 
     /**

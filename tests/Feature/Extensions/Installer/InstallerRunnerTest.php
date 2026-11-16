@@ -5,8 +5,10 @@ declare(strict_types=1);
 use App\Domain\Extensions\Installer\InstallerFailed;
 use App\Domain\Extensions\Models\ExtensionSourceRecord;
 use App\Domain\Extensions\Operations\BeginExtensionRequest;
+use App\Domain\Extensions\Operations\CancelExtensionRequest;
 use App\Domain\Extensions\Operations\EndExtensionRequest;
 use App\Domain\Extensions\Operations\Input\BeginExtensionRequestInput;
+use App\Domain\Extensions\Operations\Input\CancelExtensionRequestInput;
 use App\Domain\Extensions\Operations\Input\EndExtensionRequestInput;
 use App\Domain\Extensions\Operations\Input\RecordExtensionStepInput;
 use App\Domain\Extensions\Operations\RecordExtensionStep;
@@ -256,6 +258,42 @@ describe('the installer’s Operations', function (): void {
             cacheOff($folder);
         }
     });
+});
+
+it('deletes an unpacked upload no kept release names when its request fails, and when one is cancelled', function (): void {
+    $root = $this->folder->root;
+    $kept = $this->folder->stage();
+    file_put_contents($this->folder->store->path($kept).'/composer.lock', json_encode(['packages' => [
+        ['name' => 'acme/kept', 'version' => '1.0.0', 'type' => 'teme-plugin', 'dist' => ['type' => 'path', 'url' => "{$root}/packages/acme/kept/1.0.0", 'reference' => 'abc']],
+    ]]));
+    $unpack = function (string $folder) use ($root): string {
+        @mkdir("{$root}/packages/{$folder}", 0755, true);
+        file_put_contents("{$root}/packages/{$folder}/composer.json", '{}');
+
+        return "{$root}/packages/{$folder}";
+    };
+    $keptFolder = $unpack('acme/kept/1.0.0');
+    $failedFolder = $unpack('acme/gone/1.0.0');
+
+    $row = ($this->settle)(($this->ask)('install', 'acme/gone', '1.0.0', ['source_kind' => 'upload']));
+
+    expect($row->status)->toBe('failed')
+        ->and($failedFolder)->not->toBeDirectory()
+        ->and($keptFolder)->toBeDirectory();
+
+    $cancelledFolder = $unpack('acme/gone/2.0.0');
+    $staged = $this->folder->stage();
+    file_put_contents($this->folder->store->path($staged).'/composer.lock', json_encode(['packages' => [
+        ['name' => 'acme/gone', 'version' => '2.0.0', 'type' => 'teme-plugin', 'dist' => ['type' => 'path', 'url' => $cancelledFolder, 'reference' => 'def']],
+    ]]));
+    $waiting = ($this->ask)('install', 'acme/gone', '2.0.0', ['source_kind' => 'upload', 'status' => 'waiting', 'step' => 'validating', 'to_release' => $staged, 'from_release' => '', 'needs' => json_encode(['replace' => ['package' => 'acme/gone', 'from' => '1.0.0', 'to' => '2.0.0']])]);
+    app(CancelExtensionRequest::class)->execute(new CancelExtensionRequestInput($waiting));
+
+    $this->runner->tick();
+
+    expect($cancelledFolder)->not->toBeDirectory()
+        ->and($this->folder->store->all())->toBe([$kept])
+        ->and($keptFolder)->toBeDirectory();
 });
 
 it('records no saved key in a failed request’s reason, steps or report, nor on the screens that show it', function (): void {
