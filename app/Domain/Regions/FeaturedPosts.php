@@ -10,6 +10,7 @@ use App\Domain\Cards\Types\FeaturedPostsCard;
 use App\Domain\Languages\PageLanguage;
 use App\Domain\Site\ListingViews;
 use App\Domain\Site\ViewModels\ListingItem;
+use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -44,8 +45,21 @@ final readonly class FeaturedPosts
         if (($attrs['source'] ?? 'latest') === 'chosen') {
             $ids = array_slice(array_values(array_filter((array) ($attrs['items'] ?? []), 'is_string')), 0, FeaturedPostsCard::MOST);
 
-            // Each chosen item is recorded by items(), shown or not.
-            return $this->views->items($ids);
+            if ($ids === []) {
+                return [];
+            }
+
+            // Each chosen item is recorded, shown or not, so a change to any of them purges the page.
+            $this->record->tag(...array_map(PageTags::content(...), $ids));
+
+            $public = array_values(array_map(
+                fn (ContentType $type): string => $type->key,
+                array_filter($this->types->all(), fn (ContentType $type): bool => $type->public),
+            ));
+            $live = ListingViews::archive($public)->whereIn('contents.id', $ids)->pluck('contents.id')->map(fn (mixed $id): string => (string) $id)->all();
+
+            // Only published, live, public items, in the order they were chosen.
+            return $this->views->items(array_values(array_filter($ids, fn (string $id): bool => in_array($id, $live, true))));
         }
 
         $type = (string) ($attrs['type'] ?? 'post');

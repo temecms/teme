@@ -100,9 +100,11 @@ final class SiteCodeController extends Controller
         }
 
         // The Operation refused an unknown placement, so it is one of PLACES.
-        $where = $on
-            ? __('Every public page includes “:name” :at.', ['name' => $name, 'at' => SiteCode::PLACES[$placement]['at']])
-            : __('“:name” is off, so no page includes it yet.', ['name' => $name]);
+        $where = match (true) {
+            ! $on => __('“:name” is off, so no page includes it yet.', ['name' => $name]),
+            $placement === SiteCode::PLACED => __('“:name” is ready to place with the Custom HTML card in a theme region.', ['name' => $name]),
+            default => __('Every public page includes “:name” :at.', ['name' => $name, 'at' => SiteCode::PLACES[$placement]['at']]),
+        };
 
         return self::told(($result['added'] ? __('Code added.') : __('Code saved.')).' '.$where);
     }

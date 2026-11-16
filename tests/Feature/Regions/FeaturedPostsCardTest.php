@@ -59,6 +59,17 @@ it('keeps the chosen order, and leaves out a draft, a trashed and a private item
         ->toBe(['Second', 'First']);
 });
 
+it('leaves out a chosen item dated ahead and one whose type the site does not show', function (): void {
+    $shown = pageArticle($this->editor, 'Shown');
+    $ahead = pageArticle($this->editor, 'Dated ahead');
+    DB::table('contents')->where('id', $ahead->id)->update(['published_at' => now()->addDay()]);
+    $hidden = pageArticle($this->editor, 'Hidden type');
+    DB::table('contents')->where('id', $hidden->id)->update(['type' => 'region']);
+
+    expect(($this->titles)(['source' => 'chosen', 'items' => [$ahead->id, $hidden->id, $shown->id]]))
+        ->toBe(['Shown']);
+});
+
 it('lists the newest of the type, newest first, as many as asked', function (): void {
     foreach (['Oldest', 'Older', 'Newer', 'Newest'] as $title) {
         pageArticle($this->editor, $title);

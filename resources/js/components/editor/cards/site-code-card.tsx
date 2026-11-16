@@ -166,7 +166,7 @@ export function SiteCodeSettings({
             {placed.length === 0 ? (
                 <p className="text-ink-2 text-small">
                     {__(
-                        'No code is placed with a card yet. An administrator adds it in Settings > Site code.',
+                        'No code is placed with a card yet. An administrator adds it in Settings › Site code.',
                     )}
                 </p>
             ) : (
@@ -205,7 +205,7 @@ export function SiteCodeSettings({
                     </RadioGroup>
                     <p id={`${id}-hint`} className="text-small text-ink-3">
                         {__(
-                            "Code placed with a card in Settings > Site code, by name. The card shows it exactly as written; it can't be edited here.",
+                            "Code placed with a card in Settings › Site code, by name. The card shows it exactly as written; it can't be edited here.",
                         )}
                     </p>
                 </div>
@@ -213,7 +213,7 @@ export function SiteCodeSettings({
             {href !== null && (
                 <p className="text-small text-ink-3">
                     <Link href={href} className="text-accent underline">
-                        {__('Settings > Site code')}
+                        {__('Settings › Site code')}
                     </Link>
                     {__(
                         ' · where administrators write the code and mark it “Placed with a card”.',
