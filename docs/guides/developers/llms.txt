@@ -11,12 +11,12 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Operations](concepts/operations.md): Every change goes through an Operation; what a plugin may and may not touch.
 - [Code standards for plugins and themes](start/code-standards.md): What Teme requires of a plugin's or theme's code, what it only recommends, and where Teme's own coding standards are.
 - [Testing a plugin or theme](testing.md): How to test a plugin or theme with Pest and Teme’s fixture helpers.
-- [Plugin settings and secrets](plugins/settings.md): How a plugin declares its settings screen in the manifest, reads its values, keeps API keys as secrets, and adds a Tools link.
+- [Plugin settings and secrets](plugins/settings.md): How a plugin declares its settings screen in the manifest, reads and writes its values, keeps API keys as secrets, adds actions and lists to the page, and adds a Tools link.
 - [Regions, site code and featured posts](themes/regions.md): How a theme sets aside regions for the site's own content, where an administrator's own HTML goes, and how to draw pinned posts on the latest posts page.
 - [Rules for plugins and themes](rules/plugins-and-themes.md): The rules every plugin and theme lives by, both the ones Teme enforces and the ones authors must keep because Teme cannot check them.
 - [For agents](for-agents.md): How agents should read this handbook and llms.txt, choose a plugin's capabilities, and write an AGENTS.md for it.
 - [Plugins writing content](plugins/content-write.md): How a plugin will create and change content through Operations.
-- [Jobs and schedules](plugins/jobs.md): How a plugin will declare queue jobs and schedules in its manifest.
+- [Jobs and schedules](plugins/jobs.md): How a plugin declares background jobs and schedules, queues a job after a delay or once while one waits, and who its scheduled work runs as.
 - [Public routes](plugins/public-routes.md): How a plugin will register routes reachable without signing in.
 - [The plugin import socket](plugins/import.md): How a plugin will take part in site import.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
