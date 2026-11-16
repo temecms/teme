@@ -75,7 +75,9 @@ The rules come in two parts. Teme enforces the first: an author can't break them
 
 ### Words
 
-- Every word a person reads goes through `__()`, so a site in another language can translate it. Keep the translations in the package's own `lang` folder, as themes do; see [Languages in a theme](../themes/languages.md).
+- Every word a person reads goes through `__()`, with the English sentence as its key, so a site in another language can translate it.
+- A theme keeps its translations in its own `lang` folder, and Teme loads the active theme's; see [Languages in a theme](../themes/languages.md).
+- Teme doesn't load a plugin's `lang` folder today, so a plugin's words show in English on every site. Wrap them in `__()` all the same.
 
 ### License
 

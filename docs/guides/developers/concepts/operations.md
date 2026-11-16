@@ -3,7 +3,7 @@ title: Operations
 type: concept
 audience: plugin
 summary: Every change goes through an Operation; what a plugin may and may not touch.
-rests_on: [docs/architecture/operations.md, docs/architecture/plugins.md, packages/teme-contracts/src/Plugins]
+rests_on: [docs/architecture/operations.md, docs/architecture/plugins.md, packages/teme-contracts/src/Plugins, app/Domain/Plugins/Seams/PluginServices.php, app/Domain/Plugins/PluginLoader.php]
 ---
 
 # Operations
@@ -12,13 +12,16 @@ Every state mutation in Teme goes through an Operation: create a draft, publish 
 
 ## What that means for a plugin
 
-A plugin does not open the database and change a row. When plugins gain content-write abilities, they will call the same Operations the admin uses, so every change is a normal revision with the same permission checks and hooks.
+A plugin never changes Teme's own rows. When it writes content, it does so through the content door, `ContentWriter`, which calls the same Operations the editor uses, on behalf of a named person: every change is a normal revision, with the same permission checks and hooks. See [Plugins writing content](../plugins/content-write.md).
 
-Until those sockets land, a plugin with `content.read` may listen and read through the contracts Teme hands its constructor — for example the settings reader — and must not reach into application code under the App namespace.
+What a plugin may do is set by the contracts Teme hands its constructor, each given only for a capability the plugin was granted. The [contracts reference](../../../reference/contracts.md) lists them, with the capability that gives each; a constructor that asks for anything else is refused.
+
+The one place a plugin opens the database is its own tables: those its migrations created and its manifest lists, never Teme's. See [Your plugin's own tables](../plugins/tables.md).
 
 ## What a plugin may touch
 
 - Contracts in `teme/contracts` that its constructor asks for and its capabilities unlock.
+- Its own tables, through Laravel's query builder.
 - Hooks it declared and was granted.
 - Its own classes under its package namespace.
 
