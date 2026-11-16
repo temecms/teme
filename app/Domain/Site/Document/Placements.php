@@ -9,7 +9,9 @@ use Illuminate\Contracts\Container\Container;
 /**
  * The fragments every placement contributor gives one placement of the page
  * (I-228), read plugin, then site, then core, each key's first kept, for the
- * document shell to write as given.
+ * document shell to write as given. A plugin's fragments come cleaned, their
+ * scripts' hashes taken from the markup it gave, never from the page
+ * (PluginPlacements, I-697).
  */
 final readonly class Placements
 {
@@ -32,8 +34,6 @@ final readonly class Placements
                 $kept[$fragment->key] ??= $fragment;
             }
         }
-
-        // Later (I-697): a plugin's fragments lose their JSON-LD scripts and on* attributes here, and their inline scripts are hashed from the Fragment, never from the page.
 
         return array_values($kept);
     }
