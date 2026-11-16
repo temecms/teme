@@ -70,7 +70,8 @@ location @teme_extension_themes {
     root /var/teme/extensions/current/public;
     # A link inside a theme's files is followed only to a file of the installer's own.
     disable_symlinks if_not_owner from=/var/teme/extensions/current/public;
-    try_files $uri =404;
+    # No theme's file: the site may have a page at this address.
+    try_files $uri @teme_app;
 }
 
 # Block PHP execution in storage directory to prevent uploaded malicious PHP files from running

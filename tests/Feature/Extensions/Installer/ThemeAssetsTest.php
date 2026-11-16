@@ -26,3 +26,8 @@ it('serves the image’s own theme files first, then the current release’s, an
 it('follows no link from a theme’s files to a file the installer doesn’t own', function (): void {
     expect(themeLocations()['@teme_extension_themes'])->toContain('disable_symlinks if_not_owner from=/var/teme/extensions/current/public;');
 });
+
+it('hands an address under /themes/ that is no theme’s file to the site, which may have a page there', function (): void {
+    expect(themeLocations()['@teme_extension_themes'])->toContain('try_files $uri @teme_app;')
+        ->and(themeLocations()['@teme_extension_themes'])->not->toContain('=404');
+});
