@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins;
 
 use App\Domain\Plugins\Faults\SpooledFaults;
+use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
@@ -34,6 +35,7 @@ final readonly class PluginLoader
         private PluginContributions $contributions,
         private SpooledFaults $faults,
         private PluginMigrations $migrations,
+        private Dependencies $dependencies,
     ) {}
 
     /**
@@ -64,7 +66,8 @@ final readonly class PluginLoader
         /** @var list<string> $disabledOnServer every plugin's switch returned above */
         $disabledOnServer = $this->disabledOnServer();
 
-        foreach ($records as $record) {
+        // A plugin's own hooks' classes load before a plugin that listens to them.
+        foreach ($this->dependencies->ordered($records) as $record) {
             $plugin = $found[$record->name] ?? null;
             $why = $this->skipReason($record, $plugin, $disabledOnServer);
 
@@ -95,6 +98,7 @@ final readonly class PluginLoader
             $disabledOnServer === true || in_array($record->name, $disabledOnServer, true) => PluginState::DisabledOnServer,
             $plugin === null => PluginState::CodeGone,
             ! $plugin->usable() || $plugin->manifest === null || $this->validator->liveErrors($plugin) !== [] => PluginState::CantBeUsed,
+            $this->dependencies->problems($plugin->manifest) !== [] || $this->dependencies->unmet($plugin->manifest) !== null => PluginState::CantBeUsed,
             ! Consent::covers($record->consent, $plugin->manifest) => PluginState::Waiting,
             $this->migrations->waiting($plugin, $record->migrations) !== [] => PluginState::Waiting,
             default => null,
@@ -122,6 +126,12 @@ final readonly class PluginLoader
 
         try {
             $instance = $this->build($plugin, $record);
+            $refusal = DeclaredHooks::refusal($manifest, $this->namespaces($plugin));
+
+            if ($refusal !== null) {
+                throw new PluginRefused($refusal);
+            }
+
             $instance->register($hooks);
             $jobs = $manifest->raw()['jobs'] ?? [];
             $problems = $this->contributions->add($plugin->name, $plugin->code, $manifest->label(), $manifest->version(), $manifest->contributes(), $instance, is_array($jobs) ? array_values($jobs) : []);
@@ -182,6 +192,21 @@ final readonly class PluginLoader
         }
 
         return $instance;
+    }
+
+    /**
+     * The namespaces the plugin's own composer.json autoloads, each ending
+     * in a backslash: where its own hooks' classes must be.
+     *
+     * @return list<string>
+     */
+    private function namespaces(FoundPlugin $plugin): array
+    {
+        $composer = json_decode((string) @file_get_contents($plugin->path.'/composer.json'), true);
+        $composer = is_array($composer) ? $composer : (app(InstalledPackages::class)->entry($plugin->name) ?? []);
+        $psr4 = is_array($composer['autoload']['psr-4'] ?? null) ? $composer['autoload']['psr-4'] : [];
+
+        return array_values(array_filter(array_map(fn (int|string $prefix): string => (string) $prefix, array_keys($psr4)), fn (string $prefix): bool => str_ends_with($prefix, '\\')));
     }
 
     /**

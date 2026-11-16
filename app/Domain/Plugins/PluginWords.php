@@ -26,6 +26,7 @@ final readonly class PluginWords
         'MediaStored' => 'a file uploaded or replaced',
         'CommentStatusChanged' => 'a comment’s status changed',
         'SettingsChanged' => 'a setting changed',
+        'ArticleLinks' => 'an article’s links drawn',
     ];
 
     /**
@@ -34,14 +35,16 @@ final readonly class PluginWords
      *
      * @param  list<string>  $hosts
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
+     * @param  list<string>  $notices  the labels of the kinds of notice it declares
      */
-    public static function capability(string $capability, array $hosts = [], array $imports = []): string
+    public static function capability(string $capability, array $hosts = [], array $imports = [], array $notices = []): string
     {
         return match ($capability) {
             Capability::ImportWordPress->value => self::imports($imports),
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
             Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
+            Capability::ContentLinks->value => __('Change how links in your articles behave: nofollow, new tab'),
             Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
             Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
             Capability::Jobs->value => __('Run work in the background and on a schedule'),
@@ -49,6 +52,7 @@ final readonly class PluginWords
             Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
             Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
+            Capability::NoticesSend->value => __('Send notices to people on this site, by email or in their inbox: :kinds', ['kinds' => implode('; ', $notices)]),
             default => $capability,
         };
     }
@@ -82,6 +86,15 @@ final readonly class PluginWords
         }
 
         return __('Read from the WordPress site you import: :what', ['what' => implode('; ', $parts)]);
+    }
+
+    /**
+     * The consent's line for a plugin this one requires, which must stay
+     * enabled while this one is (docs/plans/plugin-sockets-3.md).
+     */
+    public static function needs(string $plugin): string
+    {
+        return __('Needs :plugin, which must stay enabled.', ['plugin' => $plugin]);
     }
 
     /**

@@ -6,10 +6,14 @@ use App\Domain\Contents\Operations\Input\PublishRevisionInput;
 use App\Domain\Contents\Operations\Input\SchedulePublicationInput;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Themes\ManifestValidator;
+use Teme\Contracts\Content\ArticleLinks;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
+use Teme\Contracts\Content\LinkAttributes;
 use Teme\Contracts\Content\NewItem;
+use Teme\Contracts\Content\OutboundLink;
 use Teme\Contracts\Content\WriteRefused;
+use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
@@ -93,6 +97,10 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRows::class, '0.9.0'],
     [ListRow::class, '0.9.0'],
     [Cell::class, '0.9.0'],
+    [HookSender::class, '0.9.0'],
+    [ArticleLinks::class, '0.9.0'],
+    [LinkAttributes::class, '0.9.0'],
+    [OutboundLink::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -114,6 +122,8 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'import.wordpress',
         'fediverse.read',
         'fediverse.send',
+        'notices.send',
+        'content.links',
     ]);
 });
 

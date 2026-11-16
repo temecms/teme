@@ -8,17 +8,20 @@ use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Jobs\Operations\CancelJob;
 use App\Domain\Jobs\Operations\Input\CancelJobInput;
+use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\Jobs\PluginJobKind;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\PluginRecords;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
@@ -29,7 +32,8 @@ use Teme\Contracts\Plugins\Capability;
 /**
  * Disables an enabled plugin (I-3353, I-3445): a person who holds
  * plugins.manage, or the operator, with no password, since it takes access
- * away. Keeps the row and what was agreed to. After commit, cancels its
+ * away. Refused while an enabled plugin requires it. Keeps the row and
+ * what was agreed to. After commit, cancels its
  * waiting and running plugin jobs as the operator. Returns its name.
  */
 final class DisablePlugin extends BaseOperation
@@ -40,6 +44,8 @@ final class DisablePlugin extends BaseOperation
         private readonly PluginRecords $records,
         private readonly SecurityLog $log,
         private readonly CancelJob $cancel,
+        private readonly Dependencies $dependencies,
+        private readonly PluginRegistry $registry,
     ) {}
 
     protected function validate(OperationInput $input): void
@@ -50,6 +56,8 @@ final class DisablePlugin extends BaseOperation
         if (! $enabled) {
             throw ValidationException::withMessages(['plugin' => ['It isn’t enabled.']]);
         }
+
+        $this->refuseWhileNeeded($input->name);
     }
 
     protected function perform(OperationInput $input): string
@@ -61,6 +69,9 @@ final class DisablePlugin extends BaseOperation
         if ($record === null || $record->state !== PluginRecord::ENABLED) {
             throw ValidationException::withMessages(['plugin' => ['It isn’t enabled.']]);
         }
+
+        // Under the lock EnablePlugin takes on the plugins a plugin requires, so an enable racing this disable is seen.
+        $this->refuseWhileNeeded($input->name);
 
         $code = $record->code;
 
@@ -74,8 +85,8 @@ final class DisablePlugin extends BaseOperation
         $this->log->record(SecurityEventType::PluginDisabled, $input->actorId(), context: ['plugin' => $input->name]);
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
 
-        // Its insertions leave the article pages that drew them, after commit (I-064).
-        if (in_array(Capability::ContentInsert->value, $record->consent['capabilities'] ?? [], true)) {
+        // Its insertions and link attributes leave the article pages that drew them, after commit (I-064).
+        if (array_intersect([Capability::ContentInsert->value, Capability::ContentLinks->value], $record->consent['capabilities'] ?? []) !== []) {
             app(InsertionsChanged::class)->notify();
         }
 
@@ -87,6 +98,24 @@ final class DisablePlugin extends BaseOperation
         });
 
         return $input->name;
+    }
+
+    /**
+     * Refuses, naming them, while an enabled plugin requires this one
+     * (docs/plans/plugin-sockets-3.md). Safe mode switches everything off
+     * without asking this.
+     *
+     * @throws ValidationException
+     */
+    private function refuseWhileNeeded(string $name): void
+    {
+        $dependents = $this->dependencies->enabledDependents($name);
+
+        if ($dependents !== []) {
+            $names = Arr::join(array_map(fn (string $dependent): string => $this->registry->find($dependent)?->manifest?->label() ?: $dependent, $dependents), ', ', ' '.__('and').' ');
+
+            throw ValidationException::withMessages(['plugin' => [__(':dependents needs it. Disable :dependents first.', ['dependents' => $names])]]);
+        }
     }
 
     /**

@@ -61,6 +61,18 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "The Teme versions it works with, as a Composer constraint."
+                },
+                "plugins": {
+                    "type": "object",
+                    "maxProperties": 5,
+                    "description": "Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint.",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1
+                    }
                 }
             }
         },
@@ -84,7 +96,9 @@
                     "routes.public",
                     "import.wordpress",
                     "fediverse.read",
-                    "fediverse.send"
+                    "fediverse.send",
+                    "notices.send",
+                    "content.links"
                 ]
             }
         },
@@ -235,10 +249,10 @@
         },
         "hooks": {
             "type": "array",
-            "description": "The hooks the plugin listens to, by name.",
+            "description": "The hooks the plugin listens to, by name: a Teme hook's, or another plugin's as code:Name.",
             "items": {
                 "type": "string",
-                "pattern": "^[A-Z][A-Za-z]+$"
+                "pattern": "^([a-z0-9][a-z0-9-]{1,39}:)?[A-Z][A-Za-z]+$"
             }
         },
         "contributes": {
@@ -355,6 +369,73 @@
                                 "type": "string",
                                 "pattern": "^(settings|https://.+)$",
                                 "description": "Where it leads: the plugin's settings, or an https address."
+                            }
+                        }
+                    }
+                },
+                "notices": {
+                    "type": "array",
+                    "maxItems": 5,
+                    "description": "Kinds of notice the plugin sends through Notices, with notices.send; never required.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "audience", "channels"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{1,31}$",
+                                "description": "Its id within the plugin."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "description": "The choice as Account › Notifications words it."
+                            },
+                            "audience": {
+                                "enum": ["starter", "plugins.manage"],
+                                "description": "Who may receive it: only the person the plugin's work acts for, or those who manage plugins."
+                            },
+                            "channels": {
+                                "type": "array",
+                                "minItems": 1,
+                                "uniqueItems": true,
+                                "items": { "enum": ["mail", "inbox"] }
+                            },
+                            "defaults": {
+                                "type": "array",
+                                "uniqueItems": true,
+                                "items": { "enum": ["mail", "inbox"] },
+                                "description": "The channels on until the person chooses; some of its channels."
+                            }
+                        }
+                    }
+                },
+                "hooks": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "description": "Hooks the plugin declares for other plugins, which it sends through HookSender.",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "class", "description"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "pattern": "^[A-Z][A-Za-z]{2,47}$",
+                                "description": "Its name; other plugins list it as code:Name."
+                            },
+                            "class": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Its class, in the plugin's own namespace: a Notification, Transform or Collect hook with #[HookContract]."
+                            },
+                            "description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "What it is for, in one sentence."
                             }
                         }
                     }

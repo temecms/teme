@@ -6,18 +6,27 @@ namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Fediverse\Sockets\PluginFollowers;
 use App\Domain\Fediverse\Sockets\PluginSender;
+use App\Domain\Hooks\HookDispatcher;
 use App\Domain\Jobs\Operations\StartJob;
+use App\Domain\Notices\NoticeSender;
+use App\Domain\Plugins\Hooks\DeclaredHooks;
+use App\Domain\Plugins\Hooks\PluginHookSender;
 use App\Domain\Plugins\Jobs\PluginJobs;
+use App\Domain\Plugins\Notices\DeclaredNotices;
+use App\Domain\Plugins\Notices\NoticeRate;
+use App\Domain\Plugins\Notices\PluginNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Seams\PluginServices;
 use App\Domain\Site\Insertions\CoreInsertionsChanged;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
+use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
@@ -26,8 +35,9 @@ use Teme\Contracts\Settings\SettingsReader;
  * What Teme offers a plugin's constructor: the settings reader, its own
  * secrets, the content and media write doors when granted, the outbound
  * door to its hosts when it was granted http, InsertionsChanged when it was
- * granted content.insert (I-064), and the other doors its capabilities open
- * (I-3353). Bound as the loader's
+ * granted content.insert (I-064), the other doors its capabilities open
+ * (I-3353), HookSender when it declares hooks of its own, and Notices for
+ * its declared kinds when it was granted notices.send. Bound as the loader's
  * PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
@@ -39,6 +49,8 @@ final readonly class PluginDoors implements PluginServices
         private StartJob $start,
         private PluginRegistry $registry,
         private CoreInsertionsChanged $insertionsChanged,
+        private HookDispatcher $dispatcher,
+        private NoticeSender $notices,
     ) {}
 
     /**
@@ -84,6 +96,18 @@ final readonly class PluginDoors implements PluginServices
 
         if (in_array(Capability::FediverseSend->value, $capabilities, true)) {
             $offered[FediverseSender::class] = new PluginSender($name);
+        }
+
+        $manifest = $this->registry->find($name)?->manifest;
+        $declaredHooks = $manifest === null ? [] : DeclaredHooks::of($manifest);
+
+        if (in_array(Capability::NoticesSend->value, $capabilities, true)) {
+            $kinds = $manifest === null ? [] : DeclaredNotices::of($manifest);
+            $offered[Notices::class] = new PluginNotices($name, $code, array_map(fn (array $kind): string => $kind['audience'], $kinds), $this->notices, new NoticeRate);
+        }
+
+        if ($declaredHooks !== []) {
+            $offered[HookSender::class] = new PluginHookSender($manifest->label(), array_column($declaredHooks, 'class'), $this->dispatcher);
         }
 
         return $offered;

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -35,7 +37,8 @@ use Teme\Contracts\Plugins\Capability;
  * be what it asks for now; none of its public routes may collide with one
  * that answers already. Runs its waiting migrations inside the same
  * transaction, records that consent, for this exact version and by whom,
- * and clears its faults and stopped parts. Returns its name.
+ * and clears its faults and stopped parts. Refused while a plugin it
+ * requires isn't enabled at a version it accepts. Returns its name.
  */
 final class EnablePlugin extends BaseOperation implements RequiresElevation
 {
@@ -48,6 +51,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly SecurityLog $log,
         private readonly PublicRouteRegistry $publicRoutes,
         private readonly RouteCollisions $routeCollisions,
+        private readonly Dependencies $dependencies,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -79,6 +83,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         if (! $same) {
             throw ValidationException::withMessages(['plugin' => ['It asks for something different now. Look again before you enable it.']]);
         }
+
+        $this->refuseUnmetDependencies($manifest);
 
         // Two owners never answer one request: refused before anything is written (docs/proposals/plugin-public-routes.md).
         $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
@@ -120,6 +126,14 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         $found = $this->registry->find($input->name) ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
         $manifest = $found->manifest ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
 
+        // The plugins it needs, locked as DisablePlugin locks its own row, then checked again: a disable racing this enable waits, then sees it.
+        $required = array_keys(Dependencies::required($manifest));
+
+        if ($required !== []) {
+            PluginRecord::query()->whereIn('name', $required)->orderBy('name')->lockForUpdate()->get();
+            $this->refuseUnmetDependencies($manifest);
+        }
+
         try {
             $migrations = $this->migrations->run($found, $record->migrations);
         } catch (PluginTablesRefused $refused) {
@@ -157,8 +171,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         ]);
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
 
-        // Article pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
-        if (in_array(Capability::ContentInsert->value, $input->capabilities, true)) {
+        // Article pages drawn before it was enabled are drawn again with its insertions and link attributes, after commit (I-064).
+        if (array_intersect([Capability::ContentInsert->value, Capability::ContentLinks->value], $input->capabilities) !== []) {
             app(InsertionsChanged::class)->notify();
         }
 
@@ -178,6 +192,22 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         $declared = $found->manifest === null ? [] : Consent::declaredImports($found->manifest);
 
         return $declared === [] ? [] : ['imports' => $declared];
+    }
+
+    /**
+     * Refuses, naming the first, when a plugin it needs isn't enabled at a
+     * version it accepts, or it listens to a plugin's hook without requiring
+     * that plugin (docs/plans/plugin-sockets-3.md).
+     *
+     * @throws ValidationException
+     */
+    private function refuseUnmetDependencies(Manifest $manifest): void
+    {
+        $why = $this->dependencies->problems($manifest)[0] ?? $this->dependencies->unmet($manifest, fresh: true);
+
+        if ($why !== null) {
+            throw ValidationException::withMessages(['plugin' => [$why]]);
+        }
     }
 
     /**

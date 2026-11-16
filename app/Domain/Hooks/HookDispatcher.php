@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Hooks;
 
+use App\Domain\Plugins\Hooks\PluginHookCatalogue;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use LogicException;
@@ -381,6 +382,20 @@ final class HookDispatcher
         $replacement = $contract->use === null ? '' : ' Use '.self::shortName($contract->use).' instead.';
 
         Log::notice($owner.' listens for '.self::shortName($hook).', which Teme stops sending in '.$contract->removedIn.'.'.$replacement);
+    }
+
+    /**
+     * Returns a hook's name as a manifest lists it: a core hook's short
+     * name, or `{code}:{name}` for a hook an enabled plugin declares
+     * (docs/plans/plugin-sockets-3.md).
+     */
+    public function nameOf(string $hook): string
+    {
+        if (str_starts_with($hook, 'Teme\\Contracts\\')) {
+            return self::shortName($hook);
+        }
+
+        return app(PluginHookCatalogue::class)->fullName($hook) ?? self::shortName($hook);
     }
 
     /**

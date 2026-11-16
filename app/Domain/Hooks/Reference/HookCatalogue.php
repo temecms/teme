@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Hooks\Reference;
 
+use Teme\Contracts\Content\ArticleLinks;
+use App\Domain\Plugins\Hooks\DeclaredHooks;
+use App\Domain\Plugins\Hooks\PluginHookCatalogue;
+use App\Domain\Plugins\ManifestValidator;
 use Teme\Contracts\Comments\CommentStatusChanged;
 use Teme\Contracts\Content\ContentDeleted;
 use Teme\Contracts\Content\ContentPublished;
@@ -51,5 +55,32 @@ final class HookCatalogue
         CollectObjectBuilders::class,
         ObjectBuilt::class,
         ActorDocumentBuilt::class,
+        ArticleLinks::class,
     ];
+
+    /**
+     * Returns the hooks each enabled plugin declares for other plugins, by
+     * plugin, each with its full name, verb, description and the capability
+     * a listener needs (docs/plans/plugin-sockets-3.md). A hook whose
+     * class isn't loaded shows no verb and no capability.
+     *
+     * @return array<string, list<array{name: string, verb: string, description: string, capability: string|null}>>
+     */
+    public static function plugins(): array
+    {
+        $listed = [];
+
+        foreach (app(PluginHookCatalogue::class)->all() as $hook) {
+            $loaded = class_exists($hook['class'], false);
+
+            $listed[$hook['plugin']][] = [
+                'name' => $hook['fullName'],
+                'verb' => $loaded ? DeclaredHooks::verb($hook['class']) : '',
+                'description' => $hook['description'],
+                'capability' => $loaded ? ManifestValidator::capabilityOf($hook['class']) : null,
+            ];
+        }
+
+        return $listed;
+    }
 }

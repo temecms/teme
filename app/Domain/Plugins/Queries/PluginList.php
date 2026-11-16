@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Manifest;
@@ -32,6 +33,7 @@ final readonly class PluginList
         private LoadedPlugins $loaded,
         private PluginLoader $loader,
         private PluginMigrations $migrations,
+        private Dependencies $dependencies,
     ) {}
 
     /**
@@ -78,6 +80,7 @@ final readonly class PluginList
             asks: ['capabilities' => $manifest?->capabilities() ?? [], 'hosts' => $manifest?->hosts() ?? [], 'hooks' => $manifest?->hooks() ?? []],
             added: $manifest === null ? ['capabilities' => [], 'hosts' => [], 'routes' => []] : Consent::added($consent, $manifest),
             stopped: array_keys($stopped),
+            requiredBy: $this->dependencies->requiredBy($name),
         );
     }
 
@@ -92,7 +95,7 @@ final readonly class PluginList
      */
     private function state(string $name, ?FoundPlugin $plugin, ?PluginRecord $record, array $stopped, array $people, true|array $disabledOnServer): array
     {
-        $cantBeUsed = $plugin === null ? null : $this->cantBeUsed($plugin);
+        $cantBeUsed = $plugin === null ? null : $this->cantBeUsed($plugin, $record !== null && $record->state === PluginRecord::ENABLED);
 
         if ($record === null) {
             return $cantBeUsed === null ? [PluginState::NotEnabled, __('Installed, not enabled yet.')] : [PluginState::CantBeUsed, $cantBeUsed];
@@ -171,7 +174,7 @@ final readonly class PluginList
      * Why the plugin can't be used, or null: the Teme version it needs, else
      * its first problem, with how many more there are.
      */
-    private function cantBeUsed(FoundPlugin $plugin): ?string
+    private function cantBeUsed(FoundPlugin $plugin, bool $enabled): ?string
     {
         $constraint = $plugin->manifest?->teme() ?? '';
         $version = (string) config('teme.version');
@@ -184,7 +187,14 @@ final readonly class PluginList
             // Not a constraint: the manifest's own problem says so below.
         }
 
-        $problems = array_values(array_unique([...$plugin->problems, ...$this->validator->liveErrors($plugin)]));
+        // An enabled plugin whose required plugins changed stops until either changes (docs/plans/plugin-sockets-3.md).
+        $unmet = $enabled && $plugin->manifest !== null ? $this->dependencies->unmet($plugin->manifest) : null;
+
+        if ($unmet !== null) {
+            return $unmet;
+        }
+
+        $problems = array_values(array_unique([...$plugin->problems, ...$this->validator->liveErrors($plugin), ...($plugin->manifest === null ? [] : $this->dependencies->problems($plugin->manifest))]));
 
         if ($problems === []) {
             return null;

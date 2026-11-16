@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
+use App\Domain\Plugins\Hooks\DeclaredHooks;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
@@ -67,6 +69,10 @@ final class ContributionsValidator implements ContributionsCheck
             // Reserved in the manifest's shape, read by nothing yet (I-3375).
             if ($surface === 'csp') {
                 $errors[] = __('A plugin\'s csp is read only with the site.output permission, which Teme doesn\'t offer yet.');
+            } elseif ($surface === 'notices') {
+                array_push($errors, ...DeclaredNotices::errors($contributes['notices']));
+            } elseif ($surface === 'hooks') {
+                array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
             } elseif ($surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns') {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
