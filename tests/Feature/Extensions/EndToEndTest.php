@@ -17,6 +17,7 @@ use App\Domain\Plugins\Operations\DisablePlugin;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Queries\PluginsScreen;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -100,6 +101,8 @@ beforeEach(function (): void {
         $path = $this->folder->store->path((string) $this->folder->store->current()).'/vendor/fixtures/hello-extension';
         $version = ($this->runs)();
         PluginFixtures::installed($version === null ? [] : ['fixtures/hello-extension' => $path], $version === null ? [] : ['fixtures/hello-extension' => ['version' => $version]]);
+        // A fresh process reads the current release again; the registry here keeps what it found.
+        app(PluginRegistry::class)->flush();
 
         return collect(app(PluginsScreen::class)->rows())->firstWhere('name', 'fixtures/hello-extension');
     };
