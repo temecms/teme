@@ -9,7 +9,7 @@ use App\Domain\Site\Insertions\Operations\Input\RequestPluginScriptInput;
 use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
 use App\Domain\Site\Insertions\Scripts\PluginScript;
 use App\Domain\Support\Operations\BaseOperation;
-use App\Models\User;
+use App\Domain\Users\Actors;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +27,7 @@ final class RequestPluginScript extends BaseOperation
     protected function authorize(OperationInput $input): void
     {
         /** @var RequestPluginScriptInput $input */
-        if (! ctype_digit($input->actorId) || User::query()->find($input->actorId) === null) {
+        if (! ctype_digit($input->actorId) || app(Actors::class)->find($input->actorId) === null) {
             throw new AuthorizationException('A plugin asks for a script on behalf of a person.');
         }
 

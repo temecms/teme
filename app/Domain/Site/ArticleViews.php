@@ -102,7 +102,8 @@ final readonly class ArticleViews
         $lead = $this->leads->for($content, $document, $this->design->showsFeaturedImage(), $fields);
         // One read of the credits serves the byline, the comments' author mark and insertion facts (I-3366, I-064).
         $credits = app(Credits::class)->shown([(string) $content->id])[(string) $content->id] ?? [];
-        $plan = $this->insertionPlan($content, $revision, $document, $language, $credits, $fields, $drawInsertions);
+        $url = Addresses::relativeUrl($content) ?? '';
+        $plan = $this->insertionPlan($content, $revision, $document, $language, $credits, $fields, $drawInsertions, $url);
         $body = $this->renderer->html($document, new RenderContext(
             app(LinkResolver::class),
             usage: app(CardUsage::class),
@@ -116,7 +117,6 @@ final readonly class ArticleViews
         $updated = $saved->greaterThanOrEqualTo($published->addHours(self::UPDATED_AFTER_HOURS)) ? $saved : null;
 
         [$kicker, $tags, $section] = $this->terms((string) $content->type, array_map('strval', (array) $revision->terms), $fields[BuiltInFields::PRIMARY_CATEGORY] ?? null);
-        $url = Addresses::relativeUrl($content) ?? '';
         [$ancestors, $parent, $children] = $this->family($content);
 
         return new ArticleView(
@@ -159,8 +159,9 @@ final readonly class ArticleViews
      * @param  array<mixed>  $document
      * @param  list<object>  $credits
      * @param  array<string, mixed>  $fields
+     * @param  string  $url  the article's address, relative
      */
-    private function insertionPlan(Content $content, ContentRevision $revision, array $document, string $language, array $credits, array $fields, bool $drawInsertions): ?InsertionPlan
+    private function insertionPlan(Content $content, ContentRevision $revision, array $document, string $language, array $credits, array $fields, bool $drawInsertions, string $url): ?InsertionPlan
     {
         if (! $drawInsertions || ($fields[BuiltInFields::INSERTIONS_OFF] ?? false) === true) {
             return null;
@@ -192,7 +193,7 @@ final readonly class ArticleViews
             authorIds: array_map(fn (object $person): string => (string) $person->id, $credits),
             words: (int) $revision->word_count,
             paragraphs: $paragraphs,
-            path: Addresses::relativeUrl($content) ?? '',
+            path: $url,
         );
 
         // The page's own contributors are asked with this article's facts (docs/plans/plugin-sockets-2.md).
