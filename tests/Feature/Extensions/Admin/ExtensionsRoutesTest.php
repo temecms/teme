@@ -149,6 +149,16 @@ it('saves a source with its key and never sends the key back, then removes it', 
     expect(DB::table('extension_sources')->count())->toBe(0);
 });
 
+it('never flashes a source’s key into the session when the form is refused', function (): void {
+
+    $this->actingAs($this->admin)->withSession($this->confirmed)->from('/admin/plugins')
+        ->post('/admin/extensions/sources', ['kind' => 'git', 'label' => str_repeat('a', 101), 'url' => 'https://git.example.com/acme.git', 'credential' => 'ghp_x'])
+        ->assertSessionHasErrors('label');
+
+    expect(json_encode(session()->all()))->not->toContain('ghp_x')
+        ->and(DB::table('extension_sources')->count())->toBe(0);
+});
+
 it('keeps an upload and flashes its package and version', function (): void {
     $this->actingAs($this->admin)->withSession($this->confirmed)->from('/admin/plugins')
         ->post('/admin/extensions/uploads', ['archive' => UploadedFile::fake()->createWithContent('hello.zip', ($this->zip)())])
