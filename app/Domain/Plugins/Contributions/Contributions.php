@@ -12,6 +12,7 @@ use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Lists\HasListColumns;
+use Teme\Contracts\Lists\HasPluginLists;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck as PluginCheck;
 
@@ -51,6 +52,8 @@ final readonly class Contributions implements PluginContributions
 
         array_push($errors, ...$this->jobHandlers($jobs, $plugin));
         array_push($errors, ...$this->columnHandlers($contributes['columns'] ?? [], $plugin));
+        array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
+        array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
 
         if ($errors !== []) {
             return $errors;
@@ -172,6 +175,76 @@ final readonly class Contributions implements PluginContributions
         foreach ($handlers as $id) {
             if (! isset($declared[$id])) {
                 $errors[] = "It has a handler for column \"{$id}\", which isn’t declared.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Declared list ids must match the plugin's pluginLists() keys, and the
+     * other way round (docs/proposals/plugin-sockets-1.md). Lists are not
+     * registered here; the settings page reads them from the manifest.
+     *
+     * @return list<string>
+     */
+    private function listHandlers(mixed $lists, object $plugin): array
+    {
+        $declared = [];
+
+        foreach (is_array($lists) ? $lists : [] as $entry) {
+            if (is_array($entry) && is_string($entry['id'] ?? null)) {
+                $declared[$entry['id']] = true;
+            }
+        }
+
+        if (! ($plugin instanceof HasPluginLists)) {
+            return $declared === []
+                ? []
+                : ['It declares lists but doesn’t implement '.HasPluginLists::class.'.'];
+        }
+
+        $handlers = array_keys($plugin->pluginLists());
+        $errors = [];
+
+        foreach (array_keys($declared) as $id) {
+            if (! in_array($id, $handlers, true)) {
+                $errors[] = "It declares list \"{$id}\" but has no class for it.";
+            }
+        }
+
+        foreach ($handlers as $id) {
+            if (! isset($declared[$id])) {
+                $errors[] = "It has a class for list \"{$id}\", which isn’t declared.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Each action must queue a job the plugin declares, which needs jobs
+     * (docs/proposals/plugin-sockets-1.md).
+     *
+     * @param  list<mixed>  $jobs
+     *
+     * @return list<string>
+     */
+    private function actionJobs(mixed $actions, array $jobs): array
+    {
+        $declared = [];
+
+        foreach ($jobs as $entry) {
+            if (is_array($entry) && is_string($entry['key'] ?? null)) {
+                $declared[$entry['key']] = true;
+            }
+        }
+
+        $errors = [];
+
+        foreach (is_array($actions) ? $actions : [] as $action) {
+            if (is_array($action) && is_string($action['id'] ?? null) && is_string($action['job'] ?? null) && ! isset($declared[$action['job']])) {
+                $errors[] = "Its action \"{$action['id']}\" queues the job \"{$action['job']}\", which it doesn’t declare.";
             }
         }
 

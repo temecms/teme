@@ -11,6 +11,7 @@ use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
@@ -23,7 +24,7 @@ use Teme\Contracts\Site\SiteInfo;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

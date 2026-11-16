@@ -11,7 +11,9 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Security\JobActor;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Teme\Contracts\Plugins\Capability;
 use Throwable;
 
@@ -20,7 +22,8 @@ use Throwable;
  * plugins that were granted jobs, whose code is present. Records each run
  * time on the plugin row in the same transaction as StartJob. Each schedule
  * runs as the administrator who enabled the plugin (`consented_by`), with
- * that person's normal permissions — never the operator's elevation.
+ * that person's normal permissions — never the operator's elevation. A
+ * plugin whose schedules can't run, by ScheduleRunner, is skipped.
  *
  * Safe mode is not checked here: the command name matches SafeMode's
  * `teme:plugins:` prefix, so active() would always skip every schedule
@@ -41,6 +44,7 @@ final readonly class DueSchedules
     public function __construct(
         private PluginRegistry $registry,
         private StartJob $start,
+        private ScheduleRunner $runner,
     ) {}
 
     /**
@@ -76,7 +80,14 @@ final readonly class DueSchedules
             return 0;
         }
 
-        if ($record->consented_by === null) {
+        // Whom it would run as is gone or no longer allowed: skipped, and said in the log once a day (docs/proposals/plugin-sockets-1.md).
+        $problem = $this->runner->problem($record);
+
+        if ($problem !== null || $record->consented_by === null) {
+            if ($problem !== null && Cache::add("teme.plugins.schedules-problem.{$record->code}.".$now->toDateString(), true, 86_400 * 2)) {
+                Log::warning("{$record->name}: {$problem}");
+            }
+
             return 0;
         }
 

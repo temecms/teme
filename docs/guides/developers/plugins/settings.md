@@ -2,8 +2,8 @@
 title: Plugin settings and secrets
 type: how-to
 audience: plugin
-summary: How a plugin declares its settings screen in the manifest, reads its values, keeps API keys as secrets, reaches hosts a person types into them, and adds a Tools link.
-rests_on: [app/Domain/Plugins/Contributions, app/Domain/Plugins/Doors, app/Domain/Plugins/SettingHosts.php, packages/teme-contracts/src/Settings, packages/teme-contracts/schema/teme-plugin.schema.json, docs/architecture/settings.md]
+summary: How a plugin declares its settings screen in the manifest, reads and writes its values, keeps API keys as secrets, reaches hosts a person types into them, adds actions and lists to the page, and adds a Tools link.
+rests_on: [app/Domain/Plugins/Contributions, app/Domain/Plugins/Doors, app/Domain/Plugins/Lists, app/Domain/Plugins/SettingHosts.php, packages/teme-contracts/src/Settings, packages/teme-contracts/src/Lists, packages/teme-contracts/schema/teme-plugin.schema.json, docs/architecture/settings.md]
 ---
 
 # Plugin settings and secrets
@@ -57,6 +57,35 @@ An update that takes hosts from another setting waits until someone agrees again
 ## Hear when they change
 
 To act when someone saves your settings, list `SettingsChanged` under `hooks` in the manifest and subscribe to it in `register()`. It needs no capability. It carries the group's key, the keys that changed (never their values) and who saved them, and it arrives after the save commits. Check the group's key first: you hear every group's saves.
+
+## Write your own settings
+
+A plugin may save values in its own group, for example a key it generated the first time it ran. Ask for `PluginSettingsWriter` in your constructor; Teme offers it to every plugin that declares settings, with no capability to ask for.
+
+Call `write()` with values by declared key and the ID of the person the work is for: `$this->settings->write(['site_key' => $key], $personId)`. The save is the one that person could make on the settings page. Teme refuses it, writing nothing, unless:
+
+- that person is the one the current work runs for: the signed-in person, or the person a job runs as. A job queued by the command line runs as no one, and can't write;
+- that person may manage plugins, and your plugin is enabled;
+- every key is declared in your own group, and its type is `text`, `textarea`, `number`, `boolean`, `select`, `multiselect`, `email` or `color`. A plugin never writes a `secret`, `url` or `urls` setting: secrets need the person there, and an address may name a host the person hasn't agreed to;
+- every value passes the checks the settings page would make.
+
+A refusal throws `WriteRefused`, with one plain sentence saying why. The settings history records the person and your plugin as the way it was saved, and `SettingsChanged` is sent after the save commits, as for a save from the page.
+
+## Actions
+
+An action is a button on your settings page that queues one of your declared jobs, such as **Send a test ping**. It needs the `jobs` capability. Declare at most three under `contributes.actions`, each with an `id`, a `label` of up to 40 characters, an optional `description` of up to 160, and the `job` it queues: `{"id": "test-ping", "label": "Send a test ping", "job": "ping"}`.
+
+The job must be one you declare under `jobs`, or the plugin doesn't start. Only people who may manage plugins can run an action. It queues the job as that person, with the payload `{"action": "test-ping"}` so your handler knows where it came from, and the action's label as the job's label. A second click while that run still waits queues nothing more. The person is told the job is queued and can follow it in **Tools › Jobs**.
+
+## Lists
+
+A list is a small table on your settings page, such as the last pings sent and what came back. Declare at most two under `contributes.lists`, each with an `id`, a `label`, an optional `description`, one to six `columns` (each an `id`, a `label` and a `kind` of `text`, `number` or `badge`), and `rows`, the most it shows, from 1 to 50 (20 when absent).
+
+Implement `HasPluginLists` beside `Plugin`, returning a `PluginList` for each declared id. A declared list with no class, or a class for a list you don't declare, stops the plugin from starting. Teme asks each list for `rows()` once, with the most rows it shows, only while someone opens the page. Each row is an array of `Cell` values by column id; a missing cell shows empty. Make cells with `Cell::text()`, `Cell::number()` and `Cell::badge()`, as for [list columns](list-columns.md): Teme cleans and shortens the text and shows markup as text.
+
+Keep it fast: a list gets 100 ms, and the page 250 ms for all of them. A list that takes longer, or throws, shows `This list couldn’t be shown this time.` instead, and the fault is recorded under your plugin. A cell of another kind than its column's, or for a column you don't declare, is left out, and so are rows past the most it shows; that is recorded too.
+
+Teme checks both declarations and answers both on the page's data today; the panels that draw them below the settings form are still to come.
 
 ## A link in Tools
 

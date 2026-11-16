@@ -9,6 +9,8 @@ use App\Domain\Design\Operations\Input\ChangeBrandColourInput;
 use App\Domain\Languages\Operations\Input\SaveSettingsWordsInput;
 use App\Domain\Languages\Operations\SaveSettingsWords;
 use App\Domain\Languages\Queries\SettingsWords;
+use App\Domain\Plugins\Lists\PluginActions;
+use App\Domain\Plugins\Lists\PluginLists;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\Settings\Exceptions\StaleSettingsException;
 use App\Domain\Settings\Operations\Input\SaveSettingsPageInput;
@@ -32,7 +34,7 @@ use Inertia\Response;
  */
 final class SettingsController extends Controller
 {
-    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts): Response|RedirectResponse
+    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists): Response|RedirectResponse
     {
         // A group drawn under another page's name opens on that page, so its
         // own address, such as /admin/settings/content, keeps working.
@@ -77,6 +79,9 @@ final class SettingsController extends Controller
             'words' => SettingsWords::for(SettingsPlacement::groupShownOn($page)),
             // A plugin's hosts from its settings (docs/plans/plugin-sockets-1.md, A2): null for every other group.
             'pluginHosts' => $this->pluginHosts($hosts, SettingsPlacement::groupShownOn($page)),
+            // A plugin's own actions and lists, drawn below its settings (docs/proposals/plugin-sockets-1.md).
+            'pluginActions' => $actions->forGroup(SettingsPlacement::groupShownOn($page)),
+            'pluginLists' => $lists->forGroup(SettingsPlacement::groupShownOn($page)),
             ...$sections->for($page, $user),
         ]);
     }

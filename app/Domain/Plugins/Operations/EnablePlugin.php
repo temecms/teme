@@ -7,6 +7,7 @@ namespace App\Domain\Plugins\Operations;
 use App\Domain\Cache\PageTags;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
@@ -53,6 +54,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly PublicRouteRegistry $publicRoutes,
         private readonly RouteCollisions $routeCollisions,
         private readonly SettingHosts $settingHosts,
+        private readonly ScheduleRunner $schedules,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -100,6 +102,11 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => $collisions]);
         }
 
+        // The administrator the operator names for its schedules must still manage plugins (docs/proposals/plugin-sockets-1.md).
+        if ($input->schedulesAs !== null && ! $this->schedules->mayManage($input->schedulesAs)) {
+            throw ValidationException::withMessages(['plugin' => [__('No one who may manage plugins has that account.')]]);
+        }
+
         $taken = PluginRecord::query()->where('code', $plugin->code)->where('name', '!=', $plugin->name)->value('name');
 
         if (is_string($taken)) {
@@ -139,6 +146,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             throw ValidationException::withMessages(['plugin' => [$refused->getMessage()]]);
         }
 
+        $consentedBy = $input->actorId() ?? $input->schedulesAs;
+
         $record->fill([
             'code' => $code,
             'state' => PluginRecord::ENABLED,
@@ -154,7 +163,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->imports($found),
                 ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
             ],
-            'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
+            // Its schedules run as this person: who enabled it, or whom the operator named.
+            'consented_by' => $consentedBy === null ? null : (int) $consentedBy,
             'consented_at' => $now,
             'enabled_at' => $now,
             // Enabling again is the manual clear of what Teme stopped.
@@ -168,6 +178,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'version' => $input->version,
             'capabilities' => $input->capabilities,
             'hosts' => $input->hosts,
+            ...($input->actorId() === null && $input->schedulesAs !== null ? ['schedules_as' => $input->schedulesAs] : []),
         ]);
         // A stored "not found" at an address its root files now answer goes too (docs/guides/developers/plugins/root-files.md).
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));

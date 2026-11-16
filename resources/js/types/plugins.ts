@@ -52,6 +52,8 @@ export type PluginRowPage = {
     state: PluginState;
     badge: string;
     reason: string;
+    /** Why its schedules don't run, with what to do; null when they do or it has none (docs/proposals/plugin-sockets-1.md). */
+    schedules: string | null;
     enabled: boolean;
     needsAttention: boolean;
     action: 'enable' | 'review' | 'migrate' | 'disable' | null;

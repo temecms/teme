@@ -21,6 +21,7 @@ use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Site\SiteInfo;
@@ -31,8 +32,8 @@ use Teme\Contracts\Site\SiteInfo;
  * door to its hosts and those agreed in its settings when it was granted
  * http, InsertionsChanged when it was
  * granted content.insert (I-064), and the other doors its capabilities open
- * (I-3353). Bound as the loader's
- * PluginServices.
+ * (I-3353), and the writer of its own settings when it declares any.
+ * Bound as the loader's PluginServices.
  */
 final readonly class PluginDoors implements PluginServices
 {
@@ -94,6 +95,13 @@ final readonly class PluginDoors implements PluginServices
         }
 
         $offered[SiteInfo::class] = $this->site;
+
+        // Its own settings group only, for the person its work runs for (docs/proposals/plugin-sockets-1.md).
+        $settings = $this->registry->find($name)?->manifest?->contributes()['settings'] ?? null;
+
+        if (is_array($settings) && $settings !== []) {
+            $offered[PluginSettingsWriter::class] = new PluginSettingsWrites($code);
+        }
 
         return $offered;
     }

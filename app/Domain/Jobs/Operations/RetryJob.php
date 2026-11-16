@@ -51,6 +51,18 @@ final class RetryJob extends BaseOperation
             throw ValidationException::withMessages(['job' => __('Teme can’t retry this job, because what runs it is no longer installed.')]);
         }
 
+        // A keyed plugin run waits once at a time (docs/plans/plugin-sockets-1.md).
+        $uniqueKey = $job->getAttribute('unique_key');
+
+        if (is_string($uniqueKey) && TrackedJob::query()
+            ->where('owner', $job->owner)
+            ->where('run_id', $job->run_id)
+            ->where('unique_key', $uniqueKey)
+            ->where('state', JobState::Waiting->value)
+            ->exists()) {
+            throw ValidationException::withMessages(['job' => __('A run of this job is already waiting.')]);
+        }
+
         $job->update(['state' => JobState::Waiting, 'message' => __('Retrying from where it stopped.'), 'ended_at' => null]);
 
         $record = JobRecord::of($job);

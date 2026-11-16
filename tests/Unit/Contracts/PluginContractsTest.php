@@ -21,13 +21,17 @@ use Teme\Contracts\Jobs\JobHandler;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\JobStopped;
 use Teme\Contracts\Jobs\PluginHasJobs;
+use Teme\Contracts\Jobs\QueueOptions;
 use Teme\Contracts\Lists\Cell;
 use Teme\Contracts\Lists\HasListColumns;
+use Teme\Contracts\Lists\HasPluginLists;
 use Teme\Contracts\Lists\ListColumn;
 use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Lists\ListRows;
+use Teme\Contracts\Lists\PluginList;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Site\SiteInfo;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
@@ -98,6 +102,10 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRow::class, '0.9.0'],
     [Cell::class, '0.9.0'],
     [SiteInfo::class, '0.9.0'],
+    [PluginSettingsWriter::class, '0.9.0'],
+    [QueueOptions::class, '0.9.0'],
+    [HasPluginLists::class, '0.9.0'],
+    [PluginList::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
