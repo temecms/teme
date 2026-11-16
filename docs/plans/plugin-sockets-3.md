@@ -251,50 +251,92 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+Setup: `cat /tmp/teme-cloud-setup.log` gave "2026-11-16T10:33:47Z ran in /home/user/teme as root" and "2026-11-16T10:47:20Z finished"; `pwd` gave `/home/user/teme`.
+
 #### Commits on `sockets3/plugin-ai`
 
--
+- `8a4f0d2` feat(plugins): declared AI tasks, the ai capability and their consent (T1)
+- `8c7a2c0` feat(ai): record a plugin's AI requests and its monthly spend (T2)
+- `e8d7f99` feat(plugins): the SiteAi door, asking the site's AI for a plugin's declared task (T3)
+- `4015d8b` feat(ai): long AI requests of up to 600 seconds inside a long job (T4)
+- `f5d94f2` feat(ai): plugin AI settings, activity by plugin and the Plugins screen's AI figures (T5)
+- `5df8f5b` docs(handbook): the site's AI connection for plugins (T7)
+- T6 (the screens) is not built: it waits for the maintainers' approval of the drawings. This is not a STOP; it is left for a follow-up.
+- The quick check ran on the whole part before the commits were split by task, so an intermediate commit was not checked on its own.
 
 #### Tests seen red (first line of the failure)
 
+Seen red with the part's code under `app/`, `packages/`, `database/` and `resources/` set aside, and the tests and fixture in place.
+
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Ai/Plugins/PluginAiTasksTest.php` | 17 failed, 2 passed: the scribe manifest is refused (`ai` is no capability, `aiTasks` no surface); `Failed asserting that an array contains 'A plugin can declare at most 8 AI tasks.'` |
+| 2 | `tests/Feature/Ai/Plugins/PluginAiActivityTest.php` | 9 failed: `Undefined constant App\Domain\Ai\AiSubjectType::None`; the plugin column and month table are missing |
+| 3 | `tests/Feature/Ai/Plugins/SiteAiTest.php` | 20 failed: `ScribePlugin asks for Teme\Contracts\Ai\SiteAi; a plugin may ask only for what Teme offers plugins.` (contract missing) |
+| 4 | `tests/Feature/Ai/Plugins/LongAiRequestTest.php` | 3 failed: the same refusal of `SiteAi`; with it, `AiRequest` refuses any timeout over 55 |
+| 5 | `tests/Feature/Ai/Plugins/PluginAiSettingsTest.php` | 6 failed: the same refusal of `SiteAi`; no Plugins section, filter or AI line exists |
 
 #### Task 0
 
--
+- V = `0.9.0`: no `v0.9.0*` tag exists. `git log --oneline -1` at the start: `11813b3 Merge pull request #352 from temecms/docs/plan-sockets-3`.
+- `LibraryProvider` passes the timeout as `$agent->prompt(..., timeout: $request->timeoutSeconds)` and does not stream. Whether each provider accepts a 600-second, 64,000-token request unstreamed could not be tried here (no service keys in the cloud). Left open for a run with real keys; nothing streams yet.
+- The words for each failure are `AiFailureType::sentence()`, reused through `__()` (the plan's `AiFailureWords`).
+- `plugin_9_writer_article_model` passes the settings key pattern `/^[a-z][a-z0-9_]*$/`.
+- A long job's doors: `RunPluginJob` → `PluginLoader::instance(…, 300)` → `PluginDoors::for(…, $httpSeconds)`. The door treats `httpSeconds !== null` as a long run (B-07).
+- `ai_activity`'s checks are named `ai_activity_subject_type_check` and `ai_activity_outcome_check`, as the migration re-creates them. The error-type check already accepts `answered` with a null type, so it is left as it is.
+- No line differs in a way that changes a decision.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Base at `11813b3`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,874 passed, 2 skipped, 1 failed (`Plugins/DiscoveryTest` "finds the configured folders", known to be flaky; a stray `tests/jobs` folder appeared).
+- After, the full `composer check` on `5df8f5b`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,944 passed, 2 skipped, 2 failed (61,395 assertions, 1,910 s).
+- The two failures: `Console/GenerateManifestReferenceTest`, because `docs/reference/plugin-manifest.md` doesn't list the new `ai` capability; the plan says not to regenerate it, and the join does. And `Plugins/DatabaseDownTest`, known to be flaky; it passed when run alone.
 
 #### B-?? (draft)
 
--
+- **B-01 (draft), ManifestValidator.** The shared table says A adds nothing there. Options: put the "declares AI tasks without `ai`" and "asks for `SiteAi` without `ai`" refusals in `ContributionsValidator`, or in `ManifestValidator` beside the other capability checks. Chose `ManifestValidator` (two lines of my own, `aiTasks()` and the constructor check), because that is where capabilities are known. `8a4f0d2`.
+- **B-02 (draft), EnablePlugin.** The table says none for A. The consent record must keep the agreed tasks for `Consent::covers()`, so one line stores `consent['aiTasks']` from `PluginAiTasks::consentOf()`. `8a4f0d2`.
+- **B-03 (draft), PluginsScreen.** Not in Owns; the table names `plugins/index.tsx` for the AI task lines. The lines are built in `PluginsScreen` (the action, `asksMore` and the agreed and asked lines), and they already show in the existing dialog's list before T6. `8a4f0d2`, `f5d94f2` (`ai`).
+- **B-04 (draft), AiServiceProvider.** One line tags `PluginAiSection` under `AiSettings::SECTIONS` and `SettingsCheck::TAG`; nothing else registers sections. `e8d7f99`.
+- **B-05 (draft), AiSettingsScreen and AiActivityRequest.** Not named; they build the props the plan gives `AiSettingsController` and `AiActivityController`. The Plugins section gets kind `plugins` with its generic fields kept, so today's `settings/ai.tsx` still draws its controls until T6. `f5d94f2`.
+- **B-06 (draft), the Plugins section's order and when it shows.** The plan says order 250, but `AiSettingsScreenTest` registers a third-party section at 250 and orders must differ. Options: change that test, or take 260 (still after Models at 200 and before Limits at 300). Chose 260. The section is also left out of the screen while no enabled plugin declares an AI task, so `AiSettingsScreenTest`'s list of sections is unchanged. `e8d7f99`, `f5d94f2`.
+- **B-07 (draft), long doors.** Options: a new `long` argument through `PluginLoader`, or reading `httpSeconds !== null` (only a long job's run sets it) in `PluginDoors::for()`. Chose the second, so `PluginLoader` is untouched; `for()` still gains `bool $long = false` as the plan says. `e8d7f99`.
+- **B-08 (draft), ModelCall's signature.** The plan's `ask(ModelChoice, Closure, int $deadlineSeconds)` loses three things `AnswerAiRequest` does today: its first attempt's own seconds, the "still wanted" check before the fallback, and the start time of the deadline. Chose optional trailing `?int $firstSeconds`, `?Closure $stillWanted` and `?CarbonImmutable $since`, so `AnswerAiRequest` behaves exactly as before. `ModelCallResult` is a new class beside it. `e8d7f99`.
+- **B-09 (draft), refusal words the plan doesn't quote.** Reasons and sentences: `no-person` (ActingPerson's own sentence), `no-task` ("This plugin doesn’t declare the AI task :task."), `too-many-tokens` (":task answers with at most :tokens tokens."), `no-schema` (":task doesn’t need structured-output, so it can’t be sent a schema."), and the standing reasons `ai-off`, `plugin-off`, `model-lacks`, `site-budget`, `plugin-budget`, `hourly-limit` with the sentences in `PluginAiStanding`. `e8d7f99`.
+- **B-10 (draft), tests with exact shapes.** `ContributionsSchemaTest` lists the contribution keys exactly, `AiActivityScreenTest` the filters and `AiActivityListTest` a row. Each gains the new key (`aiTasks`, `'plugin' => null`) and nothing else; what they prove is unchanged. `8a4f0d2`, `f5d94f2`.
+- **B-11 (draft), the handbook page's index.** `DeveloperPagesTest` needs every page in `GenerateHandbookIndex::PAGES` and the README table, so each gains one line, and `llms.txt` is regenerated with `php artisan teme:docs:handbook-index`. `5df8f5b`.
+- **B-12 (draft), a row with no item.** Tools › AI activity shows a plugin's request with no item as "No item" (state `none`). `f5d94f2`.
+- **B-13 (draft), test helpers.** The scribe helpers live in `tests/Feature/Ai/Plugins/helpers.php`, inside Owns, not in `tests/Pest.php`. `8a4f0d2`.
+- **B-14 (draft), AiAsk's inputs.** The contract checks each input's name against `^[a-z][a-z_]*$` and trusts its documented `array<string, string>` for the values, as the other contracts trust their documented types. `8a4f0d2`.
 
 #### Contract changes
 
--
+- New in `teme/contracts` (`@since 0.9.0`): `Teme\Contracts\Ai\SiteAi`, `AiAsk`, `AiAnswer`, `AiStanding`, `AiRefused`.
+- `Capability::Ai` (`ai`); the schema's `ai` capability and `contributes.aiTasks`.
+- `PluginServices::for()` gains a last parameter `bool $long = false`.
 
 #### STOP
 
--
+- None. T6 (the screens) waits for the drawings' approval and is left for a follow-up, as the owner's message says.
 
 #### Changelog lines for the maintainers
 
--
+- Added: plugins can use the site's AI connection for the tasks they declare (`ai` capability, `contributes.aiTasks`, the `SiteAi` door), with consent naming each task and what it sends.
+- Added: Settings › AI has a model and fallback for each plugin task, and per plugin a switch, a monthly budget and an hourly limit.
+- Added: Tools › AI activity records and filters plugins' requests, with this month's totals by plugin; the Plugins screen's row carries the plugin's AI cost this month.
+- Added: AI requests of up to 600 seconds inside a plugin's long job.
 
 #### Try it
 
--
+- Enable a plugin that asks for `ai` and declares `contributes.aiTasks` (the test fixture `tests/Fixtures/plugins/scribe` is one); the consent lists each task and what it sends.
+- In Settings › AI, choose a model for its task under Plugins, then have the plugin call `SiteAi::ask()` from a job started by a person; the request appears in Tools › AI activity under the plugin.
 
 ---
 
