@@ -141,8 +141,11 @@ final class ExtensionsFolder
     {
         $composer ??= $this->composer();
 
-        app()->instance('tests.fixtures-source', new FixturesSource);
-        app()->tag('tests.fixtures-source', SourceKinds::TAG);
+        // Tagged once, so a test may ask for a second runner.
+        if (! app()->bound('tests.fixtures-source')) {
+            app()->instance('tests.fixtures-source', new FixturesSource);
+            app()->tag('tests.fixtures-source', SourceKinds::TAG);
+        }
 
         return new InstallerRunner(
             $this->store,

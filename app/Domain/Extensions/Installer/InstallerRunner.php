@@ -19,7 +19,9 @@ use App\Domain\Extensions\RequestStep;
 use App\Domain\Extensions\Sources\ExtensionRequest;
 use App\Domain\Extensions\Sources\ExtensionSource;
 use App\Domain\Extensions\Sources\SourceKind;
+use App\Domain\Extensions\Sources\SafeAddress;
 use App\Domain\Extensions\Sources\SourceKinds;
+use App\Domain\Support\Network\AddressRefused;
 use Closure;
 use FilesystemIterator;
 use Illuminate\Support\Facades\Artisan;
@@ -44,6 +46,9 @@ final class InstallerRunner
 
     /** How long a request may wait for agreement before it is cancelled, in hours. */
     public const int WAITS_FOR = 24;
+
+    /** The repository types Composer fetches from over the network, whose addresses are checked first. */
+    private const array FETCHED_TYPES = ['vcs', 'git', 'github', 'gitlab', 'bitbucket', 'composer'];
 
     /** @var Closure(string): (float|false) */
     private Closure $freeSpace;
@@ -290,7 +295,8 @@ final class InstallerRunner
         }
 
         $stage = $this->stagePath($request);
-        $blocking = $request->action === ExtensionAction::Rebuild ? $this->compatibility->blocking($stage, $this->pins) : [];
+        $this->checkAddresses($stage);
+        $blocking =$request->action === ExtensionAction::Rebuild ? $this->compatibility->blocking($stage, $this->pins) : [];
         $result = $this->composer->change($request, $stage, $this->auth($request), $blocking);
 
         if (! $result->ok()) {
@@ -298,6 +304,29 @@ final class InstallerRunner
         }
 
         return true;
+    }
+
+    /**
+     * Checks every Git and Composer address the staged composer.json names,
+     * not only the request's own source, before Composer fetches from any.
+     */
+    private function checkAddresses(string $stage): void
+    {
+        $repositories = $this->project->read($stage)['repositories'] ?? [];
+
+        foreach (is_array($repositories) ? $repositories : [] as $repository) {
+            $url = is_array($repository) ? ($repository['url'] ?? null) : null;
+
+            if (! is_string($url) || ! in_array($repository['type'] ?? null, self::FETCHED_TYPES, true)) {
+                continue;
+            }
+
+            try {
+                app(SafeAddress::class)->check($url);
+            } catch (AddressRefused $refused) {
+                throw new InstallerFailed($refused->getMessage(), previous: $refused);
+            }
+        }
     }
 
     private function verifying(ExtensionRequest $request): bool

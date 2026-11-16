@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Extensions\Installer\ComposerResult;
+use App\Domain\Extensions\Installer\ComposerRunner;
 use App\Domain\Extensions\Installer\InstallerFailed;
 use App\Domain\Extensions\Models\ExtensionSourceRecord;
 use App\Domain\Extensions\Operations\BeginExtensionRequest;
@@ -296,6 +298,29 @@ it('deletes an unpacked upload no kept release names when its request fails, and
         ->and($keptFolder)->toBeDirectory();
 });
 
+it('refuses before fetching when the staged composer.json holds a Git or Composer address on a private network', function (): void {
+    app()->instance('tests.private-source', new ExtJoinPrivateRepositorySource);
+    app()->tag('tests.private-source', SourceKinds::TAG);
+    $composer = new class((string) config('teme.extensions.composer'), $this->folder->root) extends ComposerRunner
+    {
+        public int $changes = 0;
+
+        public function change(ExtensionRequest $request, string $release, #[SensitiveParameter] array $auth = [], array $blocking = []): ComposerResult
+        {
+            $this->changes++;
+
+            return new ComposerResult(1, 'Composer ran.');
+        }
+    };
+    $this->runner = $this->folder->runner(composer: $composer);
+
+    $row = ($this->settle)(($this->ask)('install', 'acme/private', '1.0.0', ['source_kind' => 'private_repo']));
+
+    expect($row->status)->toBe('failed')
+        ->and($row->error)->toBe('10.0.0.5 is on a private network, so Teme won’t connect to it.')
+        ->and($composer->changes)->toBe(0);
+});
+
 it('records no saved key in a failed request’s reason, steps or report, nor on the screens that show it', function (): void {
     $this->seed(RoleSeeder::class);
     app()->instance('tests.leaky-source', new ExtJoinLeakySource);
@@ -348,4 +373,28 @@ final readonly class ExtJoinLeakySource implements SourceKind
 
         throw new InstallerFailed("The vendor refused the key {$key} for {$request->package}.");
     }
+}
+
+/**
+ * A source whose release names a Git address on a private network, as an
+ * earlier source left in composer.json might.
+ */
+final readonly class ExtJoinPrivateRepositorySource implements SourceKind
+{
+    public function key(): string
+    {
+        return 'private_repo';
+    }
+
+    public function repositories(?ExtensionSource $source, string $extensionsPath): array
+    {
+        return [['type' => 'vcs', 'url' => 'https://10.0.0.5/acme/private.git']];
+    }
+
+    public function auth(?ExtensionSource $source): array
+    {
+        return [];
+    }
+
+    public function prepare(ExtensionRequest $request, string $releasePath, string $extensionsPath): void {}
 }
