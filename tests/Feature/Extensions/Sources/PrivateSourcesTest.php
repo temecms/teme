@@ -93,21 +93,21 @@ it('gives no credential for a public Git repository', function (): void {
 it('gives a vendor\'s key as a bearer token, or with the user name the vendor gives', function (): void {
     $composer = app(ComposerSource::class);
 
-    expect($composer->auth(privateSource('composer', 'https://packages.vendor.example', 'licence-key')))
-        ->toBe(['bearer' => ['packages.vendor.example' => 'licence-key']])
-        ->and($composer->auth(privateSource('composer', 'https://packages.vendor.example', 'licence-key', 'site@example.com')))
-        ->toBe(['http-basic' => ['packages.vendor.example' => ['username' => 'site@example.com', 'password' => 'licence-key']]]);
+    expect($composer->auth(privateSource('composer', 'https://packages.vendor.example', 'license-key')))
+        ->toBe(['bearer' => ['packages.vendor.example' => 'license-key']])
+        ->and($composer->auth(privateSource('composer', 'https://packages.vendor.example', 'license-key', 'site@example.com')))
+        ->toBe(['http-basic' => ['packages.vendor.example' => ['username' => 'site@example.com', 'password' => 'license-key']]]);
 });
 
 it('builds COMPOSER_AUTH for two sources holding both', function (): void {
     $auth = array_replace_recursive(
         app(GitSource::class)->auth(privateSource('git', 'https://git.example.com/acme/plugin.git', 'git-token')),
-        app(ComposerSource::class)->auth(privateSource('composer', 'https://packages.vendor.example', 'licence-key', 'site')),
+        app(ComposerSource::class)->auth(privateSource('composer', 'https://packages.vendor.example', 'license-key', 'site')),
     );
 
     expect(json_decode(json_encode($auth, JSON_THROW_ON_ERROR), true))->toBe(['http-basic' => [
         'git.example.com' => ['username' => 'token', 'password' => 'git-token'],
-        'packages.vendor.example' => ['username' => 'site', 'password' => 'licence-key'],
+        'packages.vendor.example' => ['username' => 'site', 'password' => 'license-key'],
     ]]);
 });
 
