@@ -3,14 +3,14 @@ title: A plugin's own area
 type: how-to
 audience: plugin
 summary: How a plugin declares screens of its own in the admin, an overview of figures and charts, tables of its records and each record's form, what core draws and checks, the permission that opens them, and the PluginArea contract that hands core the data.
-rests_on: [packages/teme-contracts/src/Admin, app/Domain/Plugins/Area, app/Domain/Plugins/Operations/SavePluginRecord.php, app/Domain/Plugins/Operations/ActOnPluginRecords.php, app/Http/Admin/PluginAreaController.php, packages/teme-contracts/schema/teme-plugin.schema.json, docs/plans/plugin-sockets-2.md]
+rests_on: [packages/teme-contracts/src/Admin, app/Domain/Plugins/Area, app/Domain/Plugins/Operations/SavePluginRecord.php, app/Domain/Plugins/Operations/ActOnPluginRecords.php, app/Http/Admin/PluginAreaController.php, packages/teme-contracts/schema/teme-plugin.schema.json, docs/architecture/plugins.md]
 ---
 
 # A plugin's own area
 
 A plugin that keeps things of its own, such as ads, forms or redirects, can have screens of its own in the admin: an overview with figures and a chart, a table of its records, and a form for each record. The plugin declares the screens in `teme-plugin.json` and hands core the data; core draws every screen with its own components, checks every value, and runs every write as an Operation. A plugin never draws HTML in the admin.
 
-This page describes the code on the `sockets2/plugin-area` branch. The contracts are in `teme/contracts`, under its Admin namespace, from Teme 0.9.0. For the settings page every plugin can have, see [Plugin settings and secrets](settings.md).
+The contracts are in `teme/contracts`, under its Admin namespace, from Teme 0.9.0. For the settings page every plugin can have, see [Plugin settings and secrets](settings.md).
 
 ## Declare a permission
 
