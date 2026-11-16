@@ -29,7 +29,7 @@ return [
     /*
      * The one role a container runs, set only to `all`: web, both queue
      * workers, the scheduler, the plugin installer and the updater in one
-     * container, as one Application on Dokploy (docs/plans/dokploy-application.md).
+     * container, on any host that runs one (docs/guides/operators/platforms/one-container.md).
      */
     'role' => env('TEME_ROLE'),
 

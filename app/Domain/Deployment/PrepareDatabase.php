@@ -11,7 +11,7 @@ use PDOException;
 use SensitiveParameter;
 
 /**
- * The database step of a container that runs every role: given the login to Dokploy's own PostgreSQL service, makes
+ * The database step of a container that runs every role: given the login to a PostgreSQL service, makes
  * Teme's own limited login, gives it the site's database and a spare one for the weekly test restore, and lets
  * no other login connect. Safe to run on every start. A login that is no superuser can't do this, so Teme runs as it.
  */
@@ -102,7 +102,7 @@ final class PrepareDatabase
             DB::purge($name);
 
             // The driver's message is left out: it can repeat the address and the login.
-            throw new DatabasePrepareFailed("Teme couldn't connect to the database at {$given['host']}:{$given['port']} as {$given['username']}. Check DB_HOST, DB_PORT, DB_USERNAME and DB_PASSWORD, or DATABASE_URL, against what Dokploy's database service shows.");
+            throw new DatabasePrepareFailed("Teme couldn't connect to the database at {$given['host']}:{$given['port']} as {$given['username']}. Check DB_HOST, DB_PORT, DB_USERNAME and DB_PASSWORD, or DATABASE_URL, against your database's own settings.");
         }
     }
 

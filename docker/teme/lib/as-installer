@@ -1,7 +1,7 @@
 #!/bin/sh
 # Runs php artisan teme:installer (with the options it is given) as the
 # installer's user, in an environment of only what the installer needs. The
-# container's own holds every secret of the site: the key to Dokploy, the
+# container's own holds every secret of the site: the key to the hosting panel, the
 # media bucket's keys, GitHub's token. The installer gets the database login
 # Teme runs as, and never the one it was given.
 set -eu

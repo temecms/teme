@@ -296,6 +296,14 @@ it('says, and goes on, when no volume is mounted at /var/teme', function (): voi
     expect($logs->getOutput().$logs->getErrorOutput())->toContain('Nothing is mounted at /var/teme, so the media, the page cache and the plugins and themes installed from the admin are lost whenever this container is replaced.');
 });
 
+it('listens on the port a host sets in PORT, and its health check asks there', function (): void {
+    $name = ($this->start)(['PORT' => '3000']);
+
+    expect(aioWait($name, 'healthy'))->toBe('healthy')
+        ->and(aioExec($name, 'curl --silent http://localhost:3000/up'))->toBe('ok')
+        ->and(aioExec($name, 'curl --silent --max-time 2 http://localhost:8080/up'))->toBe('');
+});
+
 it('runs a terminal’s PHP as www-data, never as root', function (): void {
     $name = ($this->start)();
     aioWait($name, 'healthy');

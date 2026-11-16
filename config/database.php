@@ -88,7 +88,7 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            // DATABASE_URL is the name Dokploy's database service shows its address under.
+            // DATABASE_URL is the name most hosts show a database's address under.
             'url' => env('DB_URL', env('DATABASE_URL')),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
