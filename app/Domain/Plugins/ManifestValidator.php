@@ -72,7 +72,7 @@ final readonly class ManifestValidator
      * @param  array<string, mixed>  $manifest
      * @param  array<string, mixed>|null  $composer
      *
-     * @return array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null
+     * @return array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null
      */
     public function classReading(array $manifest, string $path, ?array $composer): ?array
     {
@@ -80,7 +80,24 @@ final readonly class ManifestValidator
             return null;
         }
 
-        return $this->scan->pluginClass($path, $composer, (new Manifest($manifest))->pluginClass());
+        $reading = $this->scan->pluginClass($path, $composer, (new Manifest($manifest))->pluginClass());
+
+        if ($reading === null) {
+            return null;
+        }
+
+        // Each route's handler is built as the plugin's class is (docs/plans/plugin-sockets-1.md, A-W13), so it is read the same way.
+        $handlers = [];
+
+        foreach (is_array($manifest['routes'] ?? null) ? $manifest['routes'] : [] as $route) {
+            $handler = is_array($route) && is_string($route['handler'] ?? null) ? ltrim($route['handler'], '\\') : '';
+
+            if ($handler !== '' && ! array_key_exists($handler, $handlers)) {
+                $handlers[$handler] = $this->scan->pluginClass($path, $composer, $handler);
+            }
+        }
+
+        return [...$reading, 'handlers' => $handlers];
     }
 
     /**
@@ -89,7 +106,7 @@ final readonly class ManifestValidator
      *
      * @param  array<string, mixed>  $manifest
      * @param  array<string, mixed>|null  $composer
-     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null  $reading
+     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null  $reading
      *
      * @return list<string>
      */
@@ -138,6 +155,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
         array_push($errors, ...$this->routes($manifest, $read));
+        array_push($errors, ...$this->handlers($read, $reading));
         array_push($errors, ...$this->imports($manifest, $read));
 
         return $errors;
@@ -259,10 +277,23 @@ final readonly class ManifestValidator
             return ["{$class} doesn’t implement Teme\\Contracts\\Plugins\\Plugin."];
         }
 
+        return $this->asks($class, $source['parameters'], $read);
+    }
+
+    /**
+     * What a class Teme builds for the plugin asks of its constructor: only
+     * what Teme offers plugins, and each door only with its capability.
+     *
+     * @param  list<array{name: string, type: string|null, named: bool}>  $parameters
+     *
+     * @return list<string>
+     */
+    private function asks(string $class, array $parameters, Manifest $read): array
+    {
         $offered = array_map(strtolower(...), PluginServices::OFFERED);
         $errors = [];
 
-        foreach ($source['parameters'] as $parameter) {
+        foreach ($parameters as $parameter) {
             $type = $parameter['type'];
 
             if (! $parameter['named'] || ! in_array(strtolower((string) $type), $offered, true)) {
@@ -278,6 +309,36 @@ final readonly class ManifestValidator
             } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! in_array(Capability::ContentInsert->value, $read->capabilities(), true)) {
                 $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
             }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Each route's handler, from its source's reading, asks only for what
+     * the plugin's class may (docs/plans/plugin-sockets-1.md, A-W13). A
+     * handler whose file isn't found is left to the route's own checks.
+     *
+     * @param  array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}|null  $reading
+     *
+     * @return list<string>
+     */
+    private function handlers(Manifest $read, ?array $reading): array
+    {
+        $errors = [];
+
+        foreach ($reading['handlers'] ?? [] as $class => $handler) {
+            if ($handler === null) {
+                continue;
+            }
+
+            if ($handler['unreadable'] !== null && $handler['unreadable'][0] !== 'interface') {
+                $errors[] = $this->unreadable($class, ...$handler['unreadable']);
+
+                continue;
+            }
+
+            array_push($errors, ...$this->asks($class, $handler['parameters'], $read));
         }
 
         return $errors;

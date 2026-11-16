@@ -25,7 +25,7 @@ use ValueError;
  * plugin's code, and a plugin it can't read, or a cache it can't load,
  * never stops it.
  *
- * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}
+ * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}
  * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>, migrations: list<string>}
  */
 final class PluginRegistry
@@ -37,7 +37,7 @@ final class PluginRegistry
      * hooks are checked on every read anyway. A deployment that changes Teme
      * runs `teme:plugins:cache` again, as `optimize` does.
      */
-    private const int FORMAT = 4;
+    private const int FORMAT = 5;
 
     /** @var array<string, array<string, FoundPlugin>> each discovery, by the settings it was made from */
     private array $memo = [];
