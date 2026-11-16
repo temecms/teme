@@ -36,6 +36,9 @@ export type DesignTheme = {
     name: string;
     version: string;
     description: string;
+    author: string;
+    authorUrl: string;
+    homepage: string;
     usable: boolean;
     errors: string[];
     /** The theme the public site is drawn with now. */
