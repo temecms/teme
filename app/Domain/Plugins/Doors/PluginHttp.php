@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Plugins\HostPattern;
+use Closure;
 use Exception;
 use GuzzleHttp\Exception\ConnectTimeoutException;
 use GuzzleHttp\Exception\NetworkTimeoutException;
@@ -26,7 +27,7 @@ use Teme\Contracts\Http\RequestFailed;
  * consent covers, resolved here and refused when any address is private or
  * reserved, connected to that address only (no second lookup, so DNS can't
  * be rebound), never following a redirect, within 10 seconds and 1 MB each
- * way. The lookup comes before those 10 seconds and has no limit of its own:
+ * way, with a JSON or a form body. The lookup comes before those 10 seconds and has no limit of its own:
  * the system resolver's, by default 5 seconds a try, two tries a server, for
  * up to three servers, so as long as 30 seconds when DNS is down.
  */
@@ -56,19 +57,26 @@ final readonly class PluginHttp implements OutboundHttp
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
-        return $this->send('GET', $url, null, $headers, $timeoutSeconds);
+        return $this->send('GET', $url, null, '', $headers, $timeoutSeconds);
     }
 
     public function postJson(string $url, array $json, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
-        return $this->send('POST', $url, $json, $headers, $timeoutSeconds);
+        return $this->send('POST', $url, fn (string $host): string => self::jsonBody($json, $host, $this->maxBytes), 'application/json', $headers, $timeoutSeconds);
+    }
+
+    public function postForm(string $url, array $fields, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
+    {
+        self::checkFields($fields);
+
+        return $this->send('POST', $url, fn (string $host): string => self::formBody($fields, $host, $this->maxBytes), 'application/x-www-form-urlencoded', $headers, $timeoutSeconds);
     }
 
     /**
-     * @param  array<string, mixed>|null  $json
+     * @param  (Closure(string): string)|null  $body  the body for the host checked, built before any lookup
      * @param  array<string, string>  $headers
      */
-    private function send(string $method, string $url, ?array $json, array $headers, int $timeoutSeconds): HttpAnswer
+    private function send(string $method, string $url, ?Closure $body, string $contentType, array $headers, int $timeoutSeconds): HttpAnswer
     {
         // Parsed once, by the parser Guzzle sends with, so the host checked is the host connected to.
         try {
@@ -78,11 +86,11 @@ final readonly class PluginHttp implements OutboundHttp
         }
 
         $host = $this->allowedHost($uri);
-        $body = $json === null ? null : self::jsonBody($json, $host, $this->maxBytes);
+        $body = $body === null ? null : $body($host);
         $address = $this->publicAddress($host);
         $seconds = max(1, min($timeoutSeconds, $this->mostSeconds));
 
-        $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0, ARRAY_FILTER_USE_KEY))
+        $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0 && ($contentType !== 'application/x-www-form-urlencoded' || strcasecmp($name, 'content-type') !== 0), ARRAY_FILTER_USE_KEY))
             ->setHandler(new CurlHandler)
             ->withoutRedirecting()
             ->timeout($seconds)
@@ -90,7 +98,7 @@ final readonly class PluginHttp implements OutboundHttp
             ->withOptions(self::transport($host, $address, $this->maxBytes));
 
         try {
-            $response = $method === 'GET' ? $request->get((string) $uri) : $request->withBody((string) $body, 'application/json')->post((string) $uri);
+            $response = $method === 'GET' ? $request->get((string) $uri) : $request->withBody((string) $body, $contentType)->post((string) $uri);
         } catch (Exception $failure) {
             throw self::failure($failure, $host, $uri);
         }
@@ -158,6 +166,52 @@ final readonly class PluginHttp implements OutboundHttp
         } catch (JsonException) {
             throw new RequestFailed(__('The request to :host failed.', ['host' => $host]));
         }
+
+        if (strlen($body) > $maxBytes) {
+            throw new RequestFailed(__('The request to :host was larger than :size MB, so Teme didn’t send it.', [
+                'host' => $host,
+                'size' => max(1, intdiv($maxBytes, 1024 * 1024)),
+            ]));
+        }
+
+        return $body;
+    }
+
+    /**
+     * Refuses, before any lookup, a field that is neither a string nor a
+     * list of strings, or one without a name.
+     *
+     * @param  array<array-key, mixed>  $fields
+     */
+    private static function checkFields(array $fields): void
+    {
+        foreach ($fields as $name => $value) {
+            $values = is_array($value) && array_is_list($value) ? $value : [$value];
+
+            if (! is_string($name) || array_any($values, fn (mixed $one): bool => ! is_string($one))) {
+                throw new InvalidArgumentException('A form’s fields are names with a string or a list of strings.');
+            }
+        }
+    }
+
+    /**
+     * Returns the fields as a form body, each value of a list under its own
+     * name again, refused before any lookup or connection when it passes 1 MB.
+     *
+     * @param  array<string, string|list<string>>  $fields
+     */
+    private static function formBody(array $fields, string $host, int $maxBytes): string
+    {
+        $pairs = [];
+
+        foreach ($fields as $name => $value) {
+            foreach (is_array($value) ? $value : [$value] as $one) {
+                // Form encoding: a space is +.
+                $pairs[] = urlencode($name).'='.urlencode($one);
+            }
+        }
+
+        $body = implode('&', $pairs);
 
         if (strlen($body) > $maxBytes) {
             throw new RequestFailed(__('The request to :host was larger than :size MB, so Teme didn’t send it.', [
