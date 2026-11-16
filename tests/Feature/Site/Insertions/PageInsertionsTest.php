@@ -262,3 +262,13 @@ it('holds every few items to at most five, and a rail to its first width when no
         ->and(PagePosition::fixed('left')->args['width'])->toBe(160)
         ->and(PagePosition::fixed('bottom', 300)->args['width'])->toBe(0);
 });
+
+it('gives an author archive its author\'s ID', function (): void {
+    app(PathProjection::class)->syncUser($this->author);
+    pageArticle($this->author, 'Harbour story');
+
+    addrGet('/author/'.$this->author->slug.'/')->assertOk();
+
+    expect(array_map(fn (PageFacts $facts): array => [$facts->kind, $facts->authorIds], Billboard::$asked))
+        ->toBe([['author', [(string) $this->author->id]]]);
+});

@@ -53,6 +53,9 @@ final class PageInsertions
     /** @var array{0: Request, 1: ArticleFacts}|null the article this request built, with its facts */
     private ?array $article = null;
 
+    /** @var array{0: Request, 1: string}|null the person the author archive this request built lists */
+    private ?array $author = null;
+
     /** @var list<array{owner: string, code: string|null, insertion: PageInsertion}>|null */
     private ?array $given = null;
 
@@ -77,6 +80,15 @@ final class PageInsertions
     public function article(ArticleFacts $facts): void
     {
         $this->article = [request(), $facts];
+    }
+
+    /**
+     * Notes the person an author archive this request built lists, as
+     * ListingViews found them: their ID as an article's facts give it.
+     */
+    public function author(string $id): void
+    {
+        $this->author = [request(), $id];
     }
 
     /**
@@ -265,7 +277,9 @@ final class PageInsertions
             $terms = $id === null ? [] : [$intent->taxonomy => [(string) $id]];
         }
 
-        return new PageFacts($kind, $path, $language, $intent->type, null, $terms, [], $page);
+        $authors = $intent->kind === 'author' && $this->author !== null && $this->author[0] === $request ? [$this->author[1]] : [];
+
+        return new PageFacts($kind, $path, $language, $intent->type, null, $terms, $authors, $page);
     }
 
     /**
