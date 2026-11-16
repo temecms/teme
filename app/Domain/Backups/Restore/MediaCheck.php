@@ -32,8 +32,9 @@ final readonly class MediaCheck
             $folders[$pair['role']] = $pair['to'];
         }
 
-        // One pair: both disks share a folder.
-        $folder = fn (string $role): string => $folders[$role] ?? $folders['public'];
+        // One pair: both disks share a folder. A role the backup left in a bucket isn't checked here (I-3456).
+        $locations = (array) (((array) ($manifest->toArray()['media'] ?? []))['locations'] ?? []);
+        $folder = fn (string $role): ?string => ($locations[$role] ?? 'server') === 'bucket' ? null : ($folders[$role] ?? $folders['public'] ?? null);
         $found = ['originals_missing' => [], 'originals_changed' => [], 'variants_missing' => []];
         $counts = ['originals_missing' => 0, 'originals_changed' => 0, 'variants_missing' => 0];
         $note = function (string $kind, string $file) use (&$found, &$counts): void {
@@ -46,6 +47,11 @@ final readonly class MediaCheck
 
         foreach ((array) (((array) ($manifest->toArray()['media'] ?? []))['originals'] ?? []) as $original) {
             $role = (string) $original['disk'];
+
+            if ($folder($role) === null) {
+                continue;
+            }
+
             $path = $folder($role).DIRECTORY_SEPARATOR.$original['path'];
 
             if (! is_file($path)) {
@@ -53,6 +59,10 @@ final readonly class MediaCheck
             } elseif (! hash_equals((string) $original['sha256'], (string) hash_file('sha256', $path))) {
                 $note('originals_changed', "{$role}:{$original['path']}");
             }
+        }
+
+        if ($folder('public') === null) {
+            return [...$found, 'counts' => $counts];
         }
 
         DB::table('media')->select(['id', 'variants'])->orderBy('id')->chunk(1000, function ($rows) use ($folder, $note): void {

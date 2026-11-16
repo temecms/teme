@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Tests\Feature\Media\Storage\StorageEnvironment;
 use Tests\Fixtures\Backups\BackupRecords;
 use Tests\Fixtures\Backups\CommittedMedia;
 use Tests\Fixtures\Backups\OtherSession;
@@ -102,7 +103,7 @@ it('records the run: finished, its figures, its manifest’s snapshot, and its p
         ->and($row->destination_id)->toBe($place->id)
         ->and($row->snapshot_id)->toBe($this->backups->runsAt(0)[0]->parts[BackupSnapshots::MANIFEST])
         ->and($row->message)->toBeNull()
-        ->and(array_keys($row->figures))->toEqualCanonicalizing(['seconds', 'database_bytes', 'media_files', 'media_bytes', 'missing_files', 'bytes_added', 'tables', 'rows'])
+        ->and(array_keys($row->figures))->toEqualCanonicalizing(['seconds', 'database_bytes', 'media_files', 'media_bytes', 'missing_files', 'media_in_bucket', 'bytes_added', 'tables', 'rows'])
         ->and($row->figures['media_files'])->toBe(3)
         ->and($row->figures['missing_files'])->toBe(0)
         ->and($row->figures['database_bytes'])->toBeGreaterThan(0)
@@ -309,4 +310,25 @@ it('makes no backup when pg_dump fails, and says so, the place still answering',
         ->and($this->backups->places[0]->fresh()->state)->toBe(BackupDestinationState::Ready);
 
     Process::assertDidntRun(fn (PendingProcess $process): bool => in_array('--stdin', (array) $process->command, true));
+});
+
+it('backs up the database, the key and the manifest when the media are in a bucket, and says how many files it left there (I-3456)', function (): void {
+    $this->backups = RunnableBackups::atFolders(1);
+
+    StorageEnvironment::with(StorageEnvironment::bucket(), function (): void {
+        $image = $this->media->image(['w640', 'thumb'], withFiles: false);
+
+        $result = app(BackupSite::class)->run(BackupTrigger::Command);
+        $runs = $this->backups->runsAt(0);
+        $manifest = ($this->dump)(0, $runs[0]->parts[BackupSnapshots::MANIFEST], BackupSnapshots::MANIFEST_FILE);
+
+        expect($result->succeeded)->toBeTrue((string) $result->sentence)
+            ->and($result->missingFiles)->toBe(0)
+            ->and($runs[0]->complete())->toBeTrue()
+            ->and($manifest['media']['locations'])->toBe(['public' => 'bucket', 'originals' => 'bucket'])
+            ->and($manifest['media']['snapshot_roots'])->toBe([])
+            ->and($manifest['media']['originals'][0]['id'])->toBe($image)
+            ->and($manifest['media']['originals'][0]['sha256'])->toBe(hash('sha256', "original of {$image}"))
+            ->and(BackupRun::query()->findOrFail($result->runId)->figures['media_in_bucket'])->toBe(3);
+    });
 });

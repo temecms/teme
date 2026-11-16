@@ -357,11 +357,11 @@ final readonly class BackupSite
      * server, and a media folder that wasn't there when the media was
      * counted; throws BackupRefused when a part can't be written.
      *
-     * @param  array{originals: string, public: string}  $roots
+     * @param  array{originals: string|null, public: string|null}  $roots
      * @param  Closure(string): void  $say
      * @param  array<string, PlaceOutcome>  $outcomes
      *
-     * @return array{manifest: Manifest, snapshot: string|null, figures: array{database_bytes: int, media_files: int, media_bytes: int, missing_files: int, bytes_added: int, tables: int, rows: int}, holes: list<string>, other_holes: bool, absent_folder: string|null}
+     * @return array{manifest: Manifest, snapshot: string|null, figures: array{database_bytes: int, media_files: int, media_bytes: int, missing_files: int, media_in_bucket: int, bytes_added: int, tables: int, rows: int}, holes: list<string>, other_holes: bool, absent_folder: string|null}
      */
     private function write(string $runId, BackupDestination $place, ResticRepository $repository, array $roots, Closure $say, array $outcomes): array
     {
@@ -402,7 +402,11 @@ final readonly class BackupSite
 
         $this->stillLocked();
         $say($media->fileCount() === 1 ? "Backing up 1 media file to {$place->name}." : 'Backing up '.number_format($media->fileCount())." media files to {$place->name}.");
-        $files = $this->restic->run($repository, ['backup', ...BackupSnapshots::partFlags($runId, BackupSnapshots::MEDIA), ...$media->folders()], timeout: self::WORK_SECONDS);
+        $folders = $media->folders();
+        // Both roles in a bucket: the media part says so, and holds no file (I-3456).
+        $files = $folders === []
+            ? $this->restic->run($repository, ['backup', ...BackupSnapshots::partFlags($runId, BackupSnapshots::MEDIA), '--stdin', '--stdin-filename', MediaInventory::IN_BUCKET_FILE], input: json_encode(['locations' => $media->locations()], JSON_THROW_ON_ERROR))
+            : $this->restic->run($repository, ['backup', ...BackupSnapshots::partFlags($runId, BackupSnapshots::MEDIA), ...$folders], timeout: self::WORK_SECONDS);
 
         if ($files->outcome === ResticOutcome::Incomplete) {
             // A snapshot made without some files: a hole, but the best copy there is (I-2724).
@@ -463,6 +467,7 @@ final readonly class BackupSite
                 'media_files' => $media->fileCount(),
                 'media_bytes' => $media->byteCount(),
                 'missing_files' => $media->missingCount(),
+                'media_in_bucket' => $media->bucketFileCount(),
                 'bytes_added' => $added,
                 'tables' => count($tables),
                 'rows' => array_sum($tables),

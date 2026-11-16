@@ -10,7 +10,7 @@ use App\Domain\Cards\CardMedia;
 use App\Domain\Cards\InternalLinks;
 use App\Domain\Cards\LinkResolver;
 use App\Domain\Languages\SiteLanguages;
-use App\Domain\Media\MediaDisks;
+use App\Domain\Media\MediaLocations;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -142,24 +142,37 @@ final class PathLinkResolver implements InternalLinks, LinkResolver
     }
 
     /**
-     * The library item whose file this address names, or null: the media
-     * disk's public address, or its path where the disk is served from this
-     * site, then the item's ID, a file version and a name, as StorageKeys
-     * makes them, so any size of an image and any version of a file lead to
-     * the item. Its row must still exist, in the trash or not.
+     * The library item whose file this address names, or null: any media
+     * location's public address, or its path where that location is served
+     * from this site, so an address copied before or after a move still
+     * leads to the item (I-3456); then the item's ID, a file version and a
+     * name, as StorageKeys makes them, so any size of an image and any
+     * version of a file lead to the item. Its row must still exist, in the
+     * trash or not.
      */
     private function fileAt(string $address): ?string
     {
-        $base = rtrim(MediaDisks::public()->url(''), '/');
-        $host = parse_url($base, PHP_URL_HOST);
-        $path = rtrim((string) parse_url($base, PHP_URL_PATH), '/');
-        $here = ! is_string($host) || self::bare($host) === self::bare((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+        $key = null;
+        $site = self::bare((string) parse_url((string) config('app.url'), PHP_URL_HOST));
 
-        $key = match (true) {
-            stripos($address, "{$base}/") === 0 => substr($address, strlen($base) + 1),
-            $here && str_starts_with($address, "{$path}/") => substr($address, strlen($path) + 1),
-            default => null,
-        };
+        // The server's own folder too, where a pull CDN at MEDIA_URL stands in front of it.
+        $server = rtrim((string) config('app.url'), '/').'/storage/media';
+
+        foreach (array_unique([...MediaLocations::publicBases(), $server]) as $base) {
+            $host = parse_url($base, PHP_URL_HOST);
+            $path = rtrim((string) parse_url($base, PHP_URL_PATH), '/');
+            $here = ! is_string($host) || self::bare($host) === $site;
+
+            $key = match (true) {
+                stripos($address, "{$base}/") === 0 => substr($address, strlen($base) + 1),
+                $here && str_starts_with($address, "{$path}/") => substr($address, strlen($path) + 1),
+                default => null,
+            };
+
+            if ($key !== null) {
+                break;
+            }
+        }
 
         if ($key === null || preg_match('~^([0-9A-HJKMNP-TV-Z]{26})/v[1-9][0-9]*/[^/]+$~i', $key, $found) !== 1) {
             return null;
