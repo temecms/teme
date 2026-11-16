@@ -38,7 +38,7 @@ function uploadZip(string $package = 'hello-extension', ?string $top = 'hello-ex
     $entries = [];
 
     foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($folder, FilesystemIterator::SKIP_DOTS)) as $file) {
-        $entries[substr($file->getPathname(), strlen($folder) + 1)] = (string) file_get_contents($file->getPathname());
+        $entries[str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($folder) + 1))] = (string) file_get_contents($file->getPathname());
     }
 
     $entries = array_filter([...$entries, ...$files], fn (?string $contents): bool => $contents !== null);
