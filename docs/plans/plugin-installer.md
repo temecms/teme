@@ -602,34 +602,78 @@ One feature test, `tests/Feature/Extensions/EndToEndTest.php`, written by whoeve
 
 ### Part B — `installer/admin`
 
+Setup: `2026-11-16T06:20:01Z ran in /home/user/teme as root`, finished 06:32:34Z; PHP 8.4.27, PostgreSQL and Valkey answering. Base: the seam's commit `b897bbd` of `installer/service`.
+
 #### Commits
+
+- `cfaf981` feat(extensions): ask the installer for a plugin or theme change (B1)
+- `8c61232` feat(extensions): cancel a request, or agree to what it found (B2)
+- `0c846b8` feat(extensions): keep package sources and uploaded archives (B3)
+- `d2a2b0e` feat(extensions): search Packagist for plugins and themes (B4)
+- `f1daba0` feat(extensions): the admin's routes and what the screens read (B5)
+- `a452dfd` feat(updates): wait for a plugin or theme request before updating Teme (B7)
+- `339aa45` feat(extensions): add, update and remove plugins and themes from the admin (B6)
+- `6405bf4` test(extensions): ask to install from Packagist in a real browser (B8)
+- `934b110` docs(extensions): installing from the admin, as built (B9)
+- `6e5dfd0` fix(types): reserve the admin's extensions segment for its routes (found by the full gate)
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
+| B1 | `tests/Feature/Extensions/Admin/RequestExtensionChangeTest.php` | Target class [App\Domain\Extensions\Operations\RequestExtensionChange] does not exist. |
+| B2 | `tests/Feature/Extensions/Admin/CancelAndAgreeTest.php` | Target class [App\Domain\Extensions\Operations\CancelExtensionRequest] does not exist. |
+| B3 | `tests/Feature/Extensions/Admin/SourcesAndUploadsTest.php` | Target class [App\Domain\Extensions\Operations\AddExtensionSource] does not exist. |
+| B4 | `tests/Feature/Extensions/Admin/PackagistSearchTest.php` | Target class [App\Domain\Extensions\Queries\PackagistSearch] does not exist. |
+| B5 | `tests/Feature/Extensions/Admin/ExtensionsRoutesTest.php` | Expected response status code [302] but received 405. |
+| B5 | `tests/Feature/Extensions/Admin/ExtensionsScreenTest.php` | Failed asserting that an array has the key 'origin'. |
+| B7 | `tests/Feature/Extensions/Admin/UpdaterRefusalTest.php` | Failed asserting that null is identical to 'A plugin or theme request is under way. Wait for it to end, or cancel it.'. |
+| B6 | screens | No PHP test: checked by `npm run types:check`, `npm run check`, the Architecture suite (AdminWords, DesignSystem, NoTypeLiterals) and B8. |
+| Gate | `tests/Feature/Types/TypeRoutingTest.php` | it reserves every first segment: `+    0 => 'extensions'` (B5's `admin/extensions` routes; fixed in `6e5dfd0`). |
+| B8 | `tests/Browser/ExtensionsTest.php` | Written after the screens it drives; its first failure was its own measure (the sheet 365 wide at 375, the scroll bar's room), fixed by comparing with a fixed layer as `PhoneOverlaysTest` does. |
 
 #### B-?? (draft)
 
-- **B-09 (draft):**
-- **B-10 (draft):**
-- **B-11 (draft):**
-- **B-12 (draft):**
-- **B-13 (draft):**
-- **B-14 (draft):**
+- **B-09 (draft): shared code stays inside Owns.** The folder reading every Operation and the screen need (current and earlier releases, what the folder and the image hold, which source a release uses) lives in `ExtensionsScreen`; the permission check shared by the six Operations is a trait in `Operations/Concerns`. Weighed: a new `Extensions/Folder` class (outside Owns). `ExtensionsScreen` with its `data()` and `origins()` landed in B1, so B5's red came from the missing routes and the rows' missing `origin`.
+- **B-10 (draft): Agree records, the installer goes on.** `AgreeToExtensionRequest` keeps the request `waiting` and writes `agreed` and `agreed_by`; part A's installer continues it. The keys of `needs` (`files`, `composerPlugins`, `source`, `replaces`) are this part's reading of D6 until the join; the sheet draws any key as a heading and its value as lines, so another key still reads.
+- **B-11 (draft): password window per the maintainers, not per request.** Every Operation requires elevation through the existing window (`security.elevation_minutes`, 15 by default): a request without a confirmation inside the window is refused and writes nothing, and a second request inside it goes through without asking (both tested in `ExtensionsRoutesTest`). The screens ask in place: the route answers 423 to `X-Teme-Ask-In-Place`, the sheet opens the fresh-password dialog and sends the same request again, so nothing chosen in the sheet is lost. Weighed: the plan's sessionStorage "pending" marker of `plugins/index.tsx`, which leaves the page for the password screen and loses the sheet.
+- **B-12 (draft): screens built from the approved drawing.** As drawn, with these readings: a Packagist result shows its newest version once chosen (`search.json` carries no version, and reading fifteen `p2` files per search would spend Packagist's patience); the Version select defaults to `^newest`, worded *The newest that fits (x.y.z now)*; an upload of a package installed here asks for an update; the Git address and Vendor source tabs say the installer doesn't offer them until part C registers those kinds; the sheet's footer keeps the drawing's words, which stay true once per window.
+- **B-13 (draft): the screens' controllers pass the data.** `PluginsController::index` and `ThemesController::index` gain one `extensions` prop, null for anyone without `extensions.install`, and `DesignScreen` takes `ExtensionsScreen` to give each theme its origin. The plan's *Changed* list names the pages and the screens' queries but not the two `index` methods the props travel through. Weighed: reading the data in a separate request from the page, a second round trip for every visit.
+- **B-14 (draft): what the plan named that wasn't there, and what stays.** `docs/demos/v10/plugins.js`, named as the drawing's source, isn't in the repository; the screens follow the approved drawing as Kingsley described it. `docs/architecture/plugins.md`'s *Not built yet* still lists "the installer and install requests": outside *Installing*, so left for the join to strike once part A is merged. `ContentTypeRegistry::RESERVED` gains `extensions`, because the admin's routes now take that first segment (the gate's `TypeRoutingTest` caught it); a stored type already listed at `extensions` would be refused, as one at `plugins` is.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
+| `tests/Architecture/admin-words-baseline.txt` | 876 lines | 876 lines |
+| `tests/Architecture/design-system-baseline.txt` | 222 lines | 222 lines |
+
+No line added, no count raised; nothing else under `tests/Architecture` changed.
 
 #### Gate
 
+Base (`b897bbd`): Pint passed; PHPStan no errors; Architecture 139 passed (1361 assertions); Unit and Feature 11602 passed, 2 skipped (60022 assertions), 1958 s.
+
+After (`6e5dfd0`): Pint passed; PHPStan no errors; Architecture 139 passed (1367 assertions); Unit and Feature 11713 passed, 2 skipped (60563 assertions), 1919 s. `composer check` exited 0.
+
+A first full run on `934b110` found two failures: `TypeRoutingTest` (the reserved segment, fixed) and `DocumentShellTest`'s URLPattern, because the resumed shell had lost the setup's `/opt/node24/bin` on its PATH and ran Node 22; the second run uses Node 24 as the setup says.
+
+Browser, `tests/Browser/ExtensionsTest.php` only, after `npm run build` and `npm run build:themes`: 4 passed (130 assertions), 1280 and 375 × light and dark.
+
 #### STOP
+
+None.
 
 #### Changelog lines for the maintainer
 
+- Added: plugins and themes can be added from the admin. **Add plugin** and **Add theme** take a package from Packagist, a Git address, a vendor's source with its license key, or an uploaded ZIP; Teme records the request and the installer carries it out. Nothing is enabled until you enable it. (I-211)
+- Added: **Install requests** on Site › Plugins lists plugin and theme requests together; each request's sheet follows the installer step by step, asks for your agreement when it finds something to agree to, and shows the exact commands when no installer is running.
+- Added: **Update…** and **Remove…** for plugins and themes installed from the admin, and each plugin and theme says where it comes from.
+- Changed: a Teme update waits while a plugin or theme request is open.
+
 #### Try it
+
+As an administrator, open Site › Plugins and press **Add plugin**. On Packagist, search a word, press **Choose** on a result, keep *The newest that fits*, and press **Ask to install**; type your password if it asks. The request sheet opens at *Waiting for the installer* with the commands to run, since part A's installer isn't on this branch. The request is on **Install requests**; **Cancel request** ends it. Site › Themes has **Add theme** and links to the same list. Tests: `php artisan test --compact tests/Feature/Extensions/Admin`, and `php artisan test --compact tests/Browser/ExtensionsTest.php` after `npm run build`.
 
 ### Part C — `installer/sources`
 
