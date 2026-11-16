@@ -2,8 +2,8 @@
 title: Jobs and schedules
 type: how-to
 audience: plugin
-summary: How a plugin declares background jobs and schedules in its manifest, queues them, writes their handlers, and what happens when one fails.
-rests_on: [app/Domain/Plugins/Jobs, packages/teme-contracts/src/Jobs, packages/teme-contracts/schema/teme-plugin.schema.json, routes/console.php]
+summary: How a plugin declares background jobs and schedules in its manifest, queues them, after a delay or once while one waits, writes their handlers, who its scheduled work runs as, and what happens when one fails.
+rests_on: [app/Domain/Plugins/Jobs, packages/teme-contracts/src/Jobs, packages/teme-contracts/schema/teme-plugin.schema.json, routes/console.php, docs/architecture/plugins.md]
 ---
 
 # Jobs and schedules
@@ -36,13 +36,30 @@ A job runs as someone. A job queued while a person is signed in runs as that per
 
 The job is sent to the queue only once the change around it commits, so a run never starts for work that was rolled back. On a site whose queue is `sync`, as on a small site and in tests, the job runs at once, inside the `queue()` call.
 
+## After a delay, or once while one waits
+
+Pass `QueueOptions` as the last argument:
+
+- `new QueueOptions(delaySeconds: 30)` starts the run no sooner than 30 seconds from now, up to an hour.
+- `new QueueOptions(uniqueKey: 'home')` queues the job once while a run with that key still waits. A second call answers the waiting run's ID and queues nothing; the first payload stands. Once that run has started, the next call queues a new one.
+
+Together they debounce: `new QueueOptions(delaySeconds: 60, uniqueKey: 'sitemap')` on every save sends one ping for a burst of saves. A key is up to 64 lower-case letters, digits and `:._-`, starting with a letter or digit; a delay or key outside those throws an `\InvalidArgumentException`.
+
 ## Schedules
 
 To run a job on its own, list it under `schedules` with the key of a job you declared as `job` and how often as `every`: `minute`, `five-minutes`, `fifteen-minutes`, `hour`, `day` or `week`. The first run is due as soon as the plugin is enabled. After that, each is counted from the last queued run, which Teme records on the plugin's row, so a missed minute never queues two.
 
 Teme's own `teme:plugins:run-due-schedules` queues the due ones. Laravel's scheduler runs it every minute, so the site's scheduler must run, as it does for Teme's own work.
 
-A scheduled run acts as the administrator who enabled the plugin, with that person's permissions. A plugin enabled from the console with `teme:plugins:enable` records no person, and its schedules are then skipped without a word; enable it from the admin to have them run. The maintainers track this as [issue 334](https://github.com/temecms/teme/issues/334).
+Scheduled work runs as the administrator who enabled the plugin, with that person's normal permissions. When that person can't, the schedules don't run, and the Plugins screen and `teme:plugins` say why on the plugin's row: it was enabled from the command line without naming an administrator, the administrator no longer has an account, or they can no longer manage plugins. Disabling the plugin and enabling it again fixes it.
+
+From the command line, a plugin with schedules is enabled only with the administrator named:
+
+```bash
+php artisan teme:plugins:enable your/plugin --agree --as=admin@example.com
+```
+
+Without `--as`, or with an email no one who may manage plugins has, nothing is enabled.
 
 ## When a job fails
 
@@ -56,4 +73,4 @@ Teme cancels a run that hasn't started when the plugin is disabled, has lost the
 
 The testing kit runs a job on the test's `sync` queue with `runJob()`, and one pass of the schedules with `runSchedules()`: see [Testing a plugin or theme](../testing.md).
 
-Next: [Public routes](public-routes.md), and the generated [Plugin manifest reference](../../../reference/plugin-manifest.md) for every key.
+Next: [Plugin settings and secrets](settings.md), where actions queue your jobs from a button on your settings page; [Public routes](public-routes.md); and the generated [Plugin manifest reference](../../../reference/plugin-manifest.md) for every key.

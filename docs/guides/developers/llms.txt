@@ -11,19 +11,21 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Operations](concepts/operations.md): Every change goes through an Operation; what a plugin may and may not touch.
 - [Code standards for plugins and themes](start/code-standards.md): What Teme requires of a plugin's or theme's code, what it only recommends, and where Teme's own coding standards are.
 - [Testing a plugin or theme](testing.md): How to test a plugin or theme with Pest and Teme's testing kit, against a real Teme site, through the same checks the admin makes.
-- [Plugin settings and secrets](plugins/settings.md): How a plugin declares its settings screen in the manifest, reads its values, keeps API keys as secrets, and adds a Tools link.
+- [Plugin settings and secrets](plugins/settings.md): How a plugin declares its settings screen in the manifest, reads and writes its values, keeps API keys as secrets, reaches hosts a person types into them, adds actions and lists to the page, and adds a Tools link.
 - [Your plugin's own tables](plugins/tables.md): How a plugin creates tables of its own with migrations, the names they must have, how they are read and written, run after an update, and removed.
 - [Regions, site code and featured posts](themes/regions.md): How a theme sets aside regions for the site's own content, where an administrator's own HTML goes, and how to draw pinned posts on the latest posts page.
 - [Rules for plugins and themes](rules/plugins-and-themes.md): The rules every plugin and theme lives by, both the ones Teme enforces and the ones authors must keep because Teme cannot check them.
 - [For agents](for-agents.md): How agents should read this handbook and llms.txt, choose a plugin's capabilities, and write an AGENTS.md for it.
 - [Plugins writing content](plugins/content-write.md): How a plugin granted content.write creates, changes, publishes and schedules items, always on behalf of a named person.
-- [Jobs and schedules](plugins/jobs.md): How a plugin declares background jobs and schedules in its manifest, queues them, writes their handlers, and what happens when one fails.
+- [Jobs and schedules](plugins/jobs.md): How a plugin declares background jobs and schedules in its manifest, queues them, after a delay or once while one waits, writes their handlers, who its scheduled work runs as, and what happens when one fails.
 - [Public routes](plugins/public-routes.md): How a plugin answers addresses on the public site, which paths it may take, how inbound posts are verified, cached and limited, and which addresses Teme answers itself.
 - [Files at the site's root](plugins/root-files.md): How a plugin declares a small text file at the site's root, such as a verification key, which core serves without running the plugin's code.
 - [The plugin import socket](plugins/import.md): How a plugin brings its own data across when a site moves from WordPress, declaring exactly what it reads and receiving it from Teme's import.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
+- [Content on every page](plugins/page-insertions.md): How a plugin with pages.insert places markup in the head, at the top and bottom of every page, between list items, around a theme's regions and fixed to the screen's edge, and what core cleans, caps and leaves out.
 - [The fediverse](plugins/fediverse.md): What core does on the fediverse by itself, and the sockets a plugin can use to hear activities, handle them, change what is sent, and send its own.
 - [List columns](plugins/list-columns.md): How a plugin adds a column to the admin's content lists.
+- [Feeds and the site](plugins/feeds-and-site.md): How a plugin adds links to the site's feeds, reads the site's address, name, language and feeds, hears which feeds a change touched, and posts a form to a service outside the site.
 - [Languages in a theme](themes/languages.md): What a multilingual site gives a theme, from the page's language and direction, its other language versions, the language switcher, and the theme's own words.
 - [The management API](outside/management-api.md): For a service outside the site, not a plugin, with keys and abilities, the endpoints, the problems it answers, and its limits.
 

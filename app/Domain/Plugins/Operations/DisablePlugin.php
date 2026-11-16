@@ -80,8 +80,8 @@ final class DisablePlugin extends BaseOperation
         $manifest = $this->registry->find($input->name)?->manifest;
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...($manifest !== null && RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
 
-        // Its insertions leave the article pages that drew them, after commit (I-064).
-        if (in_array(Capability::ContentInsert->value, $record->consent['capabilities'] ?? [], true)) {
+        // Its insertions leave the pages that drew them, after commit (I-064).
+        if (in_array(Capability::ContentInsert->value, $record->consent['capabilities'] ?? [], true) || in_array(Capability::PagesInsert->value, $record->consent['capabilities'] ?? [], true)) {
             app(InsertionsChanged::class)->notify();
         }
 

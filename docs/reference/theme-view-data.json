@@ -25,6 +25,12 @@
         "$themeSettings": {
             "type": "array<string, mixed>"
         },
+        "<x-teme::between-items> after": {
+            "type": "int"
+        },
+        "<x-teme::between-items> last": {
+            "type": "bool"
+        },
         "<x-teme::comment-form> form": {
             "type": "CommentFormView"
         },

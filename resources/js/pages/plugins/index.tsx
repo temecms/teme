@@ -177,7 +177,11 @@ function pendingUrl(pending: Pending): string {
  * also adds, updates and removes plugins here, and follows every plugin and
  * theme request on Install requests (I-211).
  */
-export default function Plugins({ plugins, extensions }: PluginsPage) {
+export default function Plugins({
+    plugins,
+    settingHosts,
+    extensions,
+}: PluginsPage) {
     const [tab, setTab] = useState<Tab>(() => firstTab(extensions !== null));
     const installer = useInstaller(
         extensions,
@@ -250,24 +254,25 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
 
     const enable = (plugin: PluginRowPage) => {
         setAsking(null);
-        router.post(
-            PluginsController.enable.url({ code: plugin.code }),
-            plugin.shown,
-            {
-                onBefore: () =>
-                    writePending({
-                        kind: 'enable',
-                        code: plugin.code,
-                        post: plugin.shown,
-                        at: Date.now(),
-                    }),
-                onSuccess: (page) => {
-                    if (page.component === 'plugins/index') {
-                        removePending();
-                    }
-                },
+        // The hosts its settings name now, as the dialog showed them (docs/plans/plugin-sockets-1.md, A2).
+        const post: PluginEnablePost = {
+            ...plugin.shown,
+            settingHosts: settingHosts[plugin.name]?.hosts ?? [],
+        };
+        router.post(PluginsController.enable.url({ code: plugin.code }), post, {
+            onBefore: () =>
+                writePending({
+                    kind: 'enable',
+                    code: plugin.code,
+                    post,
+                    at: Date.now(),
+                }),
+            onSuccess: (page) => {
+                if (page.component === 'plugins/index') {
+                    removePending();
+                }
             },
-        );
+        });
     };
 
     const migrate = (plugin: PluginRowPage) => {
@@ -480,6 +485,11 @@ export default function Plugins({ plugins, extensions }: PluginsPage) {
 
                 <ConsentDialog
                     plugin={asking}
+                    settingHosts={
+                        asking === null
+                            ? null
+                            : (settingHosts[asking.name] ?? null)
+                    }
                     onClose={() => setAsking(null)}
                     onConfirm={enable}
                 />

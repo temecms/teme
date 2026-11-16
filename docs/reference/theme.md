@@ -444,6 +444,15 @@ A field reaches a template as a `FieldView`, from `$page->field('handle')` or a 
 
 ## Components
 
+### `<x-teme::between-items>`
+
+`<x-teme::between-items :after="$loop->iteration" :last="$loop->last" />`: what plugins place between a list's items, after this item, cleaned; nothing after the last item, or where nothing is placed. A theme puts it inside its list loops (docs/plans/plugin-sockets-2.md, B2).
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `after` | `int` | — | the item just drawn, counted from 1 |
+| `last` | `bool` | false | whether it is the list's last item |
+
 ### `<x-teme::comment-form>`
 
 `<x-teme::comment-form>`: core's comment form (docs/studies/comments.md §3.4, I-578), which a theme places and styles. Where only signed-in people may comment, a browser that carries no sign-in marker, whose page may be stored and shared, gets a line in its place (D16).
@@ -507,7 +516,7 @@ No attributes.
 
 ### `<x-teme::region>`
 
-`<x-teme::region name="after-content" />`: the site's own content a theme places, such as a newsletter box after the article (study B §3e), drawn from the region's published revision, its cards recorded for the page's head (I-248). Nothing for a region that's empty or unpublished; outside production, a note for a name the theme's manifest doesn't declare.
+`<x-teme::region name="after-content" />`: the site's own content a theme places, such as a newsletter box after the article (study B §3e), drawn from the region's published revision, its cards recorded for the page's head (I-248). Nothing for a region that's empty or unpublished; outside production, a note for a name the theme's manifest doesn't declare. What plugins place before or after a declared region is drawn around it, also when it is empty (docs/plans/plugin-sockets-2.md, B2).
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|

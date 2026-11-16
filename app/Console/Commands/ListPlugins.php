@@ -32,7 +32,7 @@ final class ListPlugins extends Command
 
         $this->table(
             [__('Plugin'), __('Version'), __('State'), __('Why')],
-            array_map(fn (PluginRow $row): array => [$row->name, $row->version, $row->state->label(), $row->reason], $rows),
+            array_map(fn (PluginRow $row): array => [$row->name, $row->version, $row->state->label(), trim($row->reason.' '.($row->schedules ?? ''))], $rows),
         );
 
         return self::SUCCESS;

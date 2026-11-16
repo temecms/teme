@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
 
+use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Operations\Input\StartJobInput;
 use App\Domain\Jobs\Operations\StartJob;
 use App\Domain\Plugins\FoundPlugin;
@@ -16,10 +17,12 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use JsonException;
 use Teme\Contracts\Jobs\Jobs;
+use Teme\Contracts\Jobs\QueueOptions;
 
 /**
  * A plugin's Jobs door (I-3445): queues one of its declared jobs as a tracked
- * plugin-job, with a JSON-ready payload of at most 64 KB.
+ * plugin-job, with a JSON-ready payload of at most 64 KB, after a delay or
+ * once while one waits when asked (docs/proposals/plugin-sockets-1.md).
  */
 final readonly class PluginJobs implements Jobs
 {
@@ -34,20 +37,58 @@ final readonly class PluginJobs implements Jobs
         private ?JobActor $as = null,
     ) {}
 
-    public function queue(string $key, array $payload = [], ?string $label = null): string
+    public function queue(string $key, array $payload = [], ?string $label = null, ?QueueOptions $options = null): string
     {
         $payload = $this->ready($payload);
         $declared = $this->declared($key);
         $actor = $this->actor();
+        $label ??= $declared['label'];
 
+        if ($options?->uniqueKey === null) {
+            return $this->startRun($key, $payload, $label, $declared, $actor, null, $options->delaySeconds ?? 0);
+        }
+
+        $unique = $options->uniqueKey;
+
+        // Once while one waits: the lock keeps two callers from both missing
+        // the waiting run; the partial unique index is the backstop.
+        return DB::transaction(function () use ($key, $payload, $label, $declared, $actor, $unique, $options): string {
+            DB::select('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', ["plugin-job:{$this->code}:{$key}:{$unique}"]);
+
+            $waiting = DB::table('tracked_jobs')
+                ->where('owner', $this->code)
+                ->where('run_type', PluginJobKind::KEY)
+                ->where('run_id', $key)
+                ->where('unique_key', $unique)
+                ->where('state', JobState::Waiting->value)
+                ->value('id');
+
+            if (is_string($waiting)) {
+                return $waiting;
+            }
+
+            return $this->startRun($key, $payload, $label, $declared, $actor, $unique, $options->delaySeconds);
+        });
+    }
+
+    /**
+     * Records the run as waiting and dispatches it after commit, after the
+     * delay when there is one.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array{key: string, label: string, long: bool, tries: int, backoff: list<int>}  $declared
+     */
+    private function startRun(string $key, array $payload, string $label, array $declared, JobActor $actor, ?string $uniqueKey, int $delaySeconds): string
+    {
         $id = $this->start->execute(new StartJobInput(
             kind: PluginJobKind::KEY,
-            label: $label ?? $declared['label'],
+            label: $label,
             runType: PluginJobKind::KEY,
             runId: $key,
             actorId: $actor->userId,
             owner: $this->code,
             payload: $payload,
+            uniqueKey: $uniqueKey,
         ));
 
         $job = RunPluginJob::configure(
@@ -55,10 +96,15 @@ final readonly class PluginJobs implements Jobs
             $declared,
         );
 
-        DB::afterCommit(function () use ($job, $declared): void {
-            dispatch($job
-                ->onConnection($declared['long'] ? 'database-long' : (string) config('queue.default'))
-                ->onQueue($declared['long'] ? 'long' : 'default'));
+        DB::afterCommit(function () use ($job, $declared, $delaySeconds): void {
+            $job->onConnection($declared['long'] ? 'database-long' : (string) config('queue.default'))
+                ->onQueue($declared['long'] ? 'long' : 'default');
+
+            if ($delaySeconds > 0) {
+                $job->delay($delaySeconds);
+            }
+
+            dispatch($job);
         });
 
         return $id;

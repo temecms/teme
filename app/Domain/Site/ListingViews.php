@@ -15,6 +15,7 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\People\Credit;
 use App\Domain\People\Credits;
 use App\Domain\People\Queries\People;
+use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\ViewModels\ImageRef;
 use App\Domain\Site\ViewModels\ListingItem;
 use App\Domain\Site\ViewModels\ListingView;
@@ -198,6 +199,8 @@ final readonly class ListingViews
         $credit = $shown->kind === Credit::ACCOUNT ? Credit::account((int) $shown->id) : Credit::person($shown->id);
         // What they're credited on, and the person, whose name and bio head the page.
         app(RenderRecord::class)->tag(PageTags::author($credit->id), PageTags::person($credit->id));
+        // Plugins granted pages.insert are told whose archive this is (docs/plans/plugin-sockets-2.md).
+        app(PageInsertions::class)->author((string) $shown->id);
         $types = ListingTypes::withArchive();
         $url = $shown->path === null ? null : Addresses::toUrl($shown->path);
         // An author has one address, the default language's; their list in another language is it after the prefix (I-3360).

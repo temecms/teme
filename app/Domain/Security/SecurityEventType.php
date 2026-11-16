@@ -66,6 +66,9 @@ enum SecurityEventType: string
 
     case ApiKeyCreated = 'api_key.created';
     case ApiKeyRevoked = 'api_key.revoked';
+    case PluginScriptApproved = 'plugin_script.approved';
+    case PluginScriptRefused = 'plugin_script.refused';
+    case PluginScriptRevoked = 'plugin_script.revoked';
 
     /**
      * Counted per subject, address and hour instead of one row each.

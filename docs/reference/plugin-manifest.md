@@ -14,7 +14,7 @@
 | `requires` | object | yes | What the plugin needs to run. |  |
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -56,8 +56,10 @@
 | `imports.userMeta` | array | no |  |  |
 | `imports.termMeta` | array | no |  |  |
 | `hosts` | array | no | The hosts the plugin asks to reach, when it asks for http. |  |
+| `hostsFrom` | array | no | Up to 3 of the plugin's own url or urls settings whose hosts it may reach once a person agrees, at enable or when saving the setting. Needs http. |  |
 | `hooks` | array | no | The hooks the plugin listens to, by name. |  |
 | `contributes` | object | no | What the plugin adds to the admin. |  |
+| `contributes.fixedLabel` | string | no | The label core draws on the plugin's fixed insertions; Advertisement when absent. |  |
 | `contributes.settings` | array | no | Settings the plugin declares. |  |
 | `contributes.settings[].key` | string | yes | The setting's key. | ^[a-z][a-z0-9_]{1,40}$ |
 | `contributes.settings[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "secret", "color" |
@@ -84,7 +86,24 @@
 | `contributes.columns[].kind` | enum | yes |  | "text", "number", "badge" |
 | `contributes.columns[].width` | enum | no |  | "narrow", "medium", "wide" |
 | `contributes.columns[].types` | array | no | Content type keys; absent means every listed type. |  |
-| `contributes.csp` | object | no |  |  |
+| `contributes.feedLinks` | array | no | Links core writes in every feed, after its own rel="self". Needs feeds.links. |  |
+| `contributes.feedLinks[].rel` | enum | yes |  | "hub" |
+| `contributes.feedLinks[].href` | string | yes | An https:// address, or {key} naming one of the plugin's own url or urls settings (a urls setting gives a link for each address, at most 5). | ^(https://.+\|\{[a-z][a-z0-9_]{1,40}\})$ |
+| `contributes.actions` | array | no | Buttons on the plugin's settings page, each queuing one of its declared jobs. Needs jobs. |  |
+| `contributes.actions[].id` | string | yes | The action's id. | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.actions[].label` | string | yes | The button's words. |  |
+| `contributes.actions[].description` | string | no | What the action does, beside the button. |  |
+| `contributes.actions[].job` | string | yes | The key of the declared job it queues. | ^[a-z][a-z0-9-]{0,47}$ |
+| `contributes.lists` | array | no | Small tables on the plugin's settings page. |  |
+| `contributes.lists[].id` | string | yes | The list's id. | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.lists[].label` | string | yes | The list's heading. |  |
+| `contributes.lists[].description` | string | no | What the list shows. |  |
+| `contributes.lists[].columns` | array | yes |  |  |
+| `contributes.lists[].columns[].id` | string | yes | The column's id. | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.lists[].columns[].label` | string | yes | The column's heading. |  |
+| `contributes.lists[].columns[].kind` | enum | yes |  | "text", "number", "badge" |
+| `contributes.lists[].rows` | integer | no | The most rows it shows; 20 when absent. |  |
+| `contributes.csp` | object | no | The hosts the content the plugin inserts loads from, by kind. Read only for a plugin granted content.insert or pages.insert, listed in the consent, and added to a page's policy only where that plugin's insertions were drawn. |  |
 | `contributes.csp.style` | array | no |  |  |
 | `contributes.csp.font` | array | no |  |  |
 | `contributes.csp.img` | array | no |  |  |

@@ -311,6 +311,14 @@ export function PluginRow({
                         {plugin.reason}
                     </p>
                 )}
+                {plugin.schedules !== null && (
+                    <p
+                        data-test="plugin-schedules"
+                        className="text-small text-warn-ink"
+                    >
+                        {plugin.schedules}
+                    </p>
+                )}
             </div>
             <div className="shrink-0 max-md:w-full max-md:ps-12">
                 <StatusPill tone={tone} data-test="plugin-state">

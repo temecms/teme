@@ -70,7 +70,7 @@ You build a plugin or theme in its own folder or repository, and test it against
    php artisan teme:plugins:enable your/package --agree
    ```
 
-   Enabling from the console records no person as the one who agreed, so a plugin's schedules don't run; enable a plugin with schedules from the admin. The maintainers track this as [issue 334](https://github.com/temecms/teme/issues/334).
+   A plugin with schedules is enabled from the console only with the administrator its scheduled work runs as: add `--as=admin@example.com`; see [Jobs and schedules](../plugins/jobs.md#schedules).
 
    Check your theme with `php artisan teme:theme:check your-theme-code`, then choose it under Site › Themes.
 

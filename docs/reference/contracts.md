@@ -6,7 +6,7 @@ This checkout offers contracts up to **0.9.0**.
 
 ## What a plugin's constructor may ask for
 
-Teme builds a plugin's class with only these, each when the plugin was granted what the second column names. A constructor that asks for anything else is refused when the plugin is enabled.
+Teme builds a plugin's class with only these, each when the plugin was granted, or its manifest declares, what the second column names. A constructor that asks for anything else is refused when the plugin is enabled.
 
 | Contract | Given when | Since |
 |---|---|---|
@@ -19,6 +19,9 @@ Teme builds a plugin's class with only these, each when the plugin was granted w
 | `Teme\Contracts\Insertions\InsertionsChanged` | granted `content.insert` | 0.9.0 |
 | `Teme\Contracts\Fediverse\FediverseFollowers` | granted `fediverse.read` | 0.9.0 |
 | `Teme\Contracts\Fediverse\FediverseSender` | granted `fediverse.send` | 0.9.0 |
+| `Teme\Contracts\Site\SiteInfo` | always | 0.9.0 |
+| `Teme\Contracts\Settings\PluginSettingsWriter` | its manifest declares `contributes.settings` | 0.9.0 |
+| `Teme\Contracts\Insertions\InlineScripts` | granted `content.insert` | 0.9.0 |
 
 ## Teme\Contracts\Cache
 
@@ -274,6 +277,16 @@ A hook: its parameters are in the [hooks reference](hooks.md#objectbuilt).
 
 FediverseSender would not send an activity; the message says why.
 
+## Teme\Contracts\Feeds
+
+### FeedsChanged
+
+`Teme\Contracts\Feeds\FeedsChanged`, class. Since 0.9.0.
+
+Feeds a change touched: the main feeds, a type's, a term's or an author's, as the public sees them. Sent after the change is saved, only when a plugin listens, never during an import run. It carries only public addresses, so it needs no capability.
+
+A hook: its parameters are in the [hooks reference](hooks.md#feedschanged).
+
 ## Teme\Contracts\Hooks
 
 ### Collect
@@ -420,6 +433,7 @@ The only way out for a plugin granted http: https, to the hosts agreed to, no re
 
 - `get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A GET request. Since 0.5.0.
 - `postJson(string $url, array $json, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a JSON body. Since 0.5.0.
+- `postForm(string $url, array $fields, array $headers = [], int $timeoutSeconds = 5): HttpAnswer` — A POST request with a form body, `application/x-www-form-urlencoded`: a list value repeats its name (`hub.url=a&hub.url=b`, as WebSub needs), never `name[0]=`. Since 0.9.0.
 
 ### RequestFailed
 
@@ -478,9 +492,17 @@ One record a plugin receives from the WordPress site an import reads: plain valu
 
 `Teme\Contracts\Insertions\ArticleFacts`, class. Since 0.9.0.
 
-What a contributor learns about the article so it can decide which insertions to give: identity, type, terms, language, authors, and size. Core skips contributors entirely when the item has opted out.
+What a contributor learns about the article so it can decide which insertions to give: identity, type, terms, language, authors, size, and its path. Core skips contributors entirely when the item has opted out.
 
-- `__construct(string $contentId, string $type, array $termIdsByTaxonomy, string $language, array $authorIds, int $words, int $paragraphs)`. Since 0.9.0.
+- `__construct(string $contentId, string $type, array $termIdsByTaxonomy, string $language, array $authorIds, int $words, int $paragraphs, string $path = '')`. Since 0.9.0.
+
+### InlineScripts
+
+`Teme\Contracts\Insertions\InlineScripts`, interface. Since 0.9.0.
+
+Asks for one of a plugin's inline scripts to be approved, so its inserted markup may keep it. A person who may change site code approves it, by its exact text; a plugin never can. Offered to a plugin granted content.insert or pages.insert.
+
+- `request(string $name, string $script): void` — Asks, for the person this work runs for, that this script's exact text be approved; nothing when that text already waits, was approved, or was refused. Since 0.9.0.
 
 ### Insertion
 
@@ -507,6 +529,55 @@ Something that adds markup inside published articles at named points. Registered
 Tells Teme that a plugin's insertion rules changed, so pages that drew insertions are purged after the Operation commits. Call it only inside an Operation's perform(); outside one it does nothing useful and may refuse.
 
 - `notify(): void` — Notes that insertion rules changed, for the page cache to purge after commit. Since 0.9.0.
+
+### PageFacts
+
+`Teme\Contracts\Insertions\PageFacts`, class. Since 0.9.0.
+
+What a public page is, so a contributor can decide what to give: its kind, its path, its language, and for an article or a term's archive what it is about. Never anything about the visitor: the page is cached whole for everyone.
+
+- `__construct(string $kind, string $path, string $language, ?string $type, ?string $contentId, array $termIdsByTaxonomy, array $authorIds, int $pageNumber)`. Since 0.9.0.
+
+### PageInsertion
+
+`Teme\Contracts\Insertions\PageInsertion`, class. Since 0.9.0.
+
+One piece of markup a contributor wants drawn at a place on a public page. Its key keeps a second copy out; the first, by plugin code order, wins.
+
+- `__construct(string $key, PagePosition $at, string $html)`. Since 0.9.0.
+
+### PageInsertionContributor
+
+`Teme\Contracts\Insertions\PageInsertionContributor`, interface. Since 0.9.0.
+
+Adds markup to public pages at declared places: the head, the start and end of the body, between the items of a list, before or after a theme's region, or fixed to an edge of the screen. Asked only for a plugin granted pages.insert, and only on public web pages; core cleans and draws what it gives.
+
+- `pageInsertions(PageFacts $page): array` — Its insertions for this page; none where it adds nothing. Since 0.9.0.
+
+### PagePosition
+
+`Teme\Contracts\Insertions\PagePosition`, class. Since 0.9.0.
+
+Where on a public page an insertion sits: the head, the start or end of the body, between the items of a list, before or after a theme's region, or fixed to an edge of the screen. A place the page doesn't have draws nothing.
+
+- `HEAD`. Since 0.9.0.
+- `BODY_START`. Since 0.9.0.
+- `BODY_END`. Since 0.9.0.
+- `AFTER_ITEM`. Since 0.9.0.
+- `EVERY_ITEMS`. Since 0.9.0.
+- `REGION`. Since 0.9.0.
+- `FIXED`. Since 0.9.0.
+- `LAST_ITEM` — The furthest item of a list afterItem() reaches. Since 0.9.0.
+- `EVERY_ITEMS_MAX` — The most times one everyItems insertion is drawn on a list; a larger ceiling is held to this. Since 0.9.0.
+- `EDGES` — The edges a fixed insertion may hold. Since 0.9.0.
+- `RAIL_WIDTHS` — The widths, in pixels, a side rail may take; the first when none is given. Since 0.9.0.
+- `head(): self` — The end of the page's head: script sources, a few meta names, preconnect links and approved scripts only. Since 0.9.0.
+- `bodyStart(): self` — The start of the body, after the skip link, above the theme's header. Since 0.9.0.
+- `bodyEnd(): self` — The end of the body, before core's scripts. Since 0.9.0.
+- `afterItem(int $n): self` — After the $n-th item of a list, 1 to LAST_ITEM; never after its last. Since 0.9.0.
+- `everyItems(int $n, int $max = 3): self` — After every $n-th item of a list, at most $max times, and never more than EVERY_ITEMS_MAX. Since 0.9.0.
+- `region(string $slug, string $where = 'after'): self` — Before or after a region the active theme declares, also when the region is empty, on pages whose template draws it. Since 0.9.0.
+- `fixed(string $edge, int $width = 0): self` — Fixed to an edge of the screen: `bottom` or `top`, full width, or a `left` or `right` rail of a width in RAIL_WIDTHS, shown only where the screen has room beside the content. Since 0.9.0.
 
 ### Position
 
@@ -562,7 +633,7 @@ Thrown by progress() so a handler unwinds when its run must stop.
 
 Queues one of the calling plugin's declared jobs. Offered only when the plugin was granted `jobs`.
 
-- `queue(string $key, array $payload = [], ?string $label = null): string` — Queues the declared job. Since 0.9.0.
+- `queue(string $key, array $payload = [], ?string $label = null, ?QueueOptions $options = null): string` — Queues the declared job. Since 0.9.0).
 
 ### PluginHasJobs
 
@@ -571,6 +642,14 @@ Queues one of the calling plugin's declared jobs. Offered only when the plugin w
 A plugin with jobs: its handlers, by declared key. Implemented beside Plugin.
 
 - `jobs(): array` — The handlers for the plugin's declared jobs, keyed by job key. Since 0.9.0.
+
+### QueueOptions
+
+`Teme\Contracts\Jobs\QueueOptions`, class. Since 0.9.0.
+
+How to queue a plugin's job: after a delay, and once while one waits.
+
+- `__construct(int $delaySeconds = 0, ?string $uniqueKey = null)`. Since 0.9.0.
 
 ## Teme\Contracts\Lists
 
@@ -596,6 +675,14 @@ A plugin with list columns: its handlers, by declared column id. Implemented bes
 
 - `listColumns(): array` — The handlers for the plugin's declared list columns, keyed by column id. Since 0.9.0.
 
+### HasPluginLists
+
+`Teme\Contracts\Lists\HasPluginLists`, interface. Since 0.9.0.
+
+A plugin with lists on its settings page, by declared id. Implemented beside Plugin.
+
+- `pluginLists(): array` — The plugin's declared lists, keyed by list id. Since 0.9.0.
+
 ### ListColumn
 
 `Teme\Contracts\Lists\ListColumn`, interface. Since 0.9.0.
@@ -620,6 +707,14 @@ One page of a content list, in the list's order, for a column to fill.
 
 - `__construct(string $type, array $rows)`. Since 0.9.0.
 - `ids(): array` — The row ids in the list's order. Since 0.9.0.
+
+### PluginList
+
+`Teme\Contracts\Lists\PluginList`, interface. Since 0.9.0.
+
+One list's rows on a plugin's settings page, newest or most useful first.
+
+- `rows(int $limit): array` — At most $limit rows; each row its cells by declared column id. Since 0.9.0.
 
 ## Teme\Contracts\Media
 
@@ -714,9 +809,9 @@ An Operation that sometimes needs a fresh proof of identity before it runs. Decl
 
 ### Capability
 
-`Teme\Contracts\Plugins\Capability`, enum. Since 0.5.0.
+`Teme\Contracts\Plugins\Capability`, enum. Since 0.9.0`)..
 
-What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers.
+What a plugin can ask an administrator to let it do in the first release. ContentRead unlocks the content-reading hooks, ContentWrite the content door, MediaRead the media-reading hooks, MediaWrite the media door, ContentInsert the article insertion points, Http the outbound door to the hosts the plugin names, Jobs the door that queues the plugin's declared background work, RoutesPublic the door that answers the plugin's declared public addresses, and ImportWordPress hands an import the data the plugin declares under its manifest's `imports`, read from the WordPress site Teme imports. FediverseRead unlocks the fediverse hooks and who follows the site's accounts, and FediverseSend the door that sends activities to those followers. FeedsLinks lets the plugin add the links its manifest declares under `contributes.feedLinks`, such as a WebSub hub, to every feed (`@since 0.9.0`). PagesInsert unlocks the places to add content on every public page: the head, the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge.
 
 - case `ContentRead`. Since 0.5.0.
 - case `ContentWrite`. Since 0.9.0.
@@ -729,6 +824,8 @@ What a plugin can ask an administrator to let it do in the first release. Conten
 - case `ImportWordPress`. Since 0.9.0.
 - case `FediverseRead`. Since 0.9.0.
 - case `FediverseSend`. Since 0.9.0.
+- case `FeedsLinks`. Since 0.9.0.
+- case `PagesInsert`. Since 0.9.0.
 
 ### Plugin
 
@@ -862,6 +959,14 @@ Finds published content for a reader's query. Core's implementation uses Postgre
 
 ## Teme\Contracts\Settings
 
+### PluginSettingsWriter
+
+`Teme\Contracts\Settings\PluginSettingsWriter`, interface. Since 0.9.0.
+
+Writes the calling plugin's own settings group, `plugin.{code}`, for a named person. Offered to a plugin that declares settings.
+
+- `write(array $values, string $actingPersonId): void` — Saves these values, by declared key, as $actingPersonId could on the settings page. Since 0.9.0.
+
 ### SecretReader
 
 `Teme\Contracts\Settings\SecretReader`, interface. Since 0.1.0.
@@ -965,6 +1070,20 @@ Reads effective setting values: the stored override, or the declared default. Ne
 Where settings groups are declared. Internal in phase 1; the extension contract in phase 5, unchanged in shape.
 
 - `group(SettingsGroup $group): void`. Since 0.1.0.
+
+## Teme\Contracts\Site
+
+### SiteInfo
+
+`Teme\Contracts\Site\SiteInfo`, interface. Since 0.9.0.
+
+The site's public facts, offered to every plugin with no capability: its address, name, language, home page and main feeds, the same in a request, a queued job and the console.
+
+- `address(): string` — The site's address, absolute, with no trailing slash. Since 0.9.0.
+- `name(): string` — The site's name (Settings › General). Since 0.9.0.
+- `language(): string` — The site's default language as a BCP 47 tag. Since 0.9.0.
+- `home(): string` — The home page's address, absolute. Since 0.9.0.
+- `feeds(): array` — The main feed's address for each site language, absolute, the default language's first. Since 0.9.0.
 
 ## Teme\Contracts\Status
 

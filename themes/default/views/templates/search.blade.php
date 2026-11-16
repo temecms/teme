@@ -22,6 +22,7 @@
             <div class="feed-list">
                 @foreach ($page->search->results as $result)
                     @include('theme::partials.card', ['item' => $result->item, 'context' => 'thumb', 'showImage' => $themeSettings['feed_images'] ?? true, 'showMeta' => true, 'snippetHtml' => $result->snippetHtml])
+                    <x-teme::between-items :after="$loop->iteration" :last="$loop->last" />
                 @endforeach
             </div>
 

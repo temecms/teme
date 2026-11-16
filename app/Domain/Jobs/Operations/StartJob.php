@@ -47,6 +47,7 @@ final class StartJob extends BaseOperation
             'total' => $input->total,
             'run_type' => $input->runType,
             'run_id' => $input->runId,
+            'unique_key' => $input->uniqueKey,
         ], [
             // A kind that can't be found can't be retried, so it can't start (I-104).
             'kind' => ['required', 'string', function (string $attribute, mixed $value, Closure $fail): void {
@@ -59,6 +60,7 @@ final class StartJob extends BaseOperation
             'total' => ['nullable', 'integer', 'min:0', 'max:2147483647'],
             'run_type' => ['nullable', 'required_with:run_id', 'string', 'max:32', 'regex:/^[a-z][a-z0-9-]*$/'],
             'run_id' => ['nullable', 'required_with:run_type', 'string', 'max:64'],
+            'unique_key' => ['nullable', 'string', 'max:64'],
         ])->validate();
     }
 
@@ -79,6 +81,7 @@ final class StartJob extends BaseOperation
             'total' => $input->total,
             'done' => 0,
             'payload' => $input->payload,
+            'unique_key' => $input->uniqueKey,
         ]);
 
         return (string) $job->id;
