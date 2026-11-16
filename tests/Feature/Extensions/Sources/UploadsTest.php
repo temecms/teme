@@ -11,6 +11,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Symfony\Component\Process\Process;
 
 uses(RefreshDatabase::class);
 
@@ -229,3 +230,31 @@ it('refuses a request whose upload is gone', function (): void {
     expect(fn () => app(UploadSource::class)->prepare(ExtensionRequest::fromRow(DB::table('extension_requests')->sole()), $this->extensions.'/releases/r1', $this->extensions))
         ->toThrow(RuntimeException::class, 'The uploaded file for this request is gone.');
 });
+
+it('lets Composer install an unpacked upload from the path repository, copied', function (): void {
+    unpackUpload(uploadZip());
+    unpackUpload(uploadZip('hello-extension-1.1.0', 'hello-extension'), 'fixtures/hello-extension', '1.1.0');
+
+    $release = $this->extensions.'/releases/r1';
+    mkdir($release, 0755, true);
+    file_put_contents($release.'/composer.json', json_encode([
+        'name' => 'teme/site-extensions',
+        'type' => 'project',
+        'require' => ['fixtures/hello-extension' => '1.0.0'],
+        'replace' => ['teme/contracts' => 'dev-main'],
+        'repositories' => [['packagist.org' => false], ...app(UploadSource::class)->repositories(null, $this->extensions)],
+        'config' => ['allow-plugins' => false],
+    ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
+
+    $composer = new Process(
+        [config('teme.extensions.composer'), 'update', '--no-interaction', '--no-scripts', '--no-plugins', '--no-progress', '--no-audit', '--working-dir='.$release],
+        $release,
+        ['COMPOSER_HOME' => $this->extensions.'/.composer', 'COMPOSER_ALLOW_SUPERUSER' => '1'],
+    );
+    $composer->setTimeout(120)->run();
+
+    expect($composer->getExitCode())->toBe(0, $composer->getErrorOutput())
+        ->and($release.'/vendor/fixtures/hello-extension/src/HelloExtension.php')->toBeFile()
+        ->and(is_link($release.'/vendor/fixtures/hello-extension'))->toBeFalse()
+        ->and(json_decode((string) file_get_contents($release.'/composer.lock'), true)['packages'][0]['version'])->toBe('1.0.0');
+})->group('composer');
