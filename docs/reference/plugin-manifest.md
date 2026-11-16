@@ -68,6 +68,7 @@
 | `owns` | object | no | Tables this plugin creates (slice 5.2). Each name starts with the plugin’s code as a prefix (hyphens become underscores). |  |
 | `owns.tables` | array | yes | Table names the plugin’s migrations create. |  |
 | `author` | string | no | Who wrote the plugin. |  |
+| `author_url` | string | no | The author’s website. |  |
 | `homepage` | string | no | Where to read about it. |  |
 | `license` | string | no | The license it is released under. |  |
 
