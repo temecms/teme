@@ -6,13 +6,19 @@ use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Plugins\Jobs\RunPluginJob;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\Operations\EnablePlugin;
+use App\Domain\Plugins\Operations\Input\EnablePluginInput;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Queries\PluginsScreen;
+use App\Domain\Support\Security\Elevation;
+use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Validation\ValidationException;
 use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
@@ -141,4 +147,14 @@ it('skips a plugin whose schedules can’t run, and logs it at most once a day',
     $this->artisan('teme:plugins:run-due-schedules')->assertSuccessful();
 
     expect($logged)->toBe(2);
+});
+
+it('checks again, in EnablePlugin, that the administrator named may manage plugins, writing nothing', function (): void {
+    app()->instance(Elevation::class, new OperatorElevation);
+    $manifest = app(PluginRegistry::class)->find('tests/jobs')?->manifest;
+
+    expect(fn () => app(EnablePlugin::class)->execute(new EnablePluginInput('tests/jobs', '1.0.0', $manifest?->capabilities() ?? [], $manifest?->hosts() ?? [], [], null, schedulesAs: (string) $this->editor->id)))
+        ->toThrow(ValidationException::class, 'No one who may manage plugins has that account.');
+
+    expect(PluginRecord::query()->count())->toBe(0);
 });
