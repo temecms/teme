@@ -8,9 +8,33 @@ use App\Domain\Cards\DocumentNormaliser;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\DocumentValidator;
 use App\Domain\Cards\Exceptions\InvalidDocumentException;
+use App\Domain\Cards\RegionCard;
+use App\Domain\Regions\RegionRules;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+/**
+ * The rules a document is held to as the editor makes it: a region's, taking
+ * every card, when it holds a card the editor offers only in a theme's
+ * region (I-3127); none otherwise.
+ *
+ * @param  array<mixed>  $document
+ */
+function editorSchemaRules(array $document): ?RegionRules
+{
+    $regionCards = array_map(fn (CardType $card): string => $card->name(), array_filter(app(CardRegistry::class)->all(), fn (CardType $card): bool => $card instanceof RegionCard));
+    $types = [];
+    array_walk_recursive($document, function (mixed $value, mixed $key) use (&$types): void {
+        if ($key === 'type' && is_string($value)) {
+            $types[] = $value;
+        }
+    });
+
+    return array_intersect($types, $regionCards) === []
+        ? null
+        : new RegionRules(array_map(fn (CardType $card): string => $card->name(), app(CardRegistry::class)->all()), PHP_INT_MAX);
+}
 
 /*
  * I-452: whatever the editor can produce, the server accepts. Everything
@@ -53,7 +77,7 @@ it('accepts every document the editor can make, once normalised', function (): v
 
     foreach ($documents as $name => $document) {
         try {
-            app(DocumentValidator::class)->validate(DocumentNormaliser::normalise($document), allowUnfinishedCards: true);
+            app(DocumentValidator::class)->validate(DocumentNormaliser::normalise($document), allowUnfinishedCards: true, rules: editorSchemaRules($document));
         } catch (InvalidDocumentException $refusal) {
             $refused[$name] = ($refusal->path === '' ? '' : "{$refusal->path}: ").$refusal->errors()['document'][0];
         }
@@ -67,7 +91,7 @@ it('keeps every card as it was through a copy and paste in the editor', function
 
     foreach (guardEditor()['cards'] as $name => $card) {
         try {
-            app(DocumentValidator::class)->validate(docWith($card['after']));
+            app(DocumentValidator::class)->validate(docWith($card['after']), rules: editorSchemaRules(docWith($card['after'])));
         } catch (InvalidDocumentException $refusal) {
             $broken[$name] = ($refusal->path === '' ? '' : "{$refusal->path}: ").$refusal->errors()['document'][0];
 

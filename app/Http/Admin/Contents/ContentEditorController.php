@@ -28,6 +28,8 @@ use App\Domain\Fields\FieldManifest;
 use App\Domain\Media\Queries\MissingAltText;
 use App\Domain\Regions\Queries\RegionScreens;
 use App\Domain\Seo\Queries\EditorSearchAndSocial;
+use App\Domain\SiteCode\Queries\SiteCodeScreen;
+use App\Domain\SiteCode\SiteCode;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Users\Queries\AuthorOptions;
 use App\Http\Controllers\Controller;
@@ -66,6 +68,9 @@ final class ContentEditorController extends Controller
             'kind' => $region === null ? 'content' : 'region',
             'allowedCards' => $region['cards'] ?? null,
             'themeRegion' => $region === null ? null : ['label' => $region['label'], 'themeName' => $region['themeName'], 'takes' => $region['takes']],
+            // The code the Custom HTML card may place, by name, never the code itself, and the host's switch; null outside region mode (I-3127).
+            'placedCode' => $region === null ? null : SiteCodeScreen::placed(),
+            'siteCodeLocked' => $region === null ? null : SiteCode::disallowed(),
             'siteUrl' => url('/'),
             // Every time the editor shows or asks for is on this clock, named.
             'siteTimezone' => $settings->string('general', 'timezone'),

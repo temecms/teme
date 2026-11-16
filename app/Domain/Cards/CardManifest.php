@@ -17,7 +17,7 @@ final class CardManifest
 {
     /**
      * @return array{
-     *     cards: list<array{name: string, label: string, description: string, menuLabel: string, group: string, keywords: list<string>, icon: string, inMenus: bool, attributes: list<array{name: string, default: mixed, options: list<string>|null}>}>,
+     *     cards: list<array{name: string, label: string, description: string, menuLabel: string, group: string, keywords: list<string>, icon: string, inMenus: bool, regionOnly: bool, attributes: list<array{name: string, default: mixed, options: list<string>|null}>}>,
      *     embedProviders: list<array{name: string, match: string, frame: string, kind: string}>,
      *     imageSizes: array<string, string>,
      * }
@@ -43,6 +43,7 @@ final class CardManifest
                 'keywords' => $menu->keywords,
                 'icon' => $menu->icon,
                 'inMenus' => $menu->inMenus,
+                'regionOnly' => $menu->regionOnly,
                 'attributes' => $attributes,
             ];
         }

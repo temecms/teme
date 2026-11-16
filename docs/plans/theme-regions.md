@@ -157,49 +157,88 @@ Check against `ListingViews::forTerm()` before writing: if it filters terms by l
 
 ## Records (the builder's)
 
+Built in a Claude cloud session on 2026-11-16, from `origin/main` at `e35f71b` (the v1 join, `join/v1-wave2`, merged). `scripts/cloud-setup.sh` ran three times (05:50 and 05:51 stopped on a network error and a restart; the run from 06:00 finished at 06:05). Task 0: every name in "What exists" is on `main` as described, and the placement constraint listed three places.
+
 ### Commits on `themes/regions`
+
+- `ef876cf` feat(site-code): a place for code that a card puts in a region (I-3127)
+- `9694a86` feat(regions): custom HTML and featured posts cards, for regions only
+- `6161f56` feat(regions): draw placed site code with its hashes and origins (I-3375)
+- `452c1c0` feat(regions): featured posts, chosen or latest, cached by the page's own tags
+- `0ea8b67` feat(editor): place custom HTML and featured posts in a region
+- `14e3a5d` feat(theme): the default theme's after-content region takes both new cards
+- `44922a0` fix(regions): featured posts' titles at level 2 with no heading, and no toolbar switch on a phone
+- `ff2fabc` test(regions): place both cards and see them on the article page
+- `1090aae` docs(regions): custom HTML and featured posts cards
+- `2784649` fix(regions): the featured posts card names the list settings it draws
+- this commit: docs(plans): theme regions' records
 
 ### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
+| 1 | `tests/Feature/SiteCode/SiteCodeOperationsTest.php` | `Error: Undefined constant App\Domain\SiteCode\SiteCode::PLACED`, then a `ValidationException` (the place not in `PLACES`); with the `PLACES` row and no migration, `SQLSTATE[23514]` as the plan predicted (B-01) |
+| 2 | `tests/Feature/Regions/RegionCardsTest.php` | "Teme doesn't know the "site-code" block, so it can't save it." |
+| 3 | `tests/Feature/Regions/SiteCodeCardTest.php` | 3 failed: no `<div class="card-site-code">` in the page, the preview check, a page-cache hit without `window.x=1` |
+| 4 | `tests/Feature/Regions/FeaturedPostsCardTest.php` | `BindingResolutionException` (`FeaturedPosts` missing), and the card drew nothing |
+| 5 | `tests/Feature/Regions/RegionCardsTest.php` (editor props) | "Property [placedCode] does not exist." |
+| 6 | `tests/Feature/Regions/FeaturedPostsCardTest.php` (manifest line reverted for the run) | "The card "featured-posts" can't be used in this region." |
+| 7 | `tests/Browser/RegionCardsTest.php` | axe on the article page: "Heading levels should only increase by one" (the default theme's list titles at h3 with no heading, B-11); at 375, the card head's Latest / Chosen switch lay over its More button (B-12) |
 
 ### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
+| `tests/Architecture/admin-words-baseline.txt` | 876 lines | 876 lines |
+| `tests/Architecture/design-system-baseline.txt` | 222 lines (count 144) | 222 lines (count 144) |
 
 ### The maintainers' answer on the drawing (Task 5)
 
+Task 5 built from the approved drawing. The maintainers approved the drawing of both card views (note R1b, 2026-11-16) and Task 5 was built exactly as it describes: the Custom HTML card's column, toolbar and panel with its five states, and the Featured posts card's column, toolbar switch and panel, full width with no sideways scroll at 375. The approved words replace D11's where they differ (B-14).
+
 ### Gate
+
+Before (`e35f71b`): Pint and PHPStan pass; Architecture 139 passed; Unit and Feature 11,577 passed, 2 skipped, 1 failed (`Plugins/DiscoveryTest`, which passes alone).
+
+After (`1090aae`, full `composer check`, about 31 minutes): Pint, PHPStan and the type and lint checks pass; Architecture 139 passed (1,377 assertions); Unit and Feature 11,616 passed, 2 skipped, 2 failed. `Api/Items/BodyTest` ("never gives an embed card's provider markup") was real: it reads each core card's drawing code for its attributes' names, and the featured posts card passed `$attrs` on whole. Fixed in `2784649` by passing the list's settings by name; the file then passed alone (11), as did `tests/Feature/Regions` (76). `Plugins/LockOutTest` passes alone (10), so it is a parallel-run flake, like the base's `DiscoveryTest`.
+
+Browser, after `npm run build`, one file at a time: `tests/Browser/RegionCardsTest.php` 5 passed (83 assertions), `tests/Browser/SiteCodeSettingsTest.php` 5 passed (49 assertions).
 
 ### Drafts
 
-- B-01 (draft)
-- B-02 (draft)
-- B-03 (draft)
-- B-04 (draft)
-- B-05 (draft)
-- B-06 (draft)
-- B-07 (draft)
-- B-08 (draft)
-- B-09 (draft)
-- B-10 (draft)
-- B-11 (draft)
-- B-12 (draft)
-- B-13 (draft)
-- B-14 (draft)
-- B-15 (draft)
-- B-16 (draft)
-- B-17 (draft)
-- B-18 (draft)
-- B-19 (draft)
-- B-20 (draft)
+- B-01 (draft) Task 1's first `SiteCodeOperationsTest` case lists every place and label, so adding "its `PLACES` row" changes what it expects. Options: leave it red, or add `placed` to its lists. Chose to add `SiteCode::PLACED` and "Placed with a card" to its expected lists; it still proves the same thing. The first red was an `Error` and a `ValidationException` before the predicted `23514`. `ef876cf`.
+- B-02 (draft) The plan gives no `since` for the two cards. Chose `'0.9.0'`, the next minor of the contracts. `9694a86`.
+- B-03 (draft) Task order. `EditorCompletenessTest` fails as soon as a card is registered without a line in `writing.md`, and the region test needs the default manifest to list the cards; so `writing.md`'s lines and the manifest's `cards` moved to Task 2, and the default theme's view to Task 4 (D9's test needs it). Task 6 kept its red by reverting the manifest line for the run. `9694a86`, `452c1c0`, `14e3a5d`.
+- B-04 (draft) Tests outside Owns that registering two cards breaks, each changed without changing what it proves: `CardRegistryTest` (+2 names), `EditorSchemaTest` (a document holding a region card is validated as a region's, with every card allowed, since D6 refuses it otherwise), `EditorScreenTest` (manifest cards 9 to 11), and two fixtures `tests/Fixtures/Documents/site-code.json` and `featured-posts.json`, which `editor-schema.mjs` reads for every card. `9694a86`, `0ea8b67`.
+- B-05 (draft) `tests/Feature/DefaultTheme/FloorTest.php` isn't owned. Chose to check the floor (one h1, headings in order, every picture sized and described) with both cards in `FeaturedPostsCardTest`; `FloorTest` itself passes unchanged. `452c1c0`.
+- B-06 (draft) The approved drawing has a state for "The host has switched site code off", which `placedCode` can't tell. Added one more editor prop in region mode, `siteCodeLocked` (`SiteCode::disallowed()`, `null` outside region mode), and put the names query in `SiteCodeScreen::placed()`. `0ea8b67`.
+- B-07 (draft) The drawing's "Choose…" and "Change code" open the panel, but `card-frame.tsx` (not owned) has no way to open its panel from outside. Chose to remount the frame open (`key`) from the Custom HTML view; no shared file changed. `0ea8b67`.
+- B-08 (draft) The Featured posts column, in Latest, shows the summary line but no titles, and no thumbnails in either source: no route lists a type's latest published items or gives an item's featured image, and the plan adds none. A term whose name is unknown on reopening shows "Latest :count :items, filed under one category or tag". `0ea8b67`.
+- B-09 (draft) Open: `SiteCodeController`'s toast reads "Every public page includes "X" for placing with a card." for a placed entry, from the plan's `at` words; the controller isn't owned, so it is left for the maintainers.
+- B-10 (draft) `resources/js/types/settings.ts`'s place unions don't name `placed` (not owned; `npm run types:check` passes). `site-code.tsx` needed no change: it draws every place it is given.
+- B-11 (draft) Task 6 says the default theme's view uses `level: 3`. With no heading that puts an h3 straight after the article's headings, which axe refuses (heading-order). Chose level 3 under a heading and level 2 without one. `44922a0`.
+- B-12 (draft) At 375 the card head has no room for the Latest / Chosen switch beside its own buttons, and covered the More button. Chose to hide the toolbar's switch below the `sm` width; the panel holds the same switch. `44922a0`.
+- B-13 (draft) Task 8's `docs/ideas.md` isn't in this repository. Chose not to create it; its entries are below for the maintainers to carry over.
+- B-14 (draft) D11's empty-state words and the approved drawing's differ ("This code was deleted, so readers see nothing here.", "The host has switched site code off, so readers see nothing here."). The drawing is the later decision, so its words are built. `0ea8b67`.
+
+Open, not this part's files: a region's publish confirmation asks "Publish this item?", not "Publish this region?"; the browser test waits for the dialog rather than its words.
+
+For `docs/ideas.md` (B-13), Later: leaving the page's own item out of a featured list (Joomla's `exclude_current`; needs the page's item in the render context); region cards listing comments, categories or archives; mapping WordPress widgets into regions (I-348); plugin region cards (I-3365); either card inside articles. Correction: the v1 needs study's row 23 counted as done because of `SnippetCard.php`, which shows code as text; I-3127's placed code is built only by this part.
 
 ### Contract changes
 
+One editor prop beyond the plan's: `siteCodeLocked` (`boolean | null`) beside `placedCode` (B-06). `CardMenuEntry::$regionOnly` and the `regionOnly` manifest field are as named. No change to `packages/teme-contracts`.
+
 ### STOP
+
+None.
 
 ### Changelog lines for the maintainers
 
+- Added: a **Custom HTML** card for theme regions, which shows site code an administrator marks "Placed with a card" in Settings › Site code, exactly as written, its scripts allowed by the page's policy.
+- Added: a **Featured posts** card for theme regions: chosen posts in order, or the latest of a type, optionally under one category or tag, kept current by the page cache's own tags.
+- Added: a theme may replace the featured list's markup with `views/cards/featured-posts.blade.php`; the default theme's after-the-article region offers both cards.
+
 ### Try it
+
+As an administrator, add an entry in Settings › Site code with the place "Placed with a card". As an editor, open Content › Regions › After the article (default theme), insert Custom HTML and choose the entry, insert Featured posts (Latest, 3), and publish. Any article shows both after its text. `php artisan test --compact tests/Feature/Regions`; `./vendor/bin/pest tests/Browser/RegionCardsTest.php` after `npm run build`.
