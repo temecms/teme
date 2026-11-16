@@ -17,6 +17,7 @@ use ReflectionClass;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Hooks\HookContract;
 use Teme\Contracts\Http\OutboundHttp;
+use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
@@ -149,7 +150,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->hosts($manifest, $read));
         array_push($errors, ...$this->hostsFrom($manifest, $read));
         array_push($errors, ...$this->hooks($manifest, $read));
-        array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version()));
+        array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version(), $read->capabilities()));
         array_push($errors, ...$this->feedLinks($read));
         array_push($errors, ...$this->columns($read));
         array_push($errors, ...$this->owns($manifest, $read));
@@ -310,8 +311,10 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for the media door, but the plugin doesn’t ask for media.write.";
             } elseif (strtolower((string) $type) === strtolower(Jobs::class) && ! in_array(Capability::Jobs->value, $read->capabilities(), true)) {
                 $errors[] = "{$class} asks for jobs, but the plugin doesn’t ask for jobs.";
-            } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! in_array(Capability::ContentInsert->value, $read->capabilities(), true)) {
+            } elseif (strtolower((string) $type) === strtolower(InsertionsChanged::class) && ! self::inserts($read)) {
                 $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
+            } elseif (strtolower((string) $type) === strtolower(InlineScripts::class) && ! self::inserts($read)) {
+                $errors[] = "{$class} asks for InlineScripts, but the plugin doesn’t ask for content.insert or pages.insert.";
             }
         }
 
@@ -346,6 +349,14 @@ final readonly class ManifestValidator
         }
 
         return $errors;
+    }
+
+    /**
+     * Whether the plugin asks to insert content, in articles or on every page.
+     */
+    private static function inserts(Manifest $read): bool
+    {
+        return in_array(Capability::ContentInsert->value, $read->capabilities(), true) || in_array(Capability::PagesInsert->value, $read->capabilities(), true);
     }
 
     /**

@@ -16,6 +16,11 @@ use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
+use Teme\Contracts\Insertions\InlineScripts;
+use Teme\Contracts\Insertions\PageFacts;
+use Teme\Contracts\Insertions\PageInsertion;
+use Teme\Contracts\Insertions\PageInsertionContributor;
+use Teme\Contracts\Insertions\PagePosition;
 use Teme\Contracts\Jobs\JobContext;
 use Teme\Contracts\Jobs\JobHandler;
 use Teme\Contracts\Jobs\Jobs;
@@ -106,6 +111,11 @@ it('gives every new contract its @since and nothing from a framework', function 
     [QueueOptions::class, '0.9.0'],
     [HasPluginLists::class, '0.9.0'],
     [PluginList::class, '0.9.0'],
+    [PageInsertionContributor::class, '0.9.0'],
+    [PageInsertion::class, '0.9.0'],
+    [PagePosition::class, '0.9.0'],
+    [PageFacts::class, '0.9.0'],
+    [InlineScripts::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -128,6 +138,7 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'fediverse.read',
         'fediverse.send',
         'feeds.links',
+        'pages.insert',
     ]);
 });
 

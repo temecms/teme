@@ -22,6 +22,7 @@
             <div class="{{ ($themeSettings['feed_layout'] ?? 'list') === 'grid' ? 'feed-grid' : 'feed-list' }}">
                 @foreach ($page->items as $item)
                     @include('theme::partials.card', ['item' => $item, 'context' => ($themeSettings['feed_layout'] ?? 'list') === 'grid' ? 'card' : 'thumb', 'showImage' => ($themeSettings['feed_layout'] ?? 'list') === 'grid' || ($themeSettings['feed_images'] ?? true), 'showMeta' => $themeSettings['show_card_meta'] ?? true])
+                    <x-teme::between-items :after="$loop->iteration" :last="$loop->last" />
                 @endforeach
             </div>
         @endif

@@ -21,15 +21,15 @@ final class DeclaredSettings
     /**
      * Returns the plugin's settings group, `plugin.{code}`, built with the
      * contract's own constructors; sensitive when any setting is a secret.
-     * A plugin that inserts content in articles purges the pages that asked
-     * it when its settings are saved, one with root files the stored
+     * A plugin that inserts content in articles, or on every page, purges
+     * the pages that asked it when its settings are saved, one with root files the stored
      * "not found" pages at root-file addresses, and one that adds links to
      * the feeds every stored feed. Throws InvalidArgumentException for a
      * setting Teme can't build.
      *
      * @param  list<mixed>  $settings  as the manifest declares them
      */
-    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false, bool $rootFiles = false, bool $feedLinks = false): SettingsGroup
+    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false, bool $insertsOnPages = false, bool $rootFiles = false, bool $feedLinks = false): SettingsGroup
     {
         $key = "plugin.{$code}";
         $built = [];
@@ -50,6 +50,7 @@ final class DeclaredSettings
             // Its settings may change what it inserts in articles (I-064).
             cacheTags: [
                 ...($inserts ? [PageTags::INSERTIONS] : []),
+                ...($insertsOnPages ? [PageTags::PAGE_INSERTIONS] : []),
                 // Its settings may fill a root file's name (docs/guides/developers/plugins/root-files.md).
                 ...($rootFiles ? [PageTags::ROOT_FILES] : []),
                 // Its settings may name the links it adds to the feeds (docs/plans/plugin-sockets-1.md, A3).

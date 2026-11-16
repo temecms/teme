@@ -9,6 +9,7 @@ use App\Domain\Languages\PageLanguage;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Redirects\AddressCounts;
 use App\Domain\Redirects\RedirectLookup;
+use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\PathResolver;
 use App\Domain\Site\ReaderKeys;
 use App\Domain\Site\ViewModels\NotFoundView;
@@ -53,6 +54,9 @@ final class PublicController extends Controller
         $languages = app(SiteLanguages::class);
         $pageLanguage = app(PageLanguage::class);
         $pageLanguage->use($languages->of($answer['language'] ?? null));
+
+        // Plugins granted pages.insert are asked for this page only when it is drawn (docs/plans/plugin-sockets-2.md).
+        app(PageInsertions::class)->start($request, $answer, $pageLanguage->tag());
 
         $response = $answer['kind'] === 'redirect'
             // Not redirect(): Laravel's URL generator trims the trailing

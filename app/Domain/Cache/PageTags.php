@@ -40,6 +40,9 @@ final class PageTags
     /** Every feed, which carries the links plugins add to it (docs/plans/plugin-sockets-1.md, A3). */
     public const string FEED_LINKS = 'feed-links';
 
+    /** Every public page that asks contributors for page insertions, drawn or not. */
+    public const string PAGE_INSERTIONS = 'page-insertions';
+
     /**
      * Whether the tag names a list by its query (a type's, a term's, an
      * author's, a year's, a month's, an item's comments, the list of a

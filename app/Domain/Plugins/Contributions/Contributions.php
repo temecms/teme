@@ -10,6 +10,7 @@ use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Contracts\Container\Container;
 use Teme\Contracts\Insertions\InsertionContributor;
+use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Lists\HasListColumns;
 use Teme\Contracts\Lists\HasPluginLists;
@@ -69,7 +70,7 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== []), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== []), $name);
 
             // A name its settings fill is checked when they are saved (docs/guides/developers/plugins/root-files.md).
             if ($rootFiles) {

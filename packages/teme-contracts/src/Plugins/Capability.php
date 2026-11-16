@@ -17,7 +17,9 @@ namespace Teme\Contracts\Plugins;
  * site's accounts, and FediverseSend the door that sends activities to those
  * followers. FeedsLinks lets the plugin add the links its manifest
  * declares under `contributes.feedLinks`, such as a WebSub hub, to every
- * feed (`@since 0.9.0`).
+ * feed (`@since 0.9.0`). PagesInsert unlocks the places to add content on every public
+ * page: the head, the top and bottom of the body, between the items of a
+ * list, beside a theme's regions, and fixed to the screen's edge.
  *
  * @since 0.5.0
  */
@@ -55,5 +57,10 @@ enum Capability: string
 
     /** @since 0.9.0 */
     case FediverseSend = 'fediverse.send';
+
+    /** @since 0.9.0 */
     case FeedsLinks = 'feeds.links';
+
+    /** @since 0.9.0 */
+    case PagesInsert = 'pages.insert';
 }
