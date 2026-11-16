@@ -452,3 +452,18 @@ None.
 ### Try it
 
 With MinIO or a provider's two buckets set in the `MEDIA_BUCKET_*` variables and `MEDIA_STORAGE` still `server`: `php artisan teme:media:bucket-check`; `php artisan teme:media:move --dry-run`; `php artisan teme:media:move`; set `MEDIA_STORAGE=bucket`, clear the config cache, `php artisan teme:media:move --catch-up`; upload an image and see its address on `MEDIA_BUCKET_URL`; download its original from the admin (a 302 to a signed address); `php artisan teme:media:move --delete-source --dry-run`, then without `--dry-run`; `php artisan teme:media:move --status`; open Tools › Backups and read the sentence; run `php artisan teme:backup:run`. `docs/guides/operators/object-storage.md` gives the order on a live site.
+
+### Follow-up R1
+
+The review (verdict: merge after fixes) named three IMPORTANT findings; each is fixed, test first. The LATER items (4 to 8) are left for the maintainer. The container had restarted, so `scripts/cloud-setup.sh` ran again before the tests (PostgreSQL refused connections).
+
+| Finding | Test seen red (first line of the failure) | Commit |
+|---|---|---|
+| 1. `MEDIA_DISK` and `MEDIA_ORIGINALS_DISK` missing from Dokploy's `x-teme-environment` | `MediaDisksConfigTest` › every Teme service on Dokploy: `Failed asserting that two arrays are identical.` (missing `MEDIA_DISK`, `MEDIA_ORIGINALS_DISK`) | `d189897` fix(media): pass MEDIA_DISK and MEDIA_ORIGINALS_DISK to every Teme service on Dokploy |
+| 2. A killed run blocks a run of other options in the same direction | `MoveMediaTest` › ends as stopped a killed run of another scope (a catch-up, a deep copy): `ValidationException: A move in this direction is already running.` | `fd2ea79` fix(media): end a killed move of other options as stopped, so it never blocks the next |
+| 3. A target of the right size with wrong bytes is never repaired | `MoveMediaTest` › rewrites a target copy of the right size whose bytes are wrong: `Failed asserting that 1 is identical to 0.` ("Not verified: 2 files failed.") | `710376b` fix(media): copy once more a target of the right size whose bytes are wrong |
+
+- Fix 2: under the move lock, `begin()` ends every other `running` run of the same kind and direction as `stopped` through `EndMediaMove` ("This stopped before it finished: the process running it ended."), so `StartMediaMove` never meets a dead row. Rerunning the killed run's own options resumes nothing then, and starts afresh, finding its copied files present.
+- Fix 3: when the target has the source's size but fails its read-back, and the source passed its own checksum, the file is copied once more and checked again (counted copied). A file damaged again fails as before. The guide now says `--deep` repairs while the server still has its copies, and after a deletion checks only the originals against their recorded checksums; `media.md` says the same in one clause.
+
+**Gate** at `710376b`: Pint passed; PHPStan no errors; Architecture **139** passed (1357 assertions); Unit and Feature **11661** passed, **2** skipped, **1** failed (`Plugins/LoadingTest`, which passes alone, 14 passed: the same parallel plugin-loading flake as before), 60354 assertions, 1839 s. Baselines unchanged: admin words 876, design system 222.
