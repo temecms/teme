@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Backups;
 
 use App\Domain\Backups\Tools\BackupSnapshots;
+use App\Domain\Media\MediaFiles;
 use Illuminate\Filesystem\LocalFilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
@@ -187,26 +188,22 @@ final class MediaInventory
         return rtrim($disk->path(''), '/\\');
     }
 
+    /**
+     * @param  object{id: string, kind: string, original_path: string, size_bytes: int|string, sha256: string|null, variants: string|null}  $row
+     */
     private function add(object $row): void
     {
         $this->items++;
-        $path = (string) $row->original_path;
-        $bytes = (int) $row->size_bytes;
-        // An image's original is private; every other original is public (docs/architecture/media.md).
-        $disk = (string) $row->kind === 'image' ? 'originals' : 'public';
 
-        $this->originals[] = ['id' => (string) $row->id, 'disk' => $disk, 'path' => $path, 'bytes' => $bytes, 'sha256' => (string) $row->sha256];
-        $this->note($disk, $path, $bytes);
-
-        $variants = json_decode((string) $row->variants, true, flags: JSON_THROW_ON_ERROR);
-
-        foreach (is_array($variants) ? $variants : [] as $variant) {
-            if (is_array($variant) && is_string($variant['path'] ?? null)) {
-                $size = (int) ($variant['bytes'] ?? 0);
+        foreach (MediaFiles::of($row) as $index => $file) {
+            if ($index === 0) {
+                $this->originals[] = ['id' => (string) $row->id, 'disk' => $file['role'], 'path' => $file['path'], 'bytes' => $file['bytes'], 'sha256' => (string) $file['sha256']];
+            } else {
                 $this->variantFiles++;
-                $this->variantBytes += $size;
-                $this->note('public', $variant['path'], $size);
+                $this->variantBytes += $file['bytes'];
             }
+
+            $this->note($file['role'], $file['path'], $file['bytes']);
         }
     }
 
