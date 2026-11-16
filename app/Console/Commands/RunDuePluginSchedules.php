@@ -11,12 +11,13 @@ use Illuminate\Console\Command;
 
 /**
  * teme:plugins:run-due-schedules — queues each enabled plugin's due schedules
- * (I-3445). Runs every minute on one server, without overlapping.
+ * (I-3445). Runs every minute on one server, without overlapping;
+ * `--plugin=<code>` limits a pass to one plugin.
  */
 final class RunDuePluginSchedules extends Command
 {
     /** @var string */
-    protected $signature = 'teme:plugins:run-due-schedules';
+    protected $signature = 'teme:plugins:run-due-schedules {--plugin= : Only the plugin with this code}';
 
     /** @var string */
     protected $description = 'Queue plugin schedules that are due';
@@ -25,7 +26,8 @@ final class RunDuePluginSchedules extends Command
     {
         $this->laravel->instance(Elevation::class, new OperatorElevation);
 
-        $queued = $due->run();
+        $plugin = $this->option('plugin');
+        $queued = $due->run(plugin: is_string($plugin) && $plugin !== '' ? $plugin : null);
 
         if ($queued === 0) {
             $this->line('No plugin schedules were due.');
