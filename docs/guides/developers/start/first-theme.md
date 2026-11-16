@@ -23,7 +23,7 @@ Copy `docs/guides/developers/examples/themes/first-theme`. The folder name must 
     "version": "1.0.0",
     "description": "The handbook's first theme: an index and a single template.",
     "requires": {
-        "teme": "^0.8"
+        "teme": "^0.9"
     },
     "author": "Teme Examples",
     "author_url": "https://example.com/author",

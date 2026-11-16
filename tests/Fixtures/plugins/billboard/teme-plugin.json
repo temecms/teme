@@ -1,0 +1,21 @@
+{
+    "manifest": 1,
+    "name": "tests/billboard",
+    "code": "billboard",
+    "label": "Billboard",
+    "description": "A plugin the tests use to place markup on every page: in the head, at the top and bottom, between list items, around a region and fixed to the screen's edges.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Billboard\\Billboard",
+    "capabilities": ["pages.insert"],
+    "contributes": {
+        "settings": [
+            { "key": "label", "type": "text", "label": "Label", "description": "What the bars say." }
+        ],
+        "csp": {
+            "frame": ["frames.billboard.example"],
+            "connect": ["*.billboard.example"]
+        },
+        "fixedLabel": "Sponsored"
+    }
+}

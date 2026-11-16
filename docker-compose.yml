@@ -6,7 +6,7 @@ services:
             POSTGRES_USER: teme
             POSTGRES_PASSWORD: teme
         ports:
-            - '5432:5432'
+            - '${TEME_DB_PORT:-5432}:5432'
         volumes:
             - pgdata:/var/lib/postgresql
         healthcheck:
@@ -22,7 +22,7 @@ services:
             POSTGRES_USER: teme
             POSTGRES_PASSWORD: teme
         ports:
-            - '5433:5432'
+            - '${TEME_TEST_DB_PORT:-5433}:5432'
         tmpfs:
             - /var/lib/postgresql
         healthcheck:
@@ -34,7 +34,7 @@ services:
     valkey_test:
         image: valkey/valkey:9.1-alpine
         ports:
-            - '6380:6379'
+            - '${TEME_VALKEY_TEST_PORT:-6380}:6379'
         tmpfs:
             - /data
         healthcheck:

@@ -1,0 +1,42 @@
+{
+    "manifest": 1,
+    "name": "tests/workbench",
+    "code": "workbench",
+    "label": "Workbench",
+    "description": "A plugin the tests enable, which writes its own settings, offers an action and a list, and runs a job on a schedule.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Workbench\\Workbench",
+    "capabilities": ["jobs"],
+    "jobs": [
+        { "key": "ping", "label": "Ping", "tries": 1, "backoff": [1] }
+    ],
+    "schedules": [
+        { "job": "ping", "every": "hour" }
+    ],
+    "contributes": {
+        "settings": [
+            { "key": "site_key", "type": "text", "label": "Site key", "description": "The key the service checks.", "maxLength": 64 },
+            { "key": "batch", "type": "number", "label": "Batch size", "description": "How many to send at once.", "min": 1, "max": 100 },
+            { "key": "token", "type": "secret", "label": "Token", "description": "The service's token." },
+            { "key": "endpoint", "type": "url", "label": "Endpoint", "description": "Where to send pings." },
+            { "key": "hubs", "type": "urls", "label": "Hubs", "description": "The hubs to tell." }
+        ],
+        "actions": [
+            { "id": "test-ping", "label": "Send a test ping", "description": "Tells the service about the home page now.", "job": "ping" }
+        ],
+        "lists": [
+            {
+                "id": "log",
+                "label": "Recent pings",
+                "description": "The last pings sent.",
+                "columns": [
+                    { "id": "address", "label": "Address", "kind": "text" },
+                    { "id": "sent", "label": "Sent", "kind": "number" },
+                    { "id": "answer", "label": "Answer", "kind": "badge" }
+                ],
+                "rows": 3
+            }
+        ]
+    }
+}

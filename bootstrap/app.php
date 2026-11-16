@@ -153,7 +153,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // A refused save flashes its input back to the form, and sessions are
         // stored unencrypted, so a typed secret must not be among it. Laravel's
         // own three stay.
-        $exceptions->dontFlash(['current_password', 'password', 'password_confirmation', 'code', 'secrets', 'clear_secrets', 'recovery_key', 'groups', 'access_key_id', 'secret_access_key', 'private_key']);
+        $exceptions->dontFlash(['current_password', 'password', 'password_confirmation', 'code', 'secrets', 'clear_secrets', 'recovery_key', 'groups', 'access_key_id', 'secret_access_key', 'private_key', 'credential']);
 
         // Every error under /api is a problem (RFC 9457), never the theme's page
         // or Laravel's JSON; nothing an exception says reaches it (I-091).

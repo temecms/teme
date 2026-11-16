@@ -1,0 +1,16 @@
+{
+    "name": "fixtures/files-dependency",
+    "description": "A plugin the installer's tests install.",
+    "type": "teme-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "require": {
+        "teme/contracts": "*",
+        "fixtures/with-files": "1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Fixtures\\FilesDependency\\": "src/"
+        }
+    }
+}

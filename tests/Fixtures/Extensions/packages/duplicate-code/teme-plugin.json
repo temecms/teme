@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/duplicate-code",
+    "code": "hello-extension",
+    "label": "Hello Extension",
+    "description": "A plugin the installer's tests install.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\DuplicateCode\\DuplicateCode",
+    "capabilities": [],
+    "hooks": []
+}

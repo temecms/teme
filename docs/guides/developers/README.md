@@ -3,7 +3,7 @@ title: The developer handbook
 type: concept
 audience: both
 summary: The index of Teme's handbook for people and agents who build plugins and themes.
-rests_on: [docs/guides/developers, docs/architecture/documentation.md, docs/architecture/plugins.md]
+rests_on: [docs/guides/developers, docs/architecture/documentation.md, docs/architecture/plugins.md, docs/reference/contracts.md]
 ---
 
 # The developer handbook
@@ -17,7 +17,7 @@ It does not cover running a server or writing content. Those have their own guid
 1. [Plugin or theme?](start/plugin-or-theme.md), then [Your first plugin](start/first-plugin.md) or [Your first theme](start/first-theme.md), and [Set up a development site](start/development-site.md).
 2. [The manifest](concepts/manifest.md) and [Hooks](concepts/hooks.md).
 3. [Operations](concepts/operations.md), [Code standards for plugins and themes](start/code-standards.md), then [Testing a plugin or theme](testing.md).
-4. For a plugin, [Plugin settings and secrets](plugins/settings.md). For a theme, [Regions, site code and featured posts](themes/regions.md).
+4. For a plugin, [Plugin settings and secrets](plugins/settings.md) and [Your plugin's own tables](plugins/tables.md). For a theme, [Regions, site code and featured posts](themes/regions.md).
 5. [Rules for plugins and themes](rules/plugins-and-themes.md) before you publish one.
 6. [For agents](for-agents.md) if you are building with an agent.
 
@@ -29,10 +29,13 @@ It does not cover running a server or writing content. Those have their own guid
 | [Reading content](plugins/content-read.md) | sockets3/content-doors |
 | [Jobs and schedules](plugins/jobs.md) | plugins/jobs |
 | [Public routes](plugins/public-routes.md) | plugin public routes |
+| [Files at the site's root](plugins/root-files.md) | sockets/root-files |
 | [The plugin import socket](plugins/import.md) | plugin import socket |
 | [Content inside articles](plugins/insertions.md) | render/insertion-points |
+| [Content on every page](plugins/page-insertions.md) | sockets2/inserts |
 | [The fediverse](plugins/fediverse.md) | fediverse/actors and fediverse/publishing |
 | [List columns](plugins/list-columns.md) | plugins/list-columns |
+| [Feeds and the site](plugins/feeds-and-site.md) | sockets/outbound-feeds |
 | [Languages in a theme](themes/languages.md) | i18n/readers and i18n/screens |
 | [The management API](outside/management-api.md) | api/manage-foundation |
 
@@ -41,6 +44,7 @@ It does not cover running a server or writing content. Those have their own guid
 | Page | What it lists |
 |---|---|
 | [Hooks](../../reference/hooks.md) | Every hook class in `teme/contracts` |
+| [Contracts](../../reference/contracts.md) | Every interface, class and enum in `teme/contracts`, with its Since, and what a plugin's constructor may ask for |
 | [Plugin manifest](../../reference/plugin-manifest.md) | Keys of `teme-plugin.json` |
 | [Theme manifest](../../reference/theme-manifest.md) | Keys of `teme-theme.json` |
 | [Theme view data](../../reference/theme.md) | What a theme template can read |

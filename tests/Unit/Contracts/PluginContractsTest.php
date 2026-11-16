@@ -11,6 +11,7 @@ use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
 use Teme\Contracts\Content\ItemPage;
 use Teme\Contracts\Content\ItemQuery;
+use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Content\ItemSnapshot;
 use Teme\Contracts\Content\NewItem;
 use Teme\Contracts\Content\QueuedItem;
@@ -23,26 +24,36 @@ use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\HttpAnswer;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
+use Teme\Contracts\Insertions\InlineScripts;
+use Teme\Contracts\Insertions\PageFacts;
+use Teme\Contracts\Insertions\PageInsertion;
+use Teme\Contracts\Insertions\PageInsertionContributor;
+use Teme\Contracts\Insertions\PagePosition;
 use Teme\Contracts\Jobs\JobContext;
 use Teme\Contracts\Jobs\JobHandler;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Jobs\JobStopped;
 use Teme\Contracts\Jobs\PluginHasJobs;
+use Teme\Contracts\Jobs\QueueOptions;
 use Teme\Contracts\Lists\Cell;
 use Teme\Contracts\Lists\HasListColumns;
+use Teme\Contracts\Lists\HasPluginLists;
 use Teme\Contracts\Lists\ListColumn;
 use Teme\Contracts\Lists\ListRow;
 use Teme\Contracts\Lists\ListRows;
+use Teme\Contracts\Lists\PluginList;
 use Teme\Contracts\Media\MediaWriter;
 use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\People\PersonPage;
 use Teme\Contracts\People\PersonRef;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\PluginSettingsWriter;
+use Teme\Contracts\Site\SiteInfo;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
 use Teme\Contracts\Status\StatusNotice;
 
-it('gives every new contract its @since and nothing from a framework', function (string $class, string $since): void {
+it('gives every new contract its @since and nothing from a framework', function (string $class, string $since, array $later = []): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since '.$since);
@@ -52,7 +63,8 @@ it('gives every new contract its @since and nothing from a framework', function 
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since '.$since);
+        // A method added later carries the release it arrived in (.ai/rules/contracts.md).
+        expect($method->getDocComment())->toContain('@since '.($later[$method->getName()] ?? $since));
     }
 
     $types = [];
@@ -89,11 +101,12 @@ it('gives every new contract its @since and nothing from a framework', function 
     [StatusCheck::class, '0.5.0'],
     [StatusNotice::class, '0.5.0'],
     [ChecksStatus::class, '0.5.0'],
-    [OutboundHttp::class, '0.5.0'],
+    [OutboundHttp::class, '0.5.0', ['postForm' => '0.9.0']],
     [HttpAnswer::class, '0.5.0'],
     [HostRefused::class, '0.5.0'],
     [AnswerTooLarge::class, '0.5.0'],
     [RequestFailed::class, '0.5.0'],
+    [ItemRef::class, '0.5.0'],
     [ContentWriter::class, '0.9.0'],
     [NewItem::class, '0.9.0'],
     [ItemChanges::class, '0.9.0'],
@@ -104,6 +117,16 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ListRows::class, '0.9.0'],
     [ListRow::class, '0.9.0'],
     [Cell::class, '0.9.0'],
+    [SiteInfo::class, '0.9.0'],
+    [PluginSettingsWriter::class, '0.9.0'],
+    [QueueOptions::class, '0.9.0'],
+    [HasPluginLists::class, '0.9.0'],
+    [PluginList::class, '0.9.0'],
+    [PageInsertionContributor::class, '0.9.0'],
+    [PageInsertion::class, '0.9.0'],
+    [PagePosition::class, '0.9.0'],
+    [PageFacts::class, '0.9.0'],
+    [InlineScripts::class, '0.9.0'],
     [ContentReader::class, '0.9.0'],
     [ItemQuery::class, '0.9.0'],
     [ItemPage::class, '0.9.0'],
@@ -136,6 +159,8 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'import.wordpress',
         'fediverse.read',
         'fediverse.send',
+        'feeds.links',
+        'pages.insert',
         'people.read',
     ]);
 });

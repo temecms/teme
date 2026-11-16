@@ -1,0 +1,14 @@
+{
+    "manifest": 1,
+    "name": "fixtures/needs-ext-nonexistent",
+    "code": "needs-ext",
+    "label": "Needs Ext",
+    "description": "A plugin the installer's tests install.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Fixtures\\NeedsExt\\NeedsExt",
+    "capabilities": [],
+    "hooks": []
+}

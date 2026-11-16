@@ -15,7 +15,9 @@ it("reserves a plugin's csp in the schema, in the theme's shape", function (): v
         ->and($csp['additionalProperties'])->toBeFalse();
 });
 
-it("refuses a plugin's csp until site.output is offered, in these words", function (): void {
-    expect(app(ContributionsValidator::class)->errors(['csp' => ['font' => ['fonts.example.com']]], '1.0.0'))
-        ->toBe(['A plugin\'s csp is read only with the site.output permission, which Teme doesn\'t offer yet.']);
+it("refuses a plugin's csp unless it inserts content, in these words", function (): void {
+    expect(app(ContributionsValidator::class)->errors(['csp' => ['font' => ['fonts.example.com']]], '1.0.0', []))
+        ->toBe(['A plugin’s csp is read only with content.insert or pages.insert.'])
+        ->and(app(ContributionsValidator::class)->errors(['csp' => ['font' => ['fonts.example.com']]], '1.0.0', ['content.insert']))->toBe([])
+        ->and(app(ContributionsValidator::class)->errors(['csp' => ['frame' => ['ads.example.com']]], '1.0.0', ['pages.insert']))->toBe([]);
 });

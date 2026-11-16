@@ -13,6 +13,7 @@ final readonly class StartJobInput implements OperationInput
 {
     /**
      * @param  array<string, mixed>  $payload  JSON-ready data kept on the tracked job (I-3445)
+     * @param  string|null  $uniqueKey  a plugin job's key, held by one waiting run at a time (docs/proposals/plugin-sockets-1.md)
      */
     public function __construct(
         public string $kind,
@@ -23,6 +24,7 @@ final readonly class StartJobInput implements OperationInput
         public ?string $actorId = null,
         public string $owner = 'core',
         public array $payload = [],
+        public ?string $uniqueKey = null,
     ) {}
 
     public function actorId(): ?string

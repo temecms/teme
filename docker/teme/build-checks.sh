@@ -38,5 +38,8 @@ done
 [ "$(stat -c %U /var/www/html/app)" = root ] || missing "the code isn't root's."
 [ "$(stat -c %U /var/www/html/storage)" = www-data ] || missing "storage isn't www-data's."
 [ -L /var/www/html/public/storage ] || missing "public/storage isn't linked."
+id -u teme-installer 2>/dev/null | grep -qx 9990 || missing "the installer's user (teme-installer, uid 9990) doesn't exist."
+[ "$(stat -c %u /var/teme/extensions)" = 9990 ] || missing "/var/teme/extensions isn't the installer's."
+[ -f /var/www/html/bootstrap/cache/teme-core-pins.php ] || missing "the core pins (teme:extensions:pins) weren't written."
 
 echo "Teme's image has PHP $(php -r 'echo PHP_VERSION;'), pg_dump ${pg_dump_version}, nginx ${nginx_version} and restic ${RESTIC_VERSION}."

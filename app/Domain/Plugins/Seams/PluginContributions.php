@@ -16,8 +16,9 @@ interface PluginContributions
      *
      * @param  array<string, mixed>  $contributes
      * @param  list<mixed>  $jobs  the manifest's top-level jobs list (I-3445)
+     * @param  bool  $rootFiles  whether the manifest declares root files
      *
      * @return list<string>
      */
-    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = []): array;
+    public function add(string $name, string $code, string $label, string $version, array $contributes, object $plugin, array $jobs = [], bool $rootFiles = false): array;
 }

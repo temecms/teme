@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Plugins\HostPattern;
+use Closure;
 use Exception;
 use GuzzleHttp\Exception\ConnectTimeoutException;
 use GuzzleHttp\Exception\NetworkTimeoutException;
@@ -26,7 +27,7 @@ use Teme\Contracts\Http\RequestFailed;
  * consent covers, resolved here and refused when any address is private or
  * reserved, connected to that address only (no second lookup, so DNS can't
  * be rebound), never following a redirect, within 10 seconds and 1 MB each
- * way; inside a long job's run, 300 seconds and an answer of 16 MB. The lookup comes before those 10 seconds and has no limit of its own:
+ * way, with a JSON or a form body; inside a long job's run, 300 seconds and an answer of 16 MB. The lookup comes before those 10 seconds and has no limit of its own:
  * the system resolver's, by default 5 seconds a try, two tries a server, for
  * up to three servers, so as long as 30 seconds when DNS is down.
  */
@@ -49,43 +50,52 @@ final readonly class PluginHttp implements OutboundHttp
      * @param  list<string>  $hosts  the hosts this plugin's consent covers
      * @param  int  $maxBytes  answer size cap; defaults to 1 MB for http, 16 MB inside a long job, media may pass the upload limit; a request's body stays at 1 MB
      * @param  int  $mostSeconds  the upper limit for each call: 10 normally, 300 inside a long job (I-3445)
+     * @param  (Closure(): list<string>)|null  $settingHosts  the exact hosts agreed in its settings, read at each call (docs/plans/plugin-sockets-1.md)
      */
     public function __construct(
         private array $hosts,
         private HostResolver $resolver,
         private int $maxBytes = self::MOST_BYTES,
         private int $mostSeconds = self::MOST_SECONDS,
+        private ?Closure $settingHosts = null,
     ) {}
 
     public function get(string $url, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
-        return $this->send('GET', $url, null, $headers, $timeoutSeconds);
+        return $this->send('GET', $url, null, '', $headers, $timeoutSeconds);
     }
 
     public function postJson(string $url, array $json, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
-        return $this->send('POST', $url, $json, $headers, $timeoutSeconds);
+        return $this->send('POST', $url, fn (string $host): string => self::jsonBody($json, $host), 'application/json', $headers, $timeoutSeconds);
+    }
+
+    public function postForm(string $url, array $fields, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
+    {
+        self::checkFields($fields);
+
+        return $this->send('POST', $url, fn (string $host): string => self::formBody($fields, $host, self::MOST_BYTES), 'application/x-www-form-urlencoded', $headers, $timeoutSeconds);
     }
 
     /**
-     * @param  array<string, mixed>|null  $json
+     * @param  (Closure(string): string)|null  $body  the body for the host checked, built before any lookup
      * @param  array<string, string>  $headers
      */
-    private function send(string $method, string $url, ?array $json, array $headers, int $timeoutSeconds): HttpAnswer
+    private function send(string $method, string $url, ?Closure $body, string $contentType, array $headers, int $timeoutSeconds): HttpAnswer
     {
         // Parsed once, by the parser Guzzle sends with, so the host checked is the host connected to.
         try {
             $uri = new Uri($url);
         } catch (InvalidArgumentException) {
-            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->hosts)]));
+            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->agreedHosts())]));
         }
 
         $host = $this->allowedHost($uri);
-        $body = $json === null ? null : self::jsonBody($json, $host);
+        $body = $body === null ? null : $body($host);
         $address = $this->publicAddress($host);
         $seconds = max(1, min($timeoutSeconds, $this->mostSeconds));
 
-        $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0, ARRAY_FILTER_USE_KEY))
+        $request = Http::withHeaders(array_filter($headers, fn (string $name): bool => strcasecmp($name, 'host') !== 0 && ($contentType !== 'application/x-www-form-urlencoded' || strcasecmp($name, 'content-type') !== 0), ARRAY_FILTER_USE_KEY))
             ->setHandler(new CurlHandler)
             ->withoutRedirecting()
             ->timeout($seconds)
@@ -93,7 +103,7 @@ final readonly class PluginHttp implements OutboundHttp
             ->withOptions(self::transport($host, $address, $this->maxBytes));
 
         try {
-            $response = $method === 'GET' ? $request->get((string) $uri) : $request->withBody((string) $body, 'application/json')->post((string) $uri);
+            $response = $method === 'GET' ? $request->get((string) $uri) : $request->withBody((string) $body, $contentType)->post((string) $uri);
         } catch (Exception $failure) {
             throw self::failure($failure, $host, $uri);
         }
@@ -161,6 +171,52 @@ final readonly class PluginHttp implements OutboundHttp
         } catch (JsonException) {
             throw new RequestFailed(__('The request to :host failed.', ['host' => $host]));
         }
+
+        if (strlen($body) > $maxBytes) {
+            throw new RequestFailed(__('The request to :host was larger than :size MB, so Teme didn’t send it.', [
+                'host' => $host,
+                'size' => max(1, intdiv($maxBytes, 1024 * 1024)),
+            ]));
+        }
+
+        return $body;
+    }
+
+    /**
+     * Refuses, before any lookup, a field that is neither a string nor a
+     * list of strings, or one without a name.
+     *
+     * @param  array<array-key, mixed>  $fields
+     */
+    private static function checkFields(array $fields): void
+    {
+        foreach ($fields as $name => $value) {
+            $values = is_array($value) && array_is_list($value) ? $value : [$value];
+
+            if (! is_string($name) || array_any($values, fn (mixed $one): bool => ! is_string($one))) {
+                throw new InvalidArgumentException('A form’s fields are names with a string or a list of strings.');
+            }
+        }
+    }
+
+    /**
+     * Returns the fields as a form body, each value of a list under its own
+     * name again, refused before any lookup or connection when it passes 1 MB.
+     *
+     * @param  array<string, string|list<string>>  $fields
+     */
+    private static function formBody(array $fields, string $host, int $maxBytes): string
+    {
+        $pairs = [];
+
+        foreach ($fields as $name => $value) {
+            foreach (is_array($value) ? $value : [$value] as $one) {
+                // Form encoding: a space is +.
+                $pairs[] = urlencode($name).'='.urlencode($one);
+            }
+        }
+
+        $body = implode('&', $pairs);
 
         if (strlen($body) > $maxBytes) {
             throw new RequestFailed(__('The request to :host was larger than :size MB, so Teme didn’t send it.', [
@@ -244,11 +300,24 @@ final readonly class PluginHttp implements OutboundHttp
 
         $host = strtolower($uri->getHost());
 
-        if (preg_match(HostPattern::PATTERN, $host) !== 1 || str_starts_with($host, '*.') || ! HostPattern::anyCovers($this->hosts, $host)) {
-            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->hosts)]));
+        if (preg_match(HostPattern::PATTERN, $host) !== 1 || str_starts_with($host, '*.') || ! HostPattern::anyCovers($this->agreedHosts(), $host)) {
+            throw new HostRefused(__('It may send requests only to the hosts you agreed to: :hosts.', ['hosts' => implode(', ', $this->agreedHosts())]));
         }
 
         return $host;
+    }
+
+    /**
+     * The hosts its consent covers, then the exact hosts agreed in its
+     * settings that its settings name now.
+     *
+     * @return list<string>
+     */
+    private function agreedHosts(): array
+    {
+        $more = $this->settingHosts === null ? [] : ($this->settingHosts)();
+
+        return array_values(array_unique([...$this->hosts, ...array_filter($more, fn (string $host): bool => ! str_starts_with($host, '*.'))]));
     }
 
     private function publicAddress(string $host): string

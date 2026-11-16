@@ -47,7 +47,7 @@ it('describes owns.tables as the tables a plugin creates', function (): void {
         ->and($owns['properties']['tables']['uniqueItems'])->toBeTrue()
         ->and($owns['properties']['tables']['items']['pattern'])->toBe('^[a-z][a-z0-9_]*$')
         ->and($owns['properties']['tables']['items']['maxLength'])->toBe(63)
-        ->and($owns['description'])->toContain('5.2');
+        ->and($owns['description'])->toContain('prefix');
 });
 
 it('takes the same versions the validator takes', function (string $version, bool $ok): void {

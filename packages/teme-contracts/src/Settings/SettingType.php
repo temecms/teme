@@ -11,15 +11,34 @@ namespace Teme\Contracts\Settings;
  */
 enum SettingType: string
 {
+    /** @since 0.1.0 */
     case Text = 'text';
+
+    /** @since 0.1.0 */
     case Textarea = 'textarea';
+
+    /** @since 0.1.0 */
     case Number = 'number';
+
+    /** @since 0.1.0 */
     case Boolean = 'boolean';
+
+    /** @since 0.1.0 */
     case Select = 'select';
+
+    /** @since 0.1.0 */
     case MultiSelect = 'multiselect';
+
+    /** @since 0.1.0 */
     case Url = 'url';
+
+    /** @since 0.1.0 */
     case Email = 'email';
+
+    /** @since 0.1.0 */
     case Secret = 'secret';
+
+    /** @since 0.1.0 */
     case Timezone = 'timezone';
 
     /** @since 0.1.0 */

@@ -14,7 +14,9 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
 
     $column = $contributes['columns']['items']['properties'];
 
-    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns'])
+    $feedLink = $contributes['feedLinks']['items']['properties'];
+
+    expect(array_keys($contributes))->toEqualCanonicalizing(['settings', 'admin', 'csp', 'columns', 'feedLinks', 'actions', 'lists', 'fixedLabel'])
         ->and($setting['type']['enum'])->toBe(ContributionsValidator::TYPES)
         ->and($link['surface']['enum'])->toBe(ContributionsValidator::SURFACES)
         ->and($link['icon']['enum'])->toBe(ContributionsValidator::ICONS)
@@ -24,5 +26,15 @@ it('states the contributions’ types, surfaces, icons and patterns as the valid
         ->and($column['kind']['enum'])->toBe(ContributionsValidator::COLUMN_KINDS)
         ->and($column['width']['enum'])->toBe(array_keys(ContributionsValidator::COLUMN_WIDTHS))
         ->and($column['id']['pattern'])->toBe($between(ContributionsValidator::COLUMN_ID))
-        ->and($column['types']['items']['pattern'])->toBe($between(ContributionsValidator::TYPE_KEY));
+        ->and($column['types']['items']['pattern'])->toBe($between(ContributionsValidator::TYPE_KEY))
+        ->and($feedLink['rel']['enum'])->toBe(ContributionsValidator::FEED_LINK_RELS)
+        ->and($feedLink['href']['pattern'])->toBe($between(ContributionsValidator::FEED_LINK_HREF))
+        ->and($contributes['feedLinks']['maxItems'])->toBe(ContributionsValidator::MOST_FEED_LINKS)
+        ->and($contributes['actions']['maxItems'])->toBe(ContributionsValidator::MOST_ACTIONS)
+        ->and($contributes['actions']['items']['properties']['id']['pattern'])->toBe($between(ContributionsValidator::LINK_ID))
+        ->and($contributes['lists']['maxItems'])->toBe(ContributionsValidator::MOST_LISTS)
+        ->and($contributes['lists']['items']['properties']['id']['pattern'])->toBe($between(ContributionsValidator::LINK_ID))
+        ->and($contributes['lists']['items']['properties']['columns']['maxItems'])->toBe(ContributionsValidator::MOST_LIST_COLUMNS)
+        ->and($contributes['lists']['items']['properties']['columns']['items']['properties']['kind']['enum'])->toBe(ContributionsValidator::COLUMN_KINDS)
+        ->and($contributes['lists']['items']['properties']['rows']['maximum'])->toBe(ContributionsValidator::MOST_LIST_ROWS);
 });

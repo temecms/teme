@@ -3,7 +3,7 @@ title: The manifest
 type: how-to
 audience: both
 summary: How to write teme-plugin.json and teme-theme.json, and where the key tables live.
-rests_on: [packages/teme-contracts/schema, docs/reference/plugin-manifest.md, docs/reference/theme-manifest.md]
+rests_on: [packages/teme-contracts/schema, docs/reference/plugin-manifest.md, docs/reference/theme-manifest.md, docs/reference/contracts.md]
 ---
 
 # The manifest
@@ -29,8 +29,18 @@ Each capability unlocks hooks or a door Teme hands your plugin's constructor. Pe
 | `"content.insert"` | Placing markup inside articles, and `InsertionsChanged`. See [Content inside articles](../plugins/insertions.md). |
 | `"http"` | `OutboundHttp`, which reaches only the hosts you list under `hosts` |
 | `"jobs"` | `Jobs`: queue the jobs you declare, and run them on the schedules you declare. See [Jobs and schedules](../plugins/jobs.md). |
+| `"routes.public"` | Answering the public addresses you declare under `routes`. See [Public routes](../plugins/public-routes.md). |
+| `"import.wordpress"` | Receiving the WordPress data you declare under `imports` when the site is imported. See [The plugin import socket](../plugins/import.md). |
 
-`"content.write"`, `"media.write"`, `"content.insert"` and `"jobs"` land with v1; they are joined on the `join/v1-wave1` branch. A constructor that asks for a door its capability doesn't open is refused at enable.
+A constructor that asks for a door its capability doesn't open is refused at enable. The [contracts reference](../../../reference/contracts.md) lists every door a constructor may ask for, with the capability that gives it.
+
+## Settings
+
+Settings you declare under `contributes.settings` form one group, keyed `plugin.` followed by your `code`, which Teme draws in **Settings** and your plugin reads by that key. See [Plugin settings and secrets](../plugins/settings.md).
+
+## Which Teme you require
+
+`requires.teme` names the Teme versions your package works with, as a Composer constraint. Make it accept at least the highest **Since** of every contract and hook you use, which the [contracts reference](../../../reference/contracts.md) gives for each. See [Hooks](hooks.md#since-and-the-teme-you-require).
 
 ## Jobs and schedules
 
@@ -40,6 +50,10 @@ Declare background work under `jobs`, and how often it runs under `schedules`. B
 - Each entry in `schedules` names a declared `job` and how often it runs, in `every`: `"minute"`, `"five-minutes"`, `"fifteen-minutes"`, `"hour"`, `"day"` or `"week"`.
 
 Your plugin class implements `PluginHasJobs` and answers a `JobHandler` for each declared key. See [Jobs and schedules](../plugins/jobs.md).
+
+## Routes and tables
+
+Public addresses your plugin answers are declared under `routes`, each with an `id`, a `method`, a `path` and a `handler`; see [Public routes](../plugins/public-routes.md). Tables your plugin creates are listed under `owns`, each name starting with your code as a prefix; see [Your plugin's own tables](../plugins/tables.md).
 
 ## The key tables
 

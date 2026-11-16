@@ -22,6 +22,7 @@ x-teme-environment: &teme-environment
     PAGE_CACHE_DRIVER: static
     PGCONNECT_TIMEOUT: '3'
     TEME_IMAGE_REPOSITORY: ${TEME_IMAGE_REPOSITORY:-}
+    TEME_EXTENSIONS_PATH: /var/teme/extensions
     # Media in object storage (docs/guides/operators/object-storage.md); every
     # part reads the same disks, or a worker writes where web doesn't read.
     MEDIA_STORAGE: ${MEDIA_STORAGE:-server}
@@ -46,6 +47,7 @@ x-teme: &teme
     volumes:
         - media:/var/www/html/storage/app
         - page-cache:/var/www/html/storage/page-cache
+        - extensions:/var/teme/extensions:ro
     networks:
         - default
     restart: unless-stopped
@@ -127,6 +129,8 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
         deploy:
             resources:
                 limits: { cpus: '1', memory: 1g }
@@ -143,6 +147,8 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
         deploy:
             resources:
                 limits: { cpus: '0.5', memory: 512m }
@@ -167,6 +173,8 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
         deploy:
             resources:
                 limits: { cpus: '0.5', memory: 512m }
@@ -185,9 +193,39 @@ services:
         depends_on:
             deploy:
                 condition: service_completed_successfully
+            installer:
+                condition: service_healthy
         deploy:
             resources:
                 limits: { cpus: '0.25', memory: 256m }
+
+    # Installs, updates and removes the plugins and themes asked for from the
+    # admin (docs/guides/operators/extensions.md): the only part that writes
+    # the extensions volume. The others start once it has checked the
+    # installed ones against this image.
+    installer:
+        <<: *teme
+        user: '9990:9990'
+        # The image's start step writes caches into storage/, which this user can't write; the installer needs none.
+        entrypoint: ['php', 'artisan', 'teme:installer']
+        init: true
+        stop_grace_period: 2m
+        environment:
+            <<: *teme-environment
+            TEME_EXTENSIONS_ROLE: installer
+        volumes:
+            - extensions:/var/teme/extensions
+        healthcheck:
+            test: ['CMD', 'test', '-f', '/tmp/teme-installer-ready']
+            interval: 5s
+            retries: 3
+            start_period: 15m
+        depends_on:
+            deploy:
+                condition: service_completed_successfully
+        deploy:
+            resources:
+                limits: { cpus: '0.5', memory: 1g }
 
     # Carries out an update asked for from the admin (I-3326): sets TEME_IMAGE
     # through Dokploy's API and deploys this Compose service. Its own image is
@@ -224,3 +262,4 @@ volumes:
     pgdata:
     media:
     page-cache:
+    extensions:

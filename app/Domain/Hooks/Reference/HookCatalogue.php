@@ -19,6 +19,7 @@ use Teme\Contracts\Fediverse\ActorDocumentBuilt;
 use Teme\Contracts\Fediverse\CollectActivityHandlers;
 use Teme\Contracts\Fediverse\CollectObjectBuilders;
 use Teme\Contracts\Fediverse\ObjectBuilt;
+use Teme\Contracts\Feeds\FeedsChanged;
 use Teme\Contracts\Hooks\Hook;
 use Teme\Contracts\Media\MediaStored;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
@@ -51,5 +52,6 @@ final class HookCatalogue
         CollectObjectBuilders::class,
         ObjectBuilt::class,
         ActorDocumentBuilt::class,
+        FeedsChanged::class,
     ];
 }

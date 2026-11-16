@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Cache\PageTags;
 use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Models\TrackedJob;
 use App\Domain\Jobs\Operations\CancelJob;
@@ -13,6 +14,8 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\DisablePluginInput;
 use App\Domain\Plugins\PluginRecords;
+use App\Domain\Plugins\PluginRegistry;
+use App\Domain\PublicRoutes\RootFile;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
@@ -40,6 +43,7 @@ final class DisablePlugin extends BaseOperation
         private readonly PluginRecords $records,
         private readonly SecurityLog $log,
         private readonly CancelJob $cancel,
+        private readonly PluginRegistry $registry,
     ) {}
 
     protected function validate(OperationInput $input): void
@@ -72,10 +76,12 @@ final class DisablePlugin extends BaseOperation
         ])->save();
 
         $this->log->record(SecurityEventType::PluginDisabled, $input->actorId(), context: ['plugin' => $input->name]);
-        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
+        // Its root files stop answering, so a stored "not found" at their addresses can stand again (docs/guides/developers/plugins/root-files.md).
+        $manifest = $this->registry->find($input->name)?->manifest;
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...($manifest !== null && RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
 
-        // Its insertions leave the article pages that drew them, after commit (I-064).
-        if (in_array(Capability::ContentInsert->value, $record->consent['capabilities'] ?? [], true)) {
+        // Its insertions leave the pages that drew them, after commit (I-064).
+        if (in_array(Capability::ContentInsert->value, $record->consent['capabilities'] ?? [], true) || in_array(Capability::PagesInsert->value, $record->consent['capabilities'] ?? [], true)) {
             app(InsertionsChanged::class)->notify();
         }
 
