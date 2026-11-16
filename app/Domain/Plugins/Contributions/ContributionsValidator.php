@@ -7,6 +7,7 @@ namespace App\Domain\Plugins\Contributions;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
+use Teme\Contracts\Plugins\Capability;
 
 /**
  * Checks what a plugin's manifest says it adds to the admin, `contributes`,
@@ -56,18 +57,26 @@ final class ContributionsValidator implements ContributionsCheck
      * Returns why the contributions can't be used, or nothing when they can.
      *
      * @param  array<array-key, mixed>  $contributes
+     * @param  list<string>|null  $capabilities  what the manifest asks for; null where the manifest's validator already held `csp` to them, as when a plugin starts
      *
      * @return list<string>
      */
-    public function errors(array $contributes, string $version): array
+    public function errors(array $contributes, string $version, ?array $capabilities = null): array
     {
         $errors = [];
+        $inserts = $capabilities === null || in_array(Capability::ContentInsert->value, $capabilities, true) || in_array(Capability::PagesInsert->value, $capabilities, true);
 
         foreach (array_keys($contributes) as $surface) {
-            // Reserved in the manifest's shape, read by nothing yet (I-3375).
-            if ($surface === 'csp') {
-                $errors[] = __('A plugin\'s csp is read only with the site.output permission, which Teme doesn\'t offer yet.');
-            } elseif ($surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns') {
+            // The hosts inserted content loads from, read only for a plugin that inserts (I-3375).
+            if ($surface === 'csp' && ! $inserts) {
+                $errors[] = __('A plugin’s csp is read only with content.insert or pages.insert.');
+            } elseif ($surface === 'fixedLabel') {
+                $label = $contributes['fixedLabel'];
+
+                if (! is_string($label) || trim($label) === '' || mb_strlen($label) > 24) {
+                    $errors[] = __('fixedLabel must be text of 1 to 24 characters.');
+                }
+            } elseif ($surface !== 'csp' && $surface !== 'settings' && $surface !== 'admin' && $surface !== 'columns') {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }

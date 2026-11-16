@@ -21,7 +21,9 @@ use App\Domain\Site\Insertions\InsertionCleaner;
 use App\Domain\Site\Insertions\InsertionOrigins;
 use App\Domain\Site\Insertions\InsertionPlan;
 use App\Domain\Site\Insertions\InsertionPoints;
+use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\Insertions\PlanBuilder;
+use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
 use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ItemLink;
@@ -190,17 +192,26 @@ final readonly class ArticleViews
             authorIds: array_map(fn (object $person): string => (string) $person->id, $credits),
             words: (int) $revision->word_count,
             paragraphs: $paragraphs,
+            path: Addresses::relativeUrl($content) ?? '',
         );
+
+        // The page's own contributors are asked with this article's facts (docs/plans/plugin-sockets-2.md).
+        app(PageInsertions::class)->article($facts);
 
         $cleaned = [];
         $origins = [];
+        $hashes = [];
 
-        foreach (app(InsertionPoints::class)->for($facts) as $insertion) {
-            $result = InsertionCleaner::clean($insertion->html);
+        foreach (app(InsertionPoints::class)->owned($facts) as ['code' => $code, 'insertion' => $insertion]) {
+            $result = InsertionCleaner::clean($insertion->html, $code === null ? [] : ApprovedScripts::for($code));
             $cleaned[] = new Insertion($insertion->key, $insertion->at, $result['html']);
+            $hashes = [...$hashes, ...$result['scripts']];
+            $declared = $code === null || trim($result['html']) === '' ? [] : app(InsertionOrigins::class)->declared($code);
 
-            foreach ($result['origins'] as $directive => $hosts) {
-                $origins[$directive] = array_values(array_unique([...($origins[$directive] ?? []), ...$hosts]));
+            foreach ([$result['origins'], $declared] as $found) {
+                foreach ($found as $directive => $hosts) {
+                    $origins[$directive] = array_values(array_unique([...($origins[$directive] ?? []), ...$hosts]));
+                }
             }
         }
 
@@ -216,6 +227,7 @@ final readonly class ArticleViews
 
         // Origins wait for PublicPage to start the policy; PathResolver builds the article first.
         app(InsertionOrigins::class)->add($origins);
+        app(InsertionOrigins::class)->addScriptHashes(array_values(array_unique($hashes)));
 
         return new InsertionPlan($plan->at(), $origins);
     }

@@ -42,6 +42,7 @@ final readonly class PluginWords
             Capability::ContentRead->value => __('Read your posts, pages and other content, including drafts'),
             Capability::MediaRead->value => __('Read the media library'),
             Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
+            Capability::PagesInsert->value => __('Add content to every page of your site: in the head, at the top and bottom of the page, between items on lists, in the theme’s regions, and fixed to the screen’s edge'),
             Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
             Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
             Capability::Jobs->value => __('Run work in the background and on a schedule'),
@@ -82,6 +83,17 @@ final readonly class PluginWords
         }
 
         return __('Read from the WordPress site you import: :what', ['what' => implode('; ', $parts)]);
+    }
+
+    /**
+     * The sentence naming the hosts a plugin's inserted content may load
+     * from (`contributes.csp`).
+     *
+     * @param  list<string>  $hosts
+     */
+    public static function insertionHosts(array $hosts): string
+    {
+        return __('Lets the content it inserts load from: :hosts', ['hosts' => implode(', ', $hosts)]);
     }
 
     /**

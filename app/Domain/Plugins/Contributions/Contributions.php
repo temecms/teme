@@ -8,6 +8,7 @@ use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
 use Teme\Contracts\Insertions\InsertionContributor;
+use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Lists\HasListColumns;
 use Teme\Contracts\Status\ChecksStatus;
@@ -62,7 +63,7 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor), $name);
         }
 
         $links = $contributes['admin'] ?? [];

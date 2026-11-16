@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\FoundPlugin;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -138,6 +139,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 'hosts' => $input->hosts,
                 'hooks' => $input->hooks,
                 'routes' => Consent::routeLines($manifest),
+                ...$this->insertionHosts($manifest, $input->capabilities),
                 ...$this->imports($found),
             ],
             'consented_by' => $input->actorId() === null ? null : (int) $input->actorId(),
@@ -157,8 +159,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         ]);
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code]));
 
-        // Article pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
-        if (in_array(Capability::ContentInsert->value, $input->capabilities, true)) {
+        // Pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
+        if (in_array(Capability::ContentInsert->value, $input->capabilities, true) || in_array(Capability::PagesInsert->value, $input->capabilities, true)) {
             app(InsertionsChanged::class)->notify();
         }
 
@@ -178,6 +180,27 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         $declared = $found->manifest === null ? [] : Consent::declaredImports($found->manifest);
 
         return $declared === [] ? [] : ['imports' => $declared];
+    }
+
+    /**
+     * The hosts its inserted content may load from, kept with the consent so
+     * a later version that adds one waits for another yes; nothing for a
+     * plugin that inserts nothing or declares none
+     * (docs/plans/plugin-sockets-2.md, B3).
+     *
+     * @param  list<string>  $capabilities
+     *
+     * @return array{}|array{csp: array<string, list<string>>}
+     */
+    private function insertionHosts(Manifest $manifest, array $capabilities): array
+    {
+        if (! in_array(Capability::ContentInsert->value, $capabilities, true) && ! in_array(Capability::PagesInsert->value, $capabilities, true)) {
+            return [];
+        }
+
+        $declared = Consent::declaredInsertionHosts($manifest);
+
+        return $declared === [] ? [] : ['csp' => $declared];
     }
 
     /**

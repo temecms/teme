@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\Plugins\PluginWords;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
@@ -56,6 +58,7 @@ final class EnablePluginCommand extends Command
                 Capability::ContentRead->value => __('Read your posts and pages, including drafts'),
                 Capability::MediaRead->value => __('Read the media library'),
                 Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
+                Capability::PagesInsert->value => __('Add content to every page of your site: in the head, at the top and bottom of the page, between items on lists, in the theme’s regions, and fixed to the screen’s edge'),
                 Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
                 Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
                 Capability::Jobs->value => __('Run work in the background and on a schedule'),
@@ -66,6 +69,12 @@ final class EnablePluginCommand extends Command
                 Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
                 default => $capability,
             });
+        }
+
+        $insertionHosts = $manifest === null ? [] : array_values(array_unique(array_merge(...array_values(Consent::declaredInsertionHosts($manifest)))));
+
+        if ($insertionHosts !== []) {
+            $this->line('  '.PluginWords::insertionHosts($insertionHosts));
         }
 
         if (! $this->option('agree')) {
