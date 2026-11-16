@@ -762,6 +762,42 @@ None.
 - `php artisan test --compact tests/Feature/Plugins/Sockets/ContentQueueTest.php tests/Feature/Plugins/Sockets/PeopleReaderTest.php tests/Feature/Plugins/Sockets/SiteChoiceSettingsTest.php tests/Feature/Plugins/Sockets/SettingSchedulesTest.php` for the scheduler port's additions; the `tests/scheduler` fixture shows a manifest using all four.
 - Enable the `tests/librarian` fixture on a development site (its folder in `teme.plugin_paths`), open Settings › Plugin settings › Librarian and choose a person for "Credit articles to"; queue its `write-as-person` job while signed in, and the draft it writes is yours.
 
+
+#### Follow-up R1
+
+The review's verdict: merge after fixes. Done on `sockets3/content-doors`:
+
+| Finding | What was done | Commit |
+|---|---|---|
+| 1 (blocking) | `origin/main` (`9f27e41`, PR #380, rounds 1 and 2 joined) merged. The 12 conflicts were resolved keeping both sides. `PluginHttp` keeps `settingHosts:` and takes `maxBytes:`, and request bodies (JSON and form) stay at 1 MB. `DueSchedules` keeps `ScheduleRunner` and takes `SettingsReader`. `PluginDoors` and `OFFERED` put `ContentReader` and `PeopleReader` after main's `SiteInfo`, `PluginSettingsWriter` and `InlineScripts`. `Capability::PeopleRead` is last, with `/** @since 0.9.0 */`, after `FeedsLinks` and `PagesInsert`. The words lists and the contracts test are unions. The schema was rebuilt by loading base, ours and main and merging the trees, then formatted by `vp`. `content-write.md` and `jobs.md` were rebuilt from main's text plus this part's sections. `llms.txt` was regenerated. `ManifestValidator::LATER` on main is `['mail.send', 'site.output', 'ai']`. | `582395a` |
+| 2: Task 7 | Not built: it is still blocked. `packages/teme-contracts/src/Admin/AreaContext.php` doesn't exist on `main`. PR #380 joined round 1 (A and B) and round 2's inserts, not round 2's Part A (`sockets2/plugin-area`; no `HasPluginArea`, `AreaContext` or `PluginAreaScreen`), and the plan's wait condition still fails. It stays left open until that part is on `main`. | — |
+| 2: C6 | `PersonSettingTest` proves a plugin can't write its own `person` setting through `WritePluginSettings` and that nothing is written. The refusal now uses the plan's sentence, "A plugin can’t choose a person for itself." (through `__()`); other refused types keep main's sentence. | `135fd3a` |
+| 3 | `personId()` with no person throws `App\Domain\Plugins\Jobs\NoPersonToActFor`, not `JobStopped`. `RunPluginJob` sets `tries` to 1 and fails the tracked job with "This run has no person to act for." `JobContext`'s docblock says so. | `cfb4817` |
+| 4 | The stray empty records skeleton before Part D was deleted. | `d3a106e` |
+| 8 | `jobs.md`'s "Cutting work into runs" names `new QueueOptions(delaySeconds: …)`, in the merge's rebuilt page. | `582395a` |
+| 9 | `httpSeconds` and `answerBytes` pass by name in `RunPluginJob`, `PluginLoader::instance()` → `build()` → `PluginServices::for()`, and in `LongAnswersTest`. Main's own `PluginJobsTest` still passes `300` positionally as `httpSeconds`, which stays fourth. | `bce9138` |
+| 5 | Nothing here: the maintainers confirmed the narrow meaning, and the join updates `docs/architecture/plugins.md`. | — |
+
+Tests seen red:
+
+| Fix | File | First failure |
+|---|---|---|
+| 3 | `tests/Feature/Plugins/Sockets/JobPersonTest.php` | `personId()` threw `JobStopped` (the new `not->toThrow(JobStopped::class)` failed), and the operator's run ended `Running`, not `Failed` (`Failed asserting that two variables reference the same object … JobState::Failed`) |
+| 2 (C6) | `tests/Feature/Plugins/Sockets/PersonSettingTest.php` | `'A plugin can’t write its own person settings.'` where `'A plugin can’t choose a person for itself.'` was expected (the write was already refused, writing nothing, so the red is the sentence) |
+
+Findings 1, 4, 8 and 9 have no red test: a merge, a deleted block, a sentence and a by-name refactor. Finding 9's behavior is covered by `LongAnswersTest` and `PluginJobsTest`, which pass.
+
+LATER, left as asked:
+
+- 6. A draft snapshot's `translations` lists every language version in the group (title and status), including other authors' drafts or private items. Keep only published versions and those the person may update, or record that the editor shows them anyway.
+- 7. No test covers `translationOf` or `linkTranslations()` refused because the person can't edit the other item (`LinkTranslations::authorize`). Add a dataset row with an author linking to an editor's item.
+- 10. Superseded by the gate below; GitHub's run on the branch decides.
+
+Gate after follow-up R1, `composer check` on `d3a106e`: Pint, PHPStan, types and lint passed. Architecture: 139 passed (1,395 assertions). Unit and Feature: 12,630 passed, 3 failed, 3 skipped (63,892 assertions). The failures:
+
+- `GenerateManifestReferenceTest` and `GenerateContractsReferenceTest`: expected. Main now has the generated references, and they lack this part's contracts and manifest keys. The plan says not to regenerate `docs/reference/*.md`; the join does that once.
+- `Plugins/DatabaseDownTest` ("serves an ordinary re…", no failure reported): known flaky. It passed alone twice, and `tests/Feature/Plugins` passed whole in parallel (863 passed).
+
 ---
 
 ## Part D: hooks a plugin declares, plugin dependencies, notices from plugins (`sockets3/hooks-notices`)
