@@ -10,6 +10,7 @@ use App\Domain\Status\StatusChecks;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Lists\HasListColumns;
+use Teme\Contracts\Lists\HasPluginLists;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck as PluginCheck;
 
@@ -47,6 +48,7 @@ final readonly class Contributions implements PluginContributions
 
         array_push($errors, ...$this->jobHandlers($jobs, $plugin));
         array_push($errors, ...$this->columnHandlers($contributes['columns'] ?? [], $plugin));
+        array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
 
         if ($errors !== []) {
             return $errors;
@@ -163,6 +165,47 @@ final readonly class Contributions implements PluginContributions
         foreach ($handlers as $id) {
             if (! isset($declared[$id])) {
                 $errors[] = "It has a handler for column \"{$id}\", which isn’t declared.";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Declared list ids must match the plugin's pluginLists() keys, and the
+     * other way round (docs/proposals/plugin-sockets-1.md). Lists are not
+     * registered here; the settings page reads them from the manifest.
+     *
+     * @return list<string>
+     */
+    private function listHandlers(mixed $lists, object $plugin): array
+    {
+        $declared = [];
+
+        foreach (is_array($lists) ? $lists : [] as $entry) {
+            if (is_array($entry) && is_string($entry['id'] ?? null)) {
+                $declared[$entry['id']] = true;
+            }
+        }
+
+        if (! ($plugin instanceof HasPluginLists)) {
+            return $declared === []
+                ? []
+                : ['It declares lists but doesn’t implement '.HasPluginLists::class.'.'];
+        }
+
+        $handlers = array_keys($plugin->pluginLists());
+        $errors = [];
+
+        foreach (array_keys($declared) as $id) {
+            if (! in_array($id, $handlers, true)) {
+                $errors[] = "It declares list \"{$id}\" but has no class for it.";
+            }
+        }
+
+        foreach ($handlers as $id) {
+            if (! isset($declared[$id])) {
+                $errors[] = "It has a class for list \"{$id}\", which isn’t declared.";
             }
         }
 

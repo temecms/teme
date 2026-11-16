@@ -396,6 +396,64 @@
                         }
                     }
                 },
+                "lists": {
+                    "type": "array",
+                    "maxItems": 2,
+                    "description": "Small tables on the plugin's settings page.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "columns"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The list's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "The list's heading."
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "What the list shows."
+                            },
+                            "columns": {
+                                "type": "array",
+                                "minItems": 1,
+                                "maxItems": 6,
+                                "items": {
+                                    "type": "object",
+                                    "required": ["id", "label", "kind"],
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                            "description": "The column's id."
+                                        },
+                                        "label": {
+                                            "type": "string",
+                                            "minLength": 1,
+                                            "maxLength": 40,
+                                            "description": "The column's heading."
+                                        },
+                                        "kind": {
+                                            "enum": ["text", "number", "badge"]
+                                        }
+                                    }
+                                }
+                            },
+                            "rows": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50,
+                                "description": "The most rows it shows; 20 when absent."
+                            }
+                        }
+                    }
+                },
                 "csp": {
                     "type": "object",
                     "additionalProperties": false,

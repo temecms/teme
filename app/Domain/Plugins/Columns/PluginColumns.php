@@ -238,21 +238,15 @@ final class PluginColumns
                 continue;
             }
 
-            $clean = preg_replace('/[\p{Cc}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', ' ', (string) $cell->value);
+            $clean = CellText::clean((string) $cell->value, $column->kind === Cell::BADGE ? self::MOST_BADGE : self::MOST_TEXT);
             if ($clean === null) {
                 $refused = true;
 
                 continue;
             }
 
-            $clean = trim(preg_replace('/\s+/u', ' ', $clean) ?? '');
             if ($clean === '') {
                 continue;
-            }
-
-            $most = $column->kind === Cell::BADGE ? self::MOST_BADGE : self::MOST_TEXT;
-            if (mb_strlen($clean) > $most) {
-                $clean = mb_substr($clean, 0, $most - 1).'…';
             }
 
             $kept[$id] = $column->kind === Cell::BADGE

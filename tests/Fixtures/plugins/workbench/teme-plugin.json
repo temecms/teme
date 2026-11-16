@@ -63,6 +63,31 @@
                 "label": "Hubs",
                 "description": "The hubs to tell."
             }
+        ],
+        "lists": [
+            {
+                "id": "log",
+                "label": "Recent pings",
+                "description": "The last pings sent.",
+                "columns": [
+                    {
+                        "id": "address",
+                        "label": "Address",
+                        "kind": "text"
+                    },
+                    {
+                        "id": "sent",
+                        "label": "Sent",
+                        "kind": "number"
+                    },
+                    {
+                        "id": "answer",
+                        "label": "Answer",
+                        "kind": "badge"
+                    }
+                ],
+                "rows": 3
+            }
         ]
     }
 }
