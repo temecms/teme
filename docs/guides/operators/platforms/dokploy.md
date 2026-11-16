@@ -88,9 +88,73 @@ While a restore runs, `/up` fails on purpose. Dokploy may replace `web` for fail
 
 Dokploy can back up its own databases to a bucket, but it does not see the database inside this service. Use Teme's own backups. [Backups](../backups.md) says what they hold.
 
-## Advanced: separate Applications
+## Install as one Application
 
-You can instead make each role its own Dokploy Application from the same image and tag, with the commands in the table above, a shared `media` and `page-cache` volume, and a database of your own made as [The database](../database.md) describes. This has not been proved. The single Compose service is the way to install.
+Teme can run as a single Dokploy Application. Web, both queue workers, the scheduler, the plugin installer and the updater share one container, and the database is a PostgreSQL service that Dokploy runs for you. Use it when you want one thing to look after, or when you want Dokploy to build Teme from the repository.
+
+| You give Dokploy | Source | Updating from the admin |
+|---|---|---|
+| The image `ghcr.io/temecms/teme` and a tag | Docker | The admin's **Update** changes the tag and redeploys. |
+| The repository, which has a `Dockerfile` | Git (GitHub, GitLab, Bitbucket, Gitea or any Git address) | Dokploy rebuilds from the source: change the branch or tag, then press **Deploy**. |
+| A ZIP of the repository | Drop | Dokploy rebuilds from the source: upload the new ZIP, then press **Deploy**. |
+
+A build from Git or a ZIP compiles Teme's PHP packages and front end, which takes several minutes and about 4 GB of memory on the server.
+
+### Steps
+
+1. **Make the database.** In your project choose Create Service, then Database, then PostgreSQL. Give it a name, a database name such as `teme`, a user name, a long password, and the Docker image `postgres:18`. Deploy it. Its page shows the **Internal Host**, the **Internal Port** and the **Internal Connection URL**. Dokploy's user is a PostgreSQL superuser. Teme uses that login on each start only to make a limited login of its own, and every part of Teme then runs as the limited one: [The database](../database.md) says what it makes.
+2. **Make the Application.** Choose Create Service, then Application, and name it. On its General tab, note its **App Name** (it looks like `app-teme-x1y2z3`): the updater finds the Application by it.
+3. **Set its source.** On the General tab, set the provider from the table above. For Docker, give the image with its exact tag, such as `ghcr.io/temecms/teme:0.8.0-alpha.1`, never `latest`; add a registry login under Settings, then Registry, while the image is private. For Git or a ZIP, set the build type to Dockerfile, with `Dockerfile` as its path and `.` as its context. The build leaves out every `.env` file, so what you type below never enters the image.
+4. **Fill the Environment tab.**
+   - `TEME_ROLE`: `all`. This is the one switch that makes the container run every role. Without it the container runs the web server alone.
+   - `APP_URL`: your site's address, with `https://`.
+   - `APP_KEY`: make it once and keep it. On Linux or macOS: `echo "base64:$(openssl rand -base64 32)"`. On Windows PowerShell: `$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); "base64:" + [Convert]::ToBase64String($b)`. If it is missing, the container stops at once and says how to make one.
+   - The database, in one of two forms. Either `DATABASE_URL`, set to the **Internal Connection URL** exactly as Dokploy shows it, or the five settings `DB_HOST` (the **Internal Host**, a name and nothing else), `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD`. A `DB_HOST` that holds a whole address stops the container, without printing it.
+   - For updates from the admin: `TEME_DOKPLOY_URL`, the panel's `https://` address, and `TEME_DOKPLOY_APP_NAME`, the App Name from step 2.
+   - `TEME_IMAGE_REPOSITORY` only if you run the image from a copy of your own: `ghcr.io/temecms/teme` is assumed. [Configuring Teme](../configure.md) lists the other settings.
+5. **Mount one volume.** On the Advanced tab, under Volumes, add a Volume Mount. Name it for the site, such as `blog-data`, and set its mount path to `/var/teme`. That one volume holds the media, the page cache, and the plugins and themes you install from the admin. Without it they are lost whenever the container is replaced, and the container's log says so on every start.
+6. **Give it time to stop.** On the Advanced tab, under Cluster Settings, then Swarm Settings, set the **Stop Grace Period** to `360000000000` (six minutes, in nanoseconds) so a worker can finish its job. Leave Update Config, Rollback Config and Health Check empty. Dokploy then starts a new container before it stops the old one, and puts the old one back when the new one does not become healthy; Teme's image supplies its own health check.
+7. **Set the domain.** Under Domains, add your site's address with the port `8080` and HTTPS on.
+8. **Deploy.** The Logs tab shows the start: the database step, then the deploy, which ends with the setup page's address and a setup code. Open the address, enter the code and fill in the form. Or open the Application's Terminal and run `artisan teme:user:create --email=you@example.com --name="Your Name" --role=administrator`, then open the link it prints.
+9. **Let the admin update it.** Skip this if you update by hand. In Dokploy open Settings, then Profile, then API/CLI Keys, and generate a key. In Teme open Settings › Updates and paste it there. The key can do what its user can do in Dokploy, so make it for a Dokploy user who has access to this Application alone, with the right to change and deploy it.
+
+### What runs in the container
+
+| Process | Runs as | What it does |
+|---|---|---|
+| the deploy step | `www-data` | Makes Teme's database login, caches the configuration, and runs `php artisan teme:deploy`, which backs up and migrates under a lock. The web server starts only once it has ended well. |
+| the installer's check | `teme-installer` | Checks the installed plugins and themes against this release before the site starts. |
+| nginx and PHP-FPM | `root` (their masters), `nginx` and `www-data` (their workers) | The web server. |
+| `php artisan queue:work --tries=3 --max-time=3600` | `www-data` | The default queue. |
+| `php artisan queue:work database-long --queue=long --tries=3 --max-time=3600` | `www-data` | The long queue. |
+| `php artisan schedule:work` | `www-data` | The scheduler. |
+| `php artisan teme:installer` | `teme-installer` | Installs, updates and removes the plugins and themes asked for from the admin. It alone can write `/var/teme/extensions`. |
+| `php artisan teme:updater` | `www-data` | Carries out an update asked for from the admin. |
+
+The installer runs as its own user, with an environment of only what it needs: the database login Teme runs as, the application key and the extensions folder. It never has the Dokploy key, the media bucket's keys or the GitHub token, and it cannot read the site's configuration. One health check covers the container: it fails when the web server does not answer, or when the web server, either worker, the scheduler or the installer is not running. When you open a terminal in the container, PHP hands itself to `www-data`, so what you run never leaves files the site cannot write.
+
+### The database login
+
+On each start Teme connects with the login you gave it. When that login is a PostgreSQL superuser, Teme makes the login `teme_app_` followed by the database's name, with no right to make databases or roles; makes it the owner of your database and of a spare one named after it with `_verify` on the end, which the weekly test restore uses; and lets no other login connect to them. Its password comes from `APP_KEY`, so every start gives the same one and nothing is stored. Each site on one PostgreSQL server gets a login of its own. When the login you gave is not a superuser, Teme makes nothing and runs as that login, and `teme:doctor` says if it has more rights than Teme needs.
+
+### Updating
+
+With the Docker source, Tools › Updates › **Update to …** changes the Application's image to the new release's tag and redeploys it. Dokploy starts the new container while the old one still answers. The new container migrates and starts, and the updater in it carries the update on from where the old one stopped: it waits for the site to answer with the new version, then ends the update. If the new container never becomes healthy, Dokploy puts the old one back, and the updater sets the image back too. For a moment both containers run against one database; a migration that the older release cannot run against waits for maintenance mode, as it does everywhere.
+
+To update by hand, change the image's tag on the General tab and press **Deploy**.
+
+With the Git or Drop source, the admin's Update stops and says that Dokploy builds this site from its source. Put the new release in the source, then press **Deploy** on the Application. Updating the source is the whole update: the deploy step migrates the database as the new container starts.
+
+### If the container stops
+
+Read the Application's Logs. Teme names what is wrong in one sentence, never with a password in it:
+
+- `APP_KEY is empty`: set `APP_KEY` as step 4 says.
+- `DB_HOST holds an address`, or `DATABASE_URL isn't a PostgreSQL address Teme can read`: set the database as step 4 says.
+- `TEME_ROLE is …, and the only role Teme knows is all`: set `TEME_ROLE` to `all`, or remove it.
+- `Teme couldn't connect to the database`: check the database service is running, and its host, port, user and password against the service's page.
+
+When the container runs but is marked unhealthy, open its Terminal and run `teme-healthcheck`: it names the first process that is not running.
 
 ## Dokploy notes
 
