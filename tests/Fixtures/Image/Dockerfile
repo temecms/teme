@@ -25,7 +25,7 @@ RUN groupadd --system --gid 9990 teme-installer \
     && ln -s ../storage/app/public /var/www/html/public/storage \
     && chown -R www-data:www-data /var/www/html/storage
 WORKDIR /var/www/html
-ENV APP_ENV=production AUTORUN_ENABLED=false SHOW_WELCOME_MESSAGE=false HEALTHCHECK_PATH=/up TEME_EXTENSIONS_PATH=/var/teme/extensions \
+ENV APP_ENV=production AUTORUN_ENABLED=false SHOW_WELCOME_MESSAGE=false HEALTHCHECK_PATH=/up \
     APP_CONFIG_CACHE=/var/www/html/storage/framework/cache/config.php
 ENTRYPOINT ["teme-entrypoint"]
 CMD ["/init"]

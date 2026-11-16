@@ -271,6 +271,31 @@ it('lets nginx read what PHP wrote, since root runs its workers as nginx', funct
     expect(aioExec($name, 'curl --silent http://localhost:8080/storage/a.txt'))->toBe("shown\n");
 });
 
+it('keeps media, the page cache and the installed plugins and themes in the one volume mounted at /var/teme', function (): void {
+    $volume = 'teme-aio-volume-'.bin2hex(random_bytes(4));
+    $name = ($this->start)([], ['--volume', "{$volume}:/var/teme"]);
+    aioWait($name, 'healthy');
+
+    $layout = aioExec($name, 'readlink /var/www/html/storage/app /var/www/html/storage/page-cache; stat -c "%n %U %a" /var/teme/media /var/teme/page-cache /var/teme/extensions; ls /var/teme/media');
+    $logs = aioDocker(['logs', $name]);
+
+    expect($layout)->toBe("/var/teme/media\n/var/teme/page-cache\n/var/teme/media www-data 755\n/var/teme/page-cache www-data 755\n/var/teme/extensions teme-installer 755\npublic\n")
+        ->and($logs->getOutput().$logs->getErrorOutput())->not->toContain('Nothing is mounted at /var/teme')
+        // The installer was told where its folder is without being asked.
+        ->and(json_decode(aioExec($name, 'cat /tmp/installer-env-teme-installer'), true)['TEME_EXTENSIONS_PATH'] ?? null)->toBe('/var/teme/extensions');
+
+    aioRemove($name);
+    aioDocker(['volume', 'rm', '--force', $volume]);
+});
+
+it('says, and goes on, when no volume is mounted at /var/teme', function (): void {
+    $name = ($this->start)();
+    aioWait($name, 'healthy');
+    $logs = aioDocker(['logs', $name]);
+
+    expect($logs->getOutput().$logs->getErrorOutput())->toContain('Nothing is mounted at /var/teme, so the media, the page cache and the plugins and themes installed from the admin are lost whenever this container is replaced.');
+});
+
 it('runs a terminal’s PHP as www-data, never as root', function (): void {
     $name = ($this->start)();
     aioWait($name, 'healthy');
