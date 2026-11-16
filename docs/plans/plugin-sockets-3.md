@@ -866,12 +866,59 @@ Each run with `app/` and `packages/` stashed, the tests and fixtures in place.
 - Screens 2 and 5 built from the approved drawings, with the two rules (approved later on 2026-11-16; screen 2 is Part A's). Task 6, screen 5: Account › Notifications lists each enabled plugin's kinds after core's, in a group headed once by the plugin's own name with the plug mark, with the same switches; a disabled plugin's group goes and its stored choices stay. An inbox item a plugin sent shows "From <plugin's name>" with the plug mark and opens the admin link the plugin gave. Tests: `tests/Feature/Plugins/Notices/PluginNoticeScreenTest.php` (seen red: "Property [notices] was marked as invalid using a closure." with plugin rows mixed into core's, and no `pluginNotices`), `tests/Browser/Account/PluginNoticeChoicesTest.php` (1280 and 375, axe light and dark, 4 passed); `AccountNotificationsTest` and `InboxScreenTest` (browser) still pass. `NoticeChoices` (the plugin's label beside its kinds) waits with it, since its shape follows the drawing.
 - Left open for the screens: the Plugins screen's consent lines for notice kinds, required plugins and declared hooks are in `PluginWords`, `EnablePluginCommand` and `PluginRow::$requiredBy`, but `PluginsScreen` and `plugins/index.tsx` are not this part's files.
 
+#### Follow-up R1
+
+The review's findings 1 to 6 fixed, after merging `origin/main` (plugin sockets rounds 1 and 2, PR #380). Each fix: its test seen red, then the fix, its own commit, pushed.
+
+Commits:
+
+- `eba87060` Merge origin/main into sockets3/hooks-notices. Every conflict kept both sides' additions; the schema was merged by loading both sides, not by hand.
+- `900ee0d6` fix(plugins): a declared hook must be the plugin's own class (finding 1).
+- `81a66aef` fix(plugins): the Plugins screen names notice kinds and required plugins (finding 2).
+- `4d6d1e96` fix(site): link listeners have the page insertions' time budget (finding 3).
+- `b2d03657` fix(site): plugins are asked about links only on published renders (finding 4).
+- `a0227cf3` fix(plugins): an update that adds a kind of notice or a required plugin waits for a yes (finding 5).
+- `551f749b` fix(account): a plugin's notices are headed by its mark and keyed by its Composer name (finding 6).
+- this commit: docs(plans): records, follow-up R1.
+
+Tests seen red (first line of the failure):
+
+| Finding | File | First failure |
+|---|---|---|
+| 1 | `PluginHooksTest`, rows "core’s namespace, claimed in its composer.json" and "another plugin’s namespace, claimed in its composer.json" | Expecting […] not to have key 'tests/relay'. (the plugin started) |
+| 2 | `tests/Feature/Plugins/Hooks/PluginsScreenDependenciesTest.php` | Failed asserting that a traversable contains 'Send notices to people on this site, by email or in their inbox: Email me when an article I started fails; Email me when the article queue stops'.; and Undefined array key "requires" |
+| 3 | `ArticleLinksTest`, the call budget and the page budget | Failed asserting that two arrays are identical. (the slow plugin's attributes were kept; a fourth ask was answered) |
+| 4 | `ArticleLinksTest`, "asks plugins about links only on a published article, never on a preview" | the preview's body held `rel="noopener nofollow"` where `rel="noopener"` was expected |
+| 5 | `tests/Feature/Plugins/Notices/NoticeConsentTest.php` | Failed asserting that an array has the key 'notices'.; Failed asserting that true is false.; Expecting […] not to have key 'tests/relay'. |
+| 6 | `PluginNoticeScreenTest`, "lists a plugin’s kinds after core’s…" | Failed asserting that two arrays are identical. (no `name` in the group) |
+
+B-?? (draft):
+
+- **The merge.** `HookSender` joins `GenerateContractsReference::BY_DECLARATION` (given for `contributes.hooks`), one line beside round 1's. `HookContractsTest` counts 20 hooks: main's FeedsChanged and this part's ArticleLinks. `GenerateContractsReferenceTest`'s committed-reference row now drifts too, by the same rule as the hooks and manifest references; not regenerated. Wayfinder regenerated (its files are not committed).
+- **Finding 1: the class's own package.** Refused, with the namespace sentence: a class under `Teme\` or `App\`, or under a psr-4 prefix another found plugin's composer.json autoloads. Refused, with "which isn’t in the plugin’s own files.": a class whose file is neither under the plugin's folder (Composer's install path for an installed one) nor in a package whose nearest composer.json names the plugin. The second test equals the first in production, one folder per plugin, and lets tests copy a fixture: PHP loads a class once a process, from the first folder that had it. `PluginFixtures::loadFromOriginal('relay')` makes that the original folder in the three files that copy Relay, so no class is read from a copy deleted after its test; the claimed-namespace rows load their own file directly, since the copy's autoloader isn't registered once Relay's class exists.
+- **Finding 2: where the lines are drawn.** `plugins/index.tsx` only passes the row; its lines are drawn in `components/plugins/consent-dialog.tsx` and `details-dialog.tsx`, so the additions are there. A row sends `requires` (each "Needs Relay, which must stay enabled.", with whether it is new) and `requiredBy` (labels), naming plugins by their own labels; one new phrase, "Needed by", heads the second list.
+- **Finding 3: one budget a page.** `TimeBudget` (100 ms a call, 250 ms a page, `ColumnClock`) is an optional argument of `HookDispatcher::transform()`; a listener over it is recorded under its plugin as `ContributorTooSlow` ("…'s link attributes took N ms…", the class's message now naming what took the time, page insertions by default) and its answer left out. `ArticleLinkAttributes` is scoped, one line in `InsertionsServiceProvider` beside `PageInsertions`, so the page's budget spans every article a page or feed draws.
+- **Finding 4: the gate.** Links go to plugins when `$drawInsertions` is true, published renders, never a preview. The item's own "No inserted content" switch is about inserted content and is not part of this gate. This replaces "Previews get the attributes too" above.
+- **Finding 5: what the consent keeps.** `notices` (the kinds' ids) and `requires` (the Composer names), each only when declared, as `csp` and `imports` are. `Consent::covers()` and `added()` compare them; the Plugins screen offers Review, marks the notices line NEW for a new kind and a required plugin's line NEW. Tests that write an enabled row by hand now write the consent EnablePlugin keeps, through `PluginFixtures::agreed()`; their meaning is unchanged.
+- **Finding 6.** As the review says; Account › Notifications' browser test still passes (4 passed).
+
+STOP: Task 5 still waits. `origin/main` has no `plugins.area.show` route and no plugin-declared permission; `sockets2/plugin-area` isn't on the remote, and round 2's Part A records are empty. The audience for a plugin's own permission and the area link can't be built or tested against code that isn't there.
+
+LATER (the review's findings, not fixed in this round):
+
+- 7: an inbox item from a plugin whose code starts with a digit is filed under core.
+- 8: `HookCatalogue::plugins()` has no caller. (Its import order was put right by Pint in the merge.)
+- 9: `NoticeRate` isn't atomic; a cycle in `requires.plugins` isn't refused; `HookDispatcher::nameOf()` uses `app()`.
+
+Gate: `composer check`: Pint, PHPStan, `types:check`, `npm run check` clean; Architecture 139 passed (1395 assertions); Unit and Feature 12618 passed, 3 skipped, 4 failed (63906 assertions), 1944 s. Three failures are the committed-reference rows of `GenerateHooksReferenceTest`, `GenerateManifestReferenceTest` and `GenerateContractsReferenceTest`, by the plan's rule. The fourth, the handbook's `first-plugin/tests/FirstPluginTest.php`, depends on order: it doesn't empty `FirstPlugin::$heard`, so it counts 2 when `Guides/Developers/ExamplesTest` ran first in the same worker. Those two files fail together the same way on `origin/main`; it passes alone, and it isn't this part's file. Browser: `Account/PluginNoticeChoicesTest` 4 passed after `npm run build`. Baselines unchanged: design-system 222, admin-words 876.
+
 #### Changelog lines for the maintainers
 
 - Plugins can declare hooks of their own for other plugins, and send them through `HookSender`.
 - A plugin can require other plugins under `requires.plugins`; Teme enables, disables and starts them in order, and `teme:plugins` shows Requires and Required by.
 - Plugins with `notices.send` declare kinds of notice and send them by email or inbox, to the person their work acts for or to plugin managers, at most 100 an hour.
-- Plugins with `content.links` can mark the links in articles nofollow, sponsored or ugc and open them in a new tab, on the site, in feeds and in the API.
+- Plugins with `content.links` can mark the links in articles nofollow, sponsored or ugc and open them in a new tab, on the site, in feeds and in the API, never in previews, within the page insertions' time budget.
+- An update that adds a kind of notice or a required plugin waits for someone to agree, as one that asks for more access does.
 
 #### Try it
 
