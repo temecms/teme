@@ -31,9 +31,9 @@ function defaultManifest(): array
     return json_decode((string) file_get_contents(base_path('themes/default/teme-theme.json')), true, 512, JSON_THROW_ON_ERROR);
 }
 
-it('describes every key the validator reads, and no other but $schema, author, author_url, homepage and license', function (): void {
+it('describes every key the validator reads, and no other but $schema, author and license', function (): void {
     $described = array_keys(themeSchema()['properties']);
-    $expected = [...ManifestValidator::KEYS, '$schema', 'author', 'author_url', 'homepage', 'license'];
+    $expected = [...ManifestValidator::KEYS, '$schema', 'author', 'license'];
     sort($described);
     sort($expected);
 
