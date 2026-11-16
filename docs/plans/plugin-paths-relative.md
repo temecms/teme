@@ -4,7 +4,7 @@
 
 - `063f014` test(plugins): cover relative paths and skipped-load reason
 - `52480e1` fix(plugins): resolve relative plugin and theme paths from base_path
-- (this commit) docs(plans): plugin-paths-relative's records
+- `75e4158` docs(plans): plugin-paths-relative's records
 
 ### Tests seen failing
 
