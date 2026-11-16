@@ -7,6 +7,7 @@ namespace Tests\Fixtures\Plugins;
 use App\Domain\Plugins\InstalledPackages;
 use App\Domain\Plugins\PluginRegistry;
 use Closure;
+use Composer\Autoload\ClassLoader;
 use Composer\InstalledVersions;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
@@ -46,6 +47,29 @@ final class PluginFixtures
         ]);
 
         app(PluginRegistry::class)->flush();
+    }
+
+    /**
+     * Loads the fixture's classes from its own folder from now on, ahead of
+     * any copy's: PHP loads a class once a process, and a copy is deleted
+     * after its test, so a class read from one would name a missing file.
+     */
+    public static function loadFromOriginal(string $folder): void
+    {
+        static $registered = [];
+
+        if (isset($registered[$folder])) {
+            return;
+        }
+
+        $loader = new ClassLoader;
+
+        foreach (self::composer($folder)['autoload']['psr-4'] ?? [] as $prefix => $folders) {
+            $loader->addPsr4((string) $prefix, array_map(fn (string $path): string => self::path($folder).'/'.$path, (array) $folders));
+        }
+
+        $loader->register(true);
+        $registered[$folder] = true;
     }
 
     /**

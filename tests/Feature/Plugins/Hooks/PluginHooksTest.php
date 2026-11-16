@@ -23,6 +23,7 @@ use Tests\Fixtures\Plugins\RelayPro\RelayProPlugin;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    PluginFixtures::loadFromOriginal('relay');
     /** Enables a fixture plugin, or a copy of one, as EnablePlugin leaves it. */
     $this->enable = function (string $folder, ?string $path = null): PluginRecord {
         $manifest = json_decode((string) file_get_contents(($path ?? PluginFixtures::path($folder)).'/teme-plugin.json'), true, flags: JSON_THROW_ON_ERROR);
@@ -123,13 +124,18 @@ it('refuses to send a hook the plugin doesn’t declare', function (): void {
         ->toThrow(HookRefused::class, 'Relay sends Pinged, which its teme-plugin.json doesn’t declare under contributes.hooks.');
 });
 
-it('refuses to start a plugin whose declared hook isn’t one it may send', function (array $added, array $manifest, array $files, string $why): void {
+it('refuses to start a plugin whose declared hook isn’t one it may send', function (array $added, array $manifest, array $files, string $why, array $psr4 = [], array $alongside = []): void {
     $copy = PluginFixtures::copy('relay', [
         ...$manifest,
         'contributes' => ['hooks' => [...PluginFixtures::manifest('relay')['contributes']['hooks'], ...$added]],
-    ], files: $files);
+    ], $psr4 === [] ? [] : ['autoload' => ['psr-4' => ['Tests\\Fixtures\\Plugins\\Relay\\' => 'src/', ...$psr4]]], $files);
 
-    ($this->start)($copy);
+    // A namespace the plugin claims loads from its own folder, whichever test first registered its autoloader.
+    foreach ($psr4 === [] ? [] : array_keys($files) as $file) {
+        require_once $copy.'/'.$file;
+    }
+
+    ($this->start)($copy, ...$alongside);
 
     expect(app(LoadedPlugins::class)->running())->not->toHaveKey('tests/relay')
         ->and(app(LoadedPlugins::class)->failure('tests/relay'))->toBe($why);
@@ -157,6 +163,21 @@ it('refuses to start a plugin whose declared hook isn’t one it may send', func
         ['capabilities' => ['notices.send']],
         [],
         'Its hook DraftShared names Tests\\Fixtures\\Plugins\\Relay\\Hooks\\DraftShared, which needs content.read, which the plugin doesn’t ask for.',
+    ],
+    'core’s namespace, claimed in its composer.json' => [
+        [['name' => 'Saved', 'class' => 'Teme\\Contracts\\Content\\ContentSaved', 'description' => 'Core’s own hook.']],
+        [],
+        [],
+        'Its hook Saved names Teme\\Contracts\\Content\\ContentSaved, which isn’t in the plugin’s own namespace.',
+        ['Teme\\Contracts\\' => 'src/'],
+    ],
+    'another plugin’s namespace, claimed in its composer.json' => [
+        [['name' => 'Borrowed', 'class' => 'Tests\\Fixtures\\Plugins\\RelayPro\\Hooks\\Borrowed', 'description' => 'Another plugin’s hook.']],
+        [],
+        ['src/Hooks/Borrowed.php' => "<?php\nnamespace Tests\\Fixtures\\Plugins\\RelayPro\\Hooks;\nuse Teme\\Contracts\\Hooks\\Notification;\nuse Teme\\Contracts\\Hooks\\HookContract;\n#[HookContract]\nfinal class Borrowed implements Notification {}\n"],
+        'Its hook Borrowed names Tests\\Fixtures\\Plugins\\RelayPro\\Hooks\\Borrowed, which isn’t in the plugin’s own namespace.',
+        ['Tests\\Fixtures\\Plugins\\RelayPro\\' => 'src/'],
+        ['relay-pro'],
     ],
 ]);
 

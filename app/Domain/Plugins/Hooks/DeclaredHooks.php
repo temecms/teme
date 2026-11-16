@@ -36,6 +36,9 @@ final class DeclaredHooks
     /** The verbs a plugin's own hook may take in this round. */
     private const array VERBS = [Notification::class, Transform::class, Collect::class];
 
+    /** Namespaces no plugin's hook may be in, whatever its composer.json claims. */
+    private const array RESERVED = ['Teme\\', 'App\\'];
+
     /**
      * The plugin's declared hooks, each with its name, its class without a
      * leading backslash and its description; none when the list's shape is wrong.
@@ -117,17 +120,21 @@ final class DeclaredHooks
     /**
      * Why one of the plugin's declared hooks can't be sent, once its code is
      * loaded, or null when each can: every class is a Notification,
-     * Transform or Collect hook in one of the plugin's own namespaces whose
-     * capability, if it names one, the plugin asks for.
+     * Transform or Collect hook in one of the plugin's own namespaces, never
+     * core's nor another found plugin's, defined in the plugin's own
+     * package, whose capability, if it names one, the plugin asks for. A composer.json may claim any prefix, so the namespace alone
+     * proves nothing.
      *
      * @param  list<string>  $namespaces  the plugin's autoloaded namespaces, each ending in a backslash
+     * @param  string  $path  the plugin's folder, or Composer's install path for it
+     * @param  list<string>  $others  the namespaces every other found plugin autoloads
      */
-    public static function refusal(Manifest $manifest, array $namespaces): ?string
+    public static function refusal(Manifest $manifest, array $namespaces, string $path, array $others = []): ?string
     {
         foreach (self::of($manifest) as $hook) {
             $words = ['name' => $hook['name'], 'class' => $hook['class']];
 
-            if (! self::inside($hook['class'], $namespaces)) {
+            if (! self::inside($hook['class'], $namespaces) || self::inside($hook['class'], [...self::RESERVED, ...$others])) {
                 return __('Its hook :name names :class, which isn’t in the plugin’s own namespace.', $words);
             }
 
@@ -137,7 +144,13 @@ final class DeclaredHooks
 
             /** @var class-string<Hook> $class */
             $class = $hook['class'];
-            $capability = (new ReflectionClass($class))->getAttributes(HookContract::class)[0]->newInstance()->capability;
+            $reflection = new ReflectionClass($class);
+
+            if (! self::ownFile($reflection->getFileName(), $path, $manifest->name())) {
+                return __('Its hook :name names :class, which isn’t in the plugin’s own files.', $words);
+            }
+
+            $capability = $reflection->getAttributes(HookContract::class)[0]->newInstance()->capability;
 
             if ($capability !== null && (Capability::tryFrom($capability) === null || ! in_array($capability, $manifest->capabilities(), true))) {
                 return __('Its hook :name names :class, which needs :capability, which the plugin doesn’t ask for.', [...$words, 'capability' => $capability]);
@@ -169,6 +182,36 @@ final class DeclaredHooks
         foreach ($namespaces as $namespace) {
             if ($namespace !== '' && str_starts_with(strtolower($class), strtolower($namespace))) {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether the file is the plugin's own: inside its folder, or in a
+     * package whose nearest composer.json above the file names the plugin.
+     * PHP loads a class once a process, so the second answers for a copy
+     * of the same package.
+     */
+    private static function ownFile(string|false $file, string $folder, string $name): bool
+    {
+        $file = $file === false ? false : realpath($file);
+        $folder = realpath($folder);
+
+        if ($file === false) {
+            return false;
+        }
+
+        if ($folder !== false && str_starts_with($file, rtrim($folder, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR)) {
+            return true;
+        }
+
+        for ($directory = dirname($file); $directory !== dirname($directory); $directory = dirname($directory)) {
+            if (is_file($directory.'/composer.json')) {
+                $composer = json_decode((string) file_get_contents($directory.'/composer.json'), true);
+
+                return is_array($composer) && ($composer['name'] ?? null) === $name;
             }
         }
 

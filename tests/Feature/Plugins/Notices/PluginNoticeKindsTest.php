@@ -17,6 +17,7 @@ use Tests\Fixtures\Plugins\PluginFixtures;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    PluginFixtures::loadFromOriginal('relay');
     $this->seed(RoleSeeder::class);
 
     $this->enable = function (string $path, array $changes = []): PluginRecord {

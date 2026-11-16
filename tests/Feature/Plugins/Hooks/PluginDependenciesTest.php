@@ -23,6 +23,7 @@ use Tests\Fixtures\Plugins\PluginFixtures;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    PluginFixtures::loadFromOriginal('relay');
     app()->instance(Elevation::class, new OperatorElevation);
 
     /** The enable request for a plugin's folder, as the consent dialog posts it. */

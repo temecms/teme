@@ -82,7 +82,7 @@ final readonly class PluginLoader
                 continue;
             }
 
-            $this->start($record, $plugin);
+            $this->start($record, $plugin, $found);
         }
     }
 
@@ -122,7 +122,10 @@ final readonly class PluginLoader
         return in_array('*', $names, true) ? true : $names;
     }
 
-    private function start(PluginRecord $record, FoundPlugin $plugin): void
+    /**
+     * @param  array<string, FoundPlugin>  $found  every plugin found, by name
+     */
+    private function start(PluginRecord $record, FoundPlugin $plugin, array $found): void
     {
         /** @var Manifest $manifest */
         $manifest = $plugin->manifest;
@@ -131,7 +134,7 @@ final readonly class PluginLoader
 
         try {
             $instance = $this->build($plugin, $record);
-            $refusal = DeclaredHooks::refusal($manifest, $this->namespaces($plugin));
+            $refusal = DeclaredHooks::of($manifest) === [] ? null : DeclaredHooks::refusal($manifest, $this->namespaces($plugin), $plugin->path, $this->othersNamespaces($plugin, $found));
 
             if ($refusal !== null) {
                 throw new PluginRefused($refusal);
@@ -222,6 +225,27 @@ final readonly class PluginLoader
         $psr4 = is_array($composer['autoload']['psr-4'] ?? null) ? $composer['autoload']['psr-4'] : [];
 
         return array_values(array_filter(array_map(fn (int|string $prefix): string => (string) $prefix, array_keys($psr4)), fn (string $prefix): bool => str_ends_with($prefix, '\\')));
+    }
+
+    /**
+     * The namespaces every other found plugin autoloads: a plugin's own
+     * hooks may not be in any of them.
+     *
+     * @param  array<string, FoundPlugin>  $found
+     *
+     * @return list<string>
+     */
+    private function othersNamespaces(FoundPlugin $plugin, array $found): array
+    {
+        $namespaces = [];
+
+        foreach ($found as $other) {
+            if ($other->name !== $plugin->name) {
+                $namespaces = [...$namespaces, ...$this->namespaces($other)];
+            }
+        }
+
+        return $namespaces;
     }
 
     /**
