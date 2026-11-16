@@ -75,6 +75,16 @@ final readonly class ExtensionsScreen
     }
 
     /**
+     * Returns the request that is open (requested, running or waiting), or null when none is.
+     */
+    public function openRequest(): ?ExtensionRequest
+    {
+        $row = DB::table('extension_requests')->whereIn('status', ['requested', 'running', 'waiting'])->first();
+
+        return $row === null ? null : ExtensionRequest::fromRow($row);
+    }
+
+    /**
      * Returns one request as the request sheet draws it, or null when there is no such request.
      *
      * @return array<string, mixed>|null
