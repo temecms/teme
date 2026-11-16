@@ -8,6 +8,7 @@
 # What the image is built from.
 !app/
 !bootstrap/app.php
+!bootstrap/extensions.php
 !bootstrap/providers.php
 !config/
 !database/
