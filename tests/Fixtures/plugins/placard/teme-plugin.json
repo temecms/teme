@@ -59,6 +59,14 @@
                 "section": "general"
             },
             {
+                "key": "fallback",
+                "type": "code",
+                "label": "Fallback code",
+                "description": "Shown where no ad is ready.",
+                "scripts": true,
+                "section": "general"
+            },
+            {
                 "key": "provider",
                 "type": "select",
                 "label": "Provider",
@@ -80,6 +88,33 @@
                     "provider": "adsense"
                 },
                 "section": "network"
+            },
+            {
+                "key": "slots",
+                "type": "repeater",
+                "label": "Slots",
+                "description": "The ad units you use.",
+                "minItems": 0,
+                "maxItems": 5,
+                "itemTitle": "name",
+                "section": "network",
+                "fields": [
+                    {
+                        "key": "name",
+                        "type": "text",
+                        "label": "Name",
+                        "description": "What you call it.",
+                        "maxLength": 40
+                    },
+                    {
+                        "key": "size",
+                        "type": "number",
+                        "label": "Height",
+                        "description": "In pixels.",
+                        "min": 50,
+                        "max": 600
+                    }
+                ]
             }
         ],
         "actions": [

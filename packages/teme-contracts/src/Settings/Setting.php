@@ -54,6 +54,18 @@ final class Setting
         public readonly ?string $unit = null,
         /** @since 0.9.0 */
         public readonly ?string $section = null,
+        /**
+         * A repeater's fields, one item's worth.
+         *
+         * @var list<Setting>
+         *
+         * @since 0.9.0
+         */
+        public readonly array $fields = [],
+        /** A repeater's field whose value titles a collapsed item. @since 0.9.0 */
+        public readonly ?string $itemTitle = null,
+        /** A code setting whose inline scripts wait for an administrator's approval. @since 0.9.0 */
+        public readonly bool $scripts = false,
     ) {}
 
     /** @since 0.1.0 */
@@ -201,6 +213,73 @@ final class Setting
     public static function hours(string $key, string $label, string $description, string $since): self
     {
         return new self($key, SettingType::Hours, $label, $description, $since, []);
+    }
+
+    /**
+     * Markup, such as an ad network's snippet, in a plain monospace box,
+     * never run or drawn on the settings page; at most 65,535 characters.
+     *
+     * @since 0.9.0
+     */
+    public static function code(string $key, string $label, string $description, string $since): self
+    {
+        return new self($key, SettingType::Code, $label, $description, $since, '');
+    }
+
+    /**
+     * A list of items of one shape, stored as a JSON list of objects keyed
+     * by field, empty by default. Its fields are text, textarea, number,
+     * boolean, select, multiselect, email, color and code settings; min()
+     * and max() bound the items (20 at most when unset).
+     *
+     * @param  list<Setting>  $fields
+     *
+     * @since 0.9.0
+     */
+    public static function repeater(string $key, string $label, string $description, string $since, array $fields): self
+    {
+        $allowed = [SettingType::Text, SettingType::Textarea, SettingType::Number, SettingType::Boolean, SettingType::Select, SettingType::MultiSelect, SettingType::Email, SettingType::Color, SettingType::Code];
+
+        if ($fields === []) {
+            throw new InvalidArgumentException("Repeater [{$key}] needs its fields.");
+        }
+
+        foreach ($fields as $field) {
+            if (! in_array($field->type, $allowed, true)) {
+                throw new InvalidArgumentException("Repeater [{$key}] can't hold a {$field->type->value} field [{$field->key}].");
+            }
+        }
+
+        return new self($key, SettingType::Repeater, $label, $description, $since, [], fields: $fields);
+    }
+
+    /**
+     * The field of a repeater whose value titles a collapsed item.
+     *
+     * @since 0.9.0
+     */
+    public function itemTitle(string $key): self
+    {
+        if ($this->type !== SettingType::Repeater || ! in_array($key, array_map(fn (Setting $field): string => $field->key, $this->fields), true)) {
+            throw new InvalidArgumentException("Setting [{$this->key}] can't take its items' title from [{$key}].");
+        }
+
+        return $this->with(['itemTitle' => $key]);
+    }
+
+    /**
+     * A code setting whose inline scripts wait for an administrator's
+     * approval before they run.
+     *
+     * @since 0.9.0
+     */
+    public function scripts(): self
+    {
+        if ($this->type !== SettingType::Code) {
+            throw new InvalidArgumentException("Only code settings hold scripts; [{$this->key}] is {$this->type->value}.");
+        }
+
+        return $this->with(['scripts' => true]);
     }
 
     /** @since 0.1.0 */

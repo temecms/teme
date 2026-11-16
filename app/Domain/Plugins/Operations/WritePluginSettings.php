@@ -18,6 +18,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
+use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingType;
 
@@ -72,7 +73,10 @@ final class WritePluginSettings extends BaseOperation
         foreach (array_keys($input->values) as $key) {
             $setting = $group->setting((string) $key);
 
-            if ($setting !== null && ! in_array($setting->type, self::WRITABLE, true)) {
+            // A repeater only when none of its fields is code: a plugin never writes code that asks for scripts (docs/plans/plugin-sockets-2.md, A5).
+            $repeater = $setting?->type === SettingType::Repeater && ! array_any($setting->fields, fn (Setting $field): bool => $field->type === SettingType::Code);
+
+            if ($setting !== null && ! $repeater && ! in_array($setting->type, self::WRITABLE, true)) {
                 $problems["values.{$key}"] = __('A plugin can’t write its own :type settings.', ['type' => $setting->type->value]);
             }
         }

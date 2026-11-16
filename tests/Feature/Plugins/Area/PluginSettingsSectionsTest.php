@@ -58,12 +58,12 @@ it('draws a plugin’s settings in its sections, each field with its condition',
     $this->actingAs($this->admin)->get(route('settings.show', ['group' => 'plugin.placard']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('panels', [
-                ['title' => 'General', 'description' => 'How ads show everywhere.', 'keys' => ['label_text']],
-                ['title' => 'Ad network', 'description' => '', 'keys' => ['provider', 'publisher_id']],
+                ['title' => 'General', 'description' => 'How ads show everywhere.', 'keys' => ['label_text', 'fallback']],
+                ['title' => 'Ad network', 'description' => '', 'keys' => ['provider', 'publisher_id', 'slots']],
             ])
-            ->where('fields.2.key', 'publisher_id')
-            ->where('fields.2.visibleWhen', ['provider' => 'adsense'])
-            ->where('fields.2.section', 'network'));
+            ->where('fields.3.key', 'publisher_id')
+            ->where('fields.3.visibleWhen', ['provider' => 'adsense'])
+            ->where('fields.3.section', 'network'));
 });
 
 it('puts settings without a section in a first panel of their own, with no title', function (): void {
@@ -74,7 +74,7 @@ it('puts settings without a section in a first panel of their own, with no title
     $this->actingAs($this->admin)->get(route('settings.show', ['group' => 'plugin.placard']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('panels.0', ['title' => '', 'description' => '', 'keys' => ['label_text']])
-            ->where('panels.1.title', 'Ad network'));
+            ->where('panels.1.title', 'General'));
 });
 
 it('leaves a hidden setting as stored, and never checks it', function (): void {

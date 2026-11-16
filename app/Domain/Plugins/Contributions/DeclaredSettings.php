@@ -84,6 +84,12 @@ final class DeclaredSettings
             'email' => Setting::email($key, $label, $description, $version),
             'secret' => Setting::secret($key, $label, $description, $version),
             'color' => Setting::color($key, $label, $description, $version),
+            'code' => Setting::code($key, $label, $description, $version),
+            // Its fields one level down, built by the same rules (docs/plans/plugin-sockets-2.md, A5).
+            'repeater' => Setting::repeater($key, $label, $description, $version, array_map(
+                fn (mixed $field): Setting => self::setting("{$group}.{$key}", is_array($field) ? $field : [], $version),
+                is_array($declared['fields'] ?? null) ? array_values($declared['fields']) : [],
+            )),
             default => throw new InvalidArgumentException("Setting [{$group}.{$key}] has an unknown type [{$type}]."),
         };
 
@@ -95,6 +101,20 @@ final class DeclaredSettings
             if (is_int($declared[$bound] ?? null)) {
                 $setting = $setting->{$bound}($declared[$bound]);
             }
+        }
+
+        // A repeater's item counts are its min and max.
+        if ($type === 'repeater') {
+            $setting = $setting->min(is_int($declared['minItems'] ?? null) ? $declared['minItems'] : 0)
+                ->max(is_int($declared['maxItems'] ?? null) ? $declared['maxItems'] : 20);
+
+            if (is_string($declared['itemTitle'] ?? null)) {
+                $setting = $setting->itemTitle($declared['itemTitle']);
+            }
+        }
+
+        if ($type === 'code' && ($declared['scripts'] ?? false) === true) {
+            $setting = $setting->scripts();
         }
 
         if (($declared['required'] ?? false) === true) {
