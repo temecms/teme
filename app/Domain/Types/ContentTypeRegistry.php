@@ -30,7 +30,7 @@ final class ContentTypeRegistry
      */
     public const array RESERVED = [
         'dashboard', 'media', 'users', 'settings', 'account', 'terms', 'content', 'preview', 'search', 'quick-draft', 'navigation', 'regions', 'comments', 'tools',
-        'themes', 'plugins', 'ai', 'inbox', 'my-jobs', 'types', 'taxonomies',
+        'themes', 'plugins', 'extensions', 'ai', 'inbox', 'my-jobs', 'types', 'taxonomies',
         'login', 'logout', 'two-factor', 'two-factor-challenge', 'user', 'api', 'up', 'invitation', 'setup', 'register',
         'email', 'forgot-password', 'reset-password', '_catalogue',
     ];
