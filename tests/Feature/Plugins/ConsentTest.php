@@ -31,6 +31,6 @@ it('doesn’t cover a new capability, a new host, or a wildcard over an agreed h
 it('lists what an update adds', function (): void {
     $added = Consent::added($this->agreed, ($this->asks)(['content.read', 'http', 'media.read'], ['api.example.com', 'eu.cdn.example.com', '*.example.com', 'api.example.org']));
 
-    expect($added)->toBe(['capabilities' => ['media.read'], 'hosts' => ['*.example.com', 'api.example.org']])
-        ->and(Consent::added($this->agreed, ($this->asks)(['content.read'])))->toBe(['capabilities' => [], 'hosts' => []]);
+    expect($added)->toBe(['capabilities' => ['media.read'], 'hosts' => ['*.example.com', 'api.example.org'], 'routes' => []])
+        ->and(Consent::added($this->agreed, ($this->asks)(['content.read'])))->toBe(['capabilities' => [], 'hosts' => [], 'routes' => []]);
 });

@@ -8,6 +8,7 @@ use App\Domain\Hooks\Reference\HookCatalogue;
 use App\Domain\Plugins\Jobs\DeclaredJobs;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
 use Composer\Semver\Semver;
 use ReflectionClass;
@@ -38,11 +39,12 @@ final readonly class ManifestValidator
     private const string CODE = '/^'.ThemeManifestValidator::CODE_PATTERN.'$/';
 
     /** The capabilities docs/architecture/plugins.md names that have no door yet. */
-    private const array LATER = ['people.read', 'mail.send', 'routes.public', 'site.output', 'ai'];
+    private const array LATER = ['people.read', 'mail.send', 'site.output', 'ai'];
 
     public function __construct(
         private CodeScan $scan,
         private ContributionsCheck $contributions,
+        private RouteCollisions $routeCollisions = new RouteCollisions,
     ) {}
 
     /**
@@ -131,6 +133,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
+        array_push($errors, ...$this->routes($manifest, $read));
 
         return $errors;
     }
@@ -579,6 +582,45 @@ final readonly class ManifestValidator
         }
 
         return true;
+    }
+
+    /**
+     * Declared public routes: only with routes.public, and each entry held
+     * to the plan's refusals (reserved paths, verifiers, collisions within the plugin).
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function routes(array $manifest, Manifest $read): array
+    {
+        if (! array_key_exists('routes', $manifest)) {
+            return [];
+        }
+
+        $routes = $manifest['routes'];
+
+        if (! is_array($routes) || ! array_is_list($routes)) {
+            return ['routes must be a list of route objects.'];
+        }
+
+        $errors = [];
+        $granted = in_array(Capability::RoutesPublic->value, $read->capabilities(), true);
+
+        if ($routes !== [] && ! $granted) {
+            $errors[] = 'It declares routes but doesn’t ask for routes.public.';
+        }
+
+        /** @var list<array<string, mixed>> $typed */
+        $typed = array_values(array_filter($routes, is_array(...)));
+
+        if (count($typed) !== count($routes)) {
+            $errors[] = 'Each route must be an object.';
+        }
+
+        array_push($errors, ...$this->routeCollisions->errorsFor($read, $typed));
+
+        return $errors;
     }
 
     private function show(mixed $value): string

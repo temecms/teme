@@ -80,7 +80,8 @@
                     "media.write",
                     "content.insert",
                     "http",
-                    "jobs"
+                    "jobs",
+                    "routes.public"
                 ]
             }
         },
@@ -146,6 +147,33 @@
                             "day",
                             "week"
                         ]
+                    }
+                }
+            }
+        },
+        "routes": {
+            "type": "array",
+            "description": "Public addresses the plugin answers when granted routes.public.",
+            "items": {
+                "type": "object",
+                "required": ["id", "method", "path", "handler"],
+                "additionalProperties": true,
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_-]*$"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": ["GET", "POST"]
+                    },
+                    "path": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "handler": {
+                        "type": "string",
+                        "minLength": 1
                     }
                 }
             }

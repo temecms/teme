@@ -12,11 +12,14 @@ use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use App\Domain\Plugins\Tables\PluginTablesRefused;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
@@ -34,6 +37,8 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
         private readonly PluginRecords $records,
         private readonly PluginMigrations $migrations,
         private readonly SecurityLog $log,
+        private readonly PublicRouteRegistry $publicRoutes,
+        private readonly RouteCollisions $routeCollisions,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -65,6 +70,13 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
 
         if (! Consent::covers($record->consent, $manifest)) {
             throw ValidationException::withMessages(['plugin' => ['Look again before you run its changes.']]);
+        }
+
+        // An update's routes meet every other enabled plugin's, loading now or not (docs/proposals/plugin-public-routes.md).
+        $collisions = $this->routeCollisions->against($this->publicRoutes->declaredBy(PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all()), $manifest);
+
+        if ($collisions !== []) {
+            throw ValidationException::withMessages(['plugin' => $collisions]);
         }
     }
 
@@ -98,6 +110,9 @@ final class MigratePlugin extends BaseOperation implements RequiresElevation
                 'migrations' => $ran,
             ]);
         }
+
+        // Run after an update, so what the plugin's public routes stored may be another version's.
+        $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$record->code, ['plugin:'.$record->code]));
 
         DB::afterCommit(fn () => $this->records->changed());
 

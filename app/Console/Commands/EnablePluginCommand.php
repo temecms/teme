@@ -59,6 +59,7 @@ final class EnablePluginCommand extends Command
                 Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
                 Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
                 Capability::Jobs->value => __('Run work in the background and on a schedule'),
+                Capability::RoutesPublic->value => __('Answer addresses on the public site without anyone signing in'),
                 Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
                 default => $capability,
             });

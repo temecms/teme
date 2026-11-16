@@ -20,6 +20,7 @@ use App\Domain\Plugins\Seams\DispatcherSubscriptions;
 use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\PublicRoutes\PublicRouteRegistry;
 use App\Domain\Status\Checks\PluginsRunning;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Support\ServiceProvider;
@@ -39,6 +40,9 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->singleton(LoadedPlugins::class);
         // Scoped: holds the job actor for one job/request only (I-087).
         $this->app->scoped(CurrentJobActor::class);
+        // Scoped: the compiled list changes when a plugin is enabled or
+        // disabled in this request; Octane and the queue forget it between.
+        $this->app->scoped(PublicRouteRegistry::class);
 
         $this->app->singleton(HookSubscriptions::class, DispatcherSubscriptions::class);
 

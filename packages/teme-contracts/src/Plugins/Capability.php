@@ -9,8 +9,9 @@ namespace Teme\Contracts\Plugins;
  * ContentRead unlocks the content-reading hooks, ContentWrite the content
  * door, MediaRead the media-reading hooks, MediaWrite the media door,
  * ContentInsert the article insertion points, Http the outbound door to the
- * hosts the plugin names, and Jobs the door that queues the plugin's
- * declared background work.
+ * hosts the plugin names, Jobs the door that queues the plugin's declared
+ * background work, and RoutesPublic the door that answers the plugin's
+ * declared public addresses.
  *
  * @since 0.5.0
  */
@@ -23,4 +24,5 @@ enum Capability: string
     case ContentInsert = 'content.insert';
     case Http = 'http';
     case Jobs = 'jobs';
+    case RoutesPublic = 'routes.public';
 }

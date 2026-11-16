@@ -132,6 +132,23 @@ final readonly class Manifest
     }
 
     /**
+     * The public routes the plugin declares, each as the file says it.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function routes(): array
+    {
+        $routes = $this->raw['routes'] ?? null;
+
+        if (! is_array($routes) || ! array_is_list($routes)) {
+            return [];
+        }
+
+        /** @var list<array<string, mixed>> */
+        return array_values(array_filter($routes, is_array(...)));
+    }
+
+    /**
      * Who wrote the plugin, or ''.
      */
     public function author(): string

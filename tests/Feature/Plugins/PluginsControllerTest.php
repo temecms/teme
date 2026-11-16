@@ -46,7 +46,7 @@ it('enables a plugin after the consent dialog, asking for the password only when
     expect($record->name)->toBe('tests/hello')
         ->and($record->state)->toBe('enabled')
         ->and($record->consented_by)->toBe($this->admin->id)
-        ->and($record->consent)->toEqualCanonicalizing(['capabilities' => ['content.read'], 'hosts' => [], 'hooks' => ['ContentPublished']])
+        ->and($record->consent)->toEqualCanonicalizing(['capabilities' => ['content.read'], 'hosts' => [], 'hooks' => ['ContentPublished'], 'routes' => []])
         ->and(($this->events)('plugin.enabled'))->toBe(1);
 });
 
