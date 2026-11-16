@@ -110,7 +110,7 @@ it('refuses a manifest whose kinds of notice break a rule', function (array $cha
     ],
     'an unknown audience' => [
         ['contributes' => ['notices' => [['id' => 'job_failed', 'label' => 'Failed', 'audience' => 'everyone', 'channels' => ['inbox']]]]],
-        'The kind of notice job_failed must go to starter or plugins.manage.',
+        'The kind of notice job_failed must go to starter, plugins.manage or a permission the plugin declares.',
     ],
     'a default not among its channels' => [
         ['contributes' => ['notices' => [['id' => 'job_failed', 'label' => 'Failed', 'audience' => 'starter', 'channels' => ['inbox'], 'defaults' => ['mail']]]]],

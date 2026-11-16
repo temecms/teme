@@ -105,7 +105,9 @@ final class ContributionsValidator implements ContributionsCheck
                     $errors[] = __('fixedLabel must be text of 1 to 24 characters.');
                 }
             } elseif ($surface === 'notices') {
-                array_push($errors, ...DeclaredNotices::errors($contributes['notices']));
+                // A kind may go to the holders of a permission the plugin declares (docs/plans/plugin-sockets-3.md, D-T5).
+                $permissions = array_values(array_filter(array_column(array_filter(is_array($contributes['permissions'] ?? null) ? $contributes['permissions'] : [], is_array(...)), 'id'), is_string(...)));
+                array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
             } elseif ($surface === 'hooks') {
                 array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
             } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections'], true)) {

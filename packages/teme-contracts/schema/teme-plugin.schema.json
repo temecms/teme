@@ -862,8 +862,9 @@
                                 "description": "The choice as Account › Notifications words it."
                             },
                             "audience": {
-                                "enum": ["starter", "plugins.manage"],
-                                "description": "Who may receive it: only the person the plugin's work acts for, or those who manage plugins."
+                                "type": "string",
+                                "pattern": "^(?:starter|plugins\\.manage|[a-z][a-z0-9-]{1,23})$",
+                                "description": "Who may receive it: starter, only the person the plugin's work acts for; plugins.manage, those who manage plugins; or the id of a permission the plugin declares, its holders."
                             },
                             "channels": {
                                 "type": "array",

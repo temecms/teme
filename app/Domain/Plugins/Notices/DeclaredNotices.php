@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Notices;
 
 use App\Domain\Notices\NoticeRegistry;
 use App\Domain\Notices\NoticeRules;
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\PluginKeys;
 use App\Domain\Plugins\PluginRecords;
@@ -83,9 +84,11 @@ final readonly class DeclaredNotices
     /**
      * Why `contributes.notices` can't be used, or [] when it can.
      *
+     * @param  list<string>  $permissions  the ids of the permissions the plugin declares, which an audience may name
+     *
      * @return list<string>
      */
-    public static function errors(mixed $notices): array
+    public static function errors(mixed $notices, array $permissions = []): array
     {
         if (! is_array($notices) || ! array_is_list($notices)) {
             return [__('contributes.notices must be a list of kinds of notice.')];
@@ -118,8 +121,8 @@ final readonly class DeclaredNotices
                 $errors[] = __('The kind of notice :id needs a label of 1 to 120 characters.', ['id' => $id]);
             }
 
-            if (! in_array($notice['audience'] ?? null, self::AUDIENCES, true)) {
-                $errors[] = __('The kind of notice :id must go to starter or plugins.manage.', ['id' => $id]);
+            if (! in_array($notice['audience'] ?? null, [...self::AUDIENCES, ...$permissions], true)) {
+                $errors[] = __('The kind of notice :id must go to starter, plugins.manage or a permission the plugin declares.', ['id' => $id]);
             }
 
             if (! is_array($channels) || ! array_is_list($channels) || $channels === [] || count(array_unique($channels, SORT_REGULAR)) !== count($channels)
@@ -131,6 +134,19 @@ final readonly class DeclaredNotices
         }
 
         return $errors;
+    }
+
+    /**
+     * The ability a kind's audience names: none for the starter, core's own
+     * plugins.manage, or the full name of a permission the plugin declares.
+     */
+    public static function audience(string $code, string $audience): ?string
+    {
+        return match (true) {
+            $audience === self::STARTER => null,
+            in_array($audience, self::AUDIENCES, true) => $audience,
+            default => PluginPermissions::name($code, $audience),
+        };
     }
 
     /**
@@ -169,7 +185,7 @@ final readonly class DeclaredNotices
                     $registry->register(new NoticeKind(
                         $key,
                         $kind['label'],
-                        audience: $kind['audience'] === self::STARTER ? null : $kind['audience'],
+                        audience: self::audience($manifest->code(), $kind['audience']),
                         channels: $kind['channels'],
                         defaults: $kind['defaults'],
                     ));
