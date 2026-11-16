@@ -12,6 +12,7 @@ use App\Domain\Cards\ChangeList;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RegionCard;
 use App\Domain\Cards\RenderContext;
+use App\Domain\Regions\FeaturedPosts;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\View;
 use Illuminate\Validation\ValidationException;
@@ -71,7 +72,26 @@ final class FeaturedPostsCard implements CardType, RegionCard
 
     public function renderHtml(array $attrs, RenderContext $context): string
     {
-        return '';
+        if ($context->target !== 'web') {
+            return '';
+        }
+
+        $items = app(FeaturedPosts::class)->items($attrs);
+
+        if ($items === []) {
+            return '';
+        }
+
+        $heading = trim((string) ($attrs['heading'] ?? ''));
+
+        // A theme may draw the list its own way (docs/architecture/themes.md).
+        $view = View::exists('theme::cards.featured-posts') ? 'theme::cards.featured-posts' : 'teme::cards.featured-posts';
+
+        return view($view, [
+            'heading' => $heading === '' ? null : $heading,
+            'items' => $items,
+            'images' => (bool) ($attrs['images'] ?? true),
+        ])->render();
     }
 
     /**
