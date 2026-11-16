@@ -23,6 +23,7 @@ use Teme\Contracts\Hooks\Notification;
 use Teme\Contracts\Hooks\Resolve;
 use Teme\Contracts\Hooks\Transform;
 use Teme\Contracts\Plugins\Capability;
+use Teme\Contracts\Settings\PluginSettingsWriter;
 
 /**
  * `teme:docs:contracts`: writes `docs/reference/contracts.md`, every
@@ -37,6 +38,15 @@ final class GenerateContractsReference extends Command
 
     /** The hosts the probe plugin asks for, so a door that needs some is offered. */
     private const array PROBE_HOSTS = ['example.com'];
+
+    /**
+     * The contracts given for what the manifest declares rather than for a
+     * capability, with the manifest key that gives each; the probe plugin
+     * has no manifest, so these are taken as stated.
+     *
+     * @var array<class-string, string>
+     */
+    private const array BY_DECLARATION = [PluginSettingsWriter::class => 'contributes.settings'];
 
     /** @var string */
     protected $signature = 'teme:docs:contracts
@@ -87,14 +97,18 @@ final class GenerateContractsReference extends Command
             '',
             '## What a plugin\'s constructor may ask for',
             '',
-            'Teme builds a plugin\'s class with only these, each when the plugin was granted what the second column names. A constructor that asks for anything else is refused when the plugin is enabled.',
+            'Teme builds a plugin\'s class with only these, each when the plugin was granted, or its manifest declares, what the second column names. A constructor that asks for anything else is refused when the plugin is enabled.',
             '',
             '| Contract | Given when | Since |',
             '|---|---|---|',
         ];
 
         foreach ($offered as $class => $when) {
-            $lines[] = sprintf('| `%s` | %s | %s |', $class, $when === null ? 'always' : 'granted `'.$when.'`', $this->since($class));
+            $lines[] = sprintf('| `%s` | %s | %s |', $class, match (true) {
+                $when === null => 'always',
+                str_starts_with($when, 'declares ') => 'its manifest declares `'.substr($when, 9).'`',
+                default => 'granted `'.$when.'`',
+            }, $this->since($class));
         }
 
         $lines[] = '';
@@ -212,6 +226,12 @@ final class GenerateContractsReference extends Command
                 if (! array_key_exists($class, $offered)) {
                     $offered[$class] = $capability->value;
                 }
+            }
+        }
+
+        foreach (self::BY_DECLARATION as $class => $key) {
+            if (! array_key_exists($class, $offered)) {
+                $offered[$class] = 'declares '.$key;
             }
         }
 

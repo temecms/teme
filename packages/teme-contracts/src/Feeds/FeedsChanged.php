@@ -18,7 +18,11 @@ use Teme\Contracts\Hooks\Notification;
 #[HookContract]
 final readonly class FeedsChanged implements Notification
 {
-    /** The most addresses one notification carries; beyond it, the main feeds and $all. */
+    /**
+     * The most addresses one notification carries; beyond it, the main feeds and $all.
+     *
+     * @since 0.9.0
+     */
     public const int MOST = 200;
 
     /**
