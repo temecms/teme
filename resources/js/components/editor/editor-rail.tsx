@@ -45,6 +45,7 @@ import { ChecksPanel } from './rail/checks-panel';
 import { PublishPanel } from './rail/publish-panel';
 import type { Visibility, VisibilityRefusal } from './rail/publish-panel';
 import { TaxonomyPanel } from './rail/taxonomy-panel';
+import { TranslationsSection } from './rail/translations-section';
 import type { ChosenTerm } from './rail/taxonomy-panel';
 import type { Discussion } from '@/lib/discussion';
 import type { WhenChoice } from './rail/publish-when';
@@ -852,6 +853,7 @@ export function EditorRail({
                 onCancelSchedule={actions.cancelSchedule}
                 busy={busy}
             />
+            <TranslationsSection session={session} typeSegment={typeSegment} />
             <TaxonomyPanel
                 taxonomies={session.taxonomies}
                 chosen={chosenTerms}

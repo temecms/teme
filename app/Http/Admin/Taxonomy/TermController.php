@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Taxonomy;
 
+use App\Domain\Languages\Queries\TermVersions;
 use App\Domain\Support\Queries\ListPages;
 use App\Domain\Taxonomy\Operations\CreateTerm;
 use App\Domain\Taxonomy\Operations\DeleteTerm;
@@ -61,6 +62,9 @@ final class TermController extends Controller
             'paging' => $page['paging'],
             'search' => $search,
             'tree' => $tree,
+            // The language marks (docs/proposals/multilingual-screens.md): none on a site with one language.
+            'languages' => TermVersions::languages($declared->key),
+            'versions' => TermVersions::of($declared->key, array_map(fn (array $row): string => (string) $row['id'], $page['rows'])),
         ]);
     }
 

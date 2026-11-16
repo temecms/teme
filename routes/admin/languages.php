@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('can:settings.general.manage')->group(function (): void {
     Route::get('settings/languages', [LanguagesController::class, 'show'])->name('settings.languages');
     Route::post('settings/languages', [LanguagesController::class, 'store'])->name('settings.languages.store');
+    Route::put('settings/languages/order', [LanguagesController::class, 'reorder'])->name('settings.languages.order');
     Route::put('settings/languages/translated', [LanguagesController::class, 'translated'])->name('settings.languages.translated');
     Route::put('settings/languages/{tag}', [LanguagesController::class, 'update'])->where('tag', '[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*')->name('settings.languages.update');
     Route::delete('settings/languages/{tag}', [LanguagesController::class, 'destroy'])->where('tag', '[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*')->name('settings.languages.destroy');

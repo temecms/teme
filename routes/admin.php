@@ -328,6 +328,10 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         require __DIR__.'/admin/translations.php';
         require __DIR__.'/admin/management-api.php';
 
+        // A group's words in other languages (I-3360); TranslateSettings asks the group's own ability.
+        Route::put('settings/{group}/words', [SettingsController::class, 'words'])
+            ->where('group', '[a-z0-9_.-]+')
+            ->name('settings.words');
         Route::get('settings/{group}', [SettingsController::class, 'show'])
             ->where('group', '[a-z0-9_.-]+')
             ->name('settings.show');

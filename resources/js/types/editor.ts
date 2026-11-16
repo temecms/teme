@@ -99,6 +99,8 @@ export type EditorSession = {
         publish: boolean;
         delete: boolean;
         manageTerms: boolean;
+        /** Whether this person may make a version in another language. */
+        translate?: boolean;
     };
     media: Record<string, CardMedia>;
     slug: string;
@@ -124,6 +126,30 @@ export type EditorSession = {
     passwordUnreadable: boolean;
     /** The items the fields point at by ID, for their controls' first paint (EditorSession::entries). */
     entries: Record<string, EditorEntry>;
+    /** The item's language, by its tag (I-3360). */
+    language?: string;
+    /** The site's languages, the default first; none on a site with one, or for a type that isn't translated. */
+    languages?: EditorLanguage[];
+    /** Its group's live versions, itself included. */
+    translations?: EditorTranslation[];
+};
+
+/** One of the site's languages, as the editor knows it. */
+export type EditorLanguage = { tag: string; name: string; shown: boolean };
+
+/** A version of the item in one language (EditorSession::translations); one the person may not open has no id, title or address. */
+export type EditorTranslation = {
+    language: string;
+    status: string;
+    visibility: string;
+    outOfDate: boolean;
+    sourceLanguage: string | null;
+    sourceChangedAt: string | null;
+    current: boolean;
+    id: string | null;
+    title: string | null;
+    editUrl: string | null;
+    workingRevisionId: string | null;
 };
 
 /** An item a field points at: its title, its type's key and its status. */

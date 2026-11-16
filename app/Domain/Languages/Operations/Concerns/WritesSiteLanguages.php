@@ -78,8 +78,11 @@ trait WritesSiteLanguages
             }
         }
 
+        $others = array_values(array_filter((array) ($overrides['others'] ?? []), is_string(...)));
+
         return [
-            'others' => array_values(array_filter((array) ($overrides['others'] ?? []), is_string(...))),
+            // In the prefixes' order, the switcher's (docs/proposals/multilingual-screens.md, 2): the list itself keeps the config's.
+            'others' => array_values(array_unique([...array_intersect(array_keys($prefixes), $others), ...$others])),
             'prefixes' => $prefixes,
             'hidden' => array_values(array_filter((array) ($overrides['hidden'] ?? []), is_string(...))),
         ];

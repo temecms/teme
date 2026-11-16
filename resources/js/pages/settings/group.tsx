@@ -1,16 +1,157 @@
 import type { FormDataConvertible } from '@inertiajs/core';
-import { Head, setLayoutProps } from '@inertiajs/react';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
+import { useState } from 'react';
 import SettingsController from '@/actions/App/Http/Admin/Settings/SettingsController';
 import { BrandColourSetting } from '@/components/fields/brand-colour-setting';
 import { HomePageSetting } from '@/components/fields/home-page-setting';
 import { SettingsField } from '@/components/fields/settings-field';
 import { SettingsForm } from '@/components/fields/settings-form';
-import { SettingsPanel } from '@/components/fields/settings-panel';
+import {
+    SettingsPanel,
+    SettingsPanelBody,
+    SettingsPanelFooter,
+} from '@/components/fields/settings-panel';
 import InputError from '@/components/input-error';
 import { SettingsPage } from '@/components/patterns/settings-page';
+import { Button } from '@/components/ui/button';
+import { Field } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Notice } from '@/components/ui/notice';
+import { Textarea } from '@/components/ui/textarea';
 import { __ } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
-import type { SettingsGroupPage } from '@/types';
+import type { SettingsGroupPage, SettingsWordsSection } from '@/types';
+
+/**
+ * A group's words in other languages (docs/proposals/multilingual-screens.md,
+ * 6): under the words, a row per other language for each word, every
+ * language shown at once; an empty field shows the default language's
+ * words as its placeholder and falls back to them. Saved by its own Save.
+ */
+function WordsInOtherLanguages({
+    group,
+    words,
+}: {
+    group: string;
+    words: SettingsWordsSection;
+}) {
+    const [values, setValues] = useState(() =>
+        Object.fromEntries(
+            words.languages.map((language) => [
+                language.tag,
+                Object.fromEntries(
+                    words.fields.map((field) => [
+                        field.key,
+                        words.values[language.tag]?.[field.key] ?? '',
+                    ]),
+                ),
+            ]),
+        ),
+    );
+    const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const change = (tag: string, key: string, value: string) =>
+        setValues((current) => ({
+            ...current,
+            [tag]: { ...current[tag], [key]: value },
+        }));
+
+    const save = () =>
+        router.put(
+            SettingsController.words.url({ group }),
+            { words: values, expected_version: words.version },
+            {
+                preserveScroll: true,
+                onStart: () => setSaving(true),
+                onFinish: () => setSaving(false),
+                onError: (next) => setErrors(next),
+                onSuccess: () => setErrors({}),
+            },
+        );
+
+    const refusal = Object.values(errors)[0];
+
+    return (
+        <SettingsPanel
+            as="section"
+            bare
+            id="words-in-other-languages"
+            title={__('In other languages')}
+            description={__(
+                'An empty field shows the default language’s words to readers of that language.',
+            )}
+        >
+            <SettingsPanelBody>
+                {refusal !== undefined && (
+                    <Notice
+                        tone="danger"
+                        role="alert"
+                        data-test="words-refusal"
+                    >
+                        {refusal}
+                    </Notice>
+                )}
+                {words.fields.map((field) => (
+                    <fieldset
+                        key={field.key}
+                        className="grid gap-3"
+                        data-test="words-field"
+                        data-key={field.key}
+                    >
+                        <legend className="text-small text-ink-2 mb-2 font-medium">
+                            {field.label}
+                        </legend>
+                        {words.languages.map((language) => {
+                            const id = `words-${language.tag}-${field.key}`;
+                            const props = {
+                                id,
+                                value: values[language.tag]?.[field.key] ?? '',
+                                placeholder: words.defaults[field.key] ?? '',
+                                onChange: (
+                                    event: React.ChangeEvent<
+                                        HTMLInputElement | HTMLTextAreaElement
+                                    >,
+                                ) =>
+                                    change(
+                                        language.tag,
+                                        field.key,
+                                        event.target.value,
+                                    ),
+                                'data-language': language.tag,
+                            };
+
+                            return (
+                                <Field
+                                    key={language.tag}
+                                    htmlFor={id}
+                                    label={language.name}
+                                >
+                                    {field.multiline ? (
+                                        <Textarea {...props} />
+                                    ) : (
+                                        <Input {...props} />
+                                    )}
+                                </Field>
+                            );
+                        })}
+                    </fieldset>
+                ))}
+            </SettingsPanelBody>
+            <SettingsPanelFooter>
+                <Button
+                    type="button"
+                    variant="primary"
+                    loading={saving}
+                    onClick={save}
+                    data-test="words-save"
+                >
+                    {__('Save the words in other languages')}
+                </Button>
+            </SettingsPanelFooter>
+        </SettingsPanel>
+    );
+}
 
 /**
  * A Settings page drawn from a group's declaration: the page's header, and
@@ -34,6 +175,7 @@ export default function SettingsGroup({
     brandColour,
     imageWidths,
     panels,
+    words,
 }: SettingsGroupPage) {
     setLayoutProps({
         breadcrumbs: [
@@ -210,6 +352,10 @@ export default function SettingsGroup({
                         </>
                     )}
                 </SettingsForm>
+
+                {words != null && (
+                    <WordsInOtherLanguages group={group.key} words={words} />
+                )}
             </SettingsPage>
         </>
     );

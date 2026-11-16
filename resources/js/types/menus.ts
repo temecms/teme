@@ -12,7 +12,13 @@ export type NavigationIndexPage = {
     navigations: MenuRow[];
 };
 
-export type MenuItemKind = 'content' | 'term' | 'home' | 'url' | 'heading';
+export type MenuItemKind =
+    | 'content'
+    | 'term'
+    | 'home'
+    | 'url'
+    | 'heading'
+    | 'languages';
 
 /** One item of a menu, as its editor holds it. */
 export type MenuItem = {
@@ -54,4 +60,10 @@ export type NavigationEditPage = {
     menus: { id: string; name: string }[];
     types: MenuTargetKind[];
     taxonomies: MenuTargetKind[];
+    /** "For readers of" (MenuLanguages): the site's languages, the menu's own, and each place's menu for each other language's readers. */
+    readers?: {
+        languages: { tag: string; name: string }[];
+        language: string | null;
+        bindings: Record<string, Record<string, string | null>>;
+    };
 };

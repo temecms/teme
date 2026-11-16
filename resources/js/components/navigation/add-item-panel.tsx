@@ -14,13 +14,14 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import { __ } from '@/lib/i18n';
 import { search as searchTerms } from '@/routes/terms';
 import type { MenuItem, MenuTargetKind } from '@/types';
 import { shownTitle, quotedTitle } from '@/lib/titles';
 
 type NewItem = Omit<MenuItem, 'children'>;
 
-type Tab = 'home' | 'heading' | 'content' | 'terms' | 'address';
+type Tab = 'home' | 'heading' | 'content' | 'terms' | 'address' | 'languages';
 
 type FoundTerm = { id: string; name: string; path: string };
 
@@ -80,12 +81,15 @@ export function AddItemPanel({
     types,
     taxonomies,
     onAdd,
+    multilingual = false,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     types: MenuTargetKind[];
     taxonomies: MenuTargetKind[];
     onAdd: (item: NewItem) => void;
+    /** Whether the site has other languages, so a language switcher is offered. */
+    multilingual?: boolean;
 }) {
     const [tab, setTab] = useState<Tab>('content');
     const [contentQuery, setContentQuery] = useState('');
@@ -138,6 +142,9 @@ export function AddItemPanel({
                 'Terms',
         },
         { key: 'address', label: 'Web address' },
+        ...(multilingual
+            ? [{ key: 'languages' as const, label: __('Language switcher') }]
+            : []),
     ];
 
     const onTabKey = (event: KeyboardEvent) => {
@@ -223,6 +230,19 @@ export function AddItemPanel({
             warning: null,
         });
         setAdded('Added “Home”.');
+    };
+
+    const addSwitcher = () => {
+        onAdd({
+            kind: 'languages',
+            targetId: null,
+            url: null,
+            label: null,
+            opensNewTab: false,
+            target: __('Language switcher'),
+            warning: null,
+        });
+        setAdded(__('Added the language switcher.'));
     };
 
     const addHeading = () => {
@@ -311,6 +331,28 @@ export function AddItemPanel({
                                 </Button>
                             ))}
                         </div>
+
+                        {tab === 'languages' && (
+                            <div
+                                id="add-item-panel-languages"
+                                role="tabpanel"
+                                aria-labelledby="add-item-tab-languages"
+                                className="grid justify-items-start gap-3"
+                            >
+                                <p className="text-ink-2 text-small">
+                                    {__(
+                                        'A link to each language version of the page a reader is on. Pages with no other version show nothing.',
+                                    )}
+                                </p>
+                                <Button
+                                    type="button"
+                                    data-test="add-language-switcher"
+                                    onClick={addSwitcher}
+                                >
+                                    {__('Add the language switcher')}
+                                </Button>
+                            </div>
+                        )}
 
                         {tab === 'home' && (
                             <div

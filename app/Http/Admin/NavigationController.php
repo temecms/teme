@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Admin;
 
+use App\Domain\Languages\Queries\MenuLanguages;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\Operations\BindNavigationSlot;
 use App\Domain\Menus\Operations\CreateNavigation;
 use App\Domain\Menus\Operations\DeleteNavigation;
@@ -43,14 +45,24 @@ final class NavigationController extends Controller
 
     public function edit(string $id, NavigationScreens $screens): Response
     {
-        return Inertia::render('navigation/edit', $screens->editor($id) ?? abort(404));
+        $editor = $screens->editor($id) ?? abort(404);
+
+        return Inertia::render('navigation/edit', [
+            ...$editor,
+            // "For readers of" in Show in (docs/proposals/multilingual-screens.md, 5).
+            'readers' => MenuLanguages::for($id, $editor['themeCode'], array_column($editor['slots'], 'slot')),
+        ]);
     }
 
     public function update(Request $request, string $id, RenameNavigation $renameNavigation): RedirectResponse
     {
-        $navigation = $renameNavigation->execute(new RenameNavigationInput($id, $request->string('name')->toString(), $this->actor($request)));
+        // "For readers of" sends the menu's language with its name (docs/proposals/multilingual-screens.md, 5).
+        $language = $request->filled('language') ? $request->string('language')->trim()->toString() : null;
+        $navigation = $renameNavigation->execute(new RenameNavigationInput($id, $request->string('name')->toString(), $this->actor($request), $language));
 
-        return $this->done('navigation.edit', ['id' => $id], __('Renamed to “:name”.', ['name' => (string) $navigation->name]));
+        return $this->done('navigation.edit', ['id' => $id], $language === null
+            ? __('Renamed to “:name”.', ['name' => (string) $navigation->name])
+            : __('Saved. “:name” is for readers of :language.', ['name' => (string) $navigation->name, 'language' => app(SiteLanguages::class)->label($language)]));
     }
 
     public function updateItems(Request $request, string $id, SaveNavigationItems $saveNavigationItems): RedirectResponse
@@ -73,6 +85,8 @@ final class NavigationController extends Controller
             $slot,
             $navigationId,
             $this->actor($request),
+            // Another language's readers, or null for the default language's.
+            $request->string('language')->trim()->toString() === '' ? null : $request->string('language')->trim()->toString(),
         ));
 
         $place = $screens->place($slot, $navigationId);
