@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Doors;
 
 use App\Domain\Contents\Queries\ItemSnapshots;
 use App\Domain\Contents\Queries\PublishedItems;
+use App\Domain\Contents\Queries\QueuedItems;
 use App\Domain\Fediverse\Sockets\PluginFollowers;
 use App\Domain\Fediverse\Sockets\PluginSender;
 use App\Domain\Jobs\Operations\StartJob;
@@ -45,6 +46,7 @@ final readonly class PluginDoors implements PluginServices
         private CoreInsertionsChanged $insertionsChanged,
         private PublishedItems $published,
         private ItemSnapshots $snapshots,
+        private QueuedItems $queued,
     ) {}
 
     /**
@@ -94,7 +96,7 @@ final readonly class PluginDoors implements PluginServices
         }
 
         if (in_array(Capability::ContentRead->value, $capabilities, true)) {
-            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots);
+            $offered[ContentReader::class] = new PluginContentReader($this->published, $this->snapshots, $this->queued);
         }
 
         return $offered;

@@ -8,6 +8,7 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Hooks\Payloads;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Content\ItemSnapshot;
@@ -39,6 +40,7 @@ final readonly class ItemSnapshots
             self::terms(array_map(strval(...), (array) $revision->terms)),
             self::credits((string) $content->id),
             self::translations($content),
+            $content->scheduled_for === null ? null : Payloads::date(CarbonImmutable::parse($content->scheduled_for)),
         );
     }
 

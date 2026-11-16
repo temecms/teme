@@ -13,6 +13,9 @@ use Teme\Contracts\Content\ItemPage;
 use Teme\Contracts\Content\ItemQuery;
 use Teme\Contracts\Content\ItemSnapshot;
 use Teme\Contracts\Content\NewItem;
+use Teme\Contracts\Content\QueuedItem;
+use Teme\Contracts\Content\QueuePage;
+use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Http\AnswerTooLarge;
@@ -103,6 +106,9 @@ it('gives every new contract its @since and nothing from a framework', function 
     [ItemPage::class, '0.9.0'],
     [ItemSnapshot::class, '0.9.0'],
     [ReadRefused::class, '0.9.0'],
+    [QueueQuery::class, '0.9.0'],
+    [QueuedItem::class, '0.9.0'],
+    [QueuePage::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {

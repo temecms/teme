@@ -8,7 +8,8 @@ use InvalidArgumentException;
 
 /**
  * Reads the site's content for a plugin granted content.read: published
- * items for anyone, and a draft for a person who may edit it.
+ * items for anyone, and drafts and the queue of unpublished items for a
+ * person who may edit them.
  *
  * @since 0.9.0
  */
@@ -33,4 +34,16 @@ interface ContentReader
      * @since 0.9.0
      */
     public function draft(string $itemId, string $actingPersonId): ItemSnapshot;
+
+    /**
+     * Unpublished items by status, draft, in review or scheduled, that the
+     * person may edit, oldest first, one page at a time: the queue as it
+     * stands, including what was there before the plugin was enabled.
+     *
+     * @throws ReadRefused when the person isn't the one this work acts for
+     * @throws InvalidArgumentException for a cursor this reader didn't give, an unknown status, or a value outside QueueQuery's bounds
+     *
+     * @since 0.9.0
+     */
+    public function queue(QueueQuery $query, string $actingPersonId): QueuePage;
 }

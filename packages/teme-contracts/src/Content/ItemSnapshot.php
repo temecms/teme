@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Teme\Contracts\Content;
 
+use DateTimeImmutable;
+
 /**
  * One item's working revision: its parts by handle and slug, never a model.
  *
@@ -19,6 +21,7 @@ final readonly class ItemSnapshot
      * @param  array<string, list<string>>  $terms  term slugs by taxonomy
      * @param  list<string>  $credits  account IDs the item credits, in order; empty when it credits its owner
      * @param  list<ItemRef>  $translations  the item's other language versions
+     * @param  DateTimeImmutable|null  $scheduledFor  when it is scheduled to publish, in UTC; null when it isn't scheduled. Its status is the item's.
      *
      * @since 0.9.0
      */
@@ -31,5 +34,6 @@ final readonly class ItemSnapshot
         public array $terms,
         public array $credits,
         public array $translations,
+        public ?DateTimeImmutable $scheduledFor = null,
     ) {}
 }
