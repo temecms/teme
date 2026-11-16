@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
 
+use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
@@ -22,7 +23,7 @@ use Teme\Contracts\Settings\SettingsReader;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteAi::class];
 
     /**
      * What this plugin's constructor may be given, by interface.
@@ -30,8 +31,9 @@ interface PluginServices
      * @param  list<string>  $capabilities
      * @param  list<string>  $hosts
      * @param  int|null  $httpSeconds  outbound ceiling for a long job's run
+     * @param  bool  $long  built for a long job's run
      *
      * @return array<class-string, object>
      */
-    public function for(string $name, string $code, array $capabilities, array $hosts, ?int $httpSeconds = null): array;
+    public function for(string $name, string $code, array $capabilities, array $hosts, ?int $httpSeconds = null, bool $long = false): array;
 }

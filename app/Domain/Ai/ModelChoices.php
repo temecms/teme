@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Domain\Ai;
 
 use App\Domain\Settings\SettingsCheck;
+use InvalidArgumentException;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
+use UnexpectedValueException;
 
 /**
  * Settings › AI's section "Models" (I-315): a model and a fallback for every
@@ -73,6 +75,23 @@ final readonly class ModelChoices implements AiSettingsSection, SettingsCheck
         }
 
         return new ModelChoice($primary, ModelRef::parse($this->settings->string(AiSettings::KEY, self::fallbackKey($task))));
+    }
+
+    /**
+     * A plugin task's model and fallback, read from `{stem}_model` and
+     * `{stem}_fallback`, or null when no model is chosen, the choice can't be
+     * read, or the settings aren't registered.
+     */
+    public function forStem(string $stem): ?ModelChoice
+    {
+        try {
+            $primary = ModelRef::parse($this->settings->string(AiSettings::KEY, $stem.'_model'));
+            $fallback = $primary === null ? null : ModelRef::parse($this->settings->string(AiSettings::KEY, $stem.'_fallback'));
+        } catch (InvalidArgumentException|UnexpectedValueException) {
+            return null;
+        }
+
+        return $primary === null ? null : new ModelChoice($primary, $fallback);
     }
 
     public function group(): string
