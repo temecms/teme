@@ -231,3 +231,23 @@ it('asks again only about packages the release that runs doesn’t already hold'
 
     expect(($this->validate)(($this->request)('fixtures/hello-extension'), ($this->staged)('fixtures/hello-extension'), $previous)->needs)->toBe([]);
 })->group('composer');
+
+it('asks again about a package the running release holds at the same reference but another version', function (): void {
+    $lock = fn (string $version): array => ['packages' => [[
+        'name' => 'fixtures/with-files', 'version' => $version, 'type' => 'library',
+        'dist' => ['type' => 'path', 'url' => 'packages/with-files', 'reference' => 'same-reference'],
+        'autoload' => ['files' => ['helpers.php']],
+    ]]];
+    $previous = $this->folder->store->path($this->folder->stage());
+    $release = $this->folder->store->path($this->folder->stage());
+    file_put_contents("{$previous}/composer.lock", json_encode($lock('1.0.0')));
+    file_put_contents("{$release}/composer.lock", json_encode($lock('1.1.0')));
+
+    $outcome = ($this->validate)(($this->request)('fixtures/hello-extension'), $release, $previous);
+
+    expect($outcome->needs)->toBe(['files' => ['fixtures/with-files' => ['helpers.php']]]);
+
+    file_put_contents("{$release}/composer.lock", json_encode($lock('1.0.0')));
+
+    expect(($this->validate)(($this->request)('fixtures/hello-extension'), $release, $previous)->needs)->toBe([]);
+});
