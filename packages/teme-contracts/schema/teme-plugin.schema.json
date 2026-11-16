@@ -84,7 +84,8 @@
                     "routes.public",
                     "import.wordpress",
                     "fediverse.read",
-                    "fediverse.send"
+                    "fediverse.send",
+                    "pages.insert"
                 ]
             }
         },
@@ -246,6 +247,12 @@
             "additionalProperties": false,
             "description": "What the plugin adds to the admin.",
             "properties": {
+                "fixedLabel": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 24,
+                    "description": "The label core draws on the plugin's fixed insertions; Advertisement when absent."
+                },
                 "settings": {
                     "type": "array",
                     "description": "Settings the plugin declares.",
@@ -399,6 +406,7 @@
                 "csp": {
                     "type": "object",
                     "additionalProperties": false,
+                    "description": "The hosts the content the plugin inserts loads from, by kind. Read only for a plugin granted content.insert or pages.insert, listed in the consent, and added to a page's policy only where that plugin's insertions were drawn.",
                     "properties": {
                         "style": {
                             "type": "array",

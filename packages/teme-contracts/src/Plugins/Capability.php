@@ -15,7 +15,9 @@ namespace Teme\Contracts\Plugins;
  * declares under its manifest's `imports`, read from the WordPress site Teme
  * imports. FediverseRead unlocks the fediverse hooks and who follows the
  * site's accounts, and FediverseSend the door that sends activities to those
- * followers.
+ * followers. PagesInsert unlocks the places to add content on every public
+ * page: the head, the top and bottom of the body, between the items of a
+ * list, beside a theme's regions, and fixed to the screen's edge.
  *
  * @since 0.5.0
  */
@@ -32,4 +34,5 @@ enum Capability: string
     case ImportWordPress = 'import.wordpress';
     case FediverseRead = 'fediverse.read';
     case FediverseSend = 'fediverse.send';
+    case PagesInsert = 'pages.insert';
 }
