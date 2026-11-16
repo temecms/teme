@@ -648,12 +648,87 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 #### Commits on `sockets3/content-doors`
 
--
+- `d66253f` feat(plugins): a content reader for published items and drafts (Tasks 1 and 2)
+- `af994c5` feat(plugins): slug, credits and translations through the write door (Task 3)
+- `5d4f880` feat(plugins): a job's context says whom the run acts for (Task 4)
+- `28229d8` feat(plugins): a person setting in a plugin's manifest (Task 5)
+- `251d008` feat(plugins): answers of up to 16 MB inside a long job (Task 6)
+- `3cac622` docs(guides): reading content, writing details, a job's person and its limits (Task 8)
+- this records commit
+
+Tasks 1 and 2 were built together, and the first commit carries `PluginDoors`/`PluginServices` whole, Task 6's `$answerBytes` parameter included, and the librarian fixture with its `person` setting (Task 5).
 
 #### Tests seen red (first line of the failure)
 
+Run with the contracts and tests in place and `app/` set aside.
+
 | Task | File | First failure |
 |---|---|---|
+| 1, 2 | `tests/Feature/Plugins/Sockets/ContentReaderTest.php` | `Undefined array key "Teme\Contracts\Content\ContentReader"` (the door isn't offered) |
+| 3 | `tests/Feature/Plugins/Sockets/ContentWriterDetailsTest.php` | `Class App\Domain\Plugins\Doors\PluginContentWriter contains 1 abstract method … (ContentWriter::linkTranslations)` |
+| 4 | `tests/Feature/Plugins/Sockets/JobPersonTest.php` | `ValidationException` at enable: the librarian's `person` setting was unknown; with it known, `PluginJobContext contains 1 abstract method … (JobContext::personId)` |
+| 5 | `tests/Feature/Plugins/Sockets/PersonSettingTest.php` | `InvalidArgumentException: Setting [plugin.librarian.byline] has an unknown type [person].` |
+| 6 | `tests/Feature/Plugins/Sockets/LongAnswersTest.php` | `PluginJobContext contains 1 abstract method … (JobContext::personId)` (the file loads the jobs fixture); with that in place, the 5 MB answer inside a long job threw `AnswerTooLarge` (1 MB) |
+
+#### Task 0
+
+- Setup: `/tmp/teme-cloud-setup.log` showed two starts (10:33:53Z, 10:34:59Z; the first was cut by a network reset fetching PostgreSQL's key) and `10:47:56Z finished`; `pwd` `/home/user/teme`.
+- V = `0.9.0` (`git tag -l 'v0.9.0*'` prints nothing). Base `11813b3` (Merge pull request #352).
+- Public published items: the API's one predicate, `App\Domain\Api\Live::apply()` (published, not trashed, live by now, not private, of a public type, in a shown language) then `Live::publicOnly()` (not password-protected). There is no Eloquent scope; `PublishedItems` applies both to `Content::query()`'s base query.
+- `EXPLAIN` of a page (one type, one taxonomy's terms, 50 items): `Limit -> Index Scan using contents_published_order on contents`, the terms `EXISTS` through `terms_taxonomy_slug_language_unique` and `content_terms_term_id_scope_content_id_index` (Index Only Scan).
+- `SetBylines` takes credit keys, `user:{id}` for an account and `person:{ulid}` for a person with no account; the door turns account IDs into `user:` keys.
+- `UpdateContentDetails` needs `expectedRevisionId`; right after `CreateDraft` (and after `SaveDraft`) the door reads the row again and passes its `working_revision_id`. A slug alone writes no revision.
+- Core's person picker: the settings type `person` (`SettingType::Person`), validated by `SettingRules::person()`, given its choices by `SettingsForm::withPeople()` and drawn by `components/fields/field-control.tsx`'s `person` case. A plugin group goes through the same form, so the manifest's `person` needed only the declaration.
+- A plugin job can be the operator's today: `PluginJobs::actor()` falls back to `JobActor::operator()` when nobody is signed in and the operator is present (the shell).
+- Round 1's `sockets/plugin-admin` is not on `main` (no `WritePluginSettings`): C6's one line is skipped (see Left open). Round 2's `sockets2/plugin-area` is not on `main`: Task 7 waits.
+
+#### Gate
+
+- Base `composer check` on `11813b3`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,875 passed, 2 skipped (61,099 assertions).
+- End of part, `composer check` on `3cac622`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,930 passed, 2 failed, 2 skipped (61,258 assertions). The two failures:
+  - `tests/Feature/Console/GenerateManifestReferenceTest` ("keeps the reference current"): `docs/reference/plugin-manifest.md` doesn't list the new settings type `person`. Expected: the plan says not to regenerate `docs/reference/plugin-manifest.md`; the join does, once.
+  - `tests/Feature/Plugins/DiscoveryTest` ("finds the configured folders"): found `tests/jobs` beside the fixtures it named. Not reproduced: `tests/Feature/Plugins` passed whole twice in parallel (652 passed each), and with `LongAnswersTest` beside it. Already seen flaky in an earlier part.
+- No Browser test (the plan names none; the person picker is core's).
+
+#### B-?? (draft)
+
+- **B-?? (draft) The answer size reaches the job's doors through `PluginLoader`.** `RunPluginJob` builds the plugin through `PluginLoader::instance()`, which the plan doesn't list. Options: derive 16 MB from `httpSeconds` inside `PluginDoors`, or pass the size through. Chosen: a last parameter `?int $answerBytes = null` on `PluginLoader::instance()`/`build()`, beside `httpSeconds`, as the plan's "beside `httpSeconds`" reads. Commit `251d008`.
+- **B-?? (draft) A request's body stays at 1 MB everywhere.** `PluginHttp` used one `maxBytes` for both ways. Options: a second bound, or the request always at `MOST_BYTES`. Chosen: `jsonBody()` always checks `MOST_BYTES`; `maxBytes` is the answer's bound alone (the media door only GETs). Commit `251d008`.
+- **B-?? (draft) `ContentReader` is offered last.** Placed before `ContentWriter`, it shifted the positional doors `JoinTest` hands `Contributor`'s constructor (an `OutboundHttp` parameter got the reader). Chosen: the reader is added after every earlier door, in `for()` and at the end of `OFFERED`. Commit `d66253f`.
+- **B-?? (draft) The cursor keeps microseconds.** The API's `Dates::utc()` cuts to the second, so two items published in one second could fall between pages. Chosen: the plan's opaque base64url cursor (`App\Domain\Api\Cursor`, sort `newest`) with the moment read from PostgreSQL by `to_char(… 'US')`, checked strictly when read back. Commit `d66253f`.
+- **B-?? (draft) Credits are account IDs only.** `ItemSnapshot::$credits` and `NewItem`/`ItemChanges::$credits` are account IDs, as the plan's shapes say; a byline of a person with no account is left out of a snapshot. A credit that isn't an account's ID is refused, writing nothing, with `A credit names an account by its ID.` (a new sentence, through `__()`). Commit `af994c5`.
+- **B-?? (draft) Bounds and language refusals.** `published()` throws `InvalidArgumentException` for a limit outside 1 to 200, more than 10 types or 10 terms, and a language the site doesn't have (`SiteLanguages::stored()`'s own refusal), as for a bad cursor. Commit `d66253f`.
+- **B-?? (draft) Handbook pages.** `content-write.md` and `jobs.md` were stubs; both became how-to pages covering what the plan asks (the rest of the write door in two sentences). The new `plugins/content-read.md` needed a line in `GenerateHandbookIndex::PAGES`, the README's table and a regenerated `llms.txt` (`DeveloperPagesTest`). `jobs.md`'s paragraph on spacing steps doesn't name round 1's `QueueOptions`, which isn't on `main`: it says to let a schedule pick up the next step. The limits table lists the AI request (55 s, 600 s long) from Part A. Commit `3cac622`.
+
+#### Contract changes
+
+None beyond the plan's: `ContentReader`, `ItemQuery`, `ItemPage`, `ItemSnapshot`, `ReadRefused` (new, `@since 0.9.0`); `NewItem` (last: `slug`, `translationOf`, `credits`), `ItemChanges` (last: `slug`, `credits`), `ContentWriter::linkTranslations()`, `JobContext::personId()` (V is 0.9.0, so no `TranslationLinker`/`JobPerson`); `OutboundHttp`'s class docblock sentence; the schema's settings type `person`.
+
+#### STOP
+
+None.
+
+#### Left open
+
+- Task 7 (`AreaContext::$permissions`) waits for round 2's `sockets2/plugin-area` on `main`; not built yet (see below once it is).
+- C6's line in round 1's `WritePluginSettings` (refuse `person`) is not built: that Operation isn't on `main`. It belongs with whichever join carries `sockets/plugin-admin`.
+- A run of the operator's whose handler calls `personId()` stops with `JobStopped`, and `RunPluginJob` returns on `JobStopped` without ending the tracked job, so it stays waiting. Unchanged here (it's how a cancel already ends); worth a decision whether such a run should fail with the sentence instead.
+
+#### Changelog lines for the maintainers
+
+- Added: plugins granted `content.read` can list the site's published, public items a page at a time, and read an item's draft for the person their work acts for (`ContentReader`).
+- Added: a plugin's write door can set an item's slug, credit people (within the person's own rights) and link language versions (`NewItem`, `ItemChanges`, `ContentWriter::linkTranslations()`); any refusal writes nothing.
+- Added: a plugin job's context names the person the run acts for (`JobContext::personId()`).
+- Added: a plugin setting can be a person, chosen with core's person picker.
+- Changed: inside a long job, a plugin's outbound answers may be up to 16 MB; requests stay at 1 MB.
+- Docs: Reading content; Plugins writing content and Jobs and schedules (every limit in one table) are now full pages.
+
+#### Try it
+
+- `php artisan test --compact tests/Feature/Plugins/Sockets`.
+- Enable the `tests/librarian` fixture on a development site (its folder in `teme.plugin_paths`), open Settings › Plugin settings › Librarian and choose a person for "Credit articles to"; queue its `write-as-person` job while signed in, and the draft it writes is yours.
+
+---|---|---|
 | | | |
 
 #### Task 0
