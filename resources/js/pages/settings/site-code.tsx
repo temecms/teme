@@ -1,6 +1,6 @@
 import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SiteCodeController from '@/actions/App/Http/Admin/Settings/SiteCodeController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { SettingsPanel } from '@/components/fields/settings-panel';
@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
+import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import {
     Sheet,
@@ -475,9 +476,16 @@ export default function SiteCodeSettings({
     places,
     changes,
     adsTxt,
+    adsTxtMode,
+    adsTxtRedirect,
     adsTxtVersion,
 }: SiteCodePage) {
     const [editing, setEditing] = useState<Editing>(null);
+    const [mode, setMode] = useState<'text' | 'redirect'>(adsTxtMode);
+
+    useEffect(() => {
+        setMode(adsTxtMode);
+    }, [adsTxtMode]);
 
     setLayoutProps({
         breadcrumbs: [
@@ -537,7 +545,7 @@ export default function SiteCodeSettings({
                         as="section"
                         title={__('ads.txt')}
                         description={__(
-                            'Shown at /ads.txt for advertising buyers. Leave empty for a 404.',
+                            'Shown at /ads.txt for advertising buyers. Leave empty for a 404, or send them to another host’s file.',
                         )}
                     >
                         <Form
@@ -552,34 +560,116 @@ export default function SiteCodeSettings({
                                         name="expected_version"
                                         value={adsTxtVersion}
                                     />
-                                    <Label htmlFor="site-code-ads-txt">
-                                        {__('ads.txt')}
-                                    </Label>
-                                    <Textarea
-                                        id="site-code-ads-txt"
-                                        name="ads_txt"
-                                        rows={6}
-                                        spellCheck={false}
-                                        defaultValue={adsTxt}
-                                        data-test="site-code-ads-txt"
-                                        aria-describedby="site-code-ads-txt-hint site-code-ads-txt-error"
-                                        className="font-mono"
+                                    <input
+                                        type="hidden"
+                                        name="ads_txt_mode"
+                                        value={mode}
                                     />
-                                    <p
-                                        id="site-code-ads-txt-hint"
-                                        className="text-ink-2 text-small"
-                                    >
-                                        {__(
-                                            'One record a line, as the ads.txt specification asks.',
-                                        )}
-                                    </p>
-                                    <InputError
-                                        id="site-code-ads-txt-error"
-                                        message={
-                                            errors.ads_txt ??
-                                            errors.expected_version
+                                    <RadioGroup
+                                        value={mode}
+                                        onValueChange={(next) =>
+                                            setMode(
+                                                next === 'redirect'
+                                                    ? 'redirect'
+                                                    : 'text',
+                                            )
                                         }
+                                        className="grid gap-2"
+                                        aria-label={__('ads.txt')}
+                                    >
+                                        <RadioGroupChoice
+                                            id="site-code-ads-txt-mode-text"
+                                            value="text"
+                                            label={__('Text')}
+                                            data-test="site-code-ads-txt-mode-text"
+                                        />
+                                        <RadioGroupChoice
+                                            id="site-code-ads-txt-mode-redirect"
+                                            value="redirect"
+                                            label={__(
+                                                'Send to another address',
+                                            )}
+                                            data-test="site-code-ads-txt-mode-redirect"
+                                        />
+                                    </RadioGroup>
+                                    <InputError
+                                        message={errors.ads_txt_mode}
                                     />
+                                    {mode === 'text' ? (
+                                        <>
+                                            <input
+                                                type="hidden"
+                                                name="ads_txt_redirect"
+                                                value={adsTxtRedirect}
+                                            />
+                                            <Label htmlFor="site-code-ads-txt">
+                                                {__('ads.txt')}
+                                            </Label>
+                                            <Textarea
+                                                id="site-code-ads-txt"
+                                                name="ads_txt"
+                                                rows={6}
+                                                spellCheck={false}
+                                                defaultValue={adsTxt}
+                                                data-test="site-code-ads-txt"
+                                                aria-describedby="site-code-ads-txt-hint site-code-ads-txt-error"
+                                                className="font-mono"
+                                            />
+                                            <p
+                                                id="site-code-ads-txt-hint"
+                                                className="text-ink-2 text-small"
+                                            >
+                                                {__(
+                                                    'One record a line, as the ads.txt specification asks.',
+                                                )}
+                                            </p>
+                                            <InputError
+                                                id="site-code-ads-txt-error"
+                                                message={
+                                                    errors.ads_txt ??
+                                                    errors.expected_version
+                                                }
+                                            />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <input
+                                                type="hidden"
+                                                name="ads_txt"
+                                                value={adsTxt}
+                                            />
+                                            <Label htmlFor="site-code-ads-txt-redirect">
+                                                {__('Address')}
+                                            </Label>
+                                            <Input
+                                                id="site-code-ads-txt-redirect"
+                                                name="ads_txt_redirect"
+                                                type="url"
+                                                inputMode="url"
+                                                spellCheck={false}
+                                                defaultValue={adsTxtRedirect}
+                                                placeholder="https://"
+                                                data-test="site-code-ads-txt-redirect"
+                                                aria-describedby="site-code-ads-txt-redirect-hint site-code-ads-txt-redirect-error"
+                                                className="font-mono"
+                                            />
+                                            <p
+                                                id="site-code-ads-txt-redirect-hint"
+                                                className="text-ink-2 text-small"
+                                            >
+                                                {__(
+                                                    'A full https address on another host. /ads.txt answers with a permanent redirect there.',
+                                                )}
+                                            </p>
+                                            <InputError
+                                                id="site-code-ads-txt-redirect-error"
+                                                message={
+                                                    errors.ads_txt_redirect ??
+                                                    errors.expected_version
+                                                }
+                                            />
+                                        </>
+                                    )}
                                     <Button
                                         type="submit"
                                         disabled={processing}
