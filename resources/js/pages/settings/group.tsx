@@ -14,13 +14,142 @@ import {
 import InputError from '@/components/input-error';
 import { SettingsPage } from '@/components/patterns/settings-page';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
 import { Textarea } from '@/components/ui/textarea';
 import { __ } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 import type { SettingsGroupPage, SettingsWordsSection } from '@/types';
+
+/** A plugin that takes hosts from its settings (docs/plans/plugin-sockets-1.md, A2). */
+type PluginHosts = {
+    /** The plugin's label. */
+    plugin: string;
+    /** The keys of the settings it takes hosts from. */
+    settings: string[];
+    /** The hosts already agreed in those settings. */
+    agreed: string[];
+    /** The hosts its manifest asks for that were agreed, wildcards included. */
+    declared: string[];
+};
+
+/** The exact host names a url or urls value names, each once. */
+function hostsIn(value: string): string[] {
+    const hosts = new Set<string>();
+
+    for (const line of value.split(/\r?\n/)) {
+        try {
+            const host = new URL(line.trim()).hostname.toLowerCase();
+
+            if (
+                /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(
+                    host,
+                )
+            ) {
+                hosts.add(host);
+            }
+        } catch {
+            // Not an address yet: it names no host.
+        }
+    }
+
+    return [...hosts];
+}
+
+/** Whether an agreed host, or a wildcard above it, covers this one. */
+function covered(agreed: string[], host: string): boolean {
+    return agreed.some(
+        (pattern) =>
+            pattern === host ||
+            (pattern.startsWith('*.') && host.endsWith(pattern.slice(1))),
+    );
+}
+
+/**
+ * A setting a plugin takes hosts from: the field, then, only while its
+ * value names a host the plugin may not reach yet, a line saying so and a
+ * box to agree, sent as `agreedHosts[]`. The server stays the judge.
+ */
+function HostsAgreement({
+    hosts,
+    settingKey,
+    initial,
+    children,
+}: {
+    hosts: PluginHosts;
+    settingKey: string;
+    initial: unknown;
+    children: React.ReactNode;
+}) {
+    const [value, setValue] = useState(() =>
+        Array.isArray(initial)
+            ? initial.filter((line) => typeof line === 'string').join('\n')
+            : typeof initial === 'string'
+              ? initial
+              : '',
+    );
+    const [agree, setAgree] = useState(false);
+    const unagreed = hostsIn(value).filter(
+        (host) =>
+            !hosts.agreed.includes(host) && !covered(hosts.declared, host),
+    );
+    const id = `agree-hosts-${settingKey}`;
+
+    return (
+        <div
+            className="contents"
+            onInput={(event) => {
+                const target = event.target as
+                    | HTMLInputElement
+                    | HTMLTextAreaElement;
+
+                if (target.name === `values[${settingKey}]`) {
+                    setValue(target.value);
+                }
+            }}
+        >
+            {children}
+            {unagreed.length > 0 && (
+                <div className="grid gap-2" data-test="hosts-agreement">
+                    <p className="text-small text-ink-2">
+                        {__('Saving lets :plugin connect to :hosts.', {
+                            plugin: hosts.plugin,
+                            hosts: unagreed.join(', '),
+                        })}
+                    </p>
+                    <div className="flex items-start gap-2">
+                        <div className="flex h-lh items-center">
+                            <Checkbox
+                                id={id}
+                                checked={agree}
+                                onCheckedChange={(checked) =>
+                                    setAgree(checked === true)
+                                }
+                            />
+                        </div>
+                        <Label htmlFor={id} className="text-body text-ink">
+                            {__('Let :plugin connect to these hosts', {
+                                plugin: hosts.plugin,
+                            })}
+                        </Label>
+                    </div>
+                    {agree &&
+                        unagreed.map((host) => (
+                            <input
+                                key={host}
+                                type="hidden"
+                                name="agreedHosts[]"
+                                value={host}
+                            />
+                        ))}
+                </div>
+            )}
+        </div>
+    );
+}
 
 /**
  * A group's words in other languages (docs/proposals/multilingual-screens.md,
@@ -176,7 +305,8 @@ export default function SettingsGroup({
     imageWidths,
     panels,
     words,
-}: SettingsGroupPage) {
+    pluginHosts,
+}: SettingsGroupPage & { pluginHosts: PluginHosts | null }) {
     setLayoutProps({
         breadcrumbs: [
             {
@@ -220,18 +350,34 @@ export default function SettingsGroup({
     const fieldFor = (
         field: (typeof fields)[number],
         errors: Record<string, string>,
-    ) => (
-        <SettingsField
-            key={field.key}
-            field={field}
-            value={values[field.key]}
-            secret={secrets[field.key]}
-            media={media[field.key] ?? null}
-            error={
-                errors[`values.${field.key}`] ?? errors[`secrets.${field.key}`]
-            }
-        />
-    );
+    ) => {
+        const drawn = (
+            <SettingsField
+                key={field.key}
+                field={field}
+                value={values[field.key]}
+                secret={secrets[field.key]}
+                media={media[field.key] ?? null}
+                error={
+                    errors[`values.${field.key}`] ??
+                    errors[`secrets.${field.key}`]
+                }
+            />
+        );
+
+        return pluginHosts?.settings.includes(field.key) ? (
+            <HostsAgreement
+                key={field.key}
+                hosts={pluginHosts}
+                settingKey={field.key}
+                initial={values[field.key]}
+            >
+                {drawn}
+            </HostsAgreement>
+        ) : (
+            drawn
+        );
+    };
     const extras = (
         <>
             {themePerPage !== null && (
@@ -275,7 +421,7 @@ export default function SettingsGroup({
                         page: heading.label.toLowerCase(),
                     })}
                     what={__(':page settings', { page: heading.label })}
-                    askInPlace={group.sensitive}
+                    askInPlace={group.sensitive || pluginHosts !== null}
                     transform={transform}
                 >
                     {({ errors }) => (
