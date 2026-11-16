@@ -32,6 +32,8 @@ It does not cover running a server or writing content. Those have their own guid
 | [Content inside articles](plugins/insertions.md) | render/insertion-points |
 | [The fediverse](plugins/fediverse.md) | fediverse/actors and fediverse/publishing |
 | [List columns](plugins/list-columns.md) | plugins/list-columns |
+| [Your own hooks, and plugins that need other plugins](plugins/your-own-hooks.md) | sockets3/hooks-notices |
+| [Notices from plugins](plugins/notices.md) | sockets3/hooks-notices |
 | [Languages in a theme](themes/languages.md) | i18n/readers and i18n/screens |
 | [The management API](outside/management-api.md) | api/manage-foundation |
 
