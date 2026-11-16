@@ -816,3 +816,74 @@ Recorded for later, as the review asks (a builder can't write `docs/ideas.md`):
 - **5:** two sources on the same host keep only one key, because the runner merges `auth()` with `array_replace_recursive` and the keys are by host (two private GitHub repositories with different tokens, or two vendors on one host). Wants a line in the operators' guide (part A's file).
 
 **Gate after R1** (at `4065014`): Pint passed; PHPStan no errors; Architecture 139 passed (1361 assertions); Unit and Feature 1 failed, 2 skipped, 11659 passed (60165 assertions). The one failure is A's `SeamTest`, B-19, already changed on `installer/service`. Part C's own: 58 passed (142 assertions). Baselines unchanged: 876 and 222 lines.
+
+### The join — `join/installer`
+
+**Setup:** a local Windows 11 working copy from `main` at `df2f85d`, PHP 8.4 (Herd), PostgreSQL and Valkey from the `teme-join` containers on 5433 and 6380. Another process was running migrations on the shared `teme_test` database (two deadlocks seen), so this join's tests ran on databases of their own, `teme_test_installer` and `teme_test_installer2`, on the same server (`DB_DATABASE` set for the run).
+
+#### Commits
+
+- `f42aaa0` Merge installer/service (part A); `01b29e7` Merge installer/admin (part B); `c426189` Merge installer/sources (part C). No conflicts: `SafeMode.php`, `docs/architecture/plugins.md` and this plan merged on their own, each part's records kept.
+- `97f938e` test(extensions): the admin's tests use part C's registered source kinds
+- `9477185` fix(extensions): never flash a source's key into the session (review B, BLOCKING)
+- `719e626` fix(extensions): read an upload's composer.json only up to 64 KB in the web process (review B, IMPORTANT)
+- `56fbba8` fix(extensions): only Teme's own rebuild goes on while a Teme update is open (review B, 3; A's later 2)
+- `6c24851` fix(extensions): hide saved keys in what the installer records (review B, 4)
+- `b94dc30` fix(extensions): delete unpacked uploads no kept release names (review C, 2)
+- `9585fbb` test(extensions): build the upload tests' ZIPs with forward slashes on every system
+- `30e97a0` fix(extensions): check every Git and Composer address before Composer fetches (review C, 3)
+- `7daaa0a` fix(extensions): a source's refusal is the request's reason (B-17)
+- `6f011e1` fix(extensions): an agreement holds for the same version and reference only (A's later 1)
+- `0b63d0c` fix(extensions): the request sheet reads the installer's keys for what waits (B-10)
+- `26e29f5` feat(extensions): ask for and cancel a plugin or theme change from the shell (B-04)
+- `064da41` docs(extensions): the installer is built; Installing says what the join added (B-14)
+- `39323b1` docs(guides): keep the theme option beside its command
+- `6d65126` style(extensions): Pint on the installer runner
+- `8dc84ef` test(extensions): the installer's three parts end to end
+- this records commit
+
+#### What the merge broke, and how it was joined
+
+- Part B's tests tagged stand-in `git` and `upload` kinds "until part C registers them"; with C's real kinds registered, `SourceKinds` refused both (`Two package sources are registered as "git".`, 13 tests). The stand-ins were removed; the tests run against C's kinds, otherwise unchanged.
+- Part B's request sheet headed the needs `composerPlugins` and `replaces`; part A's `StageValidator` writes `composer_plugins` and `replace`. `words.ts` now reads A's keys (B-10). `AgreeToExtensionRequest` records the needs exactly as A wrote them, and A's `lookAgain()` compares them as arrays, so the same keys come back.
+- B-17: part C's sources refuse with `RuntimeException`; A's runner recorded those as "an error it didn't expect". `preparing()` now wraps a source's refusal in `InstallerFailed`, so the request shows C's words.
+- B-19 (`SeamTest`'s kinds) was already settled on `installer/service`; it passes.
+
+#### Tests seen red (first line of the failure)
+
+| Item | Test | First failure |
+|---|---|---|
+| a | `ExtensionsRoutesTest` "never flashes a source’s key into the session when the form is refused" | `Expecting '{"_token":…}' not to contain 'ghp_x'.` |
+| b | `SourcesAndUploadsTest` dataset "a composer.json over 64 KB" | `Exception [Illuminate\Validation\ValidationException] not thrown.` |
+| c | `InstallerRunnerTest` "stops a begun request, an administrator’s rebuild among them, when an update of Teme opened meanwhile" | the administrator's rebuild: `-'failed' +'running'` (the install case already held) |
+| c | `InstallerRunnerTest` "takes Teme’s own rebuild past the check while the update that asked for it is open" | not red: it guards the other side of the same line |
+| d | `InstallerRunnerTest` "records no saved key in a failed request’s reason, steps or report, nor on the screens that show it" | `Expecting '{"id":"01m7hw8gqp…"}' not to contain 'secret-key-123'.` |
+| e | `InstallerRunnerTest` "deletes an unpacked upload no kept release names when its request fails, and when one is cancelled" | `Expecting '…/packages/acme/gone/1.0.0' not to be directory.` |
+| f | `InstallerRunnerTest` "refuses before fetching when the staged composer.json holds a Git or Composer address on a private network" | `-'10.0.0.5 is on a private network, so Teme won’t connect to it.' +'Composer couldn’t install the packages: Composer ran.'` |
+| B-17 | `InstallerRunnerTest` "fails a request with the source’s own reason when the source refuses to prepare it" | `+'The installer stopped on an error it didn’t expect; the server’s log has the details.'` |
+| g | `StageValidatorTest` "asks again about a package the running release holds at the same reference but another version" | `-Array &0 [ 'files' => … ] +Array &0 []` |
+| h | `InstallerRunnerTest` "goes on once an administrator agrees, through the admin’s Operation, to every key it found" | not red: it confirms the seam B-10 asked about, which already held |
+| i | `RequestCommandsTest` (9 tests) | `The command "teme:extensions:request" does not exist.` |
+| guide | `OperatorPagesTest` "sets every command in code, each option beside its command" | `+    0 => '--kind=theme',` (the first wording of the new paragraph) |
+
+- **c:** the begin step already refused a non-rebuild request while an update is open (`BeginExtensionRequest`); the gap was the `checking` step, which skipped the update check for every rebuild. It now skips it only for a rebuild with `requested_by` null.
+- **d:** the runner replaces every saved source's key, as written and JSON-escaped, with `[hidden]` in each step's detail, the needs, the reason and the report before recording them; keys under four characters are left, since they would blank ordinary words.
+- **e:** after a failure, a cancel after a day, a prune, and on any pass with no request open (which catches a request cancelled from the admin), the installer deletes each release a failed or cancelled request built that never went live (not current, never any request's `from_release`, never a done request's `to_release`), then each `packages/<vendor>/<name>/<version>` no remaining release's lock names.
+- **f:** `vcs`, `git`, `github`, `gitlab`, `bitbucket` and `composer` entries are checked; `path` entries are local.
+- **i:** `teme:extensions:request {action} {package?} {--constraint=} {--kind=plugin}` asks from Packagist (the plan's signature has no source option); `teme:extensions:cancel` cancels the open request through `CancelExtensionRequest`, which refuses a running one in its own words.
+
+#### Gate (this Windows machine)
+
+- Pint: clean on every PHP file the join brings. PHPStan on `app`: no errors.
+- `tests/Feature/Extensions`: 218 passed, 1 skipped, 68 failed. Every failure is this machine's: 52 run Composer, whose child process here gets no `TEMP` (`PHP temp directory (C:\WINDOWS) does not exist or is not writable to Composer`), 15 need a symbolic link (this account may not make links, and PHP on Windows resolves a relative target against the working folder), and 1 compares a command quoted by `escapeshellarg()`, which quotes with `"` on Windows. The end-to-end test is among the 15. Right after the three merges the same folder had 101 failures: these 67, plus the 13 from the stand-in kinds and the 19 from the ZIP helper's backslashes, both fixed above.
+- With a local, uncommitted patch that gave Composer `TEMP` and the link an absolute target, `EndToEndTest` ran the upload, the request, Composer's install from `packages/`, verifying and validating, and stopped at the swap (no link privilege). The rest of it has not been seen here.
+- `tests/Feature/Plugins`: 528 passed, 1 skipped, 68 failed. The same 68 tests, with the same first lines, fail on `main` at `df2f85d` on this machine (run on the same database for comparison), so all are pre-existing. They copy or link fixture plugins and key them by path, which breaks on Windows paths (`Undefined array key "tests/C:…"`, `No plugin is named "tests/tables"`), need a symbolic link, or time out on a real socket (`Failed asserting that 60 is identical to 7`).
+- `tests/Architecture`: 139 passed (1368 assertions); baselines unchanged (no file under `tests/Architecture` changed).
+- `tests/Feature/Guides/Operators`: 172 passed, after `39323b1`.
+
+#### Left open
+
+- `EndToEndTest` and the other link- and Composer-bound installer tests have not been seen green on this machine; GitHub's Linux run decides them. The end-to-end test stands in for a fresh process with `PluginFixtures::installed()` at the current release's package folder (what `bootstrap/extensions.php` makes `InstalledVersions` see; `LoadingTest` covers the loading itself in a child process), and gives the plugin a recorded table, because `hello-extension` has no migrations and **Remove its data…** is offered only for a plugin with tables.
+- A request cancelled from the admin is cleaned up on the installer's next idle pass, not at once: the web process can't write the folder.
+- Not run here: the full `composer check` and the Browser file (`tests/Browser/ExtensionsTest.php`); GitHub runs both.
+- Part C's review items 4 (redirects past `SafeAddress`) and 5 (two keys on one host) stay as C recorded them, for an ideas entry and an issue.
