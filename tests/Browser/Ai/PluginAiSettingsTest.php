@@ -86,18 +86,24 @@ it('switches AI off for a plugin once the password is confirmed', function (): v
     expect(app(SettingsReader::class)->bool(AiSettings::KEY, PluginAiSection::onKey('scribe')))->toBeFalse();
 });
 
-it('names the plugin in Tools › AI activity, totals it, and filters by it, with no accessibility issue', function (string $scheme): void {
+it('names the plugin in Tools › AI activity with its mark, totals Teme and each plugin with their budgets, and filters by it, with no accessibility issue', function (string $scheme): void {
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmNavigate(cmSignIn($this->admin), '/admin/tools/ai-activity')
-        ->assertSeeIn('[data-test="ai-activity-plugin-month-scribe"]', 'Scribe')
-        ->assertSeeIn('[data-test="ai-activity-plugin-month-scribe"]', '$0.0011, 1 request')
+        ->assertSeeIn('[data-test="ai-activity-plugin-month-teme"]', 'People’s own requests')
+        ->assertSeeIn('[data-test="ai-activity-plugin-month-teme"]', '$0.0011 of $50.00')
+        ->assertSeeIn('[data-test="ai-activity-plugin-month-scribe"] [data-slot="plugin-mark"]', 'Scribe')
+        ->assertSeeIn('[data-test="ai-activity-plugin-month-scribe"]', '$0.0011 of $5.00')
         ->assertSee('Write an article')
         ->assertSee('No item');
+
+    // The plugin's name, with its mark, under the task it asked for.
+    expect($page->script('() => document.querySelectorAll(\'[data-test^="ai-row-plugin-"] [data-slot="plugin-mark"]\').length'))->toBe(1);
 
     expect(cmAxeViolations($page))->toBe([]);
 
     $page->click('#ai-plugin')
+        ->assertSee('Teme only')
         ->click('[role="option"] >> text="Scribe"')
         ->assertNotPresent('[role="listbox"]')
         ->click('[data-test="ai-filter"]');

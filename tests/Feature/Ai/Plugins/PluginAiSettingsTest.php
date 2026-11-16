@@ -108,10 +108,22 @@ it('filters Tools › AI activity by plugin, names the plugin in each row and to
 
     $screen = fn (array $query = []) => $this->actingAs($this->admin)->get(route('tools.ai-activity.index', $query));
 
+    cmSettings([UsageLimits::BUDGET => 50, PluginAiSection::budgetKey('scribe') => 5], AiSettings::KEY);
+
+    // Teme's own row is people's own requests; its budget is the site's, which counts every request.
     $screen()->assertOk()->assertInertia(fn (Assert $page) => $page
         ->has('rows', 2)
-        ->where('plugins', [['value' => 'teme', 'label' => 'Teme'], ['value' => 'scribe', 'label' => 'Scribe']])
-        ->where('pluginMonths', [['code' => 'scribe', 'label' => 'Scribe', 'costMicrounits' => 1_100, 'requests' => 1, 'unpricedRequests' => 0]]));
+        ->where('plugins', [['value' => 'teme', 'label' => 'Teme only'], ['value' => 'scribe', 'label' => 'Scribe']])
+        ->where('pluginMonths', [
+            ['code' => 'teme', 'label' => 'Teme', 'costMicrounits' => 1_400, 'requests' => 1, 'unpricedRequests' => 0, 'budget' => ['limitMicrounits' => 50_000_000, 'countedMicrounits' => 2_500, 'reached' => false]],
+            ['code' => 'scribe', 'label' => 'Scribe', 'costMicrounits' => 1_100, 'requests' => 1, 'unpricedRequests' => 0, 'budget' => ['limitMicrounits' => 5_000_000, 'countedMicrounits' => 1_100, 'reached' => false]],
+        ]));
+
+    // A plugin's budget spent reads as reached; one with no budget of its own has none.
+    DB::table('ai_plugin_monthly_spend')->where('plugin', 'scribe')->update(['cost_microunits' => 5_000_000]);
+    $screen()->assertOk()->assertInertia(fn (Assert $page) => $page->where('pluginMonths.1.budget.reached', true));
+    cmSettings([PluginAiSection::budgetKey('scribe') => 0], AiSettings::KEY);
+    $screen()->assertOk()->assertInertia(fn (Assert $page) => $page->where('pluginMonths.1.budget', null));
 
     $screen(['plugin' => 'scribe'])->assertOk()->assertInertia(fn (Assert $page) => $page
         ->has('rows', 1)

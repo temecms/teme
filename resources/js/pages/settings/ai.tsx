@@ -67,7 +67,7 @@ function PluginPanel({
             as="section"
             title={plugin.label}
             description={__(
-                'A plugin. Its requests are recorded under its name in Tools › AI activity, and they count toward the site’s budget.',
+                'Its requests are recorded under its name in Tools › AI activity, and they count toward the site’s budget.',
             )}
         >
             <div data-test={`ai-plugin-${plugin.code}`} className="grid gap-5">

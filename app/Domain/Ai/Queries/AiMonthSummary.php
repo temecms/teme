@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
 
+use App\Domain\Ai\Plugins\PluginAiSection;
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Ai\UsageLimits;
 use Carbon\CarbonImmutable;
@@ -14,36 +15,63 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class AiMonthSummary
 {
-    public function __construct(private AiSpend $spend, private PluginAiTasks $pluginTasks) {}
+    public function __construct(private AiSpend $spend, private PluginAiTasks $pluginTasks, private PluginAiSection $section) {}
 
     /**
-     * Returns each plugin's figures for a month (its first day, else this
-     * month), by label: its code and label, what it cost, how many requests
-     * it made and how many had no price. Plugins that asked nothing are left out.
+     * Returns a month's spend by who asked (its first day, else this month),
+     * for the By plugin table: Teme first, for people's own requests, then
+     * each plugin that asked, by label. Each row has its code and label, its
+     * cost, requests and unpriced requests, and, this month only, its budget:
+     * the limit, what the limit counts and whether it is reached (Teme's is
+     * the site's, which counts every request); null when it has none. Empty
+     * when no plugin asked that month.
      *
-     * @return list<array{code: string, label: string, costMicrounits: int, requests: int, unpricedRequests: int}>
+     * @return list<array{code: string, label: string, costMicrounits: int, requests: int, unpricedRequests: int, budget: array{limitMicrounits: int, countedMicrounits: int, reached: bool}|null}>
      */
     public function byPlugin(?string $month): array
     {
-        $first = AiSpend::monthOf($month === null ? CarbonImmutable::now('UTC') : CarbonImmutable::parse($month, 'UTC'));
+        $now = CarbonImmutable::now('UTC');
+        $first = AiSpend::monthOf($month === null ? $now : CarbonImmutable::parse($month, 'UTC'));
+        $current = $first === AiSpend::monthOf($now);
         $rows = DB::table('ai_plugin_monthly_spend')->where('month', $first)->get(['plugin', 'cost_microunits', 'requests', 'unpriced_requests']);
-        $labels = $rows->isEmpty() ? [] : $this->pluginTasks->labels();
-        $totals = [];
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $labels = $this->pluginTasks->labels();
+        $site = $this->spend->month(CarbonImmutable::parse($first, 'UTC'));
+        $plugins = [];
 
         foreach ($rows as $row) {
             $code = (string) $row->plugin;
-            $totals[] = [
+            $cost = (int) $row->cost_microunits;
+            $limit = $current ? $this->section->budgetMicrounits($code) : null;
+            $plugins[] = [
                 'code' => $code,
                 'label' => $labels[$code]['label'] ?? $code,
-                'costMicrounits' => (int) $row->cost_microunits,
+                'costMicrounits' => $cost,
                 'requests' => (int) $row->requests,
                 'unpricedRequests' => (int) $row->unpriced_requests,
+                'budget' => $limit === null ? null : ['limitMicrounits' => $limit, 'countedMicrounits' => $cost, 'reached' => $cost >= $limit],
             ];
         }
 
-        usort($totals, fn (array $one, array $other): int => strnatcasecmp($one['label'], $other['label']));
+        usort($plugins, fn (array $one, array $other): int => strnatcasecmp($one['label'], $other['label']));
 
-        return $totals;
+        $siteLimit = $current ? UsageLimits::budgetMicrounits() : null;
+
+        return [
+            [
+                'code' => AiActivityList::TEME,
+                'label' => 'Teme',
+                'costMicrounits' => max(0, $site->costMicrounits - array_sum(array_column($plugins, 'costMicrounits'))),
+                'requests' => max(0, $site->requests - array_sum(array_column($plugins, 'requests'))),
+                'unpricedRequests' => max(0, $site->unpricedRequests - array_sum(array_column($plugins, 'unpricedRequests'))),
+                'budget' => $siteLimit === null ? null : ['limitMicrounits' => $siteLimit, 'countedMicrounits' => $site->costMicrounits, 'reached' => $this->spend->budgetReached()],
+            ],
+            ...$plugins,
+        ];
     }
 
     /**

@@ -147,13 +147,19 @@ export type AiMonthSummary = {
     reached: boolean;
 };
 
-/** One plugin's AI spend in a month (Tools › AI activity, under the month's figures). */
+/** One row of Tools › AI activity's By plugin table: Teme's own requests (`teme`) or one plugin's, in a month. */
 export type AiPluginMonth = {
     code: string;
     label: string;
     costMicrounits: number;
     requests: number;
     unpricedRequests: number;
+    /** This month only: the limit, what it counts (for Teme, the site's whole spend) and whether it is reached; null for none. */
+    budget: {
+        limitMicrounits: number;
+        countedMicrounits: number;
+        reached: boolean;
+    } | null;
 };
 
 export type AiActivityPage = {
@@ -169,10 +175,10 @@ export type AiActivityPage = {
     people: { value: number; label: string }[];
     tasks: { value: string; label: string }[];
     months: { value: string; label: string }[];
-    /** The Plugin filter's choices: `teme` for Teme's own requests, then each plugin with requests. */
+    /** The filter's choices after "Teme and plugins": `teme` (Teme only), then each plugin with requests. */
     plugins: { value: string; label: string }[];
     summary: AiMonthSummary;
-    /** The month's totals by plugin, by name; empty when no plugin asked. */
+    /** The By plugin table: Teme, then each plugin that asked; empty when no plugin asked that month. */
     pluginMonths: AiPluginMonth[];
     details: AiActivityRow | null;
     missing: boolean;

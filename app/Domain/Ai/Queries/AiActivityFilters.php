@@ -74,7 +74,7 @@ final readonly class AiActivityFilters
     }
 
     /**
-     * Returns the plugin filter's choices: Teme for core's own requests, then
+     * Returns the filter's choices after "Teme and plugins": Teme only, for people's own requests, then
      * each plugin the record holds requests from, by label, and the one
      * chosen if it holds none.
      *
@@ -98,7 +98,7 @@ final readonly class AiActivityFilters
         asort($options, SORT_NATURAL | SORT_FLAG_CASE);
 
         return [
-            ['value' => AiActivityList::TEME, 'label' => 'Teme'],
+            ['value' => AiActivityList::TEME, 'label' => __('Teme only')],
             ...array_map(
                 fn (string $code, string $label): array => ['value' => $code, 'label' => $label],
                 array_map(strval(...), array_keys($options)),

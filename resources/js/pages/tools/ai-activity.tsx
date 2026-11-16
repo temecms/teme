@@ -1,5 +1,5 @@
 import { Head, Link, router, setLayoutProps } from '@inertiajs/react';
-import type { CSSProperties, FormEvent } from 'react';
+import type { CSSProperties, FormEvent, HTMLAttributes } from 'react';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Notice } from '@/components/ui/notice';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { PluginMark } from '@/components/ui/plugin-mark';
 import { SelectField } from '@/components/ui/select-field';
 import {
     costWords,
@@ -39,11 +40,9 @@ const FACTS = { '--facts-cols': 'max-content 1fr' } as CSSProperties;
 /** The figures above the list: a month's spend and requests, and, for this month, the budget (I-1307). */
 function Summary({
     summary,
-    pluginMonths,
     canChangeSettings,
 }: {
     summary: AiMonthSummary;
-    pluginMonths: AiPluginMonth[];
     canChangeSettings: boolean;
 }) {
     const budget = summary.budgetMicrounits;
@@ -151,51 +150,115 @@ function Summary({
                         </span>
                     </Notice>
                 )}
-                {pluginMonths.length > 0 && (
-                    <section
-                        aria-labelledby="ai-activity-by-plugin"
-                        data-test="ai-activity-by-plugin"
-                        className="border-line grid gap-2 border-t pt-3"
-                    >
-                        <h3
-                            id="ai-activity-by-plugin"
-                            className="text-small font-medium"
-                        >
-                            {__('By plugin')}
-                        </h3>
-                        <dl
-                            className="text-small grid gap-x-6 gap-y-2 sm:grid-cols-(--facts-cols)"
-                            style={FACTS}
-                        >
-                            {pluginMonths.map((plugin) => (
-                                <div
-                                    key={plugin.code}
-                                    className="contents"
-                                    data-test={`ai-activity-plugin-month-${plugin.code}`}
-                                >
-                                    <dt className="text-ink-2">
-                                        {plugin.label}
-                                    </dt>
-                                    <dd>
-                                        {__n(
-                                            ':cost, :count request|:cost, :count requests',
-                                            plugin.requests,
-                                            {
-                                                cost: formatCost(
-                                                    plugin.costMicrounits,
-                                                ),
-                                                count: plugin.requests.toLocaleString(),
-                                            },
-                                        )}
-                                    </dd>
-                                </div>
-                            ))}
-                        </dl>
-                    </section>
-                )}
                 <p className="text-ink-2 text-caption">
                     {__('Months follow UTC, as the AI companies bill.')}
                 </p>
+            </PanelBody>
+        </Panel>
+    );
+}
+
+/**
+ * The month's spend by who asked: Teme's own requests, then each plugin by
+ * its own name and mark, with its requests, cost and, this month, its budget.
+ */
+function ByPlugin({
+    rows,
+    current,
+}: {
+    rows: AiPluginMonth[];
+    current: boolean;
+}) {
+    const columns: Column<AiPluginMonth>[] = [
+        {
+            id: 'who',
+            owner: 'core',
+            header: __('Who asked'),
+            cell: (row) =>
+                row.code === 'teme' ? (
+                    <>
+                        {row.label}
+                        <span className="text-ink-2 text-caption block">
+                            {__('People’s own requests')}
+                        </span>
+                    </>
+                ) : (
+                    <PluginMark
+                        name={row.label}
+                        className="text-small text-ink"
+                    />
+                ),
+        },
+        {
+            id: 'requests',
+            owner: 'core',
+            header: __('Requests'),
+            className: 'text-right',
+            cell: (row) => row.requests.toLocaleString(),
+        },
+        {
+            id: 'cost',
+            owner: 'core',
+            header: __('Cost'),
+            className: 'text-right',
+            cell: (row) => formatCost(row.costMicrounits),
+        },
+        ...(current
+            ? [
+                  {
+                      id: 'budget',
+                      owner: 'core',
+                      header: __('Budget'),
+                      cell: (row: AiPluginMonth) =>
+                          row.budget === null
+                              ? __('No limit')
+                              : row.budget.reached
+                                ? __(':spent of :limit, used up', {
+                                      spent: formatCost(
+                                          row.budget.countedMicrounits,
+                                      ),
+                                      limit: formatCost(
+                                          row.budget.limitMicrounits,
+                                      ),
+                                  })
+                                : __(':spent of :limit', {
+                                      spent: formatCost(
+                                          row.budget.countedMicrounits,
+                                      ),
+                                      limit: formatCost(
+                                          row.budget.limitMicrounits,
+                                      ),
+                                  }),
+                  },
+              ]
+            : []),
+    ];
+
+    return (
+        <Panel
+            aria-labelledby="ai-activity-by-plugin"
+            data-test="ai-activity-by-plugin"
+        >
+            <PanelHeader>
+                <h2
+                    id="ai-activity-by-plugin"
+                    className="text-lead font-semibold"
+                >
+                    {__('By plugin')}
+                </h2>
+            </PanelHeader>
+            <PanelBody>
+                <DataTable
+                    columns={columns}
+                    rows={rows}
+                    rowKey={(row) => row.code}
+                    caption={__('AI spend by who asked')}
+                    rowProps={(row) =>
+                        ({
+                            'data-test': `ai-activity-plugin-month-${row.code}`,
+                        }) as HTMLAttributes<HTMLTableRowElement>
+                    }
+                />
             </PanelBody>
         </Panel>
     );
@@ -242,8 +305,6 @@ export default function AiActivity(page: AiActivityPage) {
         ...(filters.month === null ? {} : { month: filters.month }),
         ...(filters.plugin === null ? {} : { plugin: filters.plugin }),
     };
-    // Only Teme is listed until a plugin has asked.
-    const pluginFilter = plugins.length > 1 || filters.plugin !== null;
 
     // A filter starts a list afresh: no cursor, no drawer.
     const filter = (event: FormEvent<HTMLFormElement>) => {
@@ -311,10 +372,10 @@ export default function AiActivity(page: AiActivityPage) {
                     {row.task.label}
                     {row.plugin !== null && (
                         <span
-                            className="text-ink-2 text-caption block"
+                            className="block"
                             data-test={`ai-row-plugin-${row.id}`}
                         >
-                            {row.plugin.label}
+                            <PluginMark name={row.plugin.label} />
                         </span>
                     )}
                     {row.variant !== null && (
@@ -443,9 +504,12 @@ export default function AiActivity(page: AiActivityPage) {
 
                 <Summary
                     summary={summary}
-                    pluginMonths={pluginMonths}
                     canChangeSettings={canChangeSettings}
                 />
+
+                {pluginMonths.length > 0 && (
+                    <ByPlugin rows={pluginMonths} current={summary.current} />
+                )}
 
                 <form
                     role="search"
@@ -499,22 +563,20 @@ export default function AiActivity(page: AiActivityPage) {
                             className="w-44"
                         />
                     </Field>
-                    {pluginFilter && (
-                        <Field
-                            key={`plugin-${filters.plugin ?? ''}`}
-                            htmlFor="ai-plugin"
-                            label={__('Plugin')}
-                        >
-                            <SelectField
-                                id="ai-plugin"
-                                name="plugin"
-                                defaultValue={filters.plugin ?? ''}
-                                emptyLabel={__('Teme and every plugin')}
-                                options={plugins}
-                                className="w-52"
-                            />
-                        </Field>
-                    )}
+                    <Field
+                        key={`plugin-${filters.plugin ?? ''}`}
+                        htmlFor="ai-plugin"
+                        label={__('Asked by')}
+                    >
+                        <SelectField
+                            id="ai-plugin"
+                            name="plugin"
+                            defaultValue={filters.plugin ?? ''}
+                            emptyLabel={__('Teme and plugins')}
+                            options={plugins}
+                            className="w-52"
+                        />
+                    </Field>
                     <Button
                         type="submit"
                         variant="outline"
