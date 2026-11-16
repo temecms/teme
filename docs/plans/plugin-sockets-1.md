@@ -378,69 +378,103 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+Setup: `cat /tmp/teme-cloud-setup.log` gave two lines, `2026-11-16T07:45:23Z ran in /home/user/teme as root` and `2026-11-16T07:57:41Z finished`; `pwd` gave `/home/user/teme`. Built on `origin/main` at `9b29abb`, which holds `plugins/list-columns` (merged by #336) and `chore/m0-kit-and-scripts` (#335).
+
+Fixes #334: a plugin with schedules can no longer be enabled from the console without naming the administrator its schedules run as, and a plugin whose schedules can't run says why on the Plugins screen and in `teme:plugins`.
+
 #### Commits on `sockets/plugin-admin`
 
--
+- `c9e2969` feat(plugins): a plugin writes its own settings for the person its work runs for
+- `96875fc` feat(plugins): queue a plugin's job after a delay, or once while one waits
+- `36a6f26` feat(plugins): lists of plain rows on a plugin's settings page
+- `12ef24b` feat(plugins): actions on a plugin's settings page queue its declared jobs
+- `9cf630d` feat(plugins): schedules never fail in silence when a plugin is enabled from the console
+- `a01be3c` test(plugins): EnablePlugin checks the named administrator again
+- `433f75f` docs(plugins): writing a plugin's own settings, actions, lists, queue options and schedules from the console
+- `037e8f3` docs(plugins): regenerate the handbook index for the settings and jobs pages
+- the commit that fills these Records
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Plugins/Sockets/WritePluginSettingsTest.php` | `Tests\Fixtures\Plugins\Workbench\Workbench asks for Teme\Contracts\Settings\PluginSettingsWriter; a plugin may ask only for what Teme offers plugins.` (ValidationException at enable: the door wasn't offered) |
+| 2 | `tests/Feature/Plugins/Sockets/QueueOptionsTest.php` | `Class "Teme\Contracts\Jobs\QueueOptions" not found` (12 failed, 1 passed) |
+| 3 | `tests/Feature/Plugins/Sockets/PluginListsTest.php` | Seen red before `contributes.lists` and the lists contracts existed; its exact first line wasn't kept in my notes, and I didn't rerun the old commit while the gate held the test database. |
+| 4 | `tests/Feature/Plugins/Sockets/PluginActionsTest.php` | `Teme doesn’t offer the actions surface to plugins yet.` (14 failed) |
+| 5 | `tests/Feature/Plugins/Sockets/ConsoleSchedulesTest.php` | `Unexpected status code 0 was received.` (the plugin with schedules enabled, saying nothing), then `The "--as" option does not exist.` (9 failed, 1 passed) |
+| 6 | `tests/Browser/PluginSettingsPanelsTest.php` | Not written: the screen task waits for the drawing's approval (see STOP). |
 
 #### Task 0
 
--
+- V is `0.9.0` (no `v0.9.0` tag yet; the release the contracts already name).
+- `plugins/list-columns` is on `main`: `git log --oneline -1 -- packages/teme-contracts/src/Lists/Cell.php` gives `731b598 Merge plugins/list-columns, with the review's fixes`. Task 3 went ahead.
+- `tracked_jobs`: `id`, `kind` (64), `owner` (64, default `core`), `label` (200), `starter` (16), `started_by`, `run_type` (32), `run_id` (64), `state` (16), `total`, `done`, `message` (500), `payload` (jsonb), `created_at`, `updated_at`, `ended_at`; this part adds `unique_key` (64). States (`JobState`): `waiting`, `running`, `finished`, `failed`, `cancelled`.
+- `SettingsWriter::write(SettingsWrite)` takes `origin` on `SettingsWrite` (default `human`); `settings_changes.origin` was `varchar(16)` with a CHECK naming the fixed origins (see B-01).
+- `UpdateSettings` passes the form's `expectedVersion` to `SettingsWriter`, which locks the group's row (`lockForUpdate`) and compares the version under the lock (see B-02).
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Before (on `9b29abb`): `composer check` green; Architecture 139 passed; Unit and Feature 11,711 passed, 2 skipped (1,893 s).
+- After (on `433f75f`, before the index commit): Pint, PHPStan, types, lint and the themes' build green; Architecture 139 passed (1,358 assertions); Unit and Feature 3 failed, 11,784 passed, 2 skipped (60,573 assertions, 1,785 s). The three:
+  - `GenerateHandbookIndexTest`: `llms.txt` behind the two handbook pages' new summaries. Regenerated in `037e8f3`; now green.
+  - `GenerateManifestReferenceTest`: `docs/reference/plugin-manifest.md` lacks `contributes.actions` and `contributes.lists`. Expected: this plan says not to regenerate it, the join does.
+  - `DatabaseDownTest` (`it serves an ordinary request with the database down`): no failure reported (0 where 1 is expected) in that run only. It passes alone (three runs) and in `tests/Feature/Plugins` in parallel (669 passed). A second run of Unit and Feature on `037e8f3`: 2 failed (`GenerateManifestReferenceTest`, as above, and `DiscoveryTest`, see the open items), 11,785 passed, 2 skipped (60,569 assertions, 1,796 s).
+- The plan's quick check, after the last change: `tests/Feature/Plugins` 669 passed; `tests/Feature/Jobs` 81 passed; `tests/Unit/Contracts` 133 passed; `tests/Feature/Guides/Developers` 189 passed.
+- Browser (after `npm run build`, `npm run build:themes` and `teme:themes:link`, one file at a time): `tests/Browser/Plugins/PluginsScreenTest.php` 19 passed; `tests/Browser/JobsScreenTest.php` 5 passed. `PluginSettingsPanelsTest` isn't written (Task 6).
 
 #### Drafts (B-numbers from this block)
 
-- B-01:
-- B-02:
-- B-03:
-- B-04:
-- B-05:
-- B-06:
-- B-07:
-- B-08:
-- B-09:
-- B-10:
-- B-11:
-- B-12:
-- B-13:
-- B-14:
-- B-15:
-- B-16:
-- B-17:
-- B-18:
-- B-19:
-- B-20:
+- B-01: `settings_changes.origin` was `varchar(16)` with a CHECK of fixed origins, so `plugin:{code}` couldn't be stored. A second migration, `2027_07_20_100000_allow_plugin_origin_in_settings_changes`, widens it to 64 and lets the CHECK also accept `^plugin:[a-z0-9][a-z0-9-]{1,39}$`. It changes no row; its `down()` maps `plugin:` origins to `system` before restoring the old CHECK. The plan names one migration only.
+- B-02: `WritePluginSettings` passes `expectedVersion: null`. The writer already locks the group's row and reads its version under that lock, which is what B1 asks; a plugin has no form opened on an older version to compare with.
+- B-03: The workbench fixture's namespace `Tests\Fixtures\Plugins\Workbench` maps through `autoload-dev` to `tests/Fixtures/Plugins/Workbench`, but plugin fixtures live in `tests/Fixtures/plugins/` (lower case), and `composer.json` may not change. The Sockets tests `require_once` the fixture's `src/*.php` at the top of the file.
+- B-04: `ListColumns`' cell cleaner was private; it moved unchanged into `app/Domain/Plugins/Columns/CellText.php` and both `PluginColumns` and `PluginLists` call it, as B3 allows.
+- B-05: The Plugins screen's row is drawn by `resources/js/components/plugins/plugin-row.tsx`, not `pages/plugins/index.tsx`, so the schedules warning line went there (`data-test="plugin-schedules"`), with `schedules: string | null` in `resources/js/types/plugins.ts`.
+- B-06: `EnablePlugin` gets an account ID, not an email, so its own refusal reads `No one who may manage plugins has that account.`; the command says the plan's sentence with the email before anything reaches the Operation.
+- B-07: `plugins.consented_by` is `nullOnDelete`, so deleting the administrator leaves it null and the first sentence (`enabled from the command line without naming an administrator`) shows, not `the administrator who enabled it no longer has an account`. The second sentence is reachable only for an ID that no longer resolves, and is tested with an unsaved record. Left for the maintainers (open items).
+- B-08: `PluginActions` (which actions a plugin declares, for an enabled plugin granted `jobs`) lives in `app/Domain/Plugins/Lists/`, the folder this part owns, beside `PluginLists`.
+- B-09: `RunPluginAction` queues as the person who clicked through a `PluginJobs` given that person (`JobActor::person`), a new last constructor parameter `?JobActor $as = null`; otherwise `PluginJobs` takes the signed-in person or the operator, as before.
+- B-10: `SettingsController` already serves `pluginActions` and `pluginLists` for a plugin's group, so the lists are asked whenever a plugin's settings page is opened, though nothing draws them until Task 6.
+- B-11: `DueSchedules` writes a skipped plugin to the log at most once a day with `Cache::add` on a key holding the plugin's code and the date (the disposable cache table; nothing serialized of ours).
+- B-12: The plan says "STOP before" Task 6 until the drawing is approved; the owner's message for this part says to build every other task and leave Task 6 for a follow-up, not a STOP. Followed the owner.
 
 #### Contract changes
 
--
+- New, `@since 0.9.0`: `Teme\Contracts\Settings\PluginSettingsWriter`; `Teme\Contracts\Jobs\QueueOptions`; `Teme\Contracts\Lists\HasPluginLists`; `Teme\Contracts\Lists\PluginList`. All four have rows in `PluginContractsTest`.
+- Changed: `Teme\Contracts\Jobs\Jobs::queue()` gains a last parameter `?QueueOptions $options = null`.
+- Schema: `contributes.actions` and `contributes.lists` in `teme-plugin.schema.json`.
 
 #### STOP
 
--
+- None. Task 6 (the Actions and lists panels, `plugin-actions.tsx`, `plugin-list-panel.tsx`, `group.tsx`, `PluginSettingsPanelsTest`) is left for a follow-up once the maintainers approve the drawing, as the owner asked.
+
+#### Open items
+
+- A job can't learn whom it runs as: `JobContext` gives the payload, the attempt and progress, but no person ID, so a scheduled job can't name the administrator to `PluginSettingsWriter::write()` (B1's "a key generated in a scheduled job is saved"). The tests pass the ID in from outside. The smallest fix is a `JobContext::actingPersonId(): ?string` (`@since 0.9.0`, core implements `JobContext`, so no plugin breaks); it's a contract change for the maintainers to decide.
+- Task 6 waits for the drawing (above).
+- B-07: decide whether a deleted administrator should show its own sentence (for example by reading who enabled it from the security log) or whether the first sentence's wording should cover it.
+- `DatabaseDownTest` failed once in the full run and passes alone and in its folder; a second full run of Unit and Feature (2 failed, 11,785 passed, 2 skipped, 1,796 s) passed it, and failed instead `DiscoveryTest` (`it finds the configured folders`), whose registry also held `tests/jobs`; that test passes alone (twice). Both look order-dependent: state from another test's fixtures leaking into the next one in the same worker. Every new test file here forgets its fixtures in `afterEach`, as `PluginSchedulesTest` does, and I didn't find the leak. Worth a look before the join.
+- `docs/reference/plugin-manifest.md` to regenerate at the join.
 
 #### Changelog lines for the maintainers
 
--
+- Added: a plugin can save its own settings for the person its work runs for (`PluginSettingsWriter`), never secrets or addresses.
+- Added: a plugin can queue a job after a delay, or once while one already waits (`QueueOptions`).
+- Added: plugins can declare actions (buttons that queue their jobs) and small lists for their settings page; the panels that draw them follow.
+- Changed: `teme:plugins:enable` asks for `--as=<email>` for a plugin with schedules, and the Plugins screen and `teme:plugins` say when a plugin's schedules can't run. Fixes #334.
 
 #### Try it
 
--
+- `php artisan teme:plugins:enable <a plugin with schedules> --agree` is refused and names `--as`; add `--as=<an administrator's email>` and it's enabled, its schedules running as that person.
+- Enable one from the console on `main` before this part (no `consented_by`), then open Site › Plugins: the row says its schedules don't run and how to fix it; `php artisan teme:plugins` says the same under Why.
+- `php artisan test --compact tests/Feature/Plugins/Sockets` runs the workbench fixture through settings writes, queue options, lists, actions and the console.
 
 ---
 
