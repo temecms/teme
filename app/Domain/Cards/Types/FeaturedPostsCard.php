@@ -76,7 +76,14 @@ final class FeaturedPostsCard implements CardType, RegionCard
             return '';
         }
 
-        $items = app(FeaturedPosts::class)->items($attrs);
+        // The list's own settings, by name: the rest of the card is drawn here.
+        $items = app(FeaturedPosts::class)->items([
+            'source' => $attrs['source'] ?? 'latest',
+            'items' => $attrs['items'] ?? [],
+            'type' => $attrs['type'] ?? 'post',
+            'termId' => $attrs['termId'] ?? null,
+            'count' => $attrs['count'] ?? 5,
+        ]);
 
         if ($items === []) {
             return '';
