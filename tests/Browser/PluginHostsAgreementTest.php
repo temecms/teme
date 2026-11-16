@@ -59,6 +59,8 @@ it('asks before a plugin reaches a host typed into its settings, refuses a save 
     $page->type('#field-more_hubs', 'https://hub.example.net/');
     cmWaitUntil($page, 'document.querySelector(\'[data-test="hosts-agreement"]\') !== null');
     $page->assertSeeIn('[data-test="hosts-agreement"]', 'Saving lets Hub connect to hub.example.net.');
+    // The line is read with its field.
+    $page->assertScript('(document.querySelector("#field-more_hubs").getAttribute("aria-describedby") ?? "").split(" ").map((id) => document.getElementById(id)?.textContent ?? "").includes("Saving lets Hub connect to hub.example.net.")', true);
 
     $page->click('[data-test="settings-save"]');
     cmWaitUntil($page, 'document.body.textContent.includes("Agree to let Hub connect to hub.example.net, or remove them.")');
@@ -71,6 +73,7 @@ it('asks before a plugin reaches a host typed into its settings, refuses a save 
 
     expect(PluginRecord::query()->sole()->consent['settingHosts'])->toBe(['hub.example.com', 'hub.example.net']);
     cmWaitUntil($page, 'document.querySelector(\'[data-test="hosts-agreement"]\') === null');
+    $page->assertScript('(document.querySelector("#field-more_hubs").getAttribute("aria-describedby") ?? "").includes("hosts-line")', false);
     expect($page->script('() => Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)'))->toBe(0);
     cmNoJavaScriptErrors($page);
 })->with(['wide' => 1280, 'phone' => 375]);

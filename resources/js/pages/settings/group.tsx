@@ -1,6 +1,6 @@
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, router, setLayoutProps } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SettingsController from '@/actions/App/Http/Admin/Settings/SettingsController';
 import { BrandColourSetting } from '@/components/fields/brand-colour-setting';
 import { HomePageSetting } from '@/components/fields/home-page-setting';
@@ -97,6 +97,30 @@ function HostsAgreement({
             !hosts.agreed.includes(host) && !covered(hosts.declared, host),
     );
     const id = `agree-hosts-${settingKey}`;
+    const lineId = `hosts-line-${settingKey}`;
+    const showing = unagreed.length > 0;
+
+    // The line is read with its field: its id joins the field's aria-describedby while it shows.
+    useEffect(() => {
+        const field = document.getElementById(`field-${settingKey}`);
+
+        if (field === null || !showing) {
+            return;
+        }
+
+        const before = field.getAttribute('aria-describedby') ?? '';
+        field.setAttribute('aria-describedby', `${before} ${lineId}`.trim());
+
+        return () => {
+            field.setAttribute(
+                'aria-describedby',
+                (field.getAttribute('aria-describedby') ?? '')
+                    .split(' ')
+                    .filter((part) => part !== lineId && part !== '')
+                    .join(' '),
+            );
+        };
+    }, [settingKey, lineId, showing]);
 
     return (
         <div
@@ -112,9 +136,9 @@ function HostsAgreement({
             }}
         >
             {children}
-            {unagreed.length > 0 && (
+            {showing && (
                 <div className="grid gap-2" data-test="hosts-agreement">
-                    <p className="text-small text-ink-2">
+                    <p id={lineId} className="text-small text-ink-2">
                         {__('Saving lets :plugin connect to :hosts.', {
                             plugin: hosts.plugin,
                             hosts: unagreed.join(', '),
