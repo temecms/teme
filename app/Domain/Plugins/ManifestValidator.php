@@ -9,6 +9,7 @@ use App\Domain\Import\PluginData\WordPressNames;
 use App\Domain\Plugins\Jobs\DeclaredJobs;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
 use Composer\Semver\Semver;
@@ -136,6 +137,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
         array_push($errors, ...$this->routes($manifest, $read));
+        array_push($errors, ...$this->rootFiles($manifest, $read));
         array_push($errors, ...$this->imports($manifest, $read));
 
         return $errors;
@@ -642,6 +644,94 @@ final readonly class ManifestValidator
         }
 
         array_push($errors, ...$this->routeCollisions->errorsFor($read, $typed));
+
+        return $errors;
+    }
+
+    /**
+     * Root files (docs/guides/developers/plugins/root-files.md): only with routes.public, at most
+     * RootFile::MOST, each a name and a body, literal or filled from one of
+     * the plugin's own text settings, and no literal name of core's.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return list<string>
+     */
+    private function rootFiles(array $manifest, Manifest $read): array
+    {
+        if (! array_key_exists('rootFiles', $manifest)) {
+            return [];
+        }
+
+        $files = $manifest['rootFiles'];
+
+        if (! is_array($files) || ! array_is_list($files)) {
+            return ['rootFiles must be a list of root file objects.'];
+        }
+
+        $errors = [];
+
+        if ($files !== [] && ! in_array(Capability::RoutesPublic->value, $read->capabilities(), true)) {
+            $errors[] = 'It declares root files but doesn’t ask for routes.public.';
+        }
+
+        if (count($files) > RootFile::MOST) {
+            $errors[] = 'It declares '.count($files).' root files; a plugin may declare at most '.RootFile::MOST.'.';
+        }
+
+        $texts = [];
+
+        foreach ($read->contributes()['settings'] ?? [] as $setting) {
+            if (is_array($setting) && ($setting['type'] ?? null) === 'text' && is_string($setting['key'] ?? null)) {
+                $texts[] = $setting['key'];
+            }
+        }
+
+        $ids = [];
+        $names = [];
+
+        foreach ($files as $entry) {
+            if (! is_array($entry) || ! is_string($entry['id'] ?? null) || ! is_string($entry['name'] ?? null) || ! is_string($entry['body'] ?? null)) {
+                $errors[] = 'Each root file must be an object with an id, a name and a body.';
+
+                continue;
+            }
+
+            $file = new RootFile($read->name(), $entry['id'], $entry['name'], $entry['body']);
+
+            if (preg_match('/^[a-z][a-z0-9_-]*$/', $file->id) !== 1) {
+                $errors[] = 'Each root file needs an id of lower-case letters, digits, hyphens and underscores.';
+            } elseif (in_array($file->id, $ids, true)) {
+                $errors[] = "rootFiles id \"{$file->id}\" is listed more than once.";
+            }
+
+            $ids[] = $file->id;
+            $nameSetting = $file->nameSetting();
+
+            if ($nameSetting !== null) {
+                if (! in_array($nameSetting, $texts, true)) {
+                    $errors[] = "rootFiles \"{$file->id}\" takes its name from {$nameSetting}, which isn’t one of its text settings.";
+                }
+            } elseif (preg_match(RootFile::NAME, $file->name) !== 1) {
+                $errors[] = "rootFiles \"{$file->id}\" name must be 8 to 128 letters, digits and hyphens, then .txt, or {setting}.txt.";
+            } elseif (in_array($file->name, $names, true)) {
+                $errors[] = "rootFiles name {$file->name} is listed more than once.";
+            } else {
+                $names[] = $file->name;
+            }
+
+            $bodySetting = $file->bodySetting();
+
+            if ($bodySetting !== null) {
+                if (! in_array($bodySetting, $texts, true)) {
+                    $errors[] = "rootFiles \"{$file->id}\" takes its body from {$bodySetting}, which isn’t one of its text settings.";
+                }
+            } elseif ($file->body === '' || strlen($file->body) > RootFile::MOST_BYTES) {
+                $errors[] = "rootFiles \"{$file->id}\" body must be 1 to ".RootFile::MOST_BYTES.' bytes, or {setting}.';
+            }
+        }
+
+        array_push($errors, ...$this->routeCollisions->rootFileErrors($read));
 
         return $errors;
     }

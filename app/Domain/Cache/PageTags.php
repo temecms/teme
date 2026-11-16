@@ -34,6 +34,9 @@ final class PageTags
     /** Every published article page that asks contributors for insertions, drawn or not (I-064). */
     public const string INSERTIONS = 'insertions';
 
+    /** Every stored "not found" page at an address a plugin's root file could answer (docs/guides/developers/plugins/root-files.md). */
+    public const string ROOT_FILES = 'root-files';
+
     /**
      * Whether the tag names a list by its query (a type's, a term's, an
      * author's, a year's, a month's, an item's comments, the list of a

@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
+use App\Domain\PublicRoutes\RootFile;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
@@ -66,6 +67,13 @@ final class EnablePluginCommand extends Command
                 Capability::Http->value => __('Connect to services outside this site: :hosts', ['hosts' => implode(', ', $hosts)]),
                 default => $capability,
             });
+
+            // Each file it answers at the site's root, as the consent lists it (docs/guides/developers/plugins/root-files.md).
+            if ($capability === Capability::RoutesPublic->value) {
+                foreach (RootFile::declaredIn($manifest) as $file) {
+                    $this->line('    '.$file->consentLine($manifest));
+                }
+            }
         }
 
         if (! $this->option('agree')) {

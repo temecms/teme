@@ -28,6 +28,7 @@ It does not cover running a server or writing content. Those have their own guid
 | [Plugins writing content](plugins/content-write.md) | plugins/content-write |
 | [Jobs and schedules](plugins/jobs.md) | plugins/jobs |
 | [Public routes](plugins/public-routes.md) | plugin public routes |
+| [Files at the site's root](plugins/root-files.md) | sockets/root-files |
 | [The plugin import socket](plugins/import.md) | plugin import socket |
 | [Content inside articles](plugins/insertions.md) | render/insertion-points |
 | [The fediverse](plugins/fediverse.md) | fediverse/actors and fediverse/publishing |

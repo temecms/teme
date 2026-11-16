@@ -18,6 +18,7 @@ Guides for people and agents who build Teme plugins and themes. Reference under 
 - [Plugins writing content](plugins/content-write.md): How a plugin will create and change content through Operations.
 - [Jobs and schedules](plugins/jobs.md): How a plugin will declare queue jobs and schedules in its manifest.
 - [Public routes](plugins/public-routes.md): How a plugin will register routes reachable without signing in.
+- [Files at the site's root](plugins/root-files.md): How a plugin declares a small text file at the site's root, such as a verification key, which core serves without running the plugin's code.
 - [The plugin import socket](plugins/import.md): How a plugin will take part in site import.
 - [Content inside articles](plugins/insertions.md): How a plugin with content.insert places markup between an article's blocks, such as ads, and what core cleans, caps and leaves out.
 - [The fediverse](plugins/fediverse.md): What core does on the fediverse by itself, and the sockets a plugin can use to hear activities, handle them, change what is sent, and send its own.
