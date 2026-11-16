@@ -29,6 +29,10 @@ final readonly class UpdatePlan
             return 'This build isn’t a release, so it can’t be updated from here.';
         }
 
+        if (DB::table('extension_requests')->whereIn('status', ['requested', 'running', 'waiting'])->exists()) {
+            return __('A plugin or theme request is under way. Wait for it to end, or cancel it.');
+        }
+
         $open = $this->updates->open();
 
         if ($open !== null && $open->id !== $ignoring) {
