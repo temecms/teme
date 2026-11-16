@@ -178,6 +178,19 @@ final readonly class SiteAnalysis
     }
 
     /**
+     * The analysis with more of what doesn't come across, after its own.
+     *
+     * @param  list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>  $stays
+     */
+    public function withStays(array $stays): self
+    {
+        return new self(
+            $this->reported, $this->reportedAt, $this->comes, [...$this->stays, ...$stays], $this->warning, $this->seo,
+            $this->menuLocations, $this->templates, $this->customRoles, $this->outsideHosts,
+        );
+    }
+
+    /**
      * Returns the analysis as the page draws it, with what the choices need.
      *
      * @return array{reported: bool, reportedAt: string|null, comes: list<array{key: string, label: string, count: int}>, stays: list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>, warning: array{custom: int, total: int}|null, seo: string|null, menuLocations: list<string>, templates: array<string, int>, customRoles: array<string, list<string>>, outsideHosts: array<string, int>}

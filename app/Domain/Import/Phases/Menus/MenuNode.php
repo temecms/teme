@@ -23,6 +23,9 @@ final readonly class MenuNode
     /** WordPress's page list: its published pages under the page $objectId, or every one for 0. */
     public const string PAGES = 'pages';
 
+    /** A language switcher, which leads to the page's versions (I-3446). */
+    public const string LANGUAGES = 'languages';
+
     /** An address, as WordPress gave it. */
     public const string ADDRESS = 'address';
 
@@ -31,7 +34,7 @@ final readonly class MenuNode
      * @param  string  $label  its label as plain words, '' for none
      * @param  bool  $ownLabel  whether the label is the item's own, not its target's title
      * @param  list<MenuNode>  $children
-     * @param  array{kind: string, target_id: string|null, url: string|null}|null  $item  what it is on Teme once found; null for nothing yet, nothing at all, or a heading
+     * @param  array{kind: string, target_id: string|null, url: string|null, options?: array<string, bool>}|null  $item  what it is on Teme once found; null for nothing yet, nothing at all, or a heading
      */
     public function __construct(
         public string $name,
@@ -61,7 +64,7 @@ final readonly class MenuNode
      * The same item, found: what it is on Teme, or, with no item, a heading
      * when it leads nowhere and something left out when it can't be kept.
      *
-     * @param  array{kind: string, target_id: string|null, url: string|null}|null  $item
+     * @param  array{kind: string, target_id: string|null, url: string|null, options?: array<string, bool>}|null  $item
      */
     public function found(?array $item, bool $heading = false): self
     {

@@ -20,6 +20,9 @@ use App\Domain\Import\Phases\Finish\DeletedStep;
 use App\Domain\Import\Phases\Finish\FidelityStep;
 use App\Domain\Import\Phases\Finish\RecountStep;
 use App\Domain\Import\Phases\ImportPhases;
+use App\Domain\Import\Phases\Languages\LanguagesStep;
+use App\Domain\Import\Phases\Languages\LanguageWordsStep;
+use App\Domain\Import\Phases\Languages\TranslationsStep;
 use App\Domain\Import\Phases\Media\MediaParentsStep;
 use App\Domain\Import\Phases\Media\MediaPhase;
 use App\Domain\Import\Phases\Media\OutsideImagesStep;
@@ -62,6 +65,8 @@ final class ImportServiceProvider extends ServiceProvider
 
         $this->app->tag([AddressSettingsStep::class], ImportPhases::TAG);
 
+        $this->app->tag([LanguagesStep::class], ImportPhases::TAG);
+
         $this->app->tag([UsersPhase::class, AuthorsWaitingStep::class], ImportPhases::TAG);
 
         $this->app->tag([TermsPhase::class, TermParentsStep::class], ImportPhases::TAG);
@@ -83,6 +88,8 @@ final class ImportServiceProvider extends ServiceProvider
         $this->app->tag([RedirectsStep::class, OldAddressesStep::class], ImportPhases::TAG);
 
         $this->app->tag([SiteSettingsStep::class], ImportPhases::TAG);
+
+        $this->app->tag([TranslationsStep::class, LanguageWordsStep::class], ImportPhases::TAG);
 
         $this->app->tag([CheckStep::class], ImportPhases::TAG);
 

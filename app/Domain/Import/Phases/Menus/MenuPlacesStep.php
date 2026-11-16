@@ -6,6 +6,8 @@ namespace App\Domain\Import\Phases\Menus;
 
 use App\Domain\Import\ImportOutcome;
 use App\Domain\Import\ImportRunKind;
+use App\Domain\Import\Operations\ImportTranslatedSettings;
+use App\Domain\Import\Operations\Input\ImportTranslatedSettingsInput;
 use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\SourceRef;
@@ -13,9 +15,12 @@ use App\Domain\Import\Phases\StepPhase;
 use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Source\SourceReader;
+use App\Domain\Import\Translations\ImportedLanguages;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\Operations\Input\PlaceImportedNavigationInput;
 use App\Domain\Menus\Operations\PlaceImportedNavigation;
+use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Themes\ActiveTheme;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
@@ -140,6 +145,72 @@ final readonly class MenuPlacesStep implements StepPhase
             }
         }
 
+        if ($theme !== null) {
+            $messages = [...$messages, ...$this->placeLanguages($context, $assigned, $choices, $theme->code, $places)];
+        }
+
         return StepResult::done($messages);
+    }
+
+    /**
+     * Shows each other language's menu in its place (I-3446), as Polylang
+     * placed it per language: only menus this run made, and never over a
+     * menu a person chose for that place in that language.
+     *
+     * @param  array<string, int>  $assigned
+     * @param  array<array-key, mixed>  $choices
+     * @param  array<string, string>  $places
+     *
+     * @return list<ImportMessage>
+     */
+    private function placeLanguages(ImportContext $context, array $assigned, array $choices, string $themeCode, array $places): array
+    {
+        $languages = app(ImportedLanguages::class)->for($context->sourceId);
+        $site = app(SiteLanguages::class);
+        $bound = [];
+
+        foreach ($languages->menuPlaces($assigned) as $location => $byLanguage) {
+            $slot = $choices[$location] ?? null;
+
+            if (! is_string($slot) || ! array_key_exists($slot, $places)) {
+                continue;
+            }
+
+            foreach ($byLanguage as $slug => $menu) {
+                $tag = $languages->language((string) $slug)['language'] ?? null;
+                $entry = $slug === $languages->default || $tag === null || ! in_array($tag, $site->others(), true)
+                    ? null
+                    : $this->map->entry($context->sourceId, SourceRef::of('menu', $menu));
+
+                if ($entry?->teme_id !== null && $entry->run_id === $context->runId && $entry->outcome === ImportOutcome::Created && ! isset($bound[$tag][$slot])) {
+                    $bound[$tag][$slot] = (string) $entry->teme_id;
+                }
+            }
+        }
+
+        $messages = [];
+
+        foreach ($bound as $tag => $slots) {
+            $values = [];
+
+            foreach ($slots as $slot => $id) {
+                $values[ThemeSlotSettings::settingKey($slot)] = $id;
+            }
+
+            try {
+                $written = app(ImportTranslatedSettings::class)->execute(new ImportTranslatedSettingsInput(ThemeSlotSettings::groupKey($themeCode), $tag, $values, $context->actorId()));
+            } catch (ValidationException $refused) {
+                $reason = (string) (Arr::first(Arr::flatten($refused->errors())) ?? '');
+                $messages[] = new ImportMessage('menu-places.language-refused', __('Teme couldn’t place the old site’s menus in :language: :reason', ['language' => $site->label($tag), 'reason' => $reason]), ['language' => $tag]);
+
+                continue;
+            }
+
+            if ($written['kept'] !== []) {
+                $messages[] = new ImportMessage('menu-places.language-kept', __('Some places already show a menu in :language, chosen here, so the old site’s menus weren’t placed there.', ['language' => $site->label($tag)]), ['language' => $tag, 'keys' => $written['kept']]);
+            }
+        }
+
+        return $messages;
     }
 }

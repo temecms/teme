@@ -193,6 +193,7 @@ final class OldSite implements SourceReader
                 'options' => [...self::OPTIONS, ...$this->options],
                 'sticky_posts' => [], 'menu_locations' => [], 'seo_plugin' => $this->seo, 'multilingual' => null,
             ],
+            $list === 'languages' => ['api' => 1, 'active' => false],
             $list === 'urls' => ['api' => 1, 'items' => $this->urls[(string) ($query['kind'] ?? '')] ?? [], 'next' => null, 'limit' => 0],
             $list === 'redirects' && $source === 'yoast_premium' => ['api' => 1, 'plain' => $this->redirects[$source] ?? null, 'regex' => null],
             $list === 'redirects' && $source === 'simple_301' => ['api' => 1, 'rules' => $this->redirects[$source] ?? null],

@@ -17,6 +17,8 @@ use App\Domain\Import\Phases\PreparedObject;
 use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Queries\ImportSources;
+use App\Domain\Import\Translations\ImportedLanguages;
+use App\Domain\Languages\SiteLanguages;
 use App\Domain\Menus\Models\Navigation;
 use App\Domain\Menus\Operations\ImportNavigation;
 use App\Domain\Menus\Operations\Input\ImportNavigationInput;
@@ -107,6 +109,7 @@ final readonly class MenusPhase implements ListPhase
             tree: $shaped['tree'],
             expectedFingerprint: is_string($fingerprint) ? $fingerprint : null,
             actorId: $context->actorId(),
+            language: $block ? null : $this->language($context->sourceId, (int) $ref->id),
         ));
 
         if ($saved['changedHere']) {
@@ -124,6 +127,20 @@ final readonly class MenusPhase implements ListPhase
         }
 
         return $result->withFacts(['fingerprint' => $saved['fingerprint']]);
+    }
+
+    /**
+     * The language a classic menu is in: the one Polylang placed it for,
+     * when that is one of this site's other languages; else none, the
+     * default's (I-3446).
+     */
+    private function language(string $sourceId, int $menuId): ?string
+    {
+        $languages = app(ImportedLanguages::class)->forObjects($sourceId);
+        $slug = $languages->active ? $languages->menuLanguage($menuId) : null;
+        $tag = $slug === null ? null : ($languages->language($slug)['language'] ?? null);
+
+        return $tag !== null && in_array($tag, app(SiteLanguages::class)->others(), true) ? $tag : null;
     }
 
     /**

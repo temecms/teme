@@ -218,6 +218,7 @@ function accSteps(): array
 
             return null;
         }],
+        'languages' => ['languages', $alone],
         'users' => ['users', function (ImportRun $run): null {
             expect(User::query()->where('email', 'ben@old.example')->firstOrFail()->hasRole('editor'))->toBeTrue();
 
@@ -353,6 +354,8 @@ function accSteps(): array
 
             return null;
         }],
+        'translations' => ['translations', $alone],
+        'language-words' => ['language-words', $alone],
         'check' => ['check', function (ImportRun $run): null {
             expect(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'check.other-host')->pluck('context')->map(fn (string $context): string => (string) json_decode($context, true)['host'])->all())->toBe(['cdn.example'])
                 ->and(DB::table('import_messages')->where('run_id', $run->id)->where('code', 'like', 'check.%')->where('level', 'error')->count())->toBe(0);
