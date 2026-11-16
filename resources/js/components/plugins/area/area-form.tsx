@@ -203,6 +203,7 @@ export function AreaFieldInput({
             case 'textarea':
                 return (
                     <Textarea
+                        id={id}
                         value={text(value)}
                         onChange={(event) => onChange(event.target.value)}
                         maxLength={field.maxLength ?? undefined}
@@ -223,6 +224,7 @@ export function AreaFieldInput({
             case 'region':
                 return (
                     <SelectField
+                        id={id}
                         options={field.choices}
                         emptyLabel={
                             field.type === 'region' ? __('None') : undefined
@@ -245,6 +247,7 @@ export function AreaFieldInput({
             case 'number':
                 return (
                     <Input
+                        id={id}
                         type="number"
                         inputMode="numeric"
                         value={text(value)}
@@ -262,6 +265,7 @@ export function AreaFieldInput({
             case 'datetime':
                 return (
                     <Input
+                        id={id}
                         type="datetime-local"
                         value={text(value).slice(0, 16)}
                         onChange={(event) => onChange(event.target.value)}
@@ -270,6 +274,7 @@ export function AreaFieldInput({
             case 'color':
                 return (
                     <Input
+                        id={id}
                         type="text"
                         value={text(value)}
                         placeholder={__('#rrggbb')}
@@ -279,6 +284,7 @@ export function AreaFieldInput({
             default:
                 return (
                     <Input
+                        id={id}
                         type={
                             field.type === 'email'
                                 ? 'email'

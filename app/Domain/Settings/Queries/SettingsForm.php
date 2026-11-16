@@ -158,6 +158,11 @@ final class SettingsForm
             'unit' => $setting->unit,
             'visibleWhen' => $setting->visibleWhen,
             'section' => $setting->section,
+            // A repeater's items: its fields, one item's worth, and the field titling a collapsed item.
+            ...($setting->type === SettingType::Repeater ? [
+                'fields' => array_map($this->field(...), $setting->fields),
+                'itemTitle' => $setting->itemTitle,
+            ] : []),
         ];
     }
 }
