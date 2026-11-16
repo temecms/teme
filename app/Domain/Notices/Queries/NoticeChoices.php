@@ -6,6 +6,7 @@ namespace App\Domain\Notices\Queries;
 
 use App\Domain\Notices\NoticePreferences;
 use App\Domain\Notices\NoticeRegistry;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Models\User;
 use Teme\Contracts\Notices\NoticeKind;
@@ -113,6 +114,35 @@ final class NoticeChoices
         }
 
         return $rows;
+    }
+
+    /**
+     * The rows of Account › Notifications as the screen groups them: core's
+     * own kinds, then each enabled plugin's under its label, in the order
+     * the registry lists them (docs/plans/plugin-sockets-3.md).
+     *
+     * @return array{core: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>, plugins: list<array{plugin: string, notices: list<array{key: string, label: string, channels: list<array{key: string, label: string, on: bool}>, disabled: bool, switchedOff: string|null}>}>}
+     */
+    public function grouped(User $user): array
+    {
+        $declared = app(DeclaredNotices::class);
+        $core = [];
+        $plugins = [];
+
+        foreach ($this->forScreen($user) as $row) {
+            $owner = $declared->owner(substr($row['key'], strlen(NoticePreferences::PREFIX)));
+
+            if ($owner === null) {
+                $core[] = $row;
+
+                continue;
+            }
+
+            $plugins[$owner['name']] ??= ['plugin' => $owner['label'], 'notices' => []];
+            $plugins[$owner['name']]['notices'][] = $row;
+        }
+
+        return ['core' => $core, 'plugins' => array_values($plugins)];
     }
 
     /**
