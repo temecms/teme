@@ -6,6 +6,7 @@ namespace App\Http\Admin\Tools\Backups;
 
 use App\Domain\Backups\Queries\BackupJobs;
 use App\Domain\Backups\Queries\BackupsScreen;
+use App\Domain\Media\MediaLocations;
 use App\Http\Controllers\Controller;
 use Carbon\CarbonImmutable;
 use Closure;
@@ -50,6 +51,8 @@ final class BackupsScreenController extends Controller
         $props['backupJob'] = fn () => $job();
         $props['firstBackupOnItsWay'] = fn () => $screen->firstBackupOnItsWay($screen->setupState(), $running(), $job(), $now);
         $props['backUpNow'] = fn () => $screen->backUpNow($screen->setupState(), $running(), $job());
+        // Media in object storage is the provider's to keep (I-3456).
+        $props['mediaInBucket'] = fn (): bool => MediaLocations::anyInBucket();
 
         return Inertia::render('tools/backups/index', $props);
     }

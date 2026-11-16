@@ -81,6 +81,21 @@ final class MediaLocations
     }
 
     /**
+     * Whether either role's disk is a bucket now, so a backup holds that
+     * role's list and checksums but not its files.
+     */
+    public static function anyInBucket(): bool
+    {
+        foreach ([(string) config('media.disk'), (string) config('media.originals_disk')] as $disk) {
+            if (config("filesystems.disks.{$disk}.driver") === 's3') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @return array<string, array{public: string, originals: string}>
      */
     private static function all(): array

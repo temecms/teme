@@ -105,7 +105,8 @@ final readonly class RestorePoints
             throw new RestoreRefused($problems);
         }
 
-        $notes = $compatible['notes'];
+        // Where a role the backup left in a bucket is (I-3456).
+        $notes = [...$compatible['notes'], ...$media['notes']];
 
         if ($unfinished !== null) {
             $since = $this->inSiteZone(CarbonImmutable::parse($unfinished['since']))->format('j F Y \a\t H:i');
