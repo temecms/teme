@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 use App\Domain\SiteCode\Operations\Input\UpdateAdsTxtInput;
 use App\Domain\SiteCode\Operations\UpdateAdsTxt;
+use App\Domain\SiteCode\SiteCodeSettings;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
+use Teme\Contracts\Settings\SettingsReader;
 
 uses(RefreshDatabase::class);
 
@@ -85,4 +88,96 @@ it('saves a redirect mode with an https address on another host and answers /ads
     addrGet('/ads.txt')
         ->assertStatus(301)
         ->assertHeader('Location', 'https://ads.example/ads.txt');
+});
+
+it('refuses a redirect to an http address and writes nothing', function (): void {
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        'kept.com, pub-1, DIRECT',
+        0,
+        (string) $this->admin->id,
+    ));
+
+    expect(fn () => app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: 'kept.com, pub-1, DIRECT',
+        expectedVersion: 1,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'http://ads.example/ads.txt',
+    )))->toThrow(ValidationException::class);
+
+    expect(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE))
+        ->toBe(SiteCodeSettings::MODE_TEXT);
+    addrGet('/ads.txt')->assertOk()->assertContent('kept.com, pub-1, DIRECT');
+});
+
+it('refuses a redirect to the site\'s own host and writes nothing', function (): void {
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        'kept.com, pub-1, DIRECT',
+        0,
+        (string) $this->admin->id,
+    ));
+
+    expect(fn () => app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: 'kept.com, pub-1, DIRECT',
+        expectedVersion: 1,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'https://localhost/ads.txt',
+    )))->toThrow(ValidationException::class);
+
+    expect(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE))
+        ->toBe(SiteCodeSettings::MODE_TEXT);
+    addrGet('/ads.txt')->assertOk()->assertContent('kept.com, pub-1, DIRECT');
+});
+
+it('refuses a redirect that is not an address and writes nothing', function (): void {
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        'kept.com, pub-1, DIRECT',
+        0,
+        (string) $this->admin->id,
+    ));
+
+    expect(fn () => app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: 'kept.com, pub-1, DIRECT',
+        expectedVersion: 1,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'not-an-address',
+    )))->toThrow(ValidationException::class);
+
+    expect(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE))
+        ->toBe(SiteCodeSettings::MODE_TEXT);
+});
+
+it('refuses a redirect address longer than 2000 characters and writes nothing', function (): void {
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        'kept.com, pub-1, DIRECT',
+        0,
+        (string) $this->admin->id,
+    ));
+
+    expect(fn () => app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: 'kept.com, pub-1, DIRECT',
+        expectedVersion: 1,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'https://ads.example/'.str_repeat('a', 2000),
+    )))->toThrow(ValidationException::class);
+
+    expect(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE))
+        ->toBe(SiteCodeSettings::MODE_TEXT);
+});
+
+it('refuses an editor saving a redirect and writes nothing', function (): void {
+    expect(fn () => app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: '',
+        expectedVersion: 0,
+        actorId: (string) $this->editor->id,
+        mode: 'redirect',
+        redirectUrl: 'https://ads.example/ads.txt',
+    )))->toThrow(AuthorizationException::class);
+
+    addrGet('/ads.txt')->assertNotFound();
+    expect(app(SettingsReader::class)->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE))
+        ->toBe(SiteCodeSettings::MODE_TEXT);
 });
