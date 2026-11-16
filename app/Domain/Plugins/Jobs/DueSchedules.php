@@ -99,8 +99,8 @@ final readonly class DueSchedules
         $queued = 0;
 
         foreach ($declared->schedules() as $schedule) {
-            if (! $this->switchedOn($record->code, $schedule['enabledBy'])
-                || ! $this->due($runs[$schedule['job']] ?? null, $this->every($record->code, $schedule['every'], $schedule['everyFrom']), $now)) {
+            if (! $this->switchedOn($record->code, $schedule['enabledBy'] ?? null)
+                || ! $this->due($runs[$schedule['job']] ?? null, $this->every($record->code, $schedule['every'], $schedule['everyFrom'] ?? null), $now)) {
                 continue;
             }
 
