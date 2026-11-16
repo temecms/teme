@@ -18,8 +18,8 @@ use App\Domain\Extensions\RequestStatus;
 use App\Domain\Extensions\RequestStep;
 use App\Domain\Extensions\Sources\ExtensionRequest;
 use App\Domain\Extensions\Sources\ExtensionSource;
-use App\Domain\Extensions\Sources\SourceKind;
 use App\Domain\Extensions\Sources\SafeAddress;
+use App\Domain\Extensions\Sources\SourceKind;
 use App\Domain\Extensions\Sources\SourceKinds;
 use App\Domain\Support\Network\AddressRefused;
 use Closure;
@@ -302,7 +302,7 @@ final class InstallerRunner
 
         $stage = $this->stagePath($request);
         $this->checkAddresses($stage);
-        $blocking =$request->action === ExtensionAction::Rebuild ? $this->compatibility->blocking($stage, $this->pins) : [];
+        $blocking = $request->action === ExtensionAction::Rebuild ? $this->compatibility->blocking($stage, $this->pins) : [];
         $result = $this->composer->change($request, $stage, $this->auth($request), $blocking);
 
         if (! $result->ok()) {
