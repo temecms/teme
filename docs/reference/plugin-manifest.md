@@ -15,20 +15,36 @@
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
 | `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send" |
-| `jobs` | array | no | Background jobs the plugin declares (I-3445). |  |
-| `jobs[].key` | string | yes |  | ^[a-z][a-z0-9-]{0,47}$ |
-| `jobs[].label` | string | yes |  |  |
-| `jobs[].long` | boolean | no |  |  |
-| `jobs[].tries` | integer | no |  |  |
-| `jobs[].backoff` | array | no |  |  |
-| `schedules` | array | no | How often a declared job should run (I-3445). |  |
-| `schedules[].job` | string | yes |  | ^[a-z][a-z0-9-]{0,47}$ |
-| `schedules[].every` | string | yes |  | "minute", "five-minutes", "fifteen-minutes", "hour", "day", "week" |
+| `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
+| `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
+| `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
+| `jobs[].long` | boolean | no | Whether a run may take long: up to 30 minutes, on the long queue, with 5 minutes for each outbound call, instead of 75 seconds and 10. |  |
+| `jobs[].tries` | integer | no | How many times a run is tried before it is marked failed: 1 to 5, 3 by default. |  |
+| `jobs[].backoff` | array | no | The seconds to wait before each new try, 1 to 3,600 each; 30, 120 and 600 by default. |  |
+| `schedules` | array | no | How often a declared job runs, counted from its last queued run. |  |
+| `schedules[].job` | string | yes | The key of a job the plugin declares under jobs. | ^[a-z][a-z0-9-]{0,47}$ |
+| `schedules[].every` | string | yes | How often it runs. | "minute", "five-minutes", "fifteen-minutes", "hour", "day", "week" |
 | `routes` | array | no | Public addresses the plugin answers when granted routes.public. |  |
-| `routes[].id` | string | yes |  | ^[a-z][a-z0-9_-]*$ |
-| `routes[].method` | string | yes |  | "GET", "POST" |
-| `routes[].path` | string | yes |  |  |
-| `routes[].handler` | string | yes |  |  |
+| `routes[].id` | string | yes | The route's id, unique in the plugin: lower-case letters, digits, hyphens and underscores. | ^[a-z][a-z0-9_-]*$ |
+| `routes[].method` | string | yes | The one method it answers; a GET also answers HEAD. | "GET", "POST" |
+| `routes[].path` | string | yes | The address it answers, starting with a slash; {code} stands for the plugin's code and {name} for one segment. Without a condition it must sit under /{code}/ or /.well-known/. |  |
+| `routes[].handler` | string | yes | The class that answers it, implementing the PublicRoute contract, built with no constructor arguments. |  |
+| `routes[].when` | object | no | A condition a request must meet, which lets the path sit outside the plugin's own: query parameters, Accept types, or both. |  |
+| `routes[].when.query` | object | no | Query parameters the request must carry, each with a regular expression its value must match. |  |
+| `routes[].when.accept` | array | no | Media types, one of which the request's Accept header must name. |  |
+| `routes[].verify` | object | no | How a POST proves it is genuine; every POST route needs one. |  |
+| `routes[].verify.kind` | string | no | secret compares a value the request carries with the secret setting; hmac checks a header holding the body's SHA-256 HMAC under that secret; custom asks the class named in class. | "secret", "hmac", "custom" |
+| `routes[].verify.secret` | string | no | The key of one of the plugin's own settings of type secret; needed for secret and hmac. |  |
+| `routes[].verify.from` | string | no | For secret: where the request carries the value, as header:, field: or query: and a name. | ^(header\|field\|query):.+$ |
+| `routes[].verify.header` | string | no | For hmac: the header that holds the signature. |  |
+| `routes[].verify.class` | string | no | For custom: the class that checks the request, implementing the InboundVerifier contract, built with no constructor arguments and given the secret's value. |  |
+| `routes[].cache` | object | no | For a GET: lets the page cache keep its answer. The key must carry everything the condition reads. |  |
+| `routes[].cache.lifetime` | integer | no | The most seconds a shared cache in front of the site may keep the answer: it is told this, at most 60, and 60 when it is left out. |  |
+| `routes[].cache.query` | array | no | The query parameters the cached answer varies by; every query parameter in the condition must be named. |  |
+| `routes[].cache.varyAccept` | boolean | no | Whether the cached answer varies by Accept type; needed when the condition reads Accept. |  |
+| `routes[].maxBody` | integer | no | For a POST: the largest body it accepts, in bytes; 1 MB by default, held between 1 byte and 10 MB. A larger one is refused before it is read. |  |
+| `routes[].throttle` | integer | no | Requests a minute it answers from one address: 120 for a GET and 30 for a POST by default, held between 1 and 240 for a GET, 60 for a POST. |  |
+| `routes[].where` | object | no | For each {name} in the path, a regular expression its segment must match; one segment of anything but a slash by default. |  |
 | `imports` | object | no | What the plugin brings across from the WordPress site an import reads, when granted import.wordpress. |  |
 | `imports.importer` | string | yes | The plugin's importer class. |  |
 | `imports.options` | array | no |  |  |
@@ -71,8 +87,8 @@
 | `contributes.csp.connect` | array | no |  |  |
 | `contributes.csp.frame` | array | no |  |  |
 | `contributes.csp.script` | array | no |  |  |
-| `owns` | object | no | Tables this plugin creates (slice 5.2). Each name starts with the plugin’s code as a prefix (hyphens become underscores). |  |
-| `owns.tables` | array | yes | Table names the plugin’s migrations create. |  |
+| `owns` | object | no | Tables this plugin creates. Each name starts with the plugin’s code as a prefix (hyphens become underscores). |  |
+| `owns.tables` | array | yes | Table names the plugin’s migrations create: lower-case letters, digits and underscores, starting with the prefix, at most 63 characters. |  |
 | `author` | string | no | Who wrote the plugin. |  |
 | `homepage` | string | no | Where to read about it. |  |
 | `license` | string | no | The license it is released under. |  |
