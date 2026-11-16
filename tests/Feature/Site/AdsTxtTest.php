@@ -205,3 +205,43 @@ it('in text mode answers /ads.txt as plain UTF-8 after a redirect was saved befo
         ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
         ->assertContent('google.com, pub-123, DIRECT, f08c47fec0942fa0');
 });
+
+it('stores a redirect answer in the page cache and purges it after a save', function (): void {
+    $this->folder = cacheOn();
+
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: '',
+        expectedVersion: 0,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'https://ads.example/ads.txt',
+    ));
+
+    addrGet('/ads.txt')
+        ->assertStatus(301)
+        ->assertHeader('Location', 'https://ads.example/ads.txt')
+        ->assertHeader('X-Teme-Cache', 'MISS');
+
+    addrGet('/ads.txt')
+        ->assertStatus(301)
+        ->assertHeader('Location', 'https://ads.example/ads.txt')
+        ->assertHeader('X-Teme-Cache', 'HIT');
+
+    expect(cacheEntry('/ads.txt'))->not->toBeNull()
+        ->and(cacheEntry('/ads.txt')?->status)->toBe(301);
+
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: '',
+        expectedVersion: 1,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'https://other.example/ads.txt',
+    ));
+
+    expect(cacheKept('/ads.txt'))->toBe([]);
+
+    addrGet('/ads.txt')
+        ->assertStatus(301)
+        ->assertHeader('Location', 'https://other.example/ads.txt')
+        ->assertHeader('X-Teme-Cache', 'MISS');
+});
