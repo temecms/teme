@@ -162,6 +162,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         }
 
         $consentedBy = $input->actorId() ?? $input->schedulesAs;
+        // The permission lines agreed before, so an update gives only a role newly agreed to.
+        $agreedBefore = array_values(array_filter((array) ($record->consent['permissions'] ?? []), is_string(...)));
 
         $record->fill([
             'code' => $code,
@@ -195,7 +197,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         ])->save();
 
         // Its permissions, made once and given to administrators and the roles it names (docs/plans/plugin-sockets-2.md, A1).
-        PluginPermissions::ensure($code, PluginPermissions::declared($manifest));
+        PluginPermissions::ensure($code, PluginPermissions::declared($manifest), $agreedBefore);
 
         $this->log->record(SecurityEventType::PluginEnabled, $input->actorId(), context: [
             'plugin' => $input->name,

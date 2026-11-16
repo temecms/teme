@@ -105,13 +105,15 @@ final class PluginPermissions
 
     /**
      * Makes each declared permission that has no row yet, and gives it to
-     * administrators and the roles it names. A row that exists is left as
-     * it is: who holds it now is a person's choice, never undone by an
-     * update. Spatie's list is read again after commit.
+     * administrators and the roles it names. A row that exists keeps who
+     * holds it, a person's choice never undone by an update; it is given
+     * only to a role newly agreed to, one whose consent line wasn't in the
+     * consent before. Spatie's list is read again after commit.
      *
      * @param  list<array{id: string, label: string, description: string, roles: list<string>}>  $declared
+     * @param  list<string>  $agreedBefore  the consent's permission lines before this one (consentLines)
      */
-    public static function ensure(string $code, array $declared): void
+    public static function ensure(string $code, array $declared, array $agreedBefore = []): void
     {
         if ($declared === []) {
             return;
@@ -130,6 +132,15 @@ final class PluginPermissions
             $name = self::name($code, $permission['id']);
 
             if (in_array($name, $existing, true)) {
+                $id = (int) DB::table('permissions')->where('guard_name', $guard)->where('name', $name)->value('id');
+
+                foreach ($permission['roles'] as $role) {
+                    if (isset($roles[$role]) && ! in_array("{$permission['id']}:{$role}", $agreedBefore, true)
+                        && ! DB::table('role_has_permissions')->where('permission_id', $id)->where('role_id', $roles[$role])->exists()) {
+                        $grants[] = ['permission_id' => $id, 'role_id' => $roles[$role]];
+                    }
+                }
+
                 continue;
             }
 

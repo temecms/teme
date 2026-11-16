@@ -69,6 +69,18 @@ it('never gives back a role someone took away when the plugin is enabled again',
     expect(($this->holders)('plugin.placard.manage'))->toBe(['administrator']);
 });
 
+it('gives a role an update adds once it is agreed to, and still never gives back one taken away', function (): void {
+    ($this->enable)();
+    Role::findByName('editor')->revokePermissionTo('plugin.placard.manage');
+
+    $contributes = PluginFixtures::manifest('placard')['contributes'];
+    $contributes['permissions'][0]['roles'] = ['editor', 'author'];
+    PluginFixtures::use(PluginFixtures::copy('placard', ['version' => '1.1.0', 'contributes' => $contributes]));
+    ($this->enable)();
+
+    expect(($this->holders)('plugin.placard.manage'))->toBe(['administrator', 'author']);
+});
+
 it('keeps the permission while the plugin is disabled, and removing its data deletes it', function (): void {
     ($this->enable)();
     app(DisablePlugin::class)->execute(new DisablePluginInput('tests/placard', null));
