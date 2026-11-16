@@ -13,6 +13,7 @@ use App\Domain\Jobs\Operations\Input\FailJobInput;
 use App\Domain\Jobs\Operations\Input\FinishJobInput;
 use App\Domain\Jobs\Operations\ReportJobProgress;
 use App\Domain\Plugins\Doors\CurrentJobActor;
+use App\Domain\Plugins\Doors\PluginHttp;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginLoader;
 use App\Domain\Plugins\PluginRegistry;
@@ -129,7 +130,7 @@ final class RunPluginJob implements ShouldQueue
         ];
         self::configure($this, $declared);
 
-        $instance = $loader->instance($plugin, $record, $declared['long'] ? 300 : null);
+        $instance = $loader->instance($plugin, $record, $declared['long'] ? 300 : null, $declared['long'] ? PluginHttp::LONG_ANSWER_BYTES : null);
         $handler = $instance instanceof PluginHasJobs ? ($instance->jobs()[$this->jobKey] ?? null) : null;
 
         if ($handler === null) {

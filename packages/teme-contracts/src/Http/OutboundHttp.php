@@ -6,7 +6,8 @@ namespace Teme\Contracts\Http;
 
 /**
  * The only way out for a plugin granted http: https, to the hosts agreed to,
- * no redirect followed, at most 10 seconds and 1 MB.
+ * no redirect followed, at most 10 seconds and 1 MB, or 300 seconds and
+ * 16 MB for an answer inside a long job.
  *
  * @since 0.5.0
  */

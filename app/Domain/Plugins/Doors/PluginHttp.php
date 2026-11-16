@@ -26,7 +26,7 @@ use Teme\Contracts\Http\RequestFailed;
  * consent covers, resolved here and refused when any address is private or
  * reserved, connected to that address only (no second lookup, so DNS can't
  * be rebound), never following a redirect, within 10 seconds and 1 MB each
- * way. The lookup comes before those 10 seconds and has no limit of its own:
+ * way; inside a long job's run, 300 seconds and an answer of 16 MB. The lookup comes before those 10 seconds and has no limit of its own:
  * the system resolver's, by default 5 seconds a try, two tries a server, for
  * up to three servers, so as long as 30 seconds when DNS is down.
  */
@@ -36,6 +36,9 @@ final readonly class PluginHttp implements OutboundHttp
 
     public const int MOST_BYTES = 1_048_576;
 
+    /** The largest answer inside a long job's run; a request stays at MOST_BYTES. */
+    public const int LONG_ANSWER_BYTES = 16_777_216;
+
     /**
      * libcurl's errors for a TLS handshake or certificate that failed: 35,
      * 51, 53, 54, 58, 59, 60, 64, 66, 77, 80, 82, 83, 90 and 91.
@@ -44,7 +47,7 @@ final readonly class PluginHttp implements OutboundHttp
 
     /**
      * @param  list<string>  $hosts  the hosts this plugin's consent covers
-     * @param  int  $maxBytes  answer size cap; defaults to 1 MB for http, media may pass the upload limit
+     * @param  int  $maxBytes  answer size cap; defaults to 1 MB for http, 16 MB inside a long job, media may pass the upload limit; a request's body stays at 1 MB
      * @param  int  $mostSeconds  the upper limit for each call: 10 normally, 300 inside a long job (I-3445)
      */
     public function __construct(
@@ -78,7 +81,7 @@ final readonly class PluginHttp implements OutboundHttp
         }
 
         $host = $this->allowedHost($uri);
-        $body = $json === null ? null : self::jsonBody($json, $host, $this->maxBytes);
+        $body = $json === null ? null : self::jsonBody($json, $host);
         $address = $this->publicAddress($host);
         $seconds = max(1, min($timeoutSeconds, $this->mostSeconds));
 
