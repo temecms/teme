@@ -159,6 +159,7 @@ it('refuses an upload over the limit, one that isn’t a ZIP, and one with no pa
     'two folders' => [fn () => extZip(['one/composer.json' => '{"name": "acme/hello", "version": "1.0.0"}', 'two/x' => '']), 'The archive has no composer.json at its top'],
     'no version' => [fn () => extZip(['composer.json' => '{"name": "acme/hello"}']), 'must give the package’s name and its version'],
     'a bad name' => [fn () => extZip(['composer.json' => '{"name": "Hello World", "version": "1.0.0"}']), 'must give the package’s name and its version'],
+    'a composer.json over 64 KB' => [fn () => extZip(['composer.json' => json_encode(['name' => 'acme/hello', 'version' => '1.0.0', 'description' => str_repeat('a', 70000)])]), 'The archive has no composer.json at its top, or one Teme can’t read.'],
 ]);
 
 it('writes nothing when the person may not install plugins and themes', function (string $role): void {

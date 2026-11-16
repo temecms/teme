@@ -30,6 +30,9 @@ final class UploadExtension extends BaseOperation implements RequiresElevation
     /** A ZIP archive's first bytes: a local file header. */
     private const string SIGNATURE = "PK\x03\x04";
 
+    /** The most of composer.json the web process reads, in bytes; a larger one is refused unread. */
+    private const int MOST_COMPOSER_BYTES = 65536;
+
     public function requiresElevation(OperationInput $input): bool
     {
         return true;
@@ -131,11 +134,11 @@ final class UploadExtension extends BaseOperation implements RequiresElevation
             }
 
             $inside = count($folders) === 1 && array_key_first($folders) !== '' ? array_key_first($folders).'/composer.json' : null;
-            $found = $zip->getFromName('composer.json');
+            $name = $zip->statName('composer.json') !== false ? 'composer.json' : $inside;
+            $stat = $name === null ? false : $zip->statName($name);
 
-            if ($found === false && $inside !== null) {
-                $found = $zip->getFromName($inside);
-            }
+            // Capped, and refused unread when the archive says it is larger: a small archive can hold a huge entry.
+            $found = $stat === false || $stat['size'] > self::MOST_COMPOSER_BYTES ? false : $zip->getFromName((string) $name, self::MOST_COMPOSER_BYTES);
 
             $zip->close();
 
