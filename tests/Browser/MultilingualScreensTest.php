@@ -186,6 +186,8 @@ it('moves a language up and down from its "⋯"', function (): void {
     $page->assertScript('document.querySelector(\'[data-test="language-move-down"]\').getAttribute("aria-disabled") === "true" || document.querySelector(\'[data-test="language-move-down"]\').hasAttribute("data-disabled")')
         ->click('[data-test="language-move-up"]');
     cmWaitUntil($page, mlsRows()." === 'en-GB,es,fr'");
+    // The first menu closes, and the list is drawn again, before the next one opens (#338).
+    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]') === null");
 
     mlsRowMenu($page, 'es');
     $page->click('[data-test="language-move-down"]');
