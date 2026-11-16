@@ -51,6 +51,11 @@ final readonly class PluginSiteAi implements SiteAi
 
     public function ask(AiAsk $ask, string $actingPersonId): AiAnswer
     {
+        // A rollback would take the record and the spend with it while the service still bills, and the answer would hold the transaction open.
+        if (self::inTransaction()) {
+            throw new AiRefused('in-transaction', __('A plugin asks AI only outside a database transaction.'));
+        }
+
         try {
             ActingPerson::require($actingPersonId);                 // the person of this work; never the operator
         } catch (WriteRefused $refused) {
@@ -130,5 +135,14 @@ final readonly class PluginSiteAi implements SiteAi
     private function noTask(string $task): string
     {
         return __('This plugin doesn’t declare the AI task :task.', ['task' => $task]);
+    }
+
+    /**
+     * Whether the caller is inside a database transaction of its own; a
+     * test's wrapping transaction doesn't count, as for after-commit work.
+     */
+    private static function inTransaction(): bool
+    {
+        return app('db.transactions')->callbackApplicableTransactions()->isNotEmpty();
     }
 }

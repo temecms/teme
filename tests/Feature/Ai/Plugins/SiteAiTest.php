@@ -185,6 +185,20 @@ it('refuses, sending and recording nothing, whatever stands in the way', functio
     }, 'hourly-limit', 'This plugin has asked AI as many times as it may this hour.'],
 ]);
 
+it('refuses inside a database transaction, sending and recording nothing, so a rollback can never hide what was spent', function (): void {
+    $this->fake->answer(aiText('Never sent.'));
+
+    try {
+        DB::transaction(fn () => scribeDoor()->ask(($this->ask)(), (string) $this->admin->id));
+        $this->fail('The door didn’t refuse.');
+    } catch (AiRefused $refused) {
+        expect($refused->reason)->toBe('in-transaction')
+            ->and($refused->getMessage())->toBe('A plugin asks AI only outside a database transaction.');
+    }
+
+    ($this->nothing)();
+});
+
 it('says where a task stands, and this plugin’s month', function (): void {
     cmSettings([PluginAiSection::budgetKey('scribe') => 5], AiSettings::KEY);
     $this->fake->answer(aiText('An article.'));

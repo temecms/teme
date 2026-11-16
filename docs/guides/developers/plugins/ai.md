@@ -53,6 +53,8 @@ The person must be the one the work acts for: the person who queued the job, or 
 
 `ask()` throws `AiRefused` before anything is sent when the task isn't declared, the request goes past its declaration or its time, AI is off for the site or for the plugin, the task has no model, the model can't do what the task needs, the site's or the plugin's budget for the month is spent, or the plugin has reached its requests for the hour. Its `reason` is a short code and its message one plain sentence. Nothing is recorded and nothing is spent.
 
+Ask outside any database transaction: `ask()` called inside one, such as from a listener that runs before a change is saved, is refused with the reason `in-transaction`, because a rollback would hide a request the service still bills.
+
 It also throws `AiRefused` when the AI service fails after the request was sent. That request is recorded, and any tokens the service billed for it count.
 
 Call `standing()` with a task's id to learn before asking whether it can be asked now, why not in a sentence you can show on your own pages, and what the plugin has spent this month:
