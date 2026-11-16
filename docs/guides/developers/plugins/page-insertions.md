@@ -93,7 +93,7 @@ Approval happens where the ad is written. When someone saves a code field or set
 
 **Settings › Site code** lists every plugin's approved and waiting scripts, and an approval can be revoked there.
 
-The control on the form and the list on Settings › Site code follow in a later release; until then the Operations behind them exist, and a script that waits is removed from pages.
+Teme doesn't draw the control on the form or the list on Settings › Site code yet: the Operations behind them exist, and a script that waits is removed from pages.
 
 Once approved, the script is kept byte for byte wherever your insertions carry it, and its hash joins the page's `script-src`. While the host has switched site code off, no plugin's inline script is kept.
 
