@@ -9,11 +9,13 @@ use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
+use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Settings\SecretReader;
@@ -28,7 +30,7 @@ use Teme\Contracts\Site\SiteInfo;
 interface PluginServices
 {
     /** The contracts a plugin's constructor may ask for, in the first release. */
-    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class];
+    public const array OFFERED = [SettingsReader::class, SecretReader::class, ContentWriter::class, MediaWriter::class, OutboundHttp::class, Jobs::class, InsertionsChanged::class, FediverseFollowers::class, FediverseSender::class, SiteInfo::class, PluginSettingsWriter::class, InlineScripts::class, ContentReader::class, PeopleReader::class, SiteAi::class, HookSender::class, Notices::class];
 
     /**
      * What this plugin's constructor may be given, by interface.

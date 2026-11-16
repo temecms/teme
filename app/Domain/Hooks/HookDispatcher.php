@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Hooks;
 
+use App\Domain\Plugins\Hooks\PluginHookCatalogue;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use LogicException;
@@ -102,9 +103,11 @@ final class HookDispatcher
      * fails, or gives a value of the wrong type, is recorded and skipped, or
      * fails the Operation when core marked the hook so.
      *
+     * With a budget, a listener over it is recorded and skipped too.
+     *
      * @throws ListenerFailed when a listener of a hook marked Failure::FailOperation fails
      */
-    public function transform(Transform $hook): mixed
+    public function transform(Transform $hook, ?TimeBudget $budget = null): mixed
     {
         // Read before enter(), whose depth only the finally below gives back.
         $value = $hook->value();
@@ -113,10 +116,29 @@ final class HookDispatcher
 
         try {
             foreach ($listeners as $listener) {
+                $spent = $budget?->spentBefore($listener->owner);
+
+                if ($spent !== null) {
+                    $this->fault($listener, $hook, $spent, $failOperation);
+
+                    continue;
+                }
+
+                $started = $budget?->start() ?? 0;
+
                 try {
                     $next = ($listener->callback)($value, $hook);
                 } catch (Throwable $failure) {
+                    $budget?->charge($listener->owner, $started);
                     $this->fault($listener, $hook, $failure, $failOperation);
+
+                    continue;
+                }
+
+                $slow = $budget?->charge($listener->owner, $started);
+
+                if ($slow !== null) {
+                    $this->fault($listener, $hook, $slow, $failOperation);
 
                     continue;
                 }
@@ -381,6 +403,20 @@ final class HookDispatcher
         $replacement = $contract->use === null ? '' : ' Use '.self::shortName($contract->use).' instead.';
 
         Log::notice($owner.' listens for '.self::shortName($hook).', which Teme stops sending in '.$contract->removedIn.'.'.$replacement);
+    }
+
+    /**
+     * Returns a hook's name as a manifest lists it: a core hook's short
+     * name, or `{code}:{name}` for a hook an enabled plugin declares
+     * (docs/plans/plugin-sockets-3.md).
+     */
+    public function nameOf(string $hook): string
+    {
+        if (str_starts_with($hook, 'Teme\\Contracts\\')) {
+            return self::shortName($hook);
+        }
+
+        return app(PluginHookCatalogue::class)->fullName($hook) ?? self::shortName($hook);
     }
 
     /**

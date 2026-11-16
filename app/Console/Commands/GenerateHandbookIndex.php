@@ -47,6 +47,8 @@ final class GenerateHandbookIndex extends Command
         'plugins/list-columns.md',
         'plugins/feeds-and-site.md',
         'plugins/ai.md',
+        'plugins/your-own-hooks.md',
+        'plugins/notices.md',
         'themes/languages.md',
         'outside/management-api.md',
     ];

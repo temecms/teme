@@ -16,7 +16,9 @@ use Tiptap\Marks\Link;
  * and a path on this site are drawn as they are. None of these has a target
  * or a rel: `nofollow` on a site's own links tells search engines not to
  * follow them. An external link gets rel="noopener", and a target only when
- * the stored link asks for one.
+ * the stored link asks for one. The attributes plugins ask for on an
+ * article's links, already sifted by ArticleLinkAttributes, are written on
+ * top (docs/plans/plugin-sockets-3.md).
  */
 final class LinkMark extends Link
 {
@@ -48,7 +50,7 @@ final class LinkMark extends Link
             $url = $link === null ? null : $this->context->links->target($link['kind'], $link['id']);
 
             // A link by ID keeps its place (I-1670).
-            return $link === null || $url === null ? null : ['a', ['href' => $url.$link['place']], 0];
+            return $link === null || $url === null ? null : ['a', $this->asked($href, ['href' => $url.$link['place']]), 0];
         }
 
         // A place on the same page is drawn as it is, with no target and no rel (I-452).
@@ -58,7 +60,7 @@ final class LinkMark extends Link
 
         // A page of this site, with no target and no rel; absolute in a feed (I-1669).
         if (preg_match(DocumentSchema::SITE_PATH, $href) === 1) {
-            return ['a', ['href' => $this->context->links->path($href)], 0];
+            return ['a', $this->asked($href, ['href' => $this->context->links->path($href)]), 0];
         }
 
         if ($href === '' || ! DocumentSchema::allowsHref($href)) {
@@ -73,6 +75,46 @@ final class LinkMark extends Link
 
         $anchor['rel'] = 'noopener';
 
-        return ['a', $anchor, 0];
+        return ['a', $this->asked($href, $anchor), 0];
+    }
+
+    /**
+     * The anchor with what plugins asked for on this stored link: a target
+     * opened or closed, rel values added after noopener, class names.
+     *
+     * @param  array<string, string>  $anchor
+     *
+     * @return array<string, string>
+     */
+    private function asked(string $href, array $anchor): array
+    {
+        $asked = $this->context->linkAttributes[$href] ?? null;
+
+        if ($asked === null) {
+            return $anchor;
+        }
+
+        $rel = isset($anchor['rel']) ? explode(' ', $anchor['rel']) : [];
+        unset($anchor['rel']);
+
+        if ($asked['newTab'] === true) {
+            $anchor['target'] = '_blank';
+            // A new tab never hands the page that opened it to the one it opens.
+            $rel = ['noopener', ...$rel];
+        } elseif ($asked['newTab'] === false) {
+            unset($anchor['target']);
+        }
+
+        $rel = array_values(array_unique([...$rel, ...$asked['rel']]));
+
+        if ($rel !== []) {
+            $anchor['rel'] = implode(' ', $rel);
+        }
+
+        if ($asked['classes'] !== []) {
+            $anchor['class'] = implode(' ', $asked['classes']);
+        }
+
+        return $anchor;
     }
 }

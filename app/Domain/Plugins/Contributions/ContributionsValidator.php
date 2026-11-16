@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Plugins\Hooks\DeclaredHooks;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
@@ -101,6 +103,10 @@ final class ContributionsValidator implements ContributionsCheck
                 if (! is_string($label) || trim($label) === '' || mb_strlen($label) > 24) {
                     $errors[] = __('fixedLabel must be text of 1 to 24 characters.');
                 }
+            } elseif ($surface === 'notices') {
+                array_push($errors, ...DeclaredNotices::errors($contributes['notices']));
+            } elseif ($surface === 'hooks') {
+                array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
             } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }

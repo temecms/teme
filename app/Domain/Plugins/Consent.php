@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\PublicRoutes\DeclaredRoute;
 use App\Domain\PublicRoutes\RootFile;
 
@@ -15,7 +16,8 @@ use App\Domain\PublicRoutes\RootFile;
  * as access too: a new METHOD path, a GET turned into a POST, or a new
  * `.well-known` name needs another yes (`docs/plans/plugin-public-routes.md`).
  * So do the hosts a plugin that inserts content declares for it to load from
- * (`contributes.csp`, docs/plans/plugin-sockets-2.md, B3).
+ * (`contributes.csp`, docs/plans/plugin-sockets-2.md, B3), and the kinds of
+ * notice it sends and the plugins it requires (docs/plans/plugin-sockets-3.md).
  * So do declared AI tasks: a new one, or one that sends or needs more.
  */
 final readonly class Consent
@@ -62,7 +64,29 @@ final readonly class Consent
             return false;
         }
 
-        return true;
+        return self::noticesAdded($consent, $manifest) === [] && self::requiresAdded($consent, $manifest) === [];
+    }
+
+    /**
+     * The ids of the kinds of notice the manifest declares, as the consent
+     * record keeps them.
+     *
+     * @return list<string>
+     */
+    public static function declaredNotices(Manifest $manifest): array
+    {
+        return array_map(strval(...), array_keys(DeclaredNotices::of($manifest)));
+    }
+
+    /**
+     * The Composer names of the plugins the manifest requires, as the
+     * consent record keeps them.
+     *
+     * @return list<string>
+     */
+    public static function declaredRequires(Manifest $manifest): array
+    {
+        return array_map(strval(...), array_keys(Dependencies::required($manifest)));
     }
 
     /**
@@ -189,13 +213,15 @@ final readonly class Consent
      *
      * @param  array{capabilities?: list<string>, hosts?: list<string>, routes?: list<string>, imports?: array<string, mixed>, csp?: array<string, list<string>>, aiTasks?: array<string, mixed>}  $consent
      *
-     * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, insertionHosts?: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}, aiTasks?: list<string>}
+     * @return array{capabilities: list<string>, hosts: list<string>, routes: list<string>, insertionHosts?: list<string>, imports?: array{options: list<string>, postTypes: array<string, list<string>>, userMeta: list<string>, termMeta: list<string>}, aiTasks?: list<string>, notices?: list<string>, requires?: list<string>}
      */
     public static function added(array $consent, Manifest $manifest): array
     {
         $imports = self::importsAdded($consent, $manifest);
         $aiTasks = PluginAiTasks::added($consent['aiTasks'] ?? [], $manifest);
         $insertionHosts = self::insertionHostsAdded($consent, $manifest);
+        $notices = self::noticesAdded($consent, $manifest);
+        $requires = self::requiresAdded($consent, $manifest);
 
         $capabilities = array_values(array_diff($manifest->capabilities(), $consent['capabilities'] ?? []));
 
@@ -211,7 +237,33 @@ final readonly class Consent
             ...($insertionHosts === [] ? [] : ['insertionHosts' => $insertionHosts]),
             ...($imports === [] ? [] : ['imports' => $imports]),
             ...($aiTasks === [] ? [] : ['aiTasks' => $aiTasks]),
+            ...($notices === [] ? [] : ['notices' => $notices]),
+            ...($requires === [] ? [] : ['requires' => $requires]),
         ];
+    }
+
+    /**
+     * The kinds of notice declared that were never agreed to.
+     *
+     * @param  array<string, mixed>  $consent
+     *
+     * @return list<string>
+     */
+    private static function noticesAdded(array $consent, Manifest $manifest): array
+    {
+        return array_values(array_diff(self::declaredNotices($manifest), (array) ($consent['notices'] ?? [])));
+    }
+
+    /**
+     * The plugins required that were never agreed to.
+     *
+     * @param  array<string, mixed>  $consent
+     *
+     * @return list<string>
+     */
+    private static function requiresAdded(array $consent, Manifest $manifest): array
+    {
+        return array_values(array_diff(self::declaredRequires($manifest), (array) ($consent['requires'] ?? [])));
     }
 
     /**

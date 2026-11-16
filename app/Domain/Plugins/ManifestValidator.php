@@ -6,6 +6,7 @@ namespace App\Domain\Plugins;
 
 use App\Domain\Hooks\Reference\HookCatalogue;
 use App\Domain\Import\PluginData\WordPressNames;
+use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Jobs\DeclaredJobs;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seams\PluginServices;
@@ -13,15 +14,18 @@ use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
 use Composer\Semver\Semver;
+use Composer\Semver\VersionParser;
 use ReflectionClass;
 use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Hooks\HookContract;
+use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\Plugins\Capability;
 use UnexpectedValueException;
 
@@ -155,6 +159,7 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->feedLinks($read));
         array_push($errors, ...$this->columns($read));
         array_push($errors, ...$this->aiTasks($read));
+        array_push($errors, ...$this->notices($read));
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
@@ -202,6 +207,22 @@ final readonly class ManifestValidator
         }
 
         return [__('It declares AI tasks, but the plugin doesn’t ask for ai.')];
+    }
+
+    /**
+     * A plugin's own kinds of notice are sent only with notices.send (docs/plans/plugin-sockets-3.md).
+     *
+     * @return list<string>
+     */
+    private function notices(Manifest $read): array
+    {
+        $notices = $read->contributes()['notices'] ?? null;
+
+        if (! is_array($notices) || $notices === [] || in_array(Capability::NoticesSend->value, $read->capabilities(), true)) {
+            return [];
+        }
+
+        return [__('It declares kinds of notice, but the plugin doesn’t ask for notices.send.')];
     }
 
     /**
@@ -264,8 +285,51 @@ final readonly class ManifestValidator
             $errors[] = "requires.teme \"{$constraint}\" is not a version constraint.";
         }
 
-        if (array_diff(array_keys($requires), ['teme']) !== []) {
-            $errors[] = 'requires may name only teme: a plugin can’t depend on another plugin yet.';
+        if (array_diff(array_keys($requires), ['teme', 'plugins']) !== []) {
+            $errors[] = __('requires may name only teme and plugins.');
+        }
+
+        if (array_key_exists('plugins', $requires)) {
+            array_push($errors, ...$this->requiredPlugins($requires['plugins'], is_string($manifest['name'] ?? null) ? $manifest['name'] : ''));
+        }
+
+        return $errors;
+    }
+
+    /**
+     * requires.plugins: an object of other plugins' Composer names and the
+     * versions of each it works with, at most Dependencies::MOST
+     * (docs/plans/plugin-sockets-3.md).
+     *
+     * @return list<string>
+     */
+    private function requiredPlugins(mixed $plugins, string $own): array
+    {
+        if (! is_array($plugins) || ($plugins !== [] && array_is_list($plugins))) {
+            return [__('requires.plugins must be an object of plugin names and the versions each works with.')];
+        }
+
+        $errors = count($plugins) > Dependencies::MOST ? [__('requires.plugins may name at most 5 plugins.')] : [];
+        $parser = new VersionParser;
+
+        foreach ($plugins as $name => $constraint) {
+            $name = (string) $name;
+
+            if (preg_match(self::NAME, $name) !== 1 || $name === $own) {
+                $errors[] = __('requires.plugins names ":name", which isn’t another plugin’s Composer name.', ['name' => $name]);
+
+                continue;
+            }
+
+            try {
+                if (! is_string($constraint) || trim($constraint) === '') {
+                    throw new UnexpectedValueException('empty');
+                }
+
+                $parser->parseConstraints($constraint);
+            } catch (UnexpectedValueException) {
+                $errors[] = __('requires.plugins ":name" needs a version constraint, such as ^1.0.', ['name' => $name]);
+            }
         }
 
         return $errors;
@@ -335,6 +399,10 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for InlineScripts, but the plugin doesn’t ask for content.insert or pages.insert.";
             } elseif (strtolower((string) $type) === strtolower(SiteAi::class) && ! in_array(Capability::Ai->value, $read->capabilities(), true)) {
                 $errors[] = __(':class asks for SiteAi, but the plugin doesn’t ask for ai.', ['class' => $class]);
+            } elseif (strtolower((string) $type) === strtolower(Notices::class) && ! in_array(Capability::NoticesSend->value, $read->capabilities(), true)) {
+                $errors[] = __(':class asks for Notices, but the plugin doesn’t ask for notices.send.', ['class' => $class]);
+            } elseif (strtolower((string) $type) === strtolower(HookSender::class) && DeclaredHooks::of($read) === []) {
+                $errors[] = __(':class asks for HookSender, but the plugin declares no hooks under contributes.hooks.', ['class' => $class]);
             }
         }
 
@@ -505,6 +573,11 @@ final readonly class ManifestValidator
         $known = self::hooksByShortName();
 
         foreach ($this->listed($manifest, 'hooks') as $hook) {
+            // Another plugin's own hook: Dependencies checks it against that plugin.
+            if (is_string($hook) && preg_match(DeclaredHooks::FULL_NAME, $hook) === 1) {
+                continue;
+            }
+
             $class = is_string($hook) ? ($known[$hook] ?? null) : null;
 
             if ($class === null) {

@@ -6,9 +6,10 @@ namespace App\Domain\Plugins;
 
 /**
  * Keys made from a plugin's code for places whose keys must start with a
- * letter and hold no hyphen, such as the `ai` settings group's keys: a code
- * may start with a digit or hold hyphens. Nothing core declares starts with
- * `plugin_`.
+ * letter and hold no hyphen, such as the `ai` settings group's keys, a
+ * setting's or a notice kind's key: a code may start with a digit or hold
+ * hyphens, so each begins with the same stem. Nothing core declares starts
+ * with `plugin_`.
  */
 final class PluginKeys
 {

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Plugins;
 
+use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\InstalledPackages;
+use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\PluginRegistry;
 use Closure;
+use Composer\Autoload\ClassLoader;
 use Composer\InstalledVersions;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
@@ -46,6 +49,53 @@ final class PluginFixtures
         ]);
 
         app(PluginRegistry::class)->flush();
+    }
+
+    /**
+     * The consent EnablePlugin keeps for this manifest, agreeing to all it
+     * asks: its capabilities and hooks, no host, and the kinds of notice and
+     * the plugins it requires.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return array<string, mixed>
+     */
+    public static function agreed(array $manifest): array
+    {
+        $read = new Manifest($manifest);
+        $notices = Consent::declaredNotices($read);
+        $requires = Consent::declaredRequires($read);
+
+        return [
+            'capabilities' => $read->capabilities(),
+            'hosts' => [],
+            'hooks' => $read->hooks(),
+            ...($notices === [] ? [] : ['notices' => $notices]),
+            ...($requires === [] ? [] : ['requires' => $requires]),
+        ];
+    }
+
+    /**
+     * Loads the fixture's classes from its own folder from now on, ahead of
+     * any copy's: PHP loads a class once a process, and a copy is deleted
+     * after its test, so a class read from one would name a missing file.
+     */
+    public static function loadFromOriginal(string $folder): void
+    {
+        static $registered = [];
+
+        if (isset($registered[$folder])) {
+            return;
+        }
+
+        $loader = new ClassLoader;
+
+        foreach (self::composer($folder)['autoload']['psr-4'] ?? [] as $prefix => $folders) {
+            $loader->addPsr4((string) $prefix, array_map(fn (string $path): string => self::path($folder).'/'.$path, (array) $folders));
+        }
+
+        $loader->register(true);
+        $registered[$folder] = true;
     }
 
     /**

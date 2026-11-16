@@ -28,6 +28,7 @@ final readonly class PluginWords
         'MediaStored' => 'a file uploaded or replaced',
         'CommentStatusChanged' => 'a comment’s status changed',
         'SettingsChanged' => 'a setting changed',
+        'ArticleLinks' => 'an article’s links drawn',
     ];
 
     /**
@@ -37,8 +38,9 @@ final readonly class PluginWords
      * @param  list<string>  $hosts
      * @param  array{options?: list<string>, postTypes?: array<string, list<string>>, userMeta?: list<string>, termMeta?: list<string>}  $imports
      * @param  list<string>  $aiTasks  the declared AI tasks' labels
+     * @param  list<string>  $notices  the labels of the kinds of notice it declares
      */
-    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = []): string
+    public static function capability(string $capability, array $hosts = [], array $imports = [], array $aiTasks = [], array $notices = []): string
     {
         return self::core(fn (): string => match ($capability) {
             Capability::Ai->value => __('Use your site’s AI connection (Settings › AI) for: :tasks. What it sends goes to the AI service chosen there, and it spends your site’s AI budget.', ['tasks' => implode(', ', $aiTasks)]),
@@ -47,6 +49,7 @@ final readonly class PluginWords
             Capability::MediaRead->value => __('Read the media library'),
             Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
             Capability::PagesInsert->value => __('Add content to every page of your site: in the head, at the top and bottom of the page, between items on lists, in the theme’s regions, and fixed to the screen’s edge'),
+            Capability::ContentLinks->value => __('Change how links in your articles behave: nofollow, new tab'),
             Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
             Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
             Capability::Jobs->value => __('Run work in the background and on a schedule'),
@@ -56,6 +59,7 @@ final readonly class PluginWords
             Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
             Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
             Capability::PeopleRead->value => __('See the names of the people who write on this site'),
+            Capability::NoticesSend->value => __('Send notices to people on this site, by email or in their inbox: :kinds', ['kinds' => implode('; ', $notices)]),
             default => $capability,
         });
     }
@@ -116,6 +120,15 @@ final readonly class PluginWords
         }
 
         return __('Read from the WordPress site you import: :what', ['what' => implode('; ', $parts)]);
+    }
+
+    /**
+     * The consent's line for a plugin this one requires, which must stay
+     * enabled while this one is (docs/plans/plugin-sockets-3.md).
+     */
+    public static function needs(string $plugin): string
+    {
+        return __('Needs :plugin, which must stay enabled.', ['plugin' => $plugin]);
     }
 
     /**

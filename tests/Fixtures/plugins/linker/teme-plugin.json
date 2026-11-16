@@ -1,0 +1,12 @@
+{
+    "manifest": 1,
+    "name": "tests/linker",
+    "code": "linker",
+    "label": "Linker",
+    "description": "A fixture that marks the links articles draw, for the sockets tests.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Linker\\LinkerPlugin",
+    "capabilities": ["content.links"],
+    "hooks": ["ArticleLinks"]
+}

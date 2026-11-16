@@ -20,6 +20,7 @@ use ReflectionUnionType;
 use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Hooks\Collect;
 use Teme\Contracts\Hooks\Gate;
+use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Hooks\Notification;
 use Teme\Contracts\Hooks\Resolve;
 use Teme\Contracts\Hooks\Transform;
@@ -47,7 +48,7 @@ final class GenerateContractsReference extends Command
      *
      * @var array<class-string, string>
      */
-    private const array BY_DECLARATION = [PluginSettingsWriter::class => 'contributes.settings'];
+    private const array BY_DECLARATION = [PluginSettingsWriter::class => 'contributes.settings', HookSender::class => 'contributes.hooks'];
 
     /**
      * The contracts given only when a grant and a declaration meet, with

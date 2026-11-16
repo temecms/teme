@@ -42,7 +42,7 @@ it('refuses each broken manifest with its sentence', function (Closure $break, s
     'version' => [fn (array $m): array => [...$m, 'version' => 'one'], 'version must be a version number, such as 1.2.0.'],
     'requires' => [fn (array $m): array => [...$m, 'requires' => []], 'The manifest must say which Teme versions the plugin works with, as requires.teme.'],
     'constraint' => [fn (array $m): array => [...$m, 'requires' => ['teme' => 'soon']], 'requires.teme "soon" is not a version constraint.'],
-    'another plugin' => [fn (array $m): array => [...$m, 'requires' => ['teme' => '^0.5', 'acme/base' => '^1.0']], 'requires may name only teme: a plugin can’t depend on another plugin yet.'],
+    'another plugin' => [fn (array $m): array => [...$m, 'requires' => ['teme' => '^0.5', 'acme/base' => '^1.0']], 'requires may name only teme and plugins.'],
     'plugin' => [fn (array $m): array => [...$m, 'plugin' => ''], 'plugin must name the plugin’s class.'],
     'class missing' => [fn (array $m): array => [...$m, 'plugin' => 'Tests\\Fixtures\\Plugins\\Hello\\Gone'], 'The class Tests\\Fixtures\\Plugins\\Hello\\Gone isn’t there.'],
     'hosts' => [fn (array $m): array => [...$m, 'capabilities' => ['http'], 'hosts' => ['10.0.0.1']], 'hosts must be a list of host names, such as api.example.com or *.example.com.'],

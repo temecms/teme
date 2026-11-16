@@ -16,10 +16,11 @@ final readonly class PluginRow
     /**
      * @param  array{capabilities?: list<string>, hosts?: list<string>, hooks?: list<string>, routes?: list<string>, aiTasks?: array<string, mixed>}  $consent  what was agreed to; empty when never enabled
      * @param  array{capabilities: list<string>, hosts: list<string>, hooks: list<string>}  $asks  what the manifest asks for now
-     * @param  array{capabilities: list<string>, hosts: list<string>, routes: list<string>, insertionHosts?: list<string>, aiTasks?: list<string>}  $added  what it asks for that was never agreed to
+     * @param  array{capabilities: list<string>, hosts: list<string>, routes: list<string>, insertionHosts?: list<string>, aiTasks?: list<string>, notices?: list<string>, requires?: list<string>}  $added  what it asks for that was never agreed to
      * @param  list<string>  $stopped  the subscription ids stopped for this version
      * @param  string|null  $schedules  why its schedules don't run, with what to do; null when they do or it has none
      * @param  array{costMicrounits: int, budgetMicrounits: int|null}|null  $ai  this month's AI cost and the plugin's own budget, for a plugin granted ai; null otherwise
+     * @param  list<string>  $requiredBy  the plugins found that require it, by Composer name
      */
     public function __construct(
         public string $name,
@@ -38,6 +39,6 @@ final readonly class PluginRow
         public array $stopped,
         public ?string $schedules = null,
         public ?array $ai = null,
+        public array $requiredBy = [],
     ) {}
-
 }
