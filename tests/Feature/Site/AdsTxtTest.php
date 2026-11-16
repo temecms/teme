@@ -72,3 +72,17 @@ it('saves and serves ads.txt while the host disallows site code, since it is tex
 
     addrGet('/ads.txt')->assertOk()->assertContent('example.com, pub-1, DIRECT');
 });
+
+it('saves a redirect mode with an https address on another host and answers /ads.txt with a permanent redirect there', function (): void {
+    app(UpdateAdsTxt::class)->execute(new UpdateAdsTxtInput(
+        adsTxt: '',
+        expectedVersion: 0,
+        actorId: (string) $this->admin->id,
+        mode: 'redirect',
+        redirectUrl: 'https://ads.example/ads.txt',
+    ));
+
+    addrGet('/ads.txt')
+        ->assertStatus(301)
+        ->assertHeader('Location', 'https://ads.example/ads.txt');
+});

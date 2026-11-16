@@ -47,7 +47,7 @@ final readonly class SiteCodeScreen
      * and `changes` (the eight newest, newest first, each side with its
      * declared hosts).
      *
-     * @return array{locked: bool, siteTimezone: string, places: list<array<string, mixed>>, changes: list<array<string, mixed>>, adsTxt: string, adsTxtVersion: int}
+     * @return array{locked: bool, siteTimezone: string, places: list<array<string, mixed>>, changes: list<array<string, mixed>>, adsTxt: string, adsTxtMode: string, adsTxtRedirect: string, adsTxtVersion: int}
      */
     public function data(): array
     {
@@ -106,6 +106,8 @@ final readonly class SiteCodeScreen
                 ];
             })->values()->all(),
             'adsTxt' => $this->settings->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT),
+            'adsTxtMode' => $this->settings->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_MODE),
+            'adsTxtRedirect' => $this->settings->string(SiteCodeSettings::KEY, SiteCodeSettings::ADS_TXT_REDIRECT),
             'adsTxtVersion' => (int) (SettingsGroupRecord::query()->whereKey(SiteCodeSettings::KEY)->value('version') ?? 0),
         ];
     }
