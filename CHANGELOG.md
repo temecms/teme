@@ -2,6 +2,115 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
+## [1.0.0] — 2026-11-17
+
+Teme 1.0. Plugins can now do most of what a site needs from them: reach outside services, keep their own settings, pages, tables and permissions, add to the editor and the public pages, use the site's AI, read and write content, and talk to each other. Plugins and themes install from the admin. Sites can be multilingual for readers, join the fediverse, keep media in object storage, and run on Dokploy or as one container on any host. **Update to 0.8.0-alpha.1 before this one.**
+
+### Plugins
+
+- Outbound requests can post forms, and a plugin may reach the hosts named in its own settings once the administrator agrees
+- Feeds: a plugin can add feed links to the site and is told when the site's feeds change, for WebSub hubs and search engine pings
+- Plugins can read the site's name, address and language
+- Settings and actions: a plugin can save its own settings, run actions from its settings page, and show lists there; settings pages gain sections, conditions and repeaters
+- Page insertions: content in the head, at the top and bottom of the body, between the items of a list, beside a theme's regions, and fixed to the screen's edge, as well as inside articles
+- A plugin's inline scripts wait for approval before they run, and the people who may change site code are told when one waits
+- Root files: a plugin can serve plain-text files at the site's root, listed when the administrator agrees to the plugin
+- A plugin's own area in the admin, with its pages, tables, record forms, charts and actions, all drawn by Teme from what the plugin declares; up to five areas in the menu, the rest on Tools
+- A plugin can declare up to three permissions of its own, and the administrator chooses which roles hold them
+- Plugins can add columns to the content lists
+- Editor panels: a plugin can add a panel to the editor that suggests changes to the article, which the writer uses or discards
+- The site's AI for plugins: a plugin declares its AI tasks and asks the site's own AI connection, within a budget and a request limit set in Settings
+- Content and people doors: plugins read published items, drafts for the person they work for, and the people who write on the site; they create, change, publish and schedule content and upload media for that person
+- Jobs and schedules: a plugin declares background jobs and schedules, with progress, delays and one-at-a-time keys; scheduled runs act as the administrator who enabled the plugin
+- Public routes: a plugin can answer its own addresses on the public site, with signed inbound posts verified
+- Import socket: a plugin can import the WordPress data it declares during an import
+- Hooks between plugins: a plugin can declare hooks of its own, send them, and require other plugins
+- Notices: a plugin can declare kinds of notice and send them, including to the holders of its own permission
+- A plugin can set attributes on the links an article draws
+- A plugin's words, its manifest's included, translate from its own language files
+
+### Installing plugins and themes
+
+- Add plugin and Add theme in the admin: from Packagist, Git, a vendor's source, or a ZIP upload
+- A separate installer carries each request out: staged, verified, switched in at once, and rolled back if anything fails; installed extensions are rebuilt after a Teme update
+- Private Git and vendor sources, with their keys kept out of every report
+- Forget a plugin whose code is gone
+- `teme:extensions:request` and `teme:extensions:cancel` from the console
+
+### Themes
+
+- Regions take two new cards: Featured posts and Custom HTML
+- A theme's manifest can link its home page and its author; only https links are shown
+- Templates can read the page's language, its direction, and its other language versions
+- The theme checker refuses a page with no H1 or more than one
+
+### Languages
+
+- Settings › Languages: the site's languages, in order
+- The editor's Translations section links an item's language versions, and the lists show each item's language with a column and a filter
+- Menus can be shown to one language's readers, with a language switcher
+- Readers get each page in its language, with hreflang and sitemap alternates
+- Settings groups can carry their words in other languages
+- The import reads Polylang's languages and translations
+
+### Fediverse
+
+- Settings › Fediverse: people on Mastodon and other fediverse servers can follow the blog, and its authors when you turn that on
+- New and changed posts are delivered, signed, with retries per server
+- Replies come in as comments, moderated as any other comment
+- The WordPress ActivityPub plugin's accounts, keys, followers and settings can be imported
+- Plugins can read and send fediverse activities
+
+### Management API
+
+- Outside tools can sign in with a key at `/api/manage/v1` to upload media and create, publish and schedule content, each key acting as one person with only the abilities given to it
+
+### Import
+
+- Other addresses of the old site can be edited on the import screens
+
+### Media
+
+- Media can live in S3-compatible object storage behind a CDN, with originals kept private and downloaded through short-lived signed addresses
+- `teme:media:bucket-check` checks the bucket, and `teme:media:move` moves media to it or back, resumable and verified
+- ads.txt can redirect to an ad network's file
+
+### Hosting
+
+- Dokploy: install from Dokploy's template list, from the template repository `temecms/temecms-for-dokploy`
+- Dokploy: the API key is entered in Settings › Updates, and the updater finds its service by App Name
+- Dokploy: an update can bring the template's new compose file, but only one the template has released
+- One-container mode: with `TEME_ROLE=all`, one container runs the web server, workers, scheduler, installer and updater, on any host that runs a container with a database and a volume
+- The image reads `DATABASE_URL`, and keeps media, the page cache and extensions in one mount at `/var/teme`
+
+### Documentation
+
+- The developer handbook: a page for every plugin socket, a first plugin and a first theme, and the generated contracts reference
+- `teme/testing`, a testing kit for plugins and themes, used by the handbook's own examples
+- The development site page covers the scheduler and the queue worker
+- Screenshots of Teme, made from demo content by a workflow
+- A new README that shows Teme and how to run it
+
+### Fixes
+
+- A list's header stays in view while the page scrolls, and row menus use the shared menu (#285, #286)
+- Relative plugin and theme paths resolve against the project, and a skipped enabled plugin says why (#339)
+- The fields reference lists the No inserted content field (#343)
+- Fixes to the fediverse, the import and the language screens found in review before release
+
+### Upgrading from 0.8.0-alpha.1
+
+For operators:
+
+- Back up the site first
+- Update the image to `1.0.0`
+- The deploy runs 17 migrations after its backup; none breaks the previous release
+- On Dokploy, the API key now lives in Settings › Updates; a site on the old Dokploy compose file keeps `TEME_DOKPLOY_TOKEN` working, and a token set on the server still wins
+
+For plugin and theme authors:
+
+- Require `"teme": "^1.0"` in `teme-plugin.json` or `teme-theme.json`
+
 ## [0.8.0-alpha.1] — 2026-11-15
 
 The admin's new look: one design system for every screen and the frame every screen sits in, then every screen rebuilt on it, Home arranged by each person, and a plugin's own database tables (slice 5.2's first release). **Update to 0.7.0-alpha.2 before this one.**
