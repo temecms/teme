@@ -8,7 +8,6 @@ use InvalidArgumentException;
 
 /**
  * Where kinds of notice are declared, as SettingsRegistrar declares settings.
- * A preview until Teme 1.0.
  *
  * @since 0.5.0
  */

@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "urn:teme:plugin-manifest:1",
     "title": "Teme plugin manifest, version 1",
-    "description": "teme-plugin.json. A preview until Teme 1.0.",
+    "description": "teme-plugin.json.",
     "$comment": "@since 0.5.0",
     "type": "object",
     "required": [

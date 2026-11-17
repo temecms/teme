@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "urn:teme:theme-manifest:1",
     "title": "Teme theme manifest, version 1",
-    "description": "teme-theme.json. A preview until Teme 1.0: a key may change in a minor release before then, named in the changelog.",
+    "description": "teme-theme.json.",
     "$comment": "@since 0.4.0",
     "type": "object",
     "required": [
@@ -63,7 +63,7 @@
                     "minLength": 1,
                     "pattern": "\\S",
                     "$comment": "Teme refuses a value of white space only (it trims first); the pattern says so for ASCII white space, which is all PHP's trim() removes, and a schema can't say more.",
-                    "description": "A Composer version constraint on Teme's own version, such as ^0.4. Before 1.0, ^0.4 means 0.4.x only."
+                    "description": "A Composer version constraint on Teme's own version, such as ^1.0."
                 }
             }
         },
