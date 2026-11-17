@@ -1078,7 +1078,14 @@
                                         "description": "The value's key under the plugin's own."
                                     },
                                     "type": {
-                                        "enum": ["text", "textarea", "number", "boolean", "select", "url"],
+                                        "enum": [
+                                            "text",
+                                            "textarea",
+                                            "number",
+                                            "boolean",
+                                            "select",
+                                            "url"
+                                        ],
                                         "description": "The kind of field."
                                     },
                                     "label": {
@@ -1127,7 +1134,7 @@
                 "sitemaps": {
                     "type": "array",
                     "maxItems": 4,
-                    "description": "Sitemaps the plugin adds to the site's sitemap index, each at sitemap-{code}-{id}.xml. Needs sitemaps.",
+                    "description": "Sitemaps the plugin adds to the site's sitemap index, each at sitemap-plugin-{code}-{id}.xml. Needs sitemaps.",
                     "items": {
                         "type": "object",
                         "additionalProperties": false,

@@ -6,17 +6,21 @@ namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Seams\PluginContributions;
+use App\Domain\Plugins\Seo\SeoValidator;
 use App\Domain\PublicRoutes\RootFileNames;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Contracts\Container\Container;
+use Teme\Contracts\Head\HasHeadMeta;
 use Teme\Contracts\Insertions\InsertionContributor;
 use Teme\Contracts\Insertions\PageInsertionContributor;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Teme\Contracts\Lists\HasListColumns;
 use Teme\Contracts\Lists\HasPluginLists;
+use Teme\Contracts\Sitemaps\HasSitemaps;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck as PluginCheck;
+use Teme\Contracts\StructuredData\HasStructuredData;
 
 /**
  * Registers what a starting plugin adds to the admin, under its Composer
@@ -57,6 +61,7 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
         array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
         array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
+        array_push($errors, ...app(SeoValidator::class)->startErrors($contributes, $plugin));
 
         if ($errors !== []) {
             return $errors;
@@ -72,7 +77,7 @@ final readonly class Contributions implements PluginContributions
 
         if (is_array($settings) && $settings !== []) {
             // The manifest's description isn't handed to this method, so the group is described by the plugin's label.
-            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== []), $name);
+            $this->settings->group(DeclaredSettings::group($code, $label, $label, $version, array_values($settings), $plugin instanceof InsertionContributor, $plugin instanceof PageInsertionContributor, rootFiles: $rootFiles, feedLinks: ($contributes['feedLinks'] ?? []) !== [], searchEngines: $plugin instanceof HasHeadMeta || $plugin instanceof HasStructuredData || $plugin instanceof HasSitemaps), $name);
 
             // A name its settings fill is checked when they are saved (docs/guides/developers/plugins/root-files.md).
             if ($rootFiles) {

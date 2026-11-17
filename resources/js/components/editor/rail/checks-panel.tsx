@@ -1,7 +1,9 @@
 import { CheckCircle2, CircleAlert } from 'lucide-react';
 import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
+import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
 import type { BadLink, CheckId, CoreCheck } from './checks';
+import { PluginChecks } from './plugin-checks';
 import { RailSection } from './rail-section';
 import { quotedTitle } from '@/lib/titles';
 
@@ -94,9 +96,14 @@ export function ChecksPanel({
     onGoTo,
     onGoToSearch,
     noun,
+    pluginChecks = [],
+    onGoToPlugin,
 }: {
     checks: CoreCheck[];
     onGoTo: (check: CheckId) => void;
+    /** The plugins' checks, after core's, each under its plugin's name (docs/guides/developers/plugins/seo.md). */
+    pluginChecks?: PluginCheckGroup[];
+    onGoToPlugin?: (code: string, result: PluginCheckResult) => void;
     /** Opens Search and social under the text; absent where there is none (a theme's region). */
     onGoToSearch?: () => void;
     noun: string;
@@ -125,6 +132,15 @@ export function ChecksPanel({
                     </li>
                 ))}
             </ul>
+            {pluginChecks.length > 0 && (
+                <div className="border-line mt-3 border-t pt-3">
+                    <PluginChecks
+                        groups={pluginChecks}
+                        onGoTo={onGoToPlugin}
+                        testId="rail-plugin-checks"
+                    />
+                </div>
+            )}
             {onGoToSearch !== undefined && (
                 <div
                     data-test="rail-search-note"

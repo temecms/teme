@@ -36,6 +36,7 @@ use App\Http\Admin\Contents\EditorPanelController;
 use App\Http\Admin\Contents\LinkChoicesController;
 use App\Http\Admin\Contents\LinkedContentController;
 use App\Http\Admin\Contents\LinkTargetsController;
+use App\Http\Admin\Contents\PluginChecksController;
 use App\Http\Admin\Contents\PreviewLinkController;
 use App\Http\Admin\Contents\ReviewController;
 use App\Http\Admin\Contents\RevisionController;
@@ -442,6 +443,8 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::post('content/{content}/visibility', [ContentEditorController::class, 'visibility'])->name('content.visibility');
         Route::post('content/{content}/author', [ContentEditorController::class, 'author'])->name('content.author');
         Route::get('content/{content}/structured-data', StructuredDataController::class)->name('content.structured-data');
+        // The plugins' checks on one revision, beside core's (docs/guides/developers/plugins/seo.md).
+        Route::get('content/{content}/plugin-checks', PluginChecksController::class)->middleware('throttle:editor-panels')->name('content.plugin-checks');
         // The person's own look at the latest saved version, through the
         // theme, under the admin's headers and a policy of its own (I-1324).
         Route::get('content/{content}/preview', ContentPreviewController::class)->name('content.preview');

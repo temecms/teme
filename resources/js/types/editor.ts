@@ -292,6 +292,8 @@ export type ContentEditPage = {
     ai: EditorAi | null;
     /** The plugins' panels this person sees on this item, as tools in the bar. */
     panels: EditorPluginPanel[];
+    /** The plugins' tabs in Search and social for this type (PluginSearchFields::tabsFor). */
+    searchTabs: PluginSearchTab[];
     /** Only on a presence poll: who else has unsaved work in the article. */
     otherEditors?: EditorPerson[];
     editor: {
@@ -399,6 +401,53 @@ export type PreviewLinkRow = {
 
 /** A new preview link: its address, shown this once and never again. */
 export type CreatedPreviewLink = { url: string };
+
+/** One field of a plugin's tab in Search and social, as its manifest declares it. */
+export type PluginSearchField = {
+    key: string;
+    type: 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'url';
+    label: string;
+    description: string;
+    maxLength: number | null;
+    options: { value: string; label: string }[];
+    min: number | null;
+    max: number | null;
+    /** Whether its value shows in the tab's one-line summary. */
+    summary: boolean;
+};
+
+/** A plugin's tab in Search and social: its values are one object under the plugin's key in the item's fields. */
+export type PluginSearchTab = {
+    /** The plugin's key in the item's fields, plugin_{code}; also the tab's id. */
+    key: string;
+    code: string;
+    /** The plugin's name, which marks the tab. */
+    plugin: string;
+    label: string;
+    description: string;
+    position: 'after-search' | 'after-social' | 'last';
+    fields: PluginSearchField[];
+};
+
+/** One result of a plugin's editor check (PluginChecks), drawn as plain text. */
+export type PluginCheckResult = {
+    id: string;
+    label: string;
+    state: 'ok' | 'improve' | 'problem';
+    message: string;
+    /** 'title', or a field's handle, to put the cursor on. */
+    field: string | null;
+    /** Or one of the plugin's own Search and social fields. */
+    ownField: string | null;
+};
+
+/** One plugin's checks on the item, under its name; failed when it couldn't answer this time. */
+export type PluginCheckGroup = {
+    code: string;
+    plugin: string;
+    checks: PluginCheckResult[];
+    failed: string | null;
+};
 
 /** One field of a plugin panel action's form, as its manifest declares it. */
 export type PanelField = {

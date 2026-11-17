@@ -1,0 +1,35 @@
+{
+    "manifest": 1,
+    "name": "teme-examples/seo-sockets",
+    "code": "seo-sockets",
+    "label": "SEO sockets",
+    "description": "The handbook's SEO example: a keyphrase check, a Search and social tab, a robots tag, FAQ markup and a sitemap.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^1.1"
+    },
+    "plugin": "TemeExamples\\SeoSockets\\SeoPlugin",
+    "capabilities": ["content.read", "pages.head", "sitemaps"],
+    "contributes": {
+        "editorChecks": [
+            { "id": "keyphrase", "label": "Focus keyphrase", "types": ["post"] }
+        ],
+        "searchSection": {
+            "label": "Keyphrase",
+            "description": "The phrase this item should be found for.",
+            "types": ["post"],
+            "position": "after-search",
+            "fields": [
+                { "key": "focus", "type": "text", "label": "Focus keyphrase", "maxLength": 60, "summary": true },
+                { "key": "noindex", "type": "boolean", "label": "Hide from search engines" }
+            ]
+        },
+        "structuredData": {
+            "types": ["FAQPage", "Question", "Answer"],
+            "properties": ["mainEntity", "acceptedAnswer", "text"]
+        },
+        "sitemaps": [
+            { "id": "landing", "label": "Landing pages" }
+        ]
+    }
+}

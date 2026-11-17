@@ -60,6 +60,8 @@ final readonly class PluginWords
             Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
             Capability::PeopleRead->value => __('See the names of the people who write on this site'),
             Capability::NoticesSend->value => __('Send notices to people on this site, by email or in their inbox: :kinds', ['kinds' => implode('; ', $notices)]),
+            Capability::PagesHead->value => __('Add tags that search engines and social sites read, and structured data, to the head of your site’s public pages'),
+            Capability::Sitemaps->value => __('Add its own sitemaps to your site’s sitemap index'),
             default => $capability,
         });
     }
@@ -140,6 +142,38 @@ final readonly class PluginWords
     public static function editorPanel(string $label, array $types): string
     {
         return __('Add a panel to the editor for :types: “:label”, which can start its work on the item you’re editing and suggest changes you choose to use.', ['types' => implode(', ', $types), 'label' => $label]);
+    }
+
+    /**
+     * The consent's line for a plugin's editor checks: their labels and the
+     * content types they run on.
+     *
+     * @param  list<string>  $labels
+     * @param  list<string>  $types  the types' names, as the admin shows them
+     */
+    public static function editorChecks(array $labels, array $types): string
+    {
+        return __('Check the :types you edit and show what it finds beside the editor’s own checks: :labels.', ['types' => implode(', ', $types), 'labels' => implode(', ', $labels)]);
+    }
+
+    /**
+     * The consent's line for a plugin's tab in Search and social.
+     *
+     * @param  list<string>  $types  the types' names, as the admin shows them
+     */
+    public static function searchSection(string $label, array $types): string
+    {
+        return __('Add a tab, “:label”, to Search and social for :types, whose values are saved with each item.', ['label' => $label, 'types' => implode(', ', $types)]);
+    }
+
+    /**
+     * The consent's line naming the sitemaps a plugin adds.
+     *
+     * @param  list<string>  $labels
+     */
+    public static function sitemaps(array $labels): string
+    {
+        return __('Its sitemaps: :labels.', ['labels' => implode(', ', $labels)]);
     }
 
     /**

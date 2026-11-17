@@ -6,7 +6,7 @@ namespace Teme\Contracts\Sitemaps;
 
 /**
  * A plugin granted sitemaps whose manifest declares sitemaps: core lists
- * each in the site's sitemap index after its own, as `sitemap-{code}-{id}.xml`,
+ * each in the site's sitemap index after its own, as `sitemap-plugin-{code}-{id}.xml`,
  * and caches its pages as it caches its own.
  *
  * @since 1.1.0
