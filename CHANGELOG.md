@@ -2,7 +2,15 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
+## [1.0.1] — 2026-11-17
+
+### Fixed
+
+- The image's web container starts again: PHP-FPM, run as the site's own user in a container that starts as root, can open the container's error output. Install 1.0.1; 1.0.0's image was not published.
+
 ## [1.0.0] — 2026-11-17
+
+_1.0.0's image was not published (its web container failed the release check). Install 1.0.1, which has every change below._
 
 Teme 1.0. Plugins can now do most of what a site needs from them: reach outside services, keep their own settings, pages, tables and permissions, add to the editor and the public pages, use the site's AI, read and write content, and talk to each other. Plugins and themes install from the admin. Sites can be multilingual for readers, join the fediverse, keep media in object storage, and run on Dokploy or as one container on any host. **Update to 0.8.0-alpha.1 before this one.**
 
