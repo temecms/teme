@@ -7,7 +7,10 @@ import { SettingsPanel } from '@/components/fields/settings-panel';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { PluginCell } from '@/components/list/plugin-cell';
-import { AreaFieldInput } from '@/components/plugins/area/area-form';
+import {
+    AreaFieldInput,
+    useAreaScripts,
+} from '@/components/plugins/area/area-form';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Notice } from '@/components/ui/notice';
@@ -213,7 +216,10 @@ export function RepeaterSetting({
     );
 }
 
-/** A plugin's code setting (A5): markup in a monospace box. */
+/**
+ * A plugin's code setting: markup in a monospace box, with the inline
+ * scripts it holds that wait for approval listed under it.
+ */
 export function CodeSetting({
     field,
     value,
@@ -224,6 +230,7 @@ export function CodeSetting({
     error?: string;
 }) {
     const id = `field-${field.key}`;
+    const scripts = useAreaScripts();
 
     return (
         <Field
@@ -238,6 +245,9 @@ export function CodeSetting({
                 name={`values[${field.key}]`}
                 defaultValue={typeof value === 'string' ? value : ''}
                 invalid={error !== undefined}
+                waiting={scripts.waiting[`values.${field.key}`] ?? []}
+                approve={scripts.approve}
+                busy={scripts.busy}
             />
         </Field>
     );

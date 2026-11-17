@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Domain\Notices\NoticeMail;
 use App\Domain\Plugins\LoadedPlugins;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
@@ -18,6 +19,7 @@ use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Teme\Contracts\Admin\Saved;
@@ -110,6 +112,41 @@ it('says under the field which scripts wait, and offers approval only to a perso
         ->where('scripts.waiting', ['values.versions.0.code' => [['id' => (string) $script->id, 'script' => '(adsbygoogle = window.adsbygoogle || []).push({});']]])
         ->where('scripts.approver', false));
     $form($this->admin)->assertInertia(fn (Assert $page) => $page->where('scripts.approver', true));
+});
+
+it('tells the people who may approve when a save asks for a new script, once, linking to where it was written', function (): void {
+    Notification::fake();
+    $saved = ($this->save)($this->unit);
+    ($this->save)($this->unit, $saved['id']);
+
+    Notification::assertSentTo($this->admin, NoticeMail::class, fn (NoticeMail $mail): bool => $mail->kind === 'site_code.script_waiting'
+        && $mail->message->actionRoute === 'plugins.area.show'
+        && $mail->message->actionParameters === ['code' => 'placard']);
+    Notification::assertSentTimes(NoticeMail::class, 1);
+    Notification::assertNotSentTo($this->editor, NoticeMail::class);
+});
+
+it('tells the people who may approve about a code setting’s new script, linking to the plugin’s settings', function (): void {
+    Notification::fake();
+    $other = User::factory()->create()->assignRole('administrator');
+    $version = (int) DB::table('settings')->where('group_key', 'plugin.placard')->value('version');
+    app(UpdateSettings::class)->execute(new UpdateSettingsInput('plugin.placard', ['fallback' => '<script>window.fallback = 1;</script>'], [], [], $version, (string) $this->admin->id));
+
+    Notification::assertSentTo($other, NoticeMail::class, fn (NoticeMail $mail): bool => $mail->message->actionRoute === 'settings.show'
+        && $mail->message->actionParameters === ['group' => 'plugin.placard']);
+    Notification::assertNotSentTo($this->admin, NoticeMail::class);
+});
+
+it('says under a code setting which scripts wait on the plugin’s settings page', function (): void {
+    $version = (int) DB::table('settings')->where('group_key', 'plugin.placard')->value('version');
+    app(UpdateSettings::class)->execute(new UpdateSettingsInput('plugin.placard', ['fallback' => '<script>window.fallback = 1;</script>'], [], [], $version, (string) $this->admin->id));
+    $script = PluginScript::query()->sole();
+
+    $this->actingAs($this->admin)->get(route('settings.show', ['group' => 'plugin.placard']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('pluginScripts.code', 'placard')
+            ->where('pluginScripts.waiting', ['values.fallback' => [['id' => (string) $script->id, 'script' => 'window.fallback = 1;']]])
+            ->where('pluginScripts.approver', true));
 });
 
 it('approves a waiting script from the form for a person who may change site code, with the password', function (): void {

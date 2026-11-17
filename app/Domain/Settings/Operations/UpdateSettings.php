@@ -239,7 +239,7 @@ final class UpdateSettings extends BaseOperation implements RequiresElevation
         // A plugin's code settings: their inline scripts wait for approval, asked in this transaction (docs/plans/plugin-sockets-2.md).
         if (str_starts_with($input->group, 'plugin.')) {
             $stored = $this->normalised($input, array_map(strval(...), array_keys($this->shown($definition, $input))));
-            CodeScripts::request(substr($input->group, strlen('plugin.')), CodeScripts::inSettings($definition->settings, $stored), $input->actorId());
+            CodeScripts::request(substr($input->group, strlen('plugin.')), CodeScripts::inSettings($definition->settings, $stored), $input->actorId(), 'settings.show', ['group' => $input->group]);
         }
 
         $agreed = $this->agreedNow($input);

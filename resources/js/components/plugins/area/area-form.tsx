@@ -34,6 +34,11 @@ const ScriptsContext = createContext<AreaScripts>({ waiting: {}, busy: false });
 /** Hands the form's waiting scripts to every code field under it. */
 export const AreaScriptsProvider = ScriptsContext.Provider;
 
+/** The waiting scripts handed down by the nearest AreaScriptsProvider. */
+export function useAreaScripts(): AreaScripts {
+    return useContext(ScriptsContext);
+}
+
 /**
  * Approves one of a plugin's waiting scripts from its form, asking for the
  * password in place when its window has closed (bootstrap/app.php answers

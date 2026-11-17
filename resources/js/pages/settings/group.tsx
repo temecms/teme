@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import SettingsController from '@/actions/App/Http/Admin/Settings/SettingsController';
 import { BrandColourSetting } from '@/components/fields/brand-colour-setting';
+import type { WaitingScript } from '@/components/fields/code-field';
 import { HomePageSetting } from '@/components/fields/home-page-setting';
 import { SettingsField } from '@/components/fields/settings-field';
 import { SettingsForm } from '@/components/fields/settings-form';
@@ -22,6 +23,10 @@ import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
 import { Textarea } from '@/components/ui/textarea';
 import {
+    AreaScriptsProvider,
+    useScriptApproval,
+} from '@/components/plugins/area/area-form';
+import {
     CodeSetting,
     Hidden,
     PluginActionsPanel,
@@ -32,6 +37,14 @@ import {
 import { __ } from '@/lib/i18n';
 import { show as showSettings } from '@/routes/settings';
 import type { SettingsGroupPage, SettingsWordsSection } from '@/types';
+
+/** A plugin's code settings' scripts that wait for approval, by the field's path. */
+type PluginScripts = {
+    code: string;
+    waiting: Record<string, WaitingScript[]>;
+    /** Whether this person may approve them here. */
+    approver: boolean;
+};
 
 /** A plugin that takes hosts from its settings (docs/plans/plugin-sockets-1.md, A2). */
 type PluginHosts = {
@@ -341,10 +354,20 @@ export default function SettingsGroup({
     pluginHosts,
     pluginActions = [],
     pluginLists = [],
-}: SettingsGroupPage & { pluginHosts: PluginHosts | null }) {
+    pluginScripts = null,
+}: SettingsGroupPage & {
+    pluginHosts: PluginHosts | null;
+    pluginScripts?: PluginScripts | null;
+}) {
     const pluginCode = group.key.startsWith('plugin.')
         ? group.key.slice('plugin.'.length)
         : null;
+    const approval = useScriptApproval(pluginScripts?.code ?? '');
+    const scripts = {
+        waiting: pluginScripts?.waiting ?? {},
+        approve: pluginScripts?.approver ? approval.approve : undefined,
+        busy: approval.busy,
+    };
 
     setLayoutProps({
         breadcrumbs: [
@@ -479,8 +502,9 @@ export default function SettingsGroup({
     );
 
     return (
-        <>
+        <AreaScriptsProvider value={scripts}>
             <Head title={`${heading.label} settings`} />
+            {pluginScripts !== null && approval.password}
 
             <SettingsPage
                 title={heading.label}
@@ -613,6 +637,6 @@ export default function SettingsGroup({
                     <WordsInOtherLanguages group={group.key} words={words} />
                 )}
             </SettingsPage>
-        </>
+        </AreaScriptsProvider>
     );
 }

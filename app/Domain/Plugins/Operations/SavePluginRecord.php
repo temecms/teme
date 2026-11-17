@@ -55,7 +55,7 @@ final class SavePluginRecord extends BaseOperation
         $record = AreaWords::text($plugin->code, (string) ($plugin->area->record($input->record)['label'] ?? ''));
 
         // The code fields' inline scripts wait for approval, asked in this transaction (A-T9).
-        CodeScripts::request($plugin->code, CodeScripts::inArea($record, $plugin->area->fields($input->record), $values), $input->actorId);
+        CodeScripts::request($plugin->code, CodeScripts::inArea($record, $plugin->area->fields($input->record), $values), $input->actorId, 'plugins.area.show', ['code' => $plugin->code]);
 
         $saved = $this->write($plugin, fn (PluginArea $data): Saved => $data->save($input->record, $input->id, $values, $context));
 

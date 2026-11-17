@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Area;
 
 use App\Domain\Plugins\Models\PluginRecord;
+use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
 use App\Domain\Site\Insertions\Scripts\PluginScript;
 use App\Domain\Site\Insertions\Scripts\ScriptRequests;
 use App\Domain\SiteCode\SiteCode;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Teme\Contracts\Notices\NoticeMessage;
+use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingType;
@@ -23,6 +26,9 @@ use Teme\Contracts\Settings\SettingType;
  */
 final class CodeScripts
 {
+    /** The kind of notice the people who may approve a plugin's script get. */
+    public const string NOTICE = 'site_code.script_waiting';
+
     /**
      * Whether this plugin may ask for scripts: it is enabled and inserts
      * content, the only place its scripts would run.
@@ -37,19 +43,62 @@ final class CodeScripts
     /**
      * Asks, for this person, that each inline script in these fields be
      * approved for the plugin, under the field's name. Runs inside the
-     * save's transaction, so a refused save asks for nothing.
+     * save's transaction, so a refused save asks for nothing. When the save
+     * asks for a script that wasn't waiting, the people who may approve it,
+     * but the person saving, get one notice, sent after commit, linking to
+     * the page where it can be approved.
      *
      * @param  array<string, array{name: string, markup: string}>  $fields  by the field's path
+     * @param  array<string, string>  $parameters  the linked route's parameters
      */
-    public static function request(string $pluginCode, array $fields, string $actorId): void
+    public static function request(string $pluginCode, array $fields, string $actorId, string $route, array $parameters): void
     {
         if ($fields === [] || ! self::mayAsk($pluginCode)) {
             return;
         }
 
+        // The first field that asked for a script not waiting before: the notice names it.
+        $asked = null;
+
         foreach ($fields as $field) {
-            ScriptRequests::fromMarkup($pluginCode, mb_substr($field['name'], 0, 80), $field['markup'], $actorId);
+            $name = mb_substr($field['name'], 0, 80);
+            $before = ScriptRequests::waiting($pluginCode);
+            ScriptRequests::fromMarkup($pluginCode, $name, $field['markup'], $actorId);
+            $asked ??= ScriptRequests::waiting($pluginCode) > $before ? $name : null;
         }
+
+        if ($asked !== null && ! SiteCode::disallowed()) {
+            self::tellApprovers($pluginCode, $asked, $actorId, $route, $parameters);
+        }
+    }
+
+    /**
+     * Sends the people who may change site code, but the person saving,
+     * one notice that a script saved in this field waits for approval.
+     *
+     * @param  array<string, string>  $parameters
+     */
+    private static function tellApprovers(string $pluginCode, string $field, string $actorId, string $route, array $parameters): void
+    {
+        $approvers = User::permission(SiteCode::ABILITY)->whereKeyNot($actorId)->pluck('id')->map(strval(...))->all();
+
+        if ($approvers === []) {
+            return;
+        }
+
+        $name = PluginRecord::query()->where('code', $pluginCode)->value('name');
+        $plugin = (is_string($name) ? app(PluginRegistry::class)->find($name)?->manifest->label() : null) ?? $pluginCode;
+
+        app(Notices::class)->send(self::NOTICE, $approvers, new NoticeMessage(
+            subject: __('A script from :plugin waits for approval', ['plugin' => $plugin]),
+            lines: [
+                __('Someone saved an inline script in :field, in :plugin.', ['field' => $field, 'plugin' => $plugin]),
+                __('It doesn’t run on the site’s pages until someone who may change the site’s code approves it, where it was written.'),
+            ],
+            actionLabel: __('Review the script'),
+            actionRoute: $route,
+            actionParameters: $parameters,
+        ));
     }
 
     /**
