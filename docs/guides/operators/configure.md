@@ -121,7 +121,7 @@ Set `TEME_UPDATES_CHECK` and `TEME_UPDATES_CHANNEL` the same on every role: `web
 | `TEME_DOKPLOY_TOKEN` | none | A Dokploy API key, set on the server. It wins over the key pasted in Settings › Updates. The updater only. |
 | `TEME_DOKPLOY_APP_NAME` | the Compose project's name | The Compose service's App Name, which the updater finds the service by. The updater only. |
 | `TEME_DOKPLOY_COMPOSE_ID` | none | The Compose service's ID in Dokploy. When set, the updater uses it instead of the App Name. The updater only. |
-| `TEME_DOKPLOY_COMPOSE_HASHES_URL` | the Dokploy template's `compose-hashes.json` | Where the updater reads the list of compose files the Dokploy template has released, over `https://`. It replaces the service's compose file only when the file is in that list. The updater only. |
+| `TEME_DOKPLOY_COMPOSE_HASHES_URL` | the Dokploy template's `compose-hashes.json` | Where the updater reads the list of compose files the Dokploy template has released: an `https://` address on a public name, never an IP address or a private one. Set on the server only. It replaces the service's compose file only when the file is in that list. The updater only. |
 | `TEME_UPDATER_DEPLOY_TIMEOUT` | `3600` | Seconds the updater waits for the deploy to finish. The updater only. |
 | `TEME_UPDATER_PART_TIMEOUT` | `900` | Seconds the updater waits for each later step. The updater only. |
 

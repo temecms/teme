@@ -69,10 +69,23 @@ it('saves the key encrypted once the password is given again, and keeps it out o
 
     $page = $this->actingAs($this->admin)->get('/admin/settings/updates')->assertOk();
 
-    expect((string) $page->getContent())->not->toContain(DOKPLOY_KEY);
+    expect((string) $page->getContent())->not->toContain(DOKPLOY_KEY)
+        ->and((string) json_encode($page->inertiaProps()))->not->toContain(DOKPLOY_KEY)
+        ->and($page->inertiaProps('secrets.dokploy_api_key.isSet'))->toBeTrue();
 });
 
 it('asks for the password first, and writes nothing until it is given', function (): void {
+    ($this->save)($this->admin, ['secrets' => ['dokploy_api_key' => DOKPLOY_KEY], 'expected_version' => 0], false)
+        ->assertRedirect(route('password.confirm'));
+
+    expect(storedDokployKey())->toBeNull()
+        ->and(DB::table('settings')->where('group_key', 'updates')->exists())->toBeFalse();
+});
+
+it('writes nothing after a wrong password', function (): void {
+    $this->actingAs($this->admin)->post(route('password.confirm'), ['password' => 'wrong-password'])
+        ->assertSessionHasErrors('password');
+
     ($this->save)($this->admin, ['secrets' => ['dokploy_api_key' => DOKPLOY_KEY], 'expected_version' => 0], false)
         ->assertRedirect(route('password.confirm'));
 

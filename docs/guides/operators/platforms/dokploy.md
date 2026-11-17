@@ -36,13 +36,15 @@ The same repository holds the compose file for pasting as Raw or reading from Gi
 
 Each step waits for the one before it: the database is healthy, then `teme-db-setup`, then `deploy`, then the rest. `updater` waits for `deploy` the first time; an update never replaces it midway.
 
-Everything on the service's **Environment** tab reaches `deploy`, `web`, the workers and the scheduler: [Configuring Teme](../configure.md) lists them, such as mail and `TRUSTED_PROXIES`. The installer reads none of them, so Composer runs without the site's secrets.
+Everything on the service's **Environment** tab reaches `deploy`, `web`, the workers and the scheduler: [Configuring Teme](../configure.md) lists them, such as mail and `TRUSTED_PROXIES`.
+
+The plugin installer and the updater never read the **Environment** tab. Each has only the site's address, its app key, its database login and its own settings. Because both hold `APP_KEY`, both could decrypt what Teme keeps encrypted, the Dokploy API key included: the installer needs the app key to open a key saved for a private plugin source, and the updater to open the Dokploy key. Composer, which the installer runs, gets none of these: Teme starts it with none of the site's secrets.
 
 ## Switch on Update from the admin
 
 1. **Make a key in Dokploy.** Open your profile settings in Dokploy, find **API/CLI**, and generate a key. Copy it.
 2. **Paste it into Teme.** In Teme's admin, open **Settings › Updates**, paste the key into **Dokploy API key**, and save. Teme asks for your password again. The key is kept encrypted and never shown again.
-3. **Check it.** Within two minutes the updater tries the key. If it can't use it, Settings › Updates says why in one sentence, and what to do.
+3. **Check it.** While no update runs, the updater tries the key every two minutes. If it can't use it, Settings › Updates says why in one sentence, and what to do.
 
 The updater finds this service by its App Name, `TEME_DOKPLOY_APP_NAME`, and reaches Dokploy at `http://dokploy:3000` on Dokploy's own network. To reach Dokploy at another address, set `TEME_DOKPLOY_URL` on the **Environment** tab to its `https://` address.
 

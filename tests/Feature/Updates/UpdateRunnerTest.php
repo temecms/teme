@@ -1039,15 +1039,27 @@ it('leaves a compose file Dokploy reads from Git to Dokploy’s Pull, changes on
     Http::assertNotSent(fn ($request): bool => in_array($request->url(), [UR_HASHES, UR_TEMPLATE], true));
 });
 
-it('reads the list only from an https address', function (): void {
-    config(['teme.updater.dokploy.compose_hashes_url' => 'http://templates.example.org/compose-hashes.json']);
+it('reads the list only from a public https address, and asks it nothing otherwise', function (string $address): void {
+    config(['teme.updater.dokploy.compose_hashes_url' => $address]);
     $this->platform->compose = UR_OLD_COMPOSE;
     ($this->request)();
     ($this->ticks)(3);
 
-    expect(($this->row)()->error)->toBe('TEME_DOKPLOY_COMPOSE_HASHES_URL must be an https:// address of a compose-hashes.json, so nothing was changed.')
+    expect(($this->row)()->error)->toBe('TEME_DOKPLOY_COMPOSE_HASHES_URL must be an https:// address of a compose-hashes.json on a public name, so nothing was changed.')
         ->and($this->platform->calls)->toBe([]);
-});
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'compose-hashes.json'));
+})->with([
+    'http' => ['http://templates.example.org/compose-hashes.json'],
+    'an IPv4 address' => ['https://203.0.113.9/compose-hashes.json'],
+    'a private IPv4 address' => ['https://10.0.0.5/compose-hashes.json'],
+    'an IPv6 address' => ['https://[::1]/compose-hashes.json'],
+    'localhost' => ['https://localhost/compose-hashes.json'],
+    'a name without a dot' => ['https://dokploy/compose-hashes.json'],
+    'a .local name' => ['https://templates.local/compose-hashes.json'],
+    'a .internal name' => ['https://templates.internal/compose-hashes.json'],
+    'a name with a user' => ['https://user@templates.example.org/compose-hashes.json'],
+    'another file' => ['https://templates.example.org/list.json'],
+]);
 
 it('switches back to the old image and the old compose file in one deploy', function (): void {
     $this->platform->compose = UR_OLD_COMPOSE;

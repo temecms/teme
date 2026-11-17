@@ -73,19 +73,42 @@ final readonly class ComposeTemplate
     }
 
     /**
+     * Returns the list's address, set by the server alone (never in the admin): https, to a public name, never an IP
+     * address, a name without a dot, or a name kept for a private network.
+     *
      * @throws PlatformRefused
      */
     private function hashesAddress(): string
     {
         $address = config('teme.updater.dokploy.compose_hashes_url');
         $parts = is_string($address) ? parse_url($address) : false;
+        $host = is_array($parts) ? strtolower(trim((string) ($parts['host'] ?? ''), '[]')) : '';
 
-        if (! is_array($parts) || ($parts['scheme'] ?? '') !== 'https' || ($parts['host'] ?? '') === '' || isset($parts['user']) || isset($parts['query'])
-            || ! str_ends_with((string) ($parts['path'] ?? ''), '/compose-hashes.json')) {
-            throw new PlatformRefused('TEME_DOKPLOY_COMPOSE_HASHES_URL must be an https:// address of a compose-hashes.json, so nothing was changed.');
+        if (! is_array($parts) || ($parts['scheme'] ?? '') !== 'https' || isset($parts['user']) || isset($parts['pass']) || isset($parts['query'])
+            || ! str_ends_with((string) ($parts['path'] ?? ''), '/compose-hashes.json') || ! self::isPublicName($host)) {
+            throw new PlatformRefused('TEME_DOKPLOY_COMPOSE_HASHES_URL must be an https:// address of a compose-hashes.json on a public name, so nothing was changed.');
         }
 
         return (string) $address;
+    }
+
+    /**
+     * Whether the host is a name on the public internet: not an IP address, it has a dot, and it isn't localhost or
+     * under a suffix kept for private networks.
+     */
+    private static function isPublicName(string $host): bool
+    {
+        if ($host === '' || filter_var($host, FILTER_VALIDATE_IP) !== false || ! str_contains($host, '.')) {
+            return false;
+        }
+
+        foreach (['localhost', '.localhost', '.local', '.internal', '.home.arpa', '.lan', '.test', '.invalid'] as $private) {
+            if ($host === ltrim($private, '.') || str_ends_with($host, $private)) {
+                return false;
+            }
+        }
+
+        return preg_match('/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/D', $host) === 1;
     }
 
     /**
