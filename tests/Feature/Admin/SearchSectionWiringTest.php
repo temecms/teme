@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-it('leaves the SEO provider a seam in the section, after core\'s checks, and draws nothing for it (I-169, I-286)', function (): void {
+it('draws the plugins\' checks in the section, after core\'s own (I-169, I-286)', function (): void {
     $section = uiComponent('components/editor/rail/search-panel.tsx');
 
-    expect($section)->toContain('Later (I-286)')
+    expect($section)->not->toContain('Later (I-286)')
         ->not->toContain('Later (1.9)')
         ->toContain('data-test="search-check-line"')
-        ->and(strpos($section, 'Later (I-286)'))->toBeGreaterThan((int) strpos($section, 'data-test="search-check-line"'));
+        ->toContain('<PluginChecks')
+        ->and(strpos($section, '<PluginChecks'))->toBeGreaterThan((int) strpos($section, 'data-test="search-check-line"'));
 });
 
 it('opens the editor without a canonical that names an item gone from the site, and makes one list of checks for every place (I-292, I-880)', function (): void {
