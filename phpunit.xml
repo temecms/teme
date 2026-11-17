@@ -23,6 +23,12 @@
             <directory>plugins/*/tests</directory>
         </testsuite>
     </testsuites>
+    <!-- The README pictures, made by the Screenshots workflow, run only when asked for by their group (see tests/Browser/ScreenshotsTest.php). -->
+    <groups>
+        <exclude>
+            <group>screenshots</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>
