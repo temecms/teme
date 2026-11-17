@@ -22,6 +22,17 @@ if [ "$(id -u)" != 0 ]; then
 fi
 
 if [ "$role" != all ]; then
+    # Docker hands a container started as root an output and an error stream
+    # only root can open, and PHP-FPM and nginx open them by name
+    # (/proc/self/fd/2): handed to www-data as Docker does for a container
+    # that starts as www-data, or neither can start. /dev/null is left as it is,
+    # and chown takes no redirection: dash would apply it to this shell first.
+    for fd in 0 1 2; do
+        if [ -e "/proc/$$/fd/$fd" ] && [ "$(readlink "/proc/$$/fd/$fd")" != /dev/null ]; then
+            chown www-data:www-data "/proc/$$/fd/$fd" || :
+        fi
+    done
+
     HOME=/var/www
     export HOME
     exec setpriv --reuid=www-data --regid=www-data --init-groups "$base" "$@"

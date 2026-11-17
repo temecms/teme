@@ -413,3 +413,14 @@ it('runs one role as www-data with no role named, as every compose service alway
 
     expect($result->getOutput())->toEndWith("www-data\n/var/www\n");
 });
+
+it('starts web with no role named: PHP-FPM and nginx, dropped to www-data, can open the container’s output', function (): void {
+    $name = ($this->start)(['TEME_ROLE' => null]);
+
+    $status = aioWait($name, 'healthy');
+    $logs = aioDocker(['logs', $name]);
+
+    expect($status)->toBe('healthy')
+        ->and($logs->getOutput().$logs->getErrorOutput())->not->toContain('failed to open error_log')
+        ->and(aioExec($name, 'ps -o user= -C php-fpm,nginx | sort -u'))->toBe("www-data\n");
+});
