@@ -128,7 +128,7 @@ To contribute, read [`CONTRIBUTING.md`](CONTRIBUTING.md). Everyone taking part f
 
 ## Who makes it
 
-Teme is designed and maintained by [Kingsley Ibietela Felix](https://github.com/iamkingsleyf), and published by Krafty Sprouts Media LLC.
+Teme is designed and maintained by [Kingsley Ibietela Felix](https://github.com/iamkingsleyf), and published by [Krafty Sprouts Media LLC](https://kraftysprouts.com).
 
 If Teme is useful to you, a star on GitHub helps others find it.
 
