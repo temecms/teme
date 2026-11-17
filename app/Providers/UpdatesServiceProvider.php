@@ -9,8 +9,10 @@ use App\Domain\Status\StatusChecks;
 use App\Domain\Updates\Updater\DokployPlatform;
 use App\Domain\Updates\Updater\NoPlatform;
 use App\Domain\Updates\Updater\Platform;
+use App\Domain\Updates\UpdatesSettings;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Teme\Contracts\Settings\SettingsRegistrar;
 
 /**
  * Registers the Status banner that tells administrators a newer Teme release exists (I-221), and the platform the updater moves Teme's parts through.
@@ -28,5 +30,6 @@ final class UpdatesServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->app->make(StatusChecks::class)->register(UpdateAvailable::class);
+        $this->app->make(SettingsRegistrar::class)->group(UpdatesSettings::group());
     }
 }

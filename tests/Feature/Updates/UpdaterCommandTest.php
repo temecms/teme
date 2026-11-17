@@ -8,8 +8,10 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Updates\Operations\Input\RequestTemeUpdateInput;
 use App\Domain\Updates\Operations\RequestTemeUpdate;
 use App\Domain\Updates\Requests\UpdateKind;
+use App\Domain\Updates\Updater\ComposeHash;
 use App\Domain\Updates\Updater\ImageSetting;
 use App\Domain\Updates\Updater\Platform;
+use App\Domain\Updates\Updater\PlatformCompose;
 use App\Domain\Updates\Updater\PlatformDeployment;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Database\ConnectionInterface;
@@ -31,8 +33,12 @@ beforeEach(function (): void {
     Notification::fake();
     Sleep::fake();
     updSite('0.1.0-rc.14', ['0.1.0-rc.15', '0.1.0-rc.14']);
-    config(['teme.updater.image_repository' => UC_IMAGE, 'app.url' => 'https://example.org']);
-    Http::fake(['https://example.org/up' => Http::response('', 200, ['X-Teme-Version' => '0.1.0-rc.14'])]);
+    config(['teme.updater.image_repository' => UC_IMAGE, 'app.url' => 'https://example.org', 'teme.updater.dokploy.compose_hashes_url' => 'https://templates.example.org/compose-hashes.json']);
+    // The template's list names the service's own compose file as current: the update changes only the image.
+    Http::fake([
+        'https://example.org/up' => Http::response('', 200, ['X-Teme-Version' => '0.1.0-rc.14']),
+        'https://templates.example.org/compose-hashes.json' => Http::response(['format' => 1, 'current' => ComposeHash::of(''), 'released' => [ComposeHash::of('')]]),
+    ]);
     $this->platform = new FakePlatform(UC_IMAGE.':0.1.0-rc.14');
     app()->instance(Platform::class, $this->platform);
     $this->waiting = function (): string {
@@ -133,6 +139,16 @@ it('carries on after a pass that throws, reporting it and letting the lock go', 
         public function setImage(ImageSetting $setting, string $image): void
         {
             $this->inner->setImage($setting, $image);
+        }
+
+        public function compose(): PlatformCompose
+        {
+            return $this->inner->compose();
+        }
+
+        public function setCompose(string $compose): void
+        {
+            $this->inner->setCompose($compose);
         }
 
         public function deploy(string $title): void

@@ -48,6 +48,9 @@ final class OperatorGuide
     /** Variables of programs the pages mention that Teme itself does not read. */
     public const array OTHER_PROGRAMS = ['POSTGRES_USER', 'POSTGRES_PASSWORD', 'PGPASSWORD', 'COMPOSE_FILE', 'COMPOSE_PROJECT_NAME'];
 
+    /** Settings the Dokploy template's compose file reads (temecms/temecms-for-dokploy) that Teme itself does not: the updater's own image. */
+    public const array DOKPLOY_TEMPLATE = ['TEME_UPDATER_IMAGE'];
+
     /**
      * The pages as a dataset, each under its own name.
      *
@@ -146,18 +149,16 @@ final class OperatorGuide
     /**
      * Every variable a page may name: those the application reads, the
      * secrets' _FILE twins, the image's own, the recipe's, the overlay's and
-     * the Dokploy file's.
+     * the Dokploy template's.
      *
      * @return list<string>
      */
     public static function known(): array
     {
-        $names = [...ImageFiles::knownVariables(), ...SecretFiles::NAMES, ...self::recipeVariables(), ...self::OTHER_PROGRAMS];
+        $names = [...ImageFiles::knownVariables(), ...SecretFiles::NAMES, ...self::recipeVariables(), ...self::OTHER_PROGRAMS, ...self::DOKPLOY_TEMPLATE];
 
-        foreach (['docker/compose.proxy.yml', 'docker/compose.dokploy.yml'] as $file) {
-            preg_match_all('/\$\{([A-Z][A-Z0-9_]*)/', self::text($file), $found);
-            array_push($names, ...$found[1]);
-        }
+        preg_match_all('/\$\{([A-Z][A-Z0-9_]*)/', self::text('docker/compose.proxy.yml'), $found);
+        array_push($names, ...$found[1]);
 
         return array_values(array_unique($names));
     }

@@ -7,7 +7,6 @@ use App\Domain\Media\MediaDisks;
 use App\Domain\Site\Policy\PolicySources;
 use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\Yaml\Yaml;
 use Tests\Feature\Media\Storage\FakeBucket;
 use Tests\Feature\Media\Storage\StorageEnvironment;
 use Tests\Fixtures\Deployment\Environment;
@@ -114,18 +113,5 @@ it('reads the bucket’s secret key from a file', function (): void {
         });
     } finally {
         SecretFile::remove($path);
-    }
-});
-
-it('gives every Teme service on Dokploy every variable the media disks read, empty when unset', function (): void {
-    $text = (string) file_get_contents(base_path('docker/compose.dokploy.yml'));
-    $compose = Yaml::parse($text);
-
-    foreach (['web', 'worker', 'worker-long', 'scheduler', 'deploy'] as $service) {
-        expect(array_values(array_diff(StorageEnvironment::NAMES, array_keys($compose['services'][$service]['environment']))))->toBe([], $service);
-    }
-
-    foreach (StorageEnvironment::NAMES as $name) {
-        expect($text)->toContain($name === 'MEDIA_STORAGE' ? "{$name}: \${{$name}:-server}" : "{$name}: \${{$name}:-}");
     }
 });
