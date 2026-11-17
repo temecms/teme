@@ -31,7 +31,7 @@ it('finds the default theme through Composer', function (): void {
     expect(app(ThemeRegistry::class)->find('default'))->not->toBeNull();
 });
 
-it('keeps the default theme usable on every release before 1.0, so an update never loses a site its theme', function (string $version): void {
+it('keeps the default theme usable on every 0.x and 1.x release, so an update never loses a site its theme', function (string $version): void {
     // No cached verdict: the manifest is read and checked against this version.
     config(['teme.theme_paths' => [], 'teme.version' => $version, 'teme.theme_cache' => sys_get_temp_dir().'/teme-themes-none-'.getmypid().'.php']);
     app()->forgetInstance(ThemeRegistry::class);
@@ -40,7 +40,7 @@ it('keeps the default theme usable on every release before 1.0, so an update nev
 
     expect($default?->errors)->toBe([])
         ->and($default?->usable())->toBeTrue();
-})->with(['0.1.0-rc.18', '0.1.0', '0.2.0-alpha.1', '0.2.0', '0.9.3']);
+})->with(['0.1.0-rc.18', '0.1.0', '0.2.0-alpha.1', '0.2.0', '0.9.3', '1.0.0', '1.4.2']);
 
 it('caches only Composer\'s themes, reads theme_paths live, and clears the cache', function (): void {
     // A per-process file: bootstrap/cache is shared by the parallel gate (I-441).
@@ -69,13 +69,13 @@ it('refuses a theme that names a parent, saying Teme has none', function (string
         ->toContain('Teme has no parent or child themes: copy the theme you would build on, and change the copy.');
 })->with(['parent', 'extends']);
 
-it('refuses the default theme on Teme 1.0', function (): void {
+it('refuses the default theme on Teme 2.0', function (): void {
     // No cached verdict, so the manifest is read and checked against this version.
-    config(['teme.theme_paths' => [], 'teme.version' => '1.0.0', 'teme.theme_cache' => sys_get_temp_dir().'/teme-themes-none-'.getmypid().'.php']);
+    config(['teme.theme_paths' => [], 'teme.version' => '2.0.0', 'teme.theme_cache' => sys_get_temp_dir().'/teme-themes-none-'.getmypid().'.php']);
     app()->forgetInstance(ThemeRegistry::class);
     $constraint = json_decode((string) file_get_contents(base_path('themes/default/teme-theme.json')), true, 512, JSON_THROW_ON_ERROR)['requires']['teme'];
 
-    expect(app(ThemeRegistry::class)->find('default')?->errors)->toContain("The theme requires Teme {$constraint}, but this is Teme 1.0.0.");
+    expect(app(ThemeRegistry::class)->find('default')?->errors)->toContain("The theme requires Teme {$constraint}, but this is Teme 2.0.0.");
 });
 
 it('finds a relative theme_paths entry when the working directory is public/', function (): void {
