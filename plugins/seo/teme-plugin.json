@@ -12,17 +12,8 @@
     "license": "MIT",
     "author": "The Teme maintainers",
     "homepage": "https://github.com/temecms/teme/tree/main/plugins/seo",
-    "capabilities": [
-        "content.read",
-        "content.write",
-        "jobs",
-        "http",
-        "ai"
-    ],
-    "hosts": [
-        "oauth2.googleapis.com",
-        "searchconsole.googleapis.com"
-    ],
+    "capabilities": ["content.read", "content.write", "jobs", "http", "ai"],
+    "hosts": ["oauth2.googleapis.com", "searchconsole.googleapis.com"],
     "hooks": [
         "ContentSaved",
         "ContentPublished",
@@ -62,9 +53,7 @@
             "key": "search-console",
             "label": "Fetch Search Console figures",
             "tries": 2,
-            "backoff": [
-                300
-            ]
+            "backoff": [300]
         }
     ],
     "schedules": [
@@ -93,9 +82,7 @@
                 "id": "manage",
                 "label": "Use Teme SEO's pages",
                 "description": "Open the audit, the links report, titles and descriptions, and Search Console.",
-                "roles": [
-                    "editor"
-                ]
+                "roles": ["editor"]
             }
         ],
         "settingsSections": [
@@ -207,10 +194,7 @@
                 "id": "link-ideas",
                 "label": "Link ideas",
                 "description": "Reads the draft and your published titles, and picks phrases worth linking.",
-                "needs": [
-                    "text",
-                    "structured-output"
-                ],
+                "needs": ["text", "structured-output"],
                 "sends": "draft",
                 "maxOutputTokens": 2000
             },
@@ -218,10 +202,7 @@
                 "id": "keyphrase-rewrite",
                 "label": "Keyphrase rewrite",
                 "description": "Rewrites the introduction, the headings or a few paragraphs of the draft around a keyphrase you give.",
-                "needs": [
-                    "text",
-                    "structured-output"
-                ],
+                "needs": ["text", "structured-output"],
                 "sends": "draft",
                 "maxOutputTokens": 8000
             }
@@ -232,10 +213,7 @@
                 "label": "Internal links",
                 "description": "Suggests links to your own published items, and marks cornerstone items.",
                 "icon": "link",
-                "types": [
-                    "post",
-                    "page"
-                ],
+                "types": ["post", "page"],
                 "actions": [
                     {
                         "id": "find",
@@ -273,10 +251,7 @@
                 "label": "Keyphrase rewrite",
                 "description": "Asks the site's AI connection to rewrite parts of the draft around a keyphrase. You see every change before it is used.",
                 "icon": "pen-line",
-                "types": [
-                    "post",
-                    "page"
-                ],
+                "types": ["post", "page"],
                 "actions": [
                     {
                         "id": "rewrite",
@@ -399,16 +374,12 @@
                                 }
                             ],
                             "perPage": 25,
-                            "rowActions": [
-                                "edit"
-                            ]
+                            "rowActions": ["edit"]
                         },
                         {
                             "type": "actions",
                             "id": "upkeep",
-                            "actions": [
-                                "read-links"
-                            ]
+                            "actions": ["read-links"]
                         }
                     ]
                 },
@@ -474,9 +445,7 @@
                                 }
                             ],
                             "perPage": 25,
-                            "rowActions": [
-                                "edit"
-                            ]
+                            "rowActions": ["edit"]
                         }
                     ]
                 },
@@ -536,9 +505,7 @@
                                 }
                             ],
                             "perPage": 50,
-                            "rowActions": [
-                                "edit"
-                            ]
+                            "rowActions": ["edit"]
                         }
                     ]
                 },
@@ -639,9 +606,7 @@
                         {
                             "type": "actions",
                             "id": "search-upkeep",
-                            "actions": [
-                                "fetch-search-console"
-                            ]
+                            "actions": ["fetch-search-console"]
                         }
                     ]
                 }
