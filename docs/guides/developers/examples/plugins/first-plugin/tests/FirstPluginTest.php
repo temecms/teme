@@ -7,6 +7,11 @@ use TemeExamples\FirstPlugin\FirstPlugin;
 
 uses(TemeTestCase::class);
 
+// What the plugin heard lives in a static, so each test starts from none.
+beforeEach(function (): void {
+    FirstPlugin::$heard = [];
+});
+
 it('hears an item being published', function (): void {
     $this->plugin(__DIR__.'/..')->enable();
 
