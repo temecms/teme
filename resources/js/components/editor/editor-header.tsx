@@ -100,6 +100,7 @@ export function EditorHeader({
     canShare,
     assistant = false,
     panes,
+    pluginTools = [],
 }: {
     backHref: string;
     backLabel: string;
@@ -119,9 +120,15 @@ export function EditorHeader({
     assistant?: boolean;
     /** What each tool draws in its pane. */
     panes: ToolPanes;
+    /** The plugins' panels this person sees on this item, each pinnable. */
+    pluginTools?: EditorTool[];
 }) {
-    const { pins, saving, refused, toggle } = usePins();
-    const tools = offeredTools(coreTools(panes, { assistant, canShare }));
+    const pinnable = [...PINNABLE_TOOLS, ...pluginTools.map((tool) => tool.id)];
+    const { pins, saving, refused, toggle } = usePins(pinnable);
+    const tools = offeredTools([
+        ...coreTools(panes, { assistant, canShare }),
+        ...pluginTools,
+    ]);
     const icon = (tool: EditorTool) => (
         <Button
             key={tool.id}
@@ -171,7 +178,7 @@ export function EditorHeader({
                 <ToolsLauncher
                     tools={tools}
                     pins={pins}
-                    pinnable={PINNABLE_TOOLS}
+                    pinnable={pinnable}
                     saving={saving}
                     refused={refused}
                     onOpen={(id) => {
