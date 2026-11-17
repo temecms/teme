@@ -52,6 +52,12 @@ it('opens with front matter for title, type, audience, summary and rests_on', fu
     }
 })->with(DeveloperGuide::allPages());
 
+it('names no branch, plan or idea, in its text or what it rests on', function (GuideFile $page): void {
+    preg_match_all('#docs/(?:plans|proposals)/|\bI-\d{2,5}\b|`(?!main`)[^`\n]+/[^`\n]+` branch#', $page->text(), $found);
+
+    expect($found[0])->toBe([]);
+})->with(DeveloperGuide::allPages());
+
 it('rests only on folders and files that exist', function (GuideFile $page): void {
     $missing = [];
 

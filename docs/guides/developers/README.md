@@ -37,6 +37,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [The site's AI connection](plugins/ai.md)
 - [Your own hooks, and plugins that need other plugins](plugins/your-own-hooks.md)
 - [Notices from plugins](plugins/notices.md)
+- [A plugin's own area](plugins/admin-area.md)
 - [Languages in a theme](themes/languages.md)
 - [The management API](outside/management-api.md)
 

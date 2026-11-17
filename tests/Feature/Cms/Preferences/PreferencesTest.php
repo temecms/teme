@@ -35,6 +35,7 @@ it('gives a person the declared defaults before they change anything', function 
         'dashboard.getting_started_hidden' => false,
         'notifications.comments.waiting' => ['mail'],
         'notifications.comments.approved' => ['mail'],
+        'notifications.site_code.script_waiting' => ['mail'],
         'lists.post.columns' => ['author', 'taxonomy-category', 'taxonomy-tag', 'comments', 'date'],
         'lists.page.columns' => ['author', 'comments', 'date'],
         'nav.hidden' => [],

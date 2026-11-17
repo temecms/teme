@@ -8,6 +8,7 @@ use App\Domain\Navigation\BadgeProvider;
 use App\Domain\Navigation\NavEntry;
 use App\Domain\Navigation\NavigationRegistry;
 use App\Domain\Navigation\NavSection;
+use App\Domain\Plugins\Area\AreaEntries;
 use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Domain\Settings\Modules;
 use App\Domain\Types\ContentType;
@@ -17,7 +18,7 @@ use App\Models\User;
 
 /**
  * The admin's main menu as one person sees it: the registry's entries plus
- * one per listed content type and taxonomy, a taxonomy under the first type
+ * one per listed content type and taxonomy and one per plugin area in the menu, a taxonomy under the first type
  * that uses it, less what they may not open, in section order, then as they
  * arranged it, each with its badge's count and, for a hub, its screens. A
  * preference can hide, reorder or pin, but never reveal anything (I-220).
@@ -35,7 +36,7 @@ final readonly class AdminNavigation
      */
     public function allKeys(): array
     {
-        return array_map(fn (NavEntry $entry): string => $entry->key, [...$this->registry->all(), ...$this->typeEntries()]);
+        return array_map(fn (NavEntry $entry): string => $entry->key, [...$this->registry->all(), ...$this->typeEntries(), ...app(AreaEntries::class)->navEntries()]);
     }
 
     /**
@@ -65,7 +66,7 @@ final readonly class AdminNavigation
 
         $visible = [];
 
-        foreach ($this->sorted([...$this->registry->all(), ...$this->typeEntries()]) as $entry) {
+        foreach ($this->sorted([...$this->registry->all(), ...$this->typeEntries(), ...app(AreaEntries::class)->navEntries()]) as $entry) {
             // An entry of a module that is switched off isn't there (I-077).
             if ($entry->module !== null && ! Modules::on($entry->module)) {
                 continue;
