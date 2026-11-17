@@ -14,8 +14,7 @@
   <a href="docs/screenshots/README.md">Screenshots</a> ·
   <a href="docs/roadmap.md">Roadmap</a> ·
   <a href="CHANGELOG.md">Changelog</a> ·
-  <a href="https://github.com/temecms/teme/releases">Releases</a> ·
-  <a href="https://temecms.com">temecms.com</a>
+  <a href="https://github.com/temecms/teme/releases">Releases</a>
 </p>
 
 <p align="center">
