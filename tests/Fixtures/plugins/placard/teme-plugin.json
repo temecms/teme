@@ -1,0 +1,351 @@
+{
+    "manifest": 1,
+    "name": "tests/placard",
+    "code": "placard",
+    "label": "Placard",
+    "description": "A plugin the tests enable, which keeps ads in an area of its own: an overview, a table of ads and an ad's form.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Tests\\Fixtures\\Plugins\\Placard\\Placard",
+    "capabilities": [
+        "jobs",
+        "content.insert"
+    ],
+    "owns": {
+        "tables": [
+            "placard_ads"
+        ]
+    },
+    "jobs": [
+        {
+            "key": "prune",
+            "label": "Prune old statistics",
+            "tries": 1,
+            "backoff": [
+                1
+            ]
+        }
+    ],
+    "contributes": {
+        "permissions": [
+            {
+                "id": "manage",
+                "label": "Manage ads",
+                "description": "Create, change and switch ads, and see their statistics.",
+                "roles": [
+                    "editor"
+                ]
+            }
+        ],
+        "settingsSections": [
+            {
+                "id": "general",
+                "label": "General",
+                "description": "How ads show everywhere."
+            },
+            {
+                "id": "network",
+                "label": "Ad network"
+            }
+        ],
+        "settings": [
+            {
+                "key": "label_text",
+                "type": "text",
+                "label": "Label",
+                "description": "The word shown above each ad.",
+                "maxLength": 24,
+                "section": "general"
+            },
+            {
+                "key": "fallback",
+                "type": "code",
+                "label": "Fallback code",
+                "description": "Shown where no ad is ready.",
+                "scripts": true,
+                "section": "general"
+            },
+            {
+                "key": "provider",
+                "type": "select",
+                "label": "Provider",
+                "description": "Who serves the ads.",
+                "options": {
+                    "none": "None",
+                    "adsense": "AdSense"
+                },
+                "section": "network"
+            },
+            {
+                "key": "publisher_id",
+                "type": "text",
+                "label": "Publisher ID",
+                "description": "Your AdSense publisher ID.",
+                "maxLength": 40,
+                "required": true,
+                "visibleWhen": {
+                    "provider": "adsense"
+                },
+                "section": "network"
+            },
+            {
+                "key": "slots",
+                "type": "repeater",
+                "label": "Slots",
+                "description": "The ad units you use.",
+                "minItems": 0,
+                "maxItems": 5,
+                "itemTitle": "name",
+                "section": "network",
+                "fields": [
+                    {
+                        "key": "name",
+                        "type": "text",
+                        "label": "Name",
+                        "description": "What you call it.",
+                        "maxLength": 40
+                    },
+                    {
+                        "key": "size",
+                        "type": "number",
+                        "label": "Height",
+                        "description": "In pixels.",
+                        "min": 50,
+                        "max": 600
+                    }
+                ]
+            }
+        ],
+        "actions": [
+            {
+                "id": "prune-now",
+                "label": "Prune now",
+                "description": "Removes statistics older than a year.",
+                "job": "prune"
+            }
+        ],
+        "area": {
+            "label": "Ads",
+            "description": "Ads placed in articles and around the site, and how they do.",
+            "permission": "manage",
+            "menu": "site",
+            "purges": [
+                "insertions",
+                "page-insertions"
+            ],
+            "pages": [
+                {
+                    "id": "overview",
+                    "label": "Overview",
+                    "blocks": [
+                        {
+                            "type": "figures",
+                            "id": "totals",
+                            "items": [
+                                {
+                                    "id": "impressions",
+                                    "label": "Impressions, last 30 days",
+                                    "format": "number"
+                                },
+                                {
+                                    "id": "ctr",
+                                    "label": "Click rate",
+                                    "format": "percent"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "chart",
+                            "id": "daily",
+                            "label": "By day, last 30 days",
+                            "kind": "line",
+                            "series": [
+                                {
+                                    "id": "impressions",
+                                    "label": "Impressions"
+                                },
+                                {
+                                    "id": "clicks",
+                                    "label": "Clicks"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "actions",
+                            "id": "upkeep",
+                            "actions": [
+                                "prune-now"
+                            ]
+                        },
+                        {
+                            "type": "notice",
+                            "id": "hint",
+                            "text": "Ads show to readers once they are active.",
+                            "tone": "info"
+                        }
+                    ]
+                },
+                {
+                    "id": "ads",
+                    "label": "Ads",
+                    "blocks": [
+                        {
+                            "type": "table",
+                            "id": "ads",
+                            "record": "ad",
+                            "columns": [
+                                {
+                                    "id": "name",
+                                    "label": "Name",
+                                    "kind": "text"
+                                },
+                                {
+                                    "id": "status",
+                                    "label": "Status",
+                                    "kind": "badge"
+                                },
+                                {
+                                    "id": "impressions",
+                                    "label": "Impressions",
+                                    "kind": "number",
+                                    "sortable": true
+                                }
+                            ],
+                            "search": true,
+                            "filters": [
+                                {
+                                    "id": "status",
+                                    "label": "Status",
+                                    "options": {
+                                        "active": "Active",
+                                        "paused": "Paused"
+                                    }
+                                }
+                            ],
+                            "perPage": 20,
+                            "rowActions": [
+                                "edit",
+                                "duplicate",
+                                "enable",
+                                "disable",
+                                "delete"
+                            ],
+                            "bulkActions": [
+                                "enable",
+                                "disable",
+                                "delete"
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "records": [
+                {
+                    "id": "ad",
+                    "label": "Ad",
+                    "plural": "Ads",
+                    "titleField": "name",
+                    "sections": [
+                        {
+                            "id": "basics",
+                            "label": "Basics",
+                            "fields": [
+                                {
+                                    "key": "name",
+                                    "type": "text",
+                                    "label": "Name",
+                                    "required": true,
+                                    "maxLength": 120
+                                },
+                                {
+                                    "key": "location",
+                                    "type": "select",
+                                    "label": "Where",
+                                    "options": {
+                                        "after_paragraph": "After a paragraph",
+                                        "between_items": "Between items on lists",
+                                        "region": "In a theme region"
+                                    }
+                                },
+                                {
+                                    "key": "paragraph",
+                                    "type": "number",
+                                    "label": "Paragraph",
+                                    "min": 1,
+                                    "max": 50,
+                                    "visibleWhen": {
+                                        "location": "after_paragraph"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "id": "versions",
+                            "label": "Versions",
+                            "fields": [
+                                {
+                                    "key": "versions",
+                                    "type": "repeater",
+                                    "label": "Versions",
+                                    "itemLabel": "Version",
+                                    "itemTitle": "label",
+                                    "minItems": 1,
+                                    "maxItems": 10,
+                                    "fields": [
+                                        {
+                                            "key": "label",
+                                            "type": "text",
+                                            "label": "Label",
+                                            "maxLength": 40
+                                        },
+                                        {
+                                            "key": "code",
+                                            "type": "code",
+                                            "label": "Ad code",
+                                            "scripts": true
+                                        },
+                                        {
+                                            "key": "weight",
+                                            "type": "number",
+                                            "label": "Weight",
+                                            "min": 1,
+                                            "max": 100,
+                                            "default": 1
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "id": "rules",
+                            "label": "Where it shows",
+                            "fields": [
+                                {
+                                    "key": "types",
+                                    "type": "types",
+                                    "label": "Content types"
+                                },
+                                {
+                                    "key": "terms",
+                                    "type": "terms",
+                                    "taxonomy": "category",
+                                    "label": "Categories"
+                                },
+                                {
+                                    "key": "region",
+                                    "type": "region",
+                                    "label": "Theme region",
+                                    "visibleWhen": {
+                                        "location": "region"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

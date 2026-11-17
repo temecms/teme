@@ -123,6 +123,12 @@ final class DeclaredSettings
             'person' => Setting::person($key, $label, $description, $version),
             'term' => Setting::term($key, $label, $description, $version, self::text($declared, 'taxonomy'), ($declared['multiple'] ?? false) === true),
             'type' => Setting::contentType($key, $label, $description, $version),
+            'code' => Setting::code($key, $label, $description, $version),
+            // Its fields one level down, built by the same rules (docs/plans/plugin-sockets-2.md, A5).
+            'repeater' => Setting::repeater($key, $label, $description, $version, array_map(
+                fn (mixed $field): Setting => self::setting("{$group}.{$key}", is_array($field) ? $field : [], $version),
+                is_array($declared['fields'] ?? null) ? array_values($declared['fields']) : [],
+            )),
             default => throw new InvalidArgumentException("Setting [{$group}.{$key}] has an unknown type [{$type}]."),
         };
 
@@ -136,6 +142,20 @@ final class DeclaredSettings
             }
         }
 
+        // A repeater's item counts are its min and max.
+        if ($type === 'repeater') {
+            $setting = $setting->min(is_int($declared['minItems'] ?? null) ? $declared['minItems'] : 0)
+                ->max(is_int($declared['maxItems'] ?? null) ? $declared['maxItems'] : 20);
+
+            if (is_string($declared['itemTitle'] ?? null)) {
+                $setting = $setting->itemTitle($declared['itemTitle']);
+            }
+        }
+
+        if ($type === 'code' && ($declared['scripts'] ?? false) === true) {
+            $setting = $setting->scripts();
+        }
+
         if (($declared['required'] ?? false) === true) {
             $setting = $setting->required();
         }
@@ -146,6 +166,17 @@ final class DeclaredSettings
 
         if (is_string($declared['unit'] ?? null)) {
             $setting = $setting->unit($declared['unit']);
+        }
+
+        // Its condition and its section on the plugin's settings page (docs/plans/plugin-sockets-2.md, A4).
+        if (is_array($declared['visibleWhen'] ?? null) && $declared['visibleWhen'] !== []) {
+            /** @var array<string, scalar|list<scalar>> $conditions */
+            $conditions = $declared['visibleWhen'];
+            $setting = $setting->visibleWhen($conditions);
+        }
+
+        if (is_string($declared['section'] ?? null)) {
+            $setting = $setting->section($declared['section']);
         }
 
         return $setting;

@@ -107,8 +107,8 @@ it('refuses what a plugin’s notice may not do', function (Closure $send, strin
     'a quote' => [fn () => $this->notices->send('job_failed', [(string) $this->ada->id], new NoticeMessage('Failed', [], quote: 'Someone’s words')), 'A plugin’s notice can’t quote anyone.'],
     'too many lines' => [fn () => $this->notices->send('job_failed', [(string) $this->ada->id], new NoticeMessage('Failed', array_fill(0, 6, 'A line.'))), 'A plugin’s notice has at most 5 lines of up to 500 characters each.'],
     'a subject too long' => [fn () => $this->notices->send('job_failed', [(string) $this->ada->id], new NoticeMessage(str_repeat('a', 121), [])), 'A plugin’s notice needs a subject of 1 to 120 characters.'],
-    'a route it may not link to' => [fn () => $this->notices->send('job_failed', [(string) $this->ada->id], new NoticeMessage('Failed', [], 'Open', 'inbox.index')), 'A plugin’s notice may link only to its own settings or an item’s editor.'],
-    'another plugin’s settings' => [fn () => $this->notices->send('job_failed', [(string) $this->ada->id], new NoticeMessage('Failed', [], 'Open', 'settings.show', ['group' => 'plugin.other'])), 'A plugin’s notice may link only to its own settings or an item’s editor.'],
+    'a route it may not link to' => [fn () => $this->notices->send('job_failed', [(string) $this->ada->id], new NoticeMessage('Failed', [], 'Open', 'inbox.index')), 'A plugin’s notice may link only to its own settings, its own area or an item’s editor.'],
+    'another plugin’s settings' => [fn () => $this->notices->send('job_failed', [(string) $this->ada->id], new NoticeMessage('Failed', [], 'Open', 'settings.show', ['group' => 'plugin.other'])), 'A plugin’s notice may link only to its own settings, its own area or an item’s editor.'],
     'an address' => [fn () => $this->notices->sendToAddress('job_failed', 'ada@example.com', $this->message), 'A plugin sends notices only to people with an account.'],
 ]);
 

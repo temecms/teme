@@ -53,7 +53,7 @@ final class PluginNoticeRules
         }
 
         if ($message->actionRoute !== null && ! self::actionAllowed($message->actionRoute, $message->actionParameters, $code)) {
-            throw new InvalidArgumentException(__('A plugin’s notice may link only to its own settings or an item’s editor.'));
+            throw new InvalidArgumentException(__('A plugin’s notice may link only to its own settings, its own area or an item’s editor.'));
         }
     }
 
@@ -64,6 +64,7 @@ final class PluginNoticeRules
     {
         return match ($route) {
             'settings.show' => $parameters === ['group' => 'plugin.'.$code],
+            'plugins.area.show' => $parameters === ['code' => $code],
             'content.edit' => array_keys($parameters) === ['content'] && is_string($parameters['content']) && preg_match(self::ULID, $parameters['content']) === 1,
             default => false,
         };

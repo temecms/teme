@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Jobs\Operations\StartJob;
+use App\Domain\Plugins\Area\PluginAreas;
 use App\Domain\Plugins\Jobs\PluginJobs;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\Operations\Input\RunPluginActionInput;
@@ -30,6 +31,7 @@ final class RunPluginAction extends BaseOperation
         private readonly PluginActions $actions,
         private readonly StartJob $start,
         private readonly PluginRegistry $registry,
+        private readonly PluginAreas $areas,
     ) {}
 
     protected function authorize(OperationInput $input): void
@@ -37,12 +39,26 @@ final class RunPluginAction extends BaseOperation
         /** @var RunPluginActionInput $input */
         $person = $this->actors->find($input->actorId);
 
-        if ($person === null || ! $person->can(PluginAccess::MANAGE) || $this->actions->find($input->code, $input->action) === null) {
+        $allowed = $person !== null && ($person->can(PluginAccess::MANAGE) || ($this->areaPermission($input) && $person->can((string) $input->permission)));
+
+        if (! $allowed || $this->actions->find($input->code, $input->action) === null) {
             throw new AuthorizationException(__('Not permitted.'));
         }
     }
 
     protected function validate(OperationInput $input): void {}
+
+    /**
+     * Whether the permission passed is this plugin's area's own, for an
+     * action its pages offer: from a plugin's own area, that permission
+     * answers too (docs/plans/plugin-sockets-2.md, A6); no other does.
+     */
+    private function areaPermission(RunPluginActionInput $input): bool
+    {
+        $area = $input->permission === null ? null : $this->areas->find($input->code);
+
+        return $area !== null && $input->permission === $area->ability() && in_array($input->action, $area->area->offeredActions(), true);
+    }
 
     /**
      * @return array{job: string, label: string}
