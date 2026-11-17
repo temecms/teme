@@ -2,8 +2,15 @@ name: image
 
 # Builds Teme's image, scans it, runs the Compose recipe against it, and
 # publishes it to GitHub's registry (I-3103). Run by hand, and on a version
-# tag; never on a branch.
+# tag; a pull request that changes the image builds and runs it, and never
+# publishes.
 on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - docker/**
+      - .github/workflows/image.yml
   workflow_dispatch:
     inputs:
       publish:
@@ -266,6 +273,50 @@ jobs:
         if: always()
         working-directory: docker
         run: docker compose down --volumes
+
+      # The same image as one container (TEME_ROLE=all), against a PostgreSQL
+      # whose superuser it is given, as a host's database is: it must deploy
+      # and pass its own health check.
+      - name: Start one container that runs every role
+        run: |
+          docker network create teme-aio
+          password="$(openssl rand -hex 24)"
+          postgres="$(sed -n 's/^ *image: \(postgres:.*\)$/\1/p' docker/compose.yml)"
+          docker run --detach --name teme-aio-db --network teme-aio \
+            --env POSTGRES_PASSWORD="$password" --env POSTGRES_DB=teme "$postgres"
+          for attempt in $(seq 1 30); do
+            docker exec teme-aio-db pg_isready --host 127.0.0.1 --username postgres > /dev/null 2>&1 && break
+            sleep 2
+          done
+          docker run --detach --name teme-aio --network teme-aio \
+            --env TEME_ROLE=all \
+            --env APP_URL="$APP_URL" \
+            --env APP_KEY="base64:$(openssl rand -base64 32)" \
+            --env DB_HOST=teme-aio-db --env DB_DATABASE=teme \
+            --env DB_USERNAME=postgres --env DB_PASSWORD="$password" \
+            --volume teme-aio-data:/var/teme \
+            "$TEME_IMAGE"
+          status=""
+          for attempt in $(seq 1 120); do
+            status="$(docker inspect --format '{{if .State.Running}}{{.State.Health.Status}}{{else}}stopped{{end}}' teme-aio)"
+            if [ "$status" = healthy ] || [ "$status" = stopped ]; then
+              break
+            fi
+            sleep 5
+          done
+          test "$status" = healthy
+          test "$(docker exec teme-aio curl -s -o /dev/null -w '%{http_code}' -H 'Host: teme.test' http://127.0.0.1:8080/up)" = 200
+
+      - name: Show the one container's logs
+        if: failure()
+        run: docker logs teme-aio || true
+
+      - name: Stop the one container
+        if: always()
+        run: |
+          docker rm --force teme-aio teme-aio-db || true
+          docker volume rm teme-aio-data || true
+          docker network rm teme-aio || true
 
       - name: Publish to GitHub's registry
         if: "github.ref_type == 'tag' || inputs.publish"
