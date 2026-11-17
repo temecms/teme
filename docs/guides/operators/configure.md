@@ -28,6 +28,8 @@ You need only two settings to start: `TEME_IMAGE` and `APP_URL`. Everything else
 |---|---|---|
 | `DB_HOST` | `postgres` in the recipe | The PostgreSQL server's host. |
 | `DB_PORT` | `5432` in the recipe | Its port. |
+| `DATABASE_URL` | none | The database's whole address, `postgresql://user:password@host:5432/database`, instead of the five settings: the way many hosts show it. A password with a special character is written with `%XX` codes. A `DB_HOST` that holds an address, or a `DATABASE_URL` that cannot be read, stops Teme with a sentence that never repeats it. |
+| `PORT` | `8080` | The port a container that runs every role listens on, when its host says which port it routes to. |
 | `DB_DATABASE` | `teme` in the recipe | The database's name. |
 | `DB_USERNAME` | `teme` in the recipe | The role Teme signs in as. It is never a superuser: see [The database](database.md). |
 | `DB_PASSWORD` | none | The role's password. The recipe reads it from `secrets/db_password` through `DB_PASSWORD_FILE`. |
@@ -119,9 +121,10 @@ Set `TEME_UPDATES_CHECK` and `TEME_UPDATES_CHANNEL` the same on every role: `web
 | `TEME_IMAGE` and `TEME_UPDATER_IMAGE` | none | The image with its exact tag, for every service but the updater, and for the updater. The Dokploy file's, on the Environment tab: the updater sets them when it updates. |
 | `TEME_DOKPLOY_URL` | `http://dokploy:3000` | Dokploy's address, on Dokploy's own network. The updater only. |
 | `TEME_DOKPLOY_TOKEN` | none | A Dokploy API key, set on the server. It wins over the key pasted in Settings › Updates. The updater only. |
-| `TEME_DOKPLOY_APP_NAME` | the Compose project's name | The Compose service's App Name, which the updater finds the service by. The updater only. |
+| `TEME_DOKPLOY_APP_NAME` | the Compose project's name | The App Name Dokploy shows on the Compose service's General tab, which the updater finds the service by; for Teme run as [one container on Dokploy](platforms/one-container.md#on-dokploy), the Application's App Name. The updater only. |
 | `TEME_DOKPLOY_COMPOSE_ID` | none | The Compose service's ID in Dokploy. When set, the updater uses it instead of the App Name. The updater only. |
 | `TEME_DOKPLOY_COMPOSE_HASHES_URL` | the Dokploy template's `compose-hashes.json` | Where the updater reads the list of compose files the Dokploy template has released: an `https://` address on a public name, never an IP address or a private one. Set on the server only. It replaces the service's compose file only when the file is in that list. The updater only. |
+| `TEME_ROLE` | none | Set it to `all` to run web, both queue workers, the scheduler, the installer and the updater in one container: see [Run Teme as one container](platforms/one-container.md). Leave it unset in the recipe, which gives each role its own container. |
 | `TEME_UPDATER_DEPLOY_TIMEOUT` | `3600` | Seconds the updater waits for the deploy to finish. The updater only. |
 | `TEME_UPDATER_PART_TIMEOUT` | `900` | Seconds the updater waits for each later step. The updater only. |
 

@@ -39,6 +39,15 @@ done
 [ "$(stat -c %U /var/www/html/storage)" = www-data ] || missing "storage isn't www-data's."
 [ -L /var/www/html/public/storage ] || missing "public/storage isn't linked."
 id -u teme-installer 2>/dev/null | grep -qx 9990 || missing "the installer's user (teme-installer, uid 9990) doesn't exist."
+id -nG nginx 2>/dev/null | grep -qw www-data || missing "nginx isn't in www-data's group, so it can't read the files PHP writes."
+command -v setpriv >/dev/null || missing "setpriv isn't installed."
+for file in /usr/local/bin/teme-entrypoint /usr/local/bin/teme-healthcheck /usr/local/lib/teme/start-all /usr/local/lib/teme/deploy-step /usr/local/lib/teme/installer-prepare /usr/local/lib/teme/as-site /usr/local/lib/teme/as-installer; do
+    [ -x "$file" ] || missing "$file isn't there, or isn't executable."
+done
+[ -x /command/s6-svstat ] || missing "s6-overlay's s6-svstat isn't at /command."
+for service in teme-deploy teme-installer-prepare teme-worker teme-worker-long teme-scheduler teme-updater teme-installer; do
+    [ -f "/usr/local/share/teme/s6-rc.d/$service/type" ] || missing "the s6 service $service isn't there."
+done
 [ "$(stat -c %u /var/teme/extensions)" = 9990 ] || missing "/var/teme/extensions isn't the installer's."
 [ -f /var/www/html/bootstrap/cache/teme-core-pins.php ] || missing "the core pins (teme:extensions:pins) weren't written."
 

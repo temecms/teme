@@ -14,6 +14,11 @@ final class NoPlatform implements Platform
         return 'No platform';
     }
 
+    public function hasUpdaterOfItsOwn(): bool
+    {
+        return false;
+    }
+
     public function image(ImageSetting $setting): ?string
     {
         throw PlatformRefused::notSetUp();

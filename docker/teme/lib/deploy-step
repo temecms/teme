@@ -1,0 +1,32 @@
+#!/bin/sh
+# The deploy step of a container that runs every role: the database, then the
+# caches, then teme:deploy, which migrates under its lock. web starts only
+# once it has ended well, and a failure ends the container.
+set -eu
+
+private=/run/teme
+cd /var/www/html
+
+# The login Teme was given, for the database step alone.
+if [ -f "$private/admin.env" ]; then
+    . "$private/admin.env"
+fi
+
+(
+    umask 077
+    : > "$private/service.env"
+)
+
+# The step's output is the login Teme runs as, written for root alone; what it has to say goes to the log.
+(
+    umask 077
+    APP_CONFIG_CACHE="$private/none" /usr/local/lib/teme/as-site php artisan teme:database:prepare --shell --no-interaction > "$private/service.env"
+)
+. "$private/service.env"
+unset DB_URL DATABASE_URL
+
+# The caches Teme runs from, now that the login is Teme's own. The configuration holds every secret: only www-data can read it.
+/usr/local/lib/teme/as-site sh -c 'umask 077 && php artisan config:cache --no-interaction'
+/usr/local/lib/teme/as-site php artisan route:cache --no-interaction
+
+exec /usr/local/lib/teme/as-site php artisan teme:deploy --no-interaction

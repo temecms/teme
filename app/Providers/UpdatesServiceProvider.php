@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Domain\Status\Checks\UpdateAvailable;
 use App\Domain\Status\StatusChecks;
+use App\Domain\Updates\Updater\DokployApplicationPlatform;
 use App\Domain\Updates\Updater\DokployPlatform;
 use App\Domain\Updates\Updater\NoPlatform;
 use App\Domain\Updates\Updater\Platform;
@@ -22,9 +23,28 @@ final class UpdatesServiceProvider extends ServiceProvider
     public function register(): void
     {
         // No platform until one is set up (I-3326): the updater then ends a request saying to update by hand.
-        $this->app->bind(Platform::class, fn (Application $app): Platform => config('teme.updater.platform') === 'dokploy'
-            ? $app->make(DokployPlatform::class)
-            : $app->make(NoPlatform::class));
+        $this->app->bind(Platform::class, fn (Application $app): Platform => match (self::platform()) {
+            'dokploy' => $app->make(DokployPlatform::class),
+            'dokploy-application' => $app->make(DokployApplicationPlatform::class),
+            default => $app->make(NoPlatform::class),
+        });
+    }
+
+    /**
+     * Returns the platform the updater moves Teme through: the one TEME_UPDATER_PLATFORM names, or, in a container
+     * that runs every role and was given a Dokploy App Name, Dokploy's Application; null when none is set up.
+     */
+    private static function platform(): ?string
+    {
+        $named = config('teme.updater.platform');
+
+        if (is_string($named) && $named !== '') {
+            return $named;
+        }
+
+        $appName = config('teme.updater.dokploy.app_name');
+
+        return config('teme.role') === 'all' && is_string($appName) && $appName !== '' ? 'dokploy-application' : null;
     }
 
     public function boot(): void

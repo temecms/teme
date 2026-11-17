@@ -1,0 +1,125 @@
+#!/bin/sh
+# Starts every role in this container (TEME_ROLE=all), as root. It puts the
+# database login out of the environment every process inherits, switches
+# on Teme's s6 services, and hands over to the base image's entrypoint,
+# which runs its start scripts and then /init.
+set -eu
+
+private=/run/teme
+services=/usr/local/share/teme/s6-rc.d
+tree=/etc/s6-overlay/s6-rc.d
+
+mkdir -p "$private"
+chmod 0711 "$private"
+
+# The login Teme was given never reaches a process that doesn't need it: it
+# waits here, readable by root alone, for the deploy step. A login given as a
+# file is read here, as root, so no file's name or contents reach the others.
+umask 077
+: > "$private/admin.env"
+
+newline='
+'
+carriage_return="$(printf '\r')"
+
+keep_aside() {
+    printf "export %s='%s'\n" "$1" "$(printf '%s' "$2" | sed "s/'/'\''/g")" >> "$private/admin.env"
+}
+
+for name in DB_USERNAME DB_PASSWORD; do
+    eval "file=\${${name}_FILE-}"
+    eval "given=\${${name}+x}"
+
+    if [ -n "$file" ] && [ -n "$given" ]; then
+        echo "$name and ${name}_FILE are both set. Set one." >&2
+        exit 1
+    fi
+
+    if [ -n "$file" ]; then
+        # All of the file, less one line break at the end, as Teme reads a secret's file.
+        value="$(cat "$file"; printf .)" || {
+            echo "${name}_FILE names a file that can't be read." >&2
+            exit 1
+        }
+        value="${value%.}"
+        case "$value" in
+            *"$newline")
+                value="${value%"$newline"}"
+                value="${value%"$carriage_return"}"
+                ;;
+        esac
+        keep_aside "$name" "$value"
+    elif [ -n "$given" ]; then
+        eval "value=\$$name"
+        keep_aside "$name" "$value"
+    fi
+done
+
+for name in DB_URL DATABASE_URL; do
+    eval "given=\${${name}+x}"
+
+    if [ -n "$given" ]; then
+        eval "value=\$$name"
+        keep_aside "$name" "$value"
+    fi
+done
+
+unset DB_USERNAME DB_PASSWORD DB_USERNAME_FILE DB_PASSWORD_FILE DB_URL DATABASE_URL
+umask 022
+
+# What a container that runs every role would otherwise be told one setting at a time.
+export S6_SERVICES_GRACETIME="${S6_SERVICES_GRACETIME:-300000}"
+export TEME_EXTENSIONS_PATH="${TEME_EXTENSIONS_PATH:-/var/teme/extensions}"
+export TEME_IMAGE_REPOSITORY="${TEME_IMAGE_REPOSITORY:-ghcr.io/temecms/teme}"
+export PAGE_CACHE_DRIVER="${PAGE_CACHE_DRIVER:-static}"
+export PGCONNECT_TIMEOUT="${PGCONNECT_TIMEOUT:-3}"
+# A host that routes to one port of the container says which in PORT.
+export NGINX_HTTP_PORT="${PORT:-${NGINX_HTTP_PORT:-8080}}"
+
+# One folder holds all that must outlive the container: the media and what the
+# site keeps beside it, the page cache, and the plugins and themes installed
+# from the admin. The person mounts one volume there.
+data=/var/teme
+mkdir -p "$data"
+install -d -o www-data -g www-data -m 0755 "$data/media" "$data/page-cache"
+install -d -o 9990 -g 9990 -m 0755 "$data/extensions"
+
+if ! mountpoint -q "$data"; then
+    echo "Nothing is mounted at $data, so the media, the page cache and the plugins and themes installed from the admin are lost whenever this container is replaced. Mount a volume there." >&2
+fi
+
+link_into_data() {
+    folder="$1"
+    target="$2"
+
+    # A volume mounted there already (as the Compose recipe does) is kept as it is: nothing is copied out of it or removed.
+    if mountpoint -q "$folder"; then
+        return
+    fi
+
+    if [ ! -L "$folder" ]; then
+        # What the image made there first is kept, and nothing already in the volume is overwritten.
+        [ -d "$folder" ] && cp -an "$folder"/. "$target"/
+        rm -rf "$folder"
+        ln -s "$target" "$folder"
+    fi
+}
+
+link_into_data /var/www/html/storage/app "$data/media"
+link_into_data /var/www/html/storage/page-cache "$data/page-cache"
+
+for service in "$services"/*; do
+    name="$(basename "$service")"
+    cp -R "$service" "$tree/$name"
+    case "$name" in
+        teme-deploy | teme-installer-prepare) ;;
+        *) : > "$tree/user/contents.d/$name" ;;
+    esac
+done
+
+# Web starts only once the site is deployed and the installed plugins and themes fit this image.
+for name in nginx php-fpm; do
+    printf '\n%s\n' teme-installer-prepare >> "$tree/$name/dependencies"
+done
+
+exec docker-php-serversideup-entrypoint "$@"

@@ -27,6 +27,13 @@ return [
     'revision' => TemeVersion::revision(env('TEME_REVISION')),
 
     /*
+     * The one role a container runs, set only to `all`: web, both queue
+     * workers, the scheduler, the plugin installer and the updater in one
+     * container, on any host that runs one (docs/guides/operators/platforms/one-container.md).
+     */
+    'role' => env('TEME_ROLE'),
+
+    /*
      * The edge (I-380): the Strict-Transport-Security value every https
      * answer carries in production at an https APP_URL; empty sends none,
      * for a proxy in front that sends its own. The image's nginx sends the

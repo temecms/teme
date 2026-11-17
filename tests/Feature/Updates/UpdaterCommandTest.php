@@ -127,6 +127,11 @@ it('carries on after a pass that throws, reporting it and letting the lock go', 
             return 'Broken';
         }
 
+        public function hasUpdaterOfItsOwn(): bool
+        {
+            return $this->inner->hasUpdaterOfItsOwn();
+        }
+
         public function image(ImageSetting $setting): ?string
         {
             if ($this->calls++ === 0) {

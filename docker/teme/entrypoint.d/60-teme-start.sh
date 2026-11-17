@@ -10,7 +10,7 @@ set -eu
 
 cd /var/www/html
 
-php artisan config:cache --no-interaction
+(umask 077 && php artisan config:cache --no-interaction)
 php artisan route:cache --no-interaction
 
 php docker/teme/nginx-hsts.php > /etc/nginx/conf.d/teme-hsts.conf.new

@@ -52,7 +52,9 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && npm run build \
     && npm run build:themes
 
-# What every role runs.
+# What every role runs. It starts as root so one container can run every role
+# (TEME_ROLE=all, with the plugin installer as its own user); with no role,
+# teme-entrypoint drops to www-data before anything else runs.
 FROM php AS runtime
 ARG RESTIC_VERSION
 ENV APP_NAME=Teme \
@@ -90,6 +92,10 @@ COPY --chmod=644 docker/nginx/server-opts.d/remoteip.conf /etc/nginx/server-opts
 COPY --chmod=644 docker/nginx/server-opts.d/security.conf /etc/nginx/server-opts.d/security.conf
 COPY --chmod=644 docker/nginx/server-opts.d/performance.conf /etc/nginx/server-opts.d/performance.conf
 COPY --chmod=644 docker/nginx/server-opts.d/teme-backups.conf /etc/nginx/server-opts.d/teme-backups.conf
+COPY --chmod=755 docker/teme/bin/teme-entrypoint /usr/local/bin/teme-entrypoint
+COPY --chmod=755 docker/teme/bin/teme-healthcheck /usr/local/bin/teme-healthcheck
+COPY --chmod=755 docker/teme/lib/ /usr/local/lib/teme/
+COPY --chmod=755 docker/teme/s6-rc.d/ /usr/local/share/teme/s6-rc.d/
 RUN chown root:root /var/www/html \
     && chmod 0755 /var/www/html \
     && mkdir -p storage/app/public storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/testing storage/framework/views storage/logs storage/page-cache \
@@ -103,12 +109,27 @@ RUN chown root:root /var/www/html \
     && groupadd --system --gid 9990 teme-installer \
     && useradd --system --uid 9990 --gid 9990 --no-create-home --shell /usr/sbin/nologin teme-installer \
     && install -d -o 9990 -g 9990 -m 0755 /var/teme/extensions \
+    && usermod --append --groups www-data nginx \
     && rm -f package.json package-lock.json .npmrc tsconfig.json vite.config.ts vite.theme.config.ts \
     && chown -R www-data:www-data storage \
     && RESTIC_VERSION="${RESTIC_VERSION}" sh docker/teme/build-checks.sh
+# Teme's PHP never runs as root (the image starts as root, to run every role in
+# one container), so this comes after every build step that runs it as root.
+COPY --chmod=755 docker/teme/bin/php-as-site /usr/local/sbin/php
+# Starts as root and drops to www-data unless TEME_ROLE=all; setting an
+# ENTRYPOINT clears the base image's CMD, so it is named again.
+ENTRYPOINT ["teme-entrypoint"]
+CMD ["/init"]
+# The base image asks for SIGQUIT, which s6's init ignores: a container that is
+# stopped waits out its grace period and is killed. SIGTERM stops every service.
+STOPSIGNAL SIGTERM
+# The base image's check, plus every supervised process when TEME_ROLE=all. The
+# start period is long because that container migrates before its first check
+# can pass.
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15m --start-interval=3s --retries=3 CMD ["teme-healthcheck"]
 # The release this image is, and its commit (I-?? draft): passed by the image
 # workflow; empty for a build from a branch, which reports 0.1.0 untagged.
 ARG TEME_VERSION=
 ARG TEME_REVISION=
 ENV TEME_VERSION=${TEME_VERSION} TEME_REVISION=${TEME_REVISION}
-USER www-data
+USER root

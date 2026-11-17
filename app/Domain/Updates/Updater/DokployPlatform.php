@@ -40,6 +40,11 @@ final class DokployPlatform implements Platform
         return 'Dokploy';
     }
 
+    public function hasUpdaterOfItsOwn(): bool
+    {
+        return true;
+    }
+
     public function image(ImageSetting $setting): ?string
     {
         return DokployEnvironment::image($this->environment(), $setting);

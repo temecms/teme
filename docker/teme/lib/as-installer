@@ -1,0 +1,30 @@
+#!/bin/sh
+# Runs php artisan teme:installer (with the options it is given) as the
+# installer's user, in an environment of only what the installer needs. The
+# container's own holds every secret of the site: the key to the hosting panel, the
+# media bucket's keys, GitHub's token. The installer gets the database login
+# Teme runs as, and never the one it was given.
+set -eu
+
+# The deploy step wrote the login Teme runs as.
+if [ -f /run/teme/service.env ]; then
+    . /run/teme/service.env
+fi
+
+set -- php artisan teme:installer "$@"
+
+for name in $(env | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p'); do
+    case "$name" in
+        PATH | LANG | LC_ALL | TZ | APP_NAME | APP_ENV | APP_DEBUG | APP_KEY | APP_KEY_FILE | APP_PREVIOUS_KEYS | APP_PREVIOUS_KEYS_FILE | APP_URL | APP_TIMEZONE | \
+        APP_MAINTENANCE_DRIVER | APP_MAINTENANCE_STORE | CACHE_STORE | QUEUE_CONNECTION | SESSION_DRIVER | \
+        DB_CONNECTION | DB_HOST | DB_PORT | DB_DATABASE | DB_USERNAME | DB_PASSWORD | PGCONNECT_TIMEOUT | \
+        LOG_CHANNEL | LOG_LEVEL | PHP_* | TEME_EXTENSIONS_* | TEME_EXTENSION_UPLOAD_MAX | TEME_COMPOSER_BINARY) ;;
+        *) continue ;;
+    esac
+    set -- "$name=$(printenv "$name")" "$@"
+done
+
+set -- HOME=/tmp TEME_EXTENSIONS_ROLE=installer "$@"
+
+cd /var/www/html
+exec setpriv --reuid=teme-installer --regid=teme-installer --clear-groups env -i "$@"

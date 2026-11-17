@@ -40,6 +40,7 @@ final class ImageFiles
         'AUTORUN_ENABLED',
         'AUTORUN_LARAVEL_MIGRATION',
         'HEALTHCHECK_PATH',
+        'PORT',
         'SHOW_WELCOME_MESSAGE',
         'PHP_OPCACHE_ENABLE',
         'PHP_OPCACHE_VALIDATE_TIMESTAMPS',

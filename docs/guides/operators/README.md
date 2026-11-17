@@ -16,7 +16,7 @@ People who write and publish on the site have a guide of their own.
 1. [Installing with the Compose recipe](install.md), then [Configuring Teme](configure.md).
 2. [The database](database.md) and [Sizing a server](sizing.md).
 3. Put it behind HTTPS: [Proxies and HTTPS](proxies-and-https.md), then [Cloudflare in front of Teme](cloudflare.md) if you use it.
-4. The page for the place you run it: [Dokploy](platforms/dokploy.md), [Coolify](platforms/coolify.md) or [a plain VPS](platforms/plain-vps.md).
+4. The page for the place you run it: [Dokploy](platforms/dokploy.md), [Coolify](platforms/coolify.md) or [a plain VPS](platforms/plain-vps.md). To run the whole site in one container on any host that runs one, read [Run Teme as one container](platforms/one-container.md).
 5. Keep it safe and current: [Backups](backups.md), [Updating and rolling back](updates.md), [Restoring, moving and exporting](restore-and-moving.md).
 6. When something is wrong: [Troubleshooting](troubleshooting.md).
 7. Before you move a real site: [The migration runbook](migration-runbook.md).
@@ -44,6 +44,7 @@ A guide that tells you something nobody has seen working is worse than none, so 
 | [Cloudflare in front of Teme](cloudflare.md) | unproved |
 | [Running Teme on Dokploy](platforms/dokploy.md) | tests |
 | [Running Teme on Coolify](platforms/coolify.md) | unproved |
+| [Run Teme as one container](platforms/one-container.md) | unproved |
 | [Running Teme on a plain VPS](platforms/plain-vps.md) | unproved |
 | [Updating and rolling back](updates.md) | unproved |
 | [Backups](backups.md) | tests |

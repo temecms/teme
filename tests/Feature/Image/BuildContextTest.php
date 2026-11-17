@@ -88,6 +88,7 @@ it('lets in what the image is built from', function (string $path): void {
     'vite.theme.config.ts',
     'app/Providers/AppServiceProvider.php',
     'bootstrap/app.php',
+    'bootstrap/extensions.php',
     'bootstrap/providers.php',
     'config/teme.php',
     'database/migrations/2026_09_18_065922_create_contents_table.php',

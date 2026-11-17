@@ -62,7 +62,7 @@ final class StartRules
      */
     public static function problems(Repository $config): array
     {
-        $problems = [];
+        $problems = DatabaseAddress::problems($config);
         $key = (string) $config->get('app.key');
         $cipher = (string) $config->get('app.cipher');
         $url = (string) $config->get('app.url');

@@ -82,15 +82,67 @@ it('stops the build when something it needs is missing or too old', function (st
     'the storage link' => '[ -L /var/www/html/public/storage ]',
 ]);
 
-it('leaves the code root\'s, gives www-data storage alone, checks, then runs as www-data', function (): void {
+it('leaves the code root\'s, gives www-data storage alone, checks, then starts as root', function (): void {
     $runtime = ImageFiles::stage('runtime');
     $text = implode("\n", $runtime);
     preg_match_all('/chown\s+(?:-R\s+)?(\S+)\s+(\S+)/', $text, $chowns, PREG_SET_ORDER);
 
     expect(array_map(fn (array $chown): string => "{$chown[1]} {$chown[2]}", $chowns))->toBe(['root:root /var/www/html', 'www-data:www-data storage'])
         ->and($text)->not->toContain('--chown')
-        ->and(end($runtime))->toBe('USER www-data')
+        ->and(end($runtime))->toBe('USER root')
         ->and($text)->toMatch('#chown -R www-data:www-data storage\s+&& RESTIC_VERSION="\$\{RESTIC_VERSION\}" sh docker/teme/build-checks\.sh$#m');
+});
+
+it('starts as root only so teme-entrypoint can drop to www-data, or keep root for TEME_ROLE=all', function (): void {
+    $runtime = ImageFiles::stage('runtime');
+    $entrypoint = ImageFiles::text('docker/teme/bin/teme-entrypoint');
+
+    expect($runtime)->toContain('ENTRYPOINT ["teme-entrypoint"]')
+        // Setting an ENTRYPOINT clears the base image's CMD.
+        ->and($runtime)->toContain('CMD ["/init"]')
+        ->and($entrypoint)->toContain('exec setpriv --reuid=www-data --regid=www-data --init-groups "$base" "$@"')
+        ->and($entrypoint)->toContain('exec "$base" "$@"')
+        ->and($entrypoint)->toContain('exec /usr/local/lib/teme/start-all "$@"')
+        // No role keeps the way every compose service always started: as www-data, before anything runs.
+        ->and(strpos($entrypoint, 'if [ "$role" != all ]'))->toBeLessThan(strpos($entrypoint, 'start-all'));
+});
+
+it('never lets root run PHP: the shim comes after every build step that does', function (): void {
+    $runtime = ImageFiles::stage('runtime');
+    $shim = array_search('COPY --chmod=755 docker/teme/bin/php-as-site /usr/local/sbin/php', $runtime, true);
+    $lastRootPhp = null;
+
+    foreach ($runtime as $index => $instruction) {
+        if (str_starts_with($instruction, 'RUN ') && str_contains($instruction, 'php artisan')) {
+            $lastRootPhp = $index;
+        }
+    }
+
+    expect($shim)->toBeInt()->and($lastRootPhp)->toBeInt()->and($shim)->toBeGreaterThan($lastRootPhp)
+        ->and(ImageFiles::text('docker/teme/bin/php-as-site'))->toContain('exec setpriv --reuid=www-data --regid=www-data --init-groups /usr/local/bin/php "$@"');
+});
+
+it('stops on SIGTERM, which s6\'s init answers, and not the base image\'s SIGQUIT, which it ignores', function (): void {
+    expect(ImageFiles::stage('runtime'))->toContain('STOPSIGNAL SIGTERM');
+});
+
+it('checks the whole container in one health check, whose start period outlasts a migration', function (): void {
+    $runtime = implode("\n", ImageFiles::stage('runtime'));
+
+    expect($runtime)->toMatch('/^HEALTHCHECK --interval=10s --timeout=5s --start-period=15m --start-interval=3s --retries=3 CMD \["teme-healthcheck"\]$/m');
+});
+
+it('puts Teme\'s start files where its entrypoint, its s6 services and its health check look for them', function (string $from, string $to, string $mode): void {
+    expect(ImageFiles::stage('runtime'))->toContain("COPY --chmod={$mode} {$from} {$to}");
+})->with([
+    ['docker/teme/bin/teme-entrypoint', '/usr/local/bin/teme-entrypoint', '755'],
+    ['docker/teme/bin/teme-healthcheck', '/usr/local/bin/teme-healthcheck', '755'],
+    ['docker/teme/lib/', '/usr/local/lib/teme/', '755'],
+    ['docker/teme/s6-rc.d/', '/usr/local/share/teme/s6-rc.d/', '755'],
+]);
+
+it('joins nginx to www-data\'s group, so its workers read what PHP writes, as the entry for root runs them as nginx', function (): void {
+    expect(implode("\n", ImageFiles::stage('runtime')))->toContain('usermod --append --groups www-data nginx');
 });
 
 it('takes the version and the commit as the runtime stage’s last settings, so a new version rebuilds nothing', function (): void {
@@ -101,7 +153,7 @@ it('takes the version and the commit as the runtime stage’s last settings, so 
         'ARG TEME_VERSION=',
         'ARG TEME_REVISION=',
         'ENV TEME_VERSION=${TEME_VERSION} TEME_REVISION=${TEME_REVISION}',
-        'USER www-data',
+        'USER root',
     ]);
 });
 

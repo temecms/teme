@@ -13,6 +13,12 @@ interface Platform
     public function name(): string;
 
     /**
+     * Whether the updater runs as a service of its own, apart from the site, with an image of its own that a
+     * release asks to restart; false when it runs in the same container as the site, which a release replaces whole.
+     */
+    public function hasUpdaterOfItsOwn(): bool;
+
+    /**
      * The image the setting holds now, or null when the platform can't say.
      *
      * @throws PlatformRefused
