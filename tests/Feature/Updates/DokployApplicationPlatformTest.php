@@ -102,7 +102,7 @@ it('refuses an Application Dokploy builds from a source, saying Dokploy rebuilds
     ($this->serve)(($this->application)(['sourceType' => $source, 'dockerImage' => null]));
 
     expect(fn () => app(DokployApplicationPlatform::class)->image(ImageSetting::Site))
-        ->toThrow(PlatformRefused::class, "Dokploy builds this site from {$named}, so Teme can't change an image. To update, put the new Teme release in that source, then press Deploy on this Application in Dokploy. docs/guides/operators/platforms/dokploy.md, Install as one Application, says how.");
+        ->toThrow(PlatformRefused::class, "Dokploy builds this site from {$named}, so Teme can't change an image. To update, put the new Teme release in that source, then press Deploy on this Application in Dokploy. docs/guides/operators/platforms/one-container.md, On Dokploy, says how.");
     expect(($this->sent)('application.update'))->toBe([]);
 })->with([
     'GitHub' => ['github', 'its Git repository'],

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 use SensitiveParameter;
 
 /**
- * Calls one procedure of Dokploy's API with the owner's key (I-3326). Every failure becomes a PlatformRefused built
+ * Calls one procedure of Dokploy's API with the owner's key. Every failure becomes a PlatformRefused built
  * from Teme's own words and the status, since Dokploy's body, and Laravel's exception carrying it, may echo the key
  * or a registry's login.
  */

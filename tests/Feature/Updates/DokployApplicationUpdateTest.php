@@ -114,7 +114,7 @@ it('sends Dokploy nothing but reads when the Application is built from a source,
     $row = ($this->row)();
 
     expect($row->status)->toBe('failed')
-        ->and($row->error)->toBe('Dokploy builds this site from its Git repository, so Teme can\'t change an image. To update, put the new Teme release in that source, then press Deploy on this Application in Dokploy. docs/guides/operators/platforms/dokploy.md, Install as one Application, says how.')
+        ->and($row->error)->toBe('Dokploy builds this site from its Git repository, so Teme can\'t change an image. To update, put the new Teme release in that source, then press Deploy on this Application in Dokploy. docs/guides/operators/platforms/one-container.md, On Dokploy, says how.')
         ->and(($this->writes)())->toBe([])
         ->and($this->dokploy->image)->toBe($this->old);
 });

@@ -135,7 +135,7 @@ final class DokployApplicationPlatform implements Platform
         $source = $application['sourceType'] ?? null;
 
         if (is_string($source) && isset(self::SOURCES[$source])) {
-            throw new PlatformRefused('Dokploy builds this site from '.self::SOURCES[$source].', so Teme can\'t change an image. To update, put the new Teme release in that source, then press Deploy on this Application in Dokploy. docs/guides/operators/platforms/dokploy.md, Install as one Application, says how.');
+            throw new PlatformRefused('Dokploy builds this site from '.self::SOURCES[$source].', so Teme can\'t change an image. To update, put the new Teme release in that source, then press Deploy on this Application in Dokploy. docs/guides/operators/platforms/one-container.md, On Dokploy, says how.');
         }
 
         return $application;
