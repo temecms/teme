@@ -10,6 +10,20 @@ Teme (Ijaw for *create*) is an open-source content management system for publish
 
 It holds everything a publishing site needs in one place: the editor, media, people and permissions, publishing, the public website, themes, plugins and backups. Content is stored as structured documents, every item keeps its fields together in one row, and a site moves to a new domain by changing one setting.
 
+<table>
+  <tr>
+    <td><a href="docs/screenshots/"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/editor-dark.png"><img src="docs/screenshots/editor.png" width="420" alt="The editor with an article open: the title, standfirst, featured image and text, and the publish panel beside them"></picture></a><br>The editor</td>
+    <td><a href="docs/screenshots/"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/article-dark.png"><img src="docs/screenshots/article.png" width="420" alt="An article on the public site in the default theme: its category, title, standfirst, byline and featured image"></picture></a><br>An article on the site</td>
+  </tr>
+  <tr>
+    <td><a href="docs/screenshots/"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/design-dark.png"><img src="docs/screenshots/design.png" width="420" alt="The Themes screen with the default theme active"></picture></a><br>Themes</td>
+    <td><a href="docs/screenshots/"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/plugins-dark.png"><img src="docs/screenshots/plugins.png" width="420" alt="The Plugins screen with one plugin enabled"></picture></a><br>Plugins</td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><a href="docs/screenshots/"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/article-phone-dark.png"><img src="docs/screenshots/article-phone.png" width="195" alt="The same article on a phone"></picture></a><br>On a phone</td>
+  </tr>
+</table>
+
 ## Status
 
 Teme is in **alpha**. The latest release is `v0.7.0-alpha.1`; see the [changelog](CHANGELOG.md) for what each release added and [the roadmap](docs/roadmap.md) for what comes next. It is developed in the open: features arrive in small releases, and the interface is being redesigned now. Try it, but don't run a site you can't afford to lose on it yet.

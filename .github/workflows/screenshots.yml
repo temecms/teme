@@ -1,0 +1,125 @@
+name: Screenshots
+
+# The pictures in docs/screenshots and the README, made in a real browser from
+# the demo site (tests/Support/DemoSite.php), never by hand. On a release, or
+# when run from main, changed pictures go to a new branch and a pull request
+# to main. Run from any other branch, they are committed to that branch.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  screenshots:
+    name: screenshots
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: teme_test
+          POSTGRES_USER: teme
+          POSTGRES_PASSWORD: teme
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U teme -d teme_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      valkey:
+        image: valkey/valkey:9.1-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/prepare
+
+      - name: Install Chromium and optipng
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get -o Acquire::Retries=5 install -y -qq optipng
+
+      - name: Take the pictures
+        run: |
+          npm run build
+          npm run build:themes
+          php artisan teme:themes:link
+          vendor/bin/pest --group=screenshots tests/Browser/ScreenshotsTest.php
+
+      # Only the pictures that changed: the test keeps a picture whose pixels
+      # are the same, so an unchanged screen changes no file.
+      - name: Optimise the changed pictures
+        id: changes
+        run: |
+          changed=$(git status --porcelain --untracked-files=all -- docs/screenshots | awk '{ print $2 }' | grep '\.png$' || true)
+
+          if [ -z "$changed" ]; then
+            echo "Nothing changed."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$changed" | xargs optipng -quiet -o2 -strip all
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: steps.changes.outputs.changed == 'true'
+        with:
+          name: screenshots
+          path: docs/screenshots/*.png
+
+      - name: Commit the pictures
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.event.release.tag_name }}
+          REF_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          remote="https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git"
+          version="${VERSION:-run ${RUN_ID}}"
+
+          git add docs/screenshots
+
+          # Run from a working branch: the pictures join that branch.
+          if [ -z "$VERSION" ] && [ "$REF_NAME" != "main" ]; then
+            git commit -m "docs: screenshots for ${version}"
+            git push "$remote" "HEAD:refs/heads/${REF_NAME}"
+            exit 0
+          fi
+
+          # A release, or a run from main: a branch of their own and a pull request. Never main itself.
+          branch="screenshots/${VERSION:-$RUN_ID}"
+          git switch -c "$branch"
+          git commit -m "docs: screenshots for ${version}"
+          git push "$remote" "HEAD:refs/heads/${branch}"
+          gh pr create \
+            --repo "$REPOSITORY" \
+            --base main \
+            --head "$branch" \
+            --title "docs: screenshots for ${version}" \
+            --body "The pictures in docs/screenshots, taken again by the Screenshots workflow from the demo content. Only the pictures whose pixels changed are included."
