@@ -1085,5 +1085,11 @@ it('puts the image and the compose file back when Dokploy refuses the new compos
 it('hashes a compose file as the template repository does, whatever its line endings', function (): void {
     expect(ComposeHash::of("a: 1\r\nb: 2\r\n\r\n"))->toBe(ComposeHash::of("a: 1\nb: 2\n"))
         ->and(ComposeHash::of("a: 1\nb: 2"))->toBe(hash('sha256', "a: 1\nb: 2\n"))
-        ->and(ComposeHash::of("a: 1\n"))->not->toBe(ComposeHash::of("a: 2\n"));
+        ->and(ComposeHash::of("a: 1\n"))->not->toBe(ComposeHash::of("a: 2\n"))
+        ->and(ComposeHash::of("a: 1 \t\x00\x0B\n"))->toBe(ComposeHash::of('a: 1'));
+});
+
+it('gives the test vector the template repository’s README and tests name', function (): void {
+    // temecms/temecms-for-dokploy, README: "How a compose file is hashed".
+    expect(ComposeHash::of("services:\r\n  web: {}\r\n\r\n"))->toBe('78ae680a3841176cc921326a7837fc012f1f21701a4f5a4d6943f9e6c20b8af8');
 });
