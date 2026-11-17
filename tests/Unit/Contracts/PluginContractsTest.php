@@ -36,6 +36,12 @@ use Teme\Contracts\Content\QueuePage;
 use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
+use Teme\Contracts\Editor\EditorPanel;
+use Teme\Contracts\Editor\EditorPanelContext;
+use Teme\Contracts\Editor\HasEditorPanels;
+use Teme\Contracts\Editor\PanelView;
+use Teme\Contracts\Editor\SuggestedChange;
+use Teme\Contracts\Editor\Suggestion;
 use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
@@ -174,6 +180,12 @@ it('gives every new contract its @since and nothing from a framework', function 
     [RowPage::class, '0.9.0'],
     [Row::class, '0.9.0'],
     [Saved::class, '0.9.0'],
+    [HasEditorPanels::class, '0.9.0'],
+    [EditorPanel::class, '0.9.0'],
+    [EditorPanelContext::class, '0.9.0'],
+    [PanelView::class, '0.9.0'],
+    [Suggestion::class, '0.9.0'],
+    [SuggestedChange::class, '0.9.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {

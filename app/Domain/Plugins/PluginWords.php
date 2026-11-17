@@ -132,6 +132,17 @@ final readonly class PluginWords
     }
 
     /**
+     * The consent's line for one editor panel: the content types it shows
+     * on and its label.
+     *
+     * @param  list<string>  $types  the types' names, as the admin shows them
+     */
+    public static function editorPanel(string $label, array $types): string
+    {
+        return __('Add a panel to the editor for :types: “:label”, which can start its work on the item you’re editing and suggest changes you choose to use.', ['types' => implode(', ', $types), 'label' => $label]);
+    }
+
+    /**
      * The sentence naming the hosts a plugin's inserted content may load
      * from (`contributes.csp`).
      *

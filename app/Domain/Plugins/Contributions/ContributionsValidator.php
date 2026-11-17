@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\AreaValidator;
+use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
@@ -110,7 +111,7 @@ final class ContributionsValidator implements ContributionsCheck
                 array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
             } elseif ($surface === 'hooks') {
                 array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -183,6 +184,10 @@ final class ContributionsValidator implements ContributionsCheck
 
         if (array_key_exists('aiTasks', $contributes)) {
             $errors = [...$errors, ...PluginAiTasks::errors($contributes['aiTasks'])];
+        }
+
+        if (array_key_exists('editorPanels', $contributes)) {
+            $errors = [...$errors, ...app(PanelValidator::class)->errors($contributes['editorPanels'], $contributes, $capabilities)];
         }
 
         return $errors;

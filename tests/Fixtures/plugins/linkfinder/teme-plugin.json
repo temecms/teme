@@ -1,0 +1,44 @@
+{
+    "manifest": 1,
+    "name": "tests/linkfinder",
+    "code": "linkfinder",
+    "label": "Link Finder",
+    "description": "A plugin the tests enable, which suggests links from the article being edited to published articles, in a panel of the editor.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Linkfinder\\Linkfinder",
+    "capabilities": ["content.read", "jobs"],
+    "jobs": [
+        { "key": "find-links", "label": "Find links", "tries": 1, "backoff": [1] }
+    ],
+    "contributes": {
+        "permissions": [
+            { "id": "suggest", "label": "Use link suggestions", "description": "See the link suggestions panel and ask it for links.", "roles": ["editor"] }
+        ],
+        "editorPanels": [
+            {
+                "id": "links",
+                "label": "Link suggestions",
+                "description": "Finds published articles worth linking from this one.",
+                "icon": "link",
+                "types": ["post"],
+                "permission": "suggest",
+                "actions": [
+                    { "id": "find", "label": "Find links", "job": "find-links" },
+                    {
+                        "id": "rescan",
+                        "label": "Look further",
+                        "job": "find-links",
+                        "confirm": "This reads every published article again, which takes a minute.",
+                        "fields": [
+                            { "key": "focus", "type": "text", "label": "Focus on", "maxLength": 80 },
+                            { "key": "reach", "type": "select", "label": "How far back", "options": { "year": "The last year", "all": "Everything" }, "default": "year", "required": true },
+                            { "key": "most", "type": "number", "label": "At most", "min": 1, "max": 20, "default": 5 },
+                            { "key": "fresh", "type": "boolean", "label": "Forget earlier suggestions" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
