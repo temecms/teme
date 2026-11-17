@@ -502,7 +502,7 @@ export default function SettingsGroup({
     );
 
     return (
-        <AreaScriptsProvider value={scripts}>
+        <>
             <Head title={`${heading.label} settings`} />
             {pluginScripts !== null && approval.password}
 
@@ -510,6 +510,7 @@ export default function SettingsGroup({
                 title={heading.label}
                 description={heading.description}
             >
+                <AreaScriptsProvider value={scripts}>
                 <SettingsForm
                     action={SettingsController.update.form({
                         group: group.key,
@@ -636,7 +637,8 @@ export default function SettingsGroup({
                 {words != null && (
                     <WordsInOtherLanguages group={group.key} words={words} />
                 )}
+                </AreaScriptsProvider>
             </SettingsPage>
-        </AreaScriptsProvider>
+        </>
     );
 }
