@@ -7,9 +7,8 @@ namespace Teme\Contracts\Cache;
 /**
  * A change to something the public site shows, as the page cache is told of
  * it: what changed, and the page-cache tags core purges for it, from before
- * the change and after. It is study C's collect hook of this name: core
- * owns the graph (spec §5.6), and from phase 5 a listener may return the
- * tags of pages it adds that show the same thing. The tags are the page
+ * the change and after. Core works out which tags a change touches. The
+ * tags are the page
  * cache's vocabulary, and a CDN's surrogate keys.
  *
  * @since 0.1.0

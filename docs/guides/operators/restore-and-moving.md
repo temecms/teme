@@ -7,7 +7,7 @@ written_for: the restore and export commands at Teme's own tag
 
 # Restoring, moving and exporting
 
-> Not proved yet: a restore onto a second server has not been run by anyone but the people who wrote it.
+> Not proved yet: a restore onto a second server has not been tested outside development.
 
 A backup is how you get a site back after a failure, and how you move it to a new server. This page covers restoring onto a fresh server, moving to a new domain, changing the application key on purpose, and exporting everything as plain files.
 

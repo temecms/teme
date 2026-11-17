@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\PluginAccess;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\Setting;
@@ -59,6 +60,41 @@ final class DeclaredSettings
         );
     }
 
+    /**
+     * Returns a plugin group's settings form with the words its manifest
+     * gave in the locale, from the plugin's own lang folder: the group's
+     * label and description, and each setting's label, description, option
+     * labels and unit. Values and examples stay as they are.
+     *
+     * @template T of array{group: array{key: string, label: string, description: string, sensitive: bool}, fields: list<array<string, mixed>>}
+     *
+     * @param  T  $form
+     *
+     * @return T
+     */
+    public static function translated(array $form, string $locale): array
+    {
+        $words = ManifestText::for(substr($form['group']['key'], strlen('plugin.')));
+        $text = fn (mixed $english): mixed => is_string($english) ? $words->text($english, $locale) : $english;
+
+        $form['group']['label'] = $words->text($form['group']['label'], $locale);
+        $form['group']['description'] = $words->text($form['group']['description'], $locale);
+
+        foreach ($form['fields'] as $index => $field) {
+            foreach (['label', 'description', 'unit'] as $name) {
+                $field[$name] = $text($field[$name] ?? null);
+            }
+
+            if (is_array($field['options'] ?? null)) {
+                $field['options'] = array_map($text, $field['options']);
+            }
+
+            $form['fields'][$index] = $field;
+        }
+
+        return $form;
+    }
+
     /** @param  array<array-key, mixed>  $declared */
     private static function setting(string $group, array $declared, string $version): Setting
     {
@@ -84,6 +120,9 @@ final class DeclaredSettings
             'email' => Setting::email($key, $label, $description, $version),
             'secret' => Setting::secret($key, $label, $description, $version),
             'color' => Setting::color($key, $label, $description, $version),
+            'person' => Setting::person($key, $label, $description, $version),
+            'term' => Setting::term($key, $label, $description, $version, self::text($declared, 'taxonomy'), ($declared['multiple'] ?? false) === true),
+            'type' => Setting::contentType($key, $label, $description, $version),
             default => throw new InvalidArgumentException("Setting [{$group}.{$key}] has an unknown type [{$type}]."),
         };
 

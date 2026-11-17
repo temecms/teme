@@ -31,6 +31,7 @@ final class AiActivityController extends Controller
         $person = self::person($request);
         $task = self::task($request);
         $month = self::month($request);
+        $plugin = self::plugin($request);
         $id = $request->string('row')->toString();
 
         // A row's ID is 26 lower-case letters and digits (I-418); anything else is no address of ours.
@@ -46,7 +47,7 @@ final class AiActivityController extends Controller
         $page = null;
 
         // One read serves the rows and both cursors, and none when only the drawer is asked for again.
-        $read = function () use (&$page, $list, $request, $person, $task, $month): array {
+        $read = function () use (&$page, $list, $request, $person, $task, $month, $plugin): array {
             return $page ??= $list->page(new AiActivityRequest(
                 person: $person,
                 task: $task,
@@ -54,6 +55,7 @@ final class AiActivityController extends Controller
                 after: self::optional($request, 'after'),
                 before: self::optional($request, 'before'),
                 perPage: (int) PreferencesFor::user($request->user())['lists.per_page'],
+                plugin: $plugin,
             ));
         };
 
@@ -61,11 +63,13 @@ final class AiActivityController extends Controller
             'rows' => fn (): array => $read()['rows'],
             'newer' => fn (): ?string => $read()['newer'],
             'older' => fn (): ?string => $read()['older'],
-            'filters' => fn (): array => ['person' => $person, 'task' => $task, 'month' => $month === null ? null : substr($month, 0, 7)],
+            'filters' => fn (): array => ['person' => $person, 'task' => $task, 'month' => $month === null ? null : substr($month, 0, 7), 'plugin' => $plugin],
             'people' => fn (): array => $filters->people($person),
             'tasks' => fn (): array => $filters->tasks($task),
             'months' => fn (): array => $filters->months($month),
+            'plugins' => fn (): array => $filters->plugins($plugin),
             'summary' => fn (): array => $summary->of($month),
+            'pluginMonths' => fn (): array => $summary->byPlugin($month),
             'details' => $open,
             'missing' => $id !== '' && $open === null,
             'siteTimezone' => $settings->string('general', 'timezone'),
@@ -92,6 +96,17 @@ final class AiActivityController extends Controller
         $value = $request->string('task')->toString();
 
         return mb_strlen($value) <= 64 && preg_match(AiKeys::PATTERN, $value) === 1 ? $value : null;
+    }
+
+    /**
+     * A plugin's code from the address, or `teme` for core's own requests,
+     * or null when it is neither.
+     */
+    private static function plugin(Request $request): ?string
+    {
+        $value = $request->string('plugin')->toString();
+
+        return preg_match('/^[a-z0-9][a-z0-9-]{1,39}$/', $value) === 1 ? $value : null;
     }
 
     /**

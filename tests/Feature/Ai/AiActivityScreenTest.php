@@ -30,7 +30,7 @@ it('shows an administrator the record, the filters\' options and the month\'s fi
         ->where('rows.0.id', $newest)
         ->where('newer', null)
         ->where('older', null)
-        ->where('filters', ['person' => null, 'task' => null, 'month' => null])
+        ->where('filters', ['person' => null, 'task' => null, 'month' => null, 'plugin' => null])
         ->where('people.0.label', 'Ada Admin')
         ->where('tasks', fn ($tasks): bool => $tasks->contains(['value' => 'tidy', 'label' => 'Tidy']))
         ->where('months.0.value', now()->utc()->format('Y-m'))
@@ -62,7 +62,7 @@ it('reads the person, the task and the month from the address, and narrows the r
     actvRow($this->admin);
 
     ($this->screen)(['person' => $this->editor->id, 'task' => 'tidy', 'month' => '2026-11'])->assertOk()->assertInertia(fn (Assert $page) => $page
-        ->where('filters', ['person' => $this->editor->id, 'task' => 'tidy', 'month' => '2026-11'])
+        ->where('filters', ['person' => $this->editor->id, 'task' => 'tidy', 'month' => '2026-11', 'plugin' => null])
         ->has('rows', 1)
         ->where('rows.0.id', $mine)
         ->where('summary.label', 'November 2026')
@@ -80,7 +80,7 @@ it('ignores a filter it can\'t read, and lists everything', function (string $ca
     };
 
     ($this->screen)($query)->assertOk()->assertInertia(fn (Assert $page) => $page
-        ->where('filters', ['person' => null, 'task' => null, 'month' => null])
+        ->where('filters', ['person' => null, 'task' => null, 'month' => null, 'plugin' => null])
         ->has('rows', 1));
 })->with(['a person that isn\'t a number', 'a task that isn\'t a key', 'a month that doesn\'t exist', 'a month in words']);
 
@@ -155,7 +155,7 @@ it('labels every select on the page', function (): void {
 
     preg_match_all('/<(?:Input|SelectField|select|textarea)\b((?:=>|[^>])*)>/s', $source, $controls);
 
-    expect($controls[1])->toHaveCount(3);
+    expect($controls[1])->toHaveCount(4);
 
     foreach ($controls[1] as $attributes) {
         $named = str_contains($attributes, 'aria-label=') || str_contains($attributes, 'aria-labelledby=');

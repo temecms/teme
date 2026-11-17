@@ -10,6 +10,7 @@ use App\Domain\Cards\CardType;
 use App\Domain\Cards\DocumentRenderer;
 use App\Domain\Cards\LinkResolver;
 use App\Domain\Cards\RenderContext;
+use App\Domain\Site\Links\ArticleLinkAttributes;
 
 /**
  * An item's body as HTML for a feed reader (I-861): runs of prose drawn by
@@ -25,6 +26,7 @@ final readonly class FeedBody
         private FeedCards $feedCards,
         private LinkResolver $links,
         private FeedUrls $urls,
+        private ArticleLinkAttributes $linkAttributes,
     ) {}
 
     /**
@@ -33,7 +35,9 @@ final readonly class FeedBody
     public function html(array $document): string
     {
         // The media of every card, in one statement; the context a prose run is drawn with needs none.
-        $context = new RenderContext(new AbsoluteLinks($this->links, $this->urls), 'feed', $this->media->forDocument($document));
+        $links = new AbsoluteLinks($this->links, $this->urls);
+        // The same attributes plugins ask for on the article's page (docs/plans/plugin-sockets-3.md).
+        $context = new RenderContext($links, 'feed', $this->media->forDocument($document), linkAttributes: $this->linkAttributes->for($document, $links));
         $html = '';
         $run = [];
 

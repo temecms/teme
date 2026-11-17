@@ -9,6 +9,8 @@ export type InboxRow = {
     /** ISO 8601, in UTC. */
     at: string;
     owner: string;
+    /** The plugin's own name when a plugin sent it; otherwise null. */
+    plugin: string | null;
 };
 
 export type InboxPage = {

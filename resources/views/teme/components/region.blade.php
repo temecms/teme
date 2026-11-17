@@ -1,4 +1,4 @@
-{{-- A theme's region (study B §3e): its published content, or nothing; what plugins place before or after it, around it, also when it's empty. --}}
+{{-- A theme's region: its published content, or nothing; what plugins place before or after it, around it, also when it's empty. --}}
 {!! $before !!}
 @if ($html !== null)
 <div {{ $attributes->merge(['class' => "teme-region teme-region-{$name}"]) }} data-region="{{ $name }}">{!! $html !!}</div>

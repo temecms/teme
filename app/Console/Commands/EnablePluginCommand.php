@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Domain\Ai\Plugins\DeclaredAiTask;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Operations\EnablePlugin;
 use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
@@ -64,6 +68,7 @@ final class EnablePluginCommand extends Command
         $version = $manifest?->version() ?? '';
         $capabilities = $manifest?->capabilities() ?? [];
         $hosts = $manifest?->hosts() ?? [];
+        $aiTasks = $manifest === null ? [] : PluginAiTasks::of($manifest);
         $fromSettings = $manifest === null ? [] : SettingHosts::declared($manifest);
         $settingHosts = $manifest === null || $fromSettings === [] ? [] : app(SettingHosts::class)->current($manifest);
         $http = $manifest === null || $fromSettings === []
@@ -78,6 +83,7 @@ final class EnablePluginCommand extends Command
                 Capability::MediaRead->value => __('Read the media library'),
                 Capability::ContentInsert->value => __('Add content inside your articles, such as ads'),
                 Capability::PagesInsert->value => __('Add content to every page of your site: in the head, at the top and bottom of the page, between items on lists, in the theme’s regions, and fixed to the screen’s edge'),
+                Capability::ContentLinks->value => __('Change how links in your articles behave: nofollow, new tab'),
                 Capability::ContentWrite->value => __('Create and change posts, pages and other content, for the person using it'),
                 Capability::MediaWrite->value => __('Add files to the media library and change their details, for the person using it'),
                 Capability::Jobs->value => __('Run work in the background and on a schedule'),
@@ -85,10 +91,19 @@ final class EnablePluginCommand extends Command
                 Capability::FediverseRead->value => __('See who follows the site on the fediverse, and hear what they send it'),
                 Capability::FediverseSend->value => __('Send activity to the site’s fediverse followers'),
                 Capability::FeedsLinks->value => __('Add links to your site’s feeds, such as the hub feed readers subscribe through'),
+                Capability::PeopleRead->value => __('See the names of the people who write on this site'),
+                Capability::NoticesSend->value => PluginWords::capability($capability, notices: array_column(DeclaredNotices::of($manifest), 'label')),
                 Capability::ImportWordPress->value => __('Receive the data it declares from the WordPress site you import'),
                 Capability::Http->value => $http,
+                Capability::Ai->value => PluginWords::capability($capability, aiTasks: array_map(fn (DeclaredAiTask $task): string => $task->label, $aiTasks)),
                 default => $capability,
             });
+
+            if ($capability === Capability::Ai->value) {
+                foreach ($aiTasks as $task) {
+                    $this->line('    '.PluginWords::aiTask($task));
+                }
+            }
 
             // Each file it answers at the site's root, as the consent lists it (docs/guides/developers/plugins/root-files.md).
             if ($capability === Capability::RoutesPublic->value) {
@@ -106,6 +121,10 @@ final class EnablePluginCommand extends Command
 
         if ($insertionHosts !== []) {
             $this->line('  '.PluginWords::insertionHosts($insertionHosts));
+        }
+
+        foreach (array_keys($manifest === null ? [] : Dependencies::required($manifest)) as $required) {
+            $this->line('  '.PluginWords::needs($required));
         }
 
         if (! $this->option('agree')) {

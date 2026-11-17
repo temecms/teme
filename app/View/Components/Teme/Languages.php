@@ -10,7 +10,7 @@ use Illuminate\View\Component;
 
 /**
  * `<x-teme::languages />`: a link to each language version of the page, for
- * a theme that places its own switcher (I-3360). The same links as a menu's
+ * a theme that places its own switcher. The same links as a menu's
  * language switcher, in a plain list with `lang` and `hreflang` on each and
  * `aria-current` on the page's own; nothing on a page with no other version.
  */

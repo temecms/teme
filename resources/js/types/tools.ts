@@ -99,12 +99,14 @@ export type AiActivityRow = {
     person: { id: number | null; name: string | null };
     task: { key: string; label: string };
     variant: { key: string; label: string } | null;
+    /** The plugin that asked, by code and name; null for Teme's own requests. */
+    plugin: { code: string; label: string } | null;
     subject: {
-        kind: 'content' | 'media';
+        kind: 'content' | 'media' | 'none';
         id: string;
         title: string | null;
         kindLabel: string;
-        state: 'present' | 'trashed' | 'gone';
+        state: 'present' | 'trashed' | 'gone' | 'none';
     };
     outcome: {
         key:
@@ -113,7 +115,8 @@ export type AiActivityRow = {
             | 'discarded'
             | 'failed'
             | 'refused'
-            | 'stale';
+            | 'stale'
+            | 'answered';
         label: string;
     };
     why: string | null;
@@ -144,6 +147,21 @@ export type AiMonthSummary = {
     reached: boolean;
 };
 
+/** One row of Tools › AI activity's By plugin table: Teme's own requests (`teme`) or one plugin's, in a month. */
+export type AiPluginMonth = {
+    code: string;
+    label: string;
+    costMicrounits: number;
+    requests: number;
+    unpricedRequests: number;
+    /** This month only: the limit, what it counts (for Teme, the site's whole spend) and whether it is reached; null for none. */
+    budget: {
+        limitMicrounits: number;
+        countedMicrounits: number;
+        reached: boolean;
+    } | null;
+};
+
 export type AiActivityPage = {
     rows: AiActivityRow[];
     newer: string | null;
@@ -152,11 +170,16 @@ export type AiActivityPage = {
         person: number | null;
         task: string | null;
         month: string | null;
+        plugin: string | null;
     };
     people: { value: number; label: string }[];
     tasks: { value: string; label: string }[];
     months: { value: string; label: string }[];
+    /** The filter's choices after "Teme and plugins": `teme` (Teme only), then each plugin with requests. */
+    plugins: { value: string; label: string }[];
     summary: AiMonthSummary;
+    /** The By plugin table: Teme, then each plugin that asked; empty when no plugin asked that month. */
+    pluginMonths: AiPluginMonth[];
     details: AiActivityRow | null;
     missing: boolean;
     siteTimezone: string;

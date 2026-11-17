@@ -1,4 +1,4 @@
-{{-- Core's comment form (docs/studies/comments.md §3.4): the theme places and styles it; the fields, their names, the honeypot, the privacy line and the data-teme-* hooks are core's. It posts the item's address, never its ID (1.7c's D11). The parts core's script shows are hidden until it does, and the form uses core's thread script, which shows them (1.8b′, 1.8c″). --}}
+{{-- Core's comment form: the theme places and styles it; the fields, their names, the honeypot, the privacy line and the data-teme-* hooks are core's. It posts the item's address, never its ID. The parts core's script shows are hidden until it does, and the form uses core's thread script, which shows them. --}}
 @php($reply = $form->parentId !== null)
 <div class="teme-respond" id="respond" data-teme-respond>
     @unless ($form->standalone)
@@ -40,7 +40,7 @@
                 </div>
             </div>
             <p class="teme-as" data-teme-as hidden>{{ __('You’re signed in, so you’ll comment as') }} <strong></strong>.</p>
-            {{-- The honeypot (I-578, D8): no person sees or hears it; a bot that fills it is answered as held, and nothing is kept. --}}
+            {{-- The honeypot: no person sees or hears it; a bot that fills it is answered as held, and nothing is kept. --}}
             <div class="teme-hp" aria-hidden="true"><label for="c-subject">{{ __('Leave this empty') }}</label><input id="c-subject" name="subject" tabindex="-1" autocomplete="off"></div>
             <p class="teme-privacy">{{ $form->askWebsite ? __('Your name and website are shown with your comment; your email address never is.') : __('Your name is shown with your comment; your email address never is.') }} {{ __('To fight spam, we keep your IP address and browser details for :days days, then delete them.', ['days' => $form->keepIpDays]) }}</p>
             <div class="teme-submit">

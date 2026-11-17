@@ -7,7 +7,7 @@ written_for: the defaults Teme ships with, not measurements
 
 # Sizing a server
 
-> Not proved yet: the figures below are Teme's defaults and a formula, not measurements from a real server. The table at the end is empty until someone measures.
+> Not proved yet: the figures below are Teme's defaults and a formula, not measurements from a real server.
 
 Three things decide how big a server Teme needs: how many people sign in at once, how much you store, and how many Teme processes run beside the web server. This page gives the formula for each.
 
@@ -53,11 +53,3 @@ Count these:
 ## Memory of the other roles
 
 The recipe runs `worker`, `worker-long` and `scheduler` as three more PHP processes beside `web`, each with its own memory. Count each one when you size the server. They are small beside `web` at its busiest, but not nothing.
-
-## Measured on a real server
-
-| Measure | Value |
-|---|---|
-| Hash time | Not measured yet |
-| FPM workers | Not measured yet |
-| Memory of the web container | Not measured yet |

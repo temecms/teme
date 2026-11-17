@@ -7,13 +7,14 @@ namespace App\Domain\Site\Insertions;
 use RuntimeException;
 
 /**
- * A page insertion contributor that ran over its budget, or was skipped
- * because the page's budget was spent before it was asked.
+ * A page insertion contributor, or a plugin asked for an article's link
+ * attributes, that ran over its budget, or was skipped because the page's
+ * budget was spent before it was asked.
  */
 final class ContributorTooSlow extends RuntimeException
 {
-    public function __construct(string $owner, int $milliseconds, int $budget)
+    public function __construct(string $owner, int $milliseconds, int $budget, string $what = 'page insertions')
     {
-        parent::__construct("{$owner}'s page insertions took {$milliseconds} ms, over the {$budget} ms budget.");
+        parent::__construct("{$owner}'s {$what} took {$milliseconds} ms, over the {$budget} ms budget.");
     }
 }

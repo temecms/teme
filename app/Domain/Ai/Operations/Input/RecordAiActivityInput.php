@@ -16,7 +16,8 @@ use Teme\Contracts\Operations\OperationInput;
  * asking (a lower-case ULID), the task and its option, the prompt, the subject,
  * how it ended and why, who answered, the tokens, the cost (null only when
  * tokens were spent at a model with no price, I-1302) and the time taken; and
- * the person who asked.
+ * the person who asked. A plugin's request through SiteAi names the plugin,
+ * and may be about no item: its subject is then none, with no ID.
  */
 final readonly class RecordAiActivityInput implements OperationInput
 {
@@ -25,7 +26,7 @@ final readonly class RecordAiActivityInput implements OperationInput
         public string $task,
         public AiPrompt $prompt,
         public AiSubjectType $subjectType,
-        public string $subjectId,
+        public ?string $subjectId,
         public AiOutcome $outcome,
         public ?string $provider,
         public ?string $model,
@@ -35,6 +36,7 @@ final readonly class RecordAiActivityInput implements OperationInput
         public ?AiFailureType $failure = null,
         public ?string $variant = null,
         public ?string $actorId = null,
+        public ?string $plugin = null,
     ) {}
 
     public function actorId(): ?string

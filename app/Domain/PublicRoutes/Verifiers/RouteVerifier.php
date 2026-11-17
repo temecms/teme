@@ -10,7 +10,7 @@ use Teme\Contracts\Settings\SecretReader;
 
 /**
  * Picks the POST verifier a declared route named and runs it with the
- * plugin's secret setting.
+ * plugin's secret setting, or with '' when a custom verifier names none.
  */
 final readonly class RouteVerifier
 {
@@ -31,7 +31,8 @@ final readonly class RouteVerifier
 
         $kind = (string) $verify['kind'];
         $secretName = (string) ($verify['secret'] ?? '');
-        $secret = $route->owner === DeclaredRoute::OWNER_CORE
+        // A custom verifier may name no secret: it is given '', and the store isn't read (docs/guides/developers/plugins/public-routes.md).
+        $secret = $route->owner === DeclaredRoute::OWNER_CORE || $secretName === ''
             ? ''
             : (string) ($this->secrets->secret('plugin.'.$route->owner, $secretName) ?? '');
 

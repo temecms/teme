@@ -19,6 +19,20 @@ A comment arrived, or its status changed: approved, held, marked as spam or tras
 | `to` | its status now. Today one of: pending, approved, spam or trash; later releases may add others, so a plugin treats a value it does not know as it would an unknown status, and never matches the list exhaustively. |
 | `actorId` | the account ID of the person who changed it, or null when no signed-in person did, such as a guest commenting |
 
+## ArticleLinks
+
+Asked once each time an article is drawn, on the site, in a feed or by the API, with the links it draws: a listener returns, by each link's place in $links, the LinkAttributes Teme writes on it. A value outside LinkAttributes' rules fails that listener, which is recorded and skipped.
+
+- **Class:** `Teme\Contracts\Content\ArticleLinks`
+- **Verb:** Transform
+- **Capability:** `content.links`
+- **Since:** 0.9.0
+
+| Parameter | Description |
+|---|---|
+| `links` | each link the article draws, once each |
+| `attributes` |  |
+
 ## ContentDeleted
 
 An item was deleted for good, from the trash. Only its ID, type and title are left to tell of it. Sent after the change is saved, never during an import run.
@@ -252,7 +266,7 @@ A file was stored in the media library: a new upload, or a new file in place of 
 
 ## CollectPersonalDataHolders
 
-Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed. A preview until Teme 1.0 (I-3187).
+Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed. A preview until Teme 1.0.
 
 - **Class:** `Teme\Contracts\Privacy\CollectPersonalDataHolders`
 - **Verb:** Collect

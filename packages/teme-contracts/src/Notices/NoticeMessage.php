@@ -8,7 +8,7 @@ namespace Teme\Contracts\Notices;
  * What a notice says, as plain words: the layout escapes them and adds the
  * greeting, the sign-off and the footer. The action is a route's name and
  * parameters, made into an address when sent (AGENTS.md rule 9). A preview
- * until Teme 1.0 (I-3187).
+ * until Teme 1.0.
  *
  * @since 0.5.0
  */

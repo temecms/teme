@@ -1,0 +1,43 @@
+{
+    "manifest": 1,
+    "name": "tests/librarian",
+    "code": "librarian",
+    "label": "Librarian",
+    "description": "A plugin the tests enable: it reads published items and drafts, writes with a slug, credits and a translation, and credits a chosen person.",
+    "version": "1.0.0",
+    "requires": {
+        "teme": "^0.5"
+    },
+    "plugin": "Tests\\Fixtures\\Plugins\\Librarian\\Librarian",
+    "capabilities": [
+        "content.read",
+        "content.write",
+        "jobs"
+    ],
+    "jobs": [
+        {
+            "key": "write-as-person",
+            "label": "Write a draft for the person",
+            "tries": 1,
+            "backoff": [
+                1
+            ]
+        }
+    ],
+    "schedules": [
+        {
+            "job": "write-as-person",
+            "every": "hour"
+        }
+    ],
+    "contributes": {
+        "settings": [
+            {
+                "key": "byline",
+                "type": "person",
+                "label": "Credit articles to",
+                "description": "The person the plugin credits on what it writes."
+            }
+        ]
+    }
+}

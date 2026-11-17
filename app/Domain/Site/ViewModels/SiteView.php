@@ -6,7 +6,7 @@ namespace App\Domain\Site\ViewModels;
 
 /**
  * The site as every theme view sees it, as `$site`: its name and tagline,
- * its home address, and its language (I-435), both as a locale for PHP,
+ * its home address, and its language, both as a locale for PHP,
  * such as "pt_BR", and as the BCP 47 tag `lang` takes, such as "pt-BR";
  * and the current year on the site's clock, for a footer's copyright.
  */

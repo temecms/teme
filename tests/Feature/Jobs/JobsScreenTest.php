@@ -20,6 +20,8 @@ use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
+afterEach(fn () => PluginFixtures::forget());
+
 beforeEach(function (): void {
     $this->seed(RoleSeeder::class);
     $this->admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');

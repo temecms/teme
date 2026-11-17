@@ -1,4 +1,4 @@
-# Teme's image (I-375): one image for every role, on serversideup/php's
+# Teme's image: one image for every role, on serversideup/php's
 # fpm-nginx variant at v4.5.1. Built in CI from a checkout of tracked files
 # (.dockerignore); a build on a person's machine uses git archive HEAD as
 # its context. amd64 only: restic is pinned for it.

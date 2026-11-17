@@ -1,4 +1,4 @@
-{{-- Core's own later page of an item's comments, drawn when the theme has no templates.comments, never the theme's index (1.8b's D10). Reads only $page. --}}
+{{-- Core's own later page of an item's comments, drawn when the theme has no templates.comments, never the theme's index. Reads only $page. --}}
 <x-teme::document>
 <main id="main" data-fallback="comments">
     <h1>{{ __('Comments on “:title”', ['title' => $page->title]) }}</h1>

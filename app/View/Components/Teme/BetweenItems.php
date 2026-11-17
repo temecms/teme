@@ -13,7 +13,7 @@ use Teme\Contracts\Insertions\PagePosition;
  * `<x-teme::between-items :after="$loop->iteration" :last="$loop->last" />`:
  * what plugins place between a list's items, after this item, cleaned;
  * nothing after the last item, or where nothing is placed. A theme puts it
- * inside its list loops (docs/plans/plugin-sockets-2.md, B2).
+ * inside its list loops.
  */
 final class BetweenItems extends Component
 {

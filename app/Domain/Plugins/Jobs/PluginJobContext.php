@@ -14,9 +14,9 @@ use Teme\Contracts\Jobs\JobContext;
 use Teme\Contracts\Jobs\JobStopped;
 
 /**
- * What a running plugin job may read and report (I-3445): its payload and
- * attempt, and progress that stops the handler when the run was cancelled or
- * the plugin disabled.
+ * What a running plugin job may read and report (I-3445): its payload,
+ * attempt and the person it acts for, and progress that stops the handler
+ * when the run was cancelled or the plugin disabled.
  */
 final class PluginJobContext implements JobContext
 {
@@ -42,6 +42,15 @@ final class PluginJobContext implements JobContext
     public function attempt(): int
     {
         return $this->attempt;
+    }
+
+    public function personId(): string
+    {
+        if ($this->actor->isOperator() || $this->actor->userId === null) {
+            throw new NoPersonToActFor(__('This run has no person to act for.'));
+        }
+
+        return $this->actor->userId;
     }
 
     public function progress(int $done, int $total, string $message = ''): void

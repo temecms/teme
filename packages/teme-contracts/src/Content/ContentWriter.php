@@ -8,7 +8,8 @@ use DateTimeImmutable;
 
 /**
  * How a plugin granted content.write creates and changes items, publishes
- * and schedules them, always on behalf of a named person.
+ * and schedules them, and links language versions, always on behalf of a
+ * named person.
  *
  * @since 0.9.0
  */
@@ -49,4 +50,17 @@ interface ContentWriter
      * @since 0.9.0
      */
     public function schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef;
+
+    /**
+     * Links existing items as language versions of one another: every
+     * version each already has joins one group. Refused when two would share
+     * a language, the types differ, or one is in the trash.
+     *
+     * @param  list<string>  $itemIds  2 to the site's number of languages
+     *
+     * @throws WriteRefused
+     *
+     * @since 0.9.0
+     */
+    public function linkTranslations(array $itemIds, string $actingPersonId): void;
 }

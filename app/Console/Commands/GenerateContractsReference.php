@@ -17,8 +17,10 @@ use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionType;
 use ReflectionUnionType;
+use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Hooks\Collect;
 use Teme\Contracts\Hooks\Gate;
+use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Hooks\Notification;
 use Teme\Contracts\Hooks\Resolve;
 use Teme\Contracts\Hooks\Transform;
@@ -46,7 +48,15 @@ final class GenerateContractsReference extends Command
      *
      * @var array<class-string, string>
      */
-    private const array BY_DECLARATION = [PluginSettingsWriter::class => 'contributes.settings'];
+    private const array BY_DECLARATION = [PluginSettingsWriter::class => 'contributes.settings', HookSender::class => 'contributes.hooks'];
+
+    /**
+     * The contracts given only when a grant and a declaration meet, with
+     * each's grant and manifest key; taken as stated, as above.
+     *
+     * @var array<class-string, array{0: string, 1: string}>
+     */
+    private const array BY_GRANT_AND_DECLARATION = [SiteAi::class => [Capability::Ai->value, 'contributes.aiTasks']];
 
     /** @var string */
     protected $signature = 'teme:docs:contracts
@@ -107,6 +117,7 @@ final class GenerateContractsReference extends Command
             $lines[] = sprintf('| `%s` | %s | %s |', $class, match (true) {
                 $when === null => 'always',
                 str_starts_with($when, 'declares ') => 'its manifest declares `'.substr($when, 9).'`',
+                str_starts_with($when, 'granted ') => vsprintf('granted `%s` and its manifest declares `%s`', explode(' declares ', substr($when, 8))),
                 default => 'granted `'.$when.'`',
             }, $this->since($class));
         }
@@ -232,6 +243,12 @@ final class GenerateContractsReference extends Command
         foreach (self::BY_DECLARATION as $class => $key) {
             if (! array_key_exists($class, $offered)) {
                 $offered[$class] = 'declares '.$key;
+            }
+        }
+
+        foreach (self::BY_GRANT_AND_DECLARATION as $class => [$grant, $key]) {
+            if (! array_key_exists($class, $offered)) {
+                $offered[$class] = 'granted '.$grant.' declares '.$key;
             }
         }
 

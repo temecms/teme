@@ -24,6 +24,7 @@ use App\Domain\Site\Insertions\InsertionPoints;
 use App\Domain\Site\Insertions\PageInsertions;
 use App\Domain\Site\Insertions\PlanBuilder;
 use App\Domain\Site\Insertions\Scripts\ApprovedScripts;
+use App\Domain\Site\Links\ArticleLinkAttributes;
 use App\Domain\Site\ViewModels\ArticleView;
 use App\Domain\Site\ViewModels\Crumb;
 use App\Domain\Site\ViewModels\ItemLink;
@@ -104,11 +105,14 @@ final readonly class ArticleViews
         $credits = app(Credits::class)->shown([(string) $content->id])[(string) $content->id] ?? [];
         $url = Addresses::relativeUrl($content) ?? '';
         $plan = $this->insertionPlan($content, $revision, $document, $language, $credits, $fields, $drawInsertions, $url);
+        $links = app(LinkResolver::class);
         $body = $this->renderer->html($document, new RenderContext(
-            app(LinkResolver::class),
+            $links,
             usage: app(CardUsage::class),
             leadNodeId: $lead['nodeId'],
             insertions: $plan,
+            // Plugins are asked about links only where they may insert: published renders, never a preview.
+            linkAttributes: $drawInsertions ? app(ArticleLinkAttributes::class)->for($document, $links) : [],
         ));
 
         // A draft never published has no first publication yet: the revision's own time stands in.

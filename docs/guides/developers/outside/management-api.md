@@ -4,14 +4,13 @@ type: how-to
 audience: both
 summary: For a service outside the site, not a plugin, with keys and abilities, the endpoints, the problems it answers, and its limits.
 rests_on: [routes/api/manage.php, app/Domain/ManageApi, app/Http/Api/Manage, docs/guides/operators/management-api.md]
-lands_with: api/manage-foundation
 ---
 
 # The management API
 
 The management API is for code that runs outside the site: an importer, a script that posts a daily digest, a workflow that uploads photos. It speaks HTTP and JSON from anywhere. A plugin doesn't use it: a plugin runs inside Teme and writes through the doors its capabilities open, as [The manifest](../concepts/manifest.md) describes.
 
-This page describes the code on the `api/manage-foundation` branch, which joins `main` with v1. The site's administrators have their own page about it, [The management API](../../operators/management-api.md) in the operators' guide.
+The site's administrators have their own page about it, [The management API](../../operators/management-api.md) in the operators' guide.
 
 ## Keys and abilities
 

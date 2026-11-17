@@ -7,6 +7,7 @@ namespace App\Domain\Ai\Operations;
 use App\Domain\Ai\AiFailureType;
 use App\Domain\Ai\AiKeys;
 use App\Domain\Ai\AiOutcome;
+use App\Domain\Ai\AiSubjectType;
 use App\Domain\Ai\Models\AiActivity;
 use App\Domain\Ai\Operations\Input\RecordAiActivityInput;
 use App\Domain\Ai\Queries\AiSpend;
@@ -24,12 +25,16 @@ use Teme\Contracts\Operations\OperationInput;
  * and its cost added to its UTC month's total in the same
  * transaction, so the budget never sums the record. It acts for the person
  * who asked, never for nobody or the operator; ai.use isn't asked again,
- * because the spend happened whatever changed since.
+ * because the spend happened whatever changed since. A plugin's request is
+ * also added to the plugin's month, in the same transaction.
  */
 final class RecordAiActivity extends BaseOperation
 {
     /** How a request may end when it is recorded; it is used or found out of date later. */
-    private const array RECORDED = [AiOutcome::Suggested, AiOutcome::Discarded, AiOutcome::Failed, AiOutcome::Refused];
+    private const array RECORDED = [AiOutcome::Suggested, AiOutcome::Discarded, AiOutcome::Failed, AiOutcome::Refused, AiOutcome::Answered];
+
+    /** A plugin's code, as the manifest's rule has it. */
+    private const string PLUGIN = '/^[a-z0-9][a-z0-9-]{1,39}$/';
 
     public function __construct(private readonly Actors $actors) {}
 
@@ -47,11 +52,14 @@ final class RecordAiActivity extends BaseOperation
         $problem = match (true) {
             preg_match('/^[0-9a-hjkmnp-tv-z]{26}$/', $input->id) !== 1 => 'An AI activity id is a lower-case ULID.',
             ! in_array($input->outcome, self::RECORDED, true) => 'A request is recorded as suggested, discarded, failed or refused; it is used or found out of date later.',
+            $input->plugin !== null && preg_match(self::PLUGIN, $input->plugin) !== 1 => 'An AI activity’s plugin is a plugin code.',
+            $input->outcome === AiOutcome::Answered && $input->plugin === null => 'Only a plugin’s request is recorded as answered.',
+            ($input->subjectType === AiSubjectType::None) !== ($input->subjectId === null) || ($input->subjectId === null && $input->plugin === null) => 'A request with no subject is a plugin’s, with the subject none.',
             in_array($input->outcome, [AiOutcome::Failed, AiOutcome::Refused], true) !== ($input->failure !== null) => 'A failed or refused request needs its failure\'s type, and only then.',
             $input->failure !== null && ($input->outcome === AiOutcome::Refused) !== ($input->failure === AiFailureType::Refused) => 'A refused request\'s type is refused; a failed one\'s is any other.',
             ($input->costMicrounits ?? 0) < 0 || $input->latencyMs < 0 => 'An AI activity\'s cost and latency can\'t be negative.',
             preg_match(AiKeys::PATTERN, $input->task) !== 1 || ($input->variant !== null && preg_match(AiKeys::PATTERN, $input->variant) !== 1) => 'An AI activity\'s task and variant are lower-case words joined by hyphens.',
-            ! Str::isUlid($input->subjectId) => "An AI activity's subject [{$input->subjectId}] isn't a ULID.",
+            $input->subjectId !== null && ! Str::isUlid($input->subjectId) => "An AI activity's subject [{$input->subjectId}] isn't a ULID.",
             mb_strlen($input->provider ?? '') > 64 || mb_strlen($input->model ?? '') > 200 => 'An AI activity\'s provider or model name is too long.',
             default => null,
         };
@@ -91,6 +99,7 @@ final class RecordAiActivity extends BaseOperation
             'cache_write_tokens' => $usage->cacheWrite,
             'cost_microunits' => $cost,
             'latency_ms' => $input->latencyMs,
+            'plugin' => $input->plugin,
             'created_at' => $now,
         ]);
 
@@ -103,6 +112,17 @@ final class RecordAiActivity extends BaseOperation
                 requests = ai_monthly_spend.requests + 1,
                 unpriced_requests = ai_monthly_spend.unpriced_requests + EXCLUDED.unpriced_requests
             SQL, [AiSpend::monthOf($now), $cost ?? 0, $cost === null ? 1 : 0]);
+
+        if ($input->plugin !== null) {
+            DB::statement(<<<'SQL'
+                INSERT INTO ai_plugin_monthly_spend (plugin, month, cost_microunits, requests, unpriced_requests)
+                VALUES (?, ?::date, ?, 1, ?)
+                ON CONFLICT (plugin, month) DO UPDATE SET
+                    cost_microunits = ai_plugin_monthly_spend.cost_microunits + EXCLUDED.cost_microunits,
+                    requests = ai_plugin_monthly_spend.requests + 1,
+                    unpriced_requests = ai_plugin_monthly_spend.unpriced_requests + EXCLUDED.unpriced_requests
+                SQL, [$input->plugin, AiSpend::monthOf($now), $cost ?? 0, $cost === null ? 1 : 0]);
+        }
 
         return $input->id;
     }

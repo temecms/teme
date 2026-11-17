@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Ai\Queries;
 
 use App\Domain\Ai\AiTasks;
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  */
 final readonly class AiActivityFilters
 {
-    public function __construct(private AiTasks $tasks) {}
+    public function __construct(private AiTasks $tasks, private PluginAiTasks $pluginTasks) {}
 
     /** The most people the select lists, as the Posts list's authors. */
     private const int MOST_PEOPLE = 500;
@@ -70,6 +71,40 @@ final readonly class AiActivityFilters
             array_map(strval(...), array_keys($options)),
             array_values($options),
         );
+    }
+
+    /**
+     * Returns the filter's choices after "Teme and plugins": Teme only, for people's own requests, then
+     * each plugin the record holds requests from, by label, and the one
+     * chosen if it holds none.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    public function plugins(?string $selected): array
+    {
+        $codes = DB::table('ai_activity')->whereNotNull('plugin')->distinct()->pluck('plugin')->map(fn (mixed $code): string => (string) $code)->all();
+
+        if ($selected !== null && $selected !== AiActivityList::TEME && ! in_array($selected, $codes, true)) {
+            $codes[] = $selected;
+        }
+
+        $labels = $codes === [] ? [] : $this->pluginTasks->labels();
+        $options = [];
+
+        foreach ($codes as $code) {
+            $options[$code] = $labels[$code]['label'] ?? $code;
+        }
+
+        asort($options, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return [
+            ['value' => AiActivityList::TEME, 'label' => __('Teme only')],
+            ...array_map(
+                fn (string $code, string $label): array => ['value' => $code, 'label' => $label],
+                array_map(strval(...), array_keys($options)),
+                array_values($options),
+            ),
+        ];
     }
 
     /**

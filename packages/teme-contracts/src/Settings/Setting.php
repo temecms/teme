@@ -34,6 +34,8 @@ final class Setting
     /**
      * @param  array<string, string>  $options  value => label for a select; for pairs, the two columns' labels, keyed name and value
      * @param  array<string, scalar|list<scalar>>  $visibleWhen
+     * @param  string|null  $taxonomy  the taxonomy a term setting's terms come from
+     * @param  bool  $multiple  whether a term setting holds a list of terms
      */
     private function __construct(
         public readonly string $key,
@@ -52,6 +54,8 @@ final class Setting
         public readonly ?string $fieldset = null,
         public readonly array $visibleWhen = [],
         public readonly ?string $unit = null,
+        public readonly ?string $taxonomy = null,
+        public readonly bool $multiple = false,
     ) {}
 
     /** @since 0.1.0 */
@@ -199,6 +203,33 @@ final class Setting
     public static function hours(string $key, string $label, string $description, string $since): self
     {
         return new self($key, SettingType::Hours, $label, $description, $since, []);
+    }
+
+    /**
+     * Terms of one taxonomy, stored as their slugs: one slug, or `''` when
+     * none is chosen; with $multiple, a list of slugs, empty by default.
+     * Each must be a term the taxonomy has when the setting is saved.
+     *
+     * @since 0.9.0
+     */
+    public static function term(string $key, string $label, string $description, string $since, string $taxonomy, bool $multiple = false): self
+    {
+        if ($taxonomy === '') {
+            throw new InvalidArgumentException("Term setting [{$key}] needs a taxonomy.");
+        }
+
+        return new self($key, SettingType::Term, $label, $description, $since, $multiple ? [] : '', taxonomy: $taxonomy, multiple: $multiple);
+    }
+
+    /**
+     * One of the site's content types with public addresses, stored as its
+     * key, or `''` when none is chosen.
+     *
+     * @since 0.9.0
+     */
+    public static function contentType(string $key, string $label, string $description, string $since): self
+    {
+        return new self($key, SettingType::ContentType, $label, $description, $since, '');
     }
 
     /** @since 0.1.0 */

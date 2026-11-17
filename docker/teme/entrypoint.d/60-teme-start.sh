@@ -1,5 +1,5 @@
 #!/bin/sh
-# Teme's start step (I-375). The image's entrypoint runs it before every
+# Teme's start step. The image's entrypoint runs it before every
 # role's command (web, worker, scheduler and deploy), as the user the
 # container runs as. It caches the configuration and the routes with this
 # server's environment and key, then writes the map nginx needs to send

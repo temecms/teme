@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Site\ViewModels;
 
 /**
- * An address with nothing at it, as its template sees it, as `$page`. A
- * placeholder until 1.6c's full view models.
+ * An address with nothing at it, as its template sees it, as `$page`.
  */
 final readonly class NotFoundView
 {
