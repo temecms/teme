@@ -14,6 +14,7 @@ use App\Domain\Support\Security\OperatorElevation;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Fixtures\Plugins\Linkfinder\Linkfinder;
@@ -102,4 +103,14 @@ it('lets a person who sees the panel pin it, and refuses it for one who doesn’
     expect($this->editor->refresh()->preferences['editor.pinned_tools'] ?? null)->toBe(['assistant', 'plugin.linkfinder.links'])
         ->and(fn () => ($this->pin)($this->author, ['plugin.linkfinder.links']))->toThrow(ValidationException::class)
         ->and($this->author->refresh()->preferences)->toBe([]);
+});
+
+it('limits how often a person may run a panel’s actions and settle its suggestions', function (): void {
+    $routes = app('router')->getRoutes();
+
+    foreach (['content.panels.actions', 'content.panels.suggestions'] as $name) {
+        expect($routes->getByName($name)?->gatherMiddleware())->toContain('throttle:editor-panels');
+    }
+
+    expect(RateLimiter::limiter('editor-panels'))->not->toBeNull();
 });

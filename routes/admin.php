@@ -425,8 +425,8 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::get('content/{content}/edit', [ContentEditorController::class, 'edit'])->name('content.edit');
         // A plugin's panel in the editor: what it shows, its actions, and the person's use of its suggestions.
         Route::get('content/{content}/panels/{code}/{panel}', [EditorPanelController::class, 'show'])->name('content.panels.show');
-        Route::post('content/{content}/panels/{code}/{panel}/actions/{action}', [EditorPanelController::class, 'action'])->name('content.panels.actions');
-        Route::post('content/{content}/panels/{code}/{panel}/suggestions/{suggestion}', [EditorPanelController::class, 'settle'])->name('content.panels.suggestions');
+        Route::post('content/{content}/panels/{code}/{panel}/actions/{action}', [EditorPanelController::class, 'action'])->middleware('throttle:editor-panels')->name('content.panels.actions');
+        Route::post('content/{content}/panels/{code}/{panel}/suggestions/{suggestion}', [EditorPanelController::class, 'settle'])->middleware('throttle:editor-panels')->name('content.panels.suggestions');
         Route::get('content/{content}/revisions', [RevisionController::class, 'index'])->name('content.revisions.index');
         Route::get('content/{content}/compare', [RevisionController::class, 'compare'])->name('content.compare');
         Route::post('content/{content}/revisions/{revision}/restore', [RevisionController::class, 'restore'])->name('content.revisions.restore');
