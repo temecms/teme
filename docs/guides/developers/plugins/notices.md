@@ -18,14 +18,14 @@ Add `notices.send` to the manifest's `capabilities`. List each kind of notice un
 
 - an `id`, lower-case letters, digits and underscores, such as `job_failed`;
 - a `label`, the line a person reads among their notification choices, such as "Email me when an article I started fails";
-- an `audience`, either `starter` or `plugins.manage`;
+- an `audience`: `starter`, `plugins.manage`, or the `id` of a permission the plugin declares (see [A plugin's own area](admin-area.md#declare-a-permission));
 - the `channels` it may use, `mail`, `inbox` or both, and the `defaults` a person starts with.
 
 People enabling the plugin read each label. Declaring kinds without asking for `notices.send` keeps the plugin from starting.
 
 ## Who a kind reaches
 
-A `starter` kind goes only to the person the plugin's current work acts for: the person whose request is running, or the person a job runs for. A `plugins.manage` kind goes to the people who may manage plugins. Each kind shows among a person's notification choices only while the plugin is enabled, and only to the people its audience reaches.
+A `starter` kind goes only to the person the plugin's current work acts for: the person whose request is running, or the person a job runs for. A `plugins.manage` kind goes to the people who may manage plugins, and a kind naming one of your permissions to the people who hold it. Each kind shows among a person's notification choices only while the plugin is enabled, and only to the people its audience reaches.
 
 ## Send through Notices
 
@@ -37,7 +37,7 @@ Ask for `Notices` in your plugin's constructor; it is offered only with `notices
 
 ## What a notice may say
 
-The subject is one to 120 characters of plain words. The body is at most five lines of at most 500 characters each. A plugin's notice carries no quoted words. Its button may lead only to the plugin's own settings or to an item's editor, by the item's ID.
+The subject is one to 120 characters of plain words. The body is at most five lines of at most 500 characters each. A plugin's notice carries no quoted words. Its button may lead only to the plugin's own settings, to its own area (`plugins.area.show` with its own code), or to an item's editor, by the item's ID.
 
 ## How many
 

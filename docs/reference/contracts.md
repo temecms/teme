@@ -28,6 +28,91 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Hooks\HookSender` | its manifest declares `contributes.hooks` | 0.9.0 |
 | `Teme\Contracts\Notices\Notices` | granted `notices.send` | 0.5.0 |
 
+## Teme\Contracts\Admin
+
+### AreaContext
+
+`Teme\Contracts\Admin\AreaContext`, class. Since 0.9.0.
+
+Who is looking at a plugin's area, in which language and time zone, and which of the plugin's own permissions they hold.
+
+- `__construct(string $personId, string $locale, string $timezone, array $permissions = [])`. Since 0.9.0.
+
+### Chart
+
+`Teme\Contracts\Admin\Chart`, class. Since 0.9.0.
+
+A chart block's numbers: its labels, `Y-m-d` dates or category words, and each declared series' values, one per label. Core drops a series it doesn't declare.
+
+- `MOST_LABELS` — The most labels a chart may have: a year of days. Since 0.9.0.
+- `__construct(array $labels, array $series)`. Since 0.9.0.
+
+### Figure
+
+`Teme\Contracts\Admin\Figure`, class. Since 0.9.0.
+
+One figure of a figures block: a number, a ratio shown as a percentage, or a short text, with an optional change shown as an up or down arrow.
+
+- `NUMBER`. Since 0.9.0.
+- `PERCENT`. Since 0.9.0.
+- `TEXT`. Since 0.9.0.
+- `number(int|float $value, ?float $change = null): self` — A finite number. Since 0.9.0.
+- `percent(float $ratio, ?float $change = null): self` — A ratio, 0.25 shown as 25%. Since 0.9.0.
+- `text(string $text): self` — Plain text, never HTML; core cuts it to 40 characters. Since 0.9.0.
+
+### HasPluginArea
+
+`Teme\Contracts\Admin\HasPluginArea`, interface. Since 0.9.0.
+
+A plugin whose manifest declares an area: its own admin pages, which core draws from the data it returns.
+
+- `pluginArea(): PluginArea`. Since 0.9.0.
+
+### PluginArea
+
+`Teme\Contracts\Admin\PluginArea`, interface. Since 0.9.0.
+
+The data behind a plugin's area, and its writes. Core calls it, under a time budget, and draws every screen itself; the plugin never draws.
+
+- `figures(string $page, string $block, AreaContext $context): array` — A figures block's figures, by declared item id; a missing item shows "—". Since 0.9.0.
+- `chart(string $page, string $block, AreaContext $context): Chart` — A chart block's labels and series. Since 0.9.0.
+- `rows(string $record, TableQuery $query, AreaContext $context): RowPage` — One page of a record's rows, as the query asks. Since 0.9.0.
+- `values(string $record, string $id, AreaContext $context): ?array` — A record's stored values by field key, or null when there is no such record. Since 0.9.0.
+- `save(string $record, ?string $id, array $values, AreaContext $context): Saved` — Stores a record core has already checked, inside core's transaction. Since 0.9.0.
+- `act(string $record, string $action, array $ids, AreaContext $context): Saved` — Runs a built-in row action on these records: duplicate, enable, disable or delete. Since 0.9.0.
+
+### Row
+
+`Teme\Contracts\Admin\Row`, class. Since 0.9.0.
+
+One record's row in a table: its id, its cells by declared column id, and the actions not offered on it, such as Enable on one already enabled.
+
+- `__construct(string $id, array $cells, array $unavailable = [])`. Since 0.9.0.
+
+### RowPage
+
+`Teme\Contracts\Admin\RowPage`, class. Since 0.9.0.
+
+One page of a record's rows, and how many there are in all when the plugin knows.
+
+- `__construct(array $rows, ?int $total = null)`. Since 0.9.0.
+
+### Saved
+
+`Teme\Contracts\Admin\Saved`, class. Since 0.9.0.
+
+What a write did: the record's id, and whether anything changed, so core purges the pages it touches only then.
+
+- `__construct(string $id, bool $changed = true)`. Since 0.9.0.
+
+### TableQuery
+
+`Teme\Contracts\Admin\TableQuery`, class. Since 0.9.0.
+
+What a table asks of a record's rows: its page, how many a page, the search, the chosen filters, and the sorted column and direction.
+
+- `__construct(int $page, int $perPage, string $search, array $filters, ?string $sort, string $direction)`. Since 0.9.0.
+
 ## Teme\Contracts\Ai
 
 ### AiAnswer
@@ -1184,6 +1269,10 @@ One setting's declaration: its type, its default, its constraints and the docume
 - `hours(string $key, string $label, string $description, string $since): self` — A week of opening hours, saying nothing by default. Since 0.1.0.
 - `term(string $key, string $label, string $description, string $since, string $taxonomy, bool $multiple = false): self` — Terms of one taxonomy, stored as their slugs: one slug, or `''` when none is chosen; with $multiple, a list of slugs, empty by default. Since 0.9.0.
 - `contentType(string $key, string $label, string $description, string $since): self` — One of the site's content types with public addresses, stored as its key, or `''` when none is chosen. Since 0.9.0.
+- `code(string $key, string $label, string $description, string $since): self` — Markup, such as an ad network's snippet, in a plain monospace box, never run or drawn on the settings page; at most 65,535 characters. Since 0.9.0.
+- `repeater(string $key, string $label, string $description, string $since, array $fields): self` — A list of items of one shape, stored as a JSON list of objects keyed by field, empty by default. Since 0.9.0.
+- `itemTitle(string $key): self` — The field of a repeater whose value titles a collapsed item. Since 0.9.0.
+- `scripts(): self` — A code setting whose inline scripts wait for an administrator's approval before they run. Since 0.9.0.
 - `default(mixed $value): self`. Since 0.1.0.
 - `min(int $min): self`. Since 0.1.0.
 - `max(int $max): self`. Since 0.1.0.
@@ -1194,6 +1283,7 @@ One setting's declaration: its type, its default, its constraints and the docume
 - `unit(string $unit): self` — The unit a number setting counts in, such as "days", shown beside its field. Since 0.1.0.
 - `fieldset(string $fieldset): self` — The fieldset the settings screen shows this setting under, one of FIELDSETS. Since 0.1.0.
 - `visibleWhen(array $conditions): self` — Shows this setting only while every condition holds: another setting of the same group has this value, or one of these values. Since 0.1.0.
+- `section(string $id): self` — The section of a plugin's settings page this setting sits in: the id of one of the plugin's settingsSections. Since 0.9.0.
 
 ### SettingType
 
@@ -1219,6 +1309,8 @@ The kinds of value a setting can hold. Each has one form control.
 - case `Hours`. Since 0.1.0.
 - case `Term`. Since 0.9.0.
 - case `ContentType`. Since 0.9.0.
+- case `Code` — Markup in a monospace box, up to 65,535 characters. Since 0.9.0.
+- case `Repeater` — A list of items of one shape, stored as a JSON list. Since 0.9.0.
 
 ### SettingsChanged
 

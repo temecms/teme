@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\Operations\Concerns\AuthorizesPluginChanges;
 use App\Domain\Plugins\Operations\Input\RemovePluginDataInput;
@@ -104,6 +105,9 @@ final class RemovePluginData extends BaseOperation implements RequiresElevation
 
         // Its scripts' approvals go with its data (docs/plans/plugin-sockets-2.md, B4).
         PluginScript::query()->where('plugin_code', $record->code)->delete();
+
+        // So do its permissions, and who held them (docs/plans/plugin-sockets-2.md, A1).
+        PluginPermissions::remove($record->code);
 
         $this->log->record(SecurityEventType::PluginDataRemoved, $input->actorId(), context: [
             'plugin' => $input->name,

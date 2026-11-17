@@ -6,7 +6,9 @@ namespace App\Domain\Notices;
 
 use App\Domain\Comments\CommentEmails;
 use App\Domain\Comments\CommentModeration;
+use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Settings\Modules;
+use App\Domain\SiteCode\SiteCode;
 use App\Models\User;
 use Teme\Contracts\Notices\NoticeKind;
 
@@ -44,6 +46,16 @@ final class BuiltInNotices
             offered: fn (): bool => Modules::on(Modules::COMMENTS),
             sends: fn (): bool => CommentEmails::sends(CommentEmails::APPROVED),
             switchedOff: 'Settings › Discussion has turned this email off for everyone.',
+        ));
+
+        $registry->register(new NoticeKind(
+            CodeScripts::NOTICE,
+            'Email me when a plugin’s script waits for approval',
+            audience: SiteCode::ABILITY,
+            reason: 'You get this email because you may change the code of :site.',
+        ));
+        $registry->rules(CodeScripts::NOTICE, new NoticeRules(
+            offered: fn (): bool => ! SiteCode::disallowed(),
         ));
 
         $registry->register(new NoticeKind('backups.alert', 'Backup alerts', audience: 'backups.manage', required: true, reason: 'Every administrator of :site gets this email.'));

@@ -9,6 +9,7 @@ use App\Domain\Design\Operations\Input\ChangeBrandColourInput;
 use App\Domain\Languages\Operations\Input\SaveSettingsWordsInput;
 use App\Domain\Languages\Operations\SaveSettingsWords;
 use App\Domain\Languages\Queries\SettingsWords;
+use App\Domain\Plugins\Area\CodeScripts;
 use App\Domain\Plugins\Lists\PluginActions;
 use App\Domain\Plugins\Lists\PluginLists;
 use App\Domain\Plugins\SettingHosts;
@@ -20,6 +21,7 @@ use App\Domain\Settings\Queries\SettingsForm;
 use App\Domain\Settings\Queries\SettingsPageSections;
 use App\Domain\Settings\Queries\SettingsPanels;
 use App\Domain\Settings\SettingsPlacement;
+use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Updates\Updater\PlatformCheck;
 use App\Domain\Updates\UpdatesSettings;
 use App\Http\Controllers\Controller;
@@ -36,7 +38,7 @@ use Inertia\Response;
  */
 final class SettingsController extends Controller
 {
-    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists): Response|RedirectResponse
+    public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry): Response|RedirectResponse
     {
         // A group drawn under another page's name opens on that page, so its
         // own address, such as /admin/settings/content, keeps working.
@@ -84,6 +86,8 @@ final class SettingsController extends Controller
             // A plugin's own actions and lists, drawn below its settings (docs/proposals/plugin-sockets-1.md).
             'pluginActions' => $actions->forGroup(SettingsPlacement::groupShownOn($page)),
             'pluginLists' => $lists->forGroup(SettingsPlacement::groupShownOn($page)),
+            // A plugin's code settings' scripts that wait, and whether this person may approve them here.
+            'pluginScripts' => $this->pluginScripts($registry, SettingsPlacement::groupShownOn($page), $data['values'], $request),
             // One sentence above the form when something needs the person: on Updates, why the updater can't use the
             // Dokploy key it has, or that it has none. Null on every other page.
             'notice' => $page === UpdatesSettings::GROUP ? app(PlatformCheck::class)->sentence() : null,
@@ -148,6 +152,32 @@ final class SettingsController extends Controller
             'settings' => $plugin['keys'],
             'agreed' => $plugin['agreed'],
             'declared' => $plugin['hosts'],
+        ];
+    }
+
+    /**
+     * A plugin's code settings' inline scripts that wait for approval, by the
+     * field's path, with the plugin's code and whether this person may
+     * approve them in place; null when the group isn't a plugin's.
+     *
+     * @param  array<string, mixed>  $values
+     *
+     * @return array{code: string, waiting: array<string, list<array{id: string, script: string}>>, approver: bool}|null
+     */
+    private function pluginScripts(SettingsRegistry $registry, string $group, array $values, Request $request): ?array
+    {
+        $definition = str_starts_with($group, 'plugin.') ? $registry->find($group) : null;
+
+        if ($definition === null) {
+            return null;
+        }
+
+        $code = substr($group, strlen('plugin.'));
+
+        return [
+            'code' => $code,
+            'waiting' => CodeScripts::waiting($code, CodeScripts::inSettings($definition->settings, $values)),
+            'approver' => CodeScripts::approver($request->user()),
         ];
     }
 

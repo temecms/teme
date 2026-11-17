@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Operations;
 
 use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Cache\PageTags;
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
@@ -161,6 +162,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         }
 
         $consentedBy = $input->actorId() ?? $input->schedulesAs;
+        // The permission lines agreed before, so an update gives only a role newly agreed to.
+        $agreedBefore = array_values(array_filter((array) ($record->consent['permissions'] ?? []), is_string(...)));
 
         $record->fill([
             'code' => $code,
@@ -177,6 +180,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->insertionHosts($manifest, $input->capabilities),
                 ...$this->imports($found),
                 ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
+                ...$this->permissions($manifest),
                 ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
                 // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
                 ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
@@ -191,6 +195,9 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'quarantine' => [],
             'migrations' => $migrations,
         ])->save();
+
+        // Its permissions, made once and given to administrators and the roles it names (docs/plans/plugin-sockets-2.md, A1).
+        PluginPermissions::ensure($code, PluginPermissions::declared($manifest), $agreedBefore);
 
         $this->log->record(SecurityEventType::PluginEnabled, $input->actorId(), context: [
             'plugin' => $input->name,
@@ -215,6 +222,19 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         DB::afterCommit(fn () => $this->records->changed());
 
         return $input->name;
+    }
+
+    /**
+     * The permissions it declares, kept with the consent so a new one, or a
+     * new role given one, asks again; none for a plugin that declares none.
+     *
+     * @return array{permissions?: list<string>}
+     */
+    private function permissions(Manifest $manifest): array
+    {
+        $lines = PluginPermissions::consentLines($manifest);
+
+        return $lines === [] ? [] : ['permissions' => $lines];
     }
 
     /**

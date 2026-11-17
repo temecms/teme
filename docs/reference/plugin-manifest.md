@@ -65,7 +65,7 @@
 | `contributes.fixedLabel` | string | no | The label core draws on the plugin's fixed insertions; Advertisement when absent. |  |
 | `contributes.settings` | array | no | Settings the plugin declares. |  |
 | `contributes.settings[].key` | string | yes | The setting's key. | ^[a-z][a-z0-9_]{1,40}$ |
-| `contributes.settings[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "secret", "color", "person", "term", "type" |
+| `contributes.settings[].type` | enum | yes |  | "text", "textarea", "number", "boolean", "select", "multiselect", "url", "urls", "email", "secret", "color", "person", "term", "type", "code", "repeater" |
 | `contributes.settings[].label` | string | yes | The name people see. |  |
 | `contributes.settings[].description` | string | yes | What the setting does. |  |
 | `contributes.settings[].default` |  | no | The value before anyone changes it; any JSON value. |  |
@@ -78,6 +78,14 @@
 | `contributes.settings[].unit` | string | no | The unit shown beside a number. |  |
 | `contributes.settings[].taxonomy` | string | no | For a term: the taxonomy its terms come from. | ^[a-z][a-z0-9_]{0,31}$ |
 | `contributes.settings[].multiple` | boolean | no | For a term: whether several may be chosen. |  |
+| `contributes.settings[].section` | string | no | The id of the settingsSections entry the setting sits in. |  |
+| `contributes.settings[].visibleWhen` | object | no | Shows the setting only while every earlier setting named has this value, or one of a list of values. |  |
+| `contributes.settings[].fields` | array | no | A repeater's fields, one item's worth: scalar types and code. |  |
+| `contributes.settings[].minItems` | integer | no | A repeater's fewest items. |  |
+| `contributes.settings[].maxItems` | integer | no | A repeater's most items. |  |
+| `contributes.settings[].itemLabel` | string | no | What one of a repeater's items is called, as its Add button names it. |  |
+| `contributes.settings[].itemTitle` | string | no | The key of the field whose value titles a collapsed item. |  |
+| `contributes.settings[].scripts` | boolean | no | A code setting whose inline scripts wait for an administrator's approval. |  |
 | `contributes.admin` | array | no | Entries the plugin adds to the admin. |  |
 | `contributes.admin[].surface` | enum | yes |  | "tools" |
 | `contributes.admin[].id` | string | yes | The entry's id. | ^[a-z][a-z0-9-]{1,39}$ |
@@ -125,13 +133,30 @@
 | `contributes.notices` | array | no | Kinds of notice the plugin sends through Notices, with notices.send; never required. |  |
 | `contributes.notices[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
 | `contributes.notices[].label` | string | yes | The choice as Account › Notifications words it. |  |
-| `contributes.notices[].audience` | enum | yes | Who may receive it: only the person the plugin's work acts for, or those who manage plugins. | "starter", "plugins.manage" |
+| `contributes.notices[].audience` | string | yes | Who may receive it: starter, only the person the plugin's work acts for; plugins.manage, those who manage plugins; or the id of a permission the plugin declares, its holders. | ^(?:starter\|plugins\.manage\|[a-z][a-z0-9-]{1,23})$ |
 | `contributes.notices[].channels` | array | yes |  | "mail", "inbox" |
 | `contributes.notices[].defaults` | array | no | The channels on until the person chooses; some of its channels. | "mail", "inbox" |
 | `contributes.hooks` | array | no | Hooks the plugin declares for other plugins, which it sends through HookSender. |  |
 | `contributes.hooks[].name` | string | yes | Its name; other plugins list it as code:Name. | ^[A-Z][A-Za-z]{2,47}$ |
 | `contributes.hooks[].class` | string | yes | Its class, in the plugin's own namespace: a Notification, Transform or Collect hook with #[HookContract]. |  |
 | `contributes.hooks[].description` | string | yes | What it is for, in one sentence. |  |
+| `contributes.settingsSections` | array | no | The sections the plugin's settings page is split into, in order. |  |
+| `contributes.settingsSections[].id` | string | yes | The section's id, which a setting's section names. | ^[a-z][a-z0-9-]{1,39}$ |
+| `contributes.settingsSections[].label` | string | yes | The section's heading. |  |
+| `contributes.settingsSections[].description` | string | no | A line under the heading. |  |
+| `contributes.permissions` | array | no | Permissions the plugin declares, named plugin.{code}.{id}; administrators always hold them. |  |
+| `contributes.permissions[].id` | string | yes | The permission's id. | ^[a-z][a-z0-9-]{1,23}$ |
+| `contributes.permissions[].label` | string | yes | What it lets a person do. |  |
+| `contributes.permissions[].description` | string | no | A longer line about it. |  |
+| `contributes.permissions[].roles` | array | no | The roles given it when it is first made. | "editor", "author", "contributor" |
+| `contributes.area` | object | no | The plugin's own area in the admin: pages of blocks core draws, and records' forms. |  |
+| `contributes.area.label` | string | yes | The area's word for what it holds, used inside it. |  |
+| `contributes.area.description` | string | no | A line about the area. |  |
+| `contributes.area.permission` | string | yes | The id of the declared permission that opens the area. |  |
+| `contributes.area.menu` | enum | no | Where its entry goes. | "content", "site", "tools" |
+| `contributes.area.purges` | array | no | What core purges after a write that changed something. | "insertions", "page-insertions" |
+| `contributes.area.pages` | array | yes | The area's pages, each its id, label and blocks. |  |
+| `contributes.area.records` | array | no | The kinds of record the area's tables list and its forms edit. |  |
 | `owns` | object | no | Tables this plugin creates. Each name starts with the plugin’s code as a prefix (hyphens become underscores). |  |
 | `owns.tables` | array | yes | Table names the plugin’s migrations create: lower-case letters, digits and underscores, starting with the prefix, at most 63 characters. |  |
 | `author` | string | no | Who wrote the plugin. |  |

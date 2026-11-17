@@ -1,3 +1,4 @@
+import type { PluginCellValue } from '@/types/plugin-columns';
 import type { AccentSchemes } from './design';
 import type { CardMedia } from '@/types/editor';
 
@@ -19,7 +20,9 @@ export type FieldType =
     | 'person'
     | 'hours'
     | 'term'
-    | 'type';
+    | 'type'
+    | 'code'
+    | 'repeater';
 
 export type FieldDefinition = {
     key: string;
@@ -39,8 +42,36 @@ export type FieldDefinition = {
     /** A term setting's: whether it holds several terms, ticked, rather than one. */
     multiple?: boolean;
     /** The other settings' values this one shows for: every entry must hold (empty: always). */
-    visibleWhen?: Record<string, string | string[]>;
+    visibleWhen?: Record<string, VisibleWhenValue | VisibleWhenValue[]>;
+    /** A plugin's setting: the id of the section it sits in (docs/plans/plugin-sockets-2.md, A4), or null. */
+    section?: string | null;
+    /** A repeater setting's fields, one item's worth (A5). */
+    fields?: FieldDefinition[];
+    /** A repeater setting's item, as its Add button names it. */
+    itemLabel?: string;
+    /** The key of the field whose value titles a collapsed item. */
+    itemTitle?: string | null;
 };
+
+/** A plugin's action, as its settings page offers it (round 1, A5). */
+export type PluginActionOffer = {
+    id: string;
+    label: string;
+    description: string | null;
+};
+
+/** A plugin's list, as its settings page shows it (round 1, A6). */
+export type PluginListShown = {
+    id: string;
+    label: string;
+    description: string | null;
+    columns: { id: string; label: string; kind: string }[];
+    rows: Record<string, PluginCellValue>[];
+    failed: string | null;
+};
+
+/** One value a condition can name. */
+type VisibleWhenValue = string | number | boolean;
 
 export type SecretStatus = {
     isSet: boolean;
@@ -117,6 +148,10 @@ export type SettingsGroupPage = {
     imageWidths: { label: string; value: string; hint: string } | null;
     /** General's panels, each its title, its line and its settings' keys, or null for one panel. */
     panels: { title: string; description: string; keys: string[] }[] | null;
+    /** A plugin's settings page: its declared actions (round 1, A5). */
+    pluginActions?: PluginActionOffer[];
+    /** A plugin's settings page: its declared lists (round 1, A6). */
+    pluginLists?: PluginListShown[];
     /** The group's words in other languages (docs/proposals/multilingual-screens.md, 6): null on a site with one language or a group with no words. */
     words?: SettingsWordsSection | null;
     /** One sentence above the form when something needs the person, such as Updates' Dokploy key; null on most pages. */

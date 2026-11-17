@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Settings\Operations;
 
+use App\Domain\Plugins\Area\CodeScripts;
+use App\Domain\Plugins\Area\VisibleWhen;
 use App\Domain\Plugins\HostPattern;
 use App\Domain\Plugins\Operations\AgreePluginHosts;
 use App\Domain\Plugins\Operations\Input\AgreePluginHostsInput;
@@ -24,6 +26,7 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 use Teme\Contracts\Settings\SettingsGroup;
+use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingType;
 
 /**
@@ -99,7 +102,7 @@ final class UpdateSettings extends BaseOperation implements RequiresElevation
             }
         }
 
-        SettingRules::validateValues($definition, $input->values, $problems);
+        SettingRules::validateValues($definition, $this->shown($definition, $input), $problems);
 
         $plugin = $this->settingHosts->forGroup($input->group);
 
@@ -110,6 +113,46 @@ final class UpdateSettings extends BaseOperation implements RequiresElevation
         if ($problems !== []) {
             throw ValidationException::withMessages($problems);
         }
+    }
+
+    /**
+     * The values sent, less a plugin's settings its conditions hide: a
+     * hidden setting is neither checked nor changed
+     * (docs/plans/plugin-sockets-2.md, A4).
+     *
+     * @return array<string, mixed>
+     */
+    private function shown(SettingsGroup $definition, UpdateSettingsInput $input): array
+    {
+        $hidden = $this->hidden($definition, $input);
+
+        return array_filter($input->values, fn (string|int $key): bool => ! in_array((string) $key, $hidden, true), ARRAY_FILTER_USE_KEY);
+    }
+
+    /**
+     * A plugin group's settings that its conditions hide, given the values
+     * as they will be saved; none for any other group.
+     *
+     * @return list<string>
+     */
+    private function hidden(SettingsGroup $definition, UpdateSettingsInput $input): array
+    {
+        if (! str_starts_with($input->group, 'plugin.')) {
+            return [];
+        }
+
+        $values = [...app(SettingsReader::class)->group($input->group), ...$input->values];
+        $fields = [];
+
+        foreach ($definition->settings as $setting) {
+            if ($setting->type === SettingType::Boolean && array_key_exists($setting->key, $values)) {
+                $values[$setting->key] = filter_var($values[$setting->key], FILTER_VALIDATE_BOOLEAN);
+            }
+
+            $fields[] = ['key' => $setting->key, 'visibleWhen' => $setting->visibleWhen];
+        }
+
+        return VisibleWhen::hiddenKeys($fields, $values);
     }
 
     /**
@@ -180,15 +223,24 @@ final class UpdateSettings extends BaseOperation implements RequiresElevation
     protected function perform(OperationInput $input): array
     {
         /** @var UpdateSettingsInput $input */
+        $definition = $this->definition($input->group);
+        $hidden = $this->hidden($definition, $input);
+
         $version = $this->writer->write(new SettingsWrite(
             group: $input->group,
-            values: $input->values,
-            reset: $input->reset,
+            values: $this->shown($definition, $input),
+            reset: array_values(array_diff($input->reset, $hidden)),
             secrets: $input->secrets,
             expectedVersion: $input->expectedVersion,
             actorId: $input->actorId(),
             origin: $input->origin,
         ));
+
+        // A plugin's code settings: their inline scripts wait for approval, asked in this transaction (docs/plans/plugin-sockets-2.md).
+        if (str_starts_with($input->group, 'plugin.')) {
+            $stored = $this->normalised($input, array_map(strval(...), array_keys($this->shown($definition, $input))));
+            CodeScripts::request(substr($input->group, strlen('plugin.')), CodeScripts::inSettings($definition->settings, $stored), $input->actorId(), 'settings.show', ['group' => $input->group]);
+        }
 
         $agreed = $this->agreedNow($input);
         $plugin = $agreed === [] ? null : $this->settingHosts->forGroup($input->group);

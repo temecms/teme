@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Domain\Ai\Plugins\DeclaredAiTask;
 use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
@@ -121,6 +122,10 @@ final class EnablePluginCommand extends Command
 
         if ($insertionHosts !== []) {
             $this->line('  '.PluginWords::insertionHosts($insertionHosts));
+        }
+
+        foreach ($manifest === null ? [] : PluginPermissions::consentWords($manifest) as $words) {
+            $this->line('  '.$words);
         }
 
         foreach (array_keys($manifest === null ? [] : Dependencies::required($manifest)) as $required) {
