@@ -55,6 +55,12 @@ The handbook's first plugin carries its own test:
 
 ```php
 // docs/guides/developers/examples/plugins/first-plugin/tests/FirstPluginTest.php
+beforeEach(function (): void {
+    if (class_exists(FirstPlugin::class, false)) {
+        FirstPlugin::$heard = [];
+    }
+});
+
 it('hears an item being published', function (): void {
     $this->plugin(__DIR__.'/..')->enable();
 
@@ -65,7 +71,7 @@ it('hears an item being published', function (): void {
 });
 ```
 
-`plugin(__DIR__.'/..')` finds the plugin in the folder above the test, `enable()` enables and starts it as a new administrator, and `publish()` publishes an item, which the plugin hears.
+What the plugin heard is kept in a static, which outlives a test, so `beforeEach` empties it whenever an earlier test already loaded the plugin: otherwise what that test published would be counted too. The plugin's class only exists once a test has enabled the plugin, hence `class_exists(…, false)`. `plugin(__DIR__.'/..')` finds the plugin in the folder above the test, `enable()` enables and starts it as a new administrator, and `publish()` publishes an item, which the plugin hears.
 
 ## The outbound door
 
