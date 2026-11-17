@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
 
+use App\Domain\Cards\Types\FaqCard;
 use App\Domain\Import\Convert\BlockContext;
 use App\Domain\Import\Convert\BlockMapping;
+use App\Domain\Import\Convert\Html\CardText;
+use App\Domain\Import\Convert\Html\HtmlFragment;
 use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 
 /**
- * Yoast's and Rank Math's FAQ blocks as headings and paragraphs (I-335):
- * each question a level-3 heading, each answer its blocks, in order. A
- * block with no question found is read as any HTML.
+ * Yoast's and Rank Math's FAQ blocks as Teme's FAQ card: each question its
+ * words, each answer its text. A block whose answers hold what a card's
+ * text can't, such as an image, becomes headings and paragraphs instead,
+ * each question a level-3 heading (I-335), so nothing is lost; a block with
+ * no question found is read as any HTML.
  */
 final readonly class Faq implements BlockMapping
 {
@@ -32,20 +37,40 @@ final readonly class Faq implements BlockMapping
         $root = $context->fragment($block->innerHtml);
         [$sections, $question, $answer] = self::PARTS[(string) $block->name] ?? self::PARTS['yoast/faq-block'];
         $nodes = [];
+        $items = [];
+        $fits = true;
 
         foreach (iterator_to_array($root->querySelectorAll($sections)) as $section) {
             $asked = $section->querySelector($question);
             $answered = $section->querySelector($answer);
+            $blocks = $answered === null ? [] : $context->read($answered);
 
             if ($asked !== null) {
                 array_push($nodes, ...$context->textblock('heading', $asked, Nodes::headingAttrs(3, $context->newId(), $asked)));
             }
 
-            if ($answered !== null) {
-                array_push($nodes, ...$context->read($answered));
+            array_push($nodes, ...$blocks);
+
+            $words = $asked === null ? '' : HtmlFragment::text($asked);
+            $text = CardText::of($blocks);
+
+            if ($words === '' || mb_strlen($words) > FaqCard::MOST_QUESTION || $text === null) {
+                $fits = false;
+
+                continue;
             }
+
+            $items[] = ['id' => $context->newId(), 'question' => $words, 'answer' => $text];
         }
 
-        return $nodes === [] ? $context->read($root) : $nodes;
+        if ($nodes === []) {
+            return $context->read($root);
+        }
+
+        if (! $fits || $items === [] || count($items) > FaqCard::MOST_ITEMS) {
+            return $nodes;
+        }
+
+        return [['type' => 'faq', 'attrs' => ['id' => $context->newId(), 'items' => $items]]];
     }
 }

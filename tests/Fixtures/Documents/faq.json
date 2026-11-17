@@ -1,0 +1,7 @@
+{"type":"doc","content":[
+  {"type":"heading","attrs":{"level":2,"id":"01K9F0A0000000000000000H01"},"content":[{"type":"text","text":"Questions"}]},
+  {"type":"faq","attrs":{"id":"01K9F0A0000000000000000FQ1","items":[
+    {"id":"01K9F0A0000000000000000Q01","question":"Is it free?","answer":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Yes, "},{"type":"text","marks":[{"type":"bold"}],"text":"always"},{"type":"text","text":"."}]}]}},
+    {"id":"01K9F0A0000000000000000Q02","question":"Where do I start?","answer":{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Read the "},{"type":"text","marks":[{"type":"link","attrs":{"href":"https://example.org/guide","target":null,"title":null}}],"text":"guide"}]}]}]}]}}
+  ]}}
+]}
