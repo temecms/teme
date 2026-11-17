@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
 
+use App\Domain\Updates\UpdatesSettings;
 use GuzzleHttp\Exception\TransferException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use SensitiveParameter;
+use Teme\Contracts\Settings\SecretReader;
+use Throwable;
 
 /**
  * Calls one procedure of Dokploy's API with the owner's key. Every failure becomes a PlatformRefused built
@@ -16,6 +19,8 @@ use SensitiveParameter;
  */
 final class DokployApi
 {
+    public function __construct(private readonly SecretReader $secrets) {}
+
     /** The procedures that change something and whose answer needs no body. */
     private const array WRITES = ['application.update', 'application.redeploy'];
 
@@ -46,7 +51,7 @@ final class DokployApi
      */
     private function call(string $method, string $procedure, #[SensitiveParameter] array $data): mixed
     {
-        $token = DokployToken::value() ?? throw new PlatformRefused('No Dokploy API key is set. Add one in Settings › Updates.');
+        $token = $this->token() ?? throw new PlatformRefused('No Dokploy API key is set. Add one in Settings › Updates.');
         $address = $this->address($procedure);
 
         try {
@@ -67,6 +72,21 @@ final class DokployApi
             $response->redirect() => throw new PlatformRefused("Dokploy answered {$response->status()}, sending Teme elsewhere; Teme doesn’t follow it."),
             default => throw new PlatformRefused("Dokploy answered {$response->status()} to {$procedure}."),
         };
+    }
+
+    /**
+     * Returns the Dokploy API key: the server's TEME_DOKPLOY_TOKEN, else the one saved in Settings › Updates; null when
+     * neither is set. It is read when a call is made and never kept.
+     */
+    private function token(): ?string
+    {
+        try {
+            $key = $this->secrets->secret(UpdatesSettings::GROUP, UpdatesSettings::DOKPLOY_API_KEY);
+        } catch (Throwable) {
+            return null;
+        }
+
+        return is_string($key) && $key !== '' ? $key : null;
     }
 
     /**

@@ -7,7 +7,7 @@ written_for: teme:deploy as the recipe runs it
 
 # Updating and rolling back
 
-> Not proved yet: an update from one tag to the next, and a rollback, have not been run on a real server.
+> Not proved yet: an update by hand, and a rollback, have not been run on a real server. An update from the admin has been run on Dokploy.
 
 An update is a new image. You never change code on a running server. You change the tag in `.env`, pull the new image and start it, and a one-off `deploy` role brings the database up to date before the other roles start.
 
@@ -50,7 +50,7 @@ docker compose exec scheduler php artisan teme:updates:check
 
 ## Updating from the admin
 
-On Dokploy, with the `updater` service running, open **Tools › Updates** and press **Update to …**. Teme asks for your password again, records the request, and emails every administrator. The updater starts it within a minute, and the page shows each step as it is taken: the deploy (which backs up and migrates), then `web`, the workers and the scheduler on the new release, then a last check, then the updater itself.
+On Dokploy, with the `updater` service running and a Dokploy API key pasted in **Settings › Updates** ([Running Teme on Dokploy](platforms/dokploy.md#switch-on-update-from-the-admin) says how), open **Tools › Updates** and press **Update to …**. Teme asks for your password again, records the request, and emails every administrator. The updater starts it within a minute, and the page shows each step as it is taken: the deploy (which backs up and migrates), then `web`, the workers and the scheduler on the new release, then a last check, then the updater itself.
 
 When Teme runs as [one container](platforms/one-container.md), the admin's **Update** says to update from the host's own panel, except on a Dokploy Application that runs from the image, where the same button changes the image and redeploys it.
 
@@ -60,7 +60,7 @@ The site is down for a short while as the service deploys, as when updating by h
 
 From the shell, in any Teme container, `php artisan teme:updates:request <version>` asks for an update, and `php artisan teme:updates:cancel` cancels one that hasn't started. The updater carries it out.
 
-**Without Dokploy:** there is no updater for plain Compose yet. Update by hand, as *To update* says.
+**Without Dokploy:** the updater works through Dokploy only. Update by hand, as *To update* says.
 
 ## The command and its exit codes
 

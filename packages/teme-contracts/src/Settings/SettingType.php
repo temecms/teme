@@ -58,4 +58,16 @@ enum SettingType: string
 
     /** @since 0.1.0 */
     case Hours = 'hours';
+
+    /** @since 0.9.0 */
+    case Term = 'term';
+
+    /** @since 0.9.0 */
+    case ContentType = 'type';
+
+    /** Markup in a monospace box, up to 65,535 characters. @since 0.9.0 */
+    case Code = 'code';
+
+    /** A list of items of one shape, stored as a JSON list. @since 0.9.0 */
+    case Repeater = 'repeater';
 }

@@ -127,7 +127,12 @@ return [
     /*
      * The updater (I-3326): the updater service, php artisan teme:updater, carries
      * out an update asked for from the admin through the platform. Set on the
-     * updater alone; the web process never has the platform's token.
+     * updater alone. Dokploy's API key is Settings › Updates' secret, or
+     * TEME_DOKPLOY_TOKEN on the server, read by the updater when it calls
+     * Dokploy and never kept in configuration. The updater finds its Compose
+     * service by app_name, unless the server names compose_id. It replaces the
+     * service's compose file only with the Dokploy template's current one, and
+     * only when compose_hashes_url lists the service's file as released.
      */
     'updater' => [
         'platform' => env('TEME_UPDATER_PLATFORM'),
@@ -135,10 +140,10 @@ return [
         'deploy_timeout' => (int) env('TEME_UPDATER_DEPLOY_TIMEOUT', 3600),
         'part_timeout' => (int) env('TEME_UPDATER_PART_TIMEOUT', 900),
         'dokploy' => [
-            'url' => env('TEME_DOKPLOY_URL'),
-            'token' => env('TEME_DOKPLOY_TOKEN'),
+            'url' => env('TEME_DOKPLOY_URL') ?: 'http://dokploy:3000',
             'compose_id' => env('TEME_DOKPLOY_COMPOSE_ID'),
             'app_name' => env('TEME_DOKPLOY_APP_NAME'),
+            'compose_hashes_url' => env('TEME_DOKPLOY_COMPOSE_HASHES_URL') ?: 'https://raw.githubusercontent.com/temecms/temecms-for-dokploy/main/compose-hashes.json',
         ],
     ],
 

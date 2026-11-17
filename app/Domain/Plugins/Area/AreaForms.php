@@ -1,0 +1,346 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins\Area;
+
+use App\Domain\Regions\RegionDeclarations;
+use App\Domain\Types\ContentType;
+use App\Domain\Types\ContentTypeRegistry;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Teme\Contracts\Settings\SettingsReader;
+use Throwable;
+
+/**
+ * The rules of a plugin record's form (docs/plans/plugin-sockets-2.md, A2,
+ * A8), from its declaration: each field's type, bounds and options, the
+ * pickers' values against core's current lists, a repeater's items one by
+ * one. Hidden fields are dropped first, never validated, never sent on.
+ */
+final class AreaForms
+{
+    /** A colour value. */
+    public const string COLOR = '/^#[0-9a-f]{6}$/D';
+
+    /** The longest text and textarea when the field names no maxLength. */
+    public const int MOST_TEXT = 1_000;
+
+    public const int MOST_TEXTAREA = 10_000;
+
+    /**
+     * The values the plugin is given: only fields that show, each checked
+     * and in its type's shape. Throws a ValidationException keyed
+     * `values.{key}` (`values.{key}.{n}.{sub}` in a repeater) when any is refused.
+     *
+     * @param  list<array<string, mixed>>  $fields  as DeclaredArea::fields() gives them
+     * @param  array<array-key, mixed>  $values  as sent
+     *
+     * @return array<string, mixed>
+     */
+    public static function validated(array $fields, array $values): array
+    {
+        $shown = VisibleWhen::visibleValues($fields, $values);
+        $errors = [];
+        $kept = [];
+
+        foreach ($fields as $field) {
+            $key = (string) $field['key'];
+
+            if (! array_key_exists($key, $shown)) {
+                continue;
+            }
+
+            $kept[$key] = self::one($field, $shown[$key], "values.{$key}", $errors);
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return $kept;
+    }
+
+    /**
+     * The stored values a form shows: declared keys only, each of its
+     * field's kind, and whether anything was left out as the wrong kind.
+     *
+     * @param  list<array<string, mixed>>  $fields
+     * @param  array<array-key, mixed>  $given
+     *
+     * @return array{0: array<string, mixed>, 1: bool}
+     */
+    public static function kept(array $fields, array $given): array
+    {
+        $kept = [];
+        $refused = false;
+
+        foreach ($fields as $field) {
+            $key = (string) $field['key'];
+
+            if (! array_key_exists($key, $given)) {
+                continue;
+            }
+
+            $value = $given[$key];
+
+            if (! self::ofKind($field, $value)) {
+                $refused = true;
+
+                continue;
+            }
+
+            if ($field['type'] === 'repeater' && is_array($value)) {
+                $items = [];
+
+                foreach ($value as $item) {
+                    [$one, $wrong] = self::kept(is_array($field['fields']) ? array_values($field['fields']) : [], is_array($item) ? $item : []);
+                    $items[] = $one;
+                    $refused = $refused || $wrong || ! is_array($item);
+                }
+
+                $value = $items;
+            }
+
+            $kept[$key] = $value;
+        }
+
+        foreach (array_keys($given) as $key) {
+            if (! in_array($key, array_column($fields, 'key'), true)) {
+                $refused = true;
+            }
+        }
+
+        return [$kept, $refused];
+    }
+
+    /**
+     * A field's value when nothing is stored: its declared default, or its type's empty.
+     *
+     * @param  array<string, mixed>  $field
+     */
+    public static function empty(array $field): mixed
+    {
+        if ($field['default'] !== null && self::ofKind($field, $field['default'])) {
+            return $field['default'];
+        }
+
+        return match ($field['type']) {
+            'number' => null,
+            'boolean' => false,
+            'multiselect', 'types', 'terms', 'repeater' => [],
+            'select' => array_key_first(is_array($field['options']) ? $field['options'] : []) ?? '',
+            default => '',
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $field
+     */
+    private static function ofKind(array $field, mixed $value): bool
+    {
+        return match ($field['type']) {
+            'number' => $value === null || is_int($value) || is_float($value),
+            'boolean' => is_bool($value),
+            'multiselect', 'types', 'terms' => is_array($value) && array_is_list($value) && array_filter($value, fn (mixed $one): bool => ! is_string($one)) === [],
+            'repeater' => is_array($value) && array_is_list($value),
+            default => is_string($value),
+        };
+    }
+
+    /**
+     * One shown field's value, checked; its problems added under $path.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, array<mixed>|string>  $errors  each refused value's sentence, by its path
+     */
+    private static function one(array $field, mixed $value, string $path, array &$errors): mixed
+    {
+        $label = (string) $field['label'];
+        $empty = $value === null || $value === '' || $value === [];
+
+        // An empty repeater still holds its least number of items.
+        if ($empty && $field['type'] === 'repeater' && ! ($field['required'] === true)) {
+            return self::items($field, [], $path, $errors);
+        }
+
+        if ($empty) {
+            if ($field['required'] === true) {
+                $errors[$path] = __(':field is required.', ['field' => $label]);
+            }
+
+            return self::empty([...$field, 'default' => null]);
+        }
+
+        $type = (string) $field['type'];
+        /** @var array<string, string> $options */
+        $options = is_array($field['options']) ? $field['options'] : [];
+        $min = is_int($field['min']) ? $field['min'] : null;
+        $max = is_int($field['max']) ? $field['max'] : null;
+        $maxLength = is_int($field['maxLength']) ? $field['maxLength'] : null;
+
+        switch ($type) {
+            case 'number':
+                if (is_string($value) && is_numeric($value)) {
+                    $value += 0;
+                }
+
+                if (! is_int($value) && ! is_float($value)) {
+                    $errors[$path] = __(':field must be a number.', ['field' => $label]);
+
+                    return null;
+                }
+
+                if (($min !== null && $value < $min) || ($max !== null && $value > $max)) {
+                    $errors[$path] = __(':field must be between :min and :max.', ['field' => $label, 'min' => $min ?? '…', 'max' => $max ?? '…']);
+                }
+
+                return $value;
+
+            case 'boolean':
+                return in_array($value, [true, 1, '1', 'true', 'on'], true);
+
+            case 'select':
+                if (! is_string($value) || ! array_key_exists($value, $options)) {
+                    $errors[$path] = __('Choose one of :field’s options.', ['field' => $label]);
+                }
+
+                return is_string($value) ? $value : '';
+
+            case 'multiselect':
+            case 'types':
+            case 'terms':
+                $list = is_array($value) ? array_values(array_unique(array_map(fn (mixed $one): string => is_scalar($one) ? (string) $one : '', $value))) : null;
+                $allowed = match ($type) {
+                    'multiselect' => array_map(strval(...), array_keys($options)),
+                    'types' => array_map(fn (ContentType $type): string => $type->key, app(ContentTypeRegistry::class)->all()),
+                    default => $list === null ? [] : self::terms(is_string($field['taxonomy']) ? $field['taxonomy'] : '', $list),
+                };
+
+                if ($list === null || array_diff($list, $allowed) !== []) {
+                    $errors[$path] = __('Choose from :field’s list.', ['field' => $label]);
+                }
+
+                return $list ?? [];
+
+            case 'region':
+                if (! is_string($value) || ! array_key_exists($value, app(RegionDeclarations::class)->forActive())) {
+                    $errors[$path] = __('Choose one of the theme’s regions for :field.', ['field' => $label]);
+                }
+
+                return is_string($value) ? $value : '';
+
+            case 'datetime':
+                try {
+                    $time = is_string($value) ? CarbonImmutable::parse($value, app(SettingsReader::class)->string('general', 'timezone')) : null;
+                } catch (Throwable) {
+                    $time = null;
+                }
+
+                if ($time === null) {
+                    $errors[$path] = __(':field must be a date and time.', ['field' => $label]);
+
+                    return '';
+                }
+
+                return $time->toIso8601String();
+
+            case 'repeater':
+                return self::items($field, $value, $path, $errors);
+        }
+
+        if (! is_string($value)) {
+            $errors[$path] = __(':field must be text.', ['field' => $label]);
+
+            return '';
+        }
+
+        $most = match ($type) {
+            'code' => AreaValidator::MOST_CODE,
+            'textarea' => $maxLength ?? self::MOST_TEXTAREA,
+            default => $maxLength ?? self::MOST_TEXT,
+        };
+
+        $rule = match ($type) {
+            'email' => 'email',
+            'url' => 'url:http,https',
+            'color' => 'regex:'.self::COLOR,
+            default => null,
+        };
+
+        if (mb_strlen($value) > $most) {
+            $errors[$path] = __(':field must be at most :most characters.', ['field' => $label, 'most' => $most]);
+        } elseif ($rule !== null && Validator::make(['value' => $value], ['value' => $rule])->fails()) {
+            $errors[$path] = __(':field isn’t valid.', ['field' => $label]);
+        }
+
+        return $type === 'color' ? strtolower($value) : $value;
+    }
+
+    /**
+     * A repeater's items, each its shown sub-fields checked.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, array<mixed>|string>  $errors  each refused value's sentence, by its path
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function items(array $field, mixed $value, string $path, array &$errors): array
+    {
+        $label = (string) $field['label'];
+        $minItems = is_int($field['minItems']) ? $field['minItems'] : 0;
+        $maxItems = is_int($field['maxItems']) ? $field['maxItems'] : AreaValidator::DEFAULT_MOST_ITEMS;
+        /** @var list<array<string, mixed>> $subs */
+        $subs = is_array($field['fields']) ? array_values($field['fields']) : [];
+
+        if (! is_array($value) || ! array_is_list($value)) {
+            $errors[$path] = __(':field must be a list.', ['field' => $label]);
+
+            return [];
+        }
+
+        if (count($value) < $minItems || count($value) > $maxItems) {
+            $errors[$path] = __(':field holds :min to :max items.', ['field' => $label, 'min' => $minItems, 'max' => $maxItems]);
+        }
+
+        $items = [];
+
+        foreach (array_slice($value, 0, $maxItems) as $index => $item) {
+            $item = is_array($item) ? $item : [];
+            $shown = VisibleWhen::visibleValues($subs, $item);
+            $kept = [];
+
+            foreach ($subs as $sub) {
+                $key = (string) $sub['key'];
+
+                if (array_key_exists($key, $shown)) {
+                    $kept[$key] = self::one($sub, $shown[$key], "{$path}.{$index}.{$key}", $errors);
+                }
+            }
+
+            $items[] = $kept;
+        }
+
+        return $items;
+    }
+
+    /**
+     * Which of these IDs are terms of the taxonomy.
+     *
+     * @param  list<string>  $ids
+     *
+     * @return list<string>
+     */
+    private static function terms(string $taxonomy, array $ids): array
+    {
+        $ulids = array_values(array_filter($ids, fn (string $id): bool => preg_match('/^[0-9a-hjkmnp-tv-z]{26}$/i', $id) === 1));
+
+        if ($ulids === []) {
+            return [];
+        }
+
+        return DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('id', $ulids)->pluck('id')->map(fn (mixed $id): string => (string) $id)->all();
+    }
+}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Navigation;
 
+use App\Domain\Plugins\Area\AreaEntries;
 use App\Domain\Plugins\Contributions\ToolLink;
 use App\Domain\Plugins\Contributions\ToolLinks;
 use App\Domain\Plugins\PluginAccess;
@@ -11,7 +12,8 @@ use App\Models\User;
 
 /**
  * The Tools hub (I-220, I-467): the utilities for looking after the site,
- * each behind an ability of its own, then the links plugins add (I-3353).
+ * each behind an ability of its own, then plugins' areas the menu has no
+ * room for, then the links plugins add (I-3353).
  * The menu's Tools entry leads to the hub's page, and isn't shown to
  * someone who may open none of them.
  */
@@ -43,6 +45,9 @@ final readonly class ToolsHub implements NavHub
                 ];
             }
         }
+
+        // Plugins' areas that aren't in the menu, each behind its own permission.
+        $pages = [...$pages, ...app(AreaEntries::class)->toolCards($user)];
 
         if (! $user->can(PluginAccess::MANAGE)) {
             return $pages;

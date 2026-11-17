@@ -23,9 +23,16 @@ beforeEach(function (): void {
         'teme.updater.platform' => 'dokploy-application',
         'teme.updater.image_repository' => DA_REPOSITORY,
         'teme.updater.dokploy.url' => DA_BASE,
-        'teme.updater.dokploy.token' => DA_TOKEN,
         'teme.updater.dokploy.app_name' => 'app-teme-x1y2z3',
     ]);
+    // The key as Settings or the server gives it, through the one reader.
+    app()->instance(SecretReader::class, new class implements SecretReader
+    {
+        public function secret(string $group, string $key): ?string
+        {
+            return $group === 'updates' && $key === 'dokploy_api_key' ? DA_TOKEN : null;
+        }
+    });
     Http::preventStrayRequests();
     $this->old = DA_REPOSITORY.':0.1.0-rc.14';
     $this->new = DA_REPOSITORY.':0.1.0-rc.15';
@@ -287,7 +294,6 @@ it('sends the key to https, or to http at a name without a dot on Docker’s own
 ]);
 
 it('takes the API key from Settings when the environment holds none', function (): void {
-    config(['teme.updater.dokploy.token' => null]);
     app()->instance(SecretReader::class, new class implements SecretReader
     {
         public function secret(string $group, string $key): ?string
@@ -303,7 +309,6 @@ it('takes the API key from Settings when the environment holds none', function (
 });
 
 it('says so when no key is set anywhere', function (): void {
-    config(['teme.updater.dokploy.token' => null]);
     app()->instance(SecretReader::class, new class implements SecretReader
     {
         public function secret(string $group, string $key): ?string
@@ -318,7 +323,6 @@ it('says so when no key is set anywhere', function (): void {
 });
 
 it('says so when Settings doesn’t know the key yet', function (): void {
-    config(['teme.updater.dokploy.token' => null]);
     app()->instance(SecretReader::class, new class implements SecretReader
     {
         public function secret(string $group, string $key): ?string
@@ -329,4 +333,13 @@ it('says so when Settings doesn’t know the key yet', function (): void {
 
     expect(fn () => app(DokployApplicationPlatform::class)->image(ImageSetting::Site))
         ->toThrow(PlatformRefused::class, 'No Dokploy API key is set. Add one in Settings › Updates.');
+});
+
+it('reports no compose file of its own, as one the platform keeps, and refuses to replace one, sending nothing', function (): void {
+    $compose = app(DokployApplicationPlatform::class)->compose();
+
+    expect($compose->fromGit)->toBeTrue()->and($compose->text)->toBe('')
+        ->and(fn () => app(DokployApplicationPlatform::class)->setCompose('services: {}'))
+        ->toThrow(PlatformRefused::class, 'A Dokploy Application has no compose file for Teme to replace.');
+    Http::assertNothingSent();
 });

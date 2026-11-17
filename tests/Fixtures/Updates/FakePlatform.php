@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\Updates;
 
+use App\Domain\Updates\Updater\ComposeHash;
 use App\Domain\Updates\Updater\ImageSetting;
 use App\Domain\Updates\Updater\Part;
 use App\Domain\Updates\Updater\PartHealth;
 use App\Domain\Updates\Updater\Platform;
+use App\Domain\Updates\Updater\PlatformCompose;
 use App\Domain\Updates\Updater\PlatformDeployment;
 use App\Domain\Updates\Updater\PlatformRefused;
 use Carbon\CarbonImmutable;
@@ -44,6 +46,15 @@ final class FakePlatform implements Platform
 
     /** Refuses the next setImage once, after saving the image, as a timeout after the platform saved it would. */
     public ?PlatformRefused $refuseAfterSaving = null;
+
+    /** The service's compose file. */
+    public string $compose = '';
+
+    /** Whether the platform takes the compose file from Git. */
+    public bool $composeFromGit = false;
+
+    /** Refuses the next setCompose once, saving nothing. */
+    public ?PlatformRefused $refuseCompose = null;
 
     public function __construct(string $image)
     {
@@ -83,6 +94,31 @@ final class FakePlatform implements Platform
 
             throw $refused;
         }
+    }
+
+    public function compose(): PlatformCompose
+    {
+        $this->guard();
+
+        return new PlatformCompose($this->compose, $this->composeFromGit);
+    }
+
+    public function setCompose(string $compose): void
+    {
+        $this->guard();
+
+        if ($this->refuseCompose !== null) {
+            [$refused, $this->refuseCompose] = [$this->refuseCompose, null];
+
+            throw $refused;
+        }
+
+        if ($compose === $this->compose) {
+            return;
+        }
+
+        $this->calls[] = 'setCompose '.substr(ComposeHash::of($compose), 0, 12);
+        $this->compose = $compose;
     }
 
     public function deploy(string $title): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
 
+use App\Domain\Plugins\ManifestText;
 use App\Domain\Settings\SettingsPage;
 use App\Domain\Settings\SettingsPlacement;
 use App\Domain\Settings\SettingsRegistry;
@@ -63,7 +64,9 @@ final class SettingsNavigation
                 // A group drawn under another page's name is listed as that
                 // page, as the content group is as Writing.
                 $page = SettingsPlacement::pageShowing($group->key);
-                $found[] = ['key' => $page, 'label' => SettingsPlacement::RENAMED[$page]['label'] ?? $group->label];
+                $label = SettingsPlacement::RENAMED[$page]['label'] ?? $group->label;
+                // A plugin's group in the person's language, from its own lang folder (docs/plans/plugin-sockets-2.md).
+                $found[] = ['key' => $page, 'label' => str_starts_with($group->key, 'plugin.') ? ManifestText::for(substr($group->key, strlen('plugin.')))->text($label, app()->getLocale()) : $label];
             }
         }
 

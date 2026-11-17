@@ -42,7 +42,7 @@ A guide that tells you something nobody has seen working is worse than none, so 
 | [Sizing a server](sizing.md) | unproved |
 | [Proxies and HTTPS](proxies-and-https.md) | tests |
 | [Cloudflare in front of Teme](cloudflare.md) | unproved |
-| [Running Teme on Dokploy](platforms/dokploy.md) | by hand on Dokploy v0.31.0, 2026-11-08 |
+| [Running Teme on Dokploy](platforms/dokploy.md) | tests |
 | [Running Teme on Coolify](platforms/coolify.md) | unproved |
 | [Run Teme as one container](platforms/one-container.md) | unproved |
 | [Running Teme on a plain VPS](platforms/plain-vps.md) | unproved |

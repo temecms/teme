@@ -56,6 +56,8 @@ use Tests\Fixtures\Plugins\PluginFixtures;
 
 uses(RefreshDatabase::class);
 
+afterEach(fn () => PluginFixtures::forget());
+
 beforeEach(function (): void {
     Queue::fake();
     Http::preventStrayRequests();

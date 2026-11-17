@@ -69,6 +69,19 @@ final class DokployApplicationPlatform implements Platform
         }
     }
 
+    /**
+     * An Application has no compose file: it is reported as one the platform keeps, which the updater leaves alone.
+     */
+    public function compose(): PlatformCompose
+    {
+        return new PlatformCompose('', fromGit: true);
+    }
+
+    public function setCompose(string $compose): void
+    {
+        throw new PlatformRefused('A Dokploy Application has no compose file for Teme to replace.');
+    }
+
     public function deploy(string $title): void
     {
         $this->api->post('application.redeploy', ['applicationId' => $this->id(), 'title' => $title, 'description' => 'Asked for by Teme’s updater.']);

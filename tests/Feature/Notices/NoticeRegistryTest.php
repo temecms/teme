@@ -6,11 +6,11 @@ use App\Domain\Notices\NoticeRegistry;
 use Teme\Contracts\Notices\NoticeKind;
 use Teme\Contracts\Notices\NoticeRegistrar;
 
-it('declares core’s nine kinds in order with their flags', function (): void {
+it('declares core’s ten kinds in order with their flags', function (): void {
     $registry = app(NoticeRegistry::class);
 
     expect(array_keys($registry->all()))->toBe([
-        'comments.waiting', 'comments.approved', 'backups.alert', 'updates.update',
+        'comments.waiting', 'comments.approved', 'site_code.script_waiting', 'backups.alert', 'updates.update',
         'users.invitation', 'users.password_changed', 'users.password_reset',
         'privacy.exported', 'privacy.erased',
     ]);
@@ -41,7 +41,7 @@ it('declares core’s nine kinds in order with their flags', function (): void {
             ->and($kind->reason)->toBe('');
     }
 
-    expect(array_map(fn (NoticeKind $kind): string => $kind->key, $registry->listed()))->toBe(['comments.waiting', 'comments.approved']);
+    expect(array_map(fn (NoticeKind $kind): string => $kind->key, $registry->listed()))->toBe(['comments.waiting', 'comments.approved', 'site_code.script_waiting']);
 });
 
 it('refuses a kind that breaks a rule, naming it', function (NoticeKind $kind, string $message): void {

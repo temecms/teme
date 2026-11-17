@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Domain\Ai\AiSettings;
 use App\Domain\Ai\ModelChoices;
+use App\Domain\Ai\Plugins\PluginAiSection;
 use App\Domain\Ai\UsageLimits;
 use App\Domain\Settings\SettingsCheck;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -15,7 +16,7 @@ use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
 /**
- * Registers Settings › AI: its Models and Limits sections, the check on the
+ * Registers Settings › AI: its Models, Plugins and Limits sections, the check on the
  * models chosen, and, once every provider has registered its own tasks and
  * sections, the group they make; and the per-person hourly limit (I-320).
  */
@@ -23,8 +24,8 @@ final class AiServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->tag([ModelChoices::class, UsageLimits::class], AiSettings::SECTIONS);
-        $this->app->tag([ModelChoices::class], SettingsCheck::TAG);
+        $this->app->tag([ModelChoices::class, UsageLimits::class, PluginAiSection::class], AiSettings::SECTIONS);
+        $this->app->tag([ModelChoices::class, PluginAiSection::class], SettingsCheck::TAG);
     }
 
     public function boot(): void

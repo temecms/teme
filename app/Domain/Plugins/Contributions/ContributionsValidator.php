@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
+use App\Domain\Ai\Plugins\PluginAiTasks;
+use App\Domain\Plugins\Area\AreaValidator;
+use App\Domain\Plugins\Hooks\DeclaredHooks;
+use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
@@ -18,7 +22,7 @@ use Teme\Contracts\Plugins\Capability;
 final class ContributionsValidator implements ContributionsCheck
 {
     /** The setting types a plugin may declare. */
-    public const array TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'secret', 'color'];
+    public const array TYPES = ['text', 'textarea', 'number', 'boolean', 'select', 'multiselect', 'url', 'urls', 'email', 'secret', 'color', 'person', 'term', 'type', 'code', 'repeater'];
 
     /** Where a plugin may add a link: Tools alone in the first release. */
     public const array SURFACES = ['tools'];
@@ -100,7 +104,13 @@ final class ContributionsValidator implements ContributionsCheck
                 if (! is_string($label) || trim($label) === '' || mb_strlen($label) > 24) {
                     $errors[] = __('fixedLabel must be text of 1 to 24 characters.');
                 }
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists'], true)) {
+            } elseif ($surface === 'notices') {
+                // A kind may go to the holders of a permission the plugin declares (docs/plans/plugin-sockets-3.md, D-T5).
+                $permissions = array_values(array_filter(array_column(array_filter(is_array($contributes['permissions'] ?? null) ? $contributes['permissions'] : [], is_array(...)), 'id'), is_string(...)));
+                array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
+            } elseif ($surface === 'hooks') {
+                array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -144,6 +154,37 @@ final class ContributionsValidator implements ContributionsCheck
         $lists = $contributes['lists'] ?? [];
         $errors = [...$errors, ...$this->listErrors(is_array($lists) ? $lists : [null])];
 
+        // A plugin's permissions, its settings' sections and conditions, and its area (docs/plans/plugin-sockets-2.md, A1, A2, A4).
+        $area = new AreaValidator;
+
+        if (array_key_exists('permissions', $contributes)) {
+            $errors = [...$errors, ...$area->permissionErrors($contributes['permissions'])];
+        }
+
+        $sections = [];
+
+        if (array_key_exists('settingsSections', $contributes)) {
+            $errors = [...$errors, ...$area->settingsSectionsErrors($contributes['settingsSections'])];
+            $sections = array_values(array_filter(array_column(array_filter(is_array($contributes['settingsSections']) ? $contributes['settingsSections'] : [], is_array(...)), 'id'), is_string(...)));
+        }
+
+        $earlier = [];
+
+        foreach (is_array($settings) ? $settings : [] as $setting) {
+            if (is_array($setting)) {
+                $errors = [...$errors, ...$area->settingPlacementErrors($setting, $sections, $earlier)];
+                $earlier[is_string($setting['key'] ?? null) ? $setting['key'] : ''] = $setting;
+            }
+        }
+
+        if (array_key_exists('area', $contributes)) {
+            $errors = [...$errors, ...$area->areaErrors($contributes['area'], $contributes)];
+        }
+
+        if (array_key_exists('aiTasks', $contributes)) {
+            $errors = [...$errors, ...PluginAiTasks::errors($contributes['aiTasks'])];
+        }
+
         return $errors;
     }
 
@@ -170,6 +211,14 @@ final class ContributionsValidator implements ContributionsCheck
 
             if (! is_string($setting['description'] ?? null)) {
                 $errors[] = __('A setting needs a description.');
+            }
+
+            if (($setting['type'] ?? null) === 'term' && (! is_string($setting['taxonomy'] ?? null) || preg_match(self::TYPE_KEY, $setting['taxonomy']) !== 1)) {
+                $errors[] = __('A term setting names the taxonomy its terms come from.');
+            }
+
+            if (array_key_exists('multiple', $setting) && ! is_bool($setting['multiple'])) {
+                $errors[] = __('A setting’s multiple is true or false.');
             }
         }
 

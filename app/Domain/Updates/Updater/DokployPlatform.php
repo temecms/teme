@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
 
+use App\Domain\Settings\SecretStore;
+use App\Domain\Updates\UpdatesSettings;
 use Carbon\CarbonImmutable;
 use GuzzleHttp\Exception\TransferException;
 use Illuminate\Http\Client\ConnectionException;
@@ -12,14 +14,26 @@ use SensitiveParameter;
 use Throwable;
 
 /**
- * The Dokploy platform for Teme's one Compose service (I-3333): sets one image line of its environment, deploys it, and
- * reads its deployments and its containers. It holds the owner's Dokploy token and the service's whole environment
- * text, which carries every secret, and never lets either reach an exception, a log line, a row or a title.
+ * The Dokploy platform for Teme's one Compose service (I-3333): finds the service by its App Name, sets one image line
+ * of its environment and its compose file, deploys it, and reads its deployments and its containers. It holds the
+ * Dokploy API key from Settings › Updates and the service's whole environment text, which carries every secret, and
+ * never lets either reach an exception, a log line, a row or a title.
  */
 final class DokployPlatform implements Platform
 {
     /** The four parts whose containers Dokploy lists, in the order the updater watches them. */
     private const array WATCHED = [Part::Web, Part::Worker, Part::WorkerLong, Part::Scheduler];
+
+    /** The shape of a Dokploy App Name, as Dokploy's own rule allows it. */
+    private const string APP_NAME = '/^[a-zA-Z0-9._-]{1,128}$/D';
+
+    /** Where Dokploy reads a compose file that isn't in Git: pasted in the panel, or a template's. */
+    private const string PASTED = 'raw';
+
+    /** The service's ID once found, for the length of one pass. */
+    private ?string $composeId = null;
+
+    public function __construct(private readonly SecretStore $secrets) {}
 
     public function name(): string
     {
@@ -54,6 +68,39 @@ final class DokployPlatform implements Platform
 
         if ($this->environment() !== $after) {
             throw new PlatformRefused('Dokploy didn’t keep the environment Teme sent. Check TEME_IMAGE and TEME_UPDATER_IMAGE on the Compose service by hand.');
+        }
+    }
+
+    public function compose(): PlatformCompose
+    {
+        $service = $this->service();
+        $text = $service['composeFile'] ?? null;
+        $source = $service['sourceType'] ?? self::PASTED;
+
+        if (! is_string($text) || ! is_string($source)) {
+            throw new PlatformRefused('Dokploy answered 200 to compose.one.');
+        }
+
+        return new PlatformCompose($text, $source !== self::PASTED);
+    }
+
+    public function setCompose(string $compose): void
+    {
+        $before = $this->compose();
+
+        if ($before->fromGit) {
+            throw new PlatformRefused('Dokploy takes this site’s compose file from Git, so Teme leaves it to Dokploy’s Pull.');
+        }
+
+        if ($before->text === $compose) {
+            return;
+        }
+
+        // compose.update names the file alone: every other field of the service stays as Dokploy holds it.
+        $this->call('POST', 'compose.update', ['composeId' => $this->composeId(), 'composeFile' => $compose]);
+
+        if ($this->compose()->text !== $compose) {
+            throw new PlatformRefused('Dokploy didn’t keep the compose file Teme sent. Check the Compose service’s file by hand.');
         }
     }
 
@@ -194,19 +241,67 @@ final class DokployPlatform implements Platform
     }
 
     /**
-     * Returns the Compose service's ID, checked against the shape Dokploy gives them.
+     * Returns the Compose service's ID: TEME_DOKPLOY_COMPOSE_ID when the server sets it, or else the one service
+     * Dokploy lists under this site's App Name, TEME_DOKPLOY_APP_NAME.
      *
      * @throws PlatformRefused
      */
     private function composeId(): string
     {
+        if ($this->composeId !== null) {
+            return $this->composeId;
+        }
+
         $id = config('teme.updater.dokploy.compose_id');
 
-        if (! is_string($id) || preg_match('/^[A-Za-z0-9_-]{1,64}$/D', $id) !== 1) {
-            throw new PlatformRefused('TEME_DOKPLOY_COMPOSE_ID isn’t set to a Dokploy Compose service’s ID.');
+        if (is_string($id) && $id !== '') {
+            if (! self::isId($id)) {
+                throw new PlatformRefused('TEME_DOKPLOY_COMPOSE_ID isn’t set to a Dokploy Compose service’s ID.');
+            }
+
+            return $this->composeId = $id;
+        }
+
+        return $this->composeId = $this->idByAppName();
+    }
+
+    /**
+     * Returns the ID of the one Compose service whose App Name is exactly this site's. compose.search matches a part
+     * of the name, so the exact match is made here.
+     *
+     * @throws PlatformRefused
+     */
+    private function idByAppName(): string
+    {
+        $name = config('teme.updater.dokploy.app_name');
+
+        if (! is_string($name) || preg_match(self::APP_NAME, $name) !== 1) {
+            throw new PlatformRefused('TEME_DOKPLOY_APP_NAME isn’t set to the Compose service’s App Name.');
+        }
+
+        $found = $this->call('GET', 'compose.search', ['appName' => $name, 'limit' => '100']);
+        $items = is_array($found) ? ($found['items'] ?? null) : null;
+
+        if (! is_array($items)) {
+            throw new PlatformRefused('Dokploy answered 200 to compose.search.');
+        }
+
+        $matches = array_values(array_filter($items, fn (mixed $item): bool => is_array($item) && ($item['appName'] ?? null) === $name));
+        $id = count($matches) === 1 ? ($matches[0]['composeId'] ?? null) : null;
+
+        if (! is_string($id) || ! self::isId($id)) {
+            throw new PlatformRefused("Dokploy has no Compose service named {$name} that Teme’s API key can see. Check TEME_DOKPLOY_APP_NAME, or make the key with access to this service.");
         }
 
         return $id;
+    }
+
+    /**
+     * Whether the text has the shape Dokploy gives a service's ID.
+     */
+    private static function isId(string $id): bool
+    {
+        return preg_match('/^[A-Za-z0-9_-]{1,64}$/D', $id) === 1;
     }
 
     /**
@@ -239,10 +334,10 @@ final class DokployPlatform implements Platform
      */
     private function call(string $method, string $procedure, #[SensitiveParameter] array $data): mixed
     {
-        $token = config('teme.updater.dokploy.token');
+        $token = $this->secrets->secret(UpdatesSettings::GROUP, UpdatesSettings::DOKPLOY_API_KEY);
 
         if (! is_string($token) || $token === '') {
-            throw new PlatformRefused('TEME_DOKPLOY_TOKEN isn’t set on the updater.');
+            throw new PlatformRefused('Teme has no Dokploy API key. Paste one in Settings › Updates.');
         }
 
         $address = $this->address($procedure);
@@ -262,8 +357,8 @@ final class DokployPlatform implements Platform
         // Words built here alone: Dokploy's body may echo what it was sent, and compose.one carries every secret.
         return match (true) {
             $response->successful() => $this->readable($response->json(), $response->body(), $response->status(), $procedure),
-            in_array($response->status(), [401, 403], true) => throw new PlatformRefused('Dokploy refused the token in TEME_DOKPLOY_TOKEN.'),
-            $response->status() === 404 => throw new PlatformRefused('Dokploy can’t find the Compose service in TEME_DOKPLOY_COMPOSE_ID.'),
+            in_array($response->status(), [401, 403], true) => throw new PlatformRefused('Dokploy refused Teme’s API key. Make a new key in Dokploy and paste it in Settings › Updates.'),
+            $response->status() === 404 => throw new PlatformRefused('Dokploy can’t find this site’s Compose service.'),
             $response->redirect() => throw new PlatformRefused("Dokploy answered {$response->status()}, sending Teme elsewhere; Teme doesn’t follow it."),
             default => throw new PlatformRefused("Dokploy answered {$response->status()} to {$procedure}."),
         };
@@ -274,7 +369,7 @@ final class DokployPlatform implements Platform
      */
     private function readable(#[SensitiveParameter] mixed $json, #[SensitiveParameter] string $body, int $status, string $procedure): mixed
     {
-        $writes = in_array($procedure, ['compose.saveEnvironment', 'compose.deploy'], true);
+        $writes = in_array($procedure, ['compose.saveEnvironment', 'compose.update', 'compose.deploy'], true);
 
         if (! $writes && $json === null && trim($body) !== 'null') {
             throw new PlatformRefused("Dokploy answered {$status} to {$procedure}.");

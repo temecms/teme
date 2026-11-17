@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Domain\Deployment\Health\Heartbeats;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
+use App\Domain\Updates\Updater\PlatformCheck;
 use App\Domain\Updates\Updater\UpdateRunner;
 use Illuminate\Console\Command;
 use Illuminate\Database\QueryException;
@@ -69,6 +70,11 @@ final class RunUpdater extends Command
 
             try {
                 app(UpdateRunner::class)->tick();
+
+                // Between updates only: Settings › Updates says whether the Dokploy key works.
+                if (! app(UpdateRunner::class)->running()) {
+                    app(PlatformCheck::class)->runIfDue();
+                }
             } finally {
                 DB::select('SELECT pg_advisory_unlock(hashtext(?))', [self::LOCK]);
             }

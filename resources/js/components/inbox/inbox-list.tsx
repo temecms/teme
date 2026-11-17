@@ -6,10 +6,13 @@ import { TextButton } from '@/components/ui/text-button';
 import { cn } from '@/lib/utils';
 import { formatInZone } from '@/lib/zoned-time';
 import type { InboxRow } from '@/types/jobs';
+import { PluginMark } from '@/components/ui/plugin-mark';
+import { __ } from '@/lib/i18n';
 
 /**
  * A person's inbox items, newest first: an unread dot, the title (opening it
- * marks it read and follows its link), its text and when it arrived.
+ * marks it read and follows its link), its text, the plugin it came from
+ * with its mark, and when it arrived.
  */
 export function InboxList({
     rows,
@@ -80,6 +83,12 @@ export function InboxList({
                             <span className="text-ink-2 text-small">
                                 {row.text}
                             </span>
+                        )}
+                        {row.plugin !== null && (
+                            <PluginMark
+                                data-test="inbox-plugin"
+                                name={__('From :name', { name: row.plugin })}
+                            />
                         )}
                         <span className="text-ink-2 text-small">
                             {formatInZone(row.at, siteTimezone)}

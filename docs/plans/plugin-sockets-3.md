@@ -251,50 +251,153 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+Setup: `cat /tmp/teme-cloud-setup.log` gave "2026-11-16T10:33:47Z ran in /home/user/teme as root" and "2026-11-16T10:47:20Z finished"; `pwd` gave `/home/user/teme`.
+
 #### Commits on `sockets3/plugin-ai`
 
--
+- `8a4f0d2` feat(plugins): declared AI tasks, the ai capability and their consent (T1)
+- `8c7a2c0` feat(ai): record a plugin's AI requests and its monthly spend (T2)
+- `e8d7f99` feat(plugins): the SiteAi door, asking the site's AI for a plugin's declared task (T3)
+- `4015d8b` feat(ai): long AI requests of up to 600 seconds inside a long job (T4)
+- `f5d94f2` feat(ai): plugin AI settings, activity by plugin and the Plugins screen's AI figures (T5)
+- `5df8f5b` docs(handbook): the site's AI connection for plugins (T7)
+- `27c4173` docs(plans): plugin AI part's records
+- `f25e0fa` feat(ai): the plugin AI screens: a panel per plugin, activity by plugin, and the Plugins screen's AI line (T6)
+- `aa9847d` docs(handbook): each plugin's own panel on Settings › AI (T6)
+- `c316186` docs(plans): plugin AI part's records for the screens
+- `ec0d4f8` feat(ai): Tools › AI activity's By plugin table, Teme-only filter and plug marks, as drawn (T6)
+- Screen 2 built from the approved drawings, with the two rules (the owner's second note of 2026-11-16: a By plugin table above the requests, with Teme's own row and each plugin by its own name with the plug mark, its requests, cost and budget, "used up" or "No limit"; a filter "Teme and plugins", "Teme only", then each plugin; the plugin's name with the plug mark under the task in each request).
+- T6: screens built from the approved drawings, with the two rules (the owner's note of 2026-11-16: a plugin's name appears once, in its panel's header, and sections are named for what they do; the top bar shows only parents). The drawings themselves are not in this repository, so the screens follow the plan's screen descriptions and that note.
+- The quick check ran on the whole part before the commits were split by task, so an intermediate commit was not checked on its own.
 
 #### Tests seen red (first line of the failure)
 
+Seen red with the part's code under `app/`, `packages/`, `database/` and `resources/` set aside, and the tests and fixture in place.
+
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Ai/Plugins/PluginAiTasksTest.php` | 17 failed, 2 passed: the scribe manifest is refused (`ai` is no capability, `aiTasks` no surface); `Failed asserting that an array contains 'A plugin can declare at most 8 AI tasks.'` |
+| 2 | `tests/Feature/Ai/Plugins/PluginAiActivityTest.php` | 9 failed: `Undefined constant App\Domain\Ai\AiSubjectType::None`; the plugin column and month table are missing |
+| 3 | `tests/Feature/Ai/Plugins/SiteAiTest.php` | 20 failed: `ScribePlugin asks for Teme\Contracts\Ai\SiteAi; a plugin may ask only for what Teme offers plugins.` (contract missing) |
+| 4 | `tests/Feature/Ai/Plugins/LongAiRequestTest.php` | 3 failed: the same refusal of `SiteAi`; with it, `AiRequest` refuses any timeout over 55 |
+| 5 | `tests/Feature/Ai/Plugins/PluginAiSettingsTest.php` | 6 failed: the same refusal of `SiteAi`; no Plugins section, filter or AI line exists |
+| 6, screen 2 | `tests/Browser/Ai/PluginAiSettingsTest.php` and `tests/Feature/Ai/Plugins/PluginAiSettingsTest.php` (on the first screens' build) | browser 2 failed: `Expected to see text [People’s own requests] within element [[data-test="ai-activity-plugin-month-teme"]]`; feature 1 failed: `Property [plugins] does not match the expected value.` |
+| 6 | `tests/Browser/Ai/PluginAiSettingsTest.php` (built from the screens without T6's changes) | 8 failed: `Expected to see text [$0.0011, 1 request] within element [[data-test="ai-plugin-month-scribe"]]` (no plugin panel, no activity totals, no Plugins screen line) |
 
 #### Task 0
 
--
+- V = `0.9.0`: no `v0.9.0*` tag exists. `git log --oneline -1` at the start: `11813b3 Merge pull request #352 from temecms/docs/plan-sockets-3`.
+- `LibraryProvider` passes the timeout as `$agent->prompt(..., timeout: $request->timeoutSeconds)` and does not stream. Whether each provider accepts a 600-second, 64,000-token request unstreamed could not be tried here (no service keys in the cloud). Left open for a run with real keys; nothing streams yet.
+- The words for each failure are `AiFailureType::sentence()`, reused through `__()` (the plan's `AiFailureWords`).
+- `plugin_9_writer_article_model` passes the settings key pattern `/^[a-z][a-z0-9_]*$/`.
+- A long job's doors: `RunPluginJob` → `PluginLoader::instance(…, 300)` → `PluginDoors::for(…, $httpSeconds)`. The door treats `httpSeconds !== null` as a long run (B-07).
+- `ai_activity`'s checks are named `ai_activity_subject_type_check` and `ai_activity_outcome_check`, as the migration re-creates them. The error-type check already accepts `answered` with a null type, so it is left as it is.
+- No line differs in a way that changes a decision.
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Base at `11813b3`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,874 passed, 2 skipped, 1 failed (`Plugins/DiscoveryTest` "finds the configured folders", known to be flaky; a stray `tests/jobs` folder appeared).
+- After, the full `composer check` on `5df8f5b`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,944 passed, 2 skipped, 2 failed (61,395 assertions, 1,910 s).
+- The two failures: `Console/GenerateManifestReferenceTest`, because `docs/reference/plugin-manifest.md` doesn't list the new `ai` capability; the plan says not to regenerate it, and the join does. And `Plugins/DatabaseDownTest`, known to be flaky; it passed when run alone.
+- After T6, the full `composer check` on `aa9847d`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,943 passed, 2 skipped, 3 failed (61,394 assertions, 1,893 s): `GenerateManifestReferenceTest` as above; `Plugins/DatabaseDownTest` and `Backups/PostgresToolsTest` (restic's error words), which this part doesn't touch, both passed when run alone.
+- After screen 2, the full `composer check` on `ec0d4f8`: Pint, PHPStan and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,944 passed, 2 skipped, 2 failed (61,409 assertions, 1,940 s): `GenerateManifestReferenceTest` as above, and `Plugins/DiscoveryTest`, the base's known flaky test, which passed when run alone.
+- Browser, one file at a time after `npm run build`: `Ai/PluginAiSettingsTest` 8 passed (101 assertions after screen 2), `AiSettingsScreenTest` 5 passed, `AiActivityScreenTest` 6 passed, `Plugins/PluginsScreenTest` 19 passed.
 
 #### B-?? (draft)
 
--
+- **B-01 (draft), ManifestValidator.** The shared table says A adds nothing there. Options: put the "declares AI tasks without `ai`" and "asks for `SiteAi` without `ai`" refusals in `ContributionsValidator`, or in `ManifestValidator` beside the other capability checks. Chose `ManifestValidator` (two lines of my own, `aiTasks()` and the constructor check), because that is where capabilities are known. `8a4f0d2`.
+- **B-02 (draft), EnablePlugin.** The table says none for A. The consent record must keep the agreed tasks for `Consent::covers()`, so one line stores `consent['aiTasks']` from `PluginAiTasks::consentOf()`. `8a4f0d2`.
+- **B-03 (draft), PluginsScreen.** Not in Owns; the table names `plugins/index.tsx` for the AI task lines. The lines are built in `PluginsScreen` (the action, `asksMore` and the agreed and asked lines), and they already show in the existing dialog's list before T6. `8a4f0d2`, `f5d94f2` (`ai`).
+- **B-04 (draft), AiServiceProvider.** One line tags `PluginAiSection` under `AiSettings::SECTIONS` and `SettingsCheck::TAG`; nothing else registers sections. `e8d7f99`.
+- **B-05 (draft), AiSettingsScreen and AiActivityRequest.** Not named; they build the props the plan gives `AiSettingsController` and `AiActivityController`. The Plugins section gets kind `plugins` with its generic fields kept, so today's `settings/ai.tsx` still draws its controls until T6. `f5d94f2`.
+- **B-06 (draft), the Plugins section's order and when it shows.** The plan says order 250, but `AiSettingsScreenTest` registers a third-party section at 250 and orders must differ. Options: change that test, or take 260 (still after Models at 200 and before Limits at 300). Chose 260. The section is also left out of the screen while no enabled plugin declares an AI task, so `AiSettingsScreenTest`'s list of sections is unchanged. `e8d7f99`, `f5d94f2`.
+- **B-07 (draft), long doors.** Options: a new `long` argument through `PluginLoader`, or reading `httpSeconds !== null` (only a long job's run sets it) in `PluginDoors::for()`. Chose the second, so `PluginLoader` is untouched; `for()` still gains `bool $long = false` as the plan says. `e8d7f99`.
+- **B-08 (draft), ModelCall's signature.** The plan's `ask(ModelChoice, Closure, int $deadlineSeconds)` loses three things `AnswerAiRequest` does today: its first attempt's own seconds, the "still wanted" check before the fallback, and the start time of the deadline. Chose optional trailing `?int $firstSeconds`, `?Closure $stillWanted` and `?CarbonImmutable $since`, so `AnswerAiRequest` behaves exactly as before. `ModelCallResult` is a new class beside it. `e8d7f99`.
+- **B-09 (draft), refusal words the plan doesn't quote.** Reasons and sentences: `no-person` (ActingPerson's own sentence), `no-task` ("This plugin doesn’t declare the AI task :task."), `too-many-tokens` (":task answers with at most :tokens tokens."), `no-schema` (":task doesn’t need structured-output, so it can’t be sent a schema."), and the standing reasons `ai-off`, `plugin-off`, `model-lacks`, `site-budget`, `plugin-budget`, `hourly-limit` with the sentences in `PluginAiStanding`. `e8d7f99`.
+- **B-10 (draft), tests with exact shapes.** `ContributionsSchemaTest` lists the contribution keys exactly, `AiActivityScreenTest` the filters and `AiActivityListTest` a row. Each gains the new key (`aiTasks`, `'plugin' => null`) and nothing else; what they prove is unchanged. `8a4f0d2`, `f5d94f2`.
+- **B-11 (draft), the handbook page's index.** `DeveloperPagesTest` needs every page in `GenerateHandbookIndex::PAGES` and the README table, so each gains one line, and `llms.txt` is regenerated with `php artisan teme:docs:handbook-index`. `5df8f5b`.
+- **B-12 (draft), a row with no item.** Tools › AI activity shows a plugin's request with no item as "No item" (state `none`). `f5d94f2`.
+- **B-13 (draft), test helpers.** The scribe helpers live in `tests/Feature/Ai/Plugins/helpers.php`, inside Owns, not in `tests/Pest.php`. `8a4f0d2`.
+- **B-15 (draft), one panel per plugin.** Options: one Plugins panel holding every plugin, or a panel per plugin after Models. Chose a panel per plugin, titled with the plugin's name, because the owner's rule says a plugin's name appears once, in its header; inside, the controls read "AI on", "Monthly budget, in US dollars" and "Requests an hour" (the settings' own labels name the plugin, so the panel draws them with its own words), and each task says what it sends. `f25e0fa`.
+- **B-16 (draft), files outside Owns for T6.** The Plugins screen's row is drawn in `components/plugins/plugin-row.tsx`, not `plugins/index.tsx`, and the activity page's types are in `types/tools.ts`, with the row's in `types/plugins.ts`. Each gains only additions (the `ai` line; `plugin`, `plugins`, `pluginMonths`, `answered`, `none`). `f25e0fa`.
+- **B-17 (draft), a row with no item, again.** `AiSubject` (not owned) draws a title and a kind, so a plugin request with no item now reads "No item" with "A plugin’s own request" under it, instead of "Untitled". `f25e0fa`.
+- **B-18 (draft), the labelled-select count.** `AiActivityScreenTest` "labels every select on the page" counts the page's controls; the Plugin filter makes 4, and the test still checks each is labelled. The Plugin filter shows only once a plugin has asked. `f25e0fa`.
+- **B-19 (draft), the top bar.** The pages pass their trail as every page does today; the shell draws it, and the "parents only" rule belongs to issue #349's shell work, so no crumb was changed here. `f25e0fa`.
+- **B-20 (draft), Teme's budget in the By plugin table.** Options: no budget for Teme's row, or the site's. Chose the site's, shown against the site's whole spend ("$4.20 of $50.00"), because the site's budget is the one that stops people's own requests and it counts every request. Teme's own cost and requests are the site's month less every plugin's. Budgets show only for this month; a past month's table has no Budget column. The table shows once a plugin has asked that month. `ec0d4f8`.
+- **B-21 (draft), the filter's label.** The drawing gives the choices, not the label; it reads "Asked by", never "Plugin", by rule 2. The panel line on Settings › AI lost its opening "A plugin." for the same rule. `ec0d4f8`.
+- **B-14 (draft), AiAsk's inputs.** The contract checks each input's name against `^[a-z][a-z_]*$` and trusts its documented `array<string, string>` for the values, as the other contracts trust their documented types. `8a4f0d2`.
 
 #### Contract changes
 
--
+- New in `teme/contracts` (`@since 0.9.0`): `Teme\Contracts\Ai\SiteAi`, `AiAsk`, `AiAnswer`, `AiStanding`, `AiRefused`.
+- `Capability::Ai` (`ai`); the schema's `ai` capability and `contributes.aiTasks`.
+- `PluginServices::for()` gains a last parameter `bool $long = false`.
 
 #### STOP
 
--
+- None. T6 was first left for the drawings' approval, then built after the maintainers approved them.
 
 #### Changelog lines for the maintainers
 
--
+- Added: plugins can use the site's AI connection for the tasks they declare (`ai` capability, `contributes.aiTasks`, the `SiteAi` door), with consent naming each task and what it sends.
+- Added: Settings › AI has a model and fallback for each plugin task, and per plugin a switch, a monthly budget and an hourly limit.
+- Added: Tools › AI activity records and filters plugins' requests, with this month's totals by plugin; the Plugins screen's row carries the plugin's AI cost this month.
+- Added: AI requests of up to 600 seconds inside a plugin's long job.
+- Added: Settings › AI gives each plugin with AI tasks its own panel; Tools › AI activity has a By plugin table (Teme and each plugin, with budgets), a "Teme and plugins" / "Teme only" / plugin filter and the plugin's mark under each task; the Plugins screen shows "AI this month".
 
 #### Try it
 
--
+- Enable a plugin that asks for `ai` and declares `contributes.aiTasks` (the test fixture `tests/Fixtures/plugins/scribe` is one); the consent lists each task and what it sends.
+- In Settings › AI, choose a model for its task under Plugins, then have the plugin call `SiteAi::ask()` from a job started by a person; the request appears in Tools › AI activity under the plugin.
+
+#### Follow-up R1
+
+The review of 2026-11-16 (verdict: merge after fixes). Findings 1, 2, 8 and 9 fixed; 3 is for the join; the other LATER items are listed below for issues.
+
+Commits:
+
+- `d36fa27e` Merge origin/main (plugin sockets rounds 1 and 2, PR #380). Every conflict kept both sides' additions: Capability (main's `feeds.links` and `pages.insert`, then `ai`), PluginServices::OFFERED, PluginDoors (SiteInfo and the settings writer, then SiteAi), Consent (`csp`/`insertionHosts` beside `aiTasks`), ContributionsValidator's surfaces and errors, ManifestValidator's door checks, EnablePlugin, EnablePluginCommand, PluginWords, PluginsScreen, PluginRow and PluginList (main's `schedules`, then A's `ai`, passed by name), the TS row type, PluginContractsTest and ContributionsSchemaTest rows, the handbook index and README. The manifest schema was rebuilt by loading both sides (main's file plus A's `ai` and `contributes.aiTasks`), and `llms.txt` regenerated. After it: Architecture 139 passed; `tests/Unit/Contracts` 148, `tests/Feature/Plugins` 782, `tests/Feature/Ai` 490, `tests/Feature/Guides` 580 passed.
+- `72e710e9` fix(ai): refuse a plugin's AI request inside a database transaction (finding 1).
+- `c607eb1d` fix(ai): offer and answer only the AI tasks that were agreed to (finding 2).
+- `60b65183` fix(ai): ask AI for a plugin only for a person who may use AI (finding 8, the maintainers' decision).
+- `aac1df2d` fix(ai): show the Asked by filter only once a plugin has asked (finding 9: hidden, as asked).
+- `ef233b6f` fix(docs): the contracts reference names SiteAi's grant and declaration. Main's `teme:docs:contracts` (round 2) probes the doors with a plugin that has no manifest, so it never meets SiteAi, which needs both the `ai` grant and `contributes.aiTasks`; the command now takes it as stated: "granted `ai` and its manifest declares `contributes.aiTasks`".
+
+Tests seen red:
+
+| Finding | Test | First failure |
+|---|---|---|
+| 1 | `SiteAiTest` "refuses inside a database transaction…" | `The door didn’t refuse.` |
+| 2 | `SiteAiTest` "leaves out a task an update added or widened…" | `['no-model', 'Write a poem is off until an administrator chooses its model in Settings › AI.']` where `['no-task', …]` was expected |
+| 8 | `SiteAiTest` refusal row "a person who may not use AI" | `The door didn’t refuse.` |
+| (merge) | `GenerateContractsReferenceTest` "lists each contract a plugin’s constructor may ask for once…", with SiteAi's row added | `Teme\Contracts\Ai\SiteAi is listed as offered, but no grant gives it.` (exit 1) |
+| 9 | `tests/Browser/Ai/PluginAiSettingsTest.php` "leaves the Asked by filter out while only Teme has asked" | `Expected element [#ai-plugin] not to be present in the DOM … but it was found.` |
+
+Decisions:
+
+- **B-22 (draft), refusing inside a transaction.** `ask()` refuses first, with `in-transaction` ("A plugin asks AI only outside a database transaction."), before anything is sent, because a rollback would take the record and both month additions with it while the service still bills, and the answer would hold the transaction open. It reads Laravel's transactions manager (`callbackApplicableTransactions()`), the same that runs after-commit work, so a test's wrapping transaction doesn't count. The reason is not one of AiStanding's, since it concerns the call, not the task. One line in `plugins/ai.md`. `72e710e9`.
+- **B-23 (draft), tasks as agreed.** Options: skip a plugin whose consent doesn't cover its manifest, or drop only the tasks `PluginAiTasks::added()` lists. Chose the second: an update waiting for, say, a new host keeps the AI tasks already agreed, while a task an update added, or made send or need more, is left out of Settings › AI and refused with `no-task` until someone agrees. `c607eb1d`.
+- **B-24 (draft), ai.use.** After the person check, `ask()` refuses with `no-permission` ("The person this work runs for may not use AI.") when the person doesn't hold `ai.use`, as the maintainers decided. A schedule's run acts for the administrator who enabled the plugin, who holds it. One line in `plugins/ai.md`. `60b65183`.
+- **B-25 (draft), SENDS's order** (the review's note). `PluginAiTasks::SENDS` is `brief`, `published`, `draft`, narrowest first; `added()` reads a later one as wider. The plan lists them unordered. `8a4f0d2`.
+- **B-18, corrected.** The first record said the filter showed only once a plugin had asked; the code showed it always. It now does what the record said: "Asked by" is drawn when a plugin has requests or the address names one. `aac1df2d`.
+- **For the join (finding 3).** Pass every later parameter of `PluginDoors::for()` and `PluginServices::for()` by name: Part C's `PluginLoader` passes `$answerBytes` by position, which lands in A's `bool $long`. A itself never passes `long`.
+
+For issues (LATER, not fixed here):
+
+- `RunPluginJob` runs a Waiting plugin's jobs; it should treat one as it treats a disabled plugin (finding 2's second half).
+- The filter value `teme` is also a valid plugin code; use a value the code pattern refuses, or reserve `teme` (finding 4).
+- `Models/AiActivity.php`'s docblock still lists `subject_id` as a string and doesn't mention `plugin` (finding 5).
+- A plugin task id equal to a core task id (such as `tidy`) mixes into the Task filter; narrow it to core requests (finding 6).
+- A non-string `AiAsk` input reaches `AiPrompt::messages()` as a TypeError, and an invalid `AiRequest` built in ModelCall's closure escapes as InvalidArgumentException; an `is_string` check in `AiAsk` would match its documented type (finding 7).
+
+Gate: `composer check` after the merge and fixes 1, 2, 8 and 9: Pint, PHPStan, type and lint checks passed; tests 12,559 passed, 45 skipped, 5 failed. Three were `GenerateContractsReferenceTest`'s, fixed by `ef233b6f` (now 5 of its 6 pass). The two left are the committed generated references, `docs/reference/plugin-manifest.md` and `docs/reference/contracts.md`, out of step until the join regenerates them, as the brief says.
 
 ---
 
@@ -648,41 +751,155 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 #### Commits on `sockets3/content-doors`
 
--
+- `d66253f` feat(plugins): a content reader for published items and drafts (Tasks 1 and 2)
+- `af994c5` feat(plugins): slug, credits and translations through the write door (Task 3)
+- `5d4f880` feat(plugins): a job's context says whom the run acts for (Task 4)
+- `28229d8` feat(plugins): a person setting in a plugin's manifest (Task 5)
+- `251d008` feat(plugins): answers of up to 16 MB inside a long job (Task 6)
+- `3cac622` docs(guides): reading content, writing details, a job's person and its limits (Task 8)
+- `546e8d4` docs(plans): part C's records
+- `a46e4b6` feat(plugins): the content reader gives the status, the scheduled time and the queue (scheduler port 1)
+- `4f9528e` feat(plugins): a people.read door that names the people who write (scheduler port 2)
+- `15e414c` fix(plugins): offer people.read rather than refusing it as later (scheduler port 2)
+- `e852add` feat(settings): term and type settings chosen from what the site has (scheduler port 3)
+- `f955a44` feat(plugins): schedules switched and timed by the plugin's own settings (scheduler port 4)
+- `5e60687` fix(plugins): a plain schedule reads as before; the handbook index regenerated
+- this records commit
+
+Tasks 1 and 2 were built together, and the first commit carries `PluginDoors`/`PluginServices` whole, Task 6's `$answerBytes` parameter included, and the librarian fixture with its `person` setting (Task 5).
 
 #### Tests seen red (first line of the failure)
 
+Run with the contracts and tests in place and `app/` set aside.
+
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1, 2 | `tests/Feature/Plugins/Sockets/ContentReaderTest.php` | `Undefined array key "Teme\Contracts\Content\ContentReader"` (the door isn't offered) |
+| 3 | `tests/Feature/Plugins/Sockets/ContentWriterDetailsTest.php` | `Class App\Domain\Plugins\Doors\PluginContentWriter contains 1 abstract method … (ContentWriter::linkTranslations)` |
+| 4 | `tests/Feature/Plugins/Sockets/JobPersonTest.php` | `ValidationException` at enable: the librarian's `person` setting was unknown; with it known, `PluginJobContext contains 1 abstract method … (JobContext::personId)` |
+| 5 | `tests/Feature/Plugins/Sockets/PersonSettingTest.php` | `InvalidArgumentException: Setting [plugin.librarian.byline] has an unknown type [person].` |
+| 6 | `tests/Feature/Plugins/Sockets/LongAnswersTest.php` | `PluginJobContext contains 1 abstract method … (JobContext::personId)` (the file loads the jobs fixture); with that in place, the 5 MB answer inside a long job threw `AnswerTooLarge` (1 MB) |
+| Scheduler 1 | `tests/Feature/Plugins/Sockets/ContentQueueTest.php` | With `queue()` stubbed to an empty page: `Failed asserting that null is identical to '2026-11-18T12:26:00+00:00'.` (no `scheduledFor`), and the queue, refusals and bounds all failed |
+| Scheduler 2 | `tests/Feature/Plugins/Sockets/PeopleReaderTest.php` | `Undefined array key "Teme\Contracts\People\PeopleReader"` (the door isn't offered) |
+| Scheduler 3 | `tests/Feature/Plugins/Sockets/SiteChoiceSettingsTest.php` | `InvalidArgumentException: Setting [plugin.scheduler.topics] has an unknown type [term].` |
+| Scheduler 4 | `tests/Feature/Plugins/Sockets/SettingSchedulesTest.php` | `Failed asserting that 1 is identical to 0.` (the switched-off schedule ran), and the validator accepted every wrong `enabledBy`/`everyFrom` |
 
 #### Task 0
 
--
+- Setup: `/tmp/teme-cloud-setup.log` showed two starts (10:33:53Z, 10:34:59Z; the first was cut by a network reset fetching PostgreSQL's key) and `10:47:56Z finished`; `pwd` `/home/user/teme`.
+- V = `0.9.0` (`git tag -l 'v0.9.0*'` prints nothing). Base `11813b3` (Merge pull request #352).
+- Public published items: the API's one predicate, `App\Domain\Api\Live::apply()` (published, not trashed, live by now, not private, of a public type, in a shown language) then `Live::publicOnly()` (not password-protected). There is no Eloquent scope; `PublishedItems` applies both to `Content::query()`'s base query.
+- `EXPLAIN` of a page (one type, one taxonomy's terms, 50 items): `Limit -> Index Scan using contents_published_order on contents`, the terms `EXISTS` through `terms_taxonomy_slug_language_unique` and `content_terms_term_id_scope_content_id_index` (Index Only Scan).
+- `SetBylines` takes credit keys, `user:{id}` for an account and `person:{ulid}` for a person with no account; the door turns account IDs into `user:` keys.
+- `UpdateContentDetails` needs `expectedRevisionId`; right after `CreateDraft` (and after `SaveDraft`) the door reads the row again and passes its `working_revision_id`. A slug alone writes no revision.
+- Core's person picker: the settings type `person` (`SettingType::Person`), validated by `SettingRules::person()`, given its choices by `SettingsForm::withPeople()` and drawn by `components/fields/field-control.tsx`'s `person` case. A plugin group goes through the same form, so the manifest's `person` needed only the declaration.
+- A plugin job can be the operator's today: `PluginJobs::actor()` falls back to `JobActor::operator()` when nobody is signed in and the operator is present (the shell).
+- Round 1's `sockets/plugin-admin` is not on `main` (no `WritePluginSettings`): C6's one line is skipped (see Left open). Round 2's `sockets2/plugin-area` is not on `main`: Task 7 waits.
 
 #### Gate
 
--
+- Base `composer check` on `11813b3`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,875 passed, 2 skipped (61,099 assertions).
+- End of part, `composer check` on `3cac622`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,930 passed, 2 failed, 2 skipped (61,258 assertions). The two failures:
+  - `tests/Feature/Console/GenerateManifestReferenceTest` ("keeps the reference current"): `docs/reference/plugin-manifest.md` doesn't list the new settings type `person`. Expected: the plan says not to regenerate `docs/reference/plugin-manifest.md`; the join does, once.
+  - `tests/Feature/Plugins/DiscoveryTest` ("finds the configured folders"): found `tests/jobs` beside the fixtures it named. Not reproduced: `tests/Feature/Plugins` passed whole twice in parallel (652 passed each), and with `LongAnswersTest` beside it. Already seen flaky in an earlier part.
+- No Browser test (the plan names none; the person picker is core's).
+- After the scheduler port's additions, `composer check` on `f955a44`: Pint, PHPStan, types and lint passed; Architecture 139 passed (1,384 assertions); Unit and Feature 11,971 passed, 3 failed, 2 skipped (61,391 assertions). The failures:
+  - `GenerateManifestReferenceTest`: expected, as above.
+  - `tests/Unit/Plugins/DeclaredJobsTest` ("reads declared jobs with…"): a plain schedule now carried `enabledBy`/`everyFrom` as null. Fixed in the next commit (the keys appear only when declared); the test unchanged, and it passes with `tests/Unit/Plugins`, `tests/Feature/Plugins/Sockets` and `PluginSchedulesTest` (629 passed with the guides).
+  - `GenerateHandbookIndexTest`: `llms.txt` lacked the two changed summaries; regenerated in the same commit, and it passes.
+  The full run was not repeated after that commit.
 
 #### B-?? (draft)
 
--
+- **B-?? (draft) The answer size reaches the job's doors through `PluginLoader`.** `RunPluginJob` builds the plugin through `PluginLoader::instance()`, which the plan doesn't list. Options: derive 16 MB from `httpSeconds` inside `PluginDoors`, or pass the size through. Chosen: a last parameter `?int $answerBytes = null` on `PluginLoader::instance()`/`build()`, beside `httpSeconds`, as the plan's "beside `httpSeconds`" reads. Commit `251d008`.
+- **B-?? (draft) A request's body stays at 1 MB everywhere.** `PluginHttp` used one `maxBytes` for both ways. Options: a second bound, or the request always at `MOST_BYTES`. Chosen: `jsonBody()` always checks `MOST_BYTES`; `maxBytes` is the answer's bound alone (the media door only GETs). Commit `251d008`.
+- **B-?? (draft) `ContentReader` is offered last.** Placed before `ContentWriter`, it shifted the positional doors `JoinTest` hands `Contributor`'s constructor (an `OutboundHttp` parameter got the reader). Chosen: the reader is added after every earlier door, in `for()` and at the end of `OFFERED`. Commit `d66253f`.
+- **B-?? (draft) The cursor keeps microseconds.** The API's `Dates::utc()` cuts to the second, so two items published in one second could fall between pages. Chosen: the plan's opaque base64url cursor (`App\Domain\Api\Cursor`, sort `newest`) with the moment read from PostgreSQL by `to_char(… 'US')`, checked strictly when read back. Commit `d66253f`.
+- **B-?? (draft) Credits are account IDs only.** `ItemSnapshot::$credits` and `NewItem`/`ItemChanges::$credits` are account IDs, as the plan's shapes say; a byline of a person with no account is left out of a snapshot. A credit that isn't an account's ID is refused, writing nothing, with `A credit names an account by its ID.` (a new sentence, through `__()`). Commit `af994c5`.
+- **B-?? (draft) Bounds and language refusals.** `published()` throws `InvalidArgumentException` for a limit outside 1 to 200, more than 10 types or 10 terms, and a language the site doesn't have (`SiteLanguages::stored()`'s own refusal), as for a bad cursor. Commit `d66253f`.
+- **B-?? (draft) Handbook pages.** `content-write.md` and `jobs.md` were stubs; both became how-to pages covering what the plan asks (the rest of the write door in two sentences). The new `plugins/content-read.md` needed a line in `GenerateHandbookIndex::PAGES`, the README's table and a regenerated `llms.txt` (`DeveloperPagesTest`). `jobs.md`'s paragraph on spacing steps doesn't name round 1's `QueueOptions`, which isn't on `main`: it says to let a schedule pick up the next step. The limits table lists the AI request (55 s, 600 s long) from Part A. Commit `3cac622`.
+
+- **B-?? (draft) added by the maintainers (scheduler port): the queue.** `ItemSnapshot` grows last with `?DateTimeImmutable $scheduledFor = null` (UTC, from `contents.scheduled_for`); the status was already the `ItemRef`'s. New `ContentReader::queue(QueueQuery, string $actingPersonId): QueuePage` with `QueueQuery` (statuses of `draft`, `review`, `scheduled`, all three by default; up to 10 types; limit 1 to 200), `QueuedItem` (`ItemRef`, `scheduledFor`) and `QueuePage`. It lists only what the person may edit, type by type through `ContentAbilities::canEditSql()` (ContentPolicy::update restated), trashed items never, oldest first by ULID with the API's opaque cursor (sort `queue`). The person rule is `draft()`'s: another person or the operator gets `ReadRefused`. `ItemRef` doesn't grow (`HookContractsTest` pins it). New `app/Domain/Contents/Queries/QueuedItems.php`. Commit `a46e4b6`.
+- **B-?? (draft) added by the maintainers (scheduler port): `people.read`.** `Capability::PeopleRead` (`people.read`, listed last), in the schema's enum and `PluginContractsTest`'s list; its consent sentence "See the names of the people who write on this site" in `PluginWords` and `teme:plugins:enable`. Door `Teme\Contracts\People\PeopleReader::writers(?string $after = null, int $limit = 100): PersonPage`, with `PersonRef(id, name)` and `PersonPage`: the people `AuthorOptions::people()` finds (may create content, not suspended), in account order, by an opaque cursor; never an email. Offered last (`PluginDoors`, `OFFERED`). Commits `4f9528e`, `15e414c`.
+- **B-?? (draft) added by the maintainers (scheduler port): `ManifestTest`'s later capability is `mail.send`.** `ManifestValidator::LATER` listed `people.read` as a capability offered later; it no longer does, and `ManifestTest`'s "refuses a capability Teme doesn't offer plugins yet" names `mail.send` (still later) instead. The test proves the same thing. Confirmed by the maintainer. Commit `15e414c`.
+- **B-?? (draft) added by the maintainers (scheduler port): settings chosen from the site.** `SettingType::Term` (`term`) and `SettingType::ContentType` (`type`), `@since 0.9.0`; `Setting::term(…, string $taxonomy, bool $multiple = false)` and `Setting::contentType(…)`; `Setting`'s constructor grows last with `?string $taxonomy` and `bool $multiple`. Stored as slugs (one, `''` for none, or with `multiple` a list, at most 100) and a type key, so a value reads the same after an export; `SettingRules` checks on save that each slug is a term of that taxonomy and the type is registered and public (new sentences "Choose terms this site has here." and "Choose a content type this site shows to readers here.", through `__()`). `SettingsForm` offers the taxonomy's terms by name (the first 500) and the public types, and adds `multiple` to a term field; `field-control.tsx` draws one as `SelectField` and several as the multiselect's ticked boxes (now one `Choices` component both use; the words "Choose a term" / "Choose a type" through `__()`). The manifest takes `taxonomy` (required for a term) and `multiple`. The `person` setting was already checked against existing accounts on save, so it is unchanged. Core files outside Part C's Owns changed for this, as the note asks: `SettingType`, `Setting`, `SettingRules`, `SettingsForm`, `field-control.tsx`, `types/settings.ts`. Commit `e852add`.
+- **B-?? (draft) added by the maintainers (scheduler port): schedules from settings.** A schedule may give `enabledBy` (one of the plugin's `boolean` settings) and `everyFrom` (a `select` setting whose option keys are all in `DeclaredJobs::EVERY`); `every` stays required as the fallback. `ManifestValidator::schedules()` refuses a wrong one (sentences through `__()`), the schema lists both, `DeclaredJobs` carries them, and `DueSchedules` reads `plugin.{code}` through `SettingsReader` on each pass: off while the switch isn't `true` (so off by default), the setting's interval when it holds one. A run isn't recorded while off, so switching on runs at the next minute's check once the interval has passed since the last run. Commit `f955a44`.
 
 #### Contract changes
 
--
+None beyond the plan's: `ContentReader`, `ItemQuery`, `ItemPage`, `ItemSnapshot`, `ReadRefused` (new, `@since 0.9.0`); `NewItem` (last: `slug`, `translationOf`, `credits`), `ItemChanges` (last: `slug`, `credits`), `ContentWriter::linkTranslations()`, `JobContext::personId()` (V is 0.9.0, so no `TranslationLinker`/`JobPerson`); `OutboundHttp`'s class docblock sentence; the schema's settings type `person`.
+
+Added by the maintainers for the scheduler port (all `@since 0.9.0`): `ItemSnapshot::$scheduledFor` (last, defaulted); `ContentReader::queue()` with `QueueQuery`, `QueuedItem`, `QueuePage`; `Teme\Contracts\People\PeopleReader`, `PersonRef`, `PersonPage`; `Capability::PeopleRead`; `SettingType::Term`, `SettingType::ContentType`, `Setting::term()`, `Setting::contentType()`, `Setting::$taxonomy`, `Setting::$multiple` (constructor, last); the schema's capability `people.read`, settings types `term` and `type` with `taxonomy` and `multiple`, and a schedule's `enabledBy` and `everyFrom`.
 
 #### STOP
 
--
+None.
+
+#### Left open
+
+- Task 7 (`AreaContext::$permissions`) waits for round 2's `sockets2/plugin-area` on `main`; not built yet (see below once it is).
+- C6's line in round 1's `WritePluginSettings` (refuse `person`) is not built: that Operation isn't on `main`. It belongs with whichever join carries `sockets/plugin-admin`.
+- A run of the operator's whose handler calls `personId()` stops with `JobStopped`, and `RunPluginJob` returns on `JobStopped` without ending the tracked job, so it stays waiting. Unchanged here (it's how a cancel already ends); worth a decision whether such a run should fail with the sentence instead.
+
+- `docs/architecture/plugins.md`'s capability table describes `people.read` as "Users' and commenters' personal data, and the hooks that carry it"; the maintainer brings it in line at the join. What `people.read` gives exactly: one door, `PeopleReader::writers()`, listing the active people who may write content (the `content.create` permission, not suspended), each by account ID and display name only, in account order, 1 to 200 a page by an opaque cursor; never an email address or any other detail, and no hooks. Consent: "See the names of the people who write on this site".
+- `docs/reference/plugin-manifest.md` also lacks `term`, `type`, `people.read` and a schedule's `enabledBy`/`everyFrom`; the join's one regeneration covers them.
+- A term setting offers a taxonomy's first 500 terms by name; a large tag list would want a search picker.
+- A saved term or type that is later removed stays saved until the group is saved again; the reader still answers it.
 
 #### Changelog lines for the maintainers
 
--
+- Added: plugins granted `content.read` can list the site's published, public items a page at a time, and read an item's draft for the person their work acts for (`ContentReader`).
+- Added: a plugin's write door can set an item's slug, credit people (within the person's own rights) and link language versions (`NewItem`, `ItemChanges`, `ContentWriter::linkTranslations()`); any refusal writes nothing.
+- Added: a plugin job's context names the person the run acts for (`JobContext::personId()`).
+- Added: a plugin setting can be a person, chosen with core's person picker.
+- Changed: inside a long job, a plugin's outbound answers may be up to 16 MB; requests stay at 1 MB.
+- Docs: Reading content; Plugins writing content and Jobs and schedules (every limit in one table) are now full pages.
+- Added: the content reader gives an item's scheduled time, and lists the unpublished items (drafts, in review, scheduled) the person may edit, a page at a time.
+- Added: plugins can ask for `people.read` to list the names of the people who write on the site, never their email addresses.
+- Added: plugin settings can offer the site's own terms of a taxonomy (one or several) and its public content types, checked on save.
+- Added: a plugin's schedule can be switched on and off, and timed, by the plugin's own settings; a change counts at the next minute's check.
 
 #### Try it
 
--
+- `php artisan test --compact tests/Feature/Plugins/Sockets`.
+- `php artisan test --compact tests/Feature/Plugins/Sockets/ContentQueueTest.php tests/Feature/Plugins/Sockets/PeopleReaderTest.php tests/Feature/Plugins/Sockets/SiteChoiceSettingsTest.php tests/Feature/Plugins/Sockets/SettingSchedulesTest.php` for the scheduler port's additions; the `tests/scheduler` fixture shows a manifest using all four.
+- Enable the `tests/librarian` fixture on a development site (its folder in `teme.plugin_paths`), open Settings › Plugin settings › Librarian and choose a person for "Credit articles to"; queue its `write-as-person` job while signed in, and the draft it writes is yours.
+
+
+#### Follow-up R1
+
+The review's verdict: merge after fixes. Done on `sockets3/content-doors`:
+
+| Finding | What was done | Commit |
+|---|---|---|
+| 1 (blocking) | `origin/main` (`9f27e41`, PR #380, rounds 1 and 2 joined) merged. The 12 conflicts were resolved keeping both sides. `PluginHttp` keeps `settingHosts:` and takes `maxBytes:`, and request bodies (JSON and form) stay at 1 MB. `DueSchedules` keeps `ScheduleRunner` and takes `SettingsReader`. `PluginDoors` and `OFFERED` put `ContentReader` and `PeopleReader` after main's `SiteInfo`, `PluginSettingsWriter` and `InlineScripts`. `Capability::PeopleRead` is last, with `/** @since 0.9.0 */`, after `FeedsLinks` and `PagesInsert`. The words lists and the contracts test are unions. The schema was rebuilt by loading base, ours and main and merging the trees, then formatted by `vp`. `content-write.md` and `jobs.md` were rebuilt from main's text plus this part's sections. `llms.txt` was regenerated. `ManifestValidator::LATER` on main is `['mail.send', 'site.output', 'ai']`. | `582395a` |
+| 2: Task 7 | Not built: it is still blocked. `packages/teme-contracts/src/Admin/AreaContext.php` doesn't exist on `main`. PR #380 joined round 1 (A and B) and round 2's inserts, not round 2's Part A (`sockets2/plugin-area`; no `HasPluginArea`, `AreaContext` or `PluginAreaScreen`), and the plan's wait condition still fails. It stays left open until that part is on `main`. | — |
+| 2: C6 | `PersonSettingTest` proves a plugin can't write its own `person` setting through `WritePluginSettings` and that nothing is written. The refusal now uses the plan's sentence, "A plugin can’t choose a person for itself." (through `__()`); other refused types keep main's sentence. | `135fd3a` |
+| 3 | `personId()` with no person throws `App\Domain\Plugins\Jobs\NoPersonToActFor`, not `JobStopped`. `RunPluginJob` sets `tries` to 1 and fails the tracked job with "This run has no person to act for." `JobContext`'s docblock says so. | `cfb4817` |
+| 4 | The stray empty records skeleton before Part D was deleted. | `d3a106e` |
+| 8 | `jobs.md`'s "Cutting work into runs" names `new QueueOptions(delaySeconds: …)`, in the merge's rebuilt page. | `582395a` |
+| 9 | `httpSeconds` and `answerBytes` pass by name in `RunPluginJob`, `PluginLoader::instance()` → `build()` → `PluginServices::for()`, and in `LongAnswersTest`. Main's own `PluginJobsTest` still passes `300` positionally as `httpSeconds`, which stays fourth. | `bce9138` |
+| 5 | Nothing here: the maintainers confirmed the narrow meaning, and the join updates `docs/architecture/plugins.md`. | — |
+
+Tests seen red:
+
+| Fix | File | First failure |
+|---|---|---|
+| 3 | `tests/Feature/Plugins/Sockets/JobPersonTest.php` | `personId()` threw `JobStopped` (the new `not->toThrow(JobStopped::class)` failed), and the operator's run ended `Running`, not `Failed` (`Failed asserting that two variables reference the same object … JobState::Failed`) |
+| 2 (C6) | `tests/Feature/Plugins/Sockets/PersonSettingTest.php` | `'A plugin can’t write its own person settings.'` where `'A plugin can’t choose a person for itself.'` was expected (the write was already refused, writing nothing, so the red is the sentence) |
+
+Findings 1, 4, 8 and 9 have no red test: a merge, a deleted block, a sentence and a by-name refactor. Finding 9's behavior is covered by `LongAnswersTest` and `PluginJobsTest`, which pass.
+
+LATER, left as asked:
+
+- 6. A draft snapshot's `translations` lists every language version in the group (title and status), including other authors' drafts or private items. Keep only published versions and those the person may update, or record that the editor shows them anyway.
+- 7. No test covers `translationOf` or `linkTranslations()` refused because the person can't edit the other item (`LinkTranslations::authorize`). Add a dataset row with an author linking to an editor's item.
+- 10. Superseded by the gate below; GitHub's run on the branch decides.
+
+Gate after follow-up R1, `composer check` on `d3a106e`: Pint, PHPStan, types and lint passed. Architecture: 139 passed (1,395 assertions). Unit and Feature: 12,630 passed, 3 failed, 3 skipped (63,892 assertions). The failures:
+
+- `GenerateManifestReferenceTest` and `GenerateContractsReferenceTest`: expected. Main now has the generated references, and they lack this part's contracts and manifest keys. The plan says not to regenerate `docs/reference/*.md`; the join does that once.
+- `Plugins/DatabaseDownTest` ("serves an ordinary re…", no failure reported): known flaky. It passed alone twice, and `tests/Feature/Plugins` passed whole in parallel (863 passed).
 
 ---
 
@@ -786,50 +1003,145 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+#### Setup
+
+- `cat /tmp/teme-cloud-setup.log`: "2026-11-16T10:34:06Z ran in /home/user/teme as root", "2026-11-16T10:48:44Z finished". `pwd`: `/home/user/teme`. PHP 8.4.27; PostgreSQL on 5433 and Valkey on 6380 answered.
+- Before the first task, `composer check` on `origin/main` (`11813b3`): Pint and PHPStan clean; Architecture 139 passed (1384 assertions); Unit and Feature 11875 passed, 2 skipped (61099 assertions), 1973 s.
+
 #### Commits on `sockets3/hooks-notices`
 
--
+- `38bb2d6` feat(plugins): plugins declare hooks, require other plugins and send notices (Tasks 1 to 4; see B-?? on one commit)
+- `599bb8f` feat(site): plugins set attributes on the links an article draws (D-L1)
+- `965b4e7` docs(guides): your own hooks, and notices from plugins (Task 7)
+- this commit: docs(plans): Part D's records
 
 #### Tests seen red (first line of the failure)
 
+Each run with `app/` and `packages/` stashed, the tests and fixtures in place.
+
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Plugins/Hooks/PluginHooksTest.php` | Class or interface "Tests\Fixtures\Plugins\Relay\RelayPlugin" does not exist (no `HookSender` door, so Relay never starts) |
+| 2 | `tests/Feature/Plugins/Hooks/PluginDependenciesTest.php` | Expected: requires may name only teme: a plugin can’t depend on another plugin yet. To contain: It needs tests/relay ^1.0 enabled first. |
+| 3 | `tests/Feature/Plugins/Notices/PluginNoticeKindsTest.php` | Failed asserting that null is identical to 'Email me when an article I started fails'. |
+| 4 | `tests/Feature/Plugins/Notices/PluginNoticesTest.php` | Class or interface "Tests\Fixtures\Plugins\Relay\RelayPlugin" does not exist (no `Notices` door) |
+| D-L1 | `tests/Feature/Plugins/Hooks/ArticleLinksTest.php` | content.links isn’t something a plugin can ask for. |
 
 #### Task 0
 
--
+- V = 0.9.0: `git tag -l 'v0.9.0*'` lists nothing.
+- `git log --oneline -1`: `11813b3 Merge pull request #352 from temecms/docs/plan-sockets-3`.
+- The loader reads a plugin's namespace from its own `composer.json` psr-4 (`PluginLoader::autoload()`); `namespaces()` now reads the same, falling back to Composer's installed entry.
+- `OwnedHooks::on()` checked a declared hook by its short name (`HookDispatcher::shortName()`) against the manifest's `hooks` with `in_array`; a plugin's own hook is now named `{code}:{name}` there.
+- `EnablePlugin` takes its own row (`insertOrIgnore`, then `lockForUpdate`); `DisablePlugin` locks its row in `perform()`. Enabling now also locks the required plugins' rows, and disabling re-reads its dependents under its lock.
+- An update's manifest is validated on every read (`PluginRegistry`, `ManifestValidator::liveErrors()`); a fault puts the plugin in `CantBeUsed`.
+- Account › Notifications is `resources/js/pages/account/notifications.tsx`.
+- `sockets2/plugin-area` is not on `main` (checked at the start and again before these records).
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Quick check after the tasks: Pint, PHPStan, `types:check`, `npm run check` clean; Architecture 139 passed; `tests/Feature/Plugins` 657 passed; `tests/Feature/Hooks` 78 passed; `tests/Feature/Notices` 100 passed, 1 skipped; `tests/Unit/Contracts` 136 passed; also `tests/Feature/Feeds` 93, `tests/Feature/Site` 283, `tests/Feature/Api` 334, `tests/Feature/Guides` 514 passed.
+- End of part, `composer check`: Pint, PHPStan, `types:check`, `npm run check`, `build:themes` clean; Architecture 139 passed (1384 assertions); Unit and Feature 11945 passed, 2 skipped, 2 failed (61327 assertions). The two failures are `GenerateManifestReferenceTest` and `GenerateHooksReferenceTest`, the committed references this plan says not to regenerate (see B-?? below); nothing else failed.
+- Browser, one file at a time after `npm run build`: `Account/PluginNoticeChoicesTest` 4 passed, `AccountNotificationsTest` 3 passed, `InboxScreenTest` 4 passed. The quick check after Task 6: Architecture 139; `Feature/Plugins` 664, `Notices` 100 (1 skipped), `Inbox` 23, `Admin` 910, `Comments` 411, `Fediverse` 175, `Jobs` 81, `Guides` 514, `Languages` 373 passed; baselines unchanged.
 
 #### B-?? (draft)
 
--
+- **The requires message.** `requires` now takes `plugins`, so "requires may name only teme: a plugin can’t depend on another plugin yet." became false. Options: keep it, or say what is true. Chose `requires may name only teme and plugins.`, and `ManifestTest`'s row says the same; its meaning (an unknown key under `requires` is refused) is unchanged. `38bb2d6`.
+- **The fault state of an unmet dependency.** The plan names "its fault state". Options: `Waiting` (offers Migrate on the Plugins screen, which is wrong and not owned) or `CantBeUsed`, computed live as `requires.teme` is. Chose `CantBeUsed`, with the reason on the row. `38bb2d6`.
+- **When a plugin's notification hook arrives.** Core's notifications wait in `PendingNotifications`. A plugin's go through `DB::afterCommit()`, which has the same meaning (after the outermost commit, never after a rollback) without a second queue. `38bb2d6`.
+- **A hook class without `#[HookContract]`.** Refused with the same sentence as a class that is no hook, since every Teme hook carries one. `38bb2d6`.
+- **Registering kinds and listing plugin hooks read no rows with no plugin installed.** `DeclaredNotices::register()` and `PluginHookCatalogue::all()` return early unless `PluginRegistry::anyInstalled()`, as the loader does; otherwise the cached enabled rows were primed at boot and existing loader tests saw none. `38bb2d6`.
+- **`OwnedHooks` names hooks for plugins only.** Core owners keep the short name; only a plugin's subscription asks the catalogue for `{code}:{name}`, so a core listener never reads plugin rows. A first version refused any non-contracts class for plugins; it broke `SubscriptionTest` and `JoinTest`, whose test hooks live under `Tests\`, so it was dropped. `38bb2d6`.
+- **`teme:plugins` columns.** Requires and Required by come after Why, so `PluginCommandsTest`'s patterns still match unchanged. `38bb2d6`.
+- **Counts that grow with this part.** `HookContractsTest` counted 18 hooks; ArticleLinks makes 19. `ContributionsSchemaTest` lists the `contributes` keys; `hooks` and `notices` join them. Both keep their meaning (every hook listed once; the schema states what the validator takes). `38bb2d6`.
+- **The committed references drift, by the plan's rule.** `GenerateHooksReferenceTest` and `GenerateManifestReferenceTest` compare `docs/reference/hooks.md` and `plugin-manifest.md` with the generators; the plan says not to regenerate them and that the join does. They fail on this branch only for this part's additions (ArticleLinks; `requires.plugins`, `contributes.hooks`, `contributes.notices`, the two capabilities). Not regenerated.
+- **Tasks 1 to 4 in one commit.** The four tasks share `ManifestValidator`, `PluginDoors`, the schema and `Capability`; staging them task by task would have meant commits that don't build. One commit, with the tasks named in its body.
+- **`PluginNoticesTest` builds fresh registries after enabling.** `NoticeRegistry` is scoped and `PreferenceRegistry` a singleton, so a plugin enabled mid-request shows its kinds from the next request, as `PluginNoticeKindsTest`'s helper already assumes. The test forgets both before loading, as a new request would.
+- **D-L1: what a listener gets and changes.** `ArticleLinks` hands each link once (absolute address, host, outside or not, its words, at most 200 characters) and takes `LinkAttributes` by place. A value outside the list throws in `LinkAttributes`' constructor, so the listener fails, is recorded under its plugin and skipped, and the links stay as they were. A link to the site is changed only when the plugin names its host. `599bb8f`.
+- **D-L1: classes.** Themes have no place yet to declare link classes, so every class a plugin asks for is left off; `ArticleLinkAttributes::themeClasses()` is the one place to read them when a theme can. `599bb8f`.
+- **D-L1: cache and outputs.** The page is tagged `insertions` before any plugin is asked, and enabling or disabling a plugin with `content.links` purges those pages, as `content.insert` does. Feeds and the API draw bodies through `FeedBody`, which asks the same hook. Previews get the attributes too, since the hook is asked "per drawn article". `599bb8f`.
+- **Comments.** Early drafts cited D-numbers; every comment now cites only the plan's path.
+- **Plugin groups beside core's rows, not inside them.** `NoticeChoices::forScreen()` keeps its rows' shape, which `AccountNotificationsTest` and `CommentEmailPreferencesTest` pin; a new `grouped()` splits them, and the page gets core's under `notices` and the plugins' under `pluginNotices`. `FormPanel`'s title takes only words, so a plugin group's heading (its name and plug) is drawn inside the panel instead of changing the shared pattern.
+- **An inbox item's plugin.** `InboxChannel` files a plugin's kind under the plugin's code (the inbox's `owner`), and `InboxFor` gives each row `plugin`, the plugin's label, or null for core. A code starting with a digit, which the inbox's owner rule refuses, is filed under core rather than failing the delivery.
 
 #### Contract changes
 
--
+- New, `@since 0.9.0`: `Teme\Contracts\Hooks\HookSender`; `Teme\Contracts\Content\ArticleLinks`, `LinkAttributes`, `OutboundLink`; `Capability::NoticesSend` (`notices.send`) and `Capability::ContentLinks` (`content.links`).
+- Schema: `requires.plugins`, `hooks` items may be `{code}:{Name}`, `contributes.hooks`, `contributes.notices`, the two capabilities.
 
 #### STOP
 
--
+- Task 5 (permission audience and area link) waits: `sockets2/plugin-area` is not on `main`.
+- Screens built from the approved drawings, with the two rules. The maintainers approved five round 3 drawings on 2026-11-16; this part's one among them is the refusal when disabling a plugin others need. It needs no new screen code: the Plugins page shows the refusal as its error toast, naming the dependents once ("Relay Pro needs it. Disable Relay Pro first."), and no heading repeats. `PluginDependenciesTest` now proves that through the page's own route; it passed at once, since Task 2 already sends the refusal there.
+- Screens 2 and 5 built from the approved drawings, with the two rules (approved later on 2026-11-16; screen 2 is Part A's). Task 6, screen 5: Account › Notifications lists each enabled plugin's kinds after core's, in a group headed once by the plugin's own name with the plug mark, with the same switches; a disabled plugin's group goes and its stored choices stay. An inbox item a plugin sent shows "From <plugin's name>" with the plug mark and opens the admin link the plugin gave. Tests: `tests/Feature/Plugins/Notices/PluginNoticeScreenTest.php` (seen red: "Property [notices] was marked as invalid using a closure." with plugin rows mixed into core's, and no `pluginNotices`), `tests/Browser/Account/PluginNoticeChoicesTest.php` (1280 and 375, axe light and dark, 4 passed); `AccountNotificationsTest` and `InboxScreenTest` (browser) still pass. `NoticeChoices` (the plugin's label beside its kinds) waits with it, since its shape follows the drawing.
+- Left open for the screens: the Plugins screen's consent lines for notice kinds, required plugins and declared hooks are in `PluginWords`, `EnablePluginCommand` and `PluginRow::$requiredBy`, but `PluginsScreen` and `plugins/index.tsx` are not this part's files.
+
+#### Follow-up R1
+
+The review's findings 1 to 6 fixed, after merging `origin/main` (plugin sockets rounds 1 and 2, PR #380). Each fix: its test seen red, then the fix, its own commit, pushed.
+
+Commits:
+
+- `eba87060` Merge origin/main into sockets3/hooks-notices. Every conflict kept both sides' additions; the schema was merged by loading both sides, not by hand.
+- `900ee0d6` fix(plugins): a declared hook must be the plugin's own class (finding 1).
+- `81a66aef` fix(plugins): the Plugins screen names notice kinds and required plugins (finding 2).
+- `4d6d1e96` fix(site): link listeners have the page insertions' time budget (finding 3).
+- `b2d03657` fix(site): plugins are asked about links only on published renders (finding 4).
+- `a0227cf3` fix(plugins): an update that adds a kind of notice or a required plugin waits for a yes (finding 5).
+- `551f749b` fix(account): a plugin's notices are headed by its mark and keyed by its Composer name (finding 6).
+- this commit: docs(plans): records, follow-up R1.
+
+Tests seen red (first line of the failure):
+
+| Finding | File | First failure |
+|---|---|---|
+| 1 | `PluginHooksTest`, rows "core’s namespace, claimed in its composer.json" and "another plugin’s namespace, claimed in its composer.json" | Expecting […] not to have key 'tests/relay'. (the plugin started) |
+| 2 | `tests/Feature/Plugins/Hooks/PluginsScreenDependenciesTest.php` | Failed asserting that a traversable contains 'Send notices to people on this site, by email or in their inbox: Email me when an article I started fails; Email me when the article queue stops'.; and Undefined array key "requires" |
+| 3 | `ArticleLinksTest`, the call budget and the page budget | Failed asserting that two arrays are identical. (the slow plugin's attributes were kept; a fourth ask was answered) |
+| 4 | `ArticleLinksTest`, "asks plugins about links only on a published article, never on a preview" | the preview's body held `rel="noopener nofollow"` where `rel="noopener"` was expected |
+| 5 | `tests/Feature/Plugins/Notices/NoticeConsentTest.php` | Failed asserting that an array has the key 'notices'.; Failed asserting that true is false.; Expecting […] not to have key 'tests/relay'. |
+| 6 | `PluginNoticeScreenTest`, "lists a plugin’s kinds after core’s…" | Failed asserting that two arrays are identical. (no `name` in the group) |
+
+B-?? (draft):
+
+- **The merge.** `HookSender` joins `GenerateContractsReference::BY_DECLARATION` (given for `contributes.hooks`), one line beside round 1's. `HookContractsTest` counts 20 hooks: main's FeedsChanged and this part's ArticleLinks. `GenerateContractsReferenceTest`'s committed-reference row now drifts too, by the same rule as the hooks and manifest references; not regenerated. Wayfinder regenerated (its files are not committed).
+- **Finding 1: the class's own package.** Refused, with the namespace sentence: a class under `Teme\` or `App\`, or under a psr-4 prefix another found plugin's composer.json autoloads. Refused, with "which isn’t in the plugin’s own files.": a class whose file is neither under the plugin's folder (Composer's install path for an installed one) nor in a package whose nearest composer.json names the plugin. The second test equals the first in production, one folder per plugin, and lets tests copy a fixture: PHP loads a class once a process, from the first folder that had it. `PluginFixtures::loadFromOriginal('relay')` makes that the original folder in the three files that copy Relay, so no class is read from a copy deleted after its test; the claimed-namespace rows load their own file directly, since the copy's autoloader isn't registered once Relay's class exists.
+- **Finding 2: where the lines are drawn.** `plugins/index.tsx` only passes the row; its lines are drawn in `components/plugins/consent-dialog.tsx` and `details-dialog.tsx`, so the additions are there. A row sends `requires` (each "Needs Relay, which must stay enabled.", with whether it is new) and `requiredBy` (labels), naming plugins by their own labels; one new phrase, "Needed by", heads the second list.
+- **Finding 3: one budget a page.** `TimeBudget` (100 ms a call, 250 ms a page, `ColumnClock`) is an optional argument of `HookDispatcher::transform()`; a listener over it is recorded under its plugin as `ContributorTooSlow` ("…'s link attributes took N ms…", the class's message now naming what took the time, page insertions by default) and its answer left out. `ArticleLinkAttributes` is scoped, one line in `InsertionsServiceProvider` beside `PageInsertions`, so the page's budget spans every article a page or feed draws.
+- **Finding 4: the gate.** Links go to plugins when `$drawInsertions` is true, published renders, never a preview. The item's own "No inserted content" switch is about inserted content and is not part of this gate. This replaces "Previews get the attributes too" above.
+- **Finding 5: what the consent keeps.** `notices` (the kinds' ids) and `requires` (the Composer names), each only when declared, as `csp` and `imports` are. `Consent::covers()` and `added()` compare them; the Plugins screen offers Review, marks the notices line NEW for a new kind and a required plugin's line NEW. Tests that write an enabled row by hand now write the consent EnablePlugin keeps, through `PluginFixtures::agreed()`; their meaning is unchanged.
+- **Finding 6.** As the review says; Account › Notifications' browser test still passes (4 passed).
+
+STOP: Task 5 still waits. `origin/main` has no `plugins.area.show` route and no plugin-declared permission; `sockets2/plugin-area` isn't on the remote, and round 2's Part A records are empty. The audience for a plugin's own permission and the area link can't be built or tested against code that isn't there.
+
+LATER (the review's findings, not fixed in this round):
+
+- 7: an inbox item from a plugin whose code starts with a digit is filed under core.
+- 8: `HookCatalogue::plugins()` has no caller. (Its import order was put right by Pint in the merge.)
+- 9: `NoticeRate` isn't atomic; a cycle in `requires.plugins` isn't refused; `HookDispatcher::nameOf()` uses `app()`.
+
+Gate: `composer check`: Pint, PHPStan, `types:check`, `npm run check` clean; Architecture 139 passed (1395 assertions); Unit and Feature 12618 passed, 3 skipped, 4 failed (63906 assertions), 1944 s. Three failures are the committed-reference rows of `GenerateHooksReferenceTest`, `GenerateManifestReferenceTest` and `GenerateContractsReferenceTest`, by the plan's rule. The fourth, the handbook's `first-plugin/tests/FirstPluginTest.php`, depends on order: it doesn't empty `FirstPlugin::$heard`, so it counts 2 when `Guides/Developers/ExamplesTest` ran first in the same worker. Those two files fail together the same way on `origin/main`; it passes alone, and it isn't this part's file. Browser: `Account/PluginNoticeChoicesTest` 4 passed after `npm run build`. Baselines unchanged: design-system 222, admin-words 876.
 
 #### Changelog lines for the maintainers
 
--
+- Plugins can declare hooks of their own for other plugins, and send them through `HookSender`.
+- A plugin can require other plugins under `requires.plugins`; Teme enables, disables and starts them in order, and `teme:plugins` shows Requires and Required by.
+- Plugins with `notices.send` declare kinds of notice and send them by email or inbox, to the person their work acts for or to plugin managers, at most 100 an hour.
+- Plugins with `content.links` can mark the links in articles nofollow, sponsored or ugc and open them in a new tab, on the site, in feeds and in the API, never in previews, within the page insertions' time budget.
+- An update that adds a kind of notice or a required plugin waits for someone to agree, as one that asks for more access does.
 
 #### Try it
 
--
+- `php artisan test --parallel --compact tests/Feature/Plugins/Hooks`, then the same for `tests/Feature/Plugins/Notices`.
+- With the fixtures in `teme.plugin_paths`: enable `tests/relay-pro` before `tests/relay` and read the refusal; enable both and run `php artisan teme:plugins`; try `teme:plugins:disable tests/relay`.
+- Enable `tests/linker`, publish an article with an outside link, and see `rel="noopener nofollow"` and `target="_blank"` on the page and in `/feed/`.
 
 ---
 

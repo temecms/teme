@@ -1,0 +1,22 @@
+{
+    "manifest": 1,
+    "name": "tests/scribe",
+    "code": "scribe",
+    "label": "Scribe",
+    "description": "A plugin the tests enable, which asks the site's AI connection for two declared tasks.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Scribe\\ScribePlugin",
+    "capabilities": ["ai", "jobs"],
+    "contributes": {
+        "aiTasks": [
+            { "id": "article", "label": "Write an article", "description": "Writes a full article from a researched brief.",
+              "needs": ["text"], "sends": "brief", "maxOutputTokens": 32000 },
+            { "id": "titles", "label": "Suggest titles", "needs": ["text", "structured-output"], "sends": "draft", "maxOutputTokens": 2000 }
+        ]
+    },
+    "jobs": [
+        { "key": "write", "label": "Write an article", "long": true, "tries": 1, "backoff": [1] },
+        { "key": "titles", "label": "Suggest titles", "tries": 1, "backoff": [1] }
+    ]
+}

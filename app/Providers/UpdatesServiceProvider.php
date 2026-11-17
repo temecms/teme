@@ -10,8 +10,10 @@ use App\Domain\Updates\Updater\DokployApplicationPlatform;
 use App\Domain\Updates\Updater\DokployPlatform;
 use App\Domain\Updates\Updater\NoPlatform;
 use App\Domain\Updates\Updater\Platform;
+use App\Domain\Updates\UpdatesSettings;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Teme\Contracts\Settings\SettingsRegistrar;
 
 /**
  * Registers the Status banner that tells administrators a newer Teme release exists (I-221), and the platform the updater moves Teme's parts through.
@@ -30,7 +32,7 @@ final class UpdatesServiceProvider extends ServiceProvider
 
     /**
      * Returns the platform the updater moves Teme through: the one TEME_UPDATER_PLATFORM names, or, in a container
-     * that runs every role and was told where Dokploy is, Dokploy's Application; null when none is set up.
+     * that runs every role and was given a Dokploy App Name, Dokploy's Application; null when none is set up.
      */
     private static function platform(): ?string
     {
@@ -40,13 +42,14 @@ final class UpdatesServiceProvider extends ServiceProvider
             return $named;
         }
 
-        $dokploy = config('teme.updater.dokploy.url');
+        $appName = config('teme.updater.dokploy.app_name');
 
-        return config('teme.role') === 'all' && is_string($dokploy) && $dokploy !== '' ? 'dokploy-application' : null;
+        return config('teme.role') === 'all' && is_string($appName) && $appName !== '' ? 'dokploy-application' : null;
     }
 
     public function boot(): void
     {
         $this->app->make(StatusChecks::class)->register(UpdateAvailable::class);
+        $this->app->make(SettingsRegistrar::class)->group(UpdatesSettings::group());
     }
 }

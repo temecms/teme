@@ -110,7 +110,7 @@ it('sends nothing for a cancel', function (): void {
 });
 
 it('names the versions and the person in the email, and never a token', function (string $kind, bool $rollback): void {
-    config(['teme.updater.dokploy.token' => 'dokploy-secret-token']);
+    dpKey('dokploy-secret-token');
     $notice = new TemeUpdateNotice($kind, '0.1.0-rc.14', '0.1.0-rc.15', $kind === 'requested' ? 'Ada Admin' : null, 'It stopped.', 'Ledger *Weekly*', $rollback);
 
     $mail = $notice->toMail($this->first);

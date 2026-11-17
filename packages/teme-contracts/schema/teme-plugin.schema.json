@@ -61,6 +61,18 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "The Teme versions it works with, as a Composer constraint."
+                },
+                "plugins": {
+                    "type": "object",
+                    "maxProperties": 5,
+                    "description": "Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint.",
+                    "propertyNames": {
+                        "pattern": "^[a-z0-9]([_.-]?[a-z0-9]+)*/[a-z0-9](([_.]|-{1,2})?[a-z0-9]+)*$"
+                    },
+                    "additionalProperties": {
+                        "type": "string",
+                        "minLength": 1
+                    }
                 }
             }
         },
@@ -86,7 +98,11 @@
                     "fediverse.read",
                     "fediverse.send",
                     "feeds.links",
-                    "pages.insert"
+                    "pages.insert",
+                    "ai",
+                    "people.read",
+                    "notices.send",
+                    "content.links"
                 ]
             }
         },
@@ -159,6 +175,14 @@
                             "day",
                             "week"
                         ]
+                    },
+                    "enabledBy": {
+                        "type": "string",
+                        "description": "One of the plugin's boolean settings, which switches the schedule on and off."
+                    },
+                    "everyFrom": {
+                        "type": "string",
+                        "description": "One of the plugin's select settings whose options are all intervals above; how often the schedule runs, every when unset."
                     }
                 }
             }
@@ -224,7 +248,7 @@
                             "secret": {
                                 "type": "string",
                                 "minLength": 1,
-                                "description": "The key of one of the plugin's own settings of type secret; needed for secret and hmac."
+                                "description": "The key of one of the plugin's own settings of type secret; needed for secret and hmac, optional for custom, whose class is given an empty secret without it."
                             },
                             "from": {
                                 "type": "string",
@@ -239,7 +263,7 @@
                             "class": {
                                 "type": "string",
                                 "minLength": 1,
-                                "description": "For custom: the class that checks the request, implementing the InboundVerifier contract, built with no constructor arguments and given the secret's value."
+                                "description": "For custom: the class that checks the request, implementing the InboundVerifier contract, built with no constructor arguments and given the secret's value, or an empty string when secret is left out."
                             }
                         }
                     },
@@ -375,10 +399,10 @@
         },
         "hooks": {
             "type": "array",
-            "description": "The hooks the plugin listens to, by name.",
+            "description": "The hooks the plugin listens to, by name: a Teme hook's, or another plugin's as code:Name.",
             "items": {
                 "type": "string",
-                "pattern": "^[A-Z][A-Za-z]+$"
+                "pattern": "^([a-z0-9][a-z0-9-]{1,39}:)?[A-Z][A-Za-z]+$"
             }
         },
         "contributes": {
@@ -416,7 +440,12 @@
                                     "urls",
                                     "email",
                                     "secret",
-                                    "color"
+                                    "color",
+                                    "person",
+                                    "term",
+                                    "type",
+                                    "code",
+                                    "repeater"
                                 ]
                             },
                             "label": {
@@ -457,6 +486,51 @@
                             "unit": {
                                 "type": "string",
                                 "description": "The unit shown beside a number."
+                            },
+                            "taxonomy": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,31}$",
+                                "description": "For a term: the taxonomy its terms come from."
+                            },
+                            "multiple": {
+                                "type": "boolean",
+                                "description": "For a term: whether several may be chosen."
+                            },
+                            "section": {
+                                "type": "string",
+                                "description": "The id of the settingsSections entry the setting sits in."
+                            },
+                            "visibleWhen": {
+                                "type": "object",
+                                "description": "Shows the setting only while every earlier setting named has this value, or one of a list of values."
+                            },
+                            "fields": {
+                                "type": "array",
+                                "description": "A repeater's fields, one item's worth: scalar types and code."
+                            },
+                            "minItems": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 50,
+                                "description": "A repeater's fewest items."
+                            },
+                            "maxItems": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 50,
+                                "description": "A repeater's most items."
+                            },
+                            "itemLabel": {
+                                "type": "string",
+                                "description": "What one of a repeater's items is called, as its Add button names it."
+                            },
+                            "itemTitle": {
+                                "type": "string",
+                                "description": "The key of the field whose value titles a collapsed item."
+                            },
+                            "scripts": {
+                                "type": "boolean",
+                                "description": "A code setting whose inline scripts wait for an administrator's approval."
                             }
                         }
                     }
@@ -706,6 +780,252 @@
                                 "type": "string",
                                 "pattern": "^(?:\\*\\.)?(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
                             }
+                        }
+                    }
+                },
+                "aiTasks": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "description": "The AI tasks the plugin asks the site's AI connection for, through SiteAi. Needs the ai capability.",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "id",
+                            "label",
+                            "needs",
+                            "sends",
+                            "maxOutputTokens"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$",
+                                "maxLength": 24,
+                                "description": "The task's id, as SiteAi::ask() names it."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The task's name in the consent and on Settings › AI."
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 160,
+                                "description": "What the task does."
+                            },
+                            "needs": {
+                                "type": "array",
+                                "minItems": 1,
+                                "uniqueItems": true,
+                                "items": {
+                                    "enum": [
+                                        "text",
+                                        "images-in",
+                                        "structured-output"
+                                    ]
+                                },
+                                "description": "What a model must be able to do for this task."
+                            },
+                            "sends": {
+                                "enum": ["brief", "published", "draft"],
+                                "description": "What it sends: only what the plugin writes itself, published text, or an item's unpublished text."
+                            },
+                            "maxOutputTokens": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 64000,
+                                "description": "The most tokens one answer may hold."
+                            }
+                        }
+                    }
+                },
+                "notices": {
+                    "type": "array",
+                    "maxItems": 5,
+                    "description": "Kinds of notice the plugin sends through Notices, with notices.send; never required.",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "label", "audience", "channels"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{1,31}$",
+                                "description": "Its id within the plugin."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "description": "The choice as Account › Notifications words it."
+                            },
+                            "audience": {
+                                "type": "string",
+                                "pattern": "^(?:starter|plugins\\.manage|[a-z][a-z0-9-]{1,23})$",
+                                "description": "Who may receive it: starter, only the person the plugin's work acts for; plugins.manage, those who manage plugins; or the id of a permission the plugin declares, its holders."
+                            },
+                            "channels": {
+                                "type": "array",
+                                "minItems": 1,
+                                "uniqueItems": true,
+                                "items": {
+                                    "enum": ["mail", "inbox"]
+                                }
+                            },
+                            "defaults": {
+                                "type": "array",
+                                "uniqueItems": true,
+                                "items": {
+                                    "enum": ["mail", "inbox"]
+                                },
+                                "description": "The channels on until the person chooses; some of its channels."
+                            }
+                        }
+                    }
+                },
+                "hooks": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "description": "Hooks the plugin declares for other plugins, which it sends through HookSender.",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "class", "description"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "pattern": "^[A-Z][A-Za-z]{2,47}$",
+                                "description": "Its name; other plugins list it as code:Name."
+                            },
+                            "class": {
+                                "type": "string",
+                                "minLength": 1,
+                                "description": "Its class, in the plugin's own namespace: a Notification, Transform or Collect hook with #[HookContract]."
+                            },
+                            "description": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "What it is for, in one sentence."
+                            }
+                        }
+                    }
+                },
+                "settingsSections": {
+                    "type": "array",
+                    "maxItems": 8,
+                    "description": "The sections the plugin's settings page is split into, in order.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "label"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,39}$",
+                                "description": "The section's id, which a setting's section names."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "The section's heading."
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 160,
+                                "description": "A line under the heading."
+                            }
+                        }
+                    }
+                },
+                "permissions": {
+                    "type": "array",
+                    "maxItems": 3,
+                    "description": "Permissions the plugin declares, named plugin.{code}.{id}; administrators always hold them.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "label"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,23}$",
+                                "description": "The permission's id."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "What it lets a person do."
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 160,
+                                "description": "A longer line about it."
+                            },
+                            "roles": {
+                                "type": "array",
+                                "items": {
+                                    "enum": ["editor", "author", "contributor"]
+                                },
+                                "uniqueItems": true,
+                                "description": "The roles given it when it is first made."
+                            }
+                        }
+                    }
+                },
+                "area": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["label", "permission", "pages"],
+                    "description": "The plugin's own area in the admin: pages of blocks core draws, and records' forms.",
+                    "properties": {
+                        "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "description": "The area's word for what it holds, used inside it."
+                        },
+                        "description": {
+                            "type": "string",
+                            "maxLength": 160,
+                            "description": "A line about the area."
+                        },
+                        "permission": {
+                            "type": "string",
+                            "description": "The id of the declared permission that opens the area."
+                        },
+                        "menu": {
+                            "enum": ["content", "site", "tools"],
+                            "description": "Where its entry goes."
+                        },
+                        "purges": {
+                            "type": "array",
+                            "items": {
+                                "enum": ["insertions", "page-insertions"]
+                            },
+                            "uniqueItems": true,
+                            "description": "What core purges after a write that changed something."
+                        },
+                        "pages": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "items": {
+                                "type": "object"
+                            },
+                            "description": "The area's pages, each its id, label and blocks."
+                        },
+                        "records": {
+                            "type": "array",
+                            "maxItems": 3,
+                            "items": {
+                                "type": "object"
+                            },
+                            "description": "The kinds of record the area's tables list and its forms edit."
                         }
                     }
                 }

@@ -6,6 +6,7 @@ namespace App\Domain\Plugins;
 
 use App\Domain\Hooks\Reference\HookCatalogue;
 use App\Domain\Import\PluginData\WordPressNames;
+use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Jobs\DeclaredJobs;
 use App\Domain\Plugins\Seams\ContributionsCheck;
 use App\Domain\Plugins\Seams\PluginServices;
@@ -13,14 +14,18 @@ use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Themes\ManifestValidator as ThemeManifestValidator;
 use Composer\Semver\Semver;
+use Composer\Semver\VersionParser;
 use ReflectionClass;
+use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Hooks\HookContract;
+use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Insertions\InlineScripts;
 use Teme\Contracts\Insertions\InsertionsChanged;
 use Teme\Contracts\Jobs\Jobs;
 use Teme\Contracts\Media\MediaWriter;
+use Teme\Contracts\Notices\Notices;
 use Teme\Contracts\Plugins\Capability;
 use UnexpectedValueException;
 
@@ -42,7 +47,7 @@ final readonly class ManifestValidator
     private const string CODE = '/^'.ThemeManifestValidator::CODE_PATTERN.'$/';
 
     /** The capabilities docs/architecture/plugins.md names that have no door yet. */
-    private const array LATER = ['people.read', 'mail.send', 'site.output', 'ai'];
+    private const array LATER = ['mail.send', 'site.output', 'ai'];
 
     public function __construct(
         private CodeScan $scan,
@@ -153,6 +158,8 @@ final readonly class ManifestValidator
         array_push($errors, ...$this->contributions->errors($read->contributes(), $read->version(), $read->capabilities()));
         array_push($errors, ...$this->feedLinks($read));
         array_push($errors, ...$this->columns($read));
+        array_push($errors, ...$this->aiTasks($read));
+        array_push($errors, ...$this->notices($read));
         array_push($errors, ...$this->owns($manifest, $read));
         array_push($errors, ...$this->jobs($manifest, $read));
         array_push($errors, ...$this->schedules($manifest, $read));
@@ -184,6 +191,38 @@ final readonly class ManifestValidator
         }
 
         return [];
+    }
+
+    /**
+     * AI tasks spend the site's AI budget, so ai is required.
+     *
+     * @return list<string>
+     */
+    private function aiTasks(Manifest $read): array
+    {
+        $tasks = $read->contributes()['aiTasks'] ?? null;
+
+        if (! is_array($tasks) || $tasks === [] || in_array(Capability::Ai->value, $read->capabilities(), true)) {
+            return [];
+        }
+
+        return [__('It declares AI tasks, but the plugin doesn’t ask for ai.')];
+    }
+
+    /**
+     * A plugin's own kinds of notice are sent only with notices.send (docs/plans/plugin-sockets-3.md).
+     *
+     * @return list<string>
+     */
+    private function notices(Manifest $read): array
+    {
+        $notices = $read->contributes()['notices'] ?? null;
+
+        if (! is_array($notices) || $notices === [] || in_array(Capability::NoticesSend->value, $read->capabilities(), true)) {
+            return [];
+        }
+
+        return [__('It declares kinds of notice, but the plugin doesn’t ask for notices.send.')];
     }
 
     /**
@@ -246,8 +285,51 @@ final readonly class ManifestValidator
             $errors[] = "requires.teme \"{$constraint}\" is not a version constraint.";
         }
 
-        if (array_diff(array_keys($requires), ['teme']) !== []) {
-            $errors[] = 'requires may name only teme: a plugin can’t depend on another plugin yet.';
+        if (array_diff(array_keys($requires), ['teme', 'plugins']) !== []) {
+            $errors[] = __('requires may name only teme and plugins.');
+        }
+
+        if (array_key_exists('plugins', $requires)) {
+            array_push($errors, ...$this->requiredPlugins($requires['plugins'], is_string($manifest['name'] ?? null) ? $manifest['name'] : ''));
+        }
+
+        return $errors;
+    }
+
+    /**
+     * requires.plugins: an object of other plugins' Composer names and the
+     * versions of each it works with, at most Dependencies::MOST
+     * (docs/plans/plugin-sockets-3.md).
+     *
+     * @return list<string>
+     */
+    private function requiredPlugins(mixed $plugins, string $own): array
+    {
+        if (! is_array($plugins) || ($plugins !== [] && array_is_list($plugins))) {
+            return [__('requires.plugins must be an object of plugin names and the versions each works with.')];
+        }
+
+        $errors = count($plugins) > Dependencies::MOST ? [__('requires.plugins may name at most 5 plugins.')] : [];
+        $parser = new VersionParser;
+
+        foreach ($plugins as $name => $constraint) {
+            $name = (string) $name;
+
+            if (preg_match(self::NAME, $name) !== 1 || $name === $own) {
+                $errors[] = __('requires.plugins names ":name", which isn’t another plugin’s Composer name.', ['name' => $name]);
+
+                continue;
+            }
+
+            try {
+                if (! is_string($constraint) || trim($constraint) === '') {
+                    throw new UnexpectedValueException('empty');
+                }
+
+                $parser->parseConstraints($constraint);
+            } catch (UnexpectedValueException) {
+                $errors[] = __('requires.plugins ":name" needs a version constraint, such as ^1.0.', ['name' => $name]);
+            }
         }
 
         return $errors;
@@ -315,6 +397,12 @@ final readonly class ManifestValidator
                 $errors[] = "{$class} asks for InsertionsChanged, but the plugin doesn’t ask for content.insert.";
             } elseif (strtolower((string) $type) === strtolower(InlineScripts::class) && ! self::inserts($read)) {
                 $errors[] = "{$class} asks for InlineScripts, but the plugin doesn’t ask for content.insert or pages.insert.";
+            } elseif (strtolower((string) $type) === strtolower(SiteAi::class) && ! in_array(Capability::Ai->value, $read->capabilities(), true)) {
+                $errors[] = __(':class asks for SiteAi, but the plugin doesn’t ask for ai.', ['class' => $class]);
+            } elseif (strtolower((string) $type) === strtolower(Notices::class) && ! in_array(Capability::NoticesSend->value, $read->capabilities(), true)) {
+                $errors[] = __(':class asks for Notices, but the plugin doesn’t ask for notices.send.', ['class' => $class]);
+            } elseif (strtolower((string) $type) === strtolower(HookSender::class) && DeclaredHooks::of($read) === []) {
+                $errors[] = __(':class asks for HookSender, but the plugin declares no hooks under contributes.hooks.', ['class' => $class]);
             }
         }
 
@@ -485,6 +573,11 @@ final readonly class ManifestValidator
         $known = self::hooksByShortName();
 
         foreach ($this->listed($manifest, 'hooks') as $hook) {
+            // Another plugin's own hook: Dependencies checks it against that plugin.
+            if (is_string($hook) && preg_match(DeclaredHooks::FULL_NAME, $hook) === 1) {
+                continue;
+            }
+
             $class = is_string($hook) ? ($known[$hook] ?? null) : null;
 
             if ($class === null) {
@@ -696,6 +789,7 @@ final readonly class ManifestValidator
         }
 
         $errors = [];
+        $settings = null;
 
         foreach ($schedules as $entry) {
             if (! is_array($entry)) {
@@ -715,9 +809,69 @@ final readonly class ManifestValidator
             if (! is_string($every) || ! in_array($every, DeclaredJobs::EVERY, true)) {
                 $errors[] = 'schedules every must be one of minute, five-minutes, fifteen-minutes, hour, day, week.';
             }
+
+            $errors = [...$errors, ...$this->scheduleSettings($entry, $settings ??= self::declaredSettings($manifest))];
         }
 
         return $errors;
+    }
+
+    /**
+     * A schedule's own settings (docs/plans/plugin-sockets-3.md, scheduler
+     * port): `enabledBy` names one of the plugin's boolean settings, which
+     * switches it on and off, and `everyFrom` a select setting whose options
+     * are all intervals a schedule may take.
+     *
+     * @param  array<array-key, mixed>  $entry
+     * @param  array<string, array<array-key, mixed>>  $settings
+     *
+     * @return list<string>
+     */
+    private function scheduleSettings(array $entry, array $settings): array
+    {
+        $errors = [];
+
+        if (array_key_exists('enabledBy', $entry)) {
+            $key = $entry['enabledBy'];
+
+            if (! is_string($key) || ($settings[$key]['type'] ?? null) !== 'boolean') {
+                $errors[] = __('schedules enabledBy names ":key", which isn’t one of the plugin’s boolean settings.', ['key' => $this->show($key)]);
+            }
+        }
+
+        if (array_key_exists('everyFrom', $entry)) {
+            $key = $entry['everyFrom'];
+            $options = is_string($key) ? ($settings[$key]['options'] ?? null) : null;
+
+            if (! is_string($key) || ($settings[$key]['type'] ?? null) !== 'select' || ! is_array($options) || $options === []
+                || array_diff(array_map(strval(...), array_keys($options)), DeclaredJobs::EVERY) !== []) {
+                $errors[] = __('schedules everyFrom names ":key", which isn’t a select setting whose options are all minute, five-minutes, fifteen-minutes, hour, day or week.', ['key' => $this->show($key)]);
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * The settings the manifest declares under `contributes.settings`, by key.
+     *
+     * @param  array<string, mixed>  $manifest
+     *
+     * @return array<string, array<array-key, mixed>>
+     */
+    private static function declaredSettings(array $manifest): array
+    {
+        $contributes = $manifest['contributes'] ?? null;
+        $declared = is_array($contributes) && is_array($contributes['settings'] ?? null) ? $contributes['settings'] : [];
+        $settings = [];
+
+        foreach ($declared as $setting) {
+            if (is_array($setting) && is_string($setting['key'] ?? null)) {
+                $settings[$setting['key']] = $setting;
+            }
+        }
+
+        return $settings;
     }
 
     private function backoffOk(mixed $backoff): bool

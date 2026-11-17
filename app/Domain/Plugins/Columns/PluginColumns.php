@@ -7,6 +7,7 @@ namespace App\Domain\Plugins\Columns;
 use App\Domain\Hooks\ListenerFaults;
 use App\Domain\Plugins\Contributions\ContributionsValidator;
 use App\Domain\Plugins\LoadedPlugins;
+use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use Illuminate\Contracts\Container\Container;
@@ -85,6 +86,10 @@ final class PluginColumns
                 continue;
             }
 
+            // Its headings in the person's language, from its own lang folder (docs/plans/plugin-sockets-2.md).
+            $words = ManifestText::for($foundPlugin->code);
+            $locale = app()->getLocale();
+
             foreach ($declared as $entry) {
                 if (! is_array($entry) || ! is_string($entry['id'] ?? null)) {
                     continue;
@@ -109,8 +114,8 @@ final class PluginColumns
                     owner: $record->name,
                     code: $foundPlugin->code,
                     id: $entry['id'],
-                    label: is_string($entry['label'] ?? null) ? trim($entry['label']) : $entry['id'],
-                    plugin: $manifest->label(),
+                    label: is_string($entry['label'] ?? null) ? $words->text(trim($entry['label']), $locale) : $entry['id'],
+                    plugin: $words->text($manifest->label(), $locale),
                     kind: $kind,
                     width: $width,
                 );

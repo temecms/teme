@@ -72,6 +72,7 @@ it('shows a request as one row: who, which task and option, which item, how it e
             'person' => ['id' => $this->eze->id, 'name' => 'Eze Editor'],
             'task' => ['key' => 'tidy', 'label' => 'Tidy'],
             'variant' => ['key' => 'shorter', 'label' => 'Shorter'],
+            'plugin' => null,
             'subject' => ['kind' => 'content', 'id' => $this->item->id, 'title' => 'Harbour news', 'kindLabel' => 'Post', 'state' => 'present'],
             'outcome' => ['key' => 'suggested', 'label' => 'Suggested'],
             'why' => null,

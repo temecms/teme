@@ -246,7 +246,7 @@ PHP,
 it('clamps outbound timeouts to the door’s ceiling, 300 seconds inside a long job', function (): void {
     $ceiling = fn (object $http): int => (new ReflectionProperty($http, 'mostSeconds'))->getValue($http);
     $short = new PluginHttp(['api.example.com'], FakeResolver::answering(['api.example.com' => ['93.184.215.14']]), mostSeconds: 10);
-    $long = app(PluginDoors::class)->for('tests/jobs', 'jobs', ['http'], ['api.example.com'], 300)[OutboundHttp::class];
+    $long = app(PluginDoors::class)->for('tests/jobs', 'jobs', ['http'], ['api.example.com'], httpSeconds: 300)[OutboundHttp::class];
 
     expect($ceiling($short))->toBe(10)
         ->and($ceiling($long))->toBe(300);
@@ -435,7 +435,7 @@ it('builds a long job with a 300-second outbound ceiling and 1800-second timeout
     Queue::assertPushed(RunPluginJob::class, fn (RunPluginJob $job): bool => $job->jobKey === 'long-call'
         && $job->timeout === 1800);
 
-    $doors = app(PluginDoors::class)->for('tests/jobs', 'jobs', ['http'], ['api.example.com'], 300);
+    $doors = app(PluginDoors::class)->for('tests/jobs', 'jobs', ['http'], ['api.example.com'], httpSeconds: 300);
     $ceiling = (new ReflectionProperty($doors[OutboundHttp::class], 'mostSeconds'))->getValue($doors[OutboundHttp::class]);
 
     expect($ceiling)->toBe(300);

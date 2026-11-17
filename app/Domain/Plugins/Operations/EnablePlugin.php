@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
 
+use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Cache\PageTags;
+use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Manifest;
@@ -40,7 +43,8 @@ use Teme\Contracts\Plugins\Capability;
  * be what it asks for now; none of its public routes may collide with one
  * that answers already. Runs its waiting migrations inside the same
  * transaction, records that consent, for this exact version and by whom,
- * and clears its faults and stopped parts. Returns its name.
+ * and clears its faults and stopped parts. Refused while a plugin it
+ * requires isn't enabled at a version it accepts. Returns its name.
  */
 final class EnablePlugin extends BaseOperation implements RequiresElevation
 {
@@ -55,6 +59,7 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         private readonly RouteCollisions $routeCollisions,
         private readonly SettingHosts $settingHosts,
         private readonly ScheduleRunner $schedules,
+        private readonly Dependencies $dependencies,
     ) {}
 
     public function requiresElevation(OperationInput $input): bool
@@ -89,6 +94,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         if (! $same) {
             throw ValidationException::withMessages(['plugin' => ['It asks for something different now. Look again before you enable it.']]);
         }
+
+        $this->refuseUnmetDependencies($manifest);
 
         // Two owners never answer one request: refused before anything is written (docs/proposals/plugin-public-routes.md).
         $enabled = PluginRecord::query()->where('state', PluginRecord::ENABLED)->orderBy('name')->get()->all();
@@ -140,6 +147,14 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         $found = $this->registry->find($input->name) ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
         $manifest = $found->manifest ?? throw ValidationException::withMessages(['plugin' => ["No plugin is named \"{$input->name}\"."]]);
 
+        // The plugins it needs, locked as DisablePlugin locks its own row, then checked again: a disable racing this enable waits, then sees it.
+        $required = array_keys(Dependencies::required($manifest));
+
+        if ($required !== []) {
+            PluginRecord::query()->whereIn('name', $required)->orderBy('name')->lockForUpdate()->get();
+            $this->refuseUnmetDependencies($manifest);
+        }
+
         try {
             $migrations = $this->migrations->run($found, $record->migrations);
         } catch (PluginTablesRefused $refused) {
@@ -147,6 +162,8 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         }
 
         $consentedBy = $input->actorId() ?? $input->schedulesAs;
+        // The permission lines agreed before, so an update gives only a role newly agreed to.
+        $agreedBefore = array_values(array_filter((array) ($record->consent['permissions'] ?? []), is_string(...)));
 
         $record->fill([
             'code' => $code,
@@ -163,6 +180,11 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
                 ...$this->insertionHosts($manifest, $input->capabilities),
                 ...$this->imports($found),
                 ...$this->hostsFrom($manifest, $record->consent, $input->settingHosts),
+                ...$this->permissions($manifest),
+                ...(PluginAiTasks::consentOf($manifest) === [] ? [] : ['aiTasks' => PluginAiTasks::consentOf($manifest)]),
+                // So an update that adds a kind of notice or a required plugin waits for a new yes (docs/plans/plugin-sockets-3.md).
+                ...(Consent::declaredNotices($manifest) === [] ? [] : ['notices' => Consent::declaredNotices($manifest)]),
+                ...(Consent::declaredRequires($manifest) === [] ? [] : ['requires' => Consent::declaredRequires($manifest)]),
             ],
             // Its schedules run as this person: who enabled it, or whom the operator named.
             'consented_by' => $consentedBy === null ? null : (int) $consentedBy,
@@ -173,6 +195,9 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             'quarantine' => [],
             'migrations' => $migrations,
         ])->save();
+
+        // Its permissions, made once and given to administrators and the roles it names (docs/plans/plugin-sockets-2.md, A1).
+        PluginPermissions::ensure($code, PluginPermissions::declared($manifest), $agreedBefore);
 
         $this->log->record(SecurityEventType::PluginEnabled, $input->actorId(), context: [
             'plugin' => $input->name,
@@ -189,14 +214,27 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
             $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, [PageTags::FEED_LINKS]));
         }
 
-        // Pages drawn before it was enabled are drawn again with its insertions, after commit (I-064).
-        if (in_array(Capability::ContentInsert->value, $input->capabilities, true) || in_array(Capability::PagesInsert->value, $input->capabilities, true)) {
+        // Pages drawn before it was enabled are drawn again with its insertions and link attributes, after commit (I-064).
+        if (array_intersect([Capability::ContentInsert->value, Capability::PagesInsert->value, Capability::ContentLinks->value], $input->capabilities) !== []) {
             app(InsertionsChanged::class)->notify();
         }
 
         DB::afterCommit(fn () => $this->records->changed());
 
         return $input->name;
+    }
+
+    /**
+     * The permissions it declares, kept with the consent so a new one, or a
+     * new role given one, asks again; none for a plugin that declares none.
+     *
+     * @return array{permissions?: list<string>}
+     */
+    private function permissions(Manifest $manifest): array
+    {
+        $lines = PluginPermissions::consentLines($manifest);
+
+        return $lines === [] ? [] : ['permissions' => $lines];
     }
 
     /**
@@ -210,6 +248,22 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         $declared = $found->manifest === null ? [] : Consent::declaredImports($found->manifest);
 
         return $declared === [] ? [] : ['imports' => $declared];
+    }
+
+    /**
+     * Refuses, naming the first, when a plugin it needs isn't enabled at a
+     * version it accepts, or it listens to a plugin's hook without requiring
+     * that plugin (docs/plans/plugin-sockets-3.md).
+     *
+     * @throws ValidationException
+     */
+    private function refuseUnmetDependencies(Manifest $manifest): void
+    {
+        $why = $this->dependencies->problems($manifest)[0] ?? $this->dependencies->unmet($manifest, fresh: true);
+
+        if ($why !== null) {
+            throw ValidationException::withMessages(['plugin' => [$why]]);
+        }
     }
 
     /**

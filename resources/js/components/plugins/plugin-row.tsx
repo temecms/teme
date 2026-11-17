@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PluginIcon } from '@/components/ui/plugin-icon';
 import { StatusPill } from '@/components/ui/status-pill';
+import { formatCost } from '@/lib/ai-cost';
 import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { show as showSettings } from '@/routes/settings';
@@ -303,6 +304,20 @@ export function PluginRow({
                         ))}
                     <span className="font-mono break-all">{plugin.name}</span>
                 </p>
+                {plugin.ai !== null && (
+                    <p data-test="plugin-ai" className="text-small text-ink-2">
+                        {plugin.ai.budgetMicrounits === null
+                            ? __('AI this month: :cost', {
+                                  cost: formatCost(plugin.ai.costMicrounits),
+                              })
+                            : __('AI this month: :cost of :budget', {
+                                  cost: formatCost(plugin.ai.costMicrounits),
+                                  budget: formatCost(
+                                      plugin.ai.budgetMicrounits,
+                                  ),
+                              })}
+                    </p>
+                )}
                 {plugin.reason !== '' && (
                     <p
                         data-test="plugin-reason"

@@ -1,6 +1,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
+import { __ } from '@/lib/i18n';
 import type { CardMedia, FieldDefinition, SecretStatus } from '@/types';
 import { HoursSetting } from './hours-setting';
 import { MediaSetting } from './media-setting';
@@ -121,35 +122,54 @@ export function FieldControl({
             );
         case 'multiselect':
             return (
-                <fieldset id={id} className="space-y-2">
-                    {/* Sent when nothing is ticked, so clearing the selection saves. */}
-                    <input
-                        type="hidden"
-                        name={`${name}[]`}
-                        value=""
+                <Choices
+                    id={id}
+                    name={name}
+                    options={field.options}
+                    value={value}
+                    disabled={disabled}
+                />
+            );
+        case 'term':
+        case 'type': {
+            if (field.type === 'term' && field.multiple) {
+                return (
+                    <Choices
+                        id={id}
+                        name={name}
+                        options={field.options}
+                        value={value}
                         disabled={disabled}
                     />
-                    {Object.entries(field.options).map(
-                        ([optionValue, label]) => (
-                            <label
-                                key={optionValue}
-                                className="flex items-center gap-2 text-sm"
-                            >
-                                <Checkbox
-                                    name={`${name}[]`}
-                                    value={optionValue}
-                                    defaultChecked={
-                                        Array.isArray(value) &&
-                                        value.includes(optionValue)
-                                    }
-                                    disabled={disabled}
-                                />
-                                {label}
-                            </label>
-                        ),
-                    )}
-                </fieldset>
+                );
+            }
+
+            // The site's own terms or types; one that is gone shows as none
+            // chosen, so a save asks for one the site has.
+            const choices = Object.entries(field.options).map(
+                ([optionValue, label]) => ({ value: optionValue, label }),
             );
+
+            return (
+                <SelectField
+                    id={id}
+                    aria-describedby={describedBy}
+                    name={name}
+                    options={choices}
+                    emptyLabel={
+                        field.type === 'term'
+                            ? __('Choose a term')
+                            : __('Choose a type')
+                    }
+                    defaultValue={
+                        choices.some((choice) => choice.value === text)
+                            ? text
+                            : ''
+                    }
+                    disabled={disabled}
+                />
+            );
+        }
         case 'media':
             return (
                 <MediaSetting
@@ -267,4 +287,47 @@ export function FieldControl({
                 />
             );
     }
+}
+
+/** Ticked boxes for a setting that holds several of its options. */
+function Choices({
+    id,
+    name,
+    options,
+    value,
+    disabled,
+}: {
+    id: string;
+    name: string;
+    options: Record<string, string>;
+    value: unknown;
+    disabled?: boolean;
+}) {
+    return (
+        <fieldset id={id} className="space-y-2">
+            {/* Sent when nothing is ticked, so clearing the selection saves. */}
+            <input
+                type="hidden"
+                name={`${name}[]`}
+                value=""
+                disabled={disabled}
+            />
+            {Object.entries(options).map(([optionValue, label]) => (
+                <label
+                    key={optionValue}
+                    className="flex items-center gap-2 text-sm"
+                >
+                    <Checkbox
+                        name={`${name}[]`}
+                        value={optionValue}
+                        defaultChecked={
+                            Array.isArray(value) && value.includes(optionValue)
+                        }
+                        disabled={disabled}
+                    />
+                    {label}
+                </label>
+            ))}
+        </fieldset>
+    );
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Updates\Updater;
 
 /**
- * Where Teme runs and how the updater moves it (I-3333): one service with two image settings and one deploy. The updater reads and sets an image setting, asks the platform to deploy the service, and watches the deployment and each part's health.
+ * Where Teme runs and how the updater moves it (I-3333): one service with two image settings, a compose file and one deploy. The updater reads and sets an image setting and the compose file, asks the platform to deploy the service, and watches the deployment and each part's health.
  */
 interface Platform
 {
@@ -31,6 +31,21 @@ interface Platform
      * @throws PlatformRefused
      */
     public function setImage(ImageSetting $setting, string $image): void;
+
+    /**
+     * The service's compose file as the platform holds it, and whether the platform takes it from Git.
+     *
+     * @throws PlatformRefused
+     */
+    public function compose(): PlatformCompose;
+
+    /**
+     * Replaces the service's compose file with this text, every setting kept; deploys nothing. Refuses a file
+     * the platform takes from Git.
+     *
+     * @throws PlatformRefused
+     */
+    public function setCompose(string $compose): void;
 
     /**
      * Asks the platform to deploy the whole service with the settings it holds; returns once asked.

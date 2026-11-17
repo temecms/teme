@@ -2,7 +2,7 @@
 title: Public routes
 type: how-to
 audience: plugin
-summary: How a plugin answers addresses on the public site, which paths it may take, how inbound posts are verified, cached and limited, and which addresses Teme answers itself.
+summary: How a plugin answers addresses on the public site, which paths it may take, how inbound posts are verified, cached and limited, what Teme answers before a handler runs, and which addresses Teme answers itself.
 rests_on: [app/Domain/PublicRoutes, packages/teme-contracts/src/Routes, packages/teme-contracts/schema/teme-plugin.schema.json, routes/public.php, app/Domain/Feeds]
 ---
 
@@ -39,7 +39,7 @@ A plugin enabled before another took the same address keeps it: the second is re
 
 The handler implements `PublicRoute`. Its `handle()` receives a `PublicRequest`, plain values only: the method, the path, the path parameters, the query, the headers with lower-case names, the raw body and the client's address. It answers a `PublicResponse` with a status, a content type, a body, and any of the headers `content-language`, `link`, `location` and `x-robots-tag`; Teme drops any other header and always sets Cache-Control itself.
 
-Teme builds the handler with no constructor arguments, so it is given none of your plugin's doors: no settings reader, no outbound door, no jobs door. It can read its own tables, as [Your plugin's own tables](tables.md) describes.
+Teme builds the handler as it builds your plugin's class: with what its constructor asks for, among the doors your plugin is given, such as the settings reader or the `Jobs` door, and with nothing when it asks for nothing. A handler that asks for a door its plugin doesn't ask for is refused when the plugin is checked. It can also read its own tables, as [Your plugin's own tables](tables.md) describes.
 
 A handler has 30 seconds. When it throws, Teme reports the exception to the site's log with your plugin's name and the route's ID, and the visitor gets the site's own error page.
 
@@ -49,9 +49,16 @@ Every POST route needs a `verify` block, so nobody but the service you expect ca
 
 - `secret`: the value named by `from` must equal a secret setting. `from` is `header:` and a header name, `field:` and a form field, or `query:` and a query parameter. `secret` names the setting, which must be one of your plugin's declared settings of type `secret`.
 - `hmac`: the header named by `header` must hold the SHA-256 HMAC of the raw body, in lower-case hex, keyed with the secret setting `secret` names.
-- `custom`: `class` names your own class implementing `InboundVerifier`; its `verify()` is given the request and the secret setting `secret` names, if any, and answers whether to let it through.
+- `custom`: `class` names your own class implementing `InboundVerifier`; its `verify()` is given the request and the value of the secret setting `secret` names, and answers whether to let it through. For `custom`, `secret` is optional: a verifier that checks something else, such as a signature with a public key, leaves it out and is given an empty string. When it is given, it must name one of your declared settings of type `secret`, as for the other two kinds.
 
-A post that fails its check gets 401 and never reaches the handler. Its body may be at most `maxBody` bytes, 1,048,576 by default and 10,485,760 at most; a larger one gets 413.
+Teme answers these itself, before your handler runs, with an empty body:
+
+- 405 to a POST, or any method but GET and HEAD, that matches no route;
+- 413 to a body over `maxBody` bytes, 1,048,576 by default and 10,485,760 at most, judged first by its Content-Length, before the body is read;
+- 401 to a post that fails its check;
+- 429 to a client over the route's limit, described below.
+
+Only a request that passes all four reaches the handler.
 
 ## Caching and limits
 

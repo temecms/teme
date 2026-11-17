@@ -6,6 +6,7 @@ namespace App\Domain\Plugins\Lists;
 
 use App\Domain\Plugins\FoundPlugin;
 use App\Domain\Plugins\Manifest;
+use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
@@ -25,7 +26,7 @@ final readonly class PluginActions
 
     /**
      * Returns the actions of the plugin whose settings group this is, each
-     * with its id, label and description; none for any other group, or a
+     * with its id, label and description in the current locale; none for any other group, or a
      * plugin not enabled or not granted jobs.
      *
      * @return list<array{id: string, label: string, description: string|null}>
@@ -43,9 +44,15 @@ final readonly class PluginActions
         }
 
         $actions = [];
+        $words = ManifestText::for($record->code);
+        $locale = app()->getLocale();
 
         foreach ($this->declared($record) as $action) {
-            $actions[] = ['id' => $action['id'], 'label' => $action['label'], 'description' => $action['description']];
+            $actions[] = [
+                'id' => $action['id'],
+                'label' => $words->text($action['label'], $locale),
+                'description' => $action['description'] === null ? null : $words->text($action['description'], $locale),
+            ];
         }
 
         return $actions;

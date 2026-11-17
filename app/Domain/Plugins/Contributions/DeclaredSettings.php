@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Cache\PageTags;
+use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\PluginAccess;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\Setting;
@@ -59,6 +60,41 @@ final class DeclaredSettings
         );
     }
 
+    /**
+     * Returns a plugin group's settings form with the words its manifest
+     * gave in the locale, from the plugin's own lang folder: the group's
+     * label and description, and each setting's label, description, option
+     * labels and unit. Values and examples stay as they are.
+     *
+     * @template T of array{group: array{key: string, label: string, description: string, sensitive: bool}, fields: list<array<string, mixed>>}
+     *
+     * @param  T  $form
+     *
+     * @return T
+     */
+    public static function translated(array $form, string $locale): array
+    {
+        $words = ManifestText::for(substr($form['group']['key'], strlen('plugin.')));
+        $text = fn (mixed $english): mixed => is_string($english) ? $words->text($english, $locale) : $english;
+
+        $form['group']['label'] = $words->text($form['group']['label'], $locale);
+        $form['group']['description'] = $words->text($form['group']['description'], $locale);
+
+        foreach ($form['fields'] as $index => $field) {
+            foreach (['label', 'description', 'unit'] as $name) {
+                $field[$name] = $text($field[$name] ?? null);
+            }
+
+            if (is_array($field['options'] ?? null)) {
+                $field['options'] = array_map($text, $field['options']);
+            }
+
+            $form['fields'][$index] = $field;
+        }
+
+        return $form;
+    }
+
     /** @param  array<array-key, mixed>  $declared */
     private static function setting(string $group, array $declared, string $version): Setting
     {
@@ -84,6 +120,15 @@ final class DeclaredSettings
             'email' => Setting::email($key, $label, $description, $version),
             'secret' => Setting::secret($key, $label, $description, $version),
             'color' => Setting::color($key, $label, $description, $version),
+            'person' => Setting::person($key, $label, $description, $version),
+            'term' => Setting::term($key, $label, $description, $version, self::text($declared, 'taxonomy'), ($declared['multiple'] ?? false) === true),
+            'type' => Setting::contentType($key, $label, $description, $version),
+            'code' => Setting::code($key, $label, $description, $version),
+            // Its fields one level down, built by the same rules (docs/plans/plugin-sockets-2.md, A5).
+            'repeater' => Setting::repeater($key, $label, $description, $version, array_map(
+                fn (mixed $field): Setting => self::setting("{$group}.{$key}", is_array($field) ? $field : [], $version),
+                is_array($declared['fields'] ?? null) ? array_values($declared['fields']) : [],
+            )),
             default => throw new InvalidArgumentException("Setting [{$group}.{$key}] has an unknown type [{$type}]."),
         };
 
@@ -97,6 +142,20 @@ final class DeclaredSettings
             }
         }
 
+        // A repeater's item counts are its min and max.
+        if ($type === 'repeater') {
+            $setting = $setting->min(is_int($declared['minItems'] ?? null) ? $declared['minItems'] : 0)
+                ->max(is_int($declared['maxItems'] ?? null) ? $declared['maxItems'] : 20);
+
+            if (is_string($declared['itemTitle'] ?? null)) {
+                $setting = $setting->itemTitle($declared['itemTitle']);
+            }
+        }
+
+        if ($type === 'code' && ($declared['scripts'] ?? false) === true) {
+            $setting = $setting->scripts();
+        }
+
         if (($declared['required'] ?? false) === true) {
             $setting = $setting->required();
         }
@@ -107,6 +166,17 @@ final class DeclaredSettings
 
         if (is_string($declared['unit'] ?? null)) {
             $setting = $setting->unit($declared['unit']);
+        }
+
+        // Its condition and its section on the plugin's settings page (docs/plans/plugin-sockets-2.md, A4).
+        if (is_array($declared['visibleWhen'] ?? null) && $declared['visibleWhen'] !== []) {
+            /** @var array<string, scalar|list<scalar>> $conditions */
+            $conditions = $declared['visibleWhen'];
+            $setting = $setting->visibleWhen($conditions);
+        }
+
+        if (is_string($declared['section'] ?? null)) {
+            $setting = $setting->section($declared['section']);
         }
 
         return $setting;

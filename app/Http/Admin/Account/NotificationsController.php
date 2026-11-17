@@ -15,8 +15,8 @@ use Inertia\Response;
 
 /**
  * Account › Notifications (I-691): every kind of notice a person may turn
- * off, from the registry and worded for them, beside a word about their
- * inbox; saved through UpdatePreferences, the offered choices' keys and
+ * off, from the registry and worded for them, core's own and then each
+ * plugin's under its name, beside a word about their inbox; saved through UpdatePreferences, the offered choices' keys and
  * nothing else.
  */
 final class NotificationsController extends Controller
@@ -26,8 +26,12 @@ final class NotificationsController extends Controller
         $user = $request->user();
         abort_if($user === null, 403);
 
+        $grouped = $choices->grouped($user);
+
         return Inertia::render('account/notifications', [
-            'notices' => $choices->forScreen($user),
+            'notices' => $grouped['core'],
+            // Each enabled plugin's kinds, under its own name (docs/plans/plugin-sockets-3.md).
+            'pluginNotices' => $grouped['plugins'],
             'inboxHref' => route('inbox.index', [], false),
         ]);
     }

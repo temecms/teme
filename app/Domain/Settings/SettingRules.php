@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Settings;
 
+use App\Domain\Types\ContentTypeRegistry;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -23,6 +24,15 @@ final class SettingRules
 {
     /** An address on another site: http or https, a host, then anything without spaces. */
     private const string ADDRESS = '~^https?://[^\s/?#@]+(?:[/?#]\S*)?$~iu';
+
+    /** The most terms one term setting holds. */
+    public const int MOST_TERMS = 100;
+
+    /** The longest a code setting may be. */
+    public const int MOST_CODE = 65_535;
+
+    /** The most items a repeater holds when its max isn't set. */
+    public const int MOST_ITEMS = 20;
 
     /** An opening or closing time: 24-hour hours and minutes. */
     private const string TIME = '/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/';
@@ -57,7 +67,14 @@ final class SettingRules
             SettingType::Urls => ['nullable', self::urls($setting)],
             SettingType::Person => [$presence, 'string', self::person(...)],
             SettingType::Hours => ['nullable', self::hours(...)],
+            SettingType::Term => $setting->multiple
+                ? ['nullable', 'array', 'max:'.self::MOST_TERMS, self::terms($setting)]
+                : [$presence, 'string', self::terms($setting)],
+            SettingType::ContentType => [$presence, 'string', self::contentType(...)],
             SettingType::Secret => [],
+            SettingType::Code => [$presence, 'string', 'max:'.self::MOST_CODE],
+            // Its items one by one, under values.{key}.{n}.{field} (docs/plans/plugin-sockets-2.md, A5).
+            SettingType::Repeater => ['present', 'array', 'list', 'min:'.($setting->min ?? 0), 'max:'.($setting->max ?? self::MOST_ITEMS)],
         };
     }
 
@@ -87,6 +104,19 @@ final class SettingRules
 
                 if ($setting->type === SettingType::MultiSelect) {
                     $rules["values.{$key}.*"] = ['nullable', Rule::in(array_keys($setting->options))];
+                }
+
+                if ($setting->type === SettingType::Repeater) {
+                    $values[$key] = $value === '' || $value === null ? [] : $value;
+                    $rules["values.{$key}.*"] = ['array'];
+
+                    foreach ($setting->fields as $field) {
+                        $rules["values.{$key}.*.{$field->key}"] = self::for($field);
+
+                        if ($field->type === SettingType::MultiSelect) {
+                            $rules["values.{$key}.*.{$field->key}.*"] = ['nullable', Rule::in(array_keys($field->options))];
+                        }
+                    }
                 }
             }
         }
@@ -122,8 +152,40 @@ final class SettingRules
             SettingType::Urls => self::addresses($raw),
             SettingType::Person => is_scalar($raw) ? trim((string) $raw) : '',
             SettingType::Hours => self::week($raw),
+            // Drops empties and duplicates, keeping the order chosen.
+            SettingType::Term => $setting->multiple
+                ? array_values(array_unique(array_map(strval(...), array_filter((array) $raw, fn (mixed $slug): bool => is_scalar($slug) && trim((string) $slug) !== ''))))
+                : (is_scalar($raw) ? trim((string) $raw) : ''),
+            SettingType::ContentType => is_scalar($raw) ? trim((string) $raw) : '',
+            SettingType::Code => is_scalar($raw) ? (string) $raw : '',
+            SettingType::Repeater => self::items($setting, $raw),
             default => trim((string) $raw),
         };
+    }
+
+    /**
+     * A repeater's items as stored: a list, each item its fields' values,
+     * each by its own type.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function items(Setting $setting, mixed $raw): array
+    {
+        $items = [];
+
+        foreach (is_array($raw) ? array_values($raw) : [] as $item) {
+            $item = is_array($item) ? $item : [];
+            $kept = [];
+
+            foreach ($setting->fields as $field) {
+                $value = $item[$field->key] ?? null;
+                $kept[$field->key] = $value === null || ($value === '' && $field->type === SettingType::Number) ? $field->default : self::normalise($field, $value);
+            }
+
+            $items[] = $kept;
+        }
+
+        return $items;
     }
 
     /**
@@ -283,6 +345,37 @@ final class SettingRules
     {
         if (! is_string($value) || preg_match('/^[1-9][0-9]{0,18}$/', $value) !== 1 || ! DB::table('users')->where('id', (int) $value)->exists()) {
             $fail('Choose someone with an account here.');
+        }
+    }
+
+    /**
+     * A term setting's rule: each slug one of the setting's taxonomy's
+     * terms. An empty value clears the setting, and never reaches this rule.
+     */
+    private static function terms(Setting $setting): Closure
+    {
+        $taxonomy = (string) $setting->taxonomy;
+
+        return function (string $attribute, mixed $value, Closure $fail) use ($taxonomy): void {
+            $slugs = array_values(array_unique(array_filter(is_array($value) ? $value : [$value], fn (mixed $slug): bool => $slug !== null && $slug !== '')));
+
+            if (array_any($slugs, fn (mixed $slug): bool => ! is_string($slug))
+                || DB::table('terms')->where('taxonomy', $taxonomy)->whereIn('slug', $slugs)->count() !== count($slugs)) {
+                $fail(__('Choose terms this site has here.'));
+            }
+        };
+    }
+
+    /**
+     * A type setting's value must be a content type with public addresses.
+     * An empty value clears the setting, and never reaches this rule.
+     */
+    private static function contentType(string $attribute, mixed $value, Closure $fail): void
+    {
+        $types = app(ContentTypeRegistry::class);
+
+        if (! is_string($value) || ! $types->has($value) || ! $types->get($value)->public) {
+            $fail(__('Choose a content type this site shows to readers here.'));
         }
     }
 

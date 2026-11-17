@@ -279,48 +279,146 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 #### Commits on `sockets2/plugin-area`
 
--
+- `5a44902a` feat(plugins): a plugin declares up to three permissions of its own (Task 1)
+- `a358703f` feat(plugins): sections and conditions on a plugin's settings page (Task 2)
+- `c469eba1` feat(settings): repeater and code settings, a plugin's included (Task 3)
+- `dce49ad3` feat(plugins): a plugin's area, declared in its manifest and read once (Task 4)
+- `139d1c90` feat(plugins): a plugin's area, its pages, record forms and writes (Tasks 5 and 6)
+- `8254c1d8` feat(settings): draw a plugin's sections, conditions, repeaters, actions and lists (Task 7, settings screens)
+- `02bd537e` feat(plugins): a plugin's area in the menu, five at most, the rest on Tools (Task 8, and Task 7's area browser test)
+- `ffeec8e5` feat(plugins): a code field's inline scripts wait for approval on the form (Task 9)
+- `09b8a5b3` docs(handbook): a plugin's own area, and settings sections, conditions, lists and markup (Task 10)
+- `4c621921` fix(types): reserve the plugin segment a plugin's area lives under (the gate)
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Plugins/Area/PluginPermissionsTest.php` | Teme doesn’t offer the permissions surface to plugins yet. |
+| 2 | `tests/Unit/Plugins/VisibleWhenTest.php` | Class "App\Domain\Plugins\Area\VisibleWhen" not found |
+| 2 | `tests/Feature/Plugins/Area/PluginSettingsSectionsTest.php` | Property [panels] does not match the expected value. |
+| 3 | `tests/Feature/Plugins/Area/RepeaterSettingTest.php` | Its settings can’t be used: Setting [plugin.settings.fallback] has an unknown type [code]. |
+| 4 | `tests/Feature/Plugins/Area/DeclaredAreaTest.php` | Class "App\Domain\Plugins\Area\DeclaredArea" not found |
+| 5 | `tests/Feature/Plugins/Area/AreaReadsTest.php` | Interface "Teme\Contracts\Admin\HasPluginArea" not found |
+| 6 | `tests/Feature/Plugins/Area/SavePluginRecordTest.php` | Target class [App\Domain\Plugins\Operations\SavePluginRecord] does not exist. |
+| 6 | `tests/Feature/Plugins/Area/ActOnPluginRecordsTest.php` | Target class [App\Domain\Plugins\Operations\ActOnPluginRecords] does not exist. |
+| 6 | `tests/Feature/Plugins/Area/AreaActionsTest.php` | Inertia Flash Data [toast] does not match expected value. |
+| 7 | `tests/Browser/Plugins/PluginSettingsSectionsTest.php` | Timeout 5000ms exceeded. (the repeater's sub-fields weren't sent) |
+| 7 | `tests/Browser/Plugins/PluginAreaScreensTest.php` | axe: aria-hidden-focus, empty-table-header |
+| 8 | `tests/Feature/Plugins/Area/AreaEntriesTest.php` | Failed asserting that two arrays are equal. |
+| 9 | `tests/Feature/Plugins/Area/CodeFieldScriptsTest.php` | Failed asserting that two arrays are identical. (no request made); Route [plugins.area.script] not defined. |
 
 #### Task 0
 
--
+- V is 0.9.0; built on `main` at `9f27e413` (PR #380), as the revised go said; round 1's `RunPluginAction` is on `main`.
+- `@dnd-kit/*` is not installed: items move with Move up and Move down (decided Q7).
+- `design-field.tsx` compares strictly; `ThemeSettings` names earlier keys and scalar values. `VisibleWhen` follows this plan's rule, which also matches `"3"` with `3`.
+- `UpdateSettings` validated whatever was sent; WhoPublishes' hidden fields aren't drawn, so aren't sent.
+- A plugin's `DB::table()` write inside an Operation rolls back with it (SavePluginRecordTest).
 
 #### Architecture baselines
 
 | Baseline | Before | After |
 |---|---|---|
-| design-system-baseline.txt | | |
-| admin-words-baseline.txt | | |
+| design-system-baseline.txt | 222 | 222 |
+| admin-words-baseline.txt | 876 | 876 |
 
 #### Gate
 
--
+- Base (`9f27e413`): Pint and PHPStan clean, Architecture 139 passed; Unit and Feature 12,530 passed, 3 skipped, 1 failed (FirstPluginTest, flaky in parallel).
+- Branch: Pint and PHPStan clean, Architecture 139 passed; Unit and Feature 12,673 passed, 3 skipped, 3 failed, in 1,840 s. `TypeRoutingTest` was fixed in `4c621921` (380 passed after). `GenerateManifestReferenceTest` and `GenerateContractsReferenceTest` wait for the join, which regenerates `docs/reference/` once, as this plan says.
+- Browser, one file at a time: `tests/Browser/Plugins` (all six files, 48 tests) and the Settings screens' files (SettingControls, SettingsPanels, SettingsPlacements, SettingsSaveBar, SiteCodeSettings, WhoPublishesSettings, MenuAndSettings; 63 tests), all passed.
 
 #### B-?? (draft)
 
--
+- **The validator lands whole in Task 1.** `AreaValidator` (permissions, area, settings sections and conditions) came with Task 1, because the fixture's manifest needs it to enable. `5a44902a`.
+- **Consent lines.** Permissions are kept in the consent as `id` and `id:role`; taking a role away doesn't ask again. `5a44902a`.
+- **Markup in cells.** A plugin's markup reaches the page as its characters, drawn as text (as round 1's lists), never stripped. `139d1c90`.
+- **The chart's hidden table** is a table by ARIA roles, because R5 keeps raw tables in `ui/` and patterns. `139d1c90`.
+- **Frame props** are `tabs` and `current`, not `pages` and `page`, because NoTypeLiteralsTest keeps a type's name off keys. `139d1c90`.
+- **Charts** use recharts 3.10.1 inside core's `area-chart.tsx` (decided Q6 overrides A9). npm also dropped a stale `@rollup/rollup-win32-x64-msvc` line from the lock's root dependencies. `139d1c90`.
+- **An empty repeater** still checks its `minItems`. `139d1c90`.
+- **Area actions.** Options: round 1's `plugins.manage` only, or the area's permission too. Chosen: `RunPluginActionInput` gains `?string $permission` (last, null by default) and `RunPluginAction` allows either, passed only for actions the area's pages offer, so an editor holding the area's permission can run them. `139d1c90`.
+- **The record form** uses `FormPage` and `FormPanel`, with the delete dialog inside (R7), not `SettingsPage` as A9 words it; `SectionTabs` for more than three sections. `139d1c90`.
+- **A hidden setting** sits in a disabled, hidden fieldset (only settings with `visibleWhen`), so the browser neither checks nor sends it. `8254c1d8`.
+- **Round 1's plugin lists** are drawn with core's `DataTable`. `8254c1d8`.
+- **SettingsForm** sends a repeater's `fields` and `itemTitle`, for repeaters only. `8254c1d8`.
+- **Menu entries** are merged in `AdminNavigation` at query time (as type entries are), not registered in `NavigationRegistry`; Tools cards are added in `ToolsHub::pagesFor` before its plugins.manage gate. The icon is `plug`. `02bd537e`.
+- **Screens** were built from the approved drawing, with I-3468: the menu entry and the area's heading show the plugin's own name; the top bar names only the parents. `139d1c90`, `02bd537e`.
+- **Task 9 on main, not after B.** The revised go built Task 9 on `main` without merging `sockets2/inserts`; B's `ScriptRequests::fromMarkup()` (not `fromCode()`) and `ApprovePluginScript` are on `main`. `ffeec8e5`.
+- **Approving on the form (decided Q2).** Options: wait for B's site-code routes, or a route of A's own. Chosen: `plugins.area.script` in the area block, running B's `ApprovePluginScript` (site-code permission and the password, asked in place with a 423). Under each code field the form shows each waiting script: Approve script for a person who may change site code, Waiting for approval for anyone else. This replaces A-T9's count line. `ffeec8e5`.
+- **Who asks.** Only a plugin enabled with `content.insert` or `pages.insert` asks (B's `RequestPluginScript` rule); the fixture gains `content.insert`. `ffeec8e5`.
+- **Settings' code fields** ask on save, but the settings page doesn't draw the waiting scripts yet: that needs one line in `SettingsController`, outside A's Owns. Settings › Site code (B) lists them. Left for the join. `ffeec8e5`.
+- **The notice to approvers** (decided Q2) needs a notice kind in `BuiltInNotices`, outside A's Owns. Left for the join. `ffeec8e5`.
+- **The `plugin` segment.** P4's `admin/plugin/{code}` needs `plugin` in `ContentTypeRegistry::RESERVED` (TypeRoutingTest), outside A's Owns. Options: move the area under `plugins/`, or reserve the word. Chosen: reserve it, one word, since P4 decided the path. `4c621921`.
 
 #### Contract changes
 
--
+- New in `Teme\Contracts\Admin`, `@since 0.9.0`: `HasPluginArea`, `PluginArea`, `AreaContext`, `Figure`, `Chart`, `TableQuery`, `RowPage`, `Row`, `Saved`.
+- `Teme\Contracts\Settings`: `SettingType::Code`, `SettingType::Repeater`; `Setting::code()`, `Setting::repeater()`, `->section()`.
+- The manifest schema: `contributes.permissions`, `contributes.area`, `contributes.settingsSections`; settings `visibleWhen`, `section`, `scripts`, types `code` and `repeater`.
 
 #### STOP
 
--
+- None.
 
 #### Changelog lines for the maintainers
 
--
+- A plugin can have screens of its own in the admin: an overview of figures and charts, tables of its records, and a form for each, all drawn by Teme.
+- A plugin can declare up to three permissions of its own, and give them to editors, authors or contributors.
+- A plugin's settings page can be split into sections, show a setting only when another has a value, and hold lists and markup.
+- An inline script in a plugin's code field waits for approval, and a person who may change site code approves it on the plugin's own form.
 
 #### Try it
 
--
+- Enable the `tests/placard` fixture, then open **Placard** in the Site menu as an editor: the overview, the Ads table, and an ad's form with its versions.
+- Save an ad whose code holds `<script>…</script>`, then open it as an administrator and approve the script there.
+
+#### Follow-up R1
+
+The review's findings 1, 2, 3, 4 and 6 and the first item of 8 are fixed; Part C's Task 7 of round 3 (`AreaContext::$permissions`) and Part D's Task 5 (a permission audience and the area link) are built here, now that the area exists.
+
+Commits:
+- `d500083c` merge: main into the plugin area, keeping both sides (20 conflicts; lists and test rows as unions; the schema rebuilt by loading both sides; the developer README's entry a list item; `llms.txt` regenerated)
+- `8c9a496d` feat(plugins): a plugin's area in the person's language, from its own words (`AreaWords` reads `ManifestText`; the Joining step)
+- `a40d14a3` fix(plugins): give a role an update adds, once it is agreed to (finding 1)
+- `ccc4f7b2` fix(plugins): a plugin action takes only its area's own permission, checked in the Operation (finding 2)
+- `ce70b9f2` docs(handbook): a plugin's own area names no branch or plan (finding 3)
+- `b29339f3` fix(plugins): a script's settings name and the consent's roles in words that translate (finding 4)
+- `08ac08f7` fix(plugins): an area on the Tools hub names Tools as its parent in the top bar (finding 6)
+- `9dfd28a7` test(plugins): another plugin's script is never approved through this plugin's form (finding 8, first item)
+- `68c7c306` feat(plugins): a plugin's area is told which of its own permissions the person holds (round 3 C-T7, issue #423)
+- `42d52394` feat(plugins): a plugin's notice for the holders of its own permission, linking to its area (round 3 D-T5)
+
+Tests seen red (first line of the failure):
+
+| Fix | File | First failure |
+|---|---|---|
+| ManifestText | `tests/Feature/Plugins/Sockets/ManifestWordsTest.php` | Failed asserting that two strings are identical. ('Placard' for 'Cartel') |
+| 1 | `tests/Feature/Plugins/Area/PluginPermissionsTest.php` | Failed asserting that two arrays are identical. (author not given the permission) |
+| 2 | `tests/Feature/Plugins/Area/AreaActionsTest.php` | Exception [Illuminate\Auth\Access\AuthorizationException] not thrown. |
+| 3 | `tests/Feature/Guides/Developers/DeveloperPagesTest.php` | Failed asserting that two arrays are identical. (`docs/plans/`, a branch name) |
+| 4 | `tests/Feature/Plugins/Area/PluginPermissionsTest.php` | Failed asserting that two arrays are identical. ('Permite a autores and editores manage ads') |
+| 4 | `tests/Feature/Plugins/Area/CodeFieldScriptsTest.php` | Failed asserting that two strings are identical. ('Settings: Fallback code') |
+| 6 | `tests/Feature/Plugins/Area/AreaEntriesTest.php` | Property [parent] does not exist. |
+| 8 | `tests/Feature/Plugins/Area/CodeFieldScriptsTest.php` | Passed at once, since the check was there; seen red with the check taken out: Expected response status code [404] but received 302. |
+| C-T7 | `tests/Feature/Plugins/Area/AreaContextPermissionsTest.php` | Undefined property: Teme\Contracts\Admin\AreaContext::$permissions |
+| D-T5 | `tests/Feature/Plugins/Notices/PluginNoticeAudienceTest.php` | The kind of notice review_waiting must go to starter or plugins.manage. |
+
+B-?? (draft):
+- **Finding 2.** Options: drop the input's permission and work it out in the Operation, or keep it and accept it only when it is the area's own and the action is offered. Chosen: keep it, so the settings page's own route still asks for plugins.manage and the existing test keeps what it proves. `ccc4f7b2`.
+- **Finding 3** comes with a guard: the handbook test now refuses a plan path, a proposal path, an idea number or a branch name (other than `main`) in any handbook page. `ce70b9f2`.
+- **Finding 4.** The roles are fixed words, joined by `:first and :second` or `:first, :second and :third`. `b29339f3`.
+- **D-T5.** An audience names the permission's `id`, as declared, not its full name, since the validator doesn't know the plugin's code; `starter` and `plugins.manage` win over a permission with that id. The two refusal sentences now name the new choices, so their test rows' expected words changed to match; they prove the same refusals. The schema's `audience` became a pattern. `42d52394`.
+- **The reference pages** (`docs/reference/`) are still not regenerated; GenerateManifestReferenceTest and GenerateContractsReferenceTest stay red for the join.
+
+Gate: Pint and PHPStan clean; Architecture 139 passed; Unit and Feature 12,999 passed, 3 skipped, 2 failed (the two reference tests), in 1,784 s. Browser, one file at a time: PluginAreaScreens 9, PluginSettingsSections 5, PluginsScreen 19, PluginNoticeChoices 4, all passed. Baselines unchanged: design-system 222, admin-words 876.
+
+Later, for issues:
+- Finding 5: plugin code runs on every admin page with no time limit (`PluginAreas` builds each area's data for the menu). Build the data only for screens and writes, and read the manifest once per request.
+- Finding 7: loose input on the record form and the area page: a number like `1e400` becomes INF; `datetime` takes relative words; the `t` query comes back as `asks` unfiltered.
+- Finding 8, second item: the chart keys each row by series id beside `label`, so a series with id `label` collides.
+- Finding 9: `plugin` is now a reserved type key; a site with a type keyed `plugin` needs an upgrade check or a release note.
 
 ---
 
@@ -595,43 +693,69 @@ The builders' gate after each task, with `php artisan test --parallel --compact`
 
 ### Records (the builder's)
 
+Setup: `/tmp/teme-cloud-setup.log` absent at start (`none`); `pwd` `/home/user/teme`. `bash scripts/cloud-setup.sh` run once (PHP was 8.3, PostgreSQL and Valkey down); afterwards PHP 8.4.27, `pg_isready` accepting, Valkey PONG.
+
 #### Commits on `sockets2/small`
 
--
+- `dc273544` feat(plugins): a custom route verifier needs no secret
+- `5f1f8544` feat(plugins): a plugin's manifest words translate from its own lang folder
+- `dea8b6c8` feat(plugins): schedules say when they are next due, and a pass can be limited to one plugin
+- `8a206db0` docs(plugins): custom verifiers without a secret, the answers before a handler, translated manifest words, and when a schedule is due
+- this records commit
 
 #### Tests seen red (first line of the failure)
 
 | Task | File | First failure |
 |---|---|---|
-| | | |
+| 1 | `tests/Feature/Plugins/Sockets/CustomVerifierTest.php` | `[plugin.inbound.] is not a secret setting.` (the 500 of F-15); and a `custom` route naming an undeclared secret passed validation |
+| 2 | `tests/Feature/Plugins/Sockets/ManifestWordsTest.php` | `Failed asserting that two strings are identical.` (`Workbench`, not `Banco de trabajo`) |
+| 3 | `tests/Feature/Plugins/Sockets/ScheduleDueTest.php` | `The "--plugin" option does not exist.`; `Call to undefined method …DueSchedules::nextDue()`; `The command "teme:plugins:schedules" does not exist.` |
 
 #### Task 0
 
--
+- V = `0.9.0` (`git tag -l 'v0.9.0*'` lists none). No `@since` was written: this part adds nothing to the contracts.
+- Built on `origin/main` at `9f27e413` (Merge pull request #380 from temecms/join/sockets-r1-r2).
+- Round 1 on `main`: `origin/sockets/outbound-feeds` and `origin/sockets/plugin-admin` are both ancestors of `main`, joined by `07b8161c` (part A, outbound feeds: A-W13 `736a196a` handler doors, A-W14 `PluginSentences`) and `07a9c2c4` (part B, plugin admin: B5 `9cf630dc`, `--as` and `ScheduleRunner::problem()`). Part B of this round (`sockets2/inserts`) is on `main` too (`98d57772`).
+- What a declared route answers before its handler (`RouteDispatcher`, `DeclaredRouteController`, the `declared-routes` limiter): 405 with `Allow: GET, HEAD` to a non-safe method matching no route; 413 to a body over `maxBody`, by Content-Length first, then by the body read; 401 to a failed POST verification; 429 from the `declared-routes` throttle. All with an empty body.
+- A-W14 loads a plugin's words in `App\Domain\Plugins\PluginSentences`: each started plugin's `lang/<locale>.json`, keeping only keys its own code passes to `__()`, that core lacks and no earlier plugin claimed. The admin's locale is set per request by `UseAdminLanguage` from `AdminWords::locale()`, which answers `en` for everyone until a second admin language ships (I-162).
 
 #### Gate
 
--
+- Before (base `9f27e413`, `composer check`): Pint passed; PHPStan no errors; `npm run types:check` and `npm run check` passed; Architecture 139 passed; Unit and Feature 12,531 passed, 3 skipped.
+- Quick check after each task: Pint, PHPStan, types, lint, Architecture 139 passed; `tests/Feature/Plugins` (with Sockets) 784 → 789 → 794 passed; `tests/Feature/Cache/DeclaredRouteCacheTest.php` 8 passed; for Task 2 also `tests/Feature/Admin` 910, `Extensions` 286 (1 skipped), `Navigation` 89, `Site/Insertions` 113, `SiteCode` 45, `Themes` 131 passed; for Task 4 `tests/Feature/Guides` 571 passed.
+- After (`composer check`): Pint passed; PHPStan no errors; types and lint passed; Architecture 139 passed; Unit and Feature 12,542 passed, 3 skipped, 2 failed: `GenerateManifestReferenceTest` (the generated `docs/reference/plugin-manifest.md` doesn't carry the new `verify.secret` and `verify.class` descriptions, which this part may not regenerate; the join does) and the handbook's `FirstPluginTest` (heard two publishes in a worker; passes alone, twice, and `tests/Feature/Testing` 26 passed).
+- Baselines unchanged: `admin-words-baseline.txt` 876 lines and `design-system-baseline.txt` 222 lines, before and after. No Browser test (the plan names none, and no screen file changed).
 
 #### B-?? (draft)
 
--
+- **B-?? (draft) The WAIT FOR grep.** The task's `git log origin/main --oneline -60 | grep -q "sockets/plugin-admin"` (and `…outbound-feeds`) never matched, because the maintainer joined round 1 through `join/sockets-r1-r2` with subjects such as "merge: join plugin sockets round 1 part B (plugin admin)". Options: keep waiting until the 8-hour limit, or check the merges another way. Chosen: `git merge-base --is-ancestor origin/<branch> origin/main` for both, which held at `9f27e413`, since that is what the condition means. Commit: the branch's base.
+- **B-?? (draft) Where manifest words are translated.** The plan names `DeclaredSettings` as the builder, but plugin groups, Tool links and the rest are built once at boot by `PluginLoader`, before the person's locale is set, and `Setting` has no way to change a label (a contract change). Options: re-register groups per request, change the contract, or translate where each screen's data is read. Chosen: the last. `DeclaredSettings::translated()` translates a plugin group's form, called from `SettingsForm::find()` and the group's menu label in `SettingsNavigation`; `ToolLinks::all()`, `PluginActions::forGroup()`, `PluginLists::forGroup()`, `PluginColumns::for()`, `PluginsScreen::rows()` (label, description, what it adds) and `SettingHosts::labels()` (the consent's setting names) translate their own words. `SettingsForm`, `SettingsNavigation` and `PluginsScreen` are the screens' builders the Owns line describes, outside the Plugins folder. `5f1f8544`.
+- **B-?? (draft) A Spanish-speaking administrator in the test.** `AdminWords::locale()` answers `en` for everyone (I-162), so no administrator can choose Spanish yet. `ManifestWordsTest` sets the locale as a second admin language will (`app()->setLocale('es')`) and reads each screen's query, not an HTTP page. `5f1f8544`.
+- **B-?? (draft) Permissions in `ManifestWordsTest`.** Plugin permissions are part A's (`contributes.permissions`), not on `main`, so the test has no permission line; the join adds it with the area (as the Joining section says for `AreaWords`). The test also covers actions, lists, list columns, the Plugins screen and the settings menu, which C2 lists. `5f1f8544`.
+- **B-?? (draft) `nextDue()` before the first run.** C3 doesn't say what a schedule never queued answers. Chosen: the time the plugin was enabled (`enabled_at`, now when absent), so it reads as due at the next pass; a job the plugin has no schedule for answers null. `dea8b6c8`.
+- **B-?? (draft) `teme:plugins:schedules` reasons.** Only `ScheduleRunner::problem()`'s reason is shown; a plugin whose consent lacks `jobs` (its schedules skipped by `DueSchedules`) is listed with an empty reason, since a sentence for it would be new words the plan doesn't give. `dea8b6c8`.
+- **B-?? (draft) The handbook's test example.** C3 shows `Queue::fake()`, the command and `travel()`; that is how `ScheduleDueTest` fires schedules. A plugin author's test uses the testing kit, whose `runSchedules($moment)` already takes the pass's moment, so `testing.md` shows that, in three lines (a longer block must name an example file, which this part doesn't own). `8a206db0`.
+- **B-?? (draft) `public-routes.md` said handlers get no constructor arguments.** Out of date since A-W13; corrected in the same section the plan names, from `RouteHandlerDoorsTest`'s behaviour. Changing two pages' summaries meant regenerating `docs/guides/developers/llms.txt` with `teme:docs:handbook-index` (`GenerateHandbookIndexTest`). `8a206db0`.
 
 #### Contract changes
 
--
+- None to any PHP contract. The schema's `routes[].verify.secret` and `verify.class` descriptions say `secret` is optional for `custom` and its class is then given an empty string, as the shared-files table gives C.
 
 #### STOP
 
--
+- None.
 
 #### Changelog lines for the maintainers
 
--
+- A plugin's `custom` route verifier no longer needs a secret setting; without one its class is given an empty secret, instead of the route answering 500.
+- The words a plugin's manifest gives (its label and description, settings, Tools links, actions, lists and columns) are shown in the person's language from the plugin's own `lang/<locale>.json`, never from core's.
+- `teme:plugins:schedules` lists each enabled plugin's schedules with when each was last queued, when it is next due and why it can't run; `teme:plugins:run-due-schedules --plugin=<code>` runs one plugin's.
+- The developer handbook says what a declared route answers before its handler runs, and exactly when a schedule is due.
 
 #### Try it
 
--
+- `php artisan test --compact tests/Feature/Plugins/Sockets/CustomVerifierTest.php tests/Feature/Plugins/Sockets/ManifestWordsTest.php tests/Feature/Plugins/Sockets/ScheduleDueTest.php` (one file at a time with `--parallel`).
+- On a development site with a plugin that has schedules enabled with `--as`: `php artisan teme:plugins:schedules`, then `php artisan teme:plugins:run-due-schedules --plugin=<code>` twice (the second queues nothing), and `teme:plugins:schedules` again.
 
 ---
 

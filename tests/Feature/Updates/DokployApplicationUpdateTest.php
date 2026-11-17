@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Sleep;
+use Teme\Contracts\Settings\SecretReader;
 
 /*
  * The updater's whole path for Teme as one Application on Dokploy: the real
@@ -36,13 +37,19 @@ beforeEach(function (): void {
         'teme.updater.platform' => 'dokploy-application',
         'teme.updater.image_repository' => DU_REPOSITORY,
         'teme.updater.dokploy.url' => DU_BASE,
-        'teme.updater.dokploy.token' => 'dokploy-secret-key',
         'teme.updater.dokploy.app_name' => 'app-teme-x1y2z3',
         'teme.updater.deploy_timeout' => 3600,
         'teme.updater.part_timeout' => 900,
         'app.url' => 'https://example.org',
     ]);
     updOperator();
+    app()->instance(SecretReader::class, new class implements SecretReader
+    {
+        public function secret(string $group, string $key): ?string
+        {
+            return $group === 'updates' && $key === 'dokploy_api_key' ? 'dokploy-secret-key' : null;
+        }
+    });
 
     $this->old = DU_REPOSITORY.':0.1.0-rc.14';
     $this->new = DU_REPOSITORY.':0.1.0-rc.15';
