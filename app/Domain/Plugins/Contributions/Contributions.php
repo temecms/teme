@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
+use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\PublicRoutes\RootFileNames;
 use App\Domain\Settings\SettingsRegistry;
@@ -55,6 +56,7 @@ final readonly class Contributions implements PluginContributions
         array_push($errors, ...$this->columnHandlers($contributes['columns'] ?? [], $plugin));
         array_push($errors, ...$this->listHandlers($contributes['lists'] ?? [], $plugin));
         array_push($errors, ...$this->actionJobs($contributes['actions'] ?? [], $jobs));
+        array_push($errors, ...app(PanelValidator::class)->startErrors($contributes, $jobs, $plugin));
 
         if ($errors !== []) {
             return $errors;

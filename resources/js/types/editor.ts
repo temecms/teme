@@ -290,6 +290,8 @@ export type ContentEditPage = {
     seo: EditorSeo;
     /** The assistant pane's offer; null shows no assistant. */
     ai: EditorAi | null;
+    /** The plugins' panels this person sees on this item, as tools in the bar. */
+    panels: EditorPluginPanel[];
     /** Only on a presence poll: who else has unsaved work in the article. */
     otherEditors?: EditorPerson[];
     editor: {
@@ -397,3 +399,92 @@ export type PreviewLinkRow = {
 
 /** A new preview link: its address, shown this once and never again. */
 export type CreatedPreviewLink = { url: string };
+
+/** One field of a plugin panel action's form, as its manifest declares it. */
+export type PanelField = {
+    key: string;
+    type: 'text' | 'textarea' | 'select' | 'boolean' | 'number';
+    label: string;
+    required: boolean;
+    default: string | number | boolean | null;
+    maxLength: number | null;
+    options: { value: string; label: string }[];
+    min: number | null;
+    max: number | null;
+};
+
+/** One of a plugin panel's actions: its button, its confirmation and its form. */
+export type PanelAction = {
+    id: string;
+    label: string;
+    confirm: string | null;
+    fields: PanelField[];
+};
+
+/** A plugin's panel in the editor (EditorPanels::toolsOn): a tool in the bar, owned by the plugin. */
+export type EditorPluginPanel = {
+    /** The tool's id, plugin.{code}.{panel}. */
+    tool: string;
+    code: string;
+    id: string;
+    /** The plugin's name, which marks the pane. */
+    plugin: string;
+    label: string;
+    description: string;
+    icon: string;
+    actions: PanelAction[];
+};
+
+/** What one suggestion would change, as core checked it against the item. */
+export type PanelChange =
+    | { kind: 'title'; title: string }
+    | {
+          kind: 'field';
+          key: string;
+          handle: string;
+          label: string;
+          value: string | number | boolean | null;
+      }
+    | {
+          kind: 'terms';
+          taxonomy: string;
+          taxonomyLabel: string;
+          terms: { id: string; name: string; taxonomy: string }[];
+          create: string[];
+      }
+    | {
+          kind: 'link';
+          phrase: string;
+          itemId: string;
+          occurrence: number;
+          target: string;
+      }
+    | { kind: 'body'; document: EditorDocument };
+
+/** One of a panel's suggestions. */
+export type PanelSuggestion = {
+    id: string;
+    label: string;
+    detail: string;
+    change: PanelChange;
+};
+
+/** One of a panel's jobs on this item. */
+export type PanelJob = {
+    id: string;
+    label: string;
+    state: 'waiting' | 'running' | 'finished' | 'failed' | 'cancelled';
+    done: number;
+    total: number | null;
+    message: string | null;
+};
+
+/** What a panel shows (PanelReads): its status, its suggestions, its jobs, and whether to ask again. */
+export type PanelAnswer = {
+    status: string | null;
+    tone: 'ok' | 'neutral' | 'info' | 'warn' | 'danger';
+    suggestions: PanelSuggestion[];
+    failed: string | null;
+    jobs: PanelJob[];
+    busy: boolean;
+};

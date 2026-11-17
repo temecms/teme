@@ -412,6 +412,69 @@ Thrown when a plugin's read of a draft is refused. Its message is one plain sent
 
 Thrown when a plugin's content or media write is refused. Its message is one plain sentence; nothing was written.
 
+## Teme\Contracts\Editor
+
+### EditorPanel
+
+`Teme\Contracts\Editor\EditorPanel`, interface. Since 0.9.0.
+
+What one panel shows for one item, and what happens when the person uses or discards one of its suggestions. Core draws it; the plugin never draws.
+
+- `view(EditorPanelContext $context): PanelView` — The panel's status line and the suggestions waiting for the person, answered within 250 ms. Since 0.9.0.
+- `settled(string $suggestionId, bool $used, EditorPanelContext $context): void` — The person used or discarded one of this panel's suggestions. Since 0.9.0.
+
+### EditorPanelContext
+
+`Teme\Contracts\Editor\EditorPanelContext`, class. Since 0.9.0.
+
+The item the editor shows, and who is looking: the item's ID, its working revision, type and language, the person's ID and language, and which of the plugin's own permissions they hold.
+
+- `__construct(string $itemId, string $revisionId, string $type, string $language, string $personId, string $locale, array $permissions = [])`. Since 0.9.0.
+
+### HasEditorPanels
+
+`Teme\Contracts\Editor\HasEditorPanels`, interface. Since 0.9.0.
+
+A plugin whose manifest declares editor panels: a pane in the content editor that core draws from the data each panel returns.
+
+- `editorPanels(): array` — The plugin's panels, by declared panel id. Since 0.9.0.
+
+### PanelView
+
+`Teme\Contracts\Editor\PanelView`, class. Since 0.9.0.
+
+A short status line, its tone, and the suggestions waiting for the person.
+
+- `MOST_SUGGESTIONS` — The most suggestions one view may hold. Since 0.9.0.
+- `MOST_STATUS` — The longest status line, in characters. Since 0.9.0.
+- `__construct(?string $status = null, string $tone = 'neutral', array $suggestions = [])`. Since 0.9.0.
+
+### SuggestedChange
+
+`Teme\Contracts\Editor\SuggestedChange`, class. Since 0.9.0.
+
+The changes core knows how to check, show and apply in the editor: the title, a scalar field, terms, an internal link on a phrase, or a whole document shown as a proposal. Made only by its named constructors.
+
+- `TITLE` — A new title. Since 0.9.0.
+- `FIELD` — A scalar field's new value. Since 0.9.0.
+- `TERMS` — Terms to add. Since 0.9.0.
+- `LINK` — An internal link on a phrase. Since 0.9.0.
+- `BODY` — A whole document, as a proposal. Since 0.9.0.
+- `title(string $title): self` — A new title, 1 to 512 characters. Since 0.9.0.
+- `field(string $handle, string|int|float|bool|null $value): self` — A new value for one of the type's scalar fields, by its handle. Since 0.9.0.
+- `terms(string $taxonomy, array $slugsOrNames): self` — Terms of one taxonomy to add to the item, by slug or name, 1 to 10. Since 0.9.0.
+- `link(string $phrase, string $itemId, int $occurrence = 1): self` — An internal link to another item on the nth plain-text match of a phrase, stored by the item's ID; the address is made when the page is drawn. Since 0.9.0.
+- `body(array $document): self` — A whole Tiptap document, shown beside the article as a proposal. Since 0.9.0.
+
+### Suggestion
+
+`Teme\Contracts\Editor\Suggestion`, class. Since 0.9.0.
+
+One change the person may use, with a label and a short explanation.
+
+- `ID` — A suggestion's id. Since 0.9.0.
+- `__construct(string $id, string $label, string $detail, SuggestedChange $change)`. Since 0.9.0.
+
 ## Teme\Contracts\Fediverse
 
 ### ActivityHandler

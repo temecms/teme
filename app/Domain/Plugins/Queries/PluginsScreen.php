@@ -9,6 +9,8 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
+use App\Domain\Plugins\Editor\DeclaredPanel;
+use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\ManifestText;
 use App\Domain\Plugins\Models\PluginRecord;
@@ -106,6 +108,7 @@ final readonly class PluginsScreen
                     ...$this->accessLines($row->consent['capabilities'] ?? [], $row->consent['hosts'] ?? [], [], [], $row->consent['routes'] ?? [], [], Consent::agreedImports($row->consent), false, array_values(array_filter($aiTasks, fn (DeclaredAiTask $task): bool => array_key_exists($task->id, is_array($row->consent['aiTasks'] ?? null) ? $row->consent['aiTasks'] : []))), notices: $notices),
                     ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
                     ...$this->permissionLines($manifest, (array) ($row->consent['permissions'] ?? []), false),
+                    ...$this->panelLines($manifest, $row->consent['capabilities'] ?? []),
                 ],
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
                 'asks' => [...$this->accessLines(
@@ -124,7 +127,7 @@ final readonly class PluginsScreen
                 ), ...$this->insertionHostsLine(
                     $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
                     $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
-                ), ...$this->permissionLines($manifest, null, $row->consent !== [] && ($row->added['permissions'] ?? []) !== [])],
+                ), ...$this->permissionLines($manifest, null, $row->consent !== [] && ($row->added['permissions'] ?? []) !== []), ...$this->panelLines($manifest, null)],
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 // The plugins it needs, then those that need it, by their own names (docs/plans/plugin-sockets-3.md).
                 'requires' => array_map(fn (string $name): array => [
@@ -172,6 +175,23 @@ final readonly class PluginsScreen
         }
 
         return $lines;
+    }
+
+    /**
+     * One line for each editor panel the manifest declares; for what was
+     * agreed, only once both capabilities a panel needs were.
+     *
+     * @param  list<string>|null  $agreed  the capabilities agreed, or null for what it asks
+     *
+     * @return list<array{words: string, new: bool}>
+     */
+    private function panelLines(?Manifest $manifest, ?array $agreed): array
+    {
+        if ($manifest === null || ($agreed !== null && array_diff(array_column(PanelValidator::NEEDS, 'value'), $agreed) !== [])) {
+            return [];
+        }
+
+        return array_map(fn (string $words): array => ['words' => $words, 'new' => false], DeclaredPanel::consentWords($manifest));
     }
 
     /**

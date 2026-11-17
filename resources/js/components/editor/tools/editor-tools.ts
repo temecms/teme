@@ -9,7 +9,7 @@ import { togglePin } from './pins';
 
 export { offeredTools } from './pins';
 
-/** One tool in the launcher (docs/architecture/design-system.md, 6.1's Tool surface). Core's today; a plugin's once plugins ship admin code. */
+/** One tool in the launcher (docs/architecture/design-system.md, 6.1's Tool surface): core's, or a plugin's panel. */
 export type EditorTool = {
     id: string;
     owner: string;
@@ -32,9 +32,10 @@ const DEFAULT_PINS = ['assistant', 'share'];
 
 /**
  * This person's pins, read from their preferences and saved there at once;
- * a refused save puts the old pins back and says so.
+ * a refused save puts the old pins back and says so. `pinnable` adds the
+ * plugins' panels this person sees to core's own.
  */
-export function usePins(): {
+export function usePins(pinnable: string[] = PINNABLE_TOOLS): {
     pins: string[];
     saving: boolean;
     refused: boolean;
@@ -49,7 +50,7 @@ export function usePins(): {
 
     const toggle = (id: string) => {
         const before = pins;
-        const next = togglePin(pins, id, PINNABLE_TOOLS);
+        const next = togglePin(pins, id, pinnable);
 
         setRefused(next.refused);
 

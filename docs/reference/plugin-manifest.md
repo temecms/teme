@@ -130,6 +130,28 @@
 | `contributes.aiTasks[].needs` | array | yes | What a model must be able to do for this task. | "text", "images-in", "structured-output" |
 | `contributes.aiTasks[].sends` | enum | yes | What it sends: only what the plugin writes itself, published text, or an item's unpublished text. | "brief", "published", "draft" |
 | `contributes.aiTasks[].maxOutputTokens` | integer | yes | The most tokens one answer may hold. |  |
+| `contributes.editorPanels` | array | no | Panels in the editor's rail for the item being edited: each shows a status line, the plugin's work on the item and the changes it suggests. Needs content.read and jobs. |  |
+| `contributes.editorPanels[].id` | string | yes | The panel's id; its tool in the editor is plugin.{code}.{id}. | ^[a-z][a-z0-9-]{1,23}$ |
+| `contributes.editorPanels[].label` | string | yes | The panel's name in the editor's Tools and at the head of its pane. |  |
+| `contributes.editorPanels[].description` | string | no | One line at the top of the panel. |  |
+| `contributes.editorPanels[].icon` | enum | no | The tool's icon. | "plug", "link", "external-link", "settings", "send", "bell", "refresh-cw", "chart-line", "sparkles", "pen-line", "list-checks" |
+| `contributes.editorPanels[].types` | array | yes | The content types whose editor shows the panel. |  |
+| `contributes.editorPanels[].permission` | string | no | One of the plugin's permissions, which a person must hold to see the panel. | ^[a-z][a-z0-9-]{1,23}$ |
+| `contributes.editorPanels[].actions` | array | no | What the panel can be asked to do: each queues one of the plugin's jobs on the item, as the person. |  |
+| `contributes.editorPanels[].actions[].id` | string | yes | The action's id, in the job's payload. | ^[a-z][a-z0-9-]{1,23}$ |
+| `contributes.editorPanels[].actions[].label` | string | yes | The action's button. |  |
+| `contributes.editorPanels[].actions[].job` | string | yes | The key of the declared job it queues. |  |
+| `contributes.editorPanels[].actions[].confirm` | string | no | A sentence the person confirms before the job is queued. |  |
+| `contributes.editorPanels[].actions[].fields` | array | no | A small form whose values go to the job. |  |
+| `contributes.editorPanels[].actions[].fields[].key` | string | yes | The value's key in the job's payload. | ^[a-z][a-z0-9_]{0,31}$ |
+| `contributes.editorPanels[].actions[].fields[].type` | enum | yes | The kind of field. | "text", "textarea", "select", "boolean", "number" |
+| `contributes.editorPanels[].actions[].fields[].label` | string | yes | The field's label. |  |
+| `contributes.editorPanels[].actions[].fields[].required` | boolean | no | Whether the person must fill it. |  |
+| `contributes.editorPanels[].actions[].fields[].default` |  | no | The value it starts with. |  |
+| `contributes.editorPanels[].actions[].fields[].maxLength` | integer | no | For text, up to 500; for textarea, up to 2,000. |  |
+| `contributes.editorPanels[].actions[].fields[].options` | object | no | A select's values and their labels. |  |
+| `contributes.editorPanels[].actions[].fields[].min` | number | no | A number's least value. |  |
+| `contributes.editorPanels[].actions[].fields[].max` | number | no | A number's greatest value. |  |
 | `contributes.notices` | array | no | Kinds of notice the plugin sends through Notices, with notices.send; never required. |  |
 | `contributes.notices[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
 | `contributes.notices[].label` | string | yes | The choice as Account › Notifications words it. |  |

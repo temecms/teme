@@ -65,6 +65,11 @@ class AppServiceProvider extends ServiceProvider
         // minute is far more than a person types, and bounds a script.
         RateLimiter::for('admin-search', fn (Request $request): Limit => Limit::perMinute(60)->by((string) $request->user()?->getAuthIdentifier()));
 
+        // A plugin's panel in the editor: its actions and the person's use of
+        // its suggestions each run plugin code; sixty a minute per person is
+        // far more than anyone clicks, and bounds a script.
+        RateLimiter::for('editor-panels', fn (Request $request): Limit => Limit::perMinute(60)->by('editor-panels:'.(string) $request->user()?->getAuthIdentifier()));
+
         // The API's drawn answers, per address; the page cache's stored ones
         // are never counted (I-3324).
         RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(ApiPaths::PER_MINUTE)->by('api:'.$request->ip()));

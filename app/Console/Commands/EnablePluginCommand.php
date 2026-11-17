@@ -9,6 +9,7 @@ use App\Domain\Ai\Plugins\PluginAiTasks;
 use App\Domain\Plugins\Area\PluginPermissions;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
+use App\Domain\Plugins\Editor\DeclaredPanel;
 use App\Domain\Plugins\Jobs\ScheduleRunner;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Operations\EnablePlugin;
@@ -125,6 +126,10 @@ final class EnablePluginCommand extends Command
         }
 
         foreach ($manifest === null ? [] : PluginPermissions::consentWords($manifest) as $words) {
+            $this->line('  '.$words);
+        }
+
+        foreach ($manifest === null ? [] : DeclaredPanel::consentWords($manifest) as $words) {
             $this->line('  '.$words);
         }
 

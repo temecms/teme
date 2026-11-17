@@ -13,6 +13,8 @@ import { post, reasonOf, send } from '@/components/editor/editor-http';
 import type { Answer, Route } from '@/components/editor/editor-http';
 import { coreTools, EditorHeader } from '@/components/editor/editor-header';
 import type { ToolPanes } from '@/components/editor/editor-header';
+import { pluginTools } from '@/components/editor/plugin-panels/plugin-tools';
+import { usePanelApply } from '@/components/editor/plugin-panels/use-panel-apply';
 import { offeredTools } from '@/components/editor/tools/editor-tools';
 import {
     EditorRail,
@@ -344,6 +346,19 @@ export default function ContentEdit(page: ContentEditPage) {
             setUnpublished(true);
         }
     }, [saving.pending, saving.savedAt]);
+    // What a plugin's panel may change in the open draft, as the person would.
+    const panelApply = usePanelApply({
+        editor,
+        title,
+        setTitle,
+        values,
+        setValues,
+        chosenTerms,
+        setChosenTerms,
+        taxonomies: session.taxonomies,
+        checkpoint,
+        markStale: saving.markStale,
+    });
     const assistantSaving = useMemo(
         () => ({
             checkpoint,
@@ -1025,12 +1040,15 @@ export default function ContentEdit(page: ContentEditPage) {
             <SharePane contentId={session.id} saveFirst={checkpoint} />
         ),
     };
-    const tools = offeredTools(
-        coreTools(panes, {
+    // The plugins' panels: tools in the bar, each opening in the rail (docs/proposals/plugin-sockets-3.md).
+    const panelTools = pluginTools(page.panels, session.id, panelApply);
+    const tools = offeredTools([
+        ...coreTools(panes, {
             assistant: ai !== null,
             canShare: session.can.edit && themeRegion === null,
         }),
-    );
+        ...panelTools,
+    ]);
 
     // A tool's pane. Asked for by name, so the rail opens with it, even
     // where it is a sheet.
@@ -1257,6 +1275,7 @@ export default function ContentEdit(page: ContentEditPage) {
                         onToggleFocus={() => setFocus((on) => !on)}
                         assistant={ai !== null}
                         panes={panes}
+                        pluginTools={panelTools}
                         // A preview shows a page, which a theme region never is.
                         canShare={session.can.edit && themeRegion === null}
                     />
