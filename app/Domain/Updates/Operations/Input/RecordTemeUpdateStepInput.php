@@ -8,7 +8,7 @@ use App\Domain\Updates\Requests\UpdateStep;
 use Teme\Contracts\Operations\OperationInput;
 
 /**
- * What RecordTemeUpdateStep needs: the request, the step, the state it is now in, a sentence about it, the backup and deploy run it brought about, how many times the step has asked the platform, the moment after which a deploy run counts for it, and the newest deployment the platform listed before the step asked. Only the operator, the updater, runs it.
+ * What RecordTemeUpdateStep needs: the request, the step, the state it is now in, a sentence about it, the backup and deploy run it brought about, how many times the step has asked the platform, the moment after which a deploy run counts for it, the newest deployment the platform listed before the step asked, and the compose file the service had before the step replaced it, which a switch back puts back. Only the operator, the updater, runs it.
  */
 final readonly class RecordTemeUpdateStepInput implements OperationInput
 {
@@ -23,6 +23,7 @@ final readonly class RecordTemeUpdateStepInput implements OperationInput
         public ?string $runsAfter = null,
         public ?string $mark = null,
         private ?string $actorId = null,
+        public ?string $compose = null,
     ) {}
 
     public function actorId(): ?string

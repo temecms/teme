@@ -60,6 +60,7 @@ final class RecordTemeUpdateStep extends BaseOperation
             $entry['asks'] = $input->asks ?? $entry['asks'] ?? 0;
             $entry['runsAfter'] = $input->runsAfter ?? $entry['runsAfter'] ?? null;
             $entry['mark'] = $input->mark ?? $entry['mark'] ?? null;
+            $entry['compose'] = $input->compose ?? $entry['compose'] ?? null;
             $entry['finishedAt'] = in_array($input->state, [UpdateStep::DONE, UpdateStep::FAILED, UpdateStep::SWITCHED_BACK], true) ? $now : null;
 
             return $entry;

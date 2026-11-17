@@ -22,6 +22,8 @@ use App\Domain\Settings\Queries\SettingsPageSections;
 use App\Domain\Settings\Queries\SettingsPanels;
 use App\Domain\Settings\SettingsPlacement;
 use App\Domain\Settings\SettingsRegistry;
+use App\Domain\Updates\Updater\PlatformCheck;
+use App\Domain\Updates\UpdatesSettings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -86,6 +88,9 @@ final class SettingsController extends Controller
             'pluginLists' => $lists->forGroup(SettingsPlacement::groupShownOn($page)),
             // A plugin's code settings' scripts that wait, and whether this person may approve them here.
             'pluginScripts' => $this->pluginScripts($registry, SettingsPlacement::groupShownOn($page), $data['values'], $request),
+            // One sentence above the form when something needs the person: on Updates, why the updater can't use the
+            // Dokploy key it has, or that it has none. Null on every other page.
+            'notice' => $page === UpdatesSettings::GROUP ? app(PlatformCheck::class)->sentence() : null,
             ...$sections->for($page, $user),
         ]);
     }

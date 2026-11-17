@@ -32,9 +32,11 @@ beforeEach(function (): void {
         'teme.updater.platform' => 'dokploy',
         'teme.updater.image_repository' => DP_REPOSITORY,
         'teme.updater.dokploy.url' => DP_BASE,
-        'teme.updater.dokploy.token' => DP_TOKEN,
         'teme.updater.dokploy.compose_id' => 'cmp-teme',
+        'teme.updater.dokploy.app_name' => 'teme-abc123',
     ]);
+    // The key as Settings › Updates keeps it: encrypted, in the updates group.
+    dpKey(DP_TOKEN);
     Http::preventStrayRequests();
     $this->old = DP_REPOSITORY.':0.1.0-rc.14';
     $this->new = DP_REPOSITORY.':0.1.0-rc.15';
@@ -50,9 +52,11 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    // Nothing but D12's five calls ever reaches Dokploy: never redeploy, never update, never freshVolumes.
+    aiServerKey('TEME_DOKPLOY_TOKEN', null);
+    // Nothing but the calls the updater needs ever reaches Dokploy: never redeploy, never freshVolumes, and an
+    // update of the service names its compose file alone.
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'compose.redeploy')
-        || str_contains($request->url(), 'compose.update')
+        || (str_contains($request->url(), 'compose.update') && array_keys($request->data()) !== ['composeId', 'composeFile'])
         || str_contains($request->url(), '/api/application.')
         || str_contains(json_encode($request->data()) ?: '', 'freshVolumes'));
 });
@@ -292,9 +296,9 @@ it('says what each answer means', function (callable $answer, string $sentence):
 
     expect(fn () => app(DokployPlatform::class)->image(ImageSetting::Site))->toThrow(PlatformRefused::class, $sentence);
 })->with([
-    '401' => [fn () => Http::response('', 401), 'Dokploy refused the token in TEME_DOKPLOY_TOKEN.'],
-    '403' => [fn () => Http::response('', 403), 'Dokploy refused the token in TEME_DOKPLOY_TOKEN.'],
-    '404' => [fn () => Http::response('', 404), 'Dokploy can’t find the Compose service in TEME_DOKPLOY_COMPOSE_ID.'],
+    '401' => [fn () => Http::response('', 401), 'Dokploy refused Teme’s API key. Make a new key in Dokploy and paste it in Settings › Updates.'],
+    '403' => [fn () => Http::response('', 403), 'Dokploy refused Teme’s API key. Make a new key in Dokploy and paste it in Settings › Updates.'],
+    '404' => [fn () => Http::response('', 404), 'Dokploy can’t find this site’s Compose service.'],
     '302' => [fn () => Http::response('', 302, ['Location' => 'https://elsewhere.example']), 'Dokploy answered 302, sending Teme elsewhere; Teme doesn’t follow it.'],
     '500' => [fn () => Http::response('', 500), 'Dokploy answered 500 to compose.one.'],
     'an unreadable body' => [fn () => Http::response('not json', 200), 'Dokploy answered 200 to compose.one.'],
@@ -330,14 +334,116 @@ it('refuses a compose ID that isn’t Dokploy’s shape, before any request', fu
     expect(fn () => app(DokployPlatform::class)->image(ImageSetting::Site))
         ->toThrow(PlatformRefused::class, 'TEME_DOKPLOY_COMPOSE_ID isn’t set to a Dokploy Compose service’s ID.');
     Http::assertNothingSent();
-})->with(['cmp teme', '../x', '', "cmp-teme\n", str_repeat('a', 65)]);
+})->with(['cmp teme', '../x', "cmp-teme\n", str_repeat('a', 65)]);
 
-it('refuses to run without a token, before any request', function (?string $token): void {
-    config(['teme.updater.dokploy.token' => $token]);
+it('refuses to run without a key, before any request, and says where to paste one', function (): void {
+    dpKey(null);
 
-    expect(fn () => app(DokployPlatform::class)->deploy('Teme 0.1.0-rc.15'))->toThrow(PlatformRefused::class, 'TEME_DOKPLOY_TOKEN isn’t set on the updater.');
+    expect(fn () => app(DokployPlatform::class)->deploy('Teme 0.1.0-rc.15'))
+        ->toThrow(PlatformRefused::class, 'Teme has no Dokploy API key. Paste one in Settings › Updates.');
     Http::assertNothingSent();
-})->with([null, '']);
+});
+
+it('uses the key set on the server before the one typed in the admin', function (): void {
+    aiServerKey('TEME_DOKPLOY_TOKEN', 'dkp_from_the_server');
+    Http::fake([DP_BASE.'/api/compose.deploy' => Http::response('{"success":true}', 200)]);
+
+    app(DokployPlatform::class)->deploy('Teme 0.1.0-rc.15');
+
+    Http::assertSent(fn (Request $request): bool => $request->header('x-api-key') === ['dkp_from_the_server']);
+});
+
+it('finds its Compose service by app name when no service ID is set, matching the name exactly', function (): void {
+    config(['teme.updater.dokploy.compose_id' => null]);
+    Http::fake([
+        DP_BASE.'/api/compose.search*' => Http::response(['items' => [
+            ['composeId' => 'cmp-other', 'appName' => 'teme-abc123-copy', 'sourceType' => 'raw'],
+            ['composeId' => 'cmp-teme', 'appName' => 'teme-abc123', 'sourceType' => 'raw'],
+        ], 'total' => 2]),
+        DP_BASE.'/api/compose.deploy' => Http::response('{"success":true}', 200),
+    ]);
+
+    app(DokployPlatform::class)->deploy('Teme 0.1.0-rc.15');
+
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/api/compose.search') && $request->data()['appName'] === 'teme-abc123');
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/api/compose.deploy') && $request->data()['composeId'] === 'cmp-teme');
+});
+
+it('says so when no Compose service has the app name, or more than one has', function (array $items): void {
+    config(['teme.updater.dokploy.compose_id' => null]);
+    Http::fake([DP_BASE.'/api/compose.search*' => Http::response(['items' => $items, 'total' => count($items)])]);
+
+    expect(fn () => app(DokployPlatform::class)->deploy('Teme 0.1.0-rc.15'))
+        ->toThrow(PlatformRefused::class, 'Dokploy has no Compose service named teme-abc123 that Teme’s API key can see. Check TEME_DOKPLOY_APP_NAME, or make the key with access to this service.');
+    expect(($this->sent)('compose.deploy'))->toBe([]);
+})->with([
+    'none' => [[]],
+    'only a longer name' => [[['composeId' => 'cmp-other', 'appName' => 'teme-abc123-copy']]],
+    'two' => [[['composeId' => 'cmp-a', 'appName' => 'teme-abc123'], ['composeId' => 'cmp-b', 'appName' => 'teme-abc123']]],
+]);
+
+it('refuses an app name that isn’t Dokploy’s shape, before any request', function (?string $name): void {
+    config(['teme.updater.dokploy.compose_id' => null, 'teme.updater.dokploy.app_name' => $name]);
+
+    expect(fn () => app(DokployPlatform::class)->deploy('Teme 0.1.0-rc.15'))
+        ->toThrow(PlatformRefused::class, 'TEME_DOKPLOY_APP_NAME isn’t set to the Compose service’s App Name.');
+    Http::assertNothingSent();
+})->with([null, '', 'teme abc', '../x', "teme\n"]);
+
+it('reads the service’s compose file, and whether Dokploy takes it from Git', function (string $source, bool $fromGit): void {
+    Http::fake([DP_BASE.'/api/compose.one*' => Http::response(($this->one)($this->env, ['composeFile' => "services: {}\n", 'sourceType' => $source]))]);
+
+    $compose = app(DokployPlatform::class)->compose();
+
+    expect($compose->text)->toBe("services: {}\n")
+        ->and($compose->fromGit)->toBe($fromGit);
+})->with([
+    'pasted' => ['raw', false],
+    'GitHub' => ['github', true],
+    'GitLab' => ['gitlab', true],
+    'Bitbucket' => ['bitbucket', true],
+    'Gitea' => ['gitea', true],
+    'Git' => ['git', true],
+]);
+
+it('replaces the compose file with compose.update, naming the file alone, then reads it back', function (): void {
+    Http::fakeSequence(DP_BASE.'/api/compose.one*')
+        ->push(($this->one)($this->env, ['composeFile' => "old: 1\n", 'sourceType' => 'raw']))
+        ->push(($this->one)($this->env, ['composeFile' => "new: 1\n", 'sourceType' => 'raw']));
+    Http::fake([DP_BASE.'/api/compose.update' => Http::response('true', 200)]);
+
+    app(DokployPlatform::class)->setCompose("new: 1\n");
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/api/compose.update')
+        && $request->method() === 'POST'
+        && $request->data() === ['composeId' => 'cmp-teme', 'composeFile' => "new: 1\n"]);
+});
+
+it('sends nothing when the compose file is already the one asked for', function (): void {
+    Http::fake([DP_BASE.'/api/compose.one*' => Http::response(($this->one)($this->env, ['composeFile' => "new: 1\n", 'sourceType' => 'raw']))]);
+
+    app(DokployPlatform::class)->setCompose("new: 1\n");
+
+    expect(($this->sent)('compose.update'))->toBe([]);
+});
+
+it('refuses, saying so, when Dokploy didn’t keep the compose file sent', function (): void {
+    Http::fake([
+        DP_BASE.'/api/compose.one*' => Http::response(($this->one)($this->env, ['composeFile' => "old: 1\n", 'sourceType' => 'raw'])),
+        DP_BASE.'/api/compose.update' => Http::response('true', 200),
+    ]);
+
+    expect(fn () => app(DokployPlatform::class)->setCompose("new: 1\n"))
+        ->toThrow(PlatformRefused::class, 'Dokploy didn’t keep the compose file Teme sent. Check the Compose service’s file by hand.');
+});
+
+it('never replaces a compose file Dokploy takes from Git', function (): void {
+    Http::fake([DP_BASE.'/api/compose.one*' => Http::response(($this->one)($this->env, ['composeFile' => "old: 1\n", 'sourceType' => 'github']))]);
+
+    expect(fn () => app(DokployPlatform::class)->setCompose("new: 1\n"))
+        ->toThrow(PlatformRefused::class, 'Dokploy takes this site’s compose file from Git, so Teme leaves it to Dokploy’s Pull.');
+    expect(($this->sent)('compose.update'))->toBe([]);
+});
 
 it('is the platform when TEME_UPDATER_PLATFORM is dokploy, and NoPlatform otherwise', function (): void {
     expect(app(Platform::class))->toBeInstanceOf(DokployPlatform::class);
@@ -347,12 +453,16 @@ it('is the platform when TEME_UPDATER_PLATFORM is dokploy, and NoPlatform otherw
     expect(app(Platform::class))->toBeInstanceOf(NoPlatform::class);
 });
 
-it('keeps the Dokploy token out of the web process’s configuration and Tools › Updates', function (): void {
-    config(['teme.updater.dokploy.token' => null]);
+it('keeps the Dokploy key out of the configuration, Tools › Updates and Settings › Updates', function (): void {
     $this->seed(RoleSeeder::class);
     $admin = User::factory()->create()->assignRole('administrator');
 
-    expect(config('teme.updater.dokploy.token'))->toBeNull();
+    expect(json_encode(config('teme')))->not->toContain(DP_TOKEN);
+
+    $this->actingAs($admin)->get('/admin/settings/updates')->assertOk()
+        ->assertInertia(function (Assert $page): void {
+            expect(json_encode($page->toArray()['props']) ?: '')->not->toContain(DP_TOKEN);
+        });
 
     $this->actingAs($admin)->get('/admin/tools/updates')->assertOk()
         ->assertInertia(function (Assert $page): void {

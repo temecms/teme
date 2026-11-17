@@ -127,6 +127,8 @@ use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\Operations\UpdateSettings;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Settings\SettingsRepository;
+use App\Domain\Settings\SettingsWrite;
+use App\Domain\Settings\SettingsWriter;
 use App\Domain\Site\CommentViews;
 use App\Domain\Site\Document\DocumentMeta;
 use App\Domain\Site\Document\DocumentPage;
@@ -168,6 +170,7 @@ use App\Domain\Types\StoredTypes;
 use App\Domain\Types\TaxonomyDefinition;
 use App\Domain\Types\TypeDefinition;
 use App\Domain\Updates\CheckForUpdates;
+use App\Domain\Updates\UpdatesSettings;
 use App\Domain\Users\Operations\Input\UpdateProfileInput;
 use App\Domain\Users\Operations\UpdateProfile;
 use App\Models\User;
@@ -4753,4 +4756,16 @@ function hkPng(int $width, int $height): string
     imagepng($image, $path);
 
     return $path;
+}
+
+/**
+ * The Dokploy API key as Settings › Updates keeps it, encrypted in the updates group; null removes it.
+ */
+function dpKey(?string $key): void
+{
+    app(SettingsWriter::class)->write(new SettingsWrite(
+        group: UpdatesSettings::GROUP,
+        values: [],
+        secrets: [UpdatesSettings::DOKPLOY_API_KEY => $key],
+    ));
 }

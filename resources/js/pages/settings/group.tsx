@@ -355,6 +355,7 @@ export default function SettingsGroup({
     pluginActions = [],
     pluginLists = [],
     pluginScripts = null,
+    notice = null,
 }: SettingsGroupPage & {
     pluginHosts: PluginHosts | null;
     pluginScripts?: PluginScripts | null;
@@ -510,6 +511,15 @@ export default function SettingsGroup({
                 title={heading.label}
                 description={heading.description}
             >
+                {notice !== null && (
+                    <Notice
+                        tone="warn"
+                        role="status"
+                        data-test="settings-notice"
+                    >
+                        {notice}
+                    </Notice>
+                )}
                 <AreaScriptsProvider value={scripts}>
                     <SettingsForm
                         action={SettingsController.update.form({
