@@ -21,6 +21,7 @@ switch ($command) {
     case 'route:cache':
         exit(0);
     case 'teme:database:prepare':
+        file_put_contents('/tmp/prepare-env.json', json_encode(getenv()));
         if (getenv('FAKE_PREPARE_FAIL') === '1') {
             fwrite(STDERR, "The database refused.\n");
             exit(1);

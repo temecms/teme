@@ -24,6 +24,7 @@ RUN groupadd --system --gid 9990 teme-installer \
     && mkdir -p storage/framework/cache storage/app/public /var/www/html/storage/page-cache \
     && ln -s ../storage/app/public /var/www/html/public/storage \
     && chown -R www-data:www-data /var/www/html/storage
+RUN mkdir -p /run/aio-secrets && echo file-user > /run/aio-secrets/db_username && echo file-password-canary > /run/aio-secrets/db_password && chmod 0700 /run/aio-secrets && chmod 0600 /run/aio-secrets/*
 WORKDIR /var/www/html
 ENV APP_ENV=production AUTORUN_ENABLED=false SHOW_WELCOME_MESSAGE=false HEALTHCHECK_PATH=/up \
     APP_CONFIG_CACHE=/var/www/html/storage/framework/cache/config.php

@@ -13,19 +13,59 @@ mkdir -p "$private"
 chmod 0711 "$private"
 
 # The login Teme was given never reaches a process that doesn't need it: it
-# waits here, readable by root alone, for the deploy step.
-(
-    umask 077
-    : > "$private/admin.env"
-    for name in DB_USERNAME DB_PASSWORD DB_URL DATABASE_URL; do
-        eval "set=\${$name+x}"
-        if [ -n "$set" ]; then
-            eval "value=\$$name"
-            printf "export %s='%s'\n" "$name" "$(printf '%s' "$value" | sed "s/'/'\\''/g")" >> "$private/admin.env"
-        fi
-    done
-)
-unset DB_USERNAME DB_PASSWORD DB_URL DATABASE_URL
+# waits here, readable by root alone, for the deploy step. A login given as a
+# file is read here, as root, so no file's name or contents reach the others.
+umask 077
+: > "$private/admin.env"
+
+newline='
+'
+carriage_return="$(printf '\r')"
+
+keep_aside() {
+    printf "export %s='%s'\n" "$1" "$(printf '%s' "$2" | sed "s/'/'\''/g")" >> "$private/admin.env"
+}
+
+for name in DB_USERNAME DB_PASSWORD; do
+    eval "file=\${${name}_FILE-}"
+    eval "given=\${${name}+x}"
+
+    if [ -n "$file" ] && [ -n "$given" ]; then
+        echo "$name and ${name}_FILE are both set. Set one." >&2
+        exit 1
+    fi
+
+    if [ -n "$file" ]; then
+        # All of the file, less one line break at the end, as Teme reads a secret's file.
+        value="$(cat "$file"; printf .)" || {
+            echo "${name}_FILE names a file that can't be read." >&2
+            exit 1
+        }
+        value="${value%.}"
+        case "$value" in
+            *"$newline")
+                value="${value%"$newline"}"
+                value="${value%"$carriage_return"}"
+                ;;
+        esac
+        keep_aside "$name" "$value"
+    elif [ -n "$given" ]; then
+        eval "value=\$$name"
+        keep_aside "$name" "$value"
+    fi
+done
+
+for name in DB_URL DATABASE_URL; do
+    eval "given=\${${name}+x}"
+
+    if [ -n "$given" ]; then
+        eval "value=\$$name"
+        keep_aside "$name" "$value"
+    fi
+done
+
+unset DB_USERNAME DB_PASSWORD DB_USERNAME_FILE DB_PASSWORD_FILE DB_URL DATABASE_URL
+umask 022
 
 # What a container that runs every role would otherwise be told one setting at a time.
 export S6_SERVICES_GRACETIME="${S6_SERVICES_GRACETIME:-300000}"
@@ -51,6 +91,11 @@ fi
 link_into_data() {
     folder="$1"
     target="$2"
+
+    # A volume mounted there already (as the Compose recipe does) is kept as it is: nothing is copied out of it or removed.
+    if mountpoint -q "$folder"; then
+        return
+    fi
 
     if [ ! -L "$folder" ]; then
         # What the image made there first is kept, and nothing already in the volume is overwritten.

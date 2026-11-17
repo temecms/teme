@@ -75,6 +75,11 @@ function aioStart(array $environment = [], array $options = []): string
     $arguments = ['run', '--detach', '--name', $name];
 
     foreach (['TEME_ROLE' => 'all', 'APP_KEY' => 'base64:'.base64_encode(str_repeat('k', 32)), 'DB_HOST' => 'db.internal', 'DB_USERNAME' => 'given-user', 'DB_PASSWORD' => 'given-password-canary', ...$environment] as $key => $value) {
+        // A setting given as null is left out.
+        if ($value === null) {
+            continue;
+        }
+
         $arguments[] = '--env';
         $arguments[] = "{$key}={$value}";
     }
@@ -302,6 +307,66 @@ it('listens on the port a host sets in PORT, and its health check asks there', f
     expect(aioWait($name, 'healthy'))->toBe('healthy')
         ->and(aioExec($name, 'curl --silent http://localhost:3000/up'))->toBe('ok')
         ->and(aioExec($name, 'curl --silent --max-time 2 http://localhost:8080/up'))->toBe('');
+});
+
+it('leaves a mounted volume at storage/app or storage/page-cache as it is, and never empties it', function (): void {
+    $media = 'teme-aio-media-'.bin2hex(random_bytes(4));
+    $cache = 'teme-aio-cache-'.bin2hex(random_bytes(4));
+    // The Compose recipe mounts both; a volume with a file in it is what a site switching layouts brings.
+    aioMust(['run', '--rm', '--volume', "{$media}:/data", '--entrypoint', 'sh', AIO_IMAGE, '-c', 'mkdir -p /data/public && echo precious > /data/public/kept.txt && chown -R 33:33 /data']);
+    aioMust(['run', '--rm', '--volume', "{$cache}:/data", '--entrypoint', 'sh', AIO_IMAGE, '-c', 'echo cached > /data/kept.txt && chown -R 33:33 /data']);
+
+    $name = ($this->start)([], ['--volume', "{$media}:/var/www/html/storage/app", '--volume', "{$cache}:/var/www/html/storage/page-cache"]);
+
+    expect(aioWait($name, 'healthy'))->toBe('healthy')
+        ->and(aioExec($name, 'cat /var/www/html/storage/app/public/kept.txt /var/www/html/storage/page-cache/kept.txt'))->toBe("precious\ncached\n")
+        // Neither is replaced by a link into /var/teme.
+        ->and(aioExec($name, 'test -L /var/www/html/storage/app || test -L /var/www/html/storage/page-cache; echo $?'))->toBe("1\n");
+
+    aioRemove($name);
+
+    expect(aioDocker(['run', '--rm', '--volume', "{$media}:/data", '--entrypoint', 'cat', AIO_IMAGE, '/data/public/kept.txt'])->getOutput())->toContain('precious');
+
+    aioDocker(['volume', 'rm', '--force', $media, $cache]);
+});
+
+it('reads the login it was given from DB_USERNAME_FILE and DB_PASSWORD_FILE, and gives no process the files’ names', function (): void {
+    $name = ($this->start)(['DB_USERNAME' => null, 'DB_PASSWORD' => null, 'DB_USERNAME_FILE' => '/run/aio-secrets/db_username', 'DB_PASSWORD_FILE' => '/run/aio-secrets/db_password']);
+
+    expect(aioWait($name, 'healthy'))->toBe('healthy');
+
+    $prepare = json_decode(aioAs($name, 'root', 'cat /tmp/prepare-env.json'), true, flags: JSON_THROW_ON_ERROR);
+    $installer = json_decode(aioExec($name, 'cat /tmp/installer-env-teme-installer'), true, flags: JSON_THROW_ON_ERROR);
+
+    // The step that makes Teme's login got the given one as the values, a trailing line break less, and no file names.
+    expect($prepare['DB_USERNAME'] ?? null)->toBe('file-user')
+        ->and($prepare['DB_PASSWORD'] ?? null)->toBe('file-password-canary')
+        ->and($prepare)->not->toHaveKeys(['DB_USERNAME_FILE', 'DB_PASSWORD_FILE'])
+        // The installer gets the login Teme runs as, and neither a file name nor the given password.
+        ->and($installer['DB_USERNAME'] ?? null)->toBe('teme_app')
+        ->and($installer)->not->toHaveKeys(['DB_USERNAME_FILE', 'DB_PASSWORD_FILE'])
+        ->and(json_encode($installer))->not->toContain('file-password-canary');
+});
+
+it('stops, in a sentence, when a login is given both as a value and as a file', function (): void {
+    $name = ($this->start)(['DB_PASSWORD_FILE' => '/run/aio-secrets/db_password']);
+
+    expect(aioWait($name, 'healthy', 40))->toBe('stopped');
+
+    $logs = aioDocker(['logs', $name]);
+
+    expect($logs->getOutput().$logs->getErrorOutput())->toContain('DB_PASSWORD and DB_PASSWORD_FILE are both set. Set one.');
+});
+
+it('gives the installer the log channel and level, and no other LOG_ setting: one can carry a webhook’s secret', function (): void {
+    $name = ($this->start)(['LOG_CHANNEL' => 'stderr', 'LOG_LEVEL' => 'info', 'LOG_SLACK_WEBHOOK_URL' => 'https://hooks.example/webhook-canary']);
+    aioWait($name, 'healthy');
+
+    $installer = json_decode(aioExec($name, 'cat /tmp/installer-env-teme-installer'), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($installer)->toHaveKeys(['LOG_CHANNEL', 'LOG_LEVEL'])
+        ->and(array_keys($installer))->not->toContain('LOG_SLACK_WEBHOOK_URL')
+        ->and(json_encode($installer))->not->toContain('webhook-canary');
 });
 
 it('runs a terminal’s PHP as www-data, never as root', function (): void {
