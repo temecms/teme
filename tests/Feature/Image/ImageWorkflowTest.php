@@ -5,16 +5,26 @@ declare(strict_types=1);
 use Tests\Fixtures\Deployment\ImageFiles;
 
 /*
- * The image workflow, read as data: it runs on GitHub, by hand or on a
- * version tag (I-3103), never in the suite.
+ * The image workflow, read as data: it runs on GitHub, by hand, on a
+ * version tag (I-3103), or for a pull request that changes the image; never
+ * in the suite.
  */
 
-it('runs by hand and on version tags, never for a branch', function (): void {
+it('runs by hand, on version tags, and for a pull request that changes the image, never for a pushed branch', function (): void {
     $on = ImageFiles::workflow()['on'];
 
-    expect(array_keys($on))->toBe(['workflow_dispatch', 'push'])
+    expect(array_keys($on))->toBe(['pull_request', 'workflow_dispatch', 'push'])
+        ->and($on['pull_request'])->toBe(['paths' => ['Dockerfile', '.dockerignore', 'docker/**', '.github/workflows/image.yml']])
         ->and($on['push'])->toBe(['tags' => ['v*']])
         ->and($on['workflow_dispatch']['inputs']['publish']['default'])->toBeFalse();
+});
+
+it('starts the image as one container that runs every role, and waits for its health check', function (): void {
+    $steps = collect(ImageFiles::workflow()['jobs']['image']['steps'])->keyBy('name');
+    $start = (string) $steps['Start one container that runs every role']['run'];
+
+    expect($start)->toContain('--env TEME_ROLE=all', '"$TEME_IMAGE"', 'test "$status" = healthy', '/up)" = 200')
+        ->and($steps['Stop the one container']['if'])->toBe('always()');
 });
 
 it('pins every action it uses by commit', function (): void {
