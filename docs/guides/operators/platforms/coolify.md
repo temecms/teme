@@ -39,9 +39,9 @@ Every resource mounts two volumes: `media` at `/var/www/html/storage/app` and `p
 
 For `web`, set the health check to `curl -f http://localhost:8080/up`, and publish no port: Coolify's proxy reaches port 8080 itself.
 
-## A private image
+## The image
 
-A private image needs a registry login on the server. Coolify 4.4.0 added registry logins and a page of Docker images. Sign in there, or run `docker login ghcr.io` on the server.
+The image `ghcr.io/temecms/teme` is public, so Coolify needs no registry login. Use an exact tag, never `latest`.
 
 ## Do not use Coolify's scheduled tasks
 

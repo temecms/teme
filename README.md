@@ -4,11 +4,76 @@
 
 <p align="center"><em>Made to create.</em></p>
 
----
+<p align="center"><strong>For publishers: newsrooms, magazines and writers who want their site, their archive and their backups in their own hands.</strong></p>
 
-Teme (Ijaw for *create*) is an open-source content management system for publishers, built on Laravel and PostgreSQL.
+<p align="center">Teme (Ijaw for <em>create</em>) is an open-source content management system for publishers, built on Laravel and PostgreSQL.</p>
+
+<p align="center">
+  <a href="docs/guides/operators/install.md">Install</a> ·
+  <a href="docs/guides/README.md">Guides</a> ·
+  <a href="docs/screenshots/README.md">Screenshots</a> ·
+  <a href="docs/roadmap.md">Roadmap</a> ·
+  <a href="CHANGELOG.md">Changelog</a> ·
+  <a href="https://github.com/temecms/teme/releases">Releases</a> ·
+  <a href="https://temecms.com">temecms.com</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/temecms/teme/releases"><img src="https://img.shields.io/github/v/release/temecms/teme?include_prereleases&style=flat-square&label=release" alt="Latest release"></a>
+  <a href="https://github.com/temecms/teme/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/temecms/teme/tests.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/PHP-8.4-777bb4?style=flat-square" alt="PHP 8.4">
+  <img src="https://img.shields.io/badge/Laravel-13-ff2d20?style=flat-square" alt="Laravel 13">
+  <img src="https://img.shields.io/badge/PostgreSQL-18-336791?style=flat-square" alt="PostgreSQL 18">
+</p>
+
+<p align="center"><a href="docs/screenshots/README.md"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/editor-dark.png"><img src="docs/screenshots/editor.png" width="100%" alt="Teme's editor with an article open: the title, standfirst, featured image and body text in the middle, and the publish panel beside them"></picture></a></p>
 
 It holds everything a publishing site needs in one place: the editor, media, people and permissions, publishing, the public website, themes, plugins and backups. Content is stored as structured documents, every item keeps its fields together in one row, and a site moves to a new domain by changing one setting.
+
+## Status
+
+Teme is in **alpha**. Every release is on [Releases](https://github.com/temecms/teme/releases), the [changelog](CHANGELOG.md) says what each one added, and [the roadmap](docs/roadmap.md) says what comes next. It is developed in the open: features arrive in small releases, and the interface is being redesigned now. Try it, but don't run a site you can't afford to lose on it yet.
+
+## Run a site
+
+<a href="https://github.com/temecms/temecms-for-dokploy"><img src="https://img.shields.io/badge/Install_on-Dokploy-0f172a?style=for-the-badge" alt="Install on Dokploy"></a>
+
+In Dokploy, choose **Create Service › Template**, paste the Base URL `https://raw.githubusercontent.com/temecms/temecms-for-dokploy/main`, choose **TemeCMS** and deploy. [temecms-for-dokploy](https://github.com/temecms/temecms-for-dokploy) has the steps, and [the Dokploy guide](docs/guides/operators/platforms/dokploy.md) the details.
+
+- **Coolify:** [Running Teme on Coolify](docs/guides/operators/platforms/coolify.md).
+- **A plain server:** [the plain VPS guide](docs/guides/operators/platforms/plain-vps.md), with the Compose recipe and an HTTPS proxy of its own.
+- **One container:** [the one-container guide](docs/guides/operators/platforms/one-container.md), for a host that runs a single image with a database and a volume.
+
+Every way runs the public image `ghcr.io/temecms/teme` at an exact release tag. [Installing with the Compose recipe](docs/guides/operators/install.md) walks through it from the start.
+
+## Why Teme
+
+- **Content is structured editor JSON, never HTML.** What the editor writes is the stored document, so it can be rendered, searched and moved without picking apart markup.
+- **Moving to a new domain is one setting.** Links and media are stored by ID and turned into addresses when a page is drawn, so nothing in your content needs rewriting.
+- **Plugins are packages that ask before they act.** Each one declares what it needs, and its work runs only for the person who started it.
+- **Backups are encrypted and test-restored.** Every night Teme backs up, encrypts the copy and proves that it restores.
+- **AI works under the same permissions as people.** An assistant can do only what the person using it may do, through the same operations.
+- **PostgreSQL, and one row per item.** Every item keeps its fields together in one row, so a large archive stays fast.
+
+## What it does
+
+- **Write and publish:** a block editor, revisions and autosave, scheduling, previews, and review before publishing.
+- **People and credits:** roles, invitations, two-factor sign-in, and bylines that can credit several people, with or without an account.
+- **Organize:** categories and tags, pages under pages, menus, redirects, and addresses that follow a pattern you choose.
+- **Media:** a library with image sizes made for you, alt text and captions.
+- **Comments:** threads, moderation, spam checks and their emails.
+- **Search and social:** titles, descriptions, sitemaps, feeds, structured data, and checks as you write.
+- **Ready for AI and tools:** with one switch, `llms.txt` and a plain Markdown copy of every published item at its address ending `.md`.
+- **A fast public site:** a page cache that clears itself when content changes.
+- **A read API:** published content as JSON at `/api/v1`, for apps and other sites.
+- **Themes and plugins:** themes for the look; plugins as Composer packages, with hooks that fire after every change is saved.
+- **Several languages:** every item carries a language, and translations are linked as versions of one item.
+- **Import:** bring an existing WordPress site across, with every old address still answering.
+- **Backups:** to a folder, S3-compatible storage or an SFTP server.
+- **Deploy:** one Docker image and a Compose recipe, ready for Dokploy, Coolify or a plain server.
+
+## Tour
 
 <table>
   <tr>
@@ -24,33 +89,13 @@ It holds everything a publishing site needs in one place: the editor, media, peo
   </tr>
 </table>
 
-## Status
-
-Teme is in **alpha**. The latest release is `v0.7.0-alpha.1`; see the [changelog](CHANGELOG.md) for what each release added and [the roadmap](docs/roadmap.md) for what comes next. It is developed in the open: features arrive in small releases, and the interface is being redesigned now. Try it, but don't run a site you can't afford to lose on it yet.
-
-## What it does
-
-- **Write and publish:** a block editor, revisions and autosave, scheduling, previews, and review before publishing.
-- **People and credits:** roles, invitations, two-factor sign-in, and bylines that can credit several people, with or without an account.
-- **Organise:** categories and tags, pages under pages, menus, redirects, and addresses that follow a pattern you choose.
-- **Media:** a library with image sizes made for you, alt text and captions.
-- **Comments:** threads, moderation, spam checks and their emails.
-- **Search and social:** titles, descriptions, sitemaps, feeds, structured data, and checks as you write.
-- **Ready for AI and tools:** with one switch, `llms.txt` and a plain Markdown copy of every published item at its address ending `.md`.
-- **A fast public site:** a page cache that clears itself when content changes.
-- **A read API:** published content as JSON at `/api/v1`, for apps and other sites.
-- **Themes and plugins:** themes for the look; plugins as Composer packages, each asking for what it needs, with hooks that fire after every change is saved.
-- **Several languages:** every item carries a language, and translations are linked as versions of one item.
-- **Import:** bring an existing WordPress site across, with every old address still answering.
-- **Backups:** nightly, encrypted, checked and test-restored, to a folder, S3-compatible storage or an SFTP server.
-- **Deploy:** one Docker image and a Compose recipe, ready for Dokploy, Coolify or a plain server.
-
 ## Guides
 
 - [**The operators' guide**](docs/guides/operators/README.md): installing, configuring, HTTPS, updating, backing up and restoring, and moving an existing site onto Teme.
 - [**The editors' guide**](docs/guides/editors/README.md): writing, publishing, media, comments and settings, in the words the admin uses.
+- [**The developer handbook**](docs/guides/developers/README.md): building plugins and themes, from a first package through manifests, hooks, operations and testing.
 
-## Developing Teme
+## Work on Teme
 
 You need PHP 8.4, Composer 2, Node 24 (see `.nvmrc`), and Docker for PostgreSQL 18 and Valkey.
 
@@ -68,15 +113,25 @@ Before changing anything, read [`AGENTS.md`](AGENTS.md): the rules every change 
 
 | Where | What |
 |---|---|
-| [`docs/superpowers/specs/2026-09-17-cms-design.md`](docs/superpowers/specs/2026-09-17-cms-design.md) | The architecture |
 | [`docs/architecture/`](docs/architecture/) | How each part works: operations, content, addresses, plugins, themes, security and more |
 | [`docs/reference/`](docs/reference/) | Generated from the code: settings, fields, cards, the theme view data and the export format |
 | [`docs/roadmap.md`](docs/roadmap.md) | What is built and what comes next |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed in each release |
 
-## Security
+## Help and community
 
-Please report vulnerabilities privately, as [`SECURITY.md`](SECURITY.md) describes, never in a public issue.
+- **A bug:** [report it](https://github.com/temecms/teme/issues/new?template=bug.yml) with the bug form.
+- **An idea:** [suggest it](https://github.com/temecms/teme/issues/new?template=feature.yml) with the feature form.
+- **A question:** [open an issue](https://github.com/temecms/teme/issues) for now.
+- **A security problem:** report it privately through GitHub's [private vulnerability reporting](https://github.com/temecms/teme/security/advisories/new), as [`SECURITY.md`](SECURITY.md) describes, never in a public issue.
+
+To contribute, read [`CONTRIBUTING.md`](CONTRIBUTING.md). Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md), and [`GOVERNANCE.md`](GOVERNANCE.md) says how decisions are made.
+
+## Who makes it
+
+Teme is designed and maintained by [Kingsley Ibietela Felix](https://github.com/iamkingsleyf), and published by Krafty Sprouts Media LLC.
+
+If Teme is useful to you, a star on GitHub helps others find it.
 
 ## License
 

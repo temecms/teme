@@ -14,7 +14,7 @@ Teme runs from one image and one Compose recipe. You need a server, a domain and
 - **A server** with Docker Engine and Compose v2 (`docker compose version` prints a version).
 - **A domain** whose address points at the server.
 - **A proxy that ends HTTPS in front of Teme.** A platform such as Dokploy or Coolify has one; on a server with no platform, [the plain VPS page](platforms/plain-vps.md) gives you one.
-- **Access to the image.** If it is private, a read-only token for the registry that holds it.
+- **The image.** `ghcr.io/temecms/teme` is public, so the server needs no registry sign-in.
 
 The recipe publishes no port. Your proxy reaches the `web` role on port 8080.
 
@@ -22,16 +22,10 @@ The recipe publishes no port. Your proxy reaches the `web` role on port 8080.
 
 The recipe travels inside the image, so it always matches the version you run. Copy it out of the image you are about to run.
 
-If the image is private, sign in first:
+Copy the recipe, using the exact tag you will run (never a moving tag such as `latest`). Replace `<version>` below with that release, such as `0.8.0-alpha.1`; [the releases page](https://github.com/temecms/teme/releases) lists them:
 
 ```sh
-docker login ghcr.io
-```
-
-Then copy the recipe, using the exact tag you will run (never a moving tag such as `latest`):
-
-```sh
-docker create --name teme-recipe ghcr.io/example/teme:0.1.0
+docker create --name teme-recipe ghcr.io/temecms/teme:<version>
 docker cp teme-recipe:/var/www/html/docker ./teme
 docker rm teme-recipe
 cd teme
@@ -64,11 +58,11 @@ Never copy `.env.example` to a server. It is for development.
 Create a file named `.env` beside `compose.yml` with the two settings the recipe requires:
 
 ```env
-TEME_IMAGE=ghcr.io/example/teme:0.1.0
+TEME_IMAGE=ghcr.io/temecms/teme:<version>
 APP_URL=https://example.com
 ```
 
-`TEME_IMAGE` is the image with its exact tag. `APP_URL` is the address readers type, with `https`. Nothing else is required. [Configuring Teme](configure.md) lists every other setting you may add.
+`TEME_IMAGE` is the image with its exact tag, the same one you copied the recipe from. `APP_URL` is the address readers type, with `https`. Nothing else is required. [Configuring Teme](configure.md) lists every other setting you may add.
 
 ## To start
 

@@ -39,10 +39,11 @@ it('takes the recipe from the image, which carries it', function (): void {
         ->and($page)->toContain('/var/www/html/docker');
 });
 
-it('pulls a private image from the registry by an exact version, never latest', function (): void {
+it('takes the public image by an exact version, never latest', function (): void {
     $page = OperatorGuide::page('install.md')->text();
 
-    expect($page)->toContain('docker login ghcr.io')
+    expect($page)->toContain('ghcr.io/temecms/teme:<version>')
+        ->and($page)->not->toContain('ghcr.io/example/')
         ->and($page)->not->toContain(':latest');
 });
 
