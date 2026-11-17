@@ -38,6 +38,7 @@ It does not cover running a server or writing content. Those have their own guid
 - [Your own hooks, and plugins that need other plugins](plugins/your-own-hooks.md)
 - [Notices from plugins](plugins/notices.md)
 - [A plugin's own area](plugins/admin-area.md)
+- [A panel in the editor](plugins/editor-panels.md)
 - [Languages in a theme](themes/languages.md)
 - [The management API](outside/management-api.md)
 
