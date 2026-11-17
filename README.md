@@ -32,7 +32,7 @@ It holds everything a publishing site needs in one place: the editor, media, peo
 
 ## Status
 
-Teme is in **alpha**. Every release is on [Releases](https://github.com/temecms/teme/releases), the [changelog](CHANGELOG.md) says what each one added, and [the roadmap](docs/roadmap.md) says what comes next. It is developed in the open: features arrive in small releases, and the interface is being redesigned now. Try it, but don't run a site you can't afford to lose on it yet.
+Teme 1.0 is released. Every release is on [Releases](https://github.com/temecms/teme/releases), the [changelog](CHANGELOG.md) says what each one added, and [the roadmap](docs/roadmap.md) says what comes next. It is developed in the open, and new features arrive in small releases.
 
 ## Run a site
 

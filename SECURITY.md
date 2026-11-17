@@ -2,7 +2,7 @@
 
 ## Status
 
-Teme is in **alpha** and developed in the open. Fixes go into the latest release only. This policy is in place early so that the process exists before it is needed, rather than being written during an incident.
+Teme is developed in the open. Fixes go into the latest release. This policy is in place so that the process exists before it is needed, rather than being written during an incident.
 
 ## Reporting a vulnerability
 
@@ -37,9 +37,10 @@ There is no bug bounty. Reporters are credited in the advisory unless they ask n
 
 | Version | Security fixes |
 |---|---|
-| 0.x (alpha) | The latest release only |
+| 1.x | The latest release |
+| 0.x | None: update to 1.x |
 
-While Teme is below 1.0, every fix ships in a new release and older releases get none: update to the latest. From 1.0 the intended policy is security fixes for the current major and the previous major for twelve months after the current major's release.
+Every fix ships in a new release: update to the latest. The intended policy is security fixes for the current major and the previous major for twelve months after the current major's release.
 
 ## Scope
 

@@ -22,7 +22,7 @@ The recipe publishes no port. Your proxy reaches the `web` role on port 8080.
 
 The recipe travels inside the image, so it always matches the version you run. Copy it out of the image you are about to run.
 
-Copy the recipe, using the exact tag you will run (never a moving tag such as `latest`). Replace `<version>` below with that release, such as `0.8.0-alpha.1`; [the releases page](https://github.com/temecms/teme/releases) lists them:
+Copy the recipe, using the exact tag you will run (never a moving tag such as `latest`). Replace `<version>` below with that release, such as `1.0.0`; [the releases page](https://github.com/temecms/teme/releases) lists them:
 
 ```sh
 docker create --name teme-recipe ghcr.io/temecms/teme:<version>
