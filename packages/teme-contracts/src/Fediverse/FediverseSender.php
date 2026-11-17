@@ -9,7 +9,7 @@ namespace Teme\Contracts\Fediverse;
  * plugin granted fediverse.send: Teme stores it, then signs and delivers
  * it once the plugin's work commits. A plugin never holds a key.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface FediverseSender
 {
@@ -24,7 +24,7 @@ interface FediverseSender
      *
      * @throws SendRefused when Teme will not send it
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function send(string $type, array|string $object, ?string $actorUri = null): string;
 }

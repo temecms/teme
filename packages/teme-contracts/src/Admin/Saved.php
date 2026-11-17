@@ -10,14 +10,14 @@ use InvalidArgumentException;
  * What a write did: the record's id, and whether anything changed, so core
  * purges the pages it touches only then.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class Saved
 {
     /**
      * @throws InvalidArgumentException for an empty or over-long id
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $id,

@@ -10,7 +10,7 @@ use Teme\Contracts\Content\WriteRefused;
  * Writes the calling plugin's own settings group, `plugin.{code}`, for a
  * named person. Offered to a plugin that declares settings.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface PluginSettingsWriter
 {
@@ -21,7 +21,7 @@ interface PluginSettingsWriter
      *
      * @throws WriteRefused when the person, a key, a type or a value is refused; nothing is written
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function write(array $values, string $actingPersonId): void;
 }

@@ -11,7 +11,7 @@ use Teme\Contracts\Media\MediaRef;
  * with this title, body, fields and terms, and when given its slug, the
  * people it credits and the item it is a translation of.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class NewItem
 {
@@ -23,7 +23,7 @@ final readonly class NewItem
      * @param  string|null  $translationOf  an existing item's ID, in another language, this is a version of
      * @param  list<string>  $credits  account IDs to credit, in order; empty credits the acting person
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $type,

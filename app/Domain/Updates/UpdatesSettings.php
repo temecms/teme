@@ -30,10 +30,10 @@ final class UpdatesSettings
             section: 'site',
             ability: 'updates.manage',
             settings: [
-                Setting::secret(self::DOKPLOY_API_KEY, 'Dokploy API key', 'Lets Teme change and deploy this site’s service on Dokploy when you update from Tools › Updates. In Dokploy, open your profile, make an API key, and paste it here. It is kept encrypted and never shown again. The server can set it instead, as TEME_DOKPLOY_TOKEN.', '0.9.0')
+                Setting::secret(self::DOKPLOY_API_KEY, 'Dokploy API key', 'Lets Teme change and deploy this site’s service on Dokploy when you update from Tools › Updates. In Dokploy, open your profile, make an API key, and paste it here. It is kept encrypted and never shown again. The server can set it instead, as TEME_DOKPLOY_TOKEN.', '1.0.0')
                     ->env('TEME_DOKPLOY_TOKEN'),
             ],
-            since: '0.9.0',
+            since: '1.0.0',
             // The key can change and deploy every service the Dokploy account can reach.
             sensitive: true,
         );

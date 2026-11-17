@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Notices, app/Domain/Plugins/Notices, pack
 
 A plugin can tell people on the site that something happened: an article it was writing for them failed, or its queue stopped. Teme sends the notice by email or into the person's inbox, as each person chose, with the same layout as its own notices. The plugin gives plain words; it never writes the email.
 
-The contracts are in `teme/contracts` from Teme 0.9.0.
+The contracts are in `teme/contracts` from Teme 1.0.0.
 
 ## Ask for notices.send and declare each kind
 

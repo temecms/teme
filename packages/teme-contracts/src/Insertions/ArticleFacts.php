@@ -10,7 +10,7 @@ namespace Teme\Contracts\Insertions;
  * its path.
  * Core skips contributors entirely when the item has opted out.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class ArticleFacts
 {
@@ -19,7 +19,7 @@ final readonly class ArticleFacts
      * @param  list<string>  $authorIds
      * @param  string  $path  the article's current path, relative, starting with /; '' where none is known
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $contentId,

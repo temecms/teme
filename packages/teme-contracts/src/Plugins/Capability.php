@@ -17,11 +17,11 @@ namespace Teme\Contracts\Plugins;
  * site's accounts, and FediverseSend the door that sends activities to those
  * followers. FeedsLinks lets the plugin add the links its manifest
  * declares under `contributes.feedLinks`, such as a WebSub hub, to every
- * feed (`@since 0.9.0`). PagesInsert unlocks the places to add content on every public
+ * feed (`@since 1.0.0`). PagesInsert unlocks the places to add content on every public
  * page: the head, the top and bottom of the body, between the items of a
  * list, beside a theme's regions, and fixed to the screen's edge. Ai opens
  * SiteAi, the site's own AI connection, for the tasks the plugin declares
- * (0.9.0). PeopleRead opens the door that names the people who write on the
+ * (1.0.0). PeopleRead opens the door that names the people who write on the
  * site. NoticesSend opens the Notices door, for the kinds of notice the
  * plugin declares, and ContentLinks the hook that sets attributes on the
  * links an article draws.
@@ -33,51 +33,51 @@ enum Capability: string
     /** @since 0.5.0 */
     case ContentRead = 'content.read';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case ContentWrite = 'content.write';
 
     /** @since 0.5.0 */
     case MediaRead = 'media.read';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case MediaWrite = 'media.write';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case ContentInsert = 'content.insert';
 
     /** @since 0.5.0 */
     case Http = 'http';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case Jobs = 'jobs';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case RoutesPublic = 'routes.public';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case ImportWordPress = 'import.wordpress';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case FediverseRead = 'fediverse.read';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case FediverseSend = 'fediverse.send';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case FeedsLinks = 'feeds.links';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case PagesInsert = 'pages.insert';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case Ai = 'ai';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case PeopleRead = 'people.read';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case NoticesSend = 'notices.send';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     case ContentLinks = 'content.links';
 }

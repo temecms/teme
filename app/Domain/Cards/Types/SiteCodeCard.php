@@ -41,7 +41,7 @@ final class SiteCodeCard implements CardType, RegionCard
 
     public function since(): string
     {
-        return '0.9.0';
+        return '1.0.0';
     }
 
     public function attributes(): array

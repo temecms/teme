@@ -10,14 +10,14 @@ namespace Teme\Contracts\Insertions;
  * an Operation's perform(); outside one it does nothing useful and may
  * refuse.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface InsertionsChanged
 {
     /**
      * Notes that insertion rules changed, for the page cache to purge after commit.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function notify(): void;
 }

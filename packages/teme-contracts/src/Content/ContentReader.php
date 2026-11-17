@@ -11,7 +11,7 @@ use InvalidArgumentException;
  * items for anyone, and drafts and the queue of unpublished items for a
  * person who may edit them.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface ContentReader
 {
@@ -21,7 +21,7 @@ interface ContentReader
      *
      * @throws InvalidArgumentException for a cursor this reader didn't give, or a value outside ItemQuery's bounds
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function published(ItemQuery $query): ItemPage;
 
@@ -31,7 +31,7 @@ interface ContentReader
      *
      * @throws ReadRefused when the person isn't the one this work acts for, or may not edit it
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function draft(string $itemId, string $actingPersonId): ItemSnapshot;
 
@@ -43,7 +43,7 @@ interface ContentReader
      * @throws ReadRefused when the person isn't the one this work acts for
      * @throws InvalidArgumentException for a cursor this reader didn't give, an unknown status, or a value outside QueueQuery's bounds
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function queue(QueueQuery $query, string $actingPersonId): QueuePage;
 }

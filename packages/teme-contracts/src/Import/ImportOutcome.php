@@ -10,28 +10,28 @@ use InvalidArgumentException;
  * What a plugin's importer made of one record: brought across, skipped
  * with why, or failed with a sentence the run's report shows.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class ImportOutcome
 {
     /**
      * The record was brought across.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const string IMPORTED = 'imported';
 
     /**
      * The record was left out on purpose.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const string SKIPPED = 'skipped';
 
     /**
      * The record couldn't be brought across; the run goes on.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const string FAILED = 'failed';
 
@@ -47,7 +47,7 @@ final readonly class ImportOutcome
     /**
      * The record was brought across.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function imported(): self
     {
@@ -59,7 +59,7 @@ final readonly class ImportOutcome
      *
      * @throws InvalidArgumentException for no words, or more than 1,000 characters
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function skipped(string $why): self
     {
@@ -72,7 +72,7 @@ final readonly class ImportOutcome
      *
      * @throws InvalidArgumentException for no words, or more than 1,000 characters
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function failed(string $sentence): self
     {

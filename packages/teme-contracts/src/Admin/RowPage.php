@@ -10,7 +10,7 @@ use InvalidArgumentException;
  * One page of a record's rows, and how many there are in all when the
  * plugin knows.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class RowPage
 {
@@ -19,7 +19,7 @@ final readonly class RowPage
      *
      * @throws InvalidArgumentException for more than 100 rows or a negative total
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $rows,

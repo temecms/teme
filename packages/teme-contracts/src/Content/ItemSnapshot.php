@@ -9,7 +9,7 @@ use DateTimeImmutable;
 /**
  * One item's working revision: its parts by handle and slug, never a model.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class ItemSnapshot
 {
@@ -23,7 +23,7 @@ final readonly class ItemSnapshot
      * @param  list<ItemRef>  $translations  the item's other language versions
      * @param  DateTimeImmutable|null  $scheduledFor  when it is scheduled to publish, in UTC; null when it isn't scheduled. Its status is the item's.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public ItemRef $item,

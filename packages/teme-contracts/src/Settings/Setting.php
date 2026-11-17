@@ -56,19 +56,19 @@ final class Setting
         public readonly ?string $unit = null,
         public readonly ?string $taxonomy = null,
         public readonly bool $multiple = false,
-        /** @since 0.9.0 */
+        /** @since 1.0.0 */
         public readonly ?string $section = null,
         /**
          * A repeater's fields, one item's worth.
          *
          * @var list<Setting>
          *
-         * @since 0.9.0
+         * @since 1.0.0
          */
         public readonly array $fields = [],
-        /** A repeater's field whose value titles a collapsed item. @since 0.9.0 */
+        /** A repeater's field whose value titles a collapsed item. @since 1.0.0 */
         public readonly ?string $itemTitle = null,
-        /** A code setting whose inline scripts wait for an administrator's approval. @since 0.9.0 */
+        /** A code setting whose inline scripts wait for an administrator's approval. @since 1.0.0 */
         public readonly bool $scripts = false,
     ) {}
 
@@ -224,7 +224,7 @@ final class Setting
      * none is chosen; with $multiple, a list of slugs, empty by default.
      * Each must be a term the taxonomy has when the setting is saved.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function term(string $key, string $label, string $description, string $since, string $taxonomy, bool $multiple = false): self
     {
@@ -239,7 +239,7 @@ final class Setting
      * One of the site's content types with public addresses, stored as its
      * key, or `''` when none is chosen.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function contentType(string $key, string $label, string $description, string $since): self
     {
@@ -250,7 +250,7 @@ final class Setting
      * Markup, such as an ad network's snippet, in a plain monospace box,
      * never run or drawn on the settings page; at most 65,535 characters.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function code(string $key, string $label, string $description, string $since): self
     {
@@ -265,7 +265,7 @@ final class Setting
      *
      * @param  list<Setting>  $fields
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function repeater(string $key, string $label, string $description, string $since, array $fields): self
     {
@@ -287,7 +287,7 @@ final class Setting
     /**
      * The field of a repeater whose value titles a collapsed item.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function itemTitle(string $key): self
     {
@@ -302,7 +302,7 @@ final class Setting
      * A code setting whose inline scripts wait for an administrator's
      * approval before they run.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function scripts(): self
     {
@@ -412,7 +412,7 @@ final class Setting
      * The section of a plugin's settings page this setting sits in: the id of
      * one of the plugin's settingsSections.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function section(string $id): self
     {

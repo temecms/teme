@@ -12,12 +12,12 @@ use RuntimeException;
  * after (unavailable, rate-limited, invalid-output, timeout, refused). Its
  * message is one plain sentence, never the AI service's own words.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final class AiRefused extends RuntimeException
 {
     /**
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(public readonly string $reason, string $sentence)
     {

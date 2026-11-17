@@ -12,35 +12,35 @@ use InvalidArgumentException;
  * or fixed to an edge of the screen. A place the page doesn't have draws
  * nothing.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final class PagePosition
 {
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string HEAD = 'head';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string BODY_START = 'body_start';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string BODY_END = 'body_end';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string AFTER_ITEM = 'after_item';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string EVERY_ITEMS = 'every_items';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string REGION = 'region';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string FIXED = 'fixed';
 
     /**
      * The furthest item of a list afterItem() reaches.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const int LAST_ITEM = 100;
 
@@ -48,21 +48,21 @@ final class PagePosition
      * The most times one everyItems insertion is drawn on a list; a larger
      * ceiling is held to this.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const int EVERY_ITEMS_MAX = 5;
 
     /**
      * The edges a fixed insertion may hold.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const array EDGES = ['bottom', 'top', 'left', 'right'];
 
     /**
      * The widths, in pixels, a side rail may take; the first when none is given.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const array RAIL_WIDTHS = [160, 300];
 
@@ -78,7 +78,7 @@ final class PagePosition
      * The end of the page's head: script sources, a few meta names,
      * preconnect links and approved scripts only.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function head(): self
     {
@@ -88,7 +88,7 @@ final class PagePosition
     /**
      * The start of the body, after the skip link, above the theme's header.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function bodyStart(): self
     {
@@ -98,7 +98,7 @@ final class PagePosition
     /**
      * The end of the body, before core's scripts.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function bodyEnd(): self
     {
@@ -108,7 +108,7 @@ final class PagePosition
     /**
      * After the $n-th item of a list, 1 to LAST_ITEM; never after its last.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function afterItem(int $n): self
     {
@@ -123,7 +123,7 @@ final class PagePosition
      * After every $n-th item of a list, at most $max times, and never more
      * than EVERY_ITEMS_MAX.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function everyItems(int $n, int $max = 3): self
     {
@@ -144,7 +144,7 @@ final class PagePosition
      *
      * @param  string  $where  `before` or `after`
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function region(string $slug, string $where = 'after'): self
     {
@@ -167,7 +167,7 @@ final class PagePosition
      *
      * @param  int  $width  a rail's width; 0 for the first of RAIL_WIDTHS; ignored at the top and bottom
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function fixed(string $edge, int $width = 0): self
     {

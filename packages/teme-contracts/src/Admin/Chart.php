@@ -11,14 +11,14 @@ use InvalidArgumentException;
  * each declared series' values, one per label. Core drops a series it
  * doesn't declare.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class Chart
 {
     /**
      * The most labels a chart may have: a year of days.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const int MOST_LABELS = 366;
 
@@ -28,7 +28,7 @@ final readonly class Chart
      *
      * @throws InvalidArgumentException for more than 366 labels, a series not as long as the labels, or a number that isn't finite
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $labels,

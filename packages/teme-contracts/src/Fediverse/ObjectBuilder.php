@@ -12,7 +12,7 @@ use Teme\Contracts\Content\ItemRef;
  * built; Teme keeps the keys that say what it is and who sent it to whom
  * (`id`, `attributedTo`, `to`, `cc`) as it wrote them.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface ObjectBuilder
 {
@@ -21,7 +21,7 @@ interface ObjectBuilder
      *
      * @return list<string>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function contentTypes(): array;
 
@@ -32,7 +32,7 @@ interface ObjectBuilder
      *
      * @return array<string, mixed>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function build(ItemRef $item, array $object): array;
 }

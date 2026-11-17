@@ -11,7 +11,7 @@ use Teme\Contracts\Lists\Cell;
  * One record's row in a table: its id, its cells by declared column id, and
  * the actions not offered on it, such as Enable on one already enabled.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class Row
 {
@@ -21,7 +21,7 @@ final readonly class Row
      *
      * @throws InvalidArgumentException for an empty or over-long id
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $id,

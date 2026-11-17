@@ -8,7 +8,7 @@ namespace Teme\Contracts\Fediverse;
  * Who follows the site's accounts, for a plugin granted fediverse.read: a
  * plugin's constructor asks for it by this interface.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface FediverseFollowers
 {
@@ -17,14 +17,14 @@ interface FediverseFollowers
      *
      * @return list<string>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function actors(): array;
 
     /**
      * How many accounts follow the site's account at $actorUri.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function count(string $actorUri): int;
 
@@ -34,7 +34,7 @@ interface FediverseFollowers
      *
      * @return list<string>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function followers(string $actorUri, int $limit = 100, int $offset = 0): array;
 }

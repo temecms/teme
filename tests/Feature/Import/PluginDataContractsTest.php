@@ -11,14 +11,14 @@ it('publishes each import contract with its @since and nothing from a framework'
     $reflection = new ReflectionClass($class);
     $types = [];
 
-    expect($reflection->getDocComment())->toContain('@since 0.9.0');
+    expect($reflection->getDocComment())->toContain('@since 1.0.0');
 
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
         if ($method->getDeclaringClass()->getName() !== $class) {
             continue;
         }
 
-        expect($method->getDocComment())->toContain('@since 0.9.0');
+        expect($method->getDocComment())->toContain('@since 1.0.0');
         $types[] = $method->getReturnType();
 
         foreach ($method->getParameters() as $parameter) {

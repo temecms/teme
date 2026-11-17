@@ -12,7 +12,7 @@ use Teme\Contracts\Content\WriteRefused;
  * exact text; a plugin never can. Offered to a plugin granted
  * content.insert or pages.insert.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface InlineScripts
 {
@@ -26,7 +26,7 @@ interface InlineScripts
      *
      * @throws WriteRefused when no person runs this work, or too many scripts already wait
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function request(string $name, string $script): void;
 }

@@ -9,7 +9,7 @@ use InvalidArgumentException;
 /**
  * How to queue a plugin's job: after a delay, and once while one waits.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class QueueOptions
 {
@@ -25,7 +25,7 @@ final readonly class QueueOptions
      *
      * @throws InvalidArgumentException for a delay outside 0 to 3600, or a key not matching ^[a-z0-9][a-z0-9:._-]{0,63}$
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(public int $delaySeconds = 0, public ?string $uniqueKey = null)
     {

@@ -10,14 +10,14 @@ use Teme\Contracts\Lists\Cell;
 /**
  * A short status line, its tone, and the suggestions waiting for the person.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class PanelView
 {
-    /** The most suggestions one view may hold. @since 0.9.0 */
+    /** The most suggestions one view may hold. @since 1.0.0 */
     public const int MOST_SUGGESTIONS = 20;
 
-    /** The longest status line, in characters. @since 0.9.0 */
+    /** The longest status line, in characters. @since 1.0.0 */
     public const int MOST_STATUS = 200;
 
     /**
@@ -27,7 +27,7 @@ final readonly class PanelView
      *
      * @throws InvalidArgumentException for a status, tone or list outside those bounds
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public ?string $status = null,

@@ -10,7 +10,7 @@ use Teme\Contracts\Content\WriteRefused;
  * The data behind a plugin's area, and its writes. Core calls it, under a
  * time budget, and draws every screen itself; the plugin never draws.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface PluginArea
 {
@@ -19,21 +19,21 @@ interface PluginArea
      *
      * @return array<string, Figure>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function figures(string $page, string $block, AreaContext $context): array;
 
     /**
      * A chart block's labels and series.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function chart(string $page, string $block, AreaContext $context): Chart;
 
     /**
      * One page of a record's rows, as the query asks.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function rows(string $record, TableQuery $query, AreaContext $context): RowPage;
 
@@ -42,7 +42,7 @@ interface PluginArea
      *
      * @return array<string, mixed>|null
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function values(string $record, string $id, AreaContext $context): ?array;
 
@@ -53,7 +53,7 @@ interface PluginArea
      *
      * @throws WriteRefused with one plain sentence; nothing is kept
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function save(string $record, ?string $id, array $values, AreaContext $context): Saved;
 
@@ -64,7 +64,7 @@ interface PluginArea
      *
      * @throws WriteRefused with one plain sentence; nothing is kept
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function act(string $record, string $action, array $ids, AreaContext $context): Saved;
 }

@@ -11,23 +11,23 @@ use InvalidArgumentException;
  * title, a scalar field, terms, an internal link on a phrase, or a whole
  * document shown as a proposal. Made only by its named constructors.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class SuggestedChange
 {
-    /** A new title. @since 0.9.0 */
+    /** A new title. @since 1.0.0 */
     public const string TITLE = 'title';
 
-    /** A scalar field's new value. @since 0.9.0 */
+    /** A scalar field's new value. @since 1.0.0 */
     public const string FIELD = 'field';
 
-    /** Terms to add. @since 0.9.0 */
+    /** Terms to add. @since 1.0.0 */
     public const string TERMS = 'terms';
 
-    /** An internal link on a phrase. @since 0.9.0 */
+    /** An internal link on a phrase. @since 1.0.0 */
     public const string LINK = 'link';
 
-    /** A whole document, as a proposal. @since 0.9.0 */
+    /** A whole document, as a proposal. @since 1.0.0 */
     public const string BODY = 'body';
 
     /**
@@ -43,7 +43,7 @@ final readonly class SuggestedChange
      *
      * @throws InvalidArgumentException for an empty or over-long title
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function title(string $title): self
     {
@@ -59,7 +59,7 @@ final readonly class SuggestedChange
      *
      * @throws InvalidArgumentException for a handle that isn't one, or text over 2,000 characters
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function field(string $handle, string|int|float|bool|null $value): self
     {
@@ -81,7 +81,7 @@ final readonly class SuggestedChange
      *
      * @throws InvalidArgumentException for an empty taxonomy or list, or a term that is empty or over 200 characters
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function terms(string $taxonomy, array $slugsOrNames): self
     {
@@ -109,7 +109,7 @@ final readonly class SuggestedChange
      *
      * @throws InvalidArgumentException for an empty or over-long phrase, an empty ID, or an occurrence outside 1 to 50
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function link(string $phrase, string $itemId, int $occurrence = 1): self
     {
@@ -135,7 +135,7 @@ final readonly class SuggestedChange
      *
      * @throws InvalidArgumentException for anything but a document of type doc
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function body(array $document): self
     {

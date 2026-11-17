@@ -10,17 +10,17 @@ use InvalidArgumentException;
  * One figure of a figures block: a number, a ratio shown as a percentage, or
  * a short text, with an optional change shown as an up or down arrow.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class Figure
 {
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string NUMBER = 'number';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string PERCENT = 'percent';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string TEXT = 'text';
 
     /**
@@ -37,7 +37,7 @@ final readonly class Figure
      *
      * @throws InvalidArgumentException when the number or the change is not finite
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function number(int|float $value, ?float $change = null): self
     {
@@ -51,7 +51,7 @@ final readonly class Figure
      *
      * @throws InvalidArgumentException when the ratio or the change is not finite
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function percent(float $ratio, ?float $change = null): self
     {
@@ -63,7 +63,7 @@ final readonly class Figure
     /**
      * Plain text, never HTML; core cuts it to 40 characters.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function text(string $text): self
     {

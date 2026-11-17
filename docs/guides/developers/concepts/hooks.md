@@ -45,9 +45,9 @@ Nothing counts a plugin's failures or turns a plugin off for failing yet: a list
 
 ## Since, and the Teme you require
 
-Every hook, interface and class in `teme/contracts` that a plugin or theme codes against carries a `@since` tag in its docblock: the Teme version that first offered it. The generated hooks reference shows it as **Since**: `ContentPublished`, for one, has been there since 0.5.0, and `SettingsReader` since 0.1.0. A contract added later carries the later version: the jobs door and the content door, for two, since 0.9.0.
+Every hook, interface and class in `teme/contracts` that a plugin or theme codes against carries a `@since` tag in its docblock: the Teme version that first offered it. The generated hooks reference shows it as **Since**: `ContentPublished`, for one, has been there since 0.5.0, and `SettingsReader` since 0.1.0. A contract added later carries the later version: the jobs door and the content door, for two, since 1.0.0.
 
-Set `requires.teme` in your manifest to at least the highest **Since** of anything you use. A plugin that listens to `ContentPublished` needs Teme 0.5.0 or later, so `"^0.5"` or higher; the handbook's first plugin asks for `"^0.9"`. The [contracts reference](../../../reference/contracts.md) gives the **Since** of every contract, and the newest version a checkout offers in its first lines. Teme refuses a package whose `requires.teme` doesn't accept the running version, so the check happens at enable rather than as an error on a live page.
+Set `requires.teme` in your manifest to at least the highest **Since** of anything you use. A plugin that listens to `ContentPublished` needs Teme 0.5.0 or later; the handbook's first plugin asks for `"^1.0"`. The [contracts reference](../../../reference/contracts.md) gives the **Since** of every contract, and the newest version a checkout offers in its first lines. Teme refuses a package whose `requires.teme` doesn't accept the running version, so the check happens at enable rather than as an error on a live page.
 
 In your own plugin's or theme's code, use `@since` however you like, or not at all. Teme neither reads nor checks it there.
 

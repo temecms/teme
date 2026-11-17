@@ -10,28 +10,28 @@ use InvalidArgumentException;
  * One cell a list column returns for a row: plain text, a number, or a
  * badge with a Status-pill tone. Core draws it; markup is never interpreted.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class Cell
 {
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string TEXT = 'text';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string NUMBER = 'number';
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public const string BADGE = 'badge';
 
     /**
      * The tones a badge may take: the Status pill's.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const array TONES = ['ok', 'neutral', 'info', 'warn', 'danger'];
 
     /**
-     * @since 0.9.0
+     * @since 1.0.0
      */
     private function __construct(
         public string $kind,
@@ -42,7 +42,7 @@ final readonly class Cell
     /**
      * Plain text, never HTML.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function text(string $text): self
     {
@@ -54,7 +54,7 @@ final readonly class Cell
      *
      * @throws InvalidArgumentException when the number is not finite
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function number(int|float $number): self
     {
@@ -70,7 +70,7 @@ final readonly class Cell
      *
      * @throws InvalidArgumentException for an empty label or a tone not in TONES
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public static function badge(string $label, string $tone = 'neutral'): self
     {

@@ -13,21 +13,21 @@ use InvalidArgumentException;
  * never writes markup. A link to this site is changed only when $host names
  * its host.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class LinkAttributes
 {
     /**
      * The rel values a plugin may ask for.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const array REL = ['nofollow', 'sponsored', 'ugc', 'noopener', 'noreferrer'];
 
     /**
      * At most this many class names.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const int MOST_CLASSES = 2;
 
@@ -39,7 +39,7 @@ final readonly class LinkAttributes
      *
      * @throws InvalidArgumentException for a rel value outside REL, or classes beyond MOST_CLASSES
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $rel = [],

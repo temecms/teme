@@ -8,7 +8,7 @@ namespace Teme\Contracts\Routes;
  * What a declared public route's handler sees of one request: plain values,
  * no framework types (rule 5).
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class PublicRequest
 {
@@ -17,7 +17,7 @@ final readonly class PublicRequest
      * @param  array<string, string>  $query
      * @param  array<string, string>  $headers  lower-cased names
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $method,

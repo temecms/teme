@@ -9,7 +9,7 @@ namespace Teme\Contracts\Editor;
  * revision, type and language, the person's ID and language, and which of
  * the plugin's own permissions they hold.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class EditorPanelContext
 {
@@ -17,7 +17,7 @@ final readonly class EditorPanelContext
      * @param  string  $language  the item's language code; empty on a site with one language
      * @param  list<string>  $permissions  this plugin's own permission ids the person holds, never another plugin's
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $itemId,

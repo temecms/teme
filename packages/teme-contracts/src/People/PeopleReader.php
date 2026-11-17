@@ -11,7 +11,7 @@ use InvalidArgumentException;
  * each one's account ID and display name, never an email address or
  * anything else about them.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface PeopleReader
 {
@@ -23,7 +23,7 @@ interface PeopleReader
      *
      * @throws InvalidArgumentException for a cursor this reader didn't give, or a limit outside 1 to 200
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function writers(?string $after = null, int $limit = 100): PersonPage;
 }

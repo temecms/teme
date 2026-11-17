@@ -12,7 +12,7 @@ use Teme\Contracts\Hooks\Notification;
  * a Create, Update, Delete or Announce of an item, the Accept of a Follow,
  * or one a plugin sent through FediverseSender. Its deliveries go after.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 #[HookContract(capability: 'fediverse.read')]
 final readonly class ActivitySent implements Notification
@@ -22,7 +22,7 @@ final readonly class ActivitySent implements Notification
      * @param  string  $type  its type, such as Create or Accept
      * @param  string  $actorUri  the address of the site's account that sends it
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $activity,

@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Insertions, app/Domain/Site/Insertions, d
 
 A plugin can place its own markup inside published articles: an ad after the second paragraph, a newsletter box before the last one, a related link after the first subheading. Core decides where each piece can go, cleans it, and leaves it out wherever it doesn't belong. The plugin never edits the article.
 
-The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0.
+The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 1.0.0.
 
 ## Ask for content.insert
 
@@ -72,7 +72,7 @@ When your rules change any other way, ask for `InsertionsChanged` in your plugin
 
 A page is cached whole, for everyone. A random or weighted pick, and anything chosen per visitor, is frozen into the cached copy until it is purged. Choose per device with CSS media queries, never on the server, and per visitor only in the browser, with a script your plugin serves from its own route or an approved inline script.
 
-`ArticleFacts` also carries the article's address, relative, as `path`, from Teme 0.9.0.
+`ArticleFacts` also carries the article's address, relative, as `path`, from Teme 1.0.0.
 
 ## ads.txt
 

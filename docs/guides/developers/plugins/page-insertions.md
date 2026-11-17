@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Insertions, app/Domain/Site/Insertions, d
 
 A plugin can place its own markup on every public page, not only inside articles: an ad network's script in the head, a banner at the top, an ad between the items of a list, a box after a theme's region, a bar fixed to the bottom of the screen. Core decides where each piece can go, cleans it, and leaves it out wherever it doesn't belong. The theme says where; the plugin says what.
 
-The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 0.9.0. For content between an article's paragraphs, see [Content inside articles](insertions.md).
+The contracts are in `teme/contracts`, under its Insertions namespace, from Teme 1.0.0. For content between an article's paragraphs, see [Content inside articles](insertions.md).
 
 ## Ask for pages.insert
 

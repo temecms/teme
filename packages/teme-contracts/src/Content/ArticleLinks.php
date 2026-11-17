@@ -13,7 +13,7 @@ use Teme\Contracts\Hooks\Transform;
  * place in $links, the LinkAttributes Teme writes on it. A value outside
  * LinkAttributes' rules fails that listener, which is recorded and skipped.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 #[HookContract(capability: 'content.links')]
 final readonly class ArticleLinks implements Transform
@@ -22,20 +22,20 @@ final readonly class ArticleLinks implements Transform
      * @param  list<OutboundLink>  $links  each link the article draws, once each
      * @param  array<int, LinkAttributes>  $attributes  by place in $links, as earlier listeners left them
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $links,
         public array $attributes = [],
     ) {}
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public static function valueType(): string
     {
         return 'array';
     }
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public function value(): mixed
     {
         return $this->attributes;

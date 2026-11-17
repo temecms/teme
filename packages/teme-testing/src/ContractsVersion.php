@@ -10,7 +10,7 @@ use RecursiveIteratorIterator;
 
 /**
  * The newest version the checkout's teme/contracts offers: its highest
- * `@since`. A checkout that offers a contract since 0.9.0 is at least 0.9.0,
+ * `@since`. A checkout that offers a contract since 1.0.0 is at least 1.0.0,
  * so a test sets the site to it when TEME_VERSION names no release.
  */
 final readonly class ContractsVersion

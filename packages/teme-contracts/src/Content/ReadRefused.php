@@ -10,6 +10,6 @@ use RuntimeException;
  * Thrown when a plugin's read of a draft is refused. Its message is one
  * plain sentence; nothing was read.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final class ReadRefused extends RuntimeException {}

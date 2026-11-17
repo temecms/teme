@@ -13,7 +13,7 @@ namespace Teme\Contracts\Import;
  * serialized values: a value WordPress kept serialized arrives decoded, and
  * one holding a PHP object arrives as null.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface WordPressImporter
 {
@@ -25,7 +25,7 @@ interface WordPressImporter
      *
      * @param  array<string, mixed>  $options
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function options(array $options, ImportScope $scope): void;
 
@@ -35,7 +35,7 @@ interface WordPressImporter
      * is undone when it fails or throws. A record unchanged since the last
      * run isn't handed over again.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function record(WordPressRecord $record, ImportScope $scope): ImportOutcome;
 }
