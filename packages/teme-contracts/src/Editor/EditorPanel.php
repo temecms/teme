@@ -10,7 +10,7 @@ use Teme\Contracts\Content\WriteRefused;
  * What one panel shows for one item, and what happens when the person uses
  * or discards one of its suggestions. Core draws it; the plugin never draws.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface EditorPanel
 {
@@ -18,7 +18,7 @@ interface EditorPanel
      * The panel's status line and the suggestions waiting for the person,
      * answered within 250 ms.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function view(EditorPanelContext $context): PanelView;
 
@@ -28,7 +28,7 @@ interface EditorPanel
      *
      * @throws WriteRefused with one plain sentence; nothing is kept
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function settled(string $suggestionId, bool $used, EditorPanelContext $context): void;
 }

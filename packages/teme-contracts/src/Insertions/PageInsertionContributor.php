@@ -11,7 +11,7 @@ namespace Teme\Contracts\Insertions;
  * granted pages.insert, and only on public web pages; core cleans and draws
  * what it gives.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface PageInsertionContributor
 {
@@ -20,7 +20,7 @@ interface PageInsertionContributor
      *
      * @return list<PageInsertion>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function pageInsertions(PageFacts $page): array;
 }

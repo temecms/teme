@@ -56,6 +56,6 @@ it('adds indexable last, true by default, so code that builds an ItemRef keeps w
 
     expect($last->getName())->toBe('indexable')
         ->and($last->getDefaultValue())->toBeTrue()
-        ->and((string) (new ReflectionMethod(ItemRef::class, '__construct'))->getDocComment())->toContain('@since 0.9.0')
+        ->and((string) (new ReflectionMethod(ItemRef::class, '__construct'))->getDocComment())->toContain('@since 1.0.0')
         ->and((new ItemRef('01', 'post', 'A title', 'published', 'https://example.test/a/', 'en'))->indexable)->toBeTrue();
 });

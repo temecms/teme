@@ -7,14 +7,14 @@ namespace Teme\Contracts\Lists;
 /**
  * One page of a content list, in the list's order, for a column to fill.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class ListRows
 {
     /**
      * @param  list<ListRow>  $rows  in the list's order
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $type,
@@ -26,7 +26,7 @@ final readonly class ListRows
      *
      * @return list<string>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function ids(): array
     {

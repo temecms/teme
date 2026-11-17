@@ -26,7 +26,7 @@ Asked once each time an article is drawn, on the site, in a feed or by the API, 
 - **Class:** `Teme\Contracts\Content\ArticleLinks`
 - **Verb:** Transform
 - **Capability:** `content.links`
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 | Parameter | Description |
 |---|---|
@@ -166,7 +166,7 @@ An activity another fediverse server sent the site, once its signature was check
 - **Class:** `Teme\Contracts\Fediverse\ActivityReceived`
 - **Verb:** Notification
 - **Capability:** `fediverse.read`
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 | Parameter | Description |
 |---|---|
@@ -181,7 +181,7 @@ An activity the site queued for its followers, sent after it is stored: a Create
 - **Class:** `Teme\Contracts\Fediverse\ActivitySent`
 - **Verb:** Notification
 - **Capability:** `fediverse.read`
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 | Parameter | Description |
 |---|---|
@@ -196,7 +196,7 @@ Lets plugins change one of the site's accounts as other servers read it, such as
 - **Class:** `Teme\Contracts\Fediverse\ActorDocumentBuilt`
 - **Verb:** Transform
 - **Capability:** `fediverse.read`
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 | Parameter | Description |
 |---|---|
@@ -210,7 +210,7 @@ Gathers the plugins' handlers for the activities other servers send, asked each 
 - **Class:** `Teme\Contracts\Fediverse\CollectActivityHandlers`
 - **Verb:** Collect
 - **Capability:** `fediverse.read`
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 ## CollectObjectBuilders
 
@@ -219,7 +219,7 @@ Gathers the plugins' object builders, asked each time an item's object is built;
 - **Class:** `Teme\Contracts\Fediverse\CollectObjectBuilders`
 - **Verb:** Collect
 - **Capability:** `fediverse.read`
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 ## ObjectBuilt
 
@@ -228,7 +228,7 @@ Lets plugins change an item's object before it is answered or sent, such as addi
 - **Class:** `Teme\Contracts\Fediverse\ObjectBuilt`
 - **Verb:** Transform
 - **Capability:** `fediverse.read`
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 | Parameter | Description |
 |---|---|
@@ -242,7 +242,7 @@ Feeds a change touched: the main feeds, a type's, a term's or an author's, as th
 - **Class:** `Teme\Contracts\Feeds\FeedsChanged`
 - **Verb:** Notification
 - **Capability:** none
-- **Since:** 0.9.0
+- **Since:** 1.0.0
 
 | Parameter | Description |
 |---|---|
@@ -266,7 +266,7 @@ A file was stored in the media library: a new upload, or a new file in place of 
 
 ## CollectPersonalDataHolders
 
-Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed. A preview until Teme 1.0.
+Gathers the plugins' holders of personal data, asked at each step of a privacy request. A listener that fails stops the request, so an erasure is never reported done while a holder was missed.
 
 - **Class:** `Teme\Contracts\Privacy\CollectPersonalDataHolders`
 - **Verb:** Collect

@@ -20,7 +20,7 @@ You need:
 
 ## Steps
 
-1. **Take the image.** Use `ghcr.io/temecms/teme` with an exact tag, such as `ghcr.io/temecms/teme:0.8.0-alpha.1`, never `latest`. A host that builds from Git or from a ZIP can build the repository's `Dockerfile` instead: the build takes several minutes and about 4 GB of memory, and leaves out every `.env` file, so the settings you give the host never enter the image.
+1. **Take the image.** Use `ghcr.io/temecms/teme` with an exact tag, such as `ghcr.io/temecms/teme:1.0.0`, never `latest`. A host that builds from Git or from a ZIP can build the repository's `Dockerfile` instead: the build takes several minutes and about 4 GB of memory, and leaves out every `.env` file, so the settings you give the host never enter the image.
 2. **Make the database.** Make a PostgreSQL 18 database and a user that is a PostgreSQL superuser. Teme uses that login once, on each start, to make a limited login of its own, and every part of Teme then runs as the limited one. If the user is not a superuser, Teme runs as that user instead.
 3. **Set the variables.**
    - `TEME_ROLE`: `all`. This is the one switch that makes the container run every role. Without it the container runs the web server alone.
@@ -65,7 +65,7 @@ Where the host has no update driver, the admin's **Update** says to update from 
 
 ```
 docker volume create blog-data
-docker run --detach --name blog --restart unless-stopped --stop-timeout 360 --publish 127.0.0.1:8080:8080 --volume blog-data:/var/teme --env TEME_ROLE=all --env APP_URL=https://example.com --env APP_KEY=base64:your-key --env DATABASE_URL=postgresql://user:password@db.internal:5432/blog ghcr.io/temecms/teme:0.8.0-alpha.1
+docker run --detach --name blog --restart unless-stopped --stop-timeout 360 --publish 127.0.0.1:8080:8080 --volume blog-data:/var/teme --env TEME_ROLE=all --env APP_URL=https://example.com --env APP_KEY=base64:your-key --env DATABASE_URL=postgresql://user:password@db.internal:5432/blog ghcr.io/temecms/teme:1.0.0
 ```
 
 Put a proxy that serves HTTPS in front of `127.0.0.1:8080`. To update, pull the new tag, remove the container and run the same command again; the volume keeps everything.

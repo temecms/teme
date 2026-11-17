@@ -8,7 +8,7 @@ namespace Teme\Contracts\Lists;
  * A plugin with list columns: its handlers, by declared column id.
  * Implemented beside Plugin.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface HasListColumns
 {
@@ -17,7 +17,7 @@ interface HasListColumns
      *
      * @return array<string, ListColumn>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function listColumns(): array;
 }

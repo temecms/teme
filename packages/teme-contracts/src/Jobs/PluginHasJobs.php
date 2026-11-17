@@ -7,7 +7,7 @@ namespace Teme\Contracts\Jobs;
 /**
  * A plugin with jobs: its handlers, by declared key. Implemented beside Plugin.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface PluginHasJobs
 {
@@ -16,7 +16,7 @@ interface PluginHasJobs
      *
      * @return array<string, JobHandler>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function jobs(): array;
 }

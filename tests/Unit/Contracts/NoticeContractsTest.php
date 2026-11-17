@@ -7,11 +7,11 @@ use Teme\Contracts\Notices\NoticeMessage;
 use Teme\Contracts\Notices\NoticeRegistrar;
 use Teme\Contracts\Notices\Notices;
 
-it('gives every notice contract its @since, its preview line and nothing from a framework', function (string $class): void {
+it('gives every notice contract its @since, no preview line and nothing from a framework', function (string $class): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since 0.5.0')
-        ->and(preg_replace('/\s*\n\s*\*\s*/', ' ', (string) $reflection->getDocComment()))->toContain('A preview until Teme 1.0.');
+        ->and(preg_replace('/\s*\n\s*\*\s*/', ' ', (string) $reflection->getDocComment()))->not->toContain('preview');
 
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
         if ($method->getDeclaringClass()->getName() !== $class || ! $method->isUserDefined()) {

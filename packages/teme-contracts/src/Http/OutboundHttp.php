@@ -55,7 +55,7 @@ interface OutboundHttp
      * @throws AnswerTooLarge when the answer passes 1 MB
      * @throws RequestFailed when the request gets no answer, or its body passes 1 MB
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function postForm(string $url, array $fields, array $headers = [], int $timeoutSeconds = 5): HttpAnswer;
 }

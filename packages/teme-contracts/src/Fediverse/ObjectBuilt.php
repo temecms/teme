@@ -14,7 +14,7 @@ use Teme\Contracts\Hooks\Transform;
  * who sent it to whom (`id`, `type`, `attributedTo`, `to`, `cc`) as it
  * wrote them.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 #[HookContract(capability: 'fediverse.read')]
 final readonly class ObjectBuilt implements Transform
@@ -23,20 +23,20 @@ final readonly class ObjectBuilt implements Transform
      * @param  array<string, mixed>  $object  the object as Teme built it
      * @param  ItemRef  $item  the item it is built from
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $object,
         public ItemRef $item,
     ) {}
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public static function valueType(): string
     {
         return 'array';
     }
 
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public function value(): mixed
     {
         return $this->object;

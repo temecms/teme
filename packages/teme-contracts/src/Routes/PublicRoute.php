@@ -7,7 +7,7 @@ namespace Teme\Contracts\Routes;
 /**
  * A handler for one declared public address: core's or a plugin's.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface PublicRoute
 {
@@ -15,7 +15,7 @@ interface PublicRoute
      * Answers the request. Throws are caught by Teme and become a 500 with
      * no plugin detail shown.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function handle(PublicRequest $request): PublicResponse;
 }

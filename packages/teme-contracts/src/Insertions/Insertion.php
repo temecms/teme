@@ -10,15 +10,15 @@ use InvalidArgumentException;
  * One piece of markup a contributor wants drawn at a position inside an
  * article. Its key keeps a second copy out; the first by precedence wins.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class Insertion
 {
-    /** What a key may be: lower-case letters, digits, dots, hyphens and underscores. @since 0.9.0 */
+    /** What a key may be: lower-case letters, digits, dots, hyphens and underscores. @since 1.0.0 */
     public const string KEY_PATTERN = '/^[a-z0-9][a-z0-9._-]{0,99}$/';
 
     /**
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $key,

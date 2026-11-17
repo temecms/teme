@@ -50,7 +50,7 @@ You build a plugin or theme in its own folder or repository, and test it against
    TEME_THEME_PATHS=../my-theme
    ```
 
-   Then tell the site which Teme it is. A copy of `main` that isn't a tagged release reports Teme 0.1.0, which no plugin's `requires.teme` accepts. The [contracts reference](../../../reference/contracts.md) says in its first lines the newest version this copy's contracts offer; put that in `.env`, as `TEME_VERSION=0.9.0` for one at 0.9.0. A tagged release needs nothing.
+   Then tell the site which Teme it is. A copy of `main` that isn't a tagged release reports Teme 0.1.0, which no plugin's `requires.teme` accepts. The [contracts reference](../../../reference/contracts.md) says in its first lines the newest version this copy's contracts offer; put that in `.env`, as `TEME_VERSION=1.0.0` for one at 1.0.0. A tagged release needs nothing.
 
 5. Serve the site (Herd serves the folder for you; otherwise `php artisan serve`). Run `php artisan teme:setup-code`, open the address it prints, enter the code, and fill in the form: you are the site's first administrator.
 

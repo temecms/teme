@@ -20,7 +20,7 @@ final readonly class ItemRef
      * @param  string  $status  its status. Today one of: draft, review, scheduled or published; later releases may add others, so a plugin treats a value it does not know as it would an unknown status, and never matches the list exhaustively.
      * @param  string|null  $url  its live address as an absolute URL, or null when it has none: a draft, a private or trashed item, or a type with no public address
      * @param  string  $language  The item's language as a BCP 47 tag, such as en-GB. The site's language today; an item's own once a site holds more than one.
-     * @param  bool  $indexable  Whether search engines may list its page: false when it has no url, or when its page says noindex (its own "Hide from search engines", its type hidden in Search and social, the whole site discouraged, or a password on it). Worked out by the code that writes the page's robots meta, so the two never disagree. @since 0.9.0
+     * @param  bool  $indexable  Whether search engines may list its page: false when it has no url, or when its page says noindex (its own "Hide from search engines", its type hidden in Search and social, the whole site discouraged, or a password on it). Worked out by the code that writes the page's robots meta, so the two never disagree. @since 1.0.0
      *
      * @since 0.5.0
      */

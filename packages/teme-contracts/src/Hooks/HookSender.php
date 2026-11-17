@@ -10,7 +10,7 @@ namespace Teme\Contracts\Hooks;
  * `contributes.hooks`. Listeners are called as for Teme's own hooks: a
  * listener's failure, the order and the failure rules are the same.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface HookSender
 {
@@ -21,7 +21,7 @@ interface HookSender
      *
      * @throws HookRefused for a hook this plugin doesn't declare
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function notify(Notification $hook): void;
 
@@ -30,7 +30,7 @@ interface HookSender
      *
      * @throws HookRefused for a hook this plugin doesn't declare
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function transform(Transform $hook): mixed;
 
@@ -41,7 +41,7 @@ interface HookSender
      *
      * @throws HookRefused for a hook this plugin doesn't declare
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function collect(Collect $hook): array;
 }

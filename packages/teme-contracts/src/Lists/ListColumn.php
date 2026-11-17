@@ -7,7 +7,7 @@ namespace Teme\Contracts\Lists;
 /**
  * A plugin's handler for one declared list column.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface ListColumn
 {
@@ -16,7 +16,7 @@ interface ListColumn
      *
      * @return array<string, Cell>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function cells(ListRows $rows): array;
 }

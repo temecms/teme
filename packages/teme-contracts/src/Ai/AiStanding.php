@@ -8,7 +8,7 @@ namespace Teme\Contracts\Ai;
  * Whether a task can be asked now, why not in plain words, and this plugin's
  * month.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class AiStanding
 {
@@ -17,7 +17,7 @@ final readonly class AiStanding
      * @param  string  $sentence  why, in one plain sentence a person may read; empty when ready
      * @param  int|null  $monthBudgetMicrodollars  null when the plugin has no budget of its own
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public bool $available,

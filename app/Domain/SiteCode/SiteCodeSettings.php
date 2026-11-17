@@ -43,11 +43,11 @@ final class SiteCodeSettings
             settings: [
                 Setting::textarea(self::ADS_TXT, 'ads.txt', 'Shown at /ads.txt for advertising buyers. Leave empty for a 404.', '0.8.0')
                     ->maxLength(self::ADS_TXT_MAX),
-                Setting::select(self::ADS_TXT_MODE, 'ads.txt mode', 'Serve the text, or send buyers to another host’s ads.txt.', '0.9.0', [
+                Setting::select(self::ADS_TXT_MODE, 'ads.txt mode', 'Serve the text, or send buyers to another host’s ads.txt.', '1.0.0', [
                     self::MODE_TEXT => 'Text',
                     self::MODE_REDIRECT => 'Send to another address',
                 ]),
-                Setting::url(self::ADS_TXT_REDIRECT, 'ads.txt redirect', 'The https address on another host to send /ads.txt to.', '0.9.0'),
+                Setting::url(self::ADS_TXT_REDIRECT, 'ads.txt redirect', 'The https address on another host to send /ads.txt to.', '1.0.0'),
             ],
             since: '0.8.0',
             cacheTags: [PageTags::url('/ads.txt')],

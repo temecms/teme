@@ -7,7 +7,7 @@ namespace Teme\Contracts\Lists;
 /**
  * One list's rows on a plugin's settings page, newest or most useful first.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface PluginList
 {
@@ -16,7 +16,7 @@ interface PluginList
      *
      * @return list<array<string, Cell>>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function rows(int $limit): array;
 }

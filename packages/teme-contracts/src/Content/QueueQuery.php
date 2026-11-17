@@ -7,7 +7,7 @@ namespace Teme\Contracts\Content;
 /**
  * Which unpublished items ContentReader::queue() lists, and from where.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class QueueQuery
 {
@@ -17,7 +17,7 @@ final readonly class QueueQuery
      * @param  string|null  $after  the cursor QueuePage gave; null for the first page
      * @param  int  $limit  1 to 200
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $statuses = ['draft', 'review', 'scheduled'],

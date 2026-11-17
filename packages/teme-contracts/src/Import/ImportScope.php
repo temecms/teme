@@ -11,7 +11,7 @@ use Teme\Contracts\Content\ItemRef;
  * WordPress posts and people core imported became in Teme, and whether
  * the run is a catch-up.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface ImportScope
 {
@@ -19,7 +19,7 @@ interface ImportScope
      * Returns what an imported WordPress post became in Teme, or null when
      * the import didn't bring it or it is gone.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function itemFor(int $sourcePostId): ?ItemRef;
 
@@ -27,7 +27,7 @@ interface ImportScope
      * Returns the ID of the Teme person a WordPress user became, or null
      * when the import didn't bring them.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function personFor(int $sourceUserId): ?string;
 
@@ -35,7 +35,7 @@ interface ImportScope
      * Returns whether this run catches up on what changed since the last
      * finished import, rather than bringing the whole site.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function isCatchUp(): bool;
 }

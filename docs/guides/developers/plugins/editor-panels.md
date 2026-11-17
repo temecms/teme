@@ -12,7 +12,7 @@ A plugin that works on the article someone is editing, such as one that suggests
 
 A panel is for work on the article being edited. A plugin that creates articles does that in [its own area](admin-area.md).
 
-The contracts are in `teme/contracts`, under its Editor namespace, from Teme 0.9.0.
+The contracts are in `teme/contracts`, under its Editor namespace, from Teme 1.0.0.
 
 ## Declare the panel
 

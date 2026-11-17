@@ -36,7 +36,7 @@ Changing these requires `settings.modules.manage`. Since 0.1.0.
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
 | `modules.comments` | select | `"on"` | Off, the site takes no comments, and visitors see no comments, form or counts. Comments leaves the menu and the editor. Stored comments and these settings are kept. | 0.1.0 |
-| `modules.fediverse` | select | `"off"` | On, people on Mastodon and other fediverse servers can follow the site. Off, it is paused: nothing is sent or received, and its followers and keys are kept. | 0.9.0 |
+| `modules.fediverse` | select | `"off"` | On, people on Mastodon and other fediverse servers can follow the site. Off, it is paused: nothing is sent or received, and its followers and keys are kept. | 1.0.0 |
 
 ## Languages
 
@@ -203,8 +203,8 @@ Changing these requires `site-code.manage`. Since 0.8.0.
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
 | `site_code.ads_txt` | textarea | `""` | Shown at /ads.txt for advertising buyers. Leave empty for a 404. | 0.8.0 |
-| `site_code.ads_txt_mode` | select | `"text"` | Serve the text, or send buyers to another host’s ads.txt. | 0.9.0 |
-| `site_code.ads_txt_redirect` | url | `""` | The https address on another host to send /ads.txt to. | 0.9.0 |
+| `site_code.ads_txt_mode` | select | `"text"` | Serve the text, or send buyers to another host’s ads.txt. | 1.0.0 |
+| `site_code.ads_txt_redirect` | url | `""` | The https address on another host to send /ads.txt to. | 1.0.0 |
 
 ## Media
 
@@ -293,24 +293,34 @@ Changing these requires `settings.design.manage`. Since 0.1.0.
 | `theme.default.nav_primary` | text | `""` | The menu shown in this place. | 0.1.0 |
 | `theme.default.nav_footer` | text | `""` | The menu shown in this place. | 0.1.0 |
 
+## Updates
+
+How Teme reaches the platform that runs it, so Tools › Updates can update the site.
+
+Changing these requires `updates.manage`. Since 1.0.0.
+
+| Setting | Type | Default | Description | Since |
+|---|---|---|---|---|
+| `updates.dokploy_api_key` | secret | — | Lets Teme change and deploy this site’s service on Dokploy when you update from Tools › Updates. In Dokploy, open your profile, make an API key, and paste it here. It is kept encrypted and never shown again. The server can set it instead, as TEME_DOKPLOY_TOKEN. | 1.0.0 |
+
 ## Management API
 
 Lets outside tools create drafts, upload media and publish, each with a key you make here.
 
-Changing these requires `api.keys.manage`. Since 0.9.0.
+Changing these requires `api.keys.manage`. Since 1.0.0.
 
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
-| `management_api.enabled` | boolean | `false` | Lets outside tools sign in with a key at /api/manage/v1. While it is off, every key is refused. | 0.9.0 |
-| `management_api.per_minute` | number | `60` | How many requests one key may make in a minute before it is asked to wait. | 0.9.0 |
+| `management_api.enabled` | boolean | `false` | Lets outside tools sign in with a key at /api/manage/v1. While it is off, every key is refused. | 1.0.0 |
+| `management_api.per_minute` | number | `60` | How many requests one key may make in a minute before it is asked to wait. | 1.0.0 |
 
 ## Fediverse
 
 Let people on Mastodon and other fediverse servers follow the site and its authors.
 
-Changing these requires `settings.fediverse.manage`. Since 0.9.0.
+Changing these requires `settings.fediverse.manage`. Since 1.0.0.
 
 | Setting | Type | Default | Description | Since |
 |---|---|---|---|---|
-| `fediverse.followable` | select | `"blog"` | The blog’s account shares every post. An author’s account shares only their own, once you turn it on below. | 0.9.0 |
+| `fediverse.followable` | select | `"blog"` | The blog’s account shares every post. An author’s account shares only their own, once you turn it on below. | 1.0.0 |
 

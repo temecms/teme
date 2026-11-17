@@ -10,7 +10,7 @@ use Teme\Contracts\Media\MediaRef;
  * What a plugin asks ContentWriter::change() to save on an item's draft.
  * Each null field leaves that part as it is.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class ItemChanges
 {
@@ -21,7 +21,7 @@ final readonly class ItemChanges
      * @param  string|null  $slug  the last part of its address, or null to leave it
      * @param  list<string>|null  $credits  account IDs to credit, in order (empty credits its owner), or null to leave them
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public ?string $title = null,

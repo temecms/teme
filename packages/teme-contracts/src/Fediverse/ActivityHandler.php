@@ -11,7 +11,7 @@ namespace Teme\Contracts\Fediverse;
  * Types Teme takes itself (Follow, Accept, Reject, Undo, Create, Update,
  * Delete, Block, Move, Flag) are never given to a handler.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface ActivityHandler
 {
@@ -20,7 +20,7 @@ interface ActivityHandler
      *
      * @return list<string>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function types(): array;
 
@@ -29,7 +29,7 @@ interface ActivityHandler
      *
      * @param  array<string, mixed>  $activity
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function handle(array $activity, string $actorUri): void;
 }

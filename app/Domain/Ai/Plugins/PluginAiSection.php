@@ -79,17 +79,17 @@ final readonly class PluginAiSection implements AiSettingsSection, SettingsCheck
 
         foreach ($this->tasks->enabled() as $code => $plugin) {
             $name = $plugin['label'];
-            $settings[] = Setting::boolean(self::onKey($code), __('AI for :plugin', ['plugin' => $name]), __('Lets :plugin ask the site’s AI connection for its tasks. On once the plugin is enabled.', ['plugin' => $name]), '0.9.0')
+            $settings[] = Setting::boolean(self::onKey($code), __('AI for :plugin', ['plugin' => $name]), __('Lets :plugin ask the site’s AI connection for its tasks. On once the plugin is enabled.', ['plugin' => $name]), '1.0.0')
                 ->default(true);
-            $settings[] = Setting::number(self::budgetKey($code), __(':plugin’s monthly budget, in US dollars', ['plugin' => $name]), __('When :plugin’s recorded cost this month reaches it, AI is unavailable to :plugin until the month ends. 0 means only the site’s budget applies.', ['plugin' => $name]), '0.9.0')
+            $settings[] = Setting::number(self::budgetKey($code), __(':plugin’s monthly budget, in US dollars', ['plugin' => $name]), __('When :plugin’s recorded cost this month reaches it, AI is unavailable to :plugin until the month ends. 0 means only the site’s budget applies.', ['plugin' => $name]), '1.0.0')
                 ->default(0)->min(0)->max(1_000_000);
-            $settings[] = Setting::number(self::hourlyKey($code), __(':plugin’s requests an hour', ['plugin' => $name]), __('How many times :plugin may ask AI in an hour, for everyone it works for.', ['plugin' => $name]), '0.9.0')
+            $settings[] = Setting::number(self::hourlyKey($code), __(':plugin’s requests an hour', ['plugin' => $name]), __('How many times :plugin may ask AI in an hour, for everyone it works for.', ['plugin' => $name]), '1.0.0')
                 ->default(self::HOURLY)->min(1)->max(10_000);
 
             foreach ($plugin['tasks'] as $task) {
-                $settings[] = Setting::text(self::modelKey($code, $task->id), __('Model for :task (:plugin)', ['task' => $task->label, 'plugin' => $name]), __('The provider and model that answer, written provider:model. Empty switches :task off.', ['task' => $task->label]), '0.9.0')
+                $settings[] = Setting::text(self::modelKey($code, $task->id), __('Model for :task (:plugin)', ['task' => $task->label, 'plugin' => $name]), __('The provider and model that answer, written provider:model. Empty switches :task off.', ['task' => $task->label]), '1.0.0')
                     ->maxLength(200);
-                $settings[] = Setting::text(self::fallbackKey($code, $task->id), __('Fallback for :task (:plugin)', ['task' => $task->label, 'plugin' => $name]), __('Asked once when the first model can’t be reached or is busy, written provider:model. Optional.'), '0.9.0')
+                $settings[] = Setting::text(self::fallbackKey($code, $task->id), __('Fallback for :task (:plugin)', ['task' => $task->label, 'plugin' => $name]), __('Asked once when the first model can’t be reached or is busy, written provider:model. Optional.'), '1.0.0')
                     ->maxLength(200);
             }
         }

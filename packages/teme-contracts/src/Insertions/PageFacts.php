@@ -10,7 +10,7 @@ namespace Teme\Contracts\Insertions;
  * it is about. Never anything about the visitor: the page is cached whole
  * for everyone.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class PageFacts
 {
@@ -22,7 +22,7 @@ final readonly class PageFacts
      * @param  array<string, list<string>>  $termIdsByTaxonomy  an article's terms, or a term archive's own term, by taxonomy key
      * @param  list<string>  $authorIds  an article's authors, or an author archive's own
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $kind,

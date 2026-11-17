@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Fediverse, app/Domain/Fediverse, docs/arc
 
 Teme speaks ActivityPub itself, so Mastodon and other fediverse servers can follow a site, read its posts and reply to them. A plugin doesn't build any of that. It joins in through a few sockets: it hears what arrives and what leaves, handles activity types core leaves alone, changes the documents core sends, and sends activities of its own.
 
-The contracts are in `teme/contracts`, under its Fediverse namespace, from Teme 0.9.0.
+The contracts are in `teme/contracts`, under its Fediverse namespace, from Teme 1.0.0.
 
 ## What core does by itself
 

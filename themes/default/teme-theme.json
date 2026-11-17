@@ -7,7 +7,7 @@
     "author": "Teme",
     "license": "MIT",
     "screenshot": "screenshot.png",
-    "requires": { "teme": ">=0.1.0-dev <1.0" },
+    "requires": { "teme": ">=0.1.0-dev <2.0" },
     "title_separator": "–",
     "per_page": 12,
     "layout": { "content": 680, "wide": 1152, "full": null },

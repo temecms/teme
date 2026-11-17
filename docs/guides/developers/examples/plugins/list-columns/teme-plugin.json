@@ -6,7 +6,7 @@
     "description": "The handbook's list-columns example: an SEO score badge on the Posts list.",
     "version": "1.0.0",
     "requires": {
-        "teme": "^0.9"
+        "teme": "^1.0"
     },
     "plugin": "TemeExamples\\ListColumns\\SeoPlugin",
     "capabilities": ["content.read"],

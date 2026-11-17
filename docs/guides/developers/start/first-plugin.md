@@ -26,7 +26,7 @@ The package name is `teme-examples/first-plugin`. Its manifest asks for `content
     "description": "The handbook's first plugin: listens when a post is published.",
     "version": "1.0.0",
     "requires": {
-        "teme": "^0.9"
+        "teme": "^1.0"
     },
     "plugin": "TemeExamples\\FirstPlugin\\FirstPlugin",
     "capabilities": ["content.read"],

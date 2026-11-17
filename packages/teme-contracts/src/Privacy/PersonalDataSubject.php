@@ -6,7 +6,7 @@ namespace Teme\Contracts\Privacy;
 
 /**
  * Who a privacy request is about: an email address, lower-cased, and the
- * account it belongs to, when one does. A preview until Teme 1.0.
+ * account it belongs to, when one does.
  *
  * @since 0.5.0
  */

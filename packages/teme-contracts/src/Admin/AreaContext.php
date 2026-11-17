@@ -8,11 +8,11 @@ namespace Teme\Contracts\Admin;
  * Who is looking at a plugin's area, in which language and time zone, and
  * which of the plugin's own permissions they hold.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class AreaContext
 {
-    /** @since 0.9.0 */
+    /** @since 1.0.0 */
     public function __construct(
         public string $personId,
         public string $locale,
@@ -23,7 +23,7 @@ final readonly class AreaContext
          *
          * @var list<string>
          *
-         * @since 0.9.0
+         * @since 1.0.0
          */
         public array $permissions = [],
     ) {}

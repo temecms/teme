@@ -9,7 +9,7 @@ namespace Teme\Contracts\Content;
  * absolute address, its host, whether it leads outside the site, and the
  * words it is drawn on.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class OutboundLink
 {
@@ -19,7 +19,7 @@ final readonly class OutboundLink
      * @param  bool  $external  whether it leads outside this site
      * @param  string  $text  the words it is drawn on
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $href,

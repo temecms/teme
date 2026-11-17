@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Admin, app/Domain/Plugins/Area, app/Domai
 
 A plugin that keeps things of its own, such as ads, forms or redirects, can have screens of its own in the admin: an overview with figures and a chart, a table of its records, and a form for each record. The plugin declares the screens in `teme-plugin.json` and hands core the data; core draws every screen with its own components, checks every value, and runs every write as an Operation. A plugin never draws HTML in the admin.
 
-The contracts are in `teme/contracts`, under its Admin namespace, from Teme 0.9.0. For the settings page every plugin can have, see [Plugin settings and secrets](settings.md).
+The contracts are in `teme/contracts`, under its Admin namespace, from Teme 1.0.0. For the settings page every plugin can have, see [Plugin settings and secrets](settings.md).
 
 ## Declare a permission
 

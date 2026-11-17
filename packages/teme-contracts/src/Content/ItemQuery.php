@@ -9,7 +9,7 @@ use DateTimeImmutable;
 /**
  * Which published items ContentReader::published() lists, and from where.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class ItemQuery
 {
@@ -21,7 +21,7 @@ final readonly class ItemQuery
      * @param  string|null  $after  the cursor ItemPage gave; null for the first page
      * @param  int  $limit  1 to 200
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $types = [],

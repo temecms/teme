@@ -186,6 +186,8 @@ Slice lists here are **estimates**. Each phase is re-sliced properly when it is 
 
 **Done when:** a stranger installs Teme. **Promise made:** upgradeability. First public release.
 
+✅ **Released as `v1.0.0` on 2026-11-17.** What it holds is in [`CHANGELOG.md`](../CHANGELOG.md).
+
 | Slice | Name |
 |---|---|
 | 6.1 | Browser installer, with an install token, and browser restore from the installer and the admin — data only, under spec §5.11's controls |

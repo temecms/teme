@@ -10,7 +10,7 @@ use InvalidArgumentException;
  * Sends a notice of a declared kind. Core decides who receives it: the
  * site's switch, each person's choice and the kind's audience; it is
  * delivered after the current database transaction commits, never if it
- * rolls back. A preview until Teme 1.0.
+ * rolls back.
  *
  * @since 0.5.0
  */

@@ -11,14 +11,14 @@ namespace Teme\Contracts\Ai;
  * fences the plugin's inputs, and records the request's figures under the
  * plugin, never its words.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface SiteAi
 {
     /**
      * Whether this task can be asked now, and this plugin's AI spending this month.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function standing(string $task): AiStanding;
 
@@ -28,7 +28,7 @@ interface SiteAi
      *
      * @throws AiRefused when it may not be asked, or the model fails; the reason says which
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function ask(AiAsk $ask, string $actingPersonId): AiAnswer;
 }

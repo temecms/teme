@@ -7,7 +7,7 @@ namespace Teme\Contracts\Jobs;
 /**
  * What a running job may read and report.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface JobContext
 {
@@ -16,14 +16,14 @@ interface JobContext
      *
      * @return array<string, mixed>
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function payload(): array;
 
     /**
      * The attempt number, starting at 1.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function attempt(): int;
 
@@ -31,7 +31,7 @@ interface JobContext
      * Reports progress. Throws JobStopped when the run was cancelled or the
      * plugin was disabled.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function progress(int $done, int $total, string $message = ''): void;
 
@@ -42,7 +42,7 @@ interface JobContext
      * as one the operator queued, it throws, and the run fails at once
      * without another try.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function personId(): string;
 }

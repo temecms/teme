@@ -11,7 +11,7 @@ use DateTimeImmutable;
  * and schedules them, and links language versions, always on behalf of a
  * named person.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface ContentWriter
 {
@@ -20,7 +20,7 @@ interface ContentWriter
      *
      * @throws WriteRefused
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function create(NewItem $item, string $actingPersonId): ItemRef;
 
@@ -29,7 +29,7 @@ interface ContentWriter
      *
      * @throws WriteRefused
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function change(ItemRef $item, ItemChanges $changes, string $actingPersonId): ItemRef;
 
@@ -38,7 +38,7 @@ interface ContentWriter
      *
      * @throws WriteRefused
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function publish(ItemRef $item, string $actingPersonId): ItemRef;
 
@@ -47,7 +47,7 @@ interface ContentWriter
      *
      * @throws WriteRefused
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef;
 
@@ -60,7 +60,7 @@ interface ContentWriter
      *
      * @throws WriteRefused
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function linkTranslations(array $itemIds, string $actingPersonId): void;
 }

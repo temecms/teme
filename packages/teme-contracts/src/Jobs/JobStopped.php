@@ -9,6 +9,6 @@ use RuntimeException;
 /**
  * Thrown by progress() so a handler unwinds when its run must stop.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final class JobStopped extends RuntimeException {}

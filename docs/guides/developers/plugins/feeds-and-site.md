@@ -8,7 +8,7 @@ rests_on: [packages/teme-contracts/src/Site, packages/teme-contracts/src/Feeds, 
 
 # Feeds and the site
 
-These are the sockets a plugin uses to tell services outside the site about its feeds, such as a WebSub hub or a search engine's ping address. Each one is available from Teme 0.9.0, so a plugin that uses them says `"requires": {"teme": "^0.9"}`.
+These are the sockets a plugin uses to tell services outside the site about its feeds, such as a WebSub hub or a search engine's ping address. Each one is available from Teme 1.0.0, so a plugin that uses them says `"requires": {"teme": "^1.0"}`.
 
 ## Links in every feed
 

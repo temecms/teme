@@ -155,7 +155,7 @@ Refers to: nothing.
 
 HTML an administrator keeps in Settings › Site code, placed here by name. Editors choose it; only administrators write or change it.
 
-Since 0.9.0. Registered by `core`.
+Since 1.0.0. Registered by `core`.
 
 | Attribute | Rules | Default |
 |---|---|---|
@@ -168,7 +168,7 @@ Refers to: nothing.
 
 A short list of posts: ones you choose, or the latest of a type, optionally filed under one category or tag.
 
-Since 0.9.0. Registered by `core`.
+Since 1.0.0. Registered by `core`.
 
 | Attribute | Rules | Default |
 |---|---|---|

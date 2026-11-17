@@ -11,11 +11,11 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-it('gives every privacy contract its @since, the preview line and nothing from a framework', function (string $class): void {
+it('gives every privacy contract its @since, no preview line and nothing from a framework', function (string $class): void {
     $reflection = new ReflectionClass($class);
 
     expect($reflection->getDocComment())->toContain('@since 0.5.0')
-        ->and($reflection->getDocComment())->toContain('A preview until Teme 1.0.');
+        ->and($reflection->getDocComment())->not->toContain('preview');
 
     foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
         if ($method->getDeclaringClass()->getName() !== $class || ! $method->isUserDefined()) {

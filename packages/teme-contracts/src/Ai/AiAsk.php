@@ -10,28 +10,28 @@ use InvalidArgumentException;
  * One request: the plugin's instructions, its named inputs (each fenced by
  * core), an optional JSON schema.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class AiAsk
 {
     /**
      * The longest the instructions may be, in characters.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const int MOST_INSTRUCTIONS = 100_000;
 
     /**
      * The longest a request may wait for its answer outside a long job, in seconds.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const int MOST_SECONDS = 55;
 
     /**
      * The longest a request may wait for its answer inside a long job, in seconds.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const int MOST_LONG_SECONDS = 600;
 
@@ -46,7 +46,7 @@ final readonly class AiAsk
      *
      * @throws InvalidArgumentException for a value outside these bounds
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $task,

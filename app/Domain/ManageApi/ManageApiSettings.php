@@ -38,12 +38,12 @@ final class ManageApiSettings
             section: 'site',
             ability: ManageApiAccess::ABILITY,
             settings: [
-                Setting::boolean(self::ENABLED, 'Turn on the management API', 'Lets outside tools sign in with a key at /api/manage/v1. While it is off, every key is refused.', '0.9.0')
+                Setting::boolean(self::ENABLED, 'Turn on the management API', 'Lets outside tools sign in with a key at /api/manage/v1. While it is off, every key is refused.', '1.0.0')
                     ->default(false),
-                Setting::number(self::PER_MINUTE, 'Requests a minute per key', 'How many requests one key may make in a minute before it is asked to wait.', '0.9.0')
+                Setting::number(self::PER_MINUTE, 'Requests a minute per key', 'How many requests one key may make in a minute before it is asked to wait.', '1.0.0')
                     ->default(60)->min(1)->max(1000),
             ],
-            since: '0.9.0',
+            since: '1.0.0',
         );
     }
 

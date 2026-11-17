@@ -11,14 +11,14 @@ use InvalidArgumentException;
  * page. Its key keeps a second copy out; the first, by plugin code order,
  * wins.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class PageInsertion
 {
     /**
      * @param  string  $key  as Insertion::KEY_PATTERN: lower-case letters, digits, dots, hyphens and underscores
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $key,

@@ -9,11 +9,11 @@ use InvalidArgumentException;
 /**
  * One change the person may use, with a label and a short explanation.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class Suggestion
 {
-    /** A suggestion's id. @since 0.9.0 */
+    /** A suggestion's id. @since 1.0.0 */
     public const string ID = '/^[a-z0-9][a-z0-9:._-]{0,63}$/D';
 
     /**
@@ -23,7 +23,7 @@ final readonly class Suggestion
      *
      * @throws InvalidArgumentException for an id, label or detail outside those bounds
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $id,

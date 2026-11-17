@@ -13,7 +13,7 @@ use Teme\Contracts\Hooks\Notification;
  * or any other. Sent from the queued job that takes it, never for one
  * refused at the inbox.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 #[HookContract(capability: 'fediverse.read')]
 final readonly class ActivityReceived implements Notification
@@ -23,7 +23,7 @@ final readonly class ActivityReceived implements Notification
      * @param  string  $type  its type, such as Like or Announce
      * @param  string  $actorUri  the address of the account that signed it
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public array $activity,

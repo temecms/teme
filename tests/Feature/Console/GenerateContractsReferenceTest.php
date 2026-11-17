@@ -71,7 +71,7 @@ it('lists each contract a plugin’s constructor may ask for once, with the gran
 
     expect($markdown)->toContain('| `'.SettingsReader::class.'` | always | 0.1.0 |')
         ->and($markdown)->toContain('| `'.OutboundHttp::class.'` | granted `http` | 0.5.0 |')
-        ->and($markdown)->toContain('| `'.SiteAi::class.'` | granted `ai` and its manifest declares `contributes.aiTasks` | 0.9.0 |');
+        ->and($markdown)->toContain('| `'.SiteAi::class.'` | granted `ai` and its manifest declares `contributes.aiTasks` | 1.0.0 |');
 });
 
 it('says the highest version this checkout’s contracts offer', function (): void {
@@ -79,7 +79,7 @@ it('says the highest version this checkout’s contracts offer', function (): vo
 
     $this->artisan('teme:docs:contracts', ['--output' => $path])->assertSuccessful();
 
-    expect((string) file_get_contents($path))->toContain('This checkout offers contracts up to **0.9.0**.');
+    expect((string) file_get_contents($path))->toContain('This checkout offers contracts up to **1.0.0**.');
 });
 
 it('fails naming a type that has no @since', function (): void {
@@ -114,7 +114,7 @@ namespace ContractsNosinceMethod;
 /**
  * A fixture interface whose method has no version, for the generator's refusal.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 interface NoSinceMethod
 {

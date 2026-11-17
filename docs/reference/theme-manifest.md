@@ -11,7 +11,7 @@
 | `version` | string | yes | The theme's own version. | \S |
 | `description` | string | yes | What the theme is for, in a sentence. | \S |
 | `requires` | object | yes | What the theme needs. |  |
-| `requires.teme` | string | yes | A Composer version constraint on Teme's own version, such as ^0.4. Before 1.0, ^0.4 means 0.4.x only. | \S |
+| `requires.teme` | string | yes | A Composer version constraint on Teme's own version, such as ^1.0. | \S |
 | `author` | string | no | Shown to people only; Teme reads nothing from it. |  |
 | `author_url` | string | no | The author’s website. |  |
 | `homepage` | string | no | Where to read about the theme. |  |

@@ -10,7 +10,7 @@ rests_on: [packages/teme-contracts/src/Hooks, app/Domain/Plugins/Hooks, app/Doma
 
 A plugin can offer hooks of its own, so that another plugin can change what it does without either one reaching into the other's code. A free plugin can declare a hook that collects extra prompt modules, and a paid add-on can require it and listen. Teme runs those hooks exactly as it runs its own: the same verbs, the same order, the same fault rules.
 
-The contracts are in `teme/contracts` from Teme 0.9.0.
+The contracts are in `teme/contracts` from Teme 1.0.0.
 
 ## Declare each hook
 

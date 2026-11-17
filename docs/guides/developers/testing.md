@@ -112,7 +112,7 @@ The kit sets the site to the version `TEME_VERSION` names when it names a releas
 
 ## What the kit promises
 
-The kit is documented and tested, and the handbook's own examples are tested with it. Before Teme 1.0 it is not covered by semantic versioning: a method may change in a minor release, and every change is written in the changelog. From 1.0 it follows the contracts' deprecation policy.
+The kit is documented and tested, and the handbook's own examples are tested with it. Every change to it is written in the changelog.
 
 ## Guides stay honest
 

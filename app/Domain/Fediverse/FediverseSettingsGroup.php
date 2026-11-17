@@ -34,13 +34,13 @@ final class FediverseSettingsGroup
             section: 'fediverse',
             ability: 'settings.fediverse.manage',
             settings: [
-                Setting::select(self::FOLLOWABLE, 'Who can be followed', 'The blog’s account shares every post. An author’s account shares only their own, once you turn it on below.', '0.9.0', [
+                Setting::select(self::FOLLOWABLE, 'Who can be followed', 'The blog’s account shares every post. An author’s account shares only their own, once you turn it on below.', '1.0.0', [
                     self::BLOG => 'The blog',
                     self::AUTHORS => 'Each author',
                     self::BOTH => 'The blog and each author',
                 ]),
             ],
-            since: '0.9.0',
+            since: '1.0.0',
             screen: 'settings.fediverse',
         );
     }

@@ -10,7 +10,7 @@ use InvalidArgumentException;
  * What a table asks of a record's rows: its page, how many a page, the
  * search, the chosen filters, and the sorted column and direction.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class TableQuery
 {
@@ -20,7 +20,7 @@ final readonly class TableQuery
      *
      * @throws InvalidArgumentException for a page below 1, a page size outside 1 to 100, or another direction
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public int $page,

@@ -8,28 +8,28 @@ namespace Teme\Contracts\Import;
  * One record a plugin receives from the WordPress site an import reads:
  * plain values only, never a WordPress or Laravel object.
  *
- * @since 0.9.0
+ * @since 1.0.0
  */
 final readonly class WordPressRecord
 {
     /**
      * A post of a declared post type.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const string POST = 'post';
 
     /**
      * A person's declared meta.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const string USER = 'user';
 
     /**
      * A term's declared meta.
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public const string TERM = 'term';
 
@@ -40,7 +40,7 @@ final readonly class WordPressRecord
      * @param  array<string, mixed>  $fields  a post's guid, title, content, status, date_gmt, author and parent; empty for a person or a term
      * @param  array<string, list<mixed>>  $meta  only the declared keys, each with its values decoded, null for one that held a PHP object
      *
-     * @since 0.9.0
+     * @since 1.0.0
      */
     public function __construct(
         public string $kind,
