@@ -511,132 +511,143 @@ export default function SettingsGroup({
                 description={heading.description}
             >
                 <AreaScriptsProvider value={scripts}>
-                <SettingsForm
-                    action={SettingsController.update.form({
-                        group: group.key,
-                    })}
-                    saveLabel={__('Save :page settings', {
-                        page: heading.label.toLowerCase(),
-                    })}
-                    what={__(':page settings', { page: heading.label })}
-                    askInPlace={group.sensitive || pluginHosts !== null}
-                    transform={transform}
-                >
-                    {({ errors }) => (
-                        <>
-                            <input
-                                type="hidden"
-                                name="expected_version"
-                                value={version}
-                            />
-                            <InputError
-                                id="expected-version-error"
-                                message={errors.expected_version}
-                            />
+                    <SettingsForm
+                        action={SettingsController.update.form({
+                            group: group.key,
+                        })}
+                        saveLabel={__('Save :page settings', {
+                            page: heading.label.toLowerCase(),
+                        })}
+                        what={__(':page settings', { page: heading.label })}
+                        askInPlace={group.sensitive || pluginHosts !== null}
+                        transform={transform}
+                    >
+                        {({ errors }) => (
+                            <>
+                                <input
+                                    type="hidden"
+                                    name="expected_version"
+                                    value={version}
+                                />
+                                <InputError
+                                    id="expected-version-error"
+                                    message={errors.expected_version}
+                                />
 
-                            <SettingsConditions fields={fields} values={values}>
-                                {(shown) =>
-                                    panels !== null ? (
-                                        panels.map((panel, index) => (
+                                <SettingsConditions
+                                    fields={fields}
+                                    values={values}
+                                >
+                                    {(shown) =>
+                                        panels !== null ? (
+                                            panels.map((panel, index) => (
+                                                <SettingsPanel
+                                                    key={`${index}-${panel.title}`}
+                                                    title={
+                                                        panel.title !== ''
+                                                            ? panel.title
+                                                            : undefined
+                                                    }
+                                                    label={
+                                                        panel.title === ''
+                                                            ? heading.label
+                                                            : undefined
+                                                    }
+                                                    description={
+                                                        panel.description !== ''
+                                                            ? panel.description
+                                                            : undefined
+                                                    }
+                                                >
+                                                    {panel.keys.map((key) => {
+                                                        const field =
+                                                            fields.find(
+                                                                (candidate) =>
+                                                                    candidate.key ===
+                                                                    key,
+                                                            );
+
+                                                        return field ===
+                                                            undefined
+                                                            ? null
+                                                            : fieldFor(
+                                                                  field,
+                                                                  errors,
+                                                                  shown,
+                                                              );
+                                                    })}
+                                                    {index ===
+                                                        panels.length - 1 &&
+                                                        extras}
+                                                </SettingsPanel>
+                                            ))
+                                        ) : (
                                             <SettingsPanel
-                                                key={`${index}-${panel.title}`}
-                                                title={
-                                                    panel.title !== ''
-                                                        ? panel.title
-                                                        : undefined
-                                                }
-                                                label={
-                                                    panel.title === ''
-                                                        ? heading.label
-                                                        : undefined
-                                                }
+                                                label={heading.label}
+                                                title={section ?? undefined}
                                                 description={
-                                                    panel.description !== ''
-                                                        ? panel.description
+                                                    section !== null
+                                                        ? group.description
                                                         : undefined
                                                 }
                                             >
-                                                {panel.keys.map((key) => {
-                                                    const field = fields.find(
-                                                        (candidate) =>
-                                                            candidate.key ===
-                                                            key,
-                                                    );
-
-                                                    return field === undefined
-                                                        ? null
-                                                        : fieldFor(
-                                                              field,
-                                                              errors,
-                                                              shown,
-                                                          );
-                                                })}
-                                                {index === panels.length - 1 &&
+                                                {fields.map((field) => (
+                                                    <div
+                                                        key={field.key}
+                                                        className="contents"
+                                                    >
+                                                        {fieldFor(
+                                                            field,
+                                                            errors,
+                                                            shown,
+                                                        )}
+                                                        {themePerPage !==
+                                                            null &&
+                                                            field.key ===
+                                                                'posts_per_page' &&
+                                                            extras}
+                                                    </div>
+                                                ))}
+                                                {themePerPage === null &&
                                                     extras}
                                             </SettingsPanel>
-                                        ))
-                                    ) : (
-                                        <SettingsPanel
-                                            label={heading.label}
-                                            title={section ?? undefined}
-                                            description={
-                                                section !== null
-                                                    ? group.description
-                                                    : undefined
-                                            }
-                                        >
-                                            {fields.map((field) => (
-                                                <div
-                                                    key={field.key}
-                                                    className="contents"
-                                                >
-                                                    {fieldFor(
-                                                        field,
-                                                        errors,
-                                                        shown,
-                                                    )}
-                                                    {themePerPage !== null &&
-                                                        field.key ===
-                                                            'posts_per_page' &&
-                                                        extras}
-                                                </div>
-                                            ))}
-                                            {themePerPage === null && extras}
-                                        </SettingsPanel>
-                                    )
-                                }
-                            </SettingsConditions>
+                                        )
+                                    }
+                                </SettingsConditions>
 
-                            {homePage !== null && (
-                                <HomePageSetting
-                                    home={homePage}
-                                    errors={errors}
-                                />
-                            )}
+                                {homePage !== null && (
+                                    <HomePageSetting
+                                        home={homePage}
+                                        errors={errors}
+                                    />
+                                )}
 
-                            {brandColour !== null && (
-                                <BrandColourSetting
-                                    brand={brandColour}
-                                    error={errors.accent}
-                                />
-                            )}
+                                {brandColour !== null && (
+                                    <BrandColourSetting
+                                        brand={brandColour}
+                                        error={errors.accent}
+                                    />
+                                )}
+                            </>
+                        )}
+                    </SettingsForm>
+
+                    {pluginCode !== null && (
+                        <>
+                            <PluginActionsPanel
+                                code={pluginCode}
+                                actions={pluginActions}
+                            />
+                            <PluginListsPanel lists={pluginLists} />
                         </>
                     )}
-                </SettingsForm>
 
-                {pluginCode !== null && (
-                    <>
-                        <PluginActionsPanel
-                            code={pluginCode}
-                            actions={pluginActions}
+                    {words != null && (
+                        <WordsInOtherLanguages
+                            group={group.key}
+                            words={words}
                         />
-                        <PluginListsPanel lists={pluginLists} />
-                    </>
-                )}
-
-                {words != null && (
-                    <WordsInOtherLanguages group={group.key} words={words} />
-                )}
+                    )}
                 </AreaScriptsProvider>
             </SettingsPage>
         </>
