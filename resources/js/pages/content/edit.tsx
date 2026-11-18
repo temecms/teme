@@ -38,7 +38,7 @@ import type { Confirming } from '@/components/editor/publish-confirmation';
 import {
     cardsMissingAlt,
     documentChecks,
-    regionChecks,
+    regionFacts,
 } from '@/components/editor/rail/checks';
 import type { CheckId } from '@/components/editor/rail/checks';
 import { AssistantProvider } from '@/components/editor/assistant/assistant-context';
@@ -895,12 +895,12 @@ export default function ContentEdit(page: ContentEditPage) {
         withheld: structured.withheld,
     });
 
-    // A theme region's own checks, in place of a post's search checks (issue 529).
-    const ownChecks = useMemo(
+    // A theme region's own facts, checked in place of a post's search checks (issue 529).
+    const ownFacts = useMemo(
         () =>
             themeRegion === null
                 ? undefined
-                : regionChecks({
+                : regionFacts({
                       document: body,
                       media,
                       max: themeRegion.max,
@@ -1385,7 +1385,7 @@ export default function ContentEdit(page: ContentEditPage) {
                             siteTimezone={page.siteTimezone}
                             notice={notice}
                             checks={search.checks}
-                            regionChecks={ownChecks}
+                            regionFacts={ownFacts}
                             onGoToCheck={goToCheck}
                             pluginChecks={pluginChecks}
                             onGoToPlugin={goToPlugin}

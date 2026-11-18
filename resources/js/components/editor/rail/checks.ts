@@ -575,13 +575,6 @@ export function descriptionSource(
     }
 }
 
-/** One of a theme region's checks: a plain fact; a warning never blocks a draft. */
-export type RegionCheck = {
-    id: 'blocks' | 'cards' | 'alt';
-    state: 'ok' | 'warn';
-    message: string;
-};
-
 export type RegionChecksInput = {
     document: unknown;
     media: Record<string, CardMedia>;
@@ -593,23 +586,32 @@ export type RegionChecksInput = {
     cardLabels: Record<string, string>;
 };
 
+/** What a theme region's checks read (issue 529); the rail words them. */
+export type RegionFacts = {
+    /** Its top-level blocks; an editor holding only an empty line holds none. */
+    blocks: number;
+    max: number;
+    /** The labels of the cards it holds but doesn't take, each once. */
+    refused: string[];
+    /** The labels of the cards it takes. */
+    takes: string[];
+    /** Its cards with an image that has no alt text. */
+    noAlt: number;
+};
+
 /** Whether a top-level block is an empty paragraph, as an empty editor holds. */
 const isEmptyParagraph = (node: Node): boolean =>
     node.type === 'paragraph' && (node.content ?? []).length === 0;
 
 /**
- * A theme region's own checks (issue 529), in place of a post's search
- * checks, none of which a region has: its blocks against its limit, only
- * the cards it takes, and its images' alt text. Publishing is refused past
- * the limit or with a card it doesn't take; the rail only says so.
+ * A theme region's own facts (issue 529), in place of a post's search
+ * checks, none of which a region has: its blocks against its limit, the
+ * cards it holds but doesn't take, and its images without alt text.
  */
-export function regionChecks(input: RegionChecksInput): RegionCheck[] {
+export function regionFacts(input: RegionChecksInput): RegionFacts {
     const top = ((input.document as Node | null)?.content ?? []).filter(
         (node) => typeof node === 'object' && node !== null,
     );
-    const blocks = top.every(isEmptyParagraph) ? 0 : top.length;
-    const over = blocks - input.max;
-
     const refused: string[] = [];
     const walk = (node: Node) => {
         const type = node.type ?? '';
@@ -628,37 +630,12 @@ export function regionChecks(input: RegionChecksInput): RegionCheck[] {
 
     const labelOf = (name: string): string =>
         Object.hasOwn(input.cardLabels, name) ? input.cardLabels[name] : name;
-    const takes = input.allowed.map(labelOf);
-    const noAlt = cardsMissingAlt(input.document, input.media).length;
 
-    return [
-        {
-            id: 'blocks',
-            state: blocks > 0 && over <= 0 ? 'ok' : 'warn',
-            message:
-                over > 0
-                    ? `This region takes at most ${input.max}, and it has ${blocks}. Remove ${count(over, 'block', 'blocks')} to publish.`
-                    : blocks > 0
-                      ? `${blocks} of at most ${input.max}.`
-                      : 'Empty. The theme draws nothing here until the region has something in it.',
-        },
-        {
-            id: 'cards',
-            state: refused.length === 0 ? 'ok' : 'warn',
-            message:
-                refused.length > 0
-                    ? `${joined(refused.map(labelOf), 'and')} ${refused.length === 1 ? 'isn’t' : 'aren’t'} taken by this region.`
-                    : takes.length > 0
-                      ? `Only ${joined(['text', ...takes], 'and')} cards are used.`
-                      : 'Only text is used.',
-        },
-        {
-            id: 'alt',
-            state: noAlt === 0 ? 'ok' : 'warn',
-            message:
-                noAlt > 0
-                    ? `${count(noAlt, 'image has', 'images have')} no alt text.`
-                    : 'No images without alt text.',
-        },
-    ];
+    return {
+        blocks: top.every(isEmptyParagraph) ? 0 : top.length,
+        max: input.max,
+        refused: refused.map(labelOf),
+        takes: input.allowed.map(labelOf),
+        noAlt: cardsMissingAlt(input.document, input.media).length,
+    };
 }

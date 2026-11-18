@@ -40,7 +40,7 @@ import type {
     RailPane,
 } from '@/types';
 import { CardInspector } from './rail/card-inspector';
-import type { CheckId, CoreCheck, RegionCheck } from './rail/checks';
+import type { CheckId, CoreCheck, RegionFacts } from './rail/checks';
 import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
 import { ChecksPanel, RegionChecksPanel } from './rail/checks-panel';
 import { PublishPanel } from './rail/publish-panel';
@@ -692,7 +692,7 @@ export function EditorRail({
     siteTimezone,
     notice,
     checks,
-    regionChecks,
+    regionFacts,
     onGoToCheck,
     onGoToSearch,
     pluginChecks,
@@ -738,8 +738,8 @@ export function EditorRail({
     siteTimezone: string;
     notice: string | null;
     checks: CoreCheck[];
-    /** A theme region's own checks, drawn in place of a post's; absent for any other item. */
-    regionChecks?: RegionCheck[];
+    /** A theme region's own facts, checked in place of a post's search checks; absent for any other item. */
+    regionFacts?: RegionFacts;
     onGoToCheck: (check: CheckId) => void;
     /** Goes to Search and social under the text; undefined for a theme's region, which has none. */
     onGoToSearch?: () => void;
@@ -870,8 +870,8 @@ export function EditorRail({
                 canAdd={session.can.manageTerms}
                 primaryCategory={primaryCategory}
             />
-            {regionChecks ? (
-                <RegionChecksPanel checks={regionChecks} />
+            {regionFacts ? (
+                <RegionChecksPanel facts={regionFacts} />
             ) : (
                 <ChecksPanel
                     checks={checks}

@@ -1,8 +1,8 @@
 import { CheckCircle2, CircleAlert } from 'lucide-react';
 import { TextButton } from '@/components/ui/text-button';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
 import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
-import type { BadLink, CheckId, CoreCheck, RegionCheck } from './checks';
+import type { BadLink, CheckId, CoreCheck, RegionFacts } from './checks';
 import { PluginChecks } from './plugin-checks';
 import { RailSection } from './rail-section';
 import { quotedTitle } from '@/lib/titles';
@@ -161,12 +161,83 @@ export function ChecksPanel({
     );
 }
 
+/** One of a theme region's checks, worded: a plain fact; a warning never blocks a draft. */
+type RegionCheck = {
+    id: 'blocks' | 'cards' | 'alt';
+    state: 'ok' | 'warn';
+    message: string;
+};
+
+/** "a"; "a and b"; "a, b and c". */
+function andList(words: string[]): string {
+    return words.length < 2
+        ? (words[0] ?? '')
+        : __(':list and :last', {
+              list: words.slice(0, -1).join(', '),
+              last: words[words.length - 1],
+          });
+}
+
+/** A region's facts as its three checks, in words. */
+function regionChecks(facts: RegionFacts): RegionCheck[] {
+    const { blocks, max, refused, takes, noAlt } = facts;
+    const over = blocks - max;
+
+    return [
+        {
+            id: 'blocks',
+            state: blocks > 0 && over <= 0 ? 'ok' : 'warn',
+            message:
+                over > 0
+                    ? __n(
+                          'This region takes at most :max, and it has :count. Remove :over block to publish.|This region takes at most :max, and it has :count. Remove :over blocks to publish.',
+                          over,
+                          { max, count: blocks, over },
+                      )
+                    : blocks > 0
+                      ? __(':count of at most :max.', { count: blocks, max })
+                      : __(
+                            'Empty. The theme draws nothing here until the region has something in it.',
+                        ),
+        },
+        {
+            id: 'cards',
+            state: refused.length === 0 ? 'ok' : 'warn',
+            message:
+                refused.length > 0
+                    ? __n(
+                          ':cards isn’t taken by this region.|:cards aren’t taken by this region.',
+                          refused.length,
+                          { cards: andList(refused) },
+                      )
+                    : takes.length > 0
+                      ? __('Only :cards cards are used.', {
+                            cards: andList([__('text'), ...takes]),
+                        })
+                      : __('Only text is used.'),
+        },
+        {
+            id: 'alt',
+            state: noAlt === 0 ? 'ok' : 'warn',
+            message:
+                noAlt > 0
+                    ? __n(
+                          ':count image has no alt text.|:count images have no alt text.',
+                          noAlt,
+                      )
+                    : __('No images without alt text.'),
+        },
+    ];
+}
+
 /**
  * A theme region's Checks (issue 529): its own facts, not a post's search
  * checks. They warn and never block a draft; publishing is refused by the
  * server past the limit or with a card the region doesn't take.
  */
-export function RegionChecksPanel({ checks }: { checks: RegionCheck[] }) {
+export function RegionChecksPanel({ facts }: { facts: RegionFacts }) {
+    const checks = regionChecks(facts);
+
     return (
         <RailSection title={__('Checks')} triggerId="rail-checks-trigger">
             <ul
