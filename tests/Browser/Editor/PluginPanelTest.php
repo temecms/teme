@@ -181,6 +181,7 @@ it('uses a title, a field, a link (and undoes it) and a whole article, and disca
 it('says AI is switched off for the plugin, in place of its actions', function (): void {
     app(SettingsRegistry::class)->replace(app(AiSettings::class)->group());
     cmSettings([PluginAiSection::onKey('linkfinder') => false], AiSettings::KEY);
+    $this->actingAs($this->editor);
     lscrPrefer($this->editor, ['editor.pinned_tools' => ['assistant', 'share', 'plugin.linkfinder.links']]);
 
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
@@ -195,6 +196,7 @@ it('says the plugin’s AI budget is used up, in place of its actions', function
     app(SettingsRegistry::class)->replace(app(AiSettings::class)->group());
     cmSettings([PluginAiSection::budgetKey('linkfinder') => 5], AiSettings::KEY);
     DB::table('ai_plugin_monthly_spend')->insert(['plugin' => 'linkfinder', 'month' => now()->utc()->startOfMonth()->format('Y-m-d'), 'cost_microunits' => 5_000_000, 'requests' => 3, 'unpriced_requests' => 0]);
+    $this->actingAs($this->editor);
     lscrPrefer($this->editor, ['editor.pinned_tools' => ['assistant', 'share', 'plugin.linkfinder.links']]);
 
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
@@ -213,6 +215,7 @@ it('says the panel couldn’t be shown, and shows it again on Try again', functi
 
         return $view($context);
     };
+    $this->actingAs($this->editor);
     lscrPrefer($this->editor, ['editor.pinned_tools' => ['assistant', 'share', 'plugin.linkfinder.links']]);
 
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
