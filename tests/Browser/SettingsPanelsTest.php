@@ -41,9 +41,9 @@ it('draws Settings › Discussion as titled panels, the switch acting at once an
         ->assertScript("[...document.querySelectorAll('form [data-test=\"settings-panel\"]')].every((panel) => panel.tagName === 'FIELDSET' && panel.querySelector(':scope > legend h2') !== null)")
         ->assertScript("document.querySelector('#comments-switch button[type=\"submit\"]') === null");
 
-    expect(($this->panels)($page, 'title'))->toBe('Comments on this site|Where readers can comment|Threads|Before a comment appears|Emails|Commenters’ details')
-        ->and(($this->panels)($page, 'description'))->toBe('Comments are an optional part of Teme, switched on or off for the whole site.|Which new items take comments, and who may write them.|How deep replies go, and how many threads each page shows.|Which comments wait for approval, and which go straight to spam.|Who is told about new comments.|What Teme keeps about the people who comment, and for how long.')
-        ->and(($this->bar)($page))->toBe('Save discussion settings');
+    expect(($this->panels)($page, 'title'))->toBe('Comments on this site|Where comments are open|Threads and pages|Moderation|Emails|Privacy')
+        ->and(($this->panels)($page, 'description'))->toBe('The page stays when comments are off, because it holds the switch.|Which comments wait for someone to approve them.')
+        ->and(($this->bar)($page))->toBe('Save');
 
     $page->type('#field-thread_depth', '4');
     cmWaitUntil($page, "document.querySelector('[data-test=\"save-bar\"]').hidden === false && (() => { const gap = window.innerHeight - document.querySelector('[data-test=\"save-bar\"]').getBoundingClientRect().bottom; return gap >= 15 && gap <= 17; })()");
@@ -77,14 +77,14 @@ it('saves the five sections from the bar', function (): void {
     expect(app(SettingsReader::class)->int('discussion', 'thread_depth'))->toBe(4);
 });
 
-it('splits Settings › General into The site, Time and language and Brand colour, saved by the one bar after them', function (): void {
+it('splits Settings › General into Site, Contact, Time and language and Brand color, saved by the one bar after them', function (): void {
     $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/settings/general');
 
-    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"settings-panel\"]').length === 3")
+    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"settings-panel\"]').length === 4")
         ->assertScript("document.querySelector('[data-test=\"brand-colour\"] button[type=\"submit\"]') === null");
 
-    expect(($this->panels)($page, 'title'))->toBe('The site|Time and language|Brand colour')
-        ->and(($this->bar)($page))->toBe('Save general settings');
+    expect(($this->panels)($page, 'title'))->toBe('Site|Contact|Time and language|Brand color')
+        ->and(($this->bar)($page))->toBe('Save');
 
     $page->type('#field-site_title', 'The Garden City Ledger');
     cmWaitUntil($page, "document.querySelector('[data-test=\"save-bar\"]').hidden === false");
@@ -120,7 +120,7 @@ it('passes axe on Discussion and General, every target 24 pixels or more, in the
         ->and($general['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('labels each page\'s one Save for its page', function (string $path, string $label): void {
+it('gives each page one save bar, its button saying Save', function (string $path, string $label): void {
     $page = cmSignIn($this->admin)->navigate($path);
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"save-bar\"]') !== null && document.querySelectorAll('[data-test=\"settings-panel\"]').length > 0")
@@ -128,13 +128,13 @@ it('labels each page\'s one Save for its page', function (string $path, string $
 
     expect(($this->bar)($page))->toBe($label);
 })->with([
-    'Writing' => ['/admin/settings/writing', 'Save writing settings'],
-    'Reading' => ['/admin/settings/reading', 'Save reading settings'],
-    'Media' => ['/admin/settings/media', 'Save media settings'],
-    'People' => ['/admin/settings/people', 'Save people settings'],
-    'Search and social' => ['/admin/settings/seo', 'Save search and social settings'],
-    'Addresses' => ['/admin/settings/addresses', 'Save address settings'],
-    'AI' => ['/admin/settings/ai', 'Save AI settings'],
+    'Writing' => ['/admin/settings/writing', 'Save'],
+    'Reading' => ['/admin/settings/reading', 'Save'],
+    'Media' => ['/admin/settings/media', 'Save'],
+    'People' => ['/admin/settings/people', 'Save'],
+    'Search and social' => ['/admin/settings/seo', 'Save'],
+    'Addresses' => ['/admin/settings/addresses', 'Save'],
+    'AI' => ['/admin/settings/ai', 'Save'],
 ]);
 
 it('draws each section of every other settings page as a panel under its built heading', function (string $path, string $first): void {
@@ -145,8 +145,8 @@ it('draws each section of every other settings page as a panel under its built h
         ->assertScript("[...document.querySelectorAll('[data-test=\"settings-panel\"]')].every((panel) => panel.querySelector('h2') === null || panel.querySelector('h2').textContent.trim() !== '')")
         ->assertScript('document.documentElement.scrollWidth <= window.innerWidth');
 })->with([
-    'People' => ['/admin/settings/people', 'Sign-in rules'],
+    'People' => ['/admin/settings/people', 'Passwords'],
     'Search and social' => ['/admin/settings/seo', 'What search engines and feed readers fetch'],
     'AI' => ['/admin/settings/ai', 'AI services'],
-    'Site code' => ['/admin/settings/site-code', 'Head'],
+    'Site code' => ['/admin/settings/site-code', 'Code on every page'],
 ]);

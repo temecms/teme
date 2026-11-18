@@ -58,7 +58,7 @@ final class ContentServiceProvider extends ServiceProvider
             ability: 'settings.content.manage',
             settings: [
                 Setting::number('trash_days', 'Keep trash for', 'Days an item or comment stays in the trash before it’s deleted permanently.', '0.1.0')
-                    ->default(30)->min(1)->max(365),
+                    ->default(30)->min(1)->max(365)->unit('days')->required(),
             ],
             since: '0.1.0',
         ));

@@ -59,9 +59,9 @@ it('finds Keep trash for, and lands on its field on Writing', function (): void 
     $page = cmSignIn($this->admin)->navigate('/admin/settings/general')
         ->type('[data-test="find-setting"]', 'keep trash');
 
-    cmWaitUntil($page, 'document.querySelector("#settings-found ul")?.textContent.includes("Keep trash for")');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="find-setting-list"]\')?.textContent.includes("Keep trash for")');
 
-    $page->click('#settings-found a[href$="#field-trash_days"]');
+    $page->click('[data-test="find-setting-item"][data-key="content.trash_days"]');
 
     cmWaitUntil($page, 'document.activeElement !== null && document.activeElement.id === "field-trash_days"');
 

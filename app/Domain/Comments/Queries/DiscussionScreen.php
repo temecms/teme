@@ -11,8 +11,9 @@ use RuntimeException;
 
 /**
  * Settings › Discussion's data (E1, E2; 1.8d's D2, D4): the comments switch
- * from the `modules` group, then the `discussion` group's settings in v9's
- * five fieldsets, with the two drawn lines that aren't settings.
+ * from the `modules` group, then the `discussion` group's settings in the
+ * approved design's five sections, with the drawn line that isn't a setting.
+ * People's pictures are on Settings › People.
  */
 final readonly class DiscussionScreen
 {
@@ -25,11 +26,11 @@ final readonly class DiscussionScreen
      * @var array<string, list<string>>
      */
     public const array FIELDSETS = [
-        'Where readers can comment' => ['open_for', 'signed_in_only', 'ask_website', 'close_after_days'],
-        'Threads' => ['thread_depth', 'per_page'],
-        'Before a comment appears' => ['hold_all', 'approve_returning', 'hold_links', 'hold_list', 'block_list'],
+        'Where comments are open' => ['open_for', 'signed_in_only', 'ask_website', 'close_after_days'],
+        'Threads and pages' => ['thread_depth', 'per_page'],
+        'Moderation' => ['hold_all', 'approve_returning', 'hold_links', 'hold_list', 'block_list'],
         'Emails' => ['email_moderators', 'email_authors'],
-        'Commenters’ details' => ['keep_ip_days'],
+        'Privacy' => ['keep_ip_days'],
     ];
 
     /**
@@ -38,11 +39,11 @@ final readonly class DiscussionScreen
      * @var array<string, string>
      */
     public const array DESCRIPTIONS = [
-        'Where readers can comment' => 'Which new items take comments, and who may write them.',
-        'Threads' => 'How deep replies go, and how many threads each page shows.',
-        'Before a comment appears' => 'Which comments wait for approval, and which go straight to spam.',
-        'Emails' => 'Who is told about new comments.',
-        'Commenters’ details' => 'What Teme keeps about the people who comment, and for how long.',
+        'Where comments are open' => '',
+        'Threads and pages' => '',
+        'Moderation' => 'Which comments wait for someone to approve them.',
+        'Emails' => '',
+        'Privacy' => '',
     ];
 
     /**
@@ -52,15 +53,10 @@ final readonly class DiscussionScreen
      * @var array<string, array{label: string, value: string, hint: string}>
      */
     public const array INFO = [
-        'Before a comment appears' => [
+        'Moderation' => [
             'label' => 'Who skips these checks',
             'value' => 'Editors and administrators, and authors on their own posts: their comments are approved at once.',
             'hint' => 'Whoever may publish an item looks after its comments. Contributors’ comments meet these checks, as readers’ do.',
-        ],
-        'Commenters’ details' => [
-            'label' => 'Commenters’ pictures',
-            'value' => 'Initials on a colour made from the name.',
-            'hint' => 'Fixed in Teme, not a setting. Readers’ browsers never contact Gravatar or anyone else for them.',
         ],
     ];
 

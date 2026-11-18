@@ -1,7 +1,7 @@
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, router, setLayoutProps } from '@inertiajs/react';
 import { Fragment, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import SettingsController from '@/actions/App/Http/Admin/Settings/SettingsController';
 import { BrandColourSetting } from '@/components/fields/brand-colour-setting';
 import type { WaitingScript } from '@/components/fields/code-field';
@@ -21,6 +21,8 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
+import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
+import { SoonTag } from '@/components/ui/soon-tag';
 import { Textarea } from '@/components/ui/textarea';
 import {
     AreaScriptsProvider,
@@ -35,7 +37,10 @@ import {
     SettingsConditions,
 } from '@/components/plugins/area/settings-parts';
 import { __ } from '@/lib/i18n';
-import { show as showSettings } from '@/routes/settings';
+import {
+    index as settingsIndex,
+    show as showSettings,
+} from '@/routes/settings';
 import type { SettingsGroupPage, SettingsWordsSection } from '@/types';
 
 /** A plugin's code settings' scripts that wait for approval, by the field's path. */
@@ -329,12 +334,116 @@ function WordsInOtherLanguages({
 }
 
 /**
+ * People's pictures (I-3410): the picture beside a person's name until they
+ * choose their own. Initials are what Teme draws; Gravatar is drawn as the
+ * approved design has it and waits to be built, so it can't be chosen yet.
+ */
+function PeoplesPictures() {
+    return (
+        <SettingsPanel
+            as="section"
+            title={__('People’s pictures')}
+            description={__(
+                'The picture beside a person’s name until they choose their own.',
+            )}
+        >
+            <div className="grid gap-1" data-test="peoples-pictures">
+                <p
+                    id="peoples-pictures-label"
+                    className="text-small text-ink-2 font-medium"
+                >
+                    {__('People’s pictures')}
+                </p>
+                <RadioGroup
+                    value="initials"
+                    aria-labelledby="peoples-pictures-label"
+                    aria-describedby="peoples-pictures-hint"
+                >
+                    <RadioGroupChoice
+                        id="peoples-pictures-initials"
+                        value="initials"
+                        label={__('Initials')}
+                        description={__(
+                            'A person’s initials on a plain circle.',
+                        )}
+                    />
+                    <RadioGroupChoice
+                        id="peoples-pictures-gravatar"
+                        value="gravatar"
+                        disabled
+                        label={
+                            <span className="inline-flex items-center gap-2">
+                                {__('Gravatar')}
+                                <SoonTag />
+                            </span>
+                        }
+                        description={__(
+                            'Shows the picture a person has set at Gravatar for their email address. Teme’s own server fetches it, so nobody’s browser contacts Gravatar.',
+                        )}
+                    />
+                </RadioGroup>
+                <p
+                    id="peoples-pictures-hint"
+                    className="text-caption text-ink-3 text-pretty"
+                >
+                    {__(
+                        'Anyone can upload their own picture from their profile; it replaces the default.',
+                    )}
+                </p>
+            </div>
+        </SettingsPanel>
+    );
+}
+
+/** A list of terms: the term's column 120 to 200 wide, the value taking the rest. */
+const DEFLIST = {
+    '--deflist-cols': 'minmax(120px, 200px) minmax(0, 1fr)',
+} as CSSProperties;
+
+/** Media's fixed image widths, as a list of terms: nothing here is a setting. */
+function ImageWidths({
+    widths,
+}: {
+    widths: NonNullable<SettingsGroupPage['imageWidths']>;
+}) {
+    return (
+        <SettingsPanel
+            as="section"
+            title={__('Image widths')}
+            description={__(
+                'Fixed in Teme, so there is nothing to change here.',
+            )}
+        >
+            <div className="grid gap-2" data-test="image-widths">
+                <dl
+                    className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-2 sm:grid-cols-(--deflist-cols)"
+                    style={DEFLIST}
+                >
+                    {widths.rows.map((row) => (
+                        <Fragment key={row.term}>
+                            <dt className="text-small text-ink-3">
+                                {row.term}
+                            </dt>
+                            <dd className="text-body text-ink">{row.value}</dd>
+                        </Fragment>
+                    ))}
+                </dl>
+                <p className="text-caption text-ink-3 text-pretty">
+                    {widths.hint}
+                </p>
+            </div>
+        </SettingsPanel>
+    );
+}
+
+/**
  * A Settings page drawn from a group's declaration: the page's header, and
- * the group's form, under a heading of its own where the page names one
- * (People's Sign-in rules), saved through SaveSettingsPage by the one save
- * bar. Reading's form says the theme's own number of items a page and holds
- * the addresses group's Home page; General's holds the design group's Brand
- * colour (I-3437). Media's form says which image widths Teme makes.
+ * the group's form in the sections the page is split into, saved through
+ * SaveSettingsPage by the one save bar. Reading opens with the addresses
+ * group's Home page; General ends with the design group's Brand color
+ * (I-3437); Media ends with the image widths Teme makes; People opens with
+ * the line on its password and ends with People's pictures. A plugin's page
+ * names its plugin with the plug mark.
  */
 export default function SettingsGroup({
     heading,
@@ -356,6 +465,8 @@ export default function SettingsGroup({
     pluginLists = [],
     pluginScripts = null,
     notice = null,
+    plugin = null,
+    readOnly = null,
 }: SettingsGroupPage & {
     pluginHosts: PluginHosts | null;
     pluginScripts?: PluginScripts | null;
@@ -369,9 +480,11 @@ export default function SettingsGroup({
         approve: pluginScripts?.approver ? approval.approve : undefined,
         busy: approval.busy,
     };
+    const people = heading.key === 'people';
 
     setLayoutProps({
         breadcrumbs: [
+            { title: __('Settings'), href: settingsIndex() },
             {
                 title: heading.label,
                 href: showSettings({ group: heading.key }),
@@ -409,6 +522,20 @@ export default function SettingsGroup({
 
         return sent;
     };
+
+    /** Media's Largest upload names the server's own limit (v10: "(128 MB here)"). */
+    const described = (field: (typeof fields)[number]) =>
+        imageWidths !== null && field.key === 'max_upload_mb'
+            ? {
+                  ...field,
+                  description: field.description.replace(
+                      __('Your server’s own upload limit must'),
+                      __('Your server’s own upload limit (:limit here) must', {
+                          limit: imageWidths.uploadLimit,
+                      }),
+                  ),
+              }
+            : field;
 
     const fieldFor = (
         field: (typeof fields)[number],
@@ -449,10 +576,12 @@ export default function SettingsGroup({
         const drawn = (
             <SettingsField
                 key={field.key}
-                field={field}
+                field={described(field)}
                 value={values[field.key]}
                 secret={secrets[field.key]}
                 media={media[field.key] ?? null}
+                sensitive={group.sensitive && readOnly === null}
+                disabled={readOnly !== null}
                 error={
                     errors[`values.${field.key}`] ??
                     errors[`secrets.${field.key}`]
@@ -475,32 +604,39 @@ export default function SettingsGroup({
 
         return conditional ? wrap(agreed) : agreed;
     };
-    const extras = (
-        <>
-            {themePerPage !== null && (
-                <p
-                    className="text-caption text-ink-3"
-                    data-test="theme-per-page"
-                >
-                    {themePerPage.theme === null
-                        ? `The default is ${themePerPage.number}.`
-                        : `${themePerPage.theme}’s own number is ${themePerPage.number}.`}
-                </p>
-            )}
 
-            {imageWidths !== null && (
-                <div className="grid gap-1" data-test="image-widths">
-                    <p className="text-small text-ink-2 font-medium">
-                        {imageWidths.label}
-                    </p>
-                    <p className="text-body">{imageWidths.value}</p>
-                    <p className="text-caption text-ink-3">
-                        {imageWidths.hint}
-                    </p>
-                </div>
-            )}
-        </>
+    const themeLine = themePerPage !== null && (
+        <p className="text-caption text-ink-3" data-test="theme-per-page">
+            {themePerPage.theme === null
+                ? __('The default is :number.', {
+                      number: themePerPage.number,
+                  })
+                : __(':theme’s own number is :number.', {
+                      theme: themePerPage.theme,
+                      number: themePerPage.number,
+                  })}
+        </p>
     );
+
+    // Every setting in exactly one section: one no section names, such as a
+    // plugin's added to a core group, follows in a panel of its own.
+    const placed = new Set((panels ?? []).flatMap((panel) => panel.keys));
+    const loose = fields.filter((field) => !placed.has(field.key));
+    const sections = [
+        ...(panels ?? []),
+        ...(loose.length > 0
+            ? [
+                  {
+                      title: panels === null ? (section ?? '') : '',
+                      description:
+                          panels === null && section !== null
+                              ? group.description
+                              : '',
+                      keys: loose.map((field) => field.key),
+                  },
+              ]
+            : []),
+    ];
 
     return (
         <>
@@ -510,7 +646,29 @@ export default function SettingsGroup({
             <SettingsPage
                 title={heading.label}
                 description={heading.description}
+                plugin={plugin ?? undefined}
             >
+                {readOnly !== null && (
+                    <Notice
+                        tone="info"
+                        role="status"
+                        data-test="settings-view-only"
+                    >
+                        <strong className="font-semibold">
+                            {__(
+                                'You can see these settings, but not change them.',
+                            )}
+                        </strong>{' '}
+                        {__(
+                            'Changing :page settings needs the “:permission” permission, which :holders hold.',
+                            {
+                                page: heading.label,
+                                permission: readOnly.permission,
+                                holders: readOnly.holders,
+                            },
+                        )}
+                    </Notice>
+                )}
                 {notice !== null && (
                     <Notice
                         tone="warn"
@@ -520,17 +678,25 @@ export default function SettingsGroup({
                         {notice}
                     </Notice>
                 )}
+                {people && readOnly === null && (
+                    <Notice tone="info" data-test="settings-password-banner">
+                        <strong className="font-semibold">
+                            {__(
+                                'Changing a sign-in rule asks you to confirm your password.',
+                            )}
+                        </strong>{' '}
+                        {__('Teme asks once, then not again for 15 minutes.')}
+                    </Notice>
+                )}
                 <AreaScriptsProvider value={scripts}>
                     <SettingsForm
                         action={SettingsController.update.form({
                             group: group.key,
                         })}
-                        saveLabel={__('Save :page settings', {
-                            page: heading.label.toLowerCase(),
-                        })}
                         what={__(':page settings', { page: heading.label })}
                         askInPlace={group.sensitive || pluginHosts !== null}
                         transform={transform}
+                        readOnly={readOnly !== null}
                     >
                         {({ errors }) => (
                             <>
@@ -544,92 +710,65 @@ export default function SettingsGroup({
                                     message={errors.expected_version}
                                 />
 
-                                <SettingsConditions
-                                    fields={fields}
-                                    values={values}
-                                >
-                                    {(shown) =>
-                                        panels !== null ? (
-                                            panels.map((panel, index) => (
-                                                <SettingsPanel
-                                                    key={`${index}-${panel.title}`}
-                                                    title={
-                                                        panel.title !== ''
-                                                            ? panel.title
-                                                            : undefined
-                                                    }
-                                                    label={
-                                                        panel.title === ''
-                                                            ? heading.label
-                                                            : undefined
-                                                    }
-                                                    description={
-                                                        panel.description !== ''
-                                                            ? panel.description
-                                                            : undefined
-                                                    }
-                                                >
-                                                    {panel.keys.map((key) => {
-                                                        const field =
-                                                            fields.find(
-                                                                (candidate) =>
-                                                                    candidate.key ===
-                                                                    key,
-                                                            );
-
-                                                        return field ===
-                                                            undefined
-                                                            ? null
-                                                            : fieldFor(
-                                                                  field,
-                                                                  errors,
-                                                                  shown,
-                                                              );
-                                                    })}
-                                                    {index ===
-                                                        panels.length - 1 &&
-                                                        extras}
-                                                </SettingsPanel>
-                                            ))
-                                        ) : (
-                                            <SettingsPanel
-                                                label={heading.label}
-                                                title={section ?? undefined}
-                                                description={
-                                                    section !== null
-                                                        ? group.description
-                                                        : undefined
-                                                }
-                                            >
-                                                {fields.map((field) => (
-                                                    <div
-                                                        key={field.key}
-                                                        className="contents"
-                                                    >
-                                                        {fieldFor(
-                                                            field,
-                                                            errors,
-                                                            shown,
-                                                        )}
-                                                        {themePerPage !==
-                                                            null &&
-                                                            field.key ===
-                                                                'posts_per_page' &&
-                                                            extras}
-                                                    </div>
-                                                ))}
-                                                {themePerPage === null &&
-                                                    extras}
-                                            </SettingsPanel>
-                                        )
-                                    }
-                                </SettingsConditions>
-
                                 {homePage !== null && (
                                     <HomePageSetting
                                         home={homePage}
                                         errors={errors}
                                     />
+                                )}
+
+                                <SettingsConditions
+                                    fields={fields}
+                                    values={values}
+                                >
+                                    {(shown) =>
+                                        sections.map((panel, index) => (
+                                            <SettingsPanel
+                                                key={`${index}-${panel.title}`}
+                                                title={
+                                                    panel.title !== ''
+                                                        ? panel.title
+                                                        : undefined
+                                                }
+                                                label={
+                                                    panel.title === ''
+                                                        ? heading.label
+                                                        : undefined
+                                                }
+                                                description={
+                                                    panel.description !== ''
+                                                        ? panel.description
+                                                        : undefined
+                                                }
+                                            >
+                                                {panel.keys.map((key) => {
+                                                    const field = fields.find(
+                                                        (candidate) =>
+                                                            candidate.key ===
+                                                            key,
+                                                    );
+
+                                                    return field ===
+                                                        undefined ? null : (
+                                                        <Fragment key={key}>
+                                                            {fieldFor(
+                                                                field,
+                                                                errors,
+                                                                shown,
+                                                            )}
+                                                            {key ===
+                                                                'posts_per_page' &&
+                                                                themeLine}
+                                                        </Fragment>
+                                                    );
+                                                })}
+                                            </SettingsPanel>
+                                        ))
+                                    }
+                                </SettingsConditions>
+
+                                {imageWidths !== null && (
+                                    <ImageWidths widths={imageWidths} />
                                 )}
 
                                 {brandColour !== null && (
@@ -638,6 +777,8 @@ export default function SettingsGroup({
                                         error={errors.accent}
                                     />
                                 )}
+
+                                {people && <PeoplesPictures />}
                             </>
                         )}
                     </SettingsForm>

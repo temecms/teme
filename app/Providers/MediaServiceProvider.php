@@ -43,9 +43,9 @@ final class MediaServiceProvider extends ServiceProvider
             ability: 'settings.media.manage',
             settings: [
                 Setting::number('max_upload_mb', 'Largest upload', 'The biggest file, in megabytes, anyone can upload. Your server’s own upload limit must be at least this large.', '0.1.0')
-                    ->default(64)->min(1)->max(2048),
+                    ->default(64)->min(1)->max(2048)->unit('MB')->required(),
                 Setting::number('max_megapixels', 'Largest image', 'The most megapixels an uploaded image may have. It stops a small file that would expand to gigabytes in memory.', '0.1.0')
-                    ->default(50)->min(1)->max(200),
+                    ->default(50)->min(1)->max(200)->unit('megapixels')->required(),
             ],
             since: '0.1.0',
         ));

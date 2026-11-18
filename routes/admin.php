@@ -68,6 +68,7 @@ use App\Http\Admin\Settings\FindSettingsController;
 use App\Http\Admin\Settings\HomePageController;
 use App\Http\Admin\Settings\SearchAndSocialController;
 use App\Http\Admin\Settings\SettingsController;
+use App\Http\Admin\Settings\SettingsHubController;
 use App\Http\Admin\Settings\SiteCodeController;
 use App\Http\Admin\TaxonomiesController;
 use App\Http\Admin\Taxonomy\TermController;
@@ -155,7 +156,8 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
         Route::put('account/picture', [PictureController::class, 'update'])->name('profile.picture.update');
         Route::delete('account/picture', [PictureController::class, 'destroy'])->name('profile.picture.destroy');
 
-        Route::redirect('settings', '/admin/settings/general');
+        // The Settings hub: a card for each Settings page the person may open.
+        Route::get('settings', SettingsHubController::class)->name('settings.index');
 
         // Before settings/{group}, which would otherwise catch it: the
         // addresses group has its own screen and its own Operation.
@@ -316,6 +318,16 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             Route::delete('settings/site-code/{entry}', [SiteCodeController::class, 'destroy'])
                 ->where('entry', '[0-9a-hjkmnp-tv-z]{26}')
                 ->name('settings.site-code.destroy');
+            // A plugin's inline script (docs/plans/plugin-sockets-2.md, B4), decided here by its Operations.
+            Route::post('settings/site-code/scripts/{script}/approve', [SiteCodeController::class, 'approveScript'])
+                ->where('script', '[0-9a-z]{26}')
+                ->name('settings.site-code.scripts.approve');
+            Route::post('settings/site-code/scripts/{script}/refuse', [SiteCodeController::class, 'refuseScript'])
+                ->where('script', '[0-9a-z]{26}')
+                ->name('settings.site-code.scripts.refuse');
+            Route::post('settings/site-code/scripts/{script}/revoke', [SiteCodeController::class, 'revokeScript'])
+                ->where('script', '[0-9a-z]{26}')
+                ->name('settings.site-code.scripts.revoke');
         });
 
         // Before settings/{group} too: Settings › Search and social draws its
