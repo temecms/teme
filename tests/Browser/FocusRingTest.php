@@ -39,6 +39,8 @@ beforeEach(function (): void {
 function frFocused(mixed $page, string $selector): array
 {
     $page->keys($selector, 'Shift');
+    // Read once the edge has finished fading out.
+    cmWaitUntil($page, "document.querySelector('{$selector}').getAnimations().length === 0");
 
     return cmScriptArray($page, <<<JS
         () => {
