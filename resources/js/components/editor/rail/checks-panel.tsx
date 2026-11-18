@@ -169,7 +169,10 @@ export function ChecksPanel({
 export function RegionChecksPanel({ checks }: { checks: RegionCheck[] }) {
     return (
         <RailSection title={__('Checks')} triggerId="rail-checks-trigger">
-            <ul data-test="rail-region-checks" className="text-small grid gap-2">
+            <ul
+                data-test="rail-region-checks"
+                className="text-small grid gap-2"
+            >
                 {checks.map((check) => (
                     <li
                         key={check.id}
