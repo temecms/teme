@@ -173,15 +173,18 @@ it('refuses a time that has already passed, beside the field, and sends nothing 
     expect(DB::table('scheduled_publications')->where('content_id', $this->draft->id)->count())->toBe(0);
 });
 
-it('schedules a live item\'s update at once, with no confirmation (I-840)', function (): void {
+it('schedules a live item\'s update from the split button\'s choices, at once, with no confirmation (I-840)', function (): void {
     $live = addrPublished($this->editor, 'Ferry fares');
     $this->actingAs($this->editor)->get(($this->edit)($live))->assertOk();
 
+    // A live item says only when it was published until an update is being scheduled.
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate(($this->edit)($live)))
-        ->click('#editor-when')
-        ->click('[role="option"] >> text="At a set time…"');
+        ->assertPresent('[data-test="published-at"]')
+        ->assertNotPresent('#editor-when')
+        ->click('[aria-label="More publishing choices"]')
+        ->click('[role="menuitem"] >> text="Schedule the update…"');
 
-    ($this->listboxGone)($page);
+    cmWaitUntil($page, "document.querySelector('#editor-when-at') !== null");
 
     $page->click('button:text-is("Next Monday")')
         ->click('[aria-label="Post settings"] button:text-is("Schedule update")');
@@ -228,7 +231,7 @@ it('lets an editor credit someone else, saved at once, and shows an author only 
     $page->assertNotPresent('#editor-author');
 });
 
-it('shows the featured image compact, with its credit, and a Missing chip until alt text is written (I-237)', function (): void {
+it('shows the featured image as a compact strip, its alt text and credit under Edit, saying "no alt text" until alt text is written (I-237)', function (): void {
     $image = pageImage($this->editor, 800, 600);
     app(UpdateMediaDetails::class)->execute(new UpdateMediaDetailsInput($image->id, (string) $this->editor->id, $image->title, null, null, 'Photo: Ada Okafor', licence: 'CC BY 4.0'));
     $post = headPost($this->editor, 'Quay life', featured: $image->refresh());
@@ -236,14 +239,18 @@ it('shows the featured image compact, with its credit, and a Missing chip until 
 
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate(($this->edit)($post)));
 
+    ($this->textShown)($page, 'Featured image · 800 × 600 · no alt text', '[data-test="featured-strip"]');
+    $page->assertScript("[...document.querySelectorAll('[data-test=\"featured-strip\"] button')].map((button) => button.textContent.trim()).join('|')", 'Replace|Edit|Remove')
+        ->click('#editor-featured-edit');
+
     ($this->textShown)($page, 'Photo: Ada Okafor · CC BY 4.0', '[data-test="featured-credit"]');
     ($this->textShown)($page, 'Alt text for this post');
     ($this->textShown)($page, 'The library has no alt text for this image, so write one here.');
-    cmWaitUntil($page, "document.querySelector('[data-test=\"alt-missing\"]') !== null");
 
     $page->type('#editor-featured-alt', 'Boats at the quay at dawn.');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"alt-missing\"]') === null");
+    ($this->textShown)($page, 'Featured image · 800 × 600 · alt text set', '[data-test="featured-strip"]');
 });
 
 it('passes axe with a time being set and with the Share pane open, in the light and dark schemes, every target 24 pixels or more', function (string $scheme): void {

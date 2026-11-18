@@ -5,6 +5,7 @@ import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import type { EditorReview, EditorSchedule } from '@/types';
 import { ScheduleControl } from '../schedule-control';
+import { Row } from './publish-panel';
 
 /** When the next publishing decision takes effect. */
 export type WhenChoice = {
@@ -32,8 +33,9 @@ function heldWords(): Record<
 }
 
 /**
- * The Publish panel's Publish row (Update on a live item), and its Date and
- * time row while a time is being set (I-1316): Immediately or at a set
+ * The Publish section's Publish row (Update on a live item, shown only once
+ * an update is being scheduled), and its At row while a time is being set
+ * (I-1316): Immediately or at a set
  * time; or what waits, with Reschedule and Cancel; or who decides. The
  * action bar's one button follows the choice made here.
  */
@@ -164,39 +166,37 @@ export function PublishWhen({
                 id="editor-when"
                 aria-label={label}
                 options={[
-                    { value: 'now', label: 'Immediately' },
-                    { value: 'later', label: 'At a set time…' },
+                    { value: 'now', label: __('Immediately') },
+                    { value: 'later', label: __('At a set time…') },
                 ]}
                 value={when.later ? 'later' : 'now'}
                 onValueChange={(next) => choose({ later: next === 'later' })}
-                className="h-[34px] w-full"
+                className="text-small h-8 w-full"
             />
         );
     }
 
+    // A live item says only when it was published, until a schedule waits
+    // or an update is being set for later from the action bar's menu.
+    const hidden = live && schedule === null && !when.later && decides;
+
     return (
         <>
-            <dt className="text-ink-2">{label}</dt>
-            <dd className="min-w-0" data-test="publish-when">
-                {row}
-            </dd>
+            {!hidden && (
+                <Row label={label}>
+                    <div data-test="publish-when">{row}</div>
+                </Row>
+            )}
             {when.later && decides && (
-                <>
-                    <dt className="text-ink-2">
-                        <label htmlFor="editor-when-at">
-                            {__('Date and time')}
-                        </label>
-                    </dt>
-                    <dd className="min-w-0">
-                        <ScheduleControl
-                            id="editor-when-at"
-                            siteTimezone={siteTimezone}
-                            value={when.at}
-                            onChange={(at) => choose({ at })}
-                            error={when.error}
-                        />
-                    </dd>
-                </>
+                <Row label={__('At')} htmlFor="editor-when-at">
+                    <ScheduleControl
+                        id="editor-when-at"
+                        siteTimezone={siteTimezone}
+                        value={when.at}
+                        onChange={(at) => choose({ at })}
+                        error={when.error}
+                    />
+                </Row>
             )}
         </>
     );

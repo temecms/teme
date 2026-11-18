@@ -396,7 +396,7 @@ it('closes the side panel’s sheet on a phone before going to Search and social
     // On a phone the menu is a drawer, so cmEditorSettled's folded menu never comes.
     cmWaitUntil($page, "document.querySelector('.teme-prose') !== null");
 
-    $page->click('[data-slot="editor-shell"] > header [aria-label="Show settings"]');
+    $page->click('[data-test="rail-toggle"]');
     cmWaitUntil($page, "(() => { const parts = [...document.querySelectorAll('[data-slot=\"sheet-content\"], [data-slot=\"sheet-overlay\"]')]; return parts.length > 0 && parts.flatMap((element) => element.getAnimations()).every((animation) => animation.playState !== 'running'); })()");
 
     $page->click('[data-test="rail-search-note"] button');
@@ -415,7 +415,7 @@ it('opens Search and social when a check in the side panel leads to one of its f
 it('leads from the check line to the side panel’s Checks, opening the panel when it was closed, and says it in plain words in focus mode (I-3124)', function (): void {
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit));
 
-    $page->click('[data-slot="editor-shell"] > header [aria-label="Hide settings"]');
+    $page->click('[data-test="rail-toggle"]');
     cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"]') === null");
 
     $page->click('[data-test="search-checks-link"]');
@@ -423,7 +423,7 @@ it('leads from the check line to the side panel’s Checks, opening the panel wh
 
     // Focus mode hides the side panel, so the words lead nowhere and are no button.
     $page->script(<<<'JS'
-        () => [...document.querySelectorAll('[data-slot="editor-shell"] > header button')].find((button) => button.textContent.trim() === 'Focus').click()
+        () => document.querySelector('[data-test="editor-focus"]').click()
         JS);
     cmWaitUntil($page, "document.documentElement.classList.contains('editor-focus') && document.querySelector('[data-test=\"search-checks-link\"]') === null");
     ($this->shows)($page, '[data-test="search-check-line"]', 'Every check is in the side panel.');

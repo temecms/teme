@@ -38,7 +38,9 @@ import type { Confirming } from '@/components/editor/publish-confirmation';
 import {
     cardsMissingAlt,
     documentChecks,
+    featuredMissingAlt,
     regionFacts,
+    writingChecks,
 } from '@/components/editor/rail/checks';
 import type { CheckId } from '@/components/editor/rail/checks';
 import { AssistantProvider } from '@/components/editor/assistant/assistant-context';
@@ -168,7 +170,6 @@ export default function ContentEdit(page: ContentEditPage) {
     const [addressPattern, setAddressPattern] = useState(
         session.addressPattern,
     );
-    const [url, setUrl] = useState(session.url);
     const [slug, setSlug] = useState(session.slug);
     const [discussion, setDiscussion] = useState(page.discussion);
     const [visibility, setVisibility] = useState(session.visibility);
@@ -772,7 +773,6 @@ export default function ContentEdit(page: ContentEditPage) {
                 (answer.body.readerPassword as string | null) ?? null,
             );
             setPasswordUnreadable(answer.body.passwordUnreadable === true);
-            setUrl((answer.body.url as string | null | undefined) ?? null);
 
             return null;
         } catch {
@@ -809,7 +809,6 @@ export default function ContentEdit(page: ContentEditPage) {
                 (answer.body.addressPattern as string | undefined) ??
                     addressPattern,
             );
-            setUrl((answer.body.url as string | null | undefined) ?? null);
 
             return null;
         } catch {
@@ -859,6 +858,7 @@ export default function ContentEdit(page: ContentEditPage) {
     }
 
     const primaryField = fieldBy(fields, 'primary_category');
+    const stickyField = fieldBy(fields, 'sticky');
     const sections = session.taxonomies.find(
         (taxonomy) => taxonomy.hierarchical,
     );
@@ -894,6 +894,24 @@ export default function ContentEdit(page: ContentEditPage) {
         plural,
         withheld: structured.withheld,
     });
+
+    // The rail's writing checks, and how many of Search and social's want a look.
+    const writing = useMemo(
+        () =>
+            writingChecks({
+                title,
+                document: body,
+                checks,
+                featuredMissingAlt: featuredMissingAlt(values, media),
+                hasExcerptField: excerpt !== undefined,
+                hasFeaturedImageField: featured !== undefined,
+                noun,
+            }),
+        [title, body, checks, values, media, excerpt, featured, noun],
+    );
+    const searchCount = search.checks.filter(
+        (check) => check.search && check.state === 'warn' && check.id !== 'alt',
+    ).length;
 
     // A theme region's own facts, checked in place of a post's search checks (issue 529).
     const ownFacts = useMemo(
@@ -1262,6 +1280,12 @@ export default function ContentEdit(page: ContentEditPage) {
     usePaletteCommands(paletteCommands);
 
     const address = addressOf(page.siteUrl, addressPattern, slug);
+    const railTitle =
+        themeRegion !== null
+            ? __('Region settings')
+            : __(':type settings', {
+                  type: type?.singular ?? __('Item'),
+              });
 
     return (
         <>
@@ -1293,18 +1317,27 @@ export default function ContentEdit(page: ContentEditPage) {
                 focus={focus}
                 header={
                     <EditorHeader
-                        backHref={
+                        place={
                             themeRegion !== null
-                                ? regionsIndex().url
-                                : type
-                                  ? contentIndex({ type: type.segment }).url
-                                  : '/admin'
+                                ? {
+                                      label: __('Regions'),
+                                      href: regionsIndex().url,
+                                      type: null,
+                                      current: session.id,
+                                  }
+                                : {
+                                      label: type?.plural ?? __('Content'),
+                                      href: type
+                                          ? contentIndex({ type: type.segment })
+                                                .url
+                                          : '/admin',
+                                      type: session.type,
+                                      current: session.id,
+                                  }
                         }
-                        backLabel={
-                            themeRegion !== null
-                                ? 'Regions'
-                                : (type?.plural ?? 'Back')
-                        }
+                        title={themeRegion !== null ? themeRegion.label : title}
+                        region={themeRegion !== null}
+                        railLabel={railTitle}
                         statusChip={
                             <>
                                 <StatusChip
@@ -1346,12 +1379,7 @@ export default function ContentEdit(page: ContentEditPage) {
                     />
                 }
                 rail={{
-                    title:
-                        themeRegion !== null
-                            ? __('Region settings')
-                            : __(':type settings', {
-                                  type: type?.singular ?? __('Item'),
-                              }),
+                    title: railTitle,
                     noun: themeRegion !== null ? 'region' : noun,
                     open: railOpen,
                     onOpenChange: setRailOpen,
@@ -1384,9 +1412,33 @@ export default function ContentEdit(page: ContentEditPage) {
                             review={review}
                             siteTimezone={page.siteTimezone}
                             notice={notice}
-                            checks={search.checks}
+                            writing={writing}
+                            searchCount={searchCount}
                             regionFacts={ownFacts}
-                            onGoToCheck={goToCheck}
+                            region={
+                                themeRegion === null
+                                    ? null
+                                    : {
+                                          themeName: themeRegion.themeName,
+                                          inUse: themeRegion.inUse,
+                                      }
+                            }
+                            onGoToWriting={(check) => {
+                                if (check !== 'headings') {
+                                    goToCheck(check);
+                                }
+                            }}
+                            sticky={
+                                stickyField === undefined ||
+                                themeRegion !== null
+                                    ? null
+                                    : values[stickyField.key] === true
+                            }
+                            onChangeSticky={(on) => {
+                                if (stickyField !== undefined) {
+                                    setValue(stickyField.key, on);
+                                }
+                            }}
                             pluginChecks={pluginChecks}
                             onGoToPlugin={goToPlugin}
                             onGoToSearch={
@@ -1428,60 +1480,15 @@ export default function ContentEdit(page: ContentEditPage) {
                             passwordUnreadable={passwordUnreadable}
                             onChangeVisibility={changeVisibility}
                             themeRegion={themeRegion !== null}
-                            unpublishedChanges={unpublished}
                             author={author}
                             authors={page.authors}
                             onChangeAuthor={changeAuthor}
                             noun={noun}
                             addressPattern={addressPattern}
-                            url={url}
                         />
                     ),
                 }}
             >
-                {/* The page's one h1: an item's, for screen readers; a theme region's, drawn with what it takes (I-395). */}
-                {themeRegion === null ? (
-                    <h1 className="sr-only">
-                        {__('Edit: :title', {
-                            title: shownTitle(title),
-                        })}
-                    </h1>
-                ) : (
-                    <PageHeader
-                        title={__('Region: :label, used by :theme', {
-                            label: themeRegion.label,
-                            theme: themeRegion.themeName,
-                        })}
-                        description={themeRegion.takes}
-                    />
-                )}
-                {themeRegion === null && (
-                    <div className="group relative grid grid-cols-1 gap-1">
-                        <Label
-                            htmlFor="editor-title"
-                            className="text-caption text-ink-3 sr-only font-semibold uppercase group-focus-within:not-sr-only"
-                        >
-                            {__('Title')}
-                        </Label>
-                        <span
-                            aria-hidden
-                            className="bg-accent absolute inset-y-0 -start-(--focus-bar) w-0.5 opacity-0 group-focus-within:opacity-100"
-                            style={FOCUS_BAR}
-                        />
-                        <Textarea
-                            id="editor-title"
-                            spellCheck={spellcheck}
-                            aria-describedby="editor-title-error"
-                            rows={1}
-                            placeholder={__('Title')}
-                            value={title}
-                            onChange={(event) => setTitle(event.target.value)}
-                            className="text-display field-sizing-content resize-none border-0 bg-transparent px-0 py-0 font-serif font-semibold text-balance focus-visible:outline-0"
-                        />
-                        <InputError id="editor-title-error" />
-                    </div>
-                )}
-
                 <FieldControlContext.Provider
                     value={{
                         media,
@@ -1492,90 +1499,137 @@ export default function ContentEdit(page: ContentEditPage) {
                         entries: session.entries,
                     }}
                 >
-                    {excerpt && (
-                        <div className="group relative grid grid-cols-1 gap-1">
-                            <Label
-                                htmlFor="editor-excerpt"
-                                className="text-caption text-ink-3 sr-only font-semibold uppercase group-focus-within:not-sr-only"
-                            >
-                                {excerpt.label}
-                            </Label>
-                            <span
-                                aria-hidden
-                                className="bg-accent absolute inset-y-0 -start-(--focus-bar) w-0.5 opacity-0 group-focus-within:opacity-100"
-                                style={FOCUS_BAR}
-                            />
-                            <TextareaControl
-                                field={excerpt}
-                                value={values[excerpt.key]}
-                                onChange={(next) => setValue(excerpt.key, next)}
-                                id="editor-excerpt"
-                                describedBy="editor-excerpt-hint"
-                                spellCheck={spellcheck}
-                                placeholder={__(
-                                    'Add an excerpt: one or two sentences that sell the story',
-                                )}
-                                className="text-lead text-ink-2 placeholder:text-ink-3 field-sizing-content w-full resize-none bg-transparent leading-normal outline-none focus-visible:outline-0"
-                            />
-                            <p
-                                id="editor-excerpt-hint"
-                                className="text-ink-3 text-caption"
-                            >
-                                {excerpt.description}
-                            </p>
-                            <MetadataProposal
-                                handle="excerpt"
-                                label={excerpt.label}
-                                metadata={metadata}
-                            />
-                        </div>
-                    )}
-
-                    {featured && (
-                        <FeaturedImage
-                            field={featured}
-                            value={values[featured.key]}
-                            onChange={(next) => setValue(featured.key, next)}
-                        />
-                    )}
-
-                    <section
-                        aria-labelledby="editor-body-label"
-                        className="grid grid-cols-1"
+                    <div
+                        data-slot="editor-sheet"
+                        className="mx-auto grid w-full max-w-(--measure) grid-cols-1 gap-6"
                     >
-                        <span id="editor-body-label" className="sr-only">
-                            {__('Body')}
-                        </span>
-                        <div data-slot="editor-body">
-                            <ProseEditor
-                                document={session.document}
-                                cards={page.manifest.cards}
-                                menuCards={menuCards}
-                                contentType={session.type}
-                                status={status}
-                                permissions={session.can}
-                                spellcheck={spellcheck}
-                                smartQuotes={
-                                    preferences['editor.smart_quotes'] !== false
-                                }
-                                siteUrl={page.siteUrl}
-                                onChange={(next) =>
-                                    setDocument(next as EditorDocument)
-                                }
-                                onEditor={setEditor}
+                        {/* The page's one h1: an item's, for screen readers; a theme region's, drawn with what it takes (I-395). */}
+                        {themeRegion === null ? (
+                            <h1 className="sr-only">
+                                {__('Edit: :title', {
+                                    title: shownTitle(title),
+                                })}
+                            </h1>
+                        ) : (
+                            <PageHeader
+                                title={__('Region: :label, used by :theme', {
+                                    label: themeRegion.label,
+                                    theme: themeRegion.themeName,
+                                })}
+                                description={themeRegion.takes}
                             />
-                        </div>
-                    </section>
+                        )}
+                        {themeRegion === null && (
+                            <div className="group relative grid grid-cols-1 gap-1">
+                                <Label
+                                    htmlFor="editor-title"
+                                    className="text-caption text-ink-3 sr-only font-semibold uppercase group-focus-within:not-sr-only"
+                                >
+                                    {__('Title')}
+                                </Label>
+                                <span
+                                    aria-hidden
+                                    className="bg-accent absolute inset-y-0 -start-(--focus-bar) w-0.5 opacity-0 group-focus-within:opacity-100"
+                                    style={FOCUS_BAR}
+                                />
+                                <Textarea
+                                    id="editor-title"
+                                    spellCheck={spellcheck}
+                                    aria-describedby="editor-title-error"
+                                    rows={1}
+                                    placeholder={__('Title')}
+                                    value={title}
+                                    onChange={(event) =>
+                                        setTitle(event.target.value)
+                                    }
+                                    className="text-display field-sizing-content resize-none border-0 bg-transparent px-0 py-0 font-serif font-semibold text-balance focus-visible:outline-0"
+                                />
+                                <InputError id="editor-title-error" />
+                            </div>
+                        )}
 
-                    <DetailsSection
-                        fields={fields}
-                        values={values}
-                        onChange={setValue}
-                        errors={fieldErrors}
-                        noun={noun}
-                        plural={type?.plural ?? 'Items'}
-                    />
+                        {excerpt && (
+                            <div className="group relative grid grid-cols-1 gap-1">
+                                <Label
+                                    htmlFor="editor-excerpt"
+                                    className="text-caption text-ink-3 sr-only font-semibold uppercase group-focus-within:not-sr-only"
+                                >
+                                    {excerpt.label}
+                                </Label>
+                                <span
+                                    aria-hidden
+                                    className="bg-accent absolute inset-y-0 -start-(--focus-bar) w-0.5 opacity-0 group-focus-within:opacity-100"
+                                    style={FOCUS_BAR}
+                                />
+                                <TextareaControl
+                                    field={excerpt}
+                                    value={values[excerpt.key]}
+                                    onChange={(next) =>
+                                        setValue(excerpt.key, next)
+                                    }
+                                    id="editor-excerpt"
+                                    spellCheck={spellcheck}
+                                    placeholder={__(
+                                        'Add an excerpt: one or two sentences that sell the story',
+                                    )}
+                                    className="text-lead text-ink-2 placeholder:text-ink-3 field-sizing-content w-full resize-none bg-transparent leading-normal outline-none focus-visible:outline-0"
+                                />
+                                <MetadataProposal
+                                    handle="excerpt"
+                                    label={excerpt.label}
+                                    metadata={metadata}
+                                />
+                            </div>
+                        )}
 
+                        {featured && (
+                            <FeaturedImage
+                                field={featured}
+                                value={values[featured.key]}
+                                onChange={(next) =>
+                                    setValue(featured.key, next)
+                                }
+                            />
+                        )}
+
+                        <section
+                            aria-labelledby="editor-body-label"
+                            className="grid grid-cols-1"
+                        >
+                            <span id="editor-body-label" className="sr-only">
+                                {__('Body')}
+                            </span>
+                            <div data-slot="editor-body">
+                                <ProseEditor
+                                    document={session.document}
+                                    cards={page.manifest.cards}
+                                    menuCards={menuCards}
+                                    contentType={session.type}
+                                    status={status}
+                                    permissions={session.can}
+                                    spellcheck={spellcheck}
+                                    smartQuotes={
+                                        preferences['editor.smart_quotes'] !==
+                                        false
+                                    }
+                                    siteUrl={page.siteUrl}
+                                    onChange={(next) =>
+                                        setDocument(next as EditorDocument)
+                                    }
+                                    onEditor={setEditor}
+                                />
+                            </div>
+                        </section>
+
+                        <DetailsSection
+                            fields={fields}
+                            values={values}
+                            onChange={setValue}
+                            errors={fieldErrors}
+                            noun={noun}
+                            plural={type?.plural ?? 'Items'}
+                        />
+                    </div>
                     {themeRegion === null && (
                         <SearchPanel
                             fields={fields}

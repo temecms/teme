@@ -82,7 +82,8 @@ export function CardFrame({
             data-collapsed={collapsed}
             className={cn(
                 'group relative my-2 rounded-lg',
-                collapsed ? 'bg-surface-2' : 'bg-surface',
+                // Bare in the text: a ground only while folded to one line (4.39).
+                collapsed && 'bg-surface-2',
                 selected
                     ? 'outline-accent outline-2'
                     : 'hover:outline-line hover:outline-1',

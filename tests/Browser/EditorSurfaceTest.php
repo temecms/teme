@@ -111,15 +111,15 @@ it('shows Title\'s and Excerpt\'s labels only while they are focused, and keeps 
     $page->assertScript(($this->esfLabelShown)('editor-title'), false);
 });
 
-it('counts words, characters and reading time under the body as it is typed', function (): void {
+it('counts words, characters and reading time under the body as it is typed, each number first', function (): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), "/admin/content/{$this->empty->id}/edit"));
 
     $page->type('.teme-prose', 'One two three four five six seven eight nine ten');
 
-    cmWaitUntil($page, "(document.querySelector('[data-slot=\"editor-body\"] [data-test=\"body-counts\"]')?.innerText ?? '').includes('Words\\n10') || (document.querySelector('[data-slot=\"editor-body\"] [data-test=\"body-counts\"] dd')?.textContent === '10')");
-    $page->assertSeeIn('[data-test="body-counts"]', 'Characters')
-        ->assertSeeIn('[data-test="body-counts"]', 'Reading time')
-        ->assertSeeIn('[data-test="body-counts"]', '1 min');
+    cmWaitUntil($page, "(document.querySelector('[data-slot=\"editor-body\"] [data-test=\"body-counts\"]')?.innerText ?? '').includes('10 words')");
+    $page->assertSeeIn('[data-test="body-counts"]', '48 characters')
+        ->assertSeeIn('[data-test="body-counts"]', '1 min read')
+        ->assertScript("[...document.querySelectorAll('[data-test=\"body-counts\"] strong')].map((number) => number.textContent).join('|')", '10|48|1');
 });
 
 it('keeps paragraphs at the reading measure and figures at the column\'s width', function (): void {
@@ -314,6 +314,6 @@ it('opens the rail over the writing from the top bar on a tablet, and selecting 
     $page->assertScript("document.querySelector('[data-slot=\"sheet-content\"]') === null");
 
     // From the top bar, the rail is a sheet over the writing.
-    $page->click('[data-slot="editor-shell"] > header [aria-label="Show settings"]');
+    $page->click('[data-test="rail-toggle"]');
     cmWaitUntil($page, "document.querySelector('[data-slot=\"sheet-content\"]') !== null");
 });

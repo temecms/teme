@@ -47,8 +47,8 @@ export type EditorPageRail = {
  * rail beside it. The rail is 360px, dragged between 320 and 480 and kept
  * as the person's editor.rail_width; below 1024px it is a sheet over the
  * writing. The column is minmax(0, 1fr), so one wide card never widens the
- * fields. The column's sides are 24 pixels, as the writing area's tests
- * measure them. `around` holds what the bar, the writing and the rail share.
+ * fields. The column's sides are 40 pixels (16 on a phone), room for the
+ * block handles' gutter beside the writing. `around` holds what the bar, the writing and the rail share.
  */
 export function EditorPage({
     header,
@@ -134,7 +134,7 @@ export function EditorPage({
                 style={columns}
             >
                 <ScrollArea data-slot="editor-writing" className="bg-page">
-                    <div className="grid w-full grid-cols-1 gap-6 px-6 pt-6 pb-30">
+                    <div className="grid w-full grid-cols-1 gap-6 px-4 pt-6 pb-30 sm:px-10">
                         {children}
                     </div>
                 </ScrollArea>
