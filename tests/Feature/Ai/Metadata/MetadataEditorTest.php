@@ -14,12 +14,13 @@ it('draws each proposal under its own field, the excerpt\'s under the excerpt, a
             && $at > (int) strpos($source, $after) && $at < (int) strpos($source, $before);
     };
 
-    expect($between($section, '<SuggestMetadata', 'appears in search results and when it’s', 'id="editor-seo-title"'))->toBeTrue()
+    // Suggest metadata sits in the box's header strip, before its fields.
+    expect($between($section, '<SuggestMetadataButtons', 'id="editor-search-label"', 'id="editor-seo-title"'))->toBeTrue()
         ->and($between($section, 'handle="seo_title"', 'id="editor-seo-title-count"', 'htmlFor="editor-seo-description"'))->toBeTrue()
         ->and($between($section, 'handle="meta_description"', 'id="editor-seo-description-count"', 'id="editor-seo-noindex"'))->toBeTrue()
         ->and($between($section, 'handle="social_title"', 'id="editor-social-title-hint"', 'htmlFor="editor-social-description"'))->toBeTrue()
         ->and($between($section, 'handle="social_description"', 'id="editor-social-description-hint"', '<SocialImage'))->toBeTrue()
-        ->and($between($editor, 'handle="excerpt"', 'id="editor-excerpt-hint"', '<FeaturedImage'))->toBeTrue()
+        ->and($between($editor, 'handle="excerpt"', 'id="editor-excerpt"', '<FeaturedImage'))->toBeTrue()
         ->and($editor)->toContain('useMetadataBinding(')
         ->toContain('metadata={metadata}');
 });

@@ -17,7 +17,7 @@ sources:
 
 # Publishing and scheduling
 
-An item has a status, shown in the header as a chip. It moves from draft, through review if your role needs it, to published. Contributors cannot publish; every other role can. The [roles table](README.md#what-you-can-do) shows who can do what.
+An item has a status, shown in the editor's bar after the item's title. It moves from draft, through review if your role needs it, to published. Contributors cannot publish; every other role can. The [roles table](README.md#what-you-can-do) shows who can do what.
 
 ## To save a draft
 
@@ -49,12 +49,12 @@ You can review if you can publish. Open the item that is **In review**. You can 
 2. Choose **Publish**.
 3. In the confirmation, check what it says, then choose **Publish**.
 
-The chip changes to **Published**. If you open the **Publish** panel, you can see the address, and **View on site**.
+The status changes to **Published**, and the side panel says when it was published. The **Address** row shows where it is on the site.
 
 ## To schedule
 
-1. In the publish panel, open **Publish** and choose when: **Immediately**, **At a set time…**, or **After review** (the item waits for someone to approve it).
-2. For **At a set time…**, set the **Date and time**, or pick one of the **Quick choices**: **Tomorrow morning**, **This evening** or **Next Monday**.
+1. In the side panel, open **Publish** and choose when: **Immediately**, **At a set time…**, or **After review** (the item waits for someone to approve it). You can also choose **More publishing choices**, the arrow beside **Publish**, then **Schedule…**. For an item that is already published, it offers **Schedule the update…**.
+2. For a set time, set it in the **At** row, or pick one of the **Quick choices**: **Tomorrow morning**, **This evening** or **Next Monday**.
 3. The times are in the site's time zone, which the panel names.
 4. Choose **Schedule** and confirm.
 

@@ -109,8 +109,7 @@ it('gives a hierarchical taxonomy its whole tree, each term with its parent', fu
 
 it('draws the tree picker to its spec', function (): void {
     expect(file_get_contents(resource_path('js/components/term-tree-picker.tsx')))
-        ->toContain('max-h-60')
-        ->toContain('overflow-y-auto')
+        ->toContain('<ScrollArea className="max-h-44">')
         ->toContain('SEARCH_AFTER = 8')
         ->toContain('+ Add')
         ->toContain('canAdd');
@@ -415,12 +414,13 @@ it('draws the rail\'s checks from the one list, the featured image only where th
         ->toContain('None. Social cards use the first image in the body, or the site’s default.')
         ->toContain('Some lead to an item readers can’t reach:')
         ->toContain('hasFeaturedImageField')
-        ->and(uiComponent('components/editor/rail/checks-panel.tsx'))->toContain('CoreCheck[]')
+        ->and(uiComponent('components/editor/rail/checks-panel.tsx'))->toContain('checks: WritingCheck[];')
+        ->and(uiComponent('components/editor/rail/writing-checks.ts'))->toContain('export function writingChecks(')
         ->and(uiComponent('pages/content/edit.tsx'))->toContain('hasFeaturedImageField: featured !== undefined')
         ->toContain('useLinkedContent(')
         // Warnings, never gates: the action bar, where Publish, Schedule and
         // Submit live, hands the checks to ChecksPanel and reads none of them.
-        ->and(uiComponent('components/editor/editor-rail.tsx'))->not->toContain('checks.')
+        ->and(uiComponent('components/editor/editor-rail.tsx'))->not->toMatch('/\b(writing|checks)\.(filter|some|every|length)/')
         ->and(uiComponent('components/editor/rail/publish-panel.tsx'))->not->toContain('CoreCheck');
 });
 

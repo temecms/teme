@@ -88,7 +88,7 @@ it('sends the words typed last when the person leaves by the way back before the
 
     // Well inside the two seconds an autosave waits after typing stops.
     $page->type('.teme-prose', 'The last ferry leaves at midnight.')
-        ->click('header > a');
+        ->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
 
     ($this->onList)($page);
 
@@ -111,7 +111,7 @@ it('keeps the last sentence of an article over 64 KB when the person leaves by t
     // At the end of the article, well inside the two seconds an autosave waits.
     $page->keys('.teme-prose', 'Control+End')
         ->typeSlowly('.teme-prose', ' The last ferry leaves at midnight.', 0)
-        ->click('header > a');
+        ->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
 
     ($this->onList)($page);
 
@@ -134,7 +134,7 @@ it('asks in the app\'s own dialog before a link leaves words no save has kept: S
     cmWaitUntil($page, "['offline', 'refused'].includes(document.querySelector('[data-test=\"save-state\"]')?.dataset.state)");
     cmWaitUntil($page, "document.body.innerText.includes('The server couldn’t save your changes')");
 
-    $page->click('header > a');
+    $page->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
 
     ($this->dialogOpen)($page);
     ($this->textShown)($page, 'Your latest changes aren’t saved. Leave this page anyway?', '[data-test="leave-dialog"]');
@@ -146,7 +146,7 @@ it('asks in the app\'s own dialog before a link leaves words no save has kept: S
     expect($page->script('() => location.pathname'))->toBe(($this->edit)($this->draft))
         ->and($page->script("() => document.querySelector('.teme-prose').innerText"))->toContain('The ferry is cancelled until spring.');
 
-    $page->click('header > a');
+    $page->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
 
     ($this->dialogOpen)($page);
     $page->click('[data-test="leave-dialog"] button:text-is("Leave without saving")');
@@ -180,7 +180,7 @@ it('holds the browser\'s Back button while words are stored nowhere, and asks in
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate(($this->edit)($this->draft)));
 
     // To the list and back to the editor inside the app, so Back is a step in the app's own history.
-    $page->click('header > a');
+    $page->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
     ($this->onList)($page);
     $page->click('a >> text="Harbour news"');
     cmEditorSettled($page);
@@ -243,7 +243,7 @@ it('asks in the leave dialog once a save held by a stalled connection passes its
     ($this->holdSaves)($page);
 
     $page->type('.teme-prose', 'The ferry waits for the tide.')
-        ->click('header > a');
+        ->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
 
     // Within the limit: the editor stays, says a save is on its way, and asks nothing.
     cmWaitUntil($page, "window.heldSaves.length > 0 && document.querySelector('[data-test=\"save-state\"]')?.dataset.state === 'saving'");
@@ -296,7 +296,7 @@ it('shows the error of a form sent from the editor while a save was on its way (
 it('lets the browser\'s Back button go at once when everything is saved, and Forward come back to the editor (issue 6)', function (): void {
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate(($this->edit)($this->draft)));
 
-    $page->click('header > a');
+    $page->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
     ($this->onList)($page);
     $page->click('a >> text="Harbour news"');
     cmEditorSettled($page);
@@ -323,7 +323,7 @@ it('lets the browser\'s Back button go at once when everything is saved, and For
 it('holds the browser\'s Back button while a save is on its way, then goes back with the words saved (issue 6)', function (): void {
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate(($this->edit)($this->draft)));
 
-    $page->click('header > a');
+    $page->click('[data-test="editor-place"]')->click('[role="menuitem"] >> text="All posts"');
     ($this->onList)($page);
     $page->click('a >> text="Harbour news"');
     cmEditorSettled($page);

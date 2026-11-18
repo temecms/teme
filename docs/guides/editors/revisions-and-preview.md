@@ -23,7 +23,7 @@ Teme keeps every version of an item. You can read the history, compare two versi
 
 ## To see an item's history
 
-Choose **History** in the editor's header. The panel lists the versions, newest first. Each entry says how it came about.
+Choose **History** in the editor's bar. The panel lists the versions, newest first. Each entry says how it came about.
 
 - **Saved**: you or someone else saved it.
 - **Autosaved**: the editor saved it on its own while you wrote.
@@ -40,7 +40,7 @@ There is no button to save a version by hand. The editor adds an **Autosaved** e
 
 ## To compare two versions
 
-Open an entry in **History** and choose **Compare with the version before**. The page headed **Compare** shows what changed: text that was **Added**, **Removed**, **Changed** or **Moved**, with **Before** and **After** side by side. Nothing on this page changes the item. Choose **Back to the editor** when you are done.
+Open an entry in **History** and choose **Compare with the version before**. The page shows what changed: how many blocks changed and how many words were **Added** and **Removed**, then each changed block with **Before** and **After** side by side. The blocks that did not change are folded away. Beside it, **Versions** lists every saved version; choose **Before** or **After** on one to compare it. Nothing on this page changes the item. Choose **Back to the editor** when you are done.
 
 ## To go back to an older version
 
@@ -58,7 +58,7 @@ Choose **Preview** in the editor. It shows the latest saved version through the 
 
 A preview link shows one version to anyone who has the link, without an account, for two days. It opens nothing else on the site.
 
-1. Choose **Share** in the header.
+1. Choose **Share** in the editor's bar, or find it in **Tools**.
 2. Under **Preview links**, choose **Make a preview link**. Making one saves your changes first.
 3. Choose **Copy** and send it. Copy it now: it will not be shown again.
 
