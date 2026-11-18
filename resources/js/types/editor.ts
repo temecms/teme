@@ -275,8 +275,13 @@ export type ContentEditPage = {
     kind: 'content' | 'region';
     /** A theme region's cards: the only ones its menus offer. Null for any other item. */
     allowedCards: string[] | null;
-    /** The theme region this item fills, its theme, and what it takes, in words. Null for any other item. */
-    themeRegion: { label: string; themeName: string; takes: string } | null;
+    /** The theme region this item fills, its theme, what it takes, in words, and the most blocks it holds. Null for any other item. */
+    themeRegion: {
+        label: string;
+        themeName: string;
+        takes: string;
+        max: number;
+    } | null;
     /** The code the Custom HTML card may place, by name; null for any item that isn't a theme region. */
     placedCode: PlacedCode[] | null;
     /** Whether the host has switched site code off; null for any item that isn't a theme region. */

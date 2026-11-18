@@ -2,7 +2,7 @@ import { CheckCircle2, CircleAlert } from 'lucide-react';
 import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
 import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
-import type { BadLink, CheckId, CoreCheck } from './checks';
+import type { BadLink, CheckId, CoreCheck, RegionCheck } from './checks';
 import { PluginChecks } from './plugin-checks';
 import { RailSection } from './rail-section';
 import { quotedTitle } from '@/lib/titles';
@@ -157,6 +157,59 @@ export function ChecksPanel({
                     </TextButton>
                 </div>
             )}
+        </RailSection>
+    );
+}
+
+/**
+ * A theme region's Checks (issue 529): its own facts, not a post's search
+ * checks. They warn and never block a draft; publishing is refused by the
+ * server past the limit or with a card the region doesn't take.
+ */
+export function RegionChecksPanel({ checks }: { checks: RegionCheck[] }) {
+    return (
+        <RailSection title={__('Checks')} triggerId="rail-checks-trigger">
+            <ul data-test="rail-region-checks" className="text-small grid gap-2">
+                {checks.map((check) => (
+                    <li
+                        key={check.id}
+                        data-check={check.id}
+                        data-state={check.state}
+                        className="flex items-start gap-2"
+                    >
+                        <span className="flex h-lh shrink-0 items-center">
+                            {check.state === 'ok' ? (
+                                <CheckCircle2
+                                    aria-hidden
+                                    className="text-ok-ink size-4"
+                                />
+                            ) : (
+                                <CircleAlert
+                                    aria-hidden
+                                    className="text-warn-ink size-4"
+                                />
+                            )}
+                        </span>
+                        <span>
+                            <span className="sr-only">
+                                {check.state === 'ok'
+                                    ? __('passed')
+                                    : __('warning')}
+                                {': '}
+                            </span>
+                            {check.message}
+                        </span>
+                    </li>
+                ))}
+            </ul>
+            <p
+                data-test="rail-region-checks-note"
+                className="text-ink-2 text-caption mt-3 text-pretty"
+            >
+                {__(
+                    'A warning never blocks saving a draft. Publishing is refused while the region is over its limit or holds a card it does not take.',
+                )}
+            </p>
         </RailSection>
     );
 }

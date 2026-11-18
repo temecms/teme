@@ -99,11 +99,12 @@ final readonly class RegionScreens
 
     /**
      * The region this item fills, for the editor's region mode: its label,
-     * its theme's name, the cards it allows and, in words, what it takes; null
+     * its theme's name, the cards it allows, the most blocks it holds and, in
+     * words, what it takes; null
      * for an item that isn't a region, or a region no installed theme declares
      * any more.
      *
-     * @return array{label: string, themeName: string, cards: list<string>, takes: string}|null
+     * @return array{label: string, themeName: string, cards: list<string>, max: int, takes: string}|null
      */
     public function editorMode(string $contentId): ?array
     {
@@ -124,6 +125,7 @@ final readonly class RegionScreens
             'label' => $declared['label'],
             'themeName' => $owner->manifest?->name() ?? $owner->code,
             'cards' => $declared['cards'],
+            'max' => $declared['max'],
             'takes' => RegionWords::takes($this->labels($declared['cards']), $declared['max']),
         ];
     }
