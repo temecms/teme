@@ -353,8 +353,18 @@ export type RevisionPage = { rows: RevisionRow[]; older: string | null };
 export type DiffBlock = {
     kind: 'same' | 'added' | 'removed' | 'changed' | 'moved';
     before: string | null;
+    /** For changed prose, the later text with both the added and the removed words marked. */
     after: string | null;
     node: string;
+    /** For changed prose, the earlier text with its removed words marked; else null. */
+    markedBefore: string | null;
+    /** For changed prose, the later text with its added words marked; else null. */
+    markedAfter: string | null;
+    /** Words added and removed in this block. */
+    added: number;
+    removed: number;
+    /** What a card is called; null for prose, which the screen names. */
+    label: string | null;
 };
 
 /** A revision as a comparison names it. */
@@ -365,10 +375,17 @@ export type RevisionSummary = {
     createdAt: string;
 };
 
+/** A revision in the comparison's list of versions: the History pane's row, without what wrote the assistant's. */
+export type CompareVersion = Omit<RevisionRow, 'assistant'>;
+
 /** The props of the comparison screen. */
 export type ComparePageProps = {
     contentId: string;
     title: string;
+    /** The article's type for the crumbs: the segment of its list, null when it has none. */
+    type: { plural: string; segment: string | null };
+    /** The History pane's first page of revisions, newest first, to choose from. */
+    versions: { rows: CompareVersion[]; older: string | null };
     /** Restore is offered for either side that is not this one. */
     workingRevisionId: string | null;
     from: RevisionSummary;

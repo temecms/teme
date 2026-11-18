@@ -286,7 +286,7 @@ it('passes axe in light and dark with every target 24 pixels or more', function 
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('compares two revisions on the editor\'s page, with added and removed marked in words as well as color', function (): void {
+it('compares two revisions with added and removed marked in words as well as color', function (): void {
     $before = (string) $this->draft->working_revision_id;
     $after = docSave($this->draft, $this->editor, docWith(
         docText('The ferry leaves at ten.'),
@@ -296,11 +296,11 @@ it('compares two revisions on the editor\'s page, with added and removed marked 
     $this->actingAs($this->editor)->get($compare)->assertOk();
 
     $page = cmNavigate(cmSignIn($this->editor), $compare);
-    cmWaitUntil($page, "document.querySelector('[data-slot=\"editor-shell\"] ol li') !== null");
+    cmWaitUntil($page, "document.querySelector('[aria-label=\"Changes\"] li[data-kind]') !== null");
 
-    // Every change says what it is in words; a change marked by color alone would say nothing.
-    $page->assertScript("(() => { const changes = Array.from(document.querySelectorAll('[data-slot=\"editor-shell\"] ol > li[data-kind]')).filter((item) => item.dataset.kind !== 'same'); return changes.length > 0 && changes.every((item) => /Added|Removed|Changed|Moved/.test(item.innerText)); })()")
-        ->assertScript("document.querySelector('[data-slot=\"editor-shell\"] aside') === null");
+    // Every change says what it is in words: struck or marked words, or the block's type with what happened to it.
+    $page->assertScript("(() => { const changes = Array.from(document.querySelectorAll('[aria-label=\"Changes\"] li[data-kind]')); return changes.length > 0 && changes.every((item) => item.querySelector('ins, del') !== null || /ADDED|REMOVED|MOVED/.test(item.innerText)); })()")
+        ->assertScript("document.querySelector('[data-slot=\"editor-shell\"]') === null");
 });
 
 it('opens the rail over the writing from the top bar on a tablet, and selecting a card does not open it', function (): void {
