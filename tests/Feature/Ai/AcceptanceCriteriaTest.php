@@ -122,7 +122,7 @@ it('proposes a rewrite of a live article, which the author compares, uses as a d
             ->where('from.id', $live)
             ->where('to.id', $assistant)
             ->where('blocks', fn (Collection $blocks): bool => $blocks->where('kind', 'changed')->count() === 1
-                && str_contains($blocks->firstWhere('kind', 'changed')['after'], '<ins>go</ins> <del>on</del><ins>up</ins>')));
+                && str_contains($blocks->firstWhere('kind', 'changed')['after'], '<ins>go</ins> <del>on</del> <ins>up</ins>')));
 
     // Restore the revision before the assistant's: the old words come back as the working draft, and the assistant's stays in History.
     $this->actingAs($this->author)->post(route('content.revisions.restore', [$this->item->id, $before]))->assertRedirect();
