@@ -3,6 +3,7 @@ import RevisionController from '@/actions/App/Http/Admin/Contents/RevisionContro
 import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
 import { __ } from '@/lib/i18n';
+import { formatDateTime } from '@/lib/dates';
 
 /**
  * Restores one revision, after saying what will happen: a new revision is
@@ -20,10 +21,7 @@ export function RestoreButton({
     createdAt: string;
     label?: string;
 }) {
-    const when = new Date(createdAt).toLocaleString([], {
-        dateStyle: 'long',
-        timeStyle: 'short',
-    });
+    const when = formatDateTime(createdAt);
 
     return (
         <Form

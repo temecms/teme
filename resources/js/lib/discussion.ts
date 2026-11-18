@@ -1,3 +1,5 @@
+import { formatDate } from '@/lib/dates';
+
 /** An item's Discussion (I-274): whether readers see its comments and may add one. */
 export type Discussion = 'open' | 'closed' | 'hidden';
 
@@ -60,10 +62,7 @@ export function closingNote(
     }
 
     const stops = Date.parse(publishedAt) + closeAfterDays * 86_400_000;
-    const date = new Intl.DateTimeFormat(undefined, {
-        dateStyle: 'medium',
-        timeZone,
-    }).format(stops);
+    const date = formatDate(stops, timeZone);
 
     return stops > now
         ? `New comments stop on ${date}, ${days} after it was published.`
