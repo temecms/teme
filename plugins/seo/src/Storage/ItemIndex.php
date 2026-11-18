@@ -111,6 +111,24 @@ final class ItemIndex
     }
 
     /**
+     * Returns whether the index holds any published item yet.
+     */
+    public function hasPublished(): bool
+    {
+        return DB::table('seo_items')->where('status', 'published')->exists();
+    }
+
+    /**
+     * Returns the IDs of every item the index holds as published.
+     *
+     * @return list<string>
+     */
+    public function publishedIds(): array
+    {
+        return array_map(strval(...), DB::table('seo_items')->where('status', 'published')->orderBy('id')->pluck('id')->all());
+    }
+
+    /**
      * Returns up to $limit IDs of items still to be read, oldest change first.
      *
      * @return list<string>

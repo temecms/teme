@@ -14,10 +14,10 @@ use Teme\Seo\Storage\Indexer;
 use Teme\Seo\Storage\ItemIndex;
 
 /**
- * Reads the site into Teme SEO's index, as the person the run acts for: the
- * published items it hasn't read, the drafts that person may edit, and the
- * items a change marked to be read again. From the settings page's button,
- * it reads every item again.
+ * Reads the site into Teme SEO's index, as the person the run acts for.
+ * The hourly pass reads only the items a change marked and the drafts it
+ * hasn't read. Reading every item again walks every published item, and
+ * repairs what changed while Teme SEO was off.
  */
 final readonly class IndexSite implements JobHandler
 {
@@ -36,22 +36,10 @@ final readonly class IndexSite implements JobHandler
         $everything = ($context->payload()['action'] ?? null) === 'read-links';
         $wanted = [];
 
-        $after = null;
-
-        do {
-            $page = $this->content->published(new ItemQuery(after: $after, limit: 200));
-
-            foreach ($page->items as $item) {
-                $read = $this->index->isRead($item->id);
-                $this->index->remember($item, stale: $everything || ! $read);
-
-                if ($everything || ! $read) {
-                    $wanted[$item->id] = true;
-                }
-            }
-
-            $after = $page->next;
-        } while ($after !== null && count($wanted) < self::MOST);
+        // The first pass after Teme SEO is enabled has nothing to go on but the whole site.
+        if ($everything || ! $this->index->hasPublished()) {
+            $this->walkPublished($person);
+        }
 
         $after = null;
 
@@ -88,5 +76,40 @@ final readonly class IndexSite implements JobHandler
         }
 
         $context->progress($total, $total, __('Items read: :count.', ['count' => $total]));
+    }
+
+    /**
+     * Marks every published item to be read again, and settles the items
+     * the index still holds as published that the site no longer does:
+     * read again when they still exist, forgotten when they don't.
+     */
+    private function walkPublished(string $person): void
+    {
+        $seen = [];
+        $after = null;
+
+        do {
+            $page = $this->content->published(new ItemQuery(after: $after, limit: 200));
+
+            foreach ($page->items as $item) {
+                $this->index->remember($item);
+                $seen[$item->id] = true;
+            }
+
+            $after = $page->next;
+        } while ($after !== null);
+
+        foreach ($this->index->publishedIds() as $itemId) {
+            if (isset($seen[$itemId])) {
+                continue;
+            }
+
+            try {
+                $this->indexer->read($itemId, $person);
+            } catch (ReadRefused) {
+                // The person who enabled Teme SEO may edit every item: one they can't read is gone.
+                $this->index->forget($itemId);
+            }
+        }
     }
 }
