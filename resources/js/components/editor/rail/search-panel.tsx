@@ -59,8 +59,9 @@ function characters(text: string): string {
     return `${n} ${n === 1 ? 'character' : 'characters'}`;
 }
 
+/** A description's text area: its rows drawn while empty, taller by dragging (docs/architecture/design-system.md, 4.5). */
 const textareaClass =
-    'border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page field-sizing-content min-h-[34px] w-full resize-none rounded-md border px-3 py-2 text-small outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
+    'border-edge bg-surface focus-visible:ring-ring focus-visible:ring-offset-page w-full resize-y rounded-md border px-3 py-2 text-small outline-none focus-visible:ring-2 focus-visible:ring-offset-1';
 
 /** A count under a field: in characters and about the pixels, a warning past the width. */
 function Count({
@@ -584,6 +585,14 @@ export function SearchPanel({
                                     describedBy="editor-seo-description-hint editor-seo-description-count"
                                     rows={3}
                                     className={textareaClass}
+                                    placeholder={
+                                        description.from === 'excerpt' &&
+                                        description.text !== null
+                                            ? __('Using the excerpt: :value', {
+                                                  value: description.text,
+                                              })
+                                            : undefined
+                                    }
                                 />
                                 <MetadataProposal
                                     handle="meta_description"
