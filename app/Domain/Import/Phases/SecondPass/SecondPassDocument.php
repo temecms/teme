@@ -56,8 +56,8 @@ final class SecondPassDocument
     }
 
     /**
-     * The content with each link mark, and each link in an Imported
-     * content card, whose address is a key of $hrefs led where it says.
+     * The content with each link mark, each link in an Imported content
+     * card, and each link in a card's rich text, whose address is a key of $hrefs led where it says.
      *
      * @param  list<array<string, mixed>>  $content
      * @param  array<string, string>  $hrefs
@@ -299,6 +299,8 @@ final class SecondPassDocument
 
         if (($node['type'] ?? null) === self::IMPORTED && is_array($node['attrs']['markup'] ?? null)) {
             $node['attrs']['markup'] = self::relinkParts($node['attrs']['markup'], $hrefs);
+        } elseif (is_array($node['attrs'] ?? null)) {
+            $node['attrs'] = self::relinkProse($node['attrs'], $hrefs);
         }
 
         if (is_array($node['content'] ?? null)) {
@@ -306,6 +308,31 @@ final class SecondPassDocument
         }
 
         return $node;
+    }
+
+    /**
+     * A card's attributes with the links in each piece of rich text they
+     * hold, such as an FAQ answer or a step, led where $hrefs says, found
+     * as DocumentNormaliser finds them: any value that is a document.
+     *
+     * @param  array<mixed>  $value
+     * @param  array<string, string>  $hrefs
+     *
+     * @return array<mixed>
+     */
+    private static function relinkProse(array $value, array $hrefs): array
+    {
+        if (($value['type'] ?? null) === 'doc' && is_array($value['content'] ?? null)) {
+            return self::relinkNode($value, $hrefs);
+        }
+
+        foreach ($value as $key => $inner) {
+            if (is_array($inner)) {
+                $value[$key] = self::relinkProse($inner, $hrefs);
+            }
+        }
+
+        return $value;
     }
 
     /**
