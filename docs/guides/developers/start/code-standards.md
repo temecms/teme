@@ -31,6 +31,7 @@ None of these is checked. They are what Teme's own code does, and what makes a p
 Teme's own PHP files each open with this header, and the maintainers' plugins and themes use it too. In a file that holds one class, its sentences are the class's purpose, moved up rather than said twice.
 
 ```php
+// docs/guides/developers/examples/file-header.php
 <?php
 
 /**
@@ -48,6 +49,7 @@ declare(strict_types=1);
 `@package` is your Composer package name, `@since` is your own package's version, not Teme's, and `@license` is your licence. Leave out `@author`, the year and `@copyright`: git and your licence file hold them. A member added or changed later says so where it is declared:
 
 ```php
+// docs/guides/developers/examples/file-header.php
 /**
  * @since 1.0.0
  * @since 1.2.0 Accepts a list of channels.
