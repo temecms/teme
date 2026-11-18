@@ -53,9 +53,16 @@ final class RevisionController extends Controller
 
         abort_if($comparison === null, 403);
 
+        // The versions to choose from: the History pane's first page, newest first.
+        $versions = RevisionHistory::for($content, $request->user());
+
+        abort_if($versions === null, 403);
+
         return Inertia::render('content/compare', [
             'contentId' => $content,
             'title' => $comparison['title'],
+            'type' => $comparison['type'],
+            'versions' => ['rows' => $versions->rows, 'older' => $versions->older],
             'workingRevisionId' => $comparison['workingRevisionId'],
             'from' => $comparison['from'],
             'to' => $comparison['to'],

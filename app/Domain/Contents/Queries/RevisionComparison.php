@@ -12,6 +12,7 @@ use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldRegistry;
 use App\Domain\Fields\Types\MediaField;
 use App\Domain\Fields\Types\SelectField;
+use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
@@ -34,7 +35,7 @@ final class RevisionComparison
      * predecessor when nothing is published, with the working revision. A
      * missing or trashed article, or a revision of another article, is a 404.
      *
-     * @return array{title: string, workingRevisionId: string|null, from: array{id: string, kind: string, author: string|null, createdAt: string}, to: array{id: string, kind: string, author: string|null, createdAt: string}, blocks: list<DiffBlock>, fields: list<array{key: string, label: string, before: string|null, after: string|null}>, terms: list<array{taxonomy: string, label: string, added: list<string>, removed: list<string>}>}|null
+     * @return array{title: string, type: array{plural: string, segment: string|null}, workingRevisionId: string|null, from: array{id: string, kind: string, author: string|null, createdAt: string}, to: array{id: string, kind: string, author: string|null, createdAt: string}, blocks: list<DiffBlock>, fields: list<array{key: string, label: string, before: string|null, after: string|null}>, terms: list<array{taxonomy: string, label: string, added: list<string>, removed: list<string>}>}|null
      */
     public static function between(string $contentId, User $viewer, ?string $from, ?string $to): ?array
     {
@@ -52,6 +53,7 @@ final class RevisionComparison
 
         return [
             'title' => (string) $content->title,
+            'type' => self::typeOf($content->type),
             'workingRevisionId' => $content->working_revision_id,
             'from' => self::summary($older),
             'to' => self::summary($newer),
@@ -220,6 +222,25 @@ final class RevisionComparison
         uksort($changes, fn (string $a, string $b): int => [$rank($a), $a] <=> [$rank($b), $b]);
 
         return array_values($changes);
+    }
+
+    /**
+     * The article's type as the crumbs name it: its plural, and the segment
+     * of its list, or null when the type has no list of its own.
+     *
+     * @return array{plural: string, segment: string|null}
+     */
+    private static function typeOf(string $key): array
+    {
+        $types = app(ContentTypeRegistry::class);
+
+        if (! $types->has($key)) {
+            return ['plural' => $key, 'segment' => null];
+        }
+
+        $type = $types->get($key);
+
+        return ['plural' => $type->plural, 'segment' => $type->listed ? $type->segment : null];
     }
 
     /**
