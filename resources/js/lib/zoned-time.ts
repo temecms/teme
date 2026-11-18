@@ -1,3 +1,4 @@
+import { adminLocale } from '@/lib/dates';
 /**
  * Times in the site's zone, not the browser's. The admin always names the
  * zone it means, because "18:00" in the wrong zone is how an embargo gets
@@ -108,7 +109,7 @@ export function weekday(date: string): number {
 
 /** An instant as the site's clock shows it: "Fri 18 Sep, 18:00". */
 export function formatInZone(iso: string, zone: string): string {
-    return new Intl.DateTimeFormat([], {
+    return new Intl.DateTimeFormat(adminLocale(), {
         timeZone: zone,
         weekday: 'short',
         day: 'numeric',

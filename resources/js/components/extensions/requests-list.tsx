@@ -15,13 +15,11 @@ import { StatusPill } from '@/components/ui/status-pill';
 import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
 import type { ExtensionsData } from '@/types';
+import { formatDateTime } from '@/lib/dates';
 
-/** A moment as the person's locale writes it. */
+/** A moment on the site's clock, in the admin's language. */
 function when(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
+    return formatDateTime(iso);
 }
 
 /**

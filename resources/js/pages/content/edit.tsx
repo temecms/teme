@@ -38,6 +38,7 @@ import type { Confirming } from '@/components/editor/publish-confirmation';
 import {
     cardsMissingAlt,
     documentChecks,
+    regionFacts,
 } from '@/components/editor/rail/checks';
 import type { CheckId } from '@/components/editor/rail/checks';
 import { AssistantProvider } from '@/components/editor/assistant/assistant-context';
@@ -894,6 +895,26 @@ export default function ContentEdit(page: ContentEditPage) {
         withheld: structured.withheld,
     });
 
+    // A theme region's own facts, checked in place of a post's search checks (issue 529).
+    const ownFacts = useMemo(
+        () =>
+            themeRegion === null
+                ? undefined
+                : regionFacts({
+                      document: body,
+                      media,
+                      max: themeRegion.max,
+                      allowed: allowed ?? [],
+                      cardLabels: Object.fromEntries(
+                          page.manifest.cards.map((card) => [
+                              card.name,
+                              card.label,
+                          ]),
+                      ),
+                  }),
+        [themeRegion, body, media, allowed, page.manifest.cards],
+    );
+
     // A new draft opens with the cursor in its empty title (I-425).
     useEffect(() => {
         if (themeRegion === null && session.title.trim() === '') {
@@ -1364,6 +1385,7 @@ export default function ContentEdit(page: ContentEditPage) {
                             siteTimezone={page.siteTimezone}
                             notice={notice}
                             checks={search.checks}
+                            regionFacts={ownFacts}
                             onGoToCheck={goToCheck}
                             pluginChecks={pluginChecks}
                             onGoToPlugin={goToPlugin}

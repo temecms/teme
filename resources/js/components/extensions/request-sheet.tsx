@@ -31,16 +31,14 @@ import {
 import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
 import type { ExtensionRequestDetail, ExtensionStep } from '@/types';
+import { formatDateTime } from '@/lib/dates';
 
 /** How often an open request is read again while its sheet is open, as Tools › Updates does. */
 const POLL_MS = 3000;
 
-/** A moment as the person's locale writes it. */
+/** A moment on the site's clock, in the admin's language. */
 function when(iso: string): string {
-    return new Date(iso).toLocaleString(undefined, {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
+    return formatDateTime(iso);
 }
 
 /** Every step, in order, those the installer hasn't recorded yet as not yet. */

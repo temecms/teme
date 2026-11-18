@@ -421,7 +421,7 @@ function Combobox(props: ComboboxProps) {
               onTriggerKeyDown(event)
               ;(dropdownProps as { onKeyDown?: React.KeyboardEventHandler<HTMLButtonElement> }).onKeyDown?.(event)
             }}
-            className="relative flex w-full min-w-0 items-center gap-2 rounded-md border border-edge bg-surface ps-3 pe-8 text-start text-body text-ink transition-[border-color] duration-(--dur-1) ease-(--ease) outline-none focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-ring aria-invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-ink-3 data-[placeholder]:text-ink-3 data-[size=md]:h-(--ctl-h) data-[size=sm]:h-(--ctl-h-sm)"
+            className="relative flex w-full min-w-0 items-center gap-2 rounded-md border border-edge bg-surface ps-3 pe-8 text-start text-body text-ink transition-[border-color] duration-(--dur-1) ease-(--ease) outline-none focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-0 focus-visible:outline-ring aria-invalid:border-danger disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-ink-3 data-[placeholder]:text-ink-3 data-[size=md]:h-(--ctl-h) data-[size=sm]:h-(--ctl-h-sm)"
           >
             {buttonText === null ? (
               <span className="truncate">{placeholder}</span>
@@ -473,7 +473,7 @@ function Combobox(props: ComboboxProps) {
                 { suppressRefError: true }
               )}
               data-slot="combobox-input"
-              className="h-full min-w-0 flex-1 rounded-sm bg-transparent text-body text-ink outline-none placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+              className="h-full min-w-0 flex-1 rounded-sm bg-transparent text-body text-ink outline-none placeholder:text-ink-3 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-1 focus-visible:outline-ring"
             />
           </div>
           <ScrollArea label={searchPlaceholder} className="max-h-80 pt-1">

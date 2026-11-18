@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/lib/dates';
 type Tokens = {
     input: number;
     output: number;
@@ -50,14 +51,7 @@ export function secondsWords(milliseconds: number): string {
  * spans a year: "12 Nov 2026, 14:03".
  */
 export function whenWords(iso: string, zone: string): string {
-    return new Intl.DateTimeFormat([], {
-        timeZone: zone,
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(iso));
+    return formatDateTime(iso, zone);
 }
 
 /**

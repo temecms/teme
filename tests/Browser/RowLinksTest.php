@@ -210,3 +210,12 @@ it('passes axe with every row\'s line shown, every target 24 pixels or more, in 
     expect($targets['small'])->toBe([])
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
+
+it('shows each row\'s actions without hovering in the lists that draw them as links, People and Types among them (#532)', function (string $path): void {
+    $admin = User::factory()->create(['name' => 'Ada Admin'])->assignRole('administrator');
+
+    $page = cmNavigate(cmSignIn($admin), $path);
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"row-links\"]') !== null")
+        ->assertScript("[...document.querySelectorAll('[data-test=\"row-links\"]')].every((line) => getComputedStyle(line).opacity === '1')");
+})->with(['/admin/users', '/admin/types']);

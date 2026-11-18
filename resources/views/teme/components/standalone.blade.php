@@ -1,4 +1,4 @@
-{{-- The one card the pages outside the admin's app draw, the error pages and the holding page: the admin's tokens as plain CSS, and nothing loaded. --}}
+{{-- The one card the pages outside the admin's app draw, the error pages and the holding page: the admin's tokens as plain CSS, and nothing loaded but its fonts. --}}
 @props(['title', 'holding' => false, 'error' => null, 'refreshSeconds' => null, 'brand' => ['name' => null, 'mark' => null]])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -10,6 +10,9 @@
     <meta http-equiv="refresh" content="{{ $refreshSeconds }}">
 @endif
     <title>{{ $title }}</title>
+@if (($fonts = app(\App\Http\Standalone\StandaloneStyle::class)->fonts()) !== null)
+    <link rel="stylesheet" href="{{ $fonts }}" data-fonts>
+@endif
     <style>{!! app(\App\Http\Standalone\StandaloneStyle::class)->tokens() !!}
         :root { color-scheme: light dark; }
 

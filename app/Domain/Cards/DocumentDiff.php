@@ -290,11 +290,26 @@ final readonly class DocumentDiff
             }
         }
 
-        return implode('', array_map(fn (array $run): string => match ($run[0]) {
-            Differ::ADDED => '<ins>'.$run[1].'</ins>',
-            Differ::REMOVED => '<del>'.$run[1].'</del>',
-            default => $run[1],
-        }, $runs));
+        $html = '';
+        $previous = null;
+
+        foreach ($runs as [$type, $words]) {
+            // A removed run and the added one beside it are two sets of
+            // words, so a space parts them as the text had one between.
+            if ($previous !== null && $previous[0] !== Differ::OLD && $type !== Differ::OLD
+                && preg_match('/\s$/u', $previous[1]) !== 1 && preg_match('/^\s/u', $words) !== 1) {
+                $html .= ' ';
+            }
+
+            $html .= match ($type) {
+                Differ::ADDED => '<ins>'.$words.'</ins>',
+                Differ::REMOVED => '<del>'.$words.'</del>',
+                default => $words,
+            };
+            $previous = [$type, $words];
+        }
+
+        return $html;
     }
 
     /**

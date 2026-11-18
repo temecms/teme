@@ -14,6 +14,7 @@ import type {
     RegionState,
     RegionsIndexPage,
 } from '@/types';
+import { formatDateTime } from '@/lib/dates';
 
 const STATES: Record<RegionState, string> = {
     empty: 'Empty',
@@ -23,12 +24,7 @@ const STATES: Record<RegionState, string> = {
 };
 
 function edited(at: string | null): string {
-    return at === null
-        ? '—'
-        : new Date(at).toLocaleString([], {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-          });
+    return at === null ? '—' : formatDateTime(at);
 }
 
 /**

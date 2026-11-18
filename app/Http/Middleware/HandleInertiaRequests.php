@@ -81,6 +81,8 @@ final class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => $this->settings->string('general', 'site_title'),
+            // Every date the admin writes is on this clock, not the browser's (issue 530).
+            'siteTimezone' => $this->settings->string('general', 'timezone'),
             'auth' => [
                 'user' => $this->currentUser->find($userId),
             ],

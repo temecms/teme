@@ -35,10 +35,10 @@ beforeEach(function (): void {
     $this->one = ['composeId' => 'cmp-teme', 'appName' => 'teme-abc123', 'serverId' => null, 'env' => "TEME_IMAGE=ghcr.io/temecms/teme:0.1.0\n", 'composeFile' => "services: {}\n", 'sourceType' => 'raw'];
 });
 
-it('says the key is missing, and where to make one, before any key is pasted', function (): void {
+it('says the key is missing on Settings › Updates itself, pointing to the field below rather than to the page it is on (#534)', function (): void {
     ($this->pass)();
 
-    expect(($this->notice)())->toBe('Teme has no Dokploy API key. Paste one in Settings › Updates.');
+    expect(($this->notice)())->toBe('Updating from Tools › Updates needs a Dokploy API key. Paste it below.');
     Http::assertNothingSent();
 });
 

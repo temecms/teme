@@ -59,7 +59,12 @@ export function SettingsField({
         >
             {field.label}
             {field.required && (
-                <span className="text-ink-3 font-normal">{__('Required')}</span>
+                <>
+                    {' '}
+                    <span className="text-ink-3 font-normal">
+                        {__('Required')}
+                    </span>
+                </>
             )}
         </Label>
     );

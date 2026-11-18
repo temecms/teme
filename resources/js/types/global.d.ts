@@ -36,6 +36,8 @@ declare module '@inertiajs/core' {
             sidebarOpen: boolean;
             /** The admin's words (@/lib/i18n), sent once a visit and remembered after. */
             i18n: Words;
+            /** The site's zone, as an IANA name: every date the admin writes is on its clock (@/lib/dates). */
+            siteTimezone: string;
             [key: string]: unknown;
         };
     }
