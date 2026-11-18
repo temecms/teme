@@ -26,8 +26,10 @@ use Illuminate\Support\Facades\View;
  * preview link, exactly as the published page would look: the same theme,
  * template and document shell, with a bar above it saying what it is. It
  * asks the domain for the link, records the view, and renders through
- * PublicPage. A bad, expired or revoked token is a 404, never a 403, which
- * would confirm the link once existed. A preview is never indexed or cached.
+ * PublicPage. A bad, expired or revoked token gets one and the same 404
+ * page, the "Link expired" card, never a 403 and never different words for
+ * different causes, which would confirm the link once existed. A preview,
+ * and that card, is never indexed or cached, and its view is not recorded.
  */
 final class PreviewController extends Controller
 {
@@ -41,7 +43,9 @@ final class PreviewController extends Controller
 
         $preview = $links->resolve($token);
 
-        abort_if($preview === null, 404);
+        if ($preview === null) {
+            return $this->expired();
+        }
 
         // Recorded so the writer can see the link was opened. Not a login:
         // nothing about the viewer is known or stored.
@@ -61,6 +65,20 @@ final class PreviewController extends Controller
         $response = PublicPage::render(new ViewIntent('single', type: $page->type, template: $page->template), $page);
 
         // Shared by hand, so search engines never list it, and never kept by a cache.
+        $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        $response->headers->set('Cache-Control', 'no-store, private');
+
+        return $response;
+    }
+
+    /**
+     * The one answer for a token that does not open: the standalone card
+     * saying the link has expired, with the same headers as a preview.
+     */
+    private function expired(): Response
+    {
+        $response = response()->view('errors.preview-expired', status: 404);
+
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         $response->headers->set('Cache-Control', 'no-store, private');
 
