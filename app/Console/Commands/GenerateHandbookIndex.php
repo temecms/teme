@@ -51,6 +51,7 @@ final class GenerateHandbookIndex extends Command
         'plugins/notices.md',
         'plugins/admin-area.md',
         'plugins/editor-panels.md',
+        'plugins/seo.md',
         'themes/languages.md',
         'outside/management-api.md',
     ];

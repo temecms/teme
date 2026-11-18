@@ -36,12 +36,18 @@ use Teme\Contracts\Content\QueuePage;
 use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
+use Teme\Contracts\Editor\CheckedItem;
+use Teme\Contracts\Editor\CheckResult;
 use Teme\Contracts\Editor\EditorPanel;
 use Teme\Contracts\Editor\EditorPanelContext;
+use Teme\Contracts\Editor\HasEditorChecks;
 use Teme\Contracts\Editor\HasEditorPanels;
 use Teme\Contracts\Editor\PanelView;
 use Teme\Contracts\Editor\SuggestedChange;
 use Teme\Contracts\Editor\Suggestion;
+use Teme\Contracts\Head\HasHeadMeta;
+use Teme\Contracts\Head\HeadMeta;
+use Teme\Contracts\Head\HeadPage;
 use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Http\AnswerTooLarge;
 use Teme\Contracts\Http\HostRefused;
@@ -73,9 +79,18 @@ use Teme\Contracts\People\PersonRef;
 use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\PluginSettingsWriter;
 use Teme\Contracts\Site\SiteInfo;
+use Teme\Contracts\Sitemaps\HasSitemaps;
+use Teme\Contracts\Sitemaps\PluginSitemap;
+use Teme\Contracts\Sitemaps\SitemapEntry;
 use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck;
 use Teme\Contracts\Status\StatusNotice;
+use Teme\Contracts\StructuredData\FaqCard;
+use Teme\Contracts\StructuredData\FaqPair;
+use Teme\Contracts\StructuredData\GraphNode;
+use Teme\Contracts\StructuredData\HasStructuredData;
+use Teme\Contracts\StructuredData\Step;
+use Teme\Contracts\StructuredData\StepsCard;
 
 it('gives every new contract its @since and nothing from a framework', function (string $class, string $since, array $later = []): void {
     $reflection = new ReflectionClass($class);
@@ -186,6 +201,21 @@ it('gives every new contract its @since and nothing from a framework', function 
     [PanelView::class, '1.0.0'],
     [Suggestion::class, '1.0.0'],
     [SuggestedChange::class, '1.0.0'],
+    [HasEditorChecks::class, '1.1.0'],
+    [CheckedItem::class, '1.1.0'],
+    [CheckResult::class, '1.1.0'],
+    [HeadPage::class, '1.1.0'],
+    [HasHeadMeta::class, '1.1.0'],
+    [HeadMeta::class, '1.1.0'],
+    [HasStructuredData::class, '1.1.0'],
+    [GraphNode::class, '1.1.0'],
+    [FaqCard::class, '1.1.0'],
+    [FaqPair::class, '1.1.0'],
+    [StepsCard::class, '1.1.0'],
+    [Step::class, '1.1.0'],
+    [HasSitemaps::class, '1.1.0'],
+    [PluginSitemap::class, '1.1.0'],
+    [SitemapEntry::class, '1.1.0'],
 ]);
 
 it('does not accept a language on ItemChanges or via on publish and schedule inputs', function (): void {
@@ -213,6 +243,8 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'people.read',
         'notices.send',
         'content.links',
+        'pages.head',
+        'sitemaps',
     ]);
 });
 

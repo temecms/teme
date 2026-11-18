@@ -189,6 +189,20 @@ it('finishes the links in an Imported content card’s markup (I-329)', function
         ->and($done[0]['attrs']['markup'][0]['children'][1])->toBe(['text' => ' and on']);
 });
 
+it('finishes the links inside a card’s rich text, an FAQ answer and a step alike', function (): void {
+    $prose = fn (): array => ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [
+        ['type' => 'text', 'text' => 'later', 'marks' => [['type' => 'link', 'attrs' => ['href' => '/later-story/']]]],
+    ]]]];
+    $faq = ['type' => 'faq', 'attrs' => ['id' => '01K5Z0F1ED0000000000000FAQ', 'items' => [['id' => '01K5Z0F1ED00000000000000Q1', 'question' => 'Where?', 'answer' => $prose()]]]];
+    $steps = ['type' => 'steps', 'attrs' => ['id' => '01K5Z0F1ED00000000000STEPS', 'steps' => [['id' => '01K5Z0F1ED00000000000000S1', 'title' => 'Go', 'body' => $prose(), 'mediaId' => null]]]];
+
+    $done = SecondPassDocument::relink([$faq, $steps], ['/later-story/' => 'teme:content/01k5z0f1ed0000000000000abc']);
+
+    expect($done[0]['attrs']['items'][0]['answer']['content'][0]['content'][0]['marks'][0]['attrs']['href'])->toBe('teme:content/01k5z0f1ed0000000000000abc')
+        ->and($done[1]['attrs']['steps'][0]['body']['content'][0]['content'][0]['marks'][0]['attrs']['href'])->toBe('teme:content/01k5z0f1ed0000000000000abc')
+        ->and($done[0]['attrs']['items'][0]['question'])->toBe('Where?');
+});
+
 it('makes node IDs the schema accepts, the same for the same seed', function (): void {
     expect(preg_match(DocumentSchema::NODE_ID, SecondPassDocument::nodeId('item:A:2')))->toBe(1)
         ->and(SecondPassDocument::nodeId('item:A:2'))->toBe(SecondPassDocument::nodeId('item:A:2'))

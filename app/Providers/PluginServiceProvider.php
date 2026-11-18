@@ -22,7 +22,11 @@ use App\Domain\Plugins\Seams\DispatcherSubscriptions;
 use App\Domain\Plugins\Seams\HookSubscriptions;
 use App\Domain\Plugins\Seams\PluginContributions;
 use App\Domain\Plugins\Seams\PluginServices;
+use App\Domain\Plugins\Seo\PluginHead;
+use App\Domain\Plugins\Seo\PluginSitemaps;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
+use App\Domain\Site\Document\DocumentMeta;
+use App\Domain\Sitemaps\SitemapProvider;
 use App\Domain\Status\Checks\PluginsRunning;
 use App\Domain\Status\StatusChecks;
 use Illuminate\Support\ServiceProvider;
@@ -57,6 +61,10 @@ final class PluginServiceProvider extends ServiceProvider
         $this->app->bind(StatusFaults::class, RecordedStatusFaults::class);
 
         $this->app->tag([PluginJobKind::class], JobKinds::TAG);
+
+        // Plugins' head tags, structured data and sitemaps (docs/guides/developers/plugins/seo.md).
+        $this->app->tag([PluginHead::class], DocumentMeta::CONTRIBUTORS);
+        $this->app->tag([PluginSitemaps::class], SitemapProvider::TAG);
     }
 
     public function boot(): void

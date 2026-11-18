@@ -41,6 +41,7 @@ import type {
 } from '@/types';
 import { CardInspector } from './rail/card-inspector';
 import type { CheckId, CoreCheck } from './rail/checks';
+import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
 import { ChecksPanel } from './rail/checks-panel';
 import { PublishPanel } from './rail/publish-panel';
 import type { Visibility, VisibilityRefusal } from './rail/publish-panel';
@@ -693,6 +694,8 @@ export function EditorRail({
     checks,
     onGoToCheck,
     onGoToSearch,
+    pluginChecks,
+    onGoToPlugin,
     chosenTerms,
     onTermsChange,
     primaryCategory,
@@ -737,6 +740,9 @@ export function EditorRail({
     onGoToCheck: (check: CheckId) => void;
     /** Goes to Search and social under the text; undefined for a theme's region, which has none. */
     onGoToSearch?: () => void;
+    /** The plugins' checks, after core's (docs/guides/developers/plugins/seo.md). */
+    pluginChecks?: PluginCheckGroup[];
+    onGoToPlugin?: (code: string, result: PluginCheckResult) => void;
     chosenTerms: ChosenTerm[];
     onTermsChange: (next: ChosenTerm[]) => void;
     /** The primary category's choice, drawn under the first hierarchical taxonomy (I-881). */
@@ -866,6 +872,8 @@ export function EditorRail({
                 onGoTo={onGoToCheck}
                 onGoToSearch={onGoToSearch}
                 noun={noun}
+                pluginChecks={pluginChecks}
+                onGoToPlugin={onGoToPlugin}
             />
             {session.can.delete && typeSegment !== null && (
                 <div className="border-line mt-auto border-t px-4 py-4">

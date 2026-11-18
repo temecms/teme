@@ -23,6 +23,8 @@ export default defineConfig({
                 'resources/css/cards/video.css',
                 'resources/css/cards/imported.css',
                 'resources/css/cards/featured-posts.css',
+                'resources/css/cards/faq.css',
+                'resources/css/cards/steps.css',
             ],
             refresh: true,
         }),

@@ -63,6 +63,11 @@ final class DocumentNormaliser
 
         if (isset($node['attrs']) && is_array($node['attrs'])) {
             $node['attrs'] = $this->unrepeated($this->attributes((string) $type, $node['attrs']), (string) $type);
+
+            // A card's rich text, such as an FAQ's answers, keeps to the body's rules (CardProse).
+            if ($type !== 'doc' && ! in_array($type, DocumentSchema::NODES, true)) {
+                $node['attrs'] = $this->prose($node['attrs']);
+            }
         }
 
         if (isset($node['marks']) && is_array($node['marks'])) {
@@ -78,6 +83,29 @@ final class DocumentNormaliser
         }
 
         return $node;
+    }
+
+    /**
+     * A card's attributes with each piece of rich text inside them
+     * repaired as the body is, at any depth.
+     *
+     * @param  array<mixed>  $value
+     *
+     * @return array<mixed>
+     */
+    private function prose(array $value): array
+    {
+        if (($value['type'] ?? null) === 'doc' && is_array($value['content'] ?? null)) {
+            return $this->node($value);
+        }
+
+        foreach ($value as $key => $inner) {
+            if (is_array($inner)) {
+                $value[$key] = $this->prose($inner);
+            }
+        }
+
+        return $value;
     }
 
     /**

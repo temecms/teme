@@ -41,7 +41,7 @@ Use headings in order: **Heading 2** for sections, **Heading 3** inside them. Th
 
 ## To add a card
 
-A card is a block that is more than text. Insert one with **Insert** on the toolbar, or from the slash menu. Each card has its own settings when you select it. There are nine kinds, and two more for a theme's regions; the [cards reference](../../reference/cards.md) lists exactly what each holds.
+A card is a block that is more than text. Insert one with **Insert** on the toolbar, or from the slash menu. Each card has its own settings when you select it. There are eleven kinds, and two more for a theme's regions; the [cards reference](../../reference/cards.md) lists exactly what each holds.
 
 - **Image**: one picture, with a caption and credit, and alt text for this use.
 - **Gallery**: two to twenty-four images shown together, with one caption.
@@ -51,6 +51,8 @@ A card is a block that is more than text. Insert one with **Insert** on the tool
 - **Button**: a call to action that leads to another item or to an address elsewhere.
 - **Audio**: a sound file from the library, played in the page, with a caption and a transcript.
 - **Video**: a video file from the library, played in the page, with a poster, a caption and caption tracks.
+- **FAQ**: questions and their answers. On the page each question opens its answer; its questions take the heading level below the heading before the card.
+- **Steps**: how to do something, as numbered steps, each with a title, its text and an optional image, after an optional summary, the total time and what it needs.
 - **Imported content**: markup the importer could not turn into cards, kept as it came. Only an import adds one; you can read it, move it or delete it.
 
 Two cards go only in a theme's region, under **Content › Regions**, and only in a region whose theme lists them:

@@ -12,7 +12,7 @@ uses(RefreshDatabase::class);
 
 /*
  * Anonymized samples from the fresh-site reports (import v1 fixes): each
- * converts as the import already must — FAQ as headings and paragraphs,
+ * converts as the import already must — FAQ blocks as the FAQ card,
  * tables of contents dropped with a report line, Canvas flattened,
  * WPBakery and tagDiv unwrapped, a registered app-store shortcode kept as
  * Imported content, [State] kept as text — and fidelity counts no loss for
@@ -27,17 +27,17 @@ it('converts anonymized real-markup samples as the import must', function (): vo
     $yoastFaq = $load('yoast-faq');
     $yoast = WordPressContent::convert($yoastFaq['blocks']);
     wpAccepted($yoast->document);
-    expect(array_column($yoast->document['content'], 'type'))->toBe(['heading', 'paragraph'])
-        ->and($yoast->document['content'][0]['content'][0]['text'])->toBe('Is it free?')
-        ->and($yoast->document['content'][1]['content'][0]['text'])->toBe('Yes, always.')
+    expect(array_column($yoast->document['content'], 'type'))->toBe(['faq'])
+        ->and($yoast->document['content'][0]['attrs']['items'][0]['question'])->toBe('Is it free?')
+        ->and($yoast->document['content'][0]['attrs']['items'][0]['answer']['content'][0]['content'][0]['text'])->toBe('Yes, always.')
         ->and(Fidelity::compare($yoastFaq['wordpress_html'], app(DocumentRenderer::class)->html($yoast->document))->lost)->toBe(0);
 
     $rankFaq = $load('rank-math-faq');
     $rank = WordPressContent::convert($rankFaq['blocks']);
     wpAccepted($rank->document);
-    expect(array_column($rank->document['content'], 'type'))->toBe(['heading', 'paragraph'])
-        ->and($rank->document['content'][0]['content'][0]['text'])->toBe('How long?')
-        ->and($rank->document['content'][1]['content'][0]['text'])->toBe('Two days.')
+    expect(array_column($rank->document['content'], 'type'))->toBe(['faq'])
+        ->and($rank->document['content'][0]['attrs']['items'][0]['question'])->toBe('How long?')
+        ->and($rank->document['content'][0]['attrs']['items'][0]['answer']['content'][0]['content'][0]['text'])->toBe('Two days.')
         ->and(Fidelity::compare($rankFaq['wordpress_html'], app(DocumentRenderer::class)->html($rank->document))->lost)->toBe(0);
 
     $simpletoc = $load('simpletoc');

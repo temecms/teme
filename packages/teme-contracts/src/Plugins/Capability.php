@@ -24,7 +24,9 @@ namespace Teme\Contracts\Plugins;
  * (1.0.0). PeopleRead opens the door that names the people who write on the
  * site. NoticesSend opens the Notices door, for the kinds of notice the
  * plugin declares, and ContentLinks the hook that sets attributes on the
- * links an article draws.
+ * links an article draws. PagesHead lets the plugin add `<meta>` tags and
+ * structured data to public pages' heads, and Sitemaps its own sitemaps to
+ * the site's sitemap index, those its manifest declares (1.1.0).
  *
  * @since 0.5.0
  */
@@ -80,4 +82,10 @@ enum Capability: string
 
     /** @since 1.0.0 */
     case ContentLinks = 'content.links';
+
+    /** @since 1.1.0 */
+    case PagesHead = 'pages.head';
+
+    /** @since 1.1.0 */
+    case Sitemaps = 'sitemaps';
 }

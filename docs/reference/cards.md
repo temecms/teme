@@ -183,3 +183,33 @@ Since 1.0.0. Registered by `core`.
 
 Refers to: nothing.
 
+## `faq` — FAQ
+
+Questions and their answers. Each question opens its answer.
+
+Since 1.1.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `items` | required, array, list, min:1, max:50 | — |
+
+Refers to: nothing.
+
+## `steps` — Steps
+
+Numbered steps for how to do something, with the time it takes and what it needs.
+
+Since 1.1.0. Registered by `core`.
+
+| Attribute | Rules | Default |
+|---|---|---|
+| `id` | required, string, regex:/^[0-9A-HJKMNP-TV-Z]{26}$/ | — |
+| `summary` | nullable, string, max:1000 | — |
+| `totalTime` | nullable, string, regex:/^P(?=\d\|T\d)(?:(\d{1,3})D)?(?:T(?=\d)(?:(\d{1,4})H)?(?:(\d{1,5})M)?)?$/ | — |
+| `materials` | array, list, max:30 | `[]` |
+| `tools` | array, list, max:30 | `[]` |
+| `steps` | required, array, list, min:1, max:50 | — |
+
+Refers to: nothing.
+

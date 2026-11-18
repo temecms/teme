@@ -9,7 +9,7 @@ uses(RefreshDatabase::class);
 
 /*
  * Embeds, buttons and FAQ blocks (I-335): Teme's Embed and
- * Button cards, and FAQ blocks as headings and paragraphs.
+ * Button cards, and FAQ blocks as the FAQ card.
  */
 
 beforeEach(function (): void {
@@ -89,21 +89,39 @@ it('keeps a button with no address, or a label too long for the card, as a parag
     ]);
 });
 
-it('converts Yoast\'s FAQ block to questions and answers', function (): void {
-    [$content] = ($this->convert)([wpBlock('yoast/faq-block', '<div class="schema-faq wp-block-yoast-faq-block"><div class="schema-faq-section" id="faq-question-1"><strong class="schema-faq-question">Is it <em>free</em>?</strong> <p class="schema-faq-answer">Yes, always.</p> </div><div class="schema-faq-section" id="faq-question-2"><strong class="schema-faq-question">Where?</strong> <p class="schema-faq-answer">Online.</p> </div></div>')]);
+it('converts Yoast\'s FAQ block to the FAQ card', function (): void {
+    [$content] = ($this->convert)([wpBlock('yoast/faq-block', '<div class="schema-faq wp-block-yoast-faq-block"><div class="schema-faq-section" id="faq-question-1"><strong class="schema-faq-question">Is it <em>free</em>?</strong> <p class="schema-faq-answer">Yes, <strong>always</strong>.</p> </div><div class="schema-faq-section" id="faq-question-2"><strong class="schema-faq-question">Where?</strong> <p class="schema-faq-answer">Online.</p> </div></div>')]);
 
-    expect($content)->toBe([
-        ($this->h3)(['type' => 'text', 'text' => 'Is it '], ['type' => 'text', 'text' => 'free', 'marks' => [['type' => 'italic']]], ['type' => 'text', 'text' => '?']),
-        ($this->p)('Yes, always.'),
-        ($this->h3)(['type' => 'text', 'text' => 'Where?']),
-        ($this->p)('Online.'),
-    ]);
+    expect($content)->toBe([['type' => 'faq', 'attrs' => ['items' => [
+        ['question' => 'Is it free?', 'answer' => ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [
+            ['type' => 'text', 'text' => 'Yes, '],
+            ['type' => 'text', 'text' => 'always', 'marks' => [['type' => 'bold']]],
+            ['type' => 'text', 'text' => '.'],
+        ]]]]],
+        ['question' => 'Where?', 'answer' => ['type' => 'doc', 'content' => [($this->p)('Online.')]]],
+    ]]]]);
 });
 
-it('converts Rank Math\'s FAQ block to questions and answers', function (): void {
+it('converts Rank Math\'s FAQ block to the FAQ card', function (): void {
     [$content] = ($this->convert)([wpBlock('rank-math/faq-block', '<div id="rank-math-faq" class="rank-math-block"><div class="rank-math-list "><div id="faq-question-1" class="rank-math-list-item"><h3 class="rank-math-question ">How long?</h3><div class="rank-math-answer "><p>Two days.</p><p>Sometimes three.</p></div></div></div></div>')]);
 
-    expect($content)->toBe([($this->h3)(['type' => 'text', 'text' => 'How long?']), ($this->p)('Two days.'), ($this->p)('Sometimes three.')]);
+    expect($content)->toBe([['type' => 'faq', 'attrs' => ['items' => [
+        ['question' => 'How long?', 'answer' => ['type' => 'doc', 'content' => [($this->p)('Two days.'), ($this->p)('Sometimes three.')]]],
+    ]]]]);
+});
+
+it('keeps an FAQ block as headings and paragraphs when an answer holds more than text', function (): void {
+    [$content] = ($this->convert)([wpBlock('rank-math/faq-block', '<div class="rank-math-list"><div class="rank-math-list-item"><h3 class="rank-math-question">Prices?</h3><div class="rank-math-answer"><table><tbody><tr><td>One</td></tr></tbody></table></div></div></div>')]);
+
+    expect(array_column($content, 'type'))->toBe(['heading', 'table'])
+        ->and($content[0])->toBe(($this->h3)(['type' => 'text', 'text' => 'Prices?']));
+});
+
+it('keeps an FAQ block as headings and paragraphs when a question has no answer, so the item still imports', function (): void {
+    [$content] = ($this->convert)([wpBlock('yoast/faq-block', '<div class="schema-faq wp-block-yoast-faq-block"><div class="schema-faq-section"><strong class="schema-faq-question">Asked?</strong> <p class="schema-faq-answer"></p> </div><div class="schema-faq-section"><strong class="schema-faq-question">Where?</strong> <p class="schema-faq-answer">Online.</p> </div></div>')]);
+
+    expect(array_column($content, 'type'))->not->toContain('faq')
+        ->and($content[0])->toBe(($this->h3)(['type' => 'text', 'text' => 'Asked?']));
 });
 
 it('reads a FAQ block with no questions as any HTML', function (): void {

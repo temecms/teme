@@ -1,0 +1,6 @@
+{"type":"doc","content":[
+  {"type":"steps","attrs":{"id":"01K9F0A0000000000000000ST1","summary":"Brew a pot of tea.","totalTime":"PT10M","materials":["Loose tea","Water"],"tools":["Teapot"],"steps":[
+    {"id":"01K9F0A0000000000000000S01","title":"Boil the water","body":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Fresh water, just off the boil."}]}]},"mediaId":null},
+    {"id":"01K9F0A0000000000000000S02","title":"Steep","body":{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Three to five minutes."}]}]},"mediaId":null}
+  ]}}
+]}

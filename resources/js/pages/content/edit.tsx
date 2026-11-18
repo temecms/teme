@@ -62,6 +62,8 @@ import { useCardMedia } from '@/components/editor/use-card-media';
 import { useLinkedContent } from '@/components/editor/use-linked-content';
 import { useSearchPreview } from '@/components/editor/use-search-preview';
 import { useStructuredData } from '@/components/editor/use-structured-data';
+import { usePluginChecks } from '@/components/editor/use-plugin-checks';
+import { pluginFieldId } from '@/components/editor/search-social/plugin-tab';
 import InputError from '@/components/input-error';
 import { PageHeader } from '@/components/list/page-header';
 import { EditorPage } from '@/components/patterns/editor-page';
@@ -91,6 +93,7 @@ import type {
     EditorPerson,
     EditorReview,
     EditorSchedule,
+    PluginCheckResult,
 } from '@/types';
 
 /** The field of this type with the given handle, when the type has it. */
@@ -403,6 +406,12 @@ export default function ContentEdit(page: ContentEditPage) {
     }, [saving.savedAt, saving.state, workingRevisionId]);
 
     const structured = useStructuredData(session.id, revision);
+    // The plugins' checks follow the same revision, never the typing (docs/guides/developers/plugins/seo.md).
+    const pluginChecks = usePluginChecks(
+        session.id,
+        revision,
+        themeRegion === null,
+    );
 
     // Someone reading without typing still learns who else is here; an ended
     // session shows as signed out and never replaces the editor.
@@ -937,6 +946,41 @@ export default function ContentEdit(page: ContentEditPage) {
     // Each check puts the cursor on its problem: the field, the first link
     // to an unreachable article, or the first card with an image that has no
     // alt text, which opens its inspector.
+    // A plugin's check puts the cursor on the field it names: one of the
+    // plugin's own in its Search and social tab, or one of the item's.
+    const goToPlugin = (code: string, result: PluginCheckResult) => {
+        const own = page.searchTabs.find((each) => each.code === code);
+
+        if (result.ownField !== null && own !== undefined) {
+            flushSync(() => {
+                setSearchOpen(true);
+                setSearchTab(own.key);
+            });
+            document
+                .getElementById(pluginFieldId(own.key, result.ownField))
+                ?.focus();
+
+            return;
+        }
+
+        const searchFields: Record<string, string> = {
+            seo_title: 'editor-seo-title',
+            meta_description: 'editor-seo-description',
+        };
+
+        if (result.field === 'title' || result.field === 'excerpt') {
+            goToCheck(result.field);
+        } else if (result.field !== null && result.field in searchFields) {
+            flushSync(() => {
+                setSearchOpen(true);
+                setSearchTab('search');
+            });
+            document.getElementById(searchFields[result.field])?.focus();
+        } else if (result.field !== null) {
+            document.getElementById(`editor-field-${result.field}`)?.focus();
+        }
+    };
+
     const goToCheck = (check: CheckId) => {
         if (check === 'title') {
             document.getElementById('editor-title')?.focus();
@@ -1321,6 +1365,8 @@ export default function ContentEdit(page: ContentEditPage) {
                             notice={notice}
                             checks={search.checks}
                             onGoToCheck={goToCheck}
+                            pluginChecks={pluginChecks}
+                            onGoToPlugin={goToPlugin}
                             onGoToSearch={
                                 themeRegion === null ? goToSearch : undefined
                             }
@@ -1528,6 +1574,9 @@ export default function ContentEdit(page: ContentEditPage) {
                             onGoToChecks={focus ? null : goToChecks}
                             tab={searchTab}
                             onTabChange={setSearchTab}
+                            pluginTabs={page.searchTabs}
+                            pluginChecks={pluginChecks}
+                            onGoToPlugin={goToPlugin}
                         />
                     )}
                 </FieldControlContext.Provider>

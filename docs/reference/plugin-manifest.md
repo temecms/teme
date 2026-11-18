@@ -15,7 +15,7 @@
 | `requires.teme` | string | yes | The Teme versions it works with, as a Composer constraint. |  |
 | `requires.plugins` | object | no | Other plugins it needs enabled, by Composer name, each with the versions it works with as a Composer constraint. |  |
 | `plugin` | string | yes | The class that implements the Plugin contract. |  |
-| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links" |
+| `capabilities` | array | no | What the plugin asks to be allowed to do. | "content.read", "content.write", "media.read", "media.write", "content.insert", "http", "jobs", "routes.public", "import.wordpress", "fediverse.read", "fediverse.send", "feeds.links", "pages.insert", "ai", "people.read", "notices.send", "content.links", "pages.head", "sitemaps" |
 | `jobs` | array | no | Background jobs the plugin declares; each needs the jobs capability and a handler the plugin class answers for its key. |  |
 | `jobs[].key` | string | yes | The job's key, which the plugin queues it by: lower-case letters, digits and hyphens, starting with a letter, at most 48 characters. | ^[a-z][a-z0-9-]{0,47}$ |
 | `jobs[].label` | string | yes | The name people see for its runs, up to 80 characters. |  |
@@ -152,6 +152,31 @@
 | `contributes.editorPanels[].actions[].fields[].options` | object | no | A select's values and their labels. |  |
 | `contributes.editorPanels[].actions[].fields[].min` | number | no | A number's least value. |  |
 | `contributes.editorPanels[].actions[].fields[].max` | number | no | A number's greatest value. |  |
+| `contributes.editorChecks` | array | no | Checks core asks the plugin to run on the item being edited, drawn beside the editor's own under the plugin's name. Needs content.read. |  |
+| `contributes.editorChecks[].id` | string | yes | The check's id, which each result names. | ^[a-z][a-z0-9-]{1,23}$ |
+| `contributes.editorChecks[].label` | string | yes | The check's name in the editor, unless a result gives its own. |  |
+| `contributes.editorChecks[].types` | array | yes | The content types whose editor runs the check. |  |
+| `contributes.searchSection` | object | no | The plugin's own tab in the editor's Search and social box: fields saved with each item's revision, under the plugin's key. |  |
+| `contributes.searchSection.label` | string | yes | The tab's name. |  |
+| `contributes.searchSection.description` | string | no | One line at the top of the tab. |  |
+| `contributes.searchSection.types` | array | yes | The content types whose box shows the tab. |  |
+| `contributes.searchSection.position` | enum | no | Where the tab sits among core's; last when absent. | "after-search", "after-social", "last" |
+| `contributes.searchSection.fields` | array | yes |  |  |
+| `contributes.searchSection.fields[].key` | string | yes | The value's key under the plugin's own. | ^[a-z][a-z0-9_]{0,31}$ |
+| `contributes.searchSection.fields[].type` | enum | yes | The kind of field. | "text", "textarea", "number", "boolean", "select", "url" |
+| `contributes.searchSection.fields[].label` | string | yes | The field's label. |  |
+| `contributes.searchSection.fields[].description` | string | no | A line under the field. |  |
+| `contributes.searchSection.fields[].maxLength` | integer | no | The longest text a text or textarea field takes; 200 and 2,000 when absent. |  |
+| `contributes.searchSection.fields[].options` | object | no | A select field's options, each value and its label. |  |
+| `contributes.searchSection.fields[].min` | number | no | A number field's least value. |  |
+| `contributes.searchSection.fields[].max` | number | no | A number field's greatest value. |  |
+| `contributes.searchSection.fields[].summary` | boolean | no | Whether the field's value shows in the tab's one-line summary; the first field's does when none says. |  |
+| `contributes.sitemaps` | array | no | Sitemaps the plugin adds to the site's sitemap index, each at sitemap-plugin-{code}-{id}.xml. Needs sitemaps. |  |
+| `contributes.sitemaps[].id` | string | yes | The sitemap's id, in its address. | ^[a-z][a-z0-9-]{1,23}$ |
+| `contributes.sitemaps[].label` | string | yes | What it lists, as the consent names it. |  |
+| `contributes.structuredData` | object | no | The schema.org terms the plugin's graph nodes use beyond the graph's own list. Needs pages.head. |  |
+| `contributes.structuredData.types` | array | no | schema.org types, such as FAQPage. |  |
+| `contributes.structuredData.properties` | array | no | schema.org properties, such as acceptedAnswer. |  |
 | `contributes.notices` | array | no | Kinds of notice the plugin sends through Notices, with notices.send; never required. |  |
 | `contributes.notices[].id` | string | yes | Its id within the plugin. | ^[a-z][a-z0-9_]{1,31}$ |
 | `contributes.notices[].label` | string | yes | The choice as Account › Notifications words it. |  |

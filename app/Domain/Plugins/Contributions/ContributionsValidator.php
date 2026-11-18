@@ -10,6 +10,7 @@ use App\Domain\Plugins\Editor\PanelValidator;
 use App\Domain\Plugins\Hooks\DeclaredHooks;
 use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\Seams\ContributionsCheck;
+use App\Domain\Plugins\Seo\SeoValidator;
 use App\Domain\Settings\SettingsRegistry;
 use InvalidArgumentException;
 use Teme\Contracts\Plugins\Capability;
@@ -111,7 +112,7 @@ final class ContributionsValidator implements ContributionsCheck
                 array_push($errors, ...DeclaredNotices::errors($contributes['notices'], $permissions));
             } elseif ($surface === 'hooks') {
                 array_push($errors, ...DeclaredHooks::errors($contributes['hooks']));
-            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels'], true)) {
+            } elseif (! in_array($surface, ['csp', 'settings', 'admin', 'columns', 'feedLinks', 'actions', 'lists', 'aiTasks', 'permissions', 'area', 'settingsSections', 'editorPanels', 'editorChecks', 'searchSection', 'sitemaps', 'structuredData'], true)) {
                 $errors[] = __('Teme doesn’t offer the :surface surface to plugins yet.', ['surface' => $surface]);
             }
         }
@@ -189,6 +190,9 @@ final class ContributionsValidator implements ContributionsCheck
         if (array_key_exists('editorPanels', $contributes)) {
             $errors = [...$errors, ...app(PanelValidator::class)->errors($contributes['editorPanels'], $contributes, $capabilities)];
         }
+
+        // What it declares for search engines (docs/guides/developers/plugins/seo.md).
+        $errors = [...$errors, ...app(SeoValidator::class)->errors($contributes, $capabilities)];
 
         return $errors;
     }

@@ -9,6 +9,7 @@ use App\Domain\Import\Convert\Blocks\Dropped;
 use App\Domain\Import\Convert\Blocks\Embeds;
 use App\Domain\Import\Convert\Blocks\Faq;
 use App\Domain\Import\Convert\Blocks\Files;
+use App\Domain\Import\Convert\Blocks\HowTo;
 use App\Domain\Import\Convert\Blocks\Images;
 use App\Domain\Import\Convert\Blocks\Layout;
 use App\Domain\Import\Convert\Blocks\Lists;
@@ -42,6 +43,7 @@ final class BlockMappings
         Layout::class,
         Dropped::class,
         Faq::class,
+        HowTo::class,
         Reusable::class,
         Players::class,
         Files::class,

@@ -1,0 +1,42 @@
+/* The Steps card (StepsCard): linked only on pages that draw one. */
+.card-steps {
+    margin-block: var(--teme-space-5, 2rem);
+}
+
+.card-steps__summary,
+.card-steps__time {
+    margin-block: 0 var(--teme-space-3, 1rem);
+}
+
+.card-steps__label {
+    margin-block: 0 var(--teme-space-1, 0.25rem);
+    font-weight: 700;
+}
+
+.card-steps__materials ul,
+.card-steps__tools ul {
+    margin-block: 0 var(--teme-space-3, 1rem);
+}
+
+.card-steps__list {
+    display: grid;
+    gap: var(--teme-space-4, 1.5rem);
+    padding-inline-start: 1.5em;
+}
+
+.card-steps__step::marker {
+    font-weight: 700;
+}
+
+.card-steps__title {
+    margin: 0 0 var(--teme-space-2, 0.5rem);
+    font-size: 1.125rem;
+}
+
+.card-steps__image {
+    margin: 0 0 var(--teme-space-2, 0.5rem);
+}
+
+.card-steps__step > :last-child {
+    margin-block-end: 0;
+}

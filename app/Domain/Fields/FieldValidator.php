@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace App\Domain\Fields;
 
+use App\Domain\Plugins\Seo\PluginSearchFields;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Checks the fields submitted for one content item against the registry and
  * returns them as they are stored: known keys only, each value normalised.
- * Missing fields are not filled in — defaults resolve when read.
+ * Missing fields are not filled in — defaults resolve when read. A
+ * plugin's Search and social values are checked by PluginSearchFields.
  */
 final class FieldValidator
 {
@@ -28,6 +30,14 @@ final class FieldValidator
      */
     public function validate(string $contentType, array $fields, array $current = []): array
     {
+        // A plugin's Search and social values, one object under its key (docs/guides/developers/plugins/seo.md).
+        $plugins = app(PluginSearchFields::class)->validate(
+            $contentType,
+            array_filter($fields, PluginSearchFields::isPluginKey(...), ARRAY_FILTER_USE_KEY),
+            array_filter($current, PluginSearchFields::isPluginKey(...), ARRAY_FILTER_USE_KEY),
+        );
+        $fields = array_filter($fields, fn (string $key): bool => ! PluginSearchFields::isPluginKey($key), ARRAY_FILTER_USE_KEY);
+        $current = array_filter($current, fn (string $key): bool => ! PluginSearchFields::isPluginKey($key), ARRAY_FILTER_USE_KEY);
         $declared = [];
 
         foreach ($this->registry->forType($contentType) as $field) {
@@ -71,6 +81,6 @@ final class FieldValidator
                 : $declared[$key]->type->normalise($declared[$key], $value);
         }
 
-        return [...$stored, ...$kept];
+        return [...$stored, ...$kept, ...$plugins];
     }
 }

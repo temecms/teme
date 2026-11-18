@@ -1,0 +1,37 @@
+{
+    "manifest": 1,
+    "name": "tests/seokit",
+    "code": "seokit",
+    "label": "SEO Kit",
+    "description": "A plugin the tests enable, which checks the article being edited, keeps its own search fields, and adds head tags, structured data and a sitemap.",
+    "version": "1.0.0",
+    "requires": { "teme": "^0.5" },
+    "plugin": "Tests\\Fixtures\\Plugins\\Seokit\\Seokit",
+    "capabilities": ["content.read", "pages.head", "sitemaps"],
+    "contributes": {
+        "editorChecks": [
+            { "id": "keyphrase", "label": "Focus keyphrase", "types": ["post"] },
+            { "id": "length", "label": "Text length", "types": ["post", "page"] }
+        ],
+        "searchSection": {
+            "label": "SEO Kit",
+            "description": "What SEO Kit checks this item against.",
+            "types": ["post"],
+            "position": "after-search",
+            "fields": [
+                { "key": "focus", "type": "text", "label": "Focus keyphrase", "maxLength": 60, "summary": true },
+                { "key": "score", "type": "number", "label": "Target score", "min": 0, "max": 100 },
+                { "key": "robots", "type": "select", "label": "Robots", "options": { "index": "Index", "noindex": "Don’t index" } },
+                { "key": "cornerstone", "type": "boolean", "label": "Cornerstone content" },
+                { "key": "canonical", "type": "url", "label": "Canonical address" }
+            ]
+        },
+        "sitemaps": [
+            { "id": "news", "label": "News" }
+        ],
+        "structuredData": {
+            "types": ["FAQPage", "Question", "Answer", "HowTo", "HowToStep"],
+            "properties": ["mainEntity", "acceptedAnswer", "step", "text"]
+        }
+    }
+}

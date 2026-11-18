@@ -25,12 +25,13 @@ final class DeclaredSettings
      * A plugin that inserts content in articles, or on every page, purges
      * the pages that asked it when its settings are saved, one with root files the stored
      * "not found" pages at root-file addresses, and one that adds links to
-     * the feeds every stored feed. Throws InvalidArgumentException for a
+     * the feeds every stored feed, and one that adds head tags, structured
+     * data or sitemaps every page that asked it. Throws InvalidArgumentException for a
      * setting Teme can't build.
      *
      * @param  list<mixed>  $settings  as the manifest declares them
      */
-    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false, bool $insertsOnPages = false, bool $rootFiles = false, bool $feedLinks = false): SettingsGroup
+    public static function group(string $code, string $label, string $description, string $version, array $settings, bool $inserts = false, bool $insertsOnPages = false, bool $rootFiles = false, bool $feedLinks = false, bool $searchEngines = false): SettingsGroup
     {
         $key = "plugin.{$code}";
         $built = [];
@@ -56,6 +57,8 @@ final class DeclaredSettings
                 ...($rootFiles ? [PageTags::ROOT_FILES] : []),
                 // Its settings may name the links it adds to the feeds (docs/plans/plugin-sockets-1.md, A3).
                 ...($feedLinks ? [PageTags::FEED_LINKS] : []),
+                // Its settings may change its head tags, structured data and sitemaps (docs/guides/developers/plugins/seo.md).
+                ...($searchEngines ? ['plugin:'.$code] : []),
             ],
         );
     }
