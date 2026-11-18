@@ -187,30 +187,30 @@ export function PluginPanel({
             {panel.actions.length > 0 &&
                 answer?.failed == null &&
                 (answer?.ai ?? null) === null && (
-                <section
-                    className="grid gap-3"
-                    aria-labelledby={`${panel.tool}-ask`}
-                >
-                    <h3
-                        id={`${panel.tool}-ask`}
-                        className="text-ink font-semibold"
+                    <section
+                        className="grid gap-3"
+                        aria-labelledby={`${panel.tool}-ask`}
                     >
-                        {__('Ask')}
-                    </h3>
-                    {panel.actions.map((action) => (
-                        <PanelActionForm
-                            key={action.id}
-                            action={action}
-                            panel={panel}
-                            contentId={contentId}
-                            busy={busy}
-                            checkpoint={apply.checkpoint}
-                            onStale={apply.markStale}
-                            onAnswer={(next) => setAnswer(next)}
-                        />
-                    ))}
-                </section>
-            )}
+                        <h3
+                            id={`${panel.tool}-ask`}
+                            className="text-ink font-semibold"
+                        >
+                            {__('Ask')}
+                        </h3>
+                        {panel.actions.map((action) => (
+                            <PanelActionForm
+                                key={action.id}
+                                action={action}
+                                panel={panel}
+                                contentId={contentId}
+                                busy={busy}
+                                checkpoint={apply.checkpoint}
+                                onStale={apply.markStale}
+                                onAnswer={(next) => setAnswer(next)}
+                            />
+                        ))}
+                    </section>
+                )}
 
             {answer !== null && answer.jobs.length > 0 && (
                 <section
