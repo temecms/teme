@@ -296,13 +296,20 @@ export function PublishPanel({
                         <Row label={__('Visibility')}>
                             {canSetVisibility ? (
                                 <>
+                                    {/* The row draws no help line (4.39); screen readers still hear what the choice means. */}
+                                    <p
+                                        id="editor-visibility-meaning"
+                                        className="sr-only"
+                                    >
+                                        {visibilityMeaning}
+                                    </p>
                                     <SelectField
                                         id="editor-visibility"
                                         aria-label={__('Visibility')}
                                         aria-describedby={
                                             visibilityProblem !== null
-                                                ? 'editor-visibility-error'
-                                                : undefined
+                                                ? 'editor-visibility-meaning editor-visibility-error'
+                                                : 'editor-visibility-meaning'
                                         }
                                         options={visibilityOptions.map(
                                             (option) => ({

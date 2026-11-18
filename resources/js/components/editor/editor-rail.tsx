@@ -55,7 +55,8 @@ import type {
     RailPane,
 } from '@/types';
 import { CardInspector } from './rail/card-inspector';
-import type { RegionFacts, WritingCheck } from './rail/checks';
+import type { RegionFacts } from './rail/checks';
+import type { WritingCheck } from './rail/writing-checks';
 import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
 import { ChecksPanel, RegionChecksPanel } from './rail/checks-panel';
 import { OutlineSection } from './rail/document-panel';

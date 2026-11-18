@@ -41,8 +41,8 @@ import {
     documentChecks,
     featuredMissingAlt,
     regionFacts,
-    writingChecks,
 } from '@/components/editor/rail/checks';
+import { writingChecks } from '@/components/editor/rail/writing-checks';
 import type { CheckId } from '@/components/editor/rail/checks';
 import { AssistantProvider } from '@/components/editor/assistant/assistant-context';
 import { DocumentOverview } from '@/components/editor/rail/document-panel';
