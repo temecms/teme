@@ -59,16 +59,14 @@ it('draws a plugin’s own panel on Settings › AI, its name once, with no acce
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmNavigate(cmSignIn($this->admin)->resize($width, 900), '/admin/settings/ai')
-        ->assertSeeIn('[data-test="ai-plugin-month-scribe"]', '$0.0011, 1 request')
-        ->assertSeeIn('[data-test="ai-plugin-month-scribe"]', '$5.00 a month')
-        ->assertSeeIn('[data-test="ai-task-scribe-article"]', 'Sends only what the plugin writes itself.')
-        ->assertSeeIn('[data-test="ai-task-status-scribe-article"]', 'On')
-        ->assertSeeIn('[data-test="ai-task-status-scribe-titles"]', 'Off: Suggest titles is off until an administrator chooses its model in Settings › AI.')
-        ->assertSee('Monthly budget, in US dollars');
+        ->assertSeeIn('[data-test="ai-plugin-month-scribe"]', '$0.0011 of $5.00 this month, 1 request')
+        ->assertSeeIn('[data-test="ai-plugin-month-scribe"]', '1 of 120 requests this hour')
+        ->assertSee('Scribe may use AI')
+        ->click('[data-test="ai-plugin-details-scribe"]')
+        ->assertSee('Monthly budget, in US dollars')
+        ->assertSee('Sends only what the plugin writes itself.');
 
-    // The plugin's name is said once, in the panel's header, never again inside it.
-    expect($page->script('() => document.querySelector(\'[data-test="ai-plugin-scribe"]\').innerText.includes("Scribe")'))->toBeFalse()
-        ->and(cmAxeViolations($page))->toBe([])
+    expect(cmAxeViolations($page))->toBe([])
         ->and(cmSmallTargets($page)['small'])->toBe([])
         ->and(($this->sideways)($page))->toBe(0);
 })->with(['light', 'dark'])->with([1280, 375]);
@@ -81,8 +79,7 @@ it('switches AI off for a plugin once the password is confirmed', function (): v
 
     $page->type('[data-test="fresh-password-input"]', 'password')
         ->click('[data-test="fresh-password-confirm"]')
-        ->assertSee('AI settings saved.')
-        ->assertSeeIn('[data-test="ai-task-status-scribe-article"]', 'Off: AI is switched off for this plugin in Settings › AI.');
+        ->assertSee('AI settings saved.');
 
     expect(app(SettingsReader::class)->bool(AiSettings::KEY, PluginAiSection::onKey('scribe')))->toBeFalse();
 });

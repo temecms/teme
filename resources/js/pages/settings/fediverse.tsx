@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
 import { Switch } from '@/components/ui/switch';
 import { __, __n } from '@/lib/i18n';
+import { index as settingsIndex } from '@/routes/settings';
 import type { FieldDefinition } from '@/types';
 
 type Account = {
@@ -149,6 +150,7 @@ export default function FediverseSettings({
 
     setLayoutProps({
         breadcrumbs: [
+            { title: __('Settings'), href: settingsIndex() },
             {
                 title: __('Fediverse'),
                 href: FediverseSettingsController.show.url(),
@@ -180,7 +182,6 @@ export default function FediverseSettings({
             <SettingsPage title={__('Fediverse')} description={description}>
                 <SettingsForm
                     action={FediverseSettingsController.update.form()}
-                    saveLabel={__('Save fediverse settings')}
                     what={__(':page settings', { page: __('Fediverse') })}
                     onDirtyChange={setUnsaved}
                 >

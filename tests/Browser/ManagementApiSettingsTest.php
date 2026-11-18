@@ -45,10 +45,10 @@ beforeEach(function (): void {
 
 it('turns the API on, makes a key whose secret is shown once with Copy, and revokes it', function (): void {
     $page = ($this->signInConfirmed)()->navigate('/admin/settings/management_api');
-    ($this->seen)($page, 'Keys');
+    ($this->seen)($page, 'Tokens');
 
     $page->click('[data-test="management-api-switch"]');
-    ($this->seen)($page, 'The management API is on. Outside tools can sign in with a key.');
+    ($this->seen)($page, 'The management API is on. Outside tools can sign in with a token.');
 
     expect(ManageApiSettings::on())->toBeTrue();
 
@@ -84,7 +84,7 @@ it('turns the API on, makes a key whose secret is shown once with Copy, and revo
 
     ($this->seen)($page, 'Revoke “Importer”?');
     $page->click('[role="dialog"] >> text="Revoke key"');
-    ($this->seen)($page, 'Key revoked. Tools using it are refused from now on.');
+    ($this->seen)($page, 'Token revoked. Tools using it are refused from now on.');
 
     expect(DB::table('api_keys')->whereNotNull('revoked_at')->count())->toBe(1);
 });

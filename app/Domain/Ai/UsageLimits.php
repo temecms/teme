@@ -37,9 +37,9 @@ final class UsageLimits implements AiSettingsSection
     {
         return [
             Setting::number(self::HOURLY, 'Requests an hour, per person', 'How many times one person may ask AI for a suggestion in an hour.', '0.1.0')
-                ->default(60)->min(1)->max(1000),
+                ->default(60)->min(1)->max(1000)->unit('requests')->required(),
             Setting::number(self::BUDGET, 'Monthly budget, in US dollars', 'When this month’s recorded cost reaches it, AI is unavailable to everyone until the month ends. Requests already running may pass it a little. 0 means no budget.', '0.1.0')
-                ->default(0)->min(0)->max(1_000_000),
+                ->default(0)->min(0)->max(1_000_000)->unit('US dollars'),
         ];
     }
 

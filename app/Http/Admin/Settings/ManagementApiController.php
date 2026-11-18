@@ -56,8 +56,8 @@ final class ManagementApiController extends Controller
 
         $message = match (true) {
             ! array_key_exists(ManageApiSettings::ENABLED, $values) => __('Management API settings saved.'),
-            (bool) $values[ManageApiSettings::ENABLED] => __('The management API is on. Outside tools can sign in with a key.'),
-            default => __('The management API is off. Every key is refused until you turn it back on.'),
+            (bool) $values[ManageApiSettings::ENABLED] => __('The management API is on. Outside tools can sign in with a token.'),
+            default => __('The management API is off. Every token is refused until you turn it back on.'),
         };
 
         Inertia::flash('toast', ['type' => 'success', 'message' => $message]);
@@ -84,7 +84,7 @@ final class ManagementApiController extends Controller
     {
         $revoke->execute(new RevokeApiKeyInput($key, (string) $request->user()?->getAuthIdentifier()));
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Key revoked. Tools using it are refused from now on.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Token revoked. Tools using it are refused from now on.')]);
 
         return to_route('settings.management-api');
     }
