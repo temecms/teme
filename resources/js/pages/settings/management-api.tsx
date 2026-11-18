@@ -61,7 +61,6 @@ type ManagementApiPageProps = {
     abilities: Option[];
 };
 
-
 /** The first message of a refused field in a 422 answer. */
 function firstError(
     body: Record<string, unknown>,

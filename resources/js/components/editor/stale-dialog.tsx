@@ -79,9 +79,7 @@ export function StaleDialog({
     const [problem, setProblem] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
-    const when = stale?.at
-        ? formatDateTime(stale.at)
-        : null;
+    const when = stale?.at ? formatDateTime(stale.at) : null;
 
     return (
         <Dialog open={stale !== null}>

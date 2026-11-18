@@ -32,7 +32,6 @@ function roleLabel(roles: RoleOption[], role: string | null): string {
     return roles.find((option) => option.value === role)?.label ?? '—';
 }
 
-
 /** A person's state: active or suspended, and two-factor sign-in when on. */
 function AccountPills({ user }: { user: UserRow }) {
     return (

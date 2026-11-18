@@ -24,9 +24,7 @@ const STATES: Record<RegionState, string> = {
 };
 
 function edited(at: string | null): string {
-    return at === null
-        ? '—'
-        : formatDateTime(at);
+    return at === null ? '—' : formatDateTime(at);
 }
 
 /**
