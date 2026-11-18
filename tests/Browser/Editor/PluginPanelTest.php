@@ -117,7 +117,7 @@ it('lists the panel in Tools, pins it to a wide bar, and draws it, the plugin’
     expect($page->script("() => document.querySelector('{$this->panel}').innerText.includes('Link Finder')"))->toBeFalse()
         ->and(cmAxeViolations($page))->toBe([])
         ->and(($this->sideways)($page))->toBe(0);
-})->with(['light', 'dark'])->with([1280, 375]);
+})->with(['light', 'dark'])->with([1440, 375]);
 
 it('runs an action and shows its job’s progress as it moves', function (): void {
     // Which plugin tools may be pinned depends on who is signed in.
