@@ -73,16 +73,16 @@ it('passes axe on the editor in the light and dark schemes, every target 24 pixe
         ->and($targets['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('shows the search result and the social card as the SEO fields are typed, with counts in characters and about the pixels (I-882)', function (): void {
+it('shows the search result and the social card as the SEO fields are typed, with a length line and a bar for each (I-882)', function (): void {
     $long = 'Ferry fares rise in the spring, and again in the summer, and once more before the winter timetable begins';
 
     $page = cmOpenSearch(cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit)))
         ->assertSeeIn('[data-test="serp"]', 'Harbour news')
-        ->assertSeeIn('#editor-seo-title-count', 'From the title template:')
+        ->assertSeeIn('#editor-seo-title-count', 'characters, from the template · about 60 show')
         ->type('#editor-seo-title', 'Ferry fares rise in the spring')
         ->assertSeeIn('[data-test="serp"]', 'Ferry fares rise in the spring')
-        ->assertSeeIn('#editor-seo-title-count', '30 characters, about')
-        ->assertDontSeeIn('#editor-seo-title-count', 'Results will cut it.')
+        ->assertSeeIn('#editor-seo-title-count', '30 characters · about 60 show')
+        ->assertDontSeeIn('#editor-seo-title-count', 'may be cut off')
         ->type('#editor-seo-description', 'What the new fares mean for the island’s commuters.');
 
     // The social card is on the Social tab.
@@ -91,9 +91,10 @@ it('shows the search result and the social card as the SEO fields are typed, wit
         ->assertSeeIn('[data-test="social-from"]', 'Made from the SEO title and the meta description, with no image.');
     ($this->tab)($page, 'Search');
     $page->type('#editor-seo-title', $long)
-        ->assertSeeIn('#editor-seo-title-count', 'Results will cut it.')
-        ->assertSeeIn('[data-test="search-check-line"]', 'Title in results. Too long: about')
-        ->assertSeeIn('[data-test="rail-checks"]', 'Too long: about');
+        ->assertSeeIn('#editor-seo-title-count', '105 characters · may be cut off')
+        ->click('[data-test="search-checks-toggle"]')
+        ->assertSeeIn('[data-test="search-checks"]', 'Title in results warning Too long: about')
+        ->assertSeeIn('[data-test="rail-search-note"]', 'Search and social:');
 
     ($this->settled)($page);
 
@@ -109,14 +110,19 @@ it('hides the item and names another item as its original, both in Advanced and 
         ->click('#editor-canonical-item')
         ->type('#editor-canonical-search', 'Ferry')
         ->click('[data-test="canonical-option"] >> text="Ferry fares"')
-        ->assertSeeIn('[data-test="canonical-chosen"]', 'Chosen: Ferry fares')
-        ->assertSeeIn('[data-test="serp-note"]', 'Search engines are asked to list “Ferry fares” instead.')
-        ->click('#editor-seo-noindex')
-        ->assertSeeIn('[data-test="serp-note"]', 'Hidden from search engines, so it won’t appear in results.')
+        ->assertSeeIn('[data-test="canonical-chosen"]', 'Chosen: Ferry fares');
+    // The result preview, on the Search tab, says what each does.
+    ($this->tab)($page, 'Search');
+    $page->assertSeeIn('[data-test="serp-note"]', 'Search engines are asked to list “Ferry fares” instead.');
+    ($this->tab)($page, 'Advanced');
+    $page->click('#editor-seo-noindex')
         ->assertSeeIn('#editor-canonical-hint', 'While it’s hidden from search engines, it has no canonical link.')
-        ->assertSeeIn('[data-test="search-check-line"]', 'Search engines. Hidden from search engines when it’s published.')
-        ->assertSeeIn('[data-test="rail-checks"]', 'Hidden from search engines when it’s published.')
+        ->assertSeeIn('[data-test="rail-search-note"]', 'things to check')
         ->assertSeeIn('[data-test="advanced-summary"]', 'Hidden from search engines · Canonical: another item');
+    ($this->tab)($page, 'Search');
+    $page->assertSeeIn('[data-test="serp-note"]', 'Hidden from search engines, so it won’t appear in results.')
+        ->click('[data-test="search-checks-toggle"]')
+        ->assertSeeIn('[data-test="search-checks"]', 'Search engines warning Hidden from search engines when it’s published.');
 
     ($this->settled)($page);
 
@@ -144,8 +150,9 @@ it('keeps saving while the canonical\'s address is half typed, refuses this site
     $page->type('#editor-canonical-url', $own)
         ->assertSeeIn('#editor-canonical-url-error', 'That address is on this site. Choose its item instead, so the link survives a move.')
         ->type('#editor-canonical-url', 'https://example.org/original-story')
-        ->assertDontSee('That address is on this site.')
-        ->assertSeeIn('[data-test="serp-note"]', 'Search engines are asked to list https://example.org/original-story instead.');
+        ->assertDontSee('That address is on this site.');
+    ($this->tab)($page, 'Search');
+    $page->assertSeeIn('[data-test="serp-note"]', 'Search engines are asked to list https://example.org/original-story instead.');
 
     ($this->settled)($page);
 
@@ -171,7 +178,7 @@ it('chooses the social image from the library, and the card is made from it (I-2
     expect(($this->saved)()[BuiltInFields::SOCIAL_IMAGE]['id'] ?? null)->toBe($image->id);
 });
 
-it('starts closed with the search result at Google’s size, a small social card and one line for the search checks, opens in place with Edit and closes with Done (I-3124)', function (): void {
+it('starts folded to its header strip, opens in place with the search result at its true size first, a small social card on Social, and folds again (I-3124, I-3415)', function (): void {
     $page = cmEditorSettled(cmSignIn($this->editor)->resize(1920, 1080)->navigate($this->edit));
 
     // What the section shows: its button, its height, and where its parts sit, null for a part not shown.
@@ -196,7 +203,7 @@ it('starts closed with the search result at Google’s size, a small social card
                 height: document.querySelector('[data-test="search-section"]').offsetHeight,
                 serp: box('[data-test="serp"]'),
                 card: box('[data-test="social-card"]'),
-                titleSize: getComputedStyle(document.querySelector('[data-test="serp-title"]')).fontSize,
+                titleSize: document.querySelector('[data-test="serp-title"]') === null ? null : getComputedStyle(document.querySelector('[data-test="serp-title"]')).fontSize,
                 line: document.querySelector('[data-test="search-check-line"]')?.innerText ?? '',
                 summary: document.querySelector('[data-test="advanced-summary"]')?.innerText ?? '',
                 advanced: document.querySelector('#editor-advanced')?.dataset.state ?? null,
@@ -210,7 +217,7 @@ it('starts closed with the search result at Google’s size, a small social card
         }
         JS);
 
-    // Closed: the result at the width results give it, one line, no fields and no tabs.
+    // Folded: only the strip, which names the result's title and how many things to check.
     $closed = $state();
 
     expect($closed['toggle'])->toBe('Open Search and social')
@@ -218,22 +225,20 @@ it('starts closed with the search result at Google’s size, a small social card
         ->and($closed['seoTitle'])->toBeNull()
         ->and($closed['socialTitle'])->toBeNull()
         ->and($closed['tabs'])->toBe([])
-        ->and($closed['serp']['width'])->toBe(632)
-        ->and($closed['titleSize'])->toBe('20px')
-        // The draft has no description, no excerpt and no links: the line names both warnings, then counts the rest.
-        ->and($closed['line'])->toContain('Description. None, and no excerpt. Search engines will choose text from the page.')
-        ->toContain('Internal links. None to other items on this site.')
-        ->toMatch('/The other \d search checks pass\./')
-        ->toContain('Every check is in the side panel.');
+        ->and($closed['serp'])->toBeNull()
+        ->and($closed['height'])->toBe(52)
+        // The draft has no description, no excerpt and no links: two things to check at least.
+        ->and($closed['line'])->toMatch('/^Harbour news .* · \d+ things to check$/');
 
-    // Open: the Search tab under the result; Social and Advanced on their own tabs, Advanced holding Hide and the canonical.
+    // Open: the tabs, then the result as the Search tab's first row; Social and Advanced on their own tabs, Advanced holding Hide and the canonical.
     cmOpenSearch($page);
     $open = $state();
 
     expect($open['toggle'])->toBe('Fold Search and social')
         ->and($open['expanded'])->toBe('true')
         ->and($open['tabs'])->toBe(['Search', 'Social', 'Schema', 'Advanced'])
-        ->and($open['serp']['width'])->toBe(632)
+        ->and($open['serp']['width'])->toBe(600)
+        ->and($open['titleSize'])->toBe('18px')
         ->and($open['seoTitle']['top'])->toBeGreaterThan($open['serp']['top'])
         ->and($open['socialTitle'])->toBeNull()
         ->and($open['advanced'])->toBe('inactive')
@@ -257,10 +262,10 @@ it('starts closed with the search result at Google’s size, a small social card
 
     expect($advanced['noindex'])->not->toBeNull()
         ->and($advanced['canonical'])->not->toBeNull()
-        ->and($advanced['noindex']['top'])->toBeGreaterThan($advanced['serp']['top'])
+        ->and($advanced['serp'])->toBeNull()
         ->and($advanced['pageType']['left'])->toBeGreaterThan($advanced['noindex']['left']);
 
-    // Done: closed again, as it started.
+    // Fold: closed again, as it started.
     $page->click('[data-test="search-toggle"]');
     cmWaitUntil($page, "document.getElementById('editor-search-fields')?.hidden === true");
     $done = $state();
@@ -275,11 +280,8 @@ it('opens and closes with the keyboard, keeps focus on its button, and leaves it
     $focused = fn (): string => (string) $page->script('() => document.activeElement?.id || document.activeElement?.dataset.test || document.activeElement?.tagName');
     $inSection = fn (): bool => (bool) $page->script("() => document.querySelector('[data-test=\"search-section\"]').contains(document.activeElement)");
 
-    // Closed: from the button, Tab reaches the check line's link, and the next Tab leaves the section.
+    // Folded: from the button, the next Tab leaves the section.
     $page->keys('[data-test="search-toggle"]', 'Tab');
-    expect($focused())->toBe('search-checks-link');
-
-    $page->keys('[data-test="search-checks-link"]', 'Tab');
     expect($inSection())->toBeFalse();
 
     // Enter opens it; focus stays on the button, now Fold.
@@ -288,11 +290,14 @@ it('opens and closes with the keyboard, keeps focus on its button, and leaves it
     expect($focused())->toBe('search-toggle')
         ->and($page->script("() => document.activeElement.getAttribute('aria-label')"))->toBe('Fold Search and social');
 
-    // Into the open box: the result's size follows the check line's link, then the tabs, then the SEO title.
-    $page->keys('[data-test="search-checks-link"]', 'Tab');
+    // Into the open box: the tabs, the Search panel, the result's size in its first row, then the SEO title.
+    $page->keys('[data-test="search-toggle"]', 'Tab');
+    expect($page->script("() => document.activeElement?.getAttribute('role')"))->toBe('tab');
+
+    $page->page()->locator(':focus')->press('Tab');
+    $page->page()->locator(':focus')->press('Tab');
     expect($page->script("() => document.activeElement?.closest('[data-slot=\"segmented\"]') !== null"))->toBeTrue();
 
-    $page->keys('[data-test="search-section"] [role="tab"][aria-selected="true"]', 'Tab');
     $page->page()->locator(':focus')->press('Tab');
     expect($focused())->toBe('editor-seo-title');
 
@@ -324,11 +329,10 @@ it('keeps everything typed when Done closes it and Edit opens it again, the half
         ->click('#editor-canonical-address')
         ->type('#editor-canonical-url', 'https://');
 
-    // Done at once, before the save: the previews show what was typed, and the description's source is the meta description.
+    // Folded at once, before the save: the strip names the title that was typed.
     $page->click('[data-test="search-toggle"]');
     cmWaitUntil($page, "document.getElementById('editor-search-fields')?.hidden === true");
-    ($this->shows)($page, '[data-test="serp"]', 'Ferry fares rise in the spring');
-    ($this->shows)($page, '[data-test="description-from"]', 'Description: the meta description.');
+    ($this->shows)($page, '[data-test="search-check-line"]', 'Ferry fares rise in the spring');
     ($this->settled)($page);
 
     expect(($this->saved)())->toMatchArray([
@@ -348,32 +352,33 @@ it('keeps everything typed when Done closes it and Edit opens it again, the half
         ->assertSeeIn('#editor-canonical-url-error', 'Enter the whole address, starting https://.');
 });
 
-it('says in the closed section where the page’s description comes from: the excerpt, the meta description, or nothing (I-3124, I-290)', function (): void {
+it('says beside the meta description where the page’s description comes from: the excerpt, the meta description, or nothing (I-3124, I-290)', function (): void {
     docSave($this->harbour, $this->editor, docWith(docText('Fares rise in October.')), [BuiltInFields::EXCERPT => 'Dearer crossings from October.']);
 
-    $page = cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit));
-    ($this->shows)($page, '[data-test="description-from"]', 'Description: from the excerpt.');
+    $page = cmOpenSearch(cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit)));
+    ($this->shows)($page, '#editor-seo-description-count', 'characters, from the excerpt');
     ($this->shows)($page, '[data-test="serp"]', 'Dearer crossings from October.');
+    $page->assertAttribute('#editor-seo-description', 'placeholder', 'Using the excerpt: Dearer crossings from October.');
 
-    cmOpenSearch($page)->type('#editor-seo-description', 'What the new fares mean for commuters.');
-    $page->click('[data-test="search-toggle"]');
-    ($this->shows)($page, '[data-test="description-from"]', 'Description: the meta description.');
+    $page->type('#editor-seo-description', 'What the new fares mean for commuters.');
+    ($this->shows)($page, '#editor-seo-description-count', '38 characters · about 155 show');
 
-    // Neither: the meta description emptied in the section, the excerpt in the writing area.
-    cmOpenSearch($page)->clear('#editor-seo-description');
-    $page->clear('#editor-excerpt')
-        ->click('[data-test="search-toggle"]');
-    ($this->shows)($page, '[data-test="description-from"]', 'Description: none. Search engines will choose text from the page.');
-    ($this->shows)($page, '[data-test="search-check-line"]', 'Description. None, and no excerpt. Search engines will choose text from the page.');
+    // Neither: the meta description emptied in the box, the excerpt in the writing area.
+    $page->clear('#editor-seo-description');
+    $page->clear('#editor-excerpt');
+    ($this->shows)($page, '#editor-seo-description-count', 'Empty');
+    $page->assertAttribute('#editor-seo-description', 'placeholder', 'No excerpt either: search engines will choose text from the page');
+    $page->click('[data-test="search-checks-toggle"]');
+    ($this->shows)($page, '[data-test="search-checks"]', 'None, and no excerpt. Search engines will choose text from the page.');
 });
 
 it('goes from the side panel’s Checks to Search and social under a long post: open, its heading at the top of the writing column and focused (I-3124)', function (): void {
     docSave($this->harbour, $this->editor, docWith(...array_map(fn (int $paragraph): array => docText(trim(str_repeat('harbour tide ', 25))), range(1, 60))));
 
     $page = cmEditorSettled(cmSignIn($this->editor)->resize(1440, 900)->navigate($this->edit));
-    ($this->shows)($page, '[data-test="rail-search-note"]', 'Search and social is under the post.');
+    ($this->shows)($page, '[data-test="rail-search-note"]', 'Search and social:');
 
-    $page->click('[data-test="rail-search-note"] button');
+    $page->click('[data-test="rail-search-note"]');
     cmWaitUntil($page, "document.activeElement?.id === 'editor-search-label' && document.getElementById('editor-search-fields')?.hidden === false");
 
     $where = $page->script(<<<'JS'
@@ -399,32 +404,31 @@ it('closes the side panel’s sheet on a phone before going to Search and social
     $page->click('[data-test="rail-toggle"]');
     cmWaitUntil($page, "(() => { const parts = [...document.querySelectorAll('[data-slot=\"sheet-content\"], [data-slot=\"sheet-overlay\"]')]; return parts.length > 0 && parts.flatMap((element) => element.getAnimations()).every((animation) => animation.playState !== 'running'); })()");
 
-    $page->click('[data-test="rail-search-note"] button');
+    $page->click('[data-test="rail-search-note"]');
     cmWaitUntil($page, "document.querySelector('[data-slot=\"sheet-content\"]') === null");
     cmWaitUntil($page, "document.activeElement?.id === 'editor-search-label' && document.getElementById('editor-search-fields')?.hidden === false");
 });
 
-it('opens Search and social when a check in the side panel leads to one of its fields (I-3124, I-880)', function (): void {
+it('keeps the side panel\'s Checks to the writing, counting Search and social\'s, and puts the cursor on what a writing check names (I-880)', function (): void {
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit));
 
-    // The draft has no description and no excerpt, so the Description check warns, and its button leads to the meta description.
-    $page->click('[data-test="rail-checks"] button:has-text("Description")');
-    cmWaitUntil($page, "document.activeElement?.id === 'editor-seo-description' && document.getElementById('editor-search-fields')?.hidden === false");
+    // The draft has no excerpt, so the excerpt check warns, and its Show leads to the excerpt.
+    $page->assertScript("[...document.querySelectorAll('[data-test=\"rail-checks\"] > li')].map((check) => check.dataset.test.replace('rail-check-', '')).join('|')", 'title|excerpt|featured|alt|headings')
+        ->assertSeeIn('[data-test="rail-search-note"]', 'things to check')
+        ->click('[data-test="rail-check-excerpt"] button:has-text("Show")');
+    cmWaitUntil($page, "document.activeElement?.id === 'editor-excerpt'");
 });
 
-it('leads from the check line to the side panel’s Checks, opening the panel when it was closed, and says it in plain words in focus mode (I-3124)', function (): void {
+it('keeps the search checks in the box, after its fields, with no link away to the side panel, in focus mode too (I-3124, I-3415)', function (): void {
     $page = cmEditorSettled(cmSignIn($this->editor)->navigate($this->edit));
 
-    $page->click('[data-test="rail-toggle"]');
-    cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"]') === null");
-
-    $page->click('[data-test="search-checks-link"]');
-    cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"]') !== null && document.activeElement?.id === 'rail-checks-trigger'");
-
-    // Focus mode hides the side panel, so the words lead nowhere and are no button.
     $page->script(<<<'JS'
         () => document.querySelector('[data-test="editor-focus"]').click()
         JS);
-    cmWaitUntil($page, "document.documentElement.classList.contains('editor-focus') && document.querySelector('[data-test=\"search-checks-link\"]') === null");
-    ($this->shows)($page, '[data-test="search-check-line"]', 'Every check is in the side panel.');
+    cmWaitUntil($page, "document.documentElement.classList.contains('editor-focus')");
+
+    cmOpenSearch($page)->click('[data-test="search-checks-toggle"]');
+    ($this->shows)($page, '[data-test="search-checks"]', 'Internal links');
+    $page->assertDontSeeIn('[data-test="search-section"]', 'Every check is in the side panel.')
+        ->assertNotPresent('[data-test="search-checks-link"]');
 });

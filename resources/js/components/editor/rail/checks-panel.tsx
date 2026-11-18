@@ -5,6 +5,7 @@ import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
 import type { BadLink, CoreCheck, RegionFacts, WritingCheck } from './checks';
 import { PluginChecks } from './plugin-checks';
 import { RailSection } from './rail-section';
+import { searchCheckWords } from './search-box';
 import { quotedTitle } from '@/lib/titles';
 
 /** One link to an unreachable article, named. */
@@ -107,9 +108,7 @@ export function ChecksPanel({
     pluginChecks?: PluginCheckGroup[];
     onGoToPlugin?: (code: string, result: PluginCheckResult) => void;
 }) {
-    const failing =
-        checks.filter((check) => !check.ok).length +
-        (onGoToSearch !== undefined ? searchCount : 0);
+    const failing = checks.filter((check) => !check.ok).length;
 
     return (
         <RailSection
@@ -177,12 +176,9 @@ export function ChecksPanel({
                     className="text-small justify-self-start font-normal"
                 >
                     <Search aria-hidden className="size-4" />
-                    {searchCount === 0
-                        ? __('Search and social: all checks pass')
-                        : __n(
-                              'Search and social: :count thing to check|Search and social: :count things to check',
-                              searchCount,
-                          )}
+                    {__('Search and social: :words', {
+                        words: searchCheckWords(searchCount),
+                    })}
                 </TextButton>
             )}
             {pluginChecks.length > 0 && (

@@ -34,6 +34,7 @@ import { LeaveDialog } from '@/components/editor/leave-dialog';
 import { PresenceLine } from '@/components/editor/presence-line';
 import { ProseEditor } from '@/components/editor/prose-editor';
 import { PublishConfirmation } from '@/components/editor/publish-confirmation';
+import { searchToCheck } from '@/components/editor/rail/search-box';
 import type { Confirming } from '@/components/editor/publish-confirmation';
 import {
     cardsMissingAlt,
@@ -909,9 +910,7 @@ export default function ContentEdit(page: ContentEditPage) {
             }),
         [title, body, checks, values, media, excerpt, featured, noun],
     );
-    const searchCount = search.checks.filter(
-        (check) => check.search && check.state === 'warn' && check.id !== 'alt',
-    ).length;
+    const searchCount = searchToCheck(search.checks);
 
     // A theme region's own facts, checked in place of a post's search checks (issue 529).
     const ownFacts = useMemo(
@@ -965,21 +964,6 @@ export default function ContentEdit(page: ContentEditPage) {
 
         flushSync(() => setSearchOpen(true));
         showSearch();
-    };
-
-    /** From the section's check line: the side panel's Checks, the panel open and any pane closed. */
-    const goToChecks = () => {
-        if (isMobile) {
-            setRailOpen(true);
-
-            return;
-        }
-
-        flushSync(() => {
-            closePane();
-            setRailOpen(true);
-        });
-        document.getElementById('rail-checks-trigger')?.focus();
     };
 
     // Each check puts the cursor on its problem: the field, the first link
@@ -1647,7 +1631,7 @@ export default function ContentEdit(page: ContentEditPage) {
                             metadata={metadata}
                             open={searchOpen}
                             onOpenChange={setSearchOpen}
-                            onGoToChecks={focus ? null : goToChecks}
+                            onGoToCheck={goToCheck}
                             tab={searchTab}
                             onTabChange={setSearchTab}
                             pluginTabs={page.searchTabs}
