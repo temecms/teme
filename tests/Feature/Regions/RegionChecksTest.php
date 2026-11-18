@@ -7,6 +7,7 @@ declare(strict_types=1);
  * image card and at most $max blocks, as ['id' => [state, message]].
  *
  * @param  list<array<string, mixed>>  $nodes
+ *
  * @return array<string, array{0: string, 1: string}>
  */
 function rcChecks(array $nodes, int $max = 3): array
