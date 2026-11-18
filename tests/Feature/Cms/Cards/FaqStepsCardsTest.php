@@ -51,13 +51,13 @@ it('draws the steps numbered, with the summary, the time and what it needs above
     );
 });
 
-it('gives both cards to feeds and the API as headings and paragraphs, nothing folded away', function (): void {
+it('gives both cards to feeds and the API with nothing folded away, the questions as headings and the steps as an ordered list', function (): void {
     $html = app(FeedBody::class)->html(docWith(
         ($this->faq)(($this->pair)('01K9F0A0000000000000000Q01', 'Is it free?', ($this->prose)('Yes.'))),
-        ($this->steps)([($this->step)('01K9F0A0000000000000000S01', 'Boil', ($this->prose)('Hot.'))], ['totalTime' => 'PT10M']),
+        ($this->steps)([($this->step)('01K9F0A0000000000000000S01', 'Boil', ($this->prose)('Hot.')), ($this->step)('01K9F0A0000000000000000S02', 'Pour', ($this->prose)('Slowly.'))], ['totalTime' => 'PT10M']),
     ));
 
-    expect($html)->toBe('<h3>Is it free?</h3><p>Yes.</p><p>Total time: 10 minutes</p><h3>1. Boil</h3><p>Hot.</p>');
+    expect($html)->toBe('<h3>Is it free?</h3><p>Yes.</p><p>Total time: 10 minutes</p><ol><li><p><strong>Boil</strong></p><p>Hot.</p></li><li><p><strong>Pour</strong></p><p>Slowly.</p></li></ol>');
 });
 
 it('counts their words, and records what their answers link to', function (): void {

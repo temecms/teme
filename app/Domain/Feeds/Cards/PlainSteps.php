@@ -12,8 +12,8 @@ use App\Domain\Feeds\FeedImages;
 
 /**
  * The Steps card in a feed and the API: the summary, the time and the
- * lists as paragraphs and lists, then each step as a level-3 heading
- * numbered in its words, its image and its text.
+ * lists as paragraphs and lists, then the steps as an ordered list, each
+ * item its title in bold, its image and its text.
  */
 final readonly class PlainSteps implements FeedCardRenderer
 {
@@ -27,7 +27,6 @@ final readonly class PlainSteps implements FeedCardRenderer
     public function html(array $attrs, RenderContext $context): string
     {
         $steps = '';
-        $position = 0;
 
         foreach (StepsCard::steps($attrs) as $step) {
             if ($step['title'] === '') {
@@ -36,9 +35,9 @@ final readonly class PlainSteps implements FeedCardRenderer
 
             $item = $context->media[$step['mediaId']] ?? null;
             $image = $item === null ? '' : $this->images->img($item, null);
-            $steps .= '<h3>'.e(__(':number. :title', ['number' => ++$position, 'title' => $step['title']])).'</h3>'
+            $steps .= '<li><p><strong>'.e($step['title']).'</strong></p>'
                 .($image === '' ? '' : '<p>'.$image.'</p>')
-                .CardProse::html($step['body'], $context);
+                .CardProse::html($step['body'], $context).'</li>';
         }
 
         if ($steps === '') {
@@ -65,6 +64,6 @@ final readonly class PlainSteps implements FeedCardRenderer
             }
         }
 
-        return $head.$steps;
+        return $head.'<ol>'.$steps.'</ol>';
     }
 }
