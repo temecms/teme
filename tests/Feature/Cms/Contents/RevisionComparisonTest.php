@@ -279,9 +279,12 @@ it('shows a reviewer the field and category changes of a submitted update agains
 
 it('draws the field and category changes above the body diff, and links a review to it', function (): void {
     $page = uiComponent('pages/content/compare.tsx');
+    $diff = uiComponent('components/editor/diff-view.tsx');
 
+    // The field changes go into the diff's panel, drawn there before the blocks.
     expect($page)->toContain('<MetaChanges')
-        ->and(strpos($page, '<MetaChanges'))->toBeLessThan(strpos($page, '<DiffView'))
+        ->and($page)->toContain('meta={')
+        ->and(strpos($diff, '{meta}'))->toBeLessThan(strpos($diff, '<BlockPair'))
         ->and(uiComponent('components/editor/editor-rail.tsx'))->toContain('Compare with the published version');
 });
 
