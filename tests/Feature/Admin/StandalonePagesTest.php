@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Standalone\StandaloneStyle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Vite;
 use Teme\Contracts\Settings\SettingsReader;
 
 uses(RefreshDatabase::class);
@@ -100,7 +101,7 @@ it('draws each error on the card with the site\'s mark and its own words', funct
         ->and($page->query("//a[@class='sa-button']")->item(0)?->getAttribute('href'))->toBe(route('dashboard'))
         ->and(trim((string) $page->query("//a[@class='sa-button']")->item(0)?->textContent))->toBe('Back to Home')
         ->and($html)->not->toContain('<script')
-        ->and($html)->not->toContain('<link')
+        ->and($page->query('//link[not(@data-fonts)]')->length)->toBe(0)
         ->and($html)->not->toContain('<img')
         ->and($html)->not->toContain('Powered by Teme');
 })->with([
@@ -171,4 +172,21 @@ it('leaves the public site\'s errors to the theme', function (): void {
     $this->get('/no-such-page-here')
         ->assertStatus(404)
         ->assertDontSee('data-error=', false);
+});
+
+it('links the admin\'s own fonts, so the card draws in IBM Plex, not the system\'s font (#533)', function (): void {
+    Vite::partialMock()->shouldReceive('asset')->with(StandaloneStyle::FONTS)->andReturn('http://localhost/build/assets/admin-fonts-Ab12.css');
+
+    $page = saPage((string) $this->get('/admin/_sa-error/404')->assertNotFound()->getContent());
+
+    expect($page->query('//head/link[@rel="stylesheet"][@data-fonts]')->item(0)?->getAttribute('href'))->toBe('http://localhost/build/assets/admin-fonts-Ab12.css');
+});
+
+it('draws the card in the system\'s fonts, linking nothing, when there is no build to read (#533)', function (): void {
+    Vite::partialMock()->shouldReceive('asset')->with(StandaloneStyle::FONTS)->andThrow(new RuntimeException('Vite manifest not found.'));
+
+    $html = (string) $this->get('/admin/_sa-error/404')->assertNotFound()->getContent();
+
+    expect($html)->not->toContain('<link')
+        ->and(saPage($html)->query('//h1')->length)->toBe(1);
 });

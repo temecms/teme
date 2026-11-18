@@ -15,6 +15,7 @@ import { edit } from '@/routes/content';
 import type { CommentDetails } from '@/types';
 import { takesReplyAndQuickEdit } from './use-comment-keys';
 import { shownTitle } from '@/lib/titles';
+import { formatDate } from '@/lib/dates';
 
 /** What a check's state says to someone who can't see its icon. */
 const STATE_WORDS = {
@@ -82,10 +83,7 @@ export function CommentDetailsDrawer({
     const erasedOn =
         details === null || details === undefined
             ? ''
-            : new Intl.DateTimeFormat(undefined, {
-                  dateStyle: 'medium',
-                  timeZone: siteTimezone,
-              }).format(new Date(details.erasesAt));
+            : formatDate(details.erasesAt, siteTimezone);
     const erased = <span className="text-ink-2">Erased</span>;
     const under = (words: string) => (
         <span className="text-ink-2 block text-xs">{words}</span>

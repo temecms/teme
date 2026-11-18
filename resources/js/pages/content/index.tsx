@@ -80,6 +80,7 @@ import type {
     TermChip,
 } from '@/types';
 import type { CardLayout } from '@/types/list-pages';
+import { formatDate } from '@/lib/dates';
 
 function QuickEdit({
     row,
@@ -639,9 +640,9 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
     return (
         <span className="grid">
             <span>
-                {new Date(
+                {formatDate(
                     live ? (row.publishedAt ?? row.updatedAt) : row.updatedAt,
-                ).toLocaleDateString()}
+                )}
             </span>
             <span className="text-small text-ink-3">
                 {live ? __('Published') : __('Last modified')}

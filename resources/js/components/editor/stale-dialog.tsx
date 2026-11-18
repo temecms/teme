@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { __ } from '@/lib/i18n';
 import type { StaleChange } from './use-autosave';
+import { formatDateTime } from '@/lib/dates';
 
 type Node = { type?: string; text?: string; content?: Node[] };
 
@@ -78,12 +79,7 @@ export function StaleDialog({
     const [problem, setProblem] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
-    const when = stale?.at
-        ? new Date(stale.at).toLocaleString([], {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-          })
-        : null;
+    const when = stale?.at ? formatDateTime(stale.at) : null;
 
     return (
         <Dialog open={stale !== null}>

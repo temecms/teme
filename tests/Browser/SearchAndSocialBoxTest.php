@@ -197,3 +197,23 @@ it('marks a tab whose fields hold a proposal while another tab is shown, so none
         ->and($page->script($mark('Social')))->toBe(['mark' => false, 'said' => false])
         ->and($page->script($mark('Schema')))->toBe(['mark' => false, 'said' => false]);
 });
+
+it('draws an empty meta description three lines tall, saying the excerpt stands in for it (#528)', function (): void {
+    docSave($this->harbour, $this->editor, docWith(docText('Fares rise in October.')), [BuiltInFields::EXCERPT => 'Dearer crossings from October.']);
+
+    $page = cmOpenSearch(cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit)));
+
+    $field = cmScriptArray($page, <<<'JS'
+        () => {
+            const field = document.getElementById('editor-seo-description');
+            const style = getComputedStyle(field);
+            const lines = (field.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)) / parseFloat(style.lineHeight);
+
+            return { value: field.value, lines: Math.round(lines * 10) / 10, placeholder: field.placeholder };
+        }
+        JS);
+
+    expect($field['value'])->toBe('')
+        ->and($field['lines'])->toBeGreaterThanOrEqual(3)
+        ->and($field['placeholder'])->toBe('Using the excerpt: Dearer crossings from October.');
+});

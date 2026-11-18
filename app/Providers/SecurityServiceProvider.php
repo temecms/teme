@@ -16,6 +16,7 @@ use App\Http\Admin\Auth\Listeners\RecordFailedSignIn;
 use App\Http\Admin\Auth\Listeners\RecordSignIn;
 use App\Http\Admin\Auth\Listeners\SetSignedInMarker;
 use App\Http\Admin\Auth\NeutralPasswordResetLinkResponse;
+use App\Http\Admin\Auth\SignOutResponse;
 use App\Http\Admin\Auth\ThrottleSignIn;
 use App\Http\Admin\Auth\UpgradeHashAfterSignIn;
 use Illuminate\Auth\Events\Failed;
@@ -33,6 +34,7 @@ use Laravel\Fortify\Actions\AttemptToAuthenticate;
 use Laravel\Fortify\Actions\CanonicalizeUsername;
 use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
 use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
 use Laravel\Fortify\Contracts\RedirectsIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Features;
@@ -57,6 +59,7 @@ final class SecurityServiceProvider extends ServiceProvider
         $this->app->scoped(Elevation::class, DeniedElevation::class);
         $this->app->bind(FailedPasswordResetLinkRequestResponse::class, NeutralPasswordResetLinkResponse::class);
         $this->app->bind(SuccessfulPasswordResetLinkRequestResponse::class, NeutralPasswordResetLinkResponse::class);
+        $this->app->bind(LogoutResponse::class, SignOutResponse::class);
     }
 
     public function boot(): void

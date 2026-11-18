@@ -4,14 +4,36 @@ declare(strict_types=1);
 
 namespace App\Http\Standalone;
 
+use Illuminate\Support\Facades\Vite;
+use Throwable;
+
 /**
  * The admin's design tokens as plain CSS, for the pages drawn outside the
  * admin's app (the error pages and the holding page): read from the token
- * block of resources/css/app.css, so they never drift from it.
+ * block of resources/css/app.css, so they never drift from it. It also
+ * names the stylesheet of the admin's own fonts, for those pages to link.
  */
 final class StandaloneStyle
 {
+    /** The build's stylesheet of the admin's fonts and nothing else. */
+    public const FONTS = 'resources/css/admin-fonts.css';
+
     private ?string $tokens = null;
+
+    /**
+     * The address of the admin's fonts in the build; null when there is no
+     * build to read, so the page still renders, in the system's fonts.
+     */
+    public function fonts(): ?string
+    {
+        try {
+            $href = Vite::asset(self::FONTS);
+        } catch (Throwable) {
+            return null;
+        }
+
+        return $href !== '' ? $href : null;
+    }
 
     /**
      * The token block as plain CSS: Tailwind's `@theme` values as `:root`,

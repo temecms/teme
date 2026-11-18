@@ -57,7 +57,8 @@ it('tells the editor\'s region mode what the region takes', function (): void {
         ->component('content/edit')
         ->where('themeRegion.label', 'After the article')
         ->where('themeRegion.themeName', 'Fixture Good')
-        ->where('themeRegion.takes', 'Takes text and these cards: Callout and Button. At most 5 blocks.'));
+        ->where('themeRegion.takes', 'Takes text and these cards: Callout and Button. At most 5 blocks.')
+        ->where('themeRegion.max', 5));
 });
 
 it('lists the regions kept from other themes under an open Unplaced heading, with each region\'s limit', function (): void {

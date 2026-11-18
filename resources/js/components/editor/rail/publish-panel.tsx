@@ -24,6 +24,7 @@ import { PublishWhen } from './publish-when';
 import type { WhenChoice } from './publish-when';
 import { templateChoice } from './template-choice';
 import type { ThemeTemplate } from './template-choice';
+import { formatDateTime } from '@/lib/dates';
 
 /** The panel's own sentences, as strings, so a formatter never splits them. */
 const PUBLISH_WORDS = {
@@ -519,10 +520,7 @@ export function PublishPanel({
                             <dt className="text-ink-2">{__('Published')}</dt>
                             <dd>
                                 {publishedAt
-                                    ? new Date(publishedAt).toLocaleString([], {
-                                          dateStyle: 'medium',
-                                          timeStyle: 'short',
-                                      })
+                                    ? formatDateTime(publishedAt)
                                     : __('Not yet')}
                             </dd>
                         </>

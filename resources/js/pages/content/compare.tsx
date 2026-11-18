@@ -18,13 +18,11 @@ import type {
     RevisionRow,
     RevisionSummary,
 } from '@/types';
+import { formatDateTime } from '@/lib/dates';
 
 /** "14 Aug 2026, 10:42 · Ada", for a revision's name in the picker and above the columns. */
 function nameOf(revision: RevisionSummary | RevisionRow): string {
-    const when = new Date(revision.createdAt).toLocaleString([], {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
+    const when = formatDateTime(revision.createdAt);
 
     return revision.author ? `${when} · ${revision.author}` : when;
 }

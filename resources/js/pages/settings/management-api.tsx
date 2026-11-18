@@ -32,6 +32,7 @@ import SearchAndSocialController from '@/actions/App/Http/Admin/Settings/SearchA
 import { __ } from '@/lib/i18n';
 import { index as settingsIndex } from '@/routes/settings';
 import type { FieldDefinition } from '@/types';
+import { formatDate } from '@/lib/dates';
 
 /** One token as the list shows it: never its secret, only its start. */
 type ApiKeyRow = {
@@ -60,11 +61,6 @@ type ManagementApiPageProps = {
     people: Option[];
     abilities: Option[];
 };
-
-/** A date as the reader's browser writes one. */
-function shortDate(at: string): string {
-    return new Date(at).toLocaleDateString();
-}
 
 /** The first message of a refused field in a 422 answer. */
 function firstError(
@@ -154,7 +150,7 @@ function KeyRow({ row, abilities }: { row: ApiKeyRow; abilities: Option[] }) {
                     <dd className="inline">
                         {row.createdAt === null
                             ? '—'
-                            : shortDate(row.createdAt)}
+                            : formatDate(row.createdAt)}
                     </dd>
                 </div>
                 <div>
@@ -162,7 +158,7 @@ function KeyRow({ row, abilities }: { row: ApiKeyRow; abilities: Option[] }) {
                     <dd className="inline">
                         {row.lastUsedAt === null
                             ? __('Never')
-                            : shortDate(row.lastUsedAt)}
+                            : formatDate(row.lastUsedAt)}
                     </dd>
                 </div>
                 <div>
@@ -170,13 +166,13 @@ function KeyRow({ row, abilities }: { row: ApiKeyRow; abilities: Option[] }) {
                     <dd className="inline">
                         {row.expiresAt === null
                             ? __('Never')
-                            : shortDate(row.expiresAt)}
+                            : formatDate(row.expiresAt)}
                     </dd>
                 </div>
                 {row.revokedAt !== null && (
                     <div>
                         <dt className="inline">{__('Revoked')}: </dt>
-                        <dd className="inline">{shortDate(row.revokedAt)}</dd>
+                        <dd className="inline">{formatDate(row.revokedAt)}</dd>
                     </div>
                 )}
             </dl>
