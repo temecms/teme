@@ -73,3 +73,9 @@ Teme SEO is built only on what Teme offers every plugin. Where a socket was miss
 **Expected:** to write tests as the testing kit's guide shows, starting each file with `uses(TemeTestCase::class);` and calling the kit's methods on `$this` inside each `it()`.
 
 **Instead:** the plugins' PHPStan run analyses `plugins/*/tests` without Pest's extension, and Pest declares the closure's `$this` as its own `TestCall`. Every `$this->person()` or `$this->get()` is then an error. Teme SEO's tests are PHPUnit classes on `SeoTestCase`, which extends the kit's `TemeTestCase`: Pest runs them the same, and the analysis knows every type.
+
+## 13. A plugin can read only an item's latest draft
+
+**Expected:** to read what readers see for a published item: its published revision's body and search fields.
+
+**Instead:** `ContentReader::draft()` reads the working revision, and nothing reads the published one. For a published item with unpublished changes, Teme SEO's links, counts, orphans, word count and the audit's search title and description are those of the draft. The Links and Audit pages and the README say "as of the latest draft". Core would need a read of the published revision.

@@ -294,6 +294,12 @@
                     "label": "Audit",
                     "blocks": [
                         {
+                            "type": "notice",
+                            "id": "audit-hint",
+                            "text": "Each item is checked as of its latest draft. For a published item with unpublished changes, that can differ from what readers see.",
+                            "tone": "info"
+                        },
+                        {
                             "type": "figures",
                             "id": "totals",
                             "items": [
@@ -390,7 +396,7 @@
                         {
                             "type": "notice",
                             "id": "orphans-hint",
-                            "text": "Orphaned items are published items no other published item links to. Readers and search engines find them only through lists and the sitemap. Cornerstone items come first.",
+                            "text": "Orphaned items are published items no other published item links to. Readers and search engines find them only through lists and the sitemap. Cornerstone items come first. Links are counted as of each item's latest draft.",
                             "tone": "info"
                         },
                         {
