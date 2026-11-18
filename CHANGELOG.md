@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
+## [1.1.1] — 2026-11-18
+
+### Fixed
+
+- Text fields show a visible focus ring again when clicked or reached with the keyboard.
+- A field's label and its "Required" mark have a space between them.
+- Signing out goes to the sign-in page instead of showing the public site in a frame over the admin.
+- The editor's meta description is a three-line text area again.
+- Row actions in lists show without hovering.
+- Compare versions keeps the space between a removed word and its replacement.
+- The admin's error pages draw in the admin's own font.
+- Dates in the admin follow the site's time zone and the admin's language, for example "13 Nov 2026".
+- A region's side panel in the editor shows the region's own checks.
+- Settings › Updates says to paste the Dokploy API key below, instead of pointing to the page itself.
+
 ## [1.1.0] — 2026-11-18
 
 ### Added
