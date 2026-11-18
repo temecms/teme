@@ -546,4 +546,6 @@ export type PanelAnswer = {
     failed: string | null;
     jobs: PanelJob[];
     busy: boolean;
+    /** The plugin's own AI is switched off, or its budget for the month is spent. */
+    ai: 'off' | 'budget' | null;
 };
