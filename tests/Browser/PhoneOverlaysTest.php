@@ -361,9 +361,9 @@ it('opens the account menu as a sheet from the foot of a phone\'s screen, and si
         ->assertScript('document.querySelector(\'[data-slot="sheet-content"] [role="menu"] [data-test="logout-button"]\')?.getAttribute("role")', 'menuitem')
         ->click('[data-test="logout-button"]');
 
-    // Signing out answers with the site's home, which is not an admin page: Inertia either goes there or draws it in its own frame.
-    $home = json_encode(parse_url(route('home'), PHP_URL_PATH) ?? '/', JSON_THROW_ON_ERROR);
-    cmWaitUntil($page, "location.pathname === {$home} || document.querySelector('iframe') !== null");
+    // Signing out leaves the admin for the sign-in page in a full visit, never a frame over the admin (#509).
+    cmWaitUntil($page, "location.pathname === '/admin/login' && document.querySelector('[data-test=\"login-button\"]') !== null")
+        ->assertScript("document.querySelector('iframe') === null && document.querySelector('[data-slot=\"sheet-content\"]') === null");
     cmNavigate($page, '/admin')->assertPathIs('/admin/login');
 });
 
