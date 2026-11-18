@@ -29,6 +29,7 @@ final class RoleSeeder extends Seeder
         'media.edit.any',
         'media.delete.own',
         'media.delete.any',
+        'settings.view',
         'settings.general.manage',
         'settings.security.manage',
         'settings.content.manage',
