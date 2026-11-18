@@ -25,16 +25,13 @@ import { useShellWidth } from '@/hooks/use-shell-width';
 import { __, __n } from '@/lib/i18n';
 import { index as usersIndex } from '@/routes/users';
 import type { RoleOption, UserRow, UsersIndexPage } from '@/types';
+import { formatDate, formatDateTime } from '@/lib/dates';
 
 /** A role's label, as the role choices name it; "—" for none. */
 function roleLabel(roles: RoleOption[], role: string | null): string {
     return roles.find((option) => option.value === role)?.label ?? '—';
 }
 
-/** A date as the reader's browser writes one. */
-function shortDate(at: string): string {
-    return new Date(at).toLocaleDateString();
-}
 
 /** A person's state: active or suspended, and two-factor sign-in when on. */
 function AccountPills({ user }: { user: UserRow }) {
@@ -61,7 +58,7 @@ function InvitationPills({ user }: { user: UserRow }) {
             {user.linkWorksUntil ? (
                 <span className="text-ink-2">
                     {__('Works until :date', {
-                        date: shortDate(user.linkWorksUntil),
+                        date: formatDate(user.linkWorksUntil),
                     })}
                 </span>
             ) : (
@@ -211,7 +208,7 @@ export default function UsersIndex({
             cell: (user) => (
                 <span className="text-ink-2">
                     {user.lastSignInAt
-                        ? new Date(user.lastSignInAt).toLocaleString()
+                        ? formatDateTime(user.lastSignInAt)
                         : __('Never')}
                 </span>
             ),
@@ -229,7 +226,7 @@ export default function UsersIndex({
             cell: (user) => (
                 <span className="grid">
                     <span>
-                        {user.invitedAt ? shortDate(user.invitedAt) : '—'}
+                        {user.invitedAt ? formatDate(user.invitedAt) : '—'}
                     </span>
                     {user.invitedBy && (
                         <span className="text-caption text-ink-2">

@@ -8,6 +8,7 @@ import { compare } from '@/routes/content';
 import { index as aiActivity } from '@/routes/tools/ai-activity';
 import { RestoreButton } from '../restore-button';
 import type { RevisionAssistant, RevisionPage, RevisionRow } from '@/types';
+import { formatDateTime } from '@/lib/dates';
 
 /** What each kind of revision is called in the history. */
 const KINDS: Record<string, string> = {
@@ -153,10 +154,7 @@ export function HistoryPanel({ contentId }: { contentId: string }) {
                                 dateTime={row.createdAt}
                                 className="font-medium"
                             >
-                                {new Date(row.createdAt).toLocaleString([], {
-                                    dateStyle: 'medium',
-                                    timeStyle: 'short',
-                                })}
+                                {formatDateTime(row.createdAt)}
                             </time>
                             {row.isPublished && (
                                 <span className="text-ok-ink text-caption font-medium">

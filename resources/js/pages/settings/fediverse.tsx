@@ -15,6 +15,7 @@ import { Notice } from '@/components/ui/notice';
 import { Switch } from '@/components/ui/switch';
 import { __, __n } from '@/lib/i18n';
 import type { FieldDefinition } from '@/types';
+import { formatDate } from '@/lib/dates';
 
 type Account = {
     kind: 'blog' | 'person';
@@ -392,10 +393,7 @@ export default function FediverseSettings({
                                     line={server.reason}
                                 />
                                 <div role="cell" className={CELL}>
-                                    {new Date(server.since).toLocaleDateString(
-                                        undefined,
-                                        { dateStyle: 'medium' },
-                                    )}
+                                    {formatDate(server.since)}
                                 </div>
                                 <div role="cell" className={ACTION}>
                                     <Form

@@ -11,12 +11,10 @@ import {
 } from '@/components/ui/dialog';
 import { __ } from '@/lib/i18n';
 import type { DesignDraft } from '@/types';
+import { formatDateTime } from '@/lib/dates';
 
 function when(iso: string): string {
-    return new Date(iso).toLocaleString([], {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
+    return formatDateTime(iso);
 }
 
 /**

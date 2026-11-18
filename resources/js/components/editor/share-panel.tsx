@@ -7,12 +7,10 @@ import { Label } from '@/components/ui/label';
 import { __ } from '@/lib/i18n';
 import type { CreatedPreviewLink, PreviewLinkRow } from '@/types';
 import { post, reasonOf } from './editor-http';
+import { formatDateTime } from '@/lib/dates';
 
 function when(iso: string): string {
-    return new Date(iso).toLocaleString([], {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    });
+    return formatDateTime(iso);
 }
 
 /** Who made the link, or what stands in when their account is gone. */
