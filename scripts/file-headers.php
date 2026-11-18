@@ -35,11 +35,11 @@ const EXTENSION_GLOBS = ['plugins/*/src', 'themes/*/src'];
 const SINCE_PATTERN = '(?:next|\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?)';
 
 /**
- * Directories whose class docblocks are read by the reference generators
- * and by editors as published documentation: their prose stays on the
- * class, and the header carries its first sentence.
+ * Directories whose class docblocks are published documentation, read by
+ * the contracts, hooks and theme reference generators and by editors: their
+ * prose stays on the class, and the header carries its first sentence.
  */
-const KEEP_CLASS_PROSE = ['packages/teme-contracts/src/'];
+const KEEP_CLASS_PROSE = ['packages/teme-contracts/src/', 'app/Domain/Site/ViewModels/', 'app/View/Components/Teme/'];
 
 $arguments = array_slice($argv, 1);
 $command = array_shift($arguments) ?? '';
@@ -75,6 +75,7 @@ function usage(): int
  * The covered PHP files, relative to the root, sorted.
  *
  * @param  list<string>  $only
+ *
  * @return list<string>
  */
 function coveredFiles(array $only = []): array
@@ -473,6 +474,7 @@ function sinceOf(string $path, array $map): string
 
 /**
  * @param  array{files: array<string, string>, members: array<string, array<string, string>>}  $map
+ *
  * @return list<string>
  */
 function mappedNames(string $path, array $map): array
@@ -900,6 +902,7 @@ function thirdPerson(string $verb): string
  * `method:name` or `const:NAME`, each with its token index.
  *
  * @param  array{keyword: int, doc: int|null}  $class
+ *
  * @return array<string, int>
  */
 function publicMembers(string $source, array $class): array
