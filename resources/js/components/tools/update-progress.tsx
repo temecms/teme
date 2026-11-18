@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Panel, PanelBody } from '@/components/ui/panel';
 import { Progress } from '@/components/ui/progress';
 import { TextButton } from '@/components/ui/text-button';
+import TextLink from '@/components/text-link';
 import { __, __n } from '@/lib/i18n';
+import { show as showSettings } from '@/routes/settings';
 import type { TemeUpdate, TemeUpdateStep, UpdatesPage } from '@/types';
 
 /** The seven steps of an update, in the order the updater takes them. */
@@ -90,6 +92,29 @@ export function WithCode({
                         <Fragment key={at}>{part}</Fragment>
                     ),
                 )}
+        </>
+    );
+}
+
+/**
+ * A sentence with "Settings › Updates" in it, as the updater's refusals name
+ * the page, made a link to that page (issue 534).
+ */
+function WithSettingsLink({ words }: { words: string }) {
+    const page = __('Settings › Updates');
+
+    return (
+        <>
+            {words.split(page).map((part, at) => (
+                <Fragment key={at}>
+                    {at > 0 && (
+                        <TextLink href={showSettings({ group: 'updates' })}>
+                            {page}
+                        </TextLink>
+                    )}
+                    {part}
+                </Fragment>
+            ))}
         </>
     );
 }
@@ -624,25 +649,29 @@ export function UpdateProgress({
                 {update.status === 'switched_back' && (
                     <>
                         <p id="update-lead" role="status" className={lead}>
-                            {rolling
-                                ? __(
-                                      'The roll back to Teme :version was switched back at :time. :error So every part runs :from again.',
-                                      {
-                                          version: update.to,
-                                          time: finished,
-                                          error: update.error ?? '',
-                                          from: update.from,
-                                      },
-                                  )
-                                : __(
-                                      'The update to Teme :version was switched back at :time. :error So every part runs :from again.',
-                                      {
-                                          version: update.to,
-                                          time: finished,
-                                          error: update.error ?? '',
-                                          from: update.from,
-                                      },
-                                  )}
+                            <WithSettingsLink
+                                words={
+                                    rolling
+                                        ? __(
+                                              'The roll back to Teme :version was switched back at :time. :error So every part runs :from again.',
+                                              {
+                                                  version: update.to,
+                                                  time: finished,
+                                                  error: update.error ?? '',
+                                                  from: update.from,
+                                              },
+                                          )
+                                        : __(
+                                              'The update to Teme :version was switched back at :time. :error So every part runs :from again.',
+                                              {
+                                                  version: update.to,
+                                                  time: finished,
+                                                  error: update.error ?? '',
+                                                  from: update.from,
+                                              },
+                                          )
+                                }
+                            />
                         </p>
                         <p className="text-ink-2">
                             {__(
@@ -656,23 +685,27 @@ export function UpdateProgress({
                 {update.status === 'failed' && (
                     <>
                         <p id="update-lead" role="status" className={lead}>
-                            {rolling
-                                ? __(
-                                      'The roll back to Teme :version stopped: :error The site runs :from.',
-                                      {
-                                          version: update.to,
-                                          error: update.error ?? '',
-                                          from: update.from,
-                                      },
-                                  )
-                                : __(
-                                      'The update to Teme :version stopped: :error The site runs :from.',
-                                      {
-                                          version: update.to,
-                                          error: update.error ?? '',
-                                          from: update.from,
-                                      },
-                                  )}
+                            <WithSettingsLink
+                                words={
+                                    rolling
+                                        ? __(
+                                              'The roll back to Teme :version stopped: :error The site runs :from.',
+                                              {
+                                                  version: update.to,
+                                                  error: update.error ?? '',
+                                                  from: update.from,
+                                              },
+                                          )
+                                        : __(
+                                              'The update to Teme :version stopped: :error The site runs :from.',
+                                              {
+                                                  version: update.to,
+                                                  error: update.error ?? '',
+                                                  from: update.from,
+                                              },
+                                          )
+                                }
+                            />
                         </p>
                         {backup !== null && (
                             <p>

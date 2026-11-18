@@ -23,6 +23,7 @@ use App\Domain\Settings\Queries\SettingsPanels;
 use App\Domain\Settings\SettingsPlacement;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Updates\Updater\PlatformCheck;
+use App\Domain\Updates\Updater\PlatformRefused;
 use App\Domain\Updates\UpdatesSettings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
@@ -90,7 +91,7 @@ final class SettingsController extends Controller
             'pluginScripts' => $this->pluginScripts($registry, SettingsPlacement::groupShownOn($page), $data['values'], $request),
             // One sentence above the form when something needs the person: on Updates, why the updater can't use the
             // Dokploy key it has, or that it has none. Null on every other page.
-            'notice' => $page === UpdatesSettings::GROUP ? app(PlatformCheck::class)->sentence() : null,
+            'notice' => $page === UpdatesSettings::GROUP ? self::updatesNotice(app(PlatformCheck::class)->sentence()) : null,
             ...$sections->for($page, $user),
         ]);
     }
@@ -133,6 +134,18 @@ final class SettingsController extends Controller
             : __('Settings saved.')]);
 
         return to_route('settings.show', ['group' => $page]);
+    }
+
+    /**
+     * The updater's sentence as Settings › Updates says it: a missing key
+     * points to the field below, not to the page the person is already on
+     * (issue 534). Any other sentence as the updater gave it.
+     */
+    private static function updatesNotice(?string $sentence): ?string
+    {
+        return $sentence === PlatformRefused::NO_KEY
+            ? __('Updating from Tools › Updates needs a Dokploy API key. Paste it below.')
+            : $sentence;
     }
 
     /**
