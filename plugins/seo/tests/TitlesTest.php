@@ -53,7 +53,7 @@ final class TitlesTest extends SeoTestCase
                 ->assertOk()
                 ->assertInertia(fn (Assert $view) => $view->loadDeferredProps('block_'.$block, fn (Assert $reload) => $reload
                     ->where('block_'.$block.'.total', 2)
-                    ->where('block_'.$block.'.rows', fn ($rows): bool => collect($rows)->pluck('id')->sort()->values()->all() === collect([$published->id, $own->id])->sort()->values()->all())));
+                    ->where('block_'.$block.'.rows', fn (iterable $rows): bool => self::ids($rows) === self::ids([['id' => $published->id], ['id' => $own->id]]))));
         }
 
         // The drafts an editor may edit are all theirs to see.
@@ -115,5 +115,25 @@ final class TitlesTest extends SeoTestCase
             ->assertSessionHasErrors('record');
 
         expect(DB::table('content_revisions')->where('content_id', $item->id)->where('title', 'Mine now')->exists())->toBeFalse();
+    }
+
+    /**
+     * The rows' IDs, sorted.
+     *
+     * @param  iterable<mixed>  $rows
+     *
+     * @return list<string>
+     */
+    private static function ids(iterable $rows): array
+    {
+        $ids = [];
+
+        foreach ($rows as $row) {
+            $ids[] = is_array($row) && is_string($row['id'] ?? null) ? $row['id'] : '';
+        }
+
+        sort($ids);
+
+        return $ids;
     }
 }
