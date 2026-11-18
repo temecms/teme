@@ -40,9 +40,9 @@ import type {
     RailPane,
 } from '@/types';
 import { CardInspector } from './rail/card-inspector';
-import type { CheckId, CoreCheck } from './rail/checks';
+import type { CheckId, CoreCheck, RegionFacts } from './rail/checks';
 import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
-import { ChecksPanel } from './rail/checks-panel';
+import { ChecksPanel, RegionChecksPanel } from './rail/checks-panel';
 import { PublishPanel } from './rail/publish-panel';
 import type { Visibility, VisibilityRefusal } from './rail/publish-panel';
 import { TaxonomyPanel } from './rail/taxonomy-panel';
@@ -692,6 +692,7 @@ export function EditorRail({
     siteTimezone,
     notice,
     checks,
+    regionFacts,
     onGoToCheck,
     onGoToSearch,
     pluginChecks,
@@ -737,6 +738,8 @@ export function EditorRail({
     siteTimezone: string;
     notice: string | null;
     checks: CoreCheck[];
+    /** A theme region's own facts, checked in place of a post's search checks; absent for any other item. */
+    regionFacts?: RegionFacts;
     onGoToCheck: (check: CheckId) => void;
     /** Goes to Search and social under the text; undefined for a theme's region, which has none. */
     onGoToSearch?: () => void;
@@ -867,14 +870,18 @@ export function EditorRail({
                 canAdd={session.can.manageTerms}
                 primaryCategory={primaryCategory}
             />
-            <ChecksPanel
-                checks={checks}
-                onGoTo={onGoToCheck}
-                onGoToSearch={onGoToSearch}
-                noun={noun}
-                pluginChecks={pluginChecks}
-                onGoToPlugin={onGoToPlugin}
-            />
+            {regionFacts ? (
+                <RegionChecksPanel facts={regionFacts} />
+            ) : (
+                <ChecksPanel
+                    checks={checks}
+                    onGoTo={onGoToCheck}
+                    onGoToSearch={onGoToSearch}
+                    noun={noun}
+                    pluginChecks={pluginChecks}
+                    onGoToPlugin={onGoToPlugin}
+                />
+            )}
             {session.can.delete && typeSegment !== null && (
                 <div className="border-line mt-auto border-t px-4 py-4">
                     <Form
