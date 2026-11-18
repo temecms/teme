@@ -122,7 +122,7 @@ Before changing anything, read [`AGENTS.md`](AGENTS.md): the rules every change 
 - **A bug:** [report it](https://github.com/temecms/teme/issues/new?template=bug.yml) with the bug form.
 - **An idea:** [suggest it](https://github.com/temecms/teme/issues/new?template=feature.yml) with the feature form.
 - **A question:** [open an issue](https://github.com/temecms/teme/issues) for now.
-- **A security problem:** report it privately through GitHub's [private vulnerability reporting](https://github.com/temecms/teme/security/advisories/new), as [`SECURITY.md`](SECURITY.md) describes, never in a public issue.
+- **A security problem:** report it privately through GitHub's [private vulnerability reporting](https://github.com/temecms/teme/security/advisories/new), or by email to **security@temecms.com**, as [`SECURITY.md`](SECURITY.md) describes, never in a public issue.
 
 To contribute, read [`CONTRIBUTING.md`](CONTRIBUTING.md). Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md), and [`GOVERNANCE.md`](GOVERNANCE.md) says how decisions are made.
 
