@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Search and social's section "Social cards" (I-293): the image a card shows
+ * when what is shared has none of its own. Read through the settings, so a
+ * page that falls back to it carries the group's tag.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo;
@@ -7,11 +17,6 @@ namespace App\Domain\Seo;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "Social cards" (I-293): the image a card shows
- * when what is shared has none of its own. Read through the settings, so a
- * page that falls back to it carries the group's tag.
- */
 final class SocialCards implements SearchAndSocialSection
 {
     public const string DEFAULT_IMAGE = 'default_social_image';

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * The recovery keys Teme makes in use: random, with two random groups asked
+ * back (I-2401).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
 
-/**
- * The recovery keys Teme makes in use: random, with two random groups asked
- * back (I-2401).
- */
 final readonly class RandomRecoveryKeys implements RecoveryKeySource
 {
     public function make(): RecoveryKey

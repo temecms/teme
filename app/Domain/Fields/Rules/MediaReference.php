@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One media field value: an existing media item of an allowed kind, with an
+ * optional alt-text override and, where the field allows it, a decorative
+ * mark. A trashed item still counts as existing, so a post whose image was
+ * trashed can still be saved.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Rules;
@@ -8,12 +19,6 @@ use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Facades\DB;
 
-/**
- * One media field value: an existing media item of an allowed kind, with an
- * optional alt-text override and, where the field allows it, a decorative
- * mark. A trashed item still counts as existing, so a post whose image was
- * trashed can still be saved.
- */
 final class MediaReference implements ValidationRule
 {
     /**

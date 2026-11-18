@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Reads a site Teme imports from. A reader answers the export API's routes
+ * with the export API's shapes, whatever it reads from (I-1718).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Source;
 
-/**
- * Reads a site Teme imports from. A reader answers the export API's routes
- * with the export API's shapes, whatever it reads from (I-1718).
- */
 interface SourceReader
 {
     /**

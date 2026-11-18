@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Returned to you: the viewer's work a reviewer sent back, with the note,
+ * newest return first. Only each item's latest review counts, so an item
+ * submitted again since is gone. The candidates are the viewer's returns of
+ * the last 30 days (content_reviews_returned_by_submitter); each one's latest
+ * review comes from content_reviews_content_submitted. One query. It reads
+ * only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Panels;
@@ -10,14 +23,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Returned to you: the viewer's work a reviewer sent back, with the note,
- * newest return first. Only each item's latest review counts, so an item
- * submitted again since is gone. The candidates are the viewer's returns of
- * the last 30 days (content_reviews_returned_by_submitter); each one's latest
- * review comes from content_reviews_content_submitted. One query. It reads
- * only.
- */
 final class ReturnedToMe implements DashboardPanelQuery
 {
     /** How far back a return is still worth showing. */

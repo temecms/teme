@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An activity another fediverse server sent the site, once its signature was
+ * checked and its server is not blocked: a Like, an Announce, a Follow or any
+ * other.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

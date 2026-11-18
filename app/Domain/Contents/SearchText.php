@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Keeps an item's search columns equal to its published revision: the title
+ * and plain text, and the words of its fields marked for search, while the
+ * item is live and published, stemmed by its
+ * language's rules (I-435), nothing otherwise, so a draft's words are never
+ * found before they are public.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -9,13 +21,6 @@ use App\Domain\Fields\FieldRegistry;
 use App\Domain\Site\SiteLanguage;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Keeps an item's search columns equal to its published revision: the title
- * and plain text, and the words of its fields marked for search, while the
- * item is live and published, stemmed by its
- * language's rules (I-435), nothing otherwise, so a draft's words are never
- * found before they are public.
- */
 final class SearchText
 {
     /**

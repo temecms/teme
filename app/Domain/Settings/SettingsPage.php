@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Settings;
-
 /**
  * A page under Settings that isn't a settings group, such as Site code
  * (I-863): a tab after the groups, for whoever holds its ability.
  * Registered under TAG from its part's own provider.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Settings;
+
 interface SettingsPage
 {
     public const string TAG = 'teme.settings.pages';

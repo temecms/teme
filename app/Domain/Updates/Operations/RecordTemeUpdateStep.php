@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Records where one step of a running update stands (I-3326): its state, a sentence, and the backup and
+ * deploy run it brought about. The operator only: the updater.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Operations;
@@ -15,10 +24,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records where one step of a running update stands (I-3326): its state, a sentence, and the backup and
- * deploy run it brought about. The operator only: the updater.
- */
 final class RecordTemeUpdateStep extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

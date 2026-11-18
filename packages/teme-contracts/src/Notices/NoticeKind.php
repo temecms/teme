@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One kind of notice Teme or a plugin sends: who may receive it, by which
+ * channels, which are on until the person changes them, and whether the person
+ * may turn it off at all.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Notices;

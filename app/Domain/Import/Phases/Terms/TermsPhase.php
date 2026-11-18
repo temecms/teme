@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The terms phase (I-397): each category and tag of the old site becomes
+ * Teme's, at its own address, under its parent where that is already here;
+ * post formats and other taxonomies' terms stay behind, counted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Terms;
@@ -24,11 +34,6 @@ use App\Domain\Taxonomy\TermSlugs;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 
-/**
- * The terms phase (I-397): each category and tag of the old site becomes
- * Teme's, at its own address, under its parent where that is already here;
- * post formats and other taxonomies' terms stay behind, counted.
- */
 final readonly class TermsPhase implements ListPhase
 {
     /** WordPress's taxonomy for post formats, which Teme doesn't carry (I-447). */

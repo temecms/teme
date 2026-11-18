@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What Site › Themes shows of the design: the themes with their states, the
+ * theme being previewed, the chosen theme's settings by fieldset and its menu
+ * places, each value the draft's over the live one, and whether a draft is
+ * pending. Also each section's preview address, and a theme's screenshot.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Queries;
@@ -28,12 +39,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 use UnexpectedValueException;
 
-/**
- * What Site › Themes shows of the design: the themes with their states, the
- * theme being previewed, the chosen theme's settings by fieldset and its menu
- * places, each value the draft's over the live one, and whether a draft is
- * pending. Also each section's preview address, and a theme's screenshot.
- */
 final readonly class DesignScreen
 {
     private const string DESIGN_GROUP = 'design';

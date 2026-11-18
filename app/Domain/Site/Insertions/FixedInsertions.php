@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What plugins fix to the edges of a page, as core draws it at the end of
+ * the body: one per edge, the first in plugin code order, each with its
+ * plugin's label and a close button; side rails only where the screen has
+ * room beside the theme's content. None under a theme whose manifest says
+ * `"fixed": false` (docs/plans/plugin-sockets-2.md, B2).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -8,13 +20,6 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Themes\ActiveTheme;
 use Teme\Contracts\Insertions\PagePosition;
 
-/**
- * What plugins fix to the edges of a page, as core draws it at the end of
- * the body: one per edge, the first in plugin code order, each with its
- * plugin's label and a close button; side rails only where the screen has
- * room beside the theme's content. None under a theme whose manifest says
- * `"fixed": false` (docs/plans/plugin-sockets-2.md, B2).
- */
 final readonly class FixedInsertions
 {
     /** The room kept between the content and a rail, and a rail and the screen's edge, in pixels. */

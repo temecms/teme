@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `<x-teme::document>`: core's document shell around every public page, so a
+ * template writes only its own markup.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

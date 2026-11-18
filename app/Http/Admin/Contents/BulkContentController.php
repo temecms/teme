@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Bulk actions on the page selection (I-143): at most 100 items, each through
+ * its own Operation in its own transaction, each authorized on its own. What
+ * could not be done is reported item by item, never dropped silently. Bulk
+ * Edit answers JSON, because the browser sends it in batches and adds their
+ * reports up; every other action redirects with the `bulk` flash.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -27,13 +39,6 @@ use Inertia\Inertia;
 use LogicException;
 use Throwable;
 
-/**
- * Bulk actions on the page selection (I-143): at most 100 items, each through
- * its own Operation in its own transaction, each authorized on its own. What
- * could not be done is reported item by item, never dropped silently. Bulk
- * Edit answers JSON, because the browser sends it in batches and adds their
- * reports up; every other action redirects with the `bulk` flash.
- */
 final class BulkContentController extends Controller
 {
     private const array ACTIONS = ['trash', 'restore', 'delete', 'publish', 'unpublish', 'author', 'add_term', 'remove_term', 'edit'];

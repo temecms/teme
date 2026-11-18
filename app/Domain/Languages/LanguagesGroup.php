@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The `languages` settings group (I-3360): the site's other languages, their
+ * prefixes, which are hidden from readers, and which types and taxonomies
+ * are not translated. It has its own screen, Settings › Languages, so only
+ * its own Operations write it; built from the registries when read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -12,12 +23,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * The `languages` settings group (I-3360): the site's other languages, their
- * prefixes, which are hidden from readers, and which types and taxonomies
- * are not translated. It has its own screen, Settings › Languages, so only
- * its own Operations write it; built from the registries when read.
- */
 final class LanguagesGroup
 {
     /**

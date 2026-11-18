@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The rest of an Empty spam or Empty trash press, on the queue (1.8c′'s D5):
+ * as the person who pressed it, an explicit actor, since a worker holds no
+ * one's session; with the list's cut-off, so what arrived since stays; a part
+ * at a time, each well inside the worker's timeout, handing the rest on.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Jobs;
@@ -10,12 +21,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/**
- * The rest of an Empty spam or Empty trash press, on the queue (1.8c′'s D5):
- * as the person who pressed it, an explicit actor, since a worker holds no
- * one's session; with the list's cut-off, so what arrived since stays; a part
- * at a time, each well inside the worker's timeout, handing the rest on.
- */
 final class EmptyComments implements ShouldQueue
 {
     use Queueable;

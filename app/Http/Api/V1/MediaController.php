@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * GET /api/v1/media/{id}: a media file, while a live, public, unprotected
+ * item shows it (D26).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\V1;
@@ -12,10 +21,6 @@ use App\Domain\Api\Envelope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * GET /api/v1/media/{id}: a media file, while a live, public, unprotected
- * item shows it (D26).
- */
 final class MediaController
 {
     /** The parameters this address takes: none. */

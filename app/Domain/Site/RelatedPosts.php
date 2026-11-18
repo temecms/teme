@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Posts related to an article, each with its reason (I-258): through its
+ * rarest shared term first, the one fewest items of its type carry, then the
+ * next, until there are enough. Nothing shared means none: it never falls
+ * back to the latest posts, which aren't related (study Q §4). One query for
+ * all the terms, each term's items read from its index.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -11,13 +23,6 @@ use App\Domain\Site\ViewModels\ListingItem;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Posts related to an article, each with its reason (I-258): through its
- * rarest shared term first, the one fewest items of its type carry, then the
- * next, until there are enough. Nothing shared means none: it never falls
- * back to the latest posts, which aren't related (study Q §4). One query for
- * all the terms, each term's items read from its index.
- */
 final readonly class RelatedPosts
 {
     /** The newest items taken from each term. */

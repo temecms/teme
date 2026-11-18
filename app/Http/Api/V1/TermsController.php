@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * GET /api/v1/terms and /terms/{id}: the terms of the public taxonomies,
+ * each with its count of published public items (D27).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\V1;
@@ -15,10 +24,6 @@ use App\Domain\Api\Shapes\TermShape;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * GET /api/v1/terms and /terms/{id}: the terms of the public taxonomies,
- * each with its count of published public items (D27).
- */
 final class TermsController
 {
     /** The parameters the list takes. */

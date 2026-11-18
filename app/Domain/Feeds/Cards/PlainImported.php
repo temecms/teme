@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The Imported content card in a feed: its listed elements as they are, with no wrapper and no class, links and pictures at absolute addresses.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -9,9 +17,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Feeds\FeedCardRenderer;
 use App\Domain\Feeds\FeedImages;
 
-/**
- * The Imported content card in a feed: its listed elements as they are, with no wrapper and no class, links and pictures at absolute addresses.
- */
 final readonly class PlainImported implements FeedCardRenderer
 {
     public function __construct(private FeedImages $images) {}

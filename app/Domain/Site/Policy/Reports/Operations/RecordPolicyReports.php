@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Adds the policy reports browsers sent since the last run to their table, as
+ * the operator, every minute (I-3375): the spool closed a run ago becomes one
+ * row for each directive, blocked origin and page, which then keeps only
+ * rows seen in the last days and at most the most recently seen up to its
+ * cap; then the open spool is closed for the next run. A browser's request
+ * never writes the table.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Policy\Reports\Operations;
@@ -15,14 +28,6 @@ use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * Adds the policy reports browsers sent since the last run to their table, as
- * the operator, every minute (I-3375): the spool closed a run ago becomes one
- * row for each directive, blocked origin and page, which then keeps only
- * rows seen in the last days and at most the most recently seen up to its
- * cap; then the open spool is closed for the next run. A browser's request
- * never writes the table.
- */
 final class RecordPolicyReports extends BaseOperation
 {
     /** Rows one statement writes. */

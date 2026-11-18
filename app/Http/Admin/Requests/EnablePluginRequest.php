@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * The enable request of the Plugins page (I-3353): the version, capabilities,
+ * hosts and hooks the consent dialog showed, which EnablePlugin compares with
+ * what the plugin asks for now. Who may enable is the Operation's to say.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/**
- * The enable request of the Plugins page (I-3353): the version, capabilities,
- * hosts and hooks the consent dialog showed, which EnablePlugin compares with
- * what the plugin asks for now. Who may enable is the Operation's to say.
- */
 final class EnablePluginRequest extends FormRequest
 {
     public function authorize(): bool

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where an old site's rule sends readers, as ImportRedirect takes it (rule
+ * 9): another site's address as written; one on the old site's own host as
+ * its path, so moving the domain changes nothing; and that path as an item
+ * or a file by ID wherever the import brought one there.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Redirects;
@@ -14,12 +25,6 @@ use App\Domain\Import\Phases\SourceRef;
 use App\Domain\Import\Queries\ImportMap;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Where an old site's rule sends readers, as ImportRedirect takes it (rule
- * 9): another site's address as written; one on the old site's own host as
- * its path, so moving the domain changes nothing; and that path as an item
- * or a file by ID wherever the import brought one there.
- */
 final readonly class RuleTargets
 {
     /** Where WordPress keeps uploaded files unless a site moved them, below its address; a site's own folder is I-1884. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin whose manifest declares editor checks: core asks it about the item
+ * being edited and draws what it answers beside its own checks, under the
+ * plugin's name.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

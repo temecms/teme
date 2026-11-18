@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A backup as a kind of tracked job (I-104). Nothing is queued: a waiting
+ * backup job is taken by the scheduler within a minute and runs as whoever
+ * started it, so retrying only leaves it waiting, or refuses at once, in
+ * words; cancelling drops nothing, since a running backup stops at its next
+ * step's report.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tracking;
@@ -15,13 +27,6 @@ use App\Domain\Users\Actors;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * A backup as a kind of tracked job (I-104). Nothing is queued: a waiting
- * backup job is taken by the scheduler within a minute and runs as whoever
- * started it, so retrying only leaves it waiting, or refuses at once, in
- * words; cancelling drops nothing, since a running backup stops at its next
- * step's report.
- */
 final readonly class BackupJobKind implements JobKind
 {
     /** The kind's key, which is also the run type its jobs carry. */

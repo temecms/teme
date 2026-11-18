@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Slugs for categories and tags, unique within their taxonomy in one
+ * language (I-3360): the same single-query approach as content slugs.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Slugs for categories and tags, unique within their taxonomy in one
- * language (I-3360): the same single-query approach as content slugs.
- */
 final class TermSlugs
 {
     /**

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Turns what a reader typed into a comment's document (I-267): paragraphs,
+ * line breaks and linked web addresses, nothing else read as formatting; and
+ * reads a document back as its words and its links, for the moderator, and
+ * says whether a stored document is only what a reader could type (1.8c′).
+ * An address on this site is linked by its item's ID or not at all (rule 9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -8,13 +20,6 @@ use App\Domain\Addresses\Paths;
 use App\Domain\Addresses\PublicRequestPath;
 use App\Domain\Addresses\TypeArchives;
 
-/**
- * Turns what a reader typed into a comment's document (I-267): paragraphs,
- * line breaks and linked web addresses, nothing else read as formatting; and
- * reads a document back as its words and its links, for the moderator, and
- * says whether a stored document is only what a reader could type (1.8c′).
- * An address on this site is linked by its item's ID or not at all (rule 9).
- */
 final class CommentText
 {
     /**

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The lists a running plugin shows on its own settings page
+ * (docs/proposals/plugin-sockets-1.md): each asked once as the page is
+ * drawn, under a time budget a list and a page, its cells cleaned as list
+ * columns' are. A list that throws, runs over or answers wrongly is
+ * recorded under the plugin and shows a line instead.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Lists;
@@ -20,13 +32,6 @@ use Teme\Contracts\Lists\HasPluginLists;
 use Teme\Contracts\Lists\PluginList;
 use Throwable;
 
-/**
- * The lists a running plugin shows on its own settings page
- * (docs/proposals/plugin-sockets-1.md): each asked once as the page is
- * drawn, under a time budget a list and a page, its cells cleaned as list
- * columns' are. A list that throws, runs over or answers wrongly is
- * recorded under the plugin and shows a line instead.
- */
 final readonly class PluginLists
 {
     public const int LIST_BUDGET_MS = 100;

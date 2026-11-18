@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The check after every backup (I-362), at one place: the run is all there,
+ * its four parts listed; its manifest reads back as it was written; and
+ * restic's check finds nothing wrong. Recorded as a check run under the
+ * backup, and the place turns failing when the check fails.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -18,12 +29,6 @@ use App\Domain\Backups\Tools\SnapshotRun;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 
-/**
- * The check after every backup (I-362), at one place: the run is all there,
- * its four parts listed; its manifest reads back as it was written; and
- * restic's check finds nothing wrong. Recorded as a check run under the
- * backup, and the place turns failing when the check fails.
- */
 final readonly class BackupCheck
 {
     public function __construct(

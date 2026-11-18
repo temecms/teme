@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Points Fortify at Teme's own screens and its password-reset Operation. The
+ * sign-in limits themselves live in `SecurityServiceProvider`.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -18,10 +27,6 @@ use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Points Fortify at Teme's own screens and its password-reset Operation. The
- * sign-in limits themselves live in `SecurityServiceProvider`.
- */
 final class FortifyServiceProvider extends ServiceProvider
 {
     /**

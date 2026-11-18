@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The stored row for one settings group: only the values an administrator
+ * changed, the encrypted secrets, a version for spotting conflicting edits,
+ * and, for Settings › Design's groups, the unpublished draft. SettingsWriter
+ * writes the live values; the design Operations write the draft.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Models;
@@ -10,11 +21,6 @@ use Illuminate\Database\Eloquent\Model;
 use stdClass;
 
 /**
- * The stored row for one settings group: only the values an administrator
- * changed, the encrypted secrets, a version for spotting conflicting edits,
- * and, for Settings › Design's groups, the unpublished draft. SettingsWriter
- * writes the live values; the design Operations write the draft.
- *
  * @property string $group_key
  * @property array<string, mixed> $overrides
  * @property array<string, string>|null $secrets

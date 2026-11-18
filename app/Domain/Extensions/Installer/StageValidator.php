@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Checks a staged release before it may run: that it is exactly what was
+ * locked, and that the package asked for is a valid plugin or theme that
+ * shadows nothing of Teme's or of another extension's. Reads files and
+ * Composer's data only, never a package's code (docs/plans/plugin-installer.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
@@ -18,12 +29,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 
-/**
- * Checks a staged release before it may run: that it is exactly what was
- * locked, and that the package asked for is a valid plugin or theme that
- * shadows nothing of Teme's or of another extension's. Reads files and
- * Composer's data only, never a package's code (docs/plans/plugin-installer.md).
- */
 final readonly class StageValidator
 {
     /** A class Composer writes into every project's classmap. */

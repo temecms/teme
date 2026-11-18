@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Lets a request name the site's own host, APP_URL's, and no other
+ * (I-380), so a forged Host header builds no link and fills no cache. A
+ * health check made inside the container, whose connection comes from the
+ * container itself, may also name localhost.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -8,12 +19,6 @@ use Closure;
 use Illuminate\Http\Middleware\TrustHosts;
 use Illuminate\Http\Request;
 
-/**
- * Lets a request name the site's own host, APP_URL's, and no other
- * (I-380), so a forged Host header builds no link and fills no cache. A
- * health check made inside the container, whose connection comes from the
- * container itself, may also name localhost.
- */
 final class TrustSiteHost extends TrustHosts
 {
     /** The connection's address when a check runs inside the container. */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The import runs read (I-332): the one running, the latest, the last
+ * finished, and what a run's phases are given.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
@@ -11,10 +20,6 @@ use App\Domain\Import\Phases\ImportContext;
 use App\Domain\Support\Security\JobActor;
 use Carbon\CarbonInterface;
 
-/**
- * The import runs read (I-332): the one running, the latest, the last
- * finished, and what a run's phases are given.
- */
 final class ImportRuns
 {
     /**

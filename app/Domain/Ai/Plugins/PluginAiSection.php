@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › AI's section "Plugins" (I-3434): for each enabled plugin granted
+ * `ai`, its tasks' models and fallbacks, and its own switch, monthly budget
+ * and requests an hour; and the check on what a form sends for them. Also how
+ * the rest of Teme reads a plugin's switch, budget and limit.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Plugins;
@@ -16,12 +27,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 use UnexpectedValueException;
 
-/**
- * Settings › AI's section "Plugins" (I-3434): for each enabled plugin granted
- * `ai`, its tasks' models and fallbacks, and its own switch, monthly budget
- * and requests an hour; and the check on what a form sends for them. Also how
- * the rest of Teme reads a plugin's switch, budget and limit.
- */
 final readonly class PluginAiSection implements AiSettingsSection, SettingsCheck
 {
     /** A plugin's requests an hour, until an administrator changes it. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Changes a redirect's source, status, target or note, for whoever holds
+ * redirects.manage (I-850), keeping its origin, its switch and its hits;
+ * checked, recorded and purged as CreateRedirect is, with what it was before.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations;
@@ -20,11 +30,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes a redirect's source, status, target or note, for whoever holds
- * redirects.manage (I-850), keeping its origin, its switch and its hits;
- * checked, recorded and purged as CreateRedirect is, with what it was before.
- */
 final class EditRedirect extends BaseOperation
 {
     public function __construct(

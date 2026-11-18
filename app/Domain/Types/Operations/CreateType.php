@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Makes one of the site's own content types, and its own permissions, when
+ * it has them, live in every process at once (I-3296). A public type's
+ * address pattern is set now, from its segment unless one is given, and
+ * never follows the segment later.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations;
@@ -11,12 +22,6 @@ use App\Domain\Types\StoredTypes;
 use App\Domain\Types\TypeRules;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Makes one of the site's own content types, and its own permissions, when
- * it has them, live in every process at once (I-3296). A public type's
- * address pattern is set now, from its segment unless one is given, and
- * never follows the segment later.
- */
 final class CreateType extends BaseOperation
 {
     use ManagesTypes;

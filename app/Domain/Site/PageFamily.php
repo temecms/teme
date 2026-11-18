@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A page's family as readers see it (I-3363): the items above it and the
+ * items under it that are live, each by its published title at its
+ * address, one statement each. Each records the tags of what it shows. The
+ * time is the application's, as Live binds it, never the database's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -12,12 +23,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Site\ViewModels\ItemLink;
 use Illuminate\Support\Facades\DB;
 
-/**
- * A page's family as readers see it (I-3363): the items above it and the
- * items under it that are live, each by its published title at its
- * address, one statement each. Each records the tags of what it shows. The
- * time is the application's, as Live binds it, never the database's.
- */
 final readonly class PageFamily
 {
     /** The most children a page's view data lists. */

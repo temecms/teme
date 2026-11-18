@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A run's counts, from the map and its messages when a phase or the run
+ * ends, never one object at a time, so parallel workers never queue on the
+ * run's row; and the one purge of everything a run ends with (I-332).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Concerns;
@@ -11,11 +21,6 @@ use App\Domain\Import\Models\ImportRun;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * A run's counts, from the map and its messages when a phase or the run
- * ends, never one object at a time, so parallel workers never queue on the
- * run's row; and the one purge of everything a run ends with (I-332).
- */
 trait TalliesRuns
 {
     private function tally(ImportRun $run): void

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Custom HTML in a theme's region: a Settings › Site code entry placed by
+ * name, holding only the entry's ID, never code of its own (I-183, I-3127).
+ * The code is drawn exactly as written, its scripts and hosts given to the
+ * page's policy as site code's are (I-3375).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -16,12 +27,6 @@ use App\Domain\SiteCode\SiteCode;
 use App\Domain\SiteCode\SiteCodeEntries;
 use App\Domain\SiteCode\SiteCodeWithheld;
 
-/**
- * Custom HTML in a theme's region: a Settings › Site code entry placed by
- * name, holding only the entry's ID, never code of its own (I-183, I-3127).
- * The code is drawn exactly as written, its scripts and hosts given to the
- * page's policy as site code's are (I-3375).
- */
 final class SiteCodeCard implements CardType, RegionCard
 {
     public function name(): string

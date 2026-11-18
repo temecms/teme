@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Which published item last showed a media item, for the alt-text task
+ * (I-319): published uses only, so AI is told nothing a reader of the site
+ * couldn't read, and no draft, which may be someone else's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\AltText\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Which published item last showed a media item, for the alt-text task
- * (I-319): published uses only, so AI is told nothing a reader of the site
- * couldn't read, and no draft, which may be someone else's.
- */
 final class LatestPublishedUse
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Marks for the content phase, once, the posts and pages an import made
+ * before Teme kept items private or protected (I-2643): drafts whose map
+ * rows say WordPress had them so, brought again as they were. Only an
+ * import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -15,12 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Marks for the content phase, once, the posts and pages an import made
- * before Teme kept items private or protected (I-2643): drafts whose map
- * rows say WordPress had them so, brought again as they were. Only an
- * import's actor may call it.
- */
 final class MarkVisibilityWaiting extends BaseOperation
 {
     use AuthorizesImports;

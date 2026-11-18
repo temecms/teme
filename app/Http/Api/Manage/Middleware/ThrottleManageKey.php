@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The management API's limit per key: as many requests a minute as the
+ * setting allows, 60 unless an administrator changes it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\Manage\Middleware;
@@ -12,10 +21,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * The management API's limit per key: as many requests a minute as the
- * setting allows, 60 unless an administrator changes it.
- */
 final class ThrottleManageKey
 {
     public function handle(Request $request, Closure $next): Response

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Waiting for your review: the pending reviews of the types the viewer may
+ * decide on, oldest first, so the longest wait comes first. One query on
+ * content_reviews_pending. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Panels;
@@ -11,11 +21,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Waiting for your review: the pending reviews of the types the viewer may
- * decide on, oldest first, so the longest wait comes first. One query on
- * content_reviews_pending. It reads only.
- */
 final class WaitingForMyReview implements DashboardPanelQuery
 {
     public function rows(User $viewer, array $types, int $limit): array

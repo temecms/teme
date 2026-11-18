@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:plugins:forget`: deletes a disabled plugin's record when its
+ * package is gone, as the operator, so its code is free again.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,10 +22,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * `teme:plugins:forget`: deletes a disabled plugin's record when its
- * package is gone, as the operator, so its code is free again.
- */
 final class ForgetPluginCommand extends Command
 {
     /** @var string */

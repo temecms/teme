@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Brings a person an earlier import created up to date with WordPress, for
+ * as long as WordPress is still where they sign in from: while their
+ * stored hash is one Teme never writes, their name, biography and hash
+ * follow WordPress's, and so does a lower role, never a higher one; no
+ * role at all suspends them. Once they have signed in here nothing
+ * changes; nor does the person running the import (I-340).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -24,14 +37,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings a person an earlier import created up to date with WordPress, for
- * as long as WordPress is still where they sign in from: while their
- * stored hash is one Teme never writes, their name, biography and hash
- * follow WordPress's, and so does a lower role, never a higher one; no
- * role at all suspends them. Once they have signed in here nothing
- * changes; nor does the person running the import (I-340).
- */
 final class UpdateImportedUser extends BaseOperation
 {
     use AuthorizesImports;

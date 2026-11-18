@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One step of Select all matching (I-143): the next hundred rows of the run's list, as its person sees them, each through its own Operation, then the run's record and the job's progress, then the next step or the end. It carries the run's ID and its person (I-392), nothing else.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Jobs;
@@ -31,9 +39,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * One step of Select all matching (I-143): the next hundred rows of the run's list, as its person sees them, each through its own Operation, then the run's record and the job's progress, then the next step or the end. It carries the run's ID and its person (I-392), nothing else.
- */
 final class AdvanceBulkRun implements ShouldQueue
 {
     use Queueable;

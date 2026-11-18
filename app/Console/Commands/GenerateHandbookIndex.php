@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:docs:handbook-index`: writes `docs/guides/developers/llms.txt` from
+ * the handbook pages' front matter, in the README's order.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -7,10 +16,6 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Symfony\Component\Yaml\Yaml;
 
-/**
- * `teme:docs:handbook-index`: writes `docs/guides/developers/llms.txt` from
- * the handbook pages' front matter, in the README's order.
- */
 final class GenerateHandbookIndex extends Command
 {
     /**

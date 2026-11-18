@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:privacy:prune — keeps privacy requests only as long as they are
+ * needed, through PrunePrivacyRequests as the operator (I-3375). Runs daily.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,10 +19,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:privacy:prune — keeps privacy requests only as long as they are
- * needed, through PrunePrivacyRequests as the operator (I-3375). Runs daily.
- */
 final class PrunePrivacyRecords extends Command
 {
     /** @var string */

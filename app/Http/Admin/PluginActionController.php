@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Actions panel on a plugin's settings page: a click runs the
+ * RunPluginAction Operation and answers with a toast that links to
+ * Tools › Jobs. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -13,11 +23,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * The Actions panel on a plugin's settings page: a click runs the
- * RunPluginAction Operation and answers with a toast that links to
- * Tools › Jobs. It changes nothing itself.
- */
 final class PluginActionController extends Controller
 {
     public function run(Request $request, string $code, string $action, RunPluginAction $run): RedirectResponse

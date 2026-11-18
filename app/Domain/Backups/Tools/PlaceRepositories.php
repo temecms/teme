@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Opens the places backups are kept as restic repositories, for one call
+ * (I-2403): a folder by its path; S3 with its keys in restic's environment;
+ * an SFTP server through files that live only for the call, in a folder
+ * only Teme can read: the place's private key, the host key a person
+ * confirmed, and one ssh configuration naming every SFTP place the call
+ * opened, so two of them share restic's one sftp.args.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
@@ -13,14 +26,6 @@ use LogicException;
 use RuntimeException;
 use SensitiveParameter;
 
-/**
- * Opens the places backups are kept as restic repositories, for one call
- * (I-2403): a folder by its path; S3 with its keys in restic's environment;
- * an SFTP server through files that live only for the call, in a folder
- * only Teme can read: the place's private key, the host key a person
- * confirmed, and one ssh configuration naming every SFTP place the call
- * opened, so two of them share restic's one sftp.args.
- */
 final class PlaceRepositories
 {
     /** How long Teme waits on a place while a person waits, in seconds. */

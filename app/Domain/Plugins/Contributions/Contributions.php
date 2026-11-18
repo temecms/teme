@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Registers what a starting plugin adds to the admin, under its Composer
+ * name: its declared settings, its Tools links and its status checks, all of
+ * them or, when anything is wrong, none (I-3353). Nothing is stored: a
+ * plugin that doesn't start adds nothing, and its settings' values stay.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
@@ -22,12 +33,6 @@ use Teme\Contracts\Status\ChecksStatus;
 use Teme\Contracts\Status\StatusCheck as PluginCheck;
 use Teme\Contracts\StructuredData\HasStructuredData;
 
-/**
- * Registers what a starting plugin adds to the admin, under its Composer
- * name: its declared settings, its Tools links and its status checks, all of
- * them or, when anything is wrong, none (I-3353). Nothing is stored: a
- * plugin that doesn't start adds nothing, and its settings' values stay.
- */
 final readonly class Contributions implements PluginContributions
 {
     public function __construct(

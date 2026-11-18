@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What it takes to check, later, that a person wrote a shown recovery key
+ * down (I-2401): two positions, an HMAC of the groups at them under
+ * APP_KEY, and the key's restic ID at each place, so the key can be
+ * recorded once they are typed back. It holds no part of the key, and its
+ * caller keeps it between requests: Tools › Backups in the session.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -7,13 +19,6 @@ namespace App\Domain\Backups;
 use InvalidArgumentException;
 use SensitiveParameter;
 
-/**
- * What it takes to check, later, that a person wrote a shown recovery key
- * down (I-2401): two positions, an HMAC of the groups at them under
- * APP_KEY, and the key's restic ID at each place, so the key can be
- * recorded once they are typed back. It holds no part of the key, and its
- * caller keeps it between requests: Tools › Backups in the session.
- */
 final readonly class RecoveryKeyChallenge
 {
     /**

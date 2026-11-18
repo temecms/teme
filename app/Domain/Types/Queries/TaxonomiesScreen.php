@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What Site › Taxonomies shows (I-3319): every taxonomy, code's and the
+ * site's own, refused ones with the registry's reason, who uses each, its
+ * public address as Settings › Addresses has it, and its terms. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Queries;
@@ -18,10 +28,6 @@ use JsonException;
 use Teme\Contracts\Settings\SettingsReader;
 
 /**
- * What Site › Taxonomies shows (I-3319): every taxonomy, code's and the
- * site's own, refused ones with the registry's reason, who uses each, its
- * public address as Settings › Addresses has it, and its terms. It reads only.
- *
  * @phpstan-type TaxonomyRow array{key: string, singular: string, plural: string, segment: string, icon: string, source: string, reason: ?string, hierarchical: bool, usedBy: list<string>, address: ?string, terms: int, termsUrl: ?string}
  * @phpstan-type TaxonomyValues array{key: string, singular: string, plural: string, segment: string, icon: string, hierarchical: bool, public: bool, base: ?string, types: list<string>}
  * @phpstan-type TaxonomyPage array{mode: string, source: ?string, reason: ?string, taxonomy: TaxonomyValues, made: ?string, terms: int, under: int, address: ?string, example: ?string, termsUrl: ?string, options: array{types: list<array{key: string, plural: string, locked: bool}>}}

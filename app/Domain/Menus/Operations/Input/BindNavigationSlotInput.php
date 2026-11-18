@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What BindNavigationSlot needs: the theme, its slot, the menu to show there
+ * or null for none, who is asking, and the other site language whose
+ * readers see it there (null for the default language's).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What BindNavigationSlot needs: the theme, its slot, the menu to show there
- * or null for none, who is asking, and the other site language whose
- * readers see it there (null for the default language's).
- */
 final readonly class BindNavigationSlotInput implements OperationInput
 {
     public function __construct(

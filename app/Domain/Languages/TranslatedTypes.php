@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The refusals for a type or a taxonomy that isn't translated (D25, I-3370):
+ * asked in validate() from the settings, and again in perform(), under the
+ * languages' lock, from the row, so a change that committed meanwhile shows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -10,11 +20,6 @@ use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The refusals for a type or a taxonomy that isn't translated (D25, I-3370):
- * asked in validate() from the settings, and again in perform(), under the
- * languages' lock, from the row, so a change that committed meanwhile shows.
- */
 final class TranslatedTypes
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Core's page about writing a comment, as the theme's `respond` template sees
+ * it, as `$page`: the reply page, or the answer to a comment form posted
+ * without JavaScript, in core's words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Quick edit (I-224, C3; 1.8c′'s D9): changes a comment's name, email address,
+ * website and words, by whoever looks after its item, and replaces its
+ * document only when its words changed, so imported formatting survives an
+ * edit of anything else. Never a ping or a tombstone. The pages that show an
+ * approved comment are removed after commit when what readers see changed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -21,13 +33,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Quick edit (I-224, C3; 1.8c′'s D9): changes a comment's name, email address,
- * website and words, by whoever looks after its item, and replaces its
- * document only when its words changed, so imported formatting survives an
- * edit of anything else. Never a ping or a tombstone. The pages that show an
- * approved comment are removed after commit when what readers see changed.
- */
 final class EditComment extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

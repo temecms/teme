@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Sitemaps;
-
 /**
  * The sitemaps as XML (docs/studies/seo.md §3.7): the index of pages, or
  * one page's addresses with when each last changed and its images, each
  * opening with the stylesheet a browser shows them through. Every text is
  * escaped here, what XML 1.0 can't carry removed first, so no value
  * reaches a sitemap by another road.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Sitemaps;
+
 final class SitemapXml
 {
     /** The sitemaps protocol's namespace. */
@@ -19,7 +24,11 @@ final class SitemapXml
     /** Google's image extension's namespace. */
     public const string IMAGES = 'http://www.google.com/schemas/sitemap-image/1.1';
 
-    /** XHTML's namespace, which an address's language versions are written in (I-3360). */
+    /**
+     * XHTML's namespace, which an address's language versions are written in (I-3360).
+     *
+     * @since 1.0.0
+     */
     public const string XHTML = 'http://www.w3.org/1999/xhtml';
 
     /**

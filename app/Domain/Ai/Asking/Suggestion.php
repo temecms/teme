@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One request's hand-off from the job to the page (I-320): who asked, about
+ * what, where it stands, and, once ready, the checked answer and its
+ * target's hash. Stored as arrays in the disposable cache, never kept.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking;
@@ -8,11 +18,6 @@ use App\Domain\Ai\AiFailureType;
 use App\Domain\Ai\AiSubject;
 use App\Domain\Ai\AiSubjectType;
 
-/**
- * One request's hand-off from the job to the page (I-320): who asked, about
- * what, where it stands, and, once ready, the checked answer and its
- * target's hash. Stored as arrays in the disposable cache, never kept.
- */
 final readonly class Suggestion
 {
     public const string WORKING = 'working';

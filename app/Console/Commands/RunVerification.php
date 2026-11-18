@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:backup:verify — checks the backups now, as the operator (I-362): a
+ * seventh of each place's data read back, and the newest backup restored
+ * into the spare database and compared with its manifest. Either, or both.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,11 +23,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:backup:verify — checks the backups now, as the operator (I-362): a
- * seventh of each place's data read back, and the newest backup restored
- * into the spare database and compared with its manifest. Either, or both.
- */
 final class RunVerification extends Command
 {
     /** @var string */

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Each content type's own archive page (I-3304): which types have one,
+ * every public type with an archive but the first, whose list is the
+ * latest list; the one word each sits at, from Settings › Addresses; the
+ * type whose page is at a path; and what holds an address in its place.
+ * Asked of the registry and the settings each time, so a type made or
+ * changed a moment ago counts.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -8,14 +21,6 @@ use App\Domain\Types\ContentType;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-/**
- * Each content type's own archive page (I-3304): which types have one,
- * every public type with an archive but the first, whose list is the
- * latest list; the one word each sits at, from Settings › Addresses; the
- * type whose page is at a path; and what holds an address in its place.
- * Asked of the registry and the settings each time, so a type made or
- * changed a moment ago counts.
- */
 final class TypeArchives
 {
     /** The path table's target type for an archive page's old addresses; its target ID is the type's key. */

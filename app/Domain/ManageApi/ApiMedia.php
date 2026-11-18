@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The management API's media: a file stored through UploadMedia and its
+ * details changed through UpdateMediaDetails, both as the key's person,
+ * answered with addresses generated from the current site address, never
+ * stored (rule 9).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
@@ -14,12 +25,6 @@ use App\Domain\Media\Operations\UploadMedia;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * The management API's media: a file stored through UploadMedia and its
- * details changed through UpdateMediaDetails, both as the key's person,
- * answered with addresses generated from the current site address, never
- * stored (rule 9).
- */
 final readonly class ApiMedia
 {
     public function __construct(private SettingsReader $settings) {}

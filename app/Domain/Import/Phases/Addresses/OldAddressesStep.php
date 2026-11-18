@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Every old address of a category, tag or author the import brought that
+ * Teme now gives another address (I-339): kept as an old address that leads
+ * to it, by ID, from the companion's urls; one something else holds is said.
+ * Items' old addresses are written as items are. Fifty seconds a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Addresses;
@@ -19,12 +30,6 @@ use App\Domain\Import\Source\SourceReader;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Every old address of a category, tag or author the import brought that
- * Teme now gives another address (I-339): kept as an old address that leads
- * to it, by ID, from the companion's urls; one something else holds is said.
- * Items' old addresses are written as items are. Fifty seconds a job.
- */
 final readonly class OldAddressesStep implements StepPhase
 {
     /** Seconds a job reads for before it hands on to the next. */

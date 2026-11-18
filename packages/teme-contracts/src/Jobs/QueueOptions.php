@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * How to queue a plugin's job: after a delay, and once while one waits.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Jobs;

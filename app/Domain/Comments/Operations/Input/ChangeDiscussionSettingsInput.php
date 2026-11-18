@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What ChangeDiscussionSettings needs: the Discussion settings to change,
+ * keyed by setting, the group's version the form was opened on, and who is
+ * asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ChangeDiscussionSettings needs: the Discussion settings to change,
- * keyed by setting, the group's version the form was opened on, and who is
- * asking.
- */
 final readonly class ChangeDiscussionSettingsInput implements OperationInput
 {
     /**

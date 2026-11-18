@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a plugin's manifest declares for search engines, read each time:
+ * its editor checks, its Search and social section, its sitemaps and its
+ * schema.org terms. An entry that isn't well formed is left out; the
+ * validator refused it first.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -10,12 +21,6 @@ use App\Domain\Plugins\PluginKeys;
 use App\Domain\Plugins\PluginWords;
 use App\Domain\Types\ContentTypeRegistry;
 
-/**
- * What a plugin's manifest declares for search engines, read each time:
- * its editor checks, its Search and social section, its sitemaps and its
- * schema.org terms. An entry that isn't well formed is left out; the
- * validator refused it first.
- */
 final class SeoDeclarations
 {
     /**

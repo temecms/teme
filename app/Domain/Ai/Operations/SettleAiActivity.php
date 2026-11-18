@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Settles a suggestion (I-317): used, with the revision it made, or none for
+ * a media item; discarded; or found out of date when the person tried to use
+ * it. Only the person who asked settles it, and only once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Settles a suggestion (I-317): used, with the revision it made, or none for
- * a media item; discarded; or found out of date when the person tried to use
- * it. Only the person who asked settles it, and only once.
- */
 final class SettleAiActivity extends BaseOperation
 {
     private const array SETTLED = [AiOutcome::Applied, AiOutcome::Discarded, AiOutcome::Stale];

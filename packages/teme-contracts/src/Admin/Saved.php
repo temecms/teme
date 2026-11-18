@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a write did: the record's id, and whether anything changed, so core
+ * purges the pages it touches only then.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Admin;

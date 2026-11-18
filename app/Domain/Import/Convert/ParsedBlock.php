@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One block of WordPress's parse_blocks() tree, as the companion plugin
+ * sends it (I-334): its name, null for a freeform chunk of classic content;
+ * its attributes; its own markup, with null where each inner block goes;
+ * and, for a freeform chunk, the HTML wpautop() made of it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert;
 
 use App\Domain\Import\Convert\Html\HtmlFragment;
 
-/**
- * One block of WordPress's parse_blocks() tree, as the companion plugin
- * sends it (I-334): its name, null for a freeform chunk of classic content;
- * its attributes; its own markup, with null where each inner block goes;
- * and, for a freeform chunk, the HTML wpautop() made of it.
- */
 final readonly class ParsedBlock
 {
     /**

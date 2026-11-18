@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A content item as a hook tells of it: plain values read after the change was
+ * saved, never the item itself.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

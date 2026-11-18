@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The fediverse's tables (I-058): the site's own actors and their keys, the
+ * remote accounts it hears from, who follows whom, the objects it has
+ * published or received, what it sent and to whom, and the blocked servers.
+ * Seven new tables and no row: nothing the release before reads changes.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
@@ -7,12 +18,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The fediverse's tables (I-058): the site's own actors and their keys, the
- * remote accounts it hears from, who follows whom, the objects it has
- * published or received, what it sent and to whom, and the blocked servers.
- * Seven new tables and no row: nothing the release before reads changes.
- */
 return new class extends Migration
 {
     public function up(): void

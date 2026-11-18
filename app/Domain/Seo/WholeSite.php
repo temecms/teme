@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Search and social's section "The whole site": the one switch that asks
+ * search engines to stay away from every page (I-291), for a site that
+ * isn't ready to be found.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo;
@@ -7,11 +17,6 @@ namespace App\Domain\Seo;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "The whole site": the one switch that asks
- * search engines to stay away from every page (I-291), for a site that
- * isn't ready to be found.
- */
 final class WholeSite implements SearchAndSocialSection
 {
     public const string DISCOURAGE = 'discourage_search_engines';

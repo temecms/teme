@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * An SFTP place's second step on Tools › Backups (I-2403): the public key to
+ * add and the fingerprint to check, then making the place.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -20,10 +29,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
-/**
- * An SFTP place's second step on Tools › Backups (I-2403): the public key to
- * add and the fingerprint to check, then making the place.
- */
 final class SftpStepController extends Controller
 {
     use WaitsForRestic;

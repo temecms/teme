@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * For an Operation that changes an item's translation group (I-3360): the
+ * home page's version in another language has that language's home as its
+ * address, so joining or leaving the home page's group moves it. The tree
+ * locks come first, then the rows; each published item whose address
+ * changes is moved, the old address kept as history, and both purged
+ * after commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Concerns;
@@ -14,14 +27,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * For an Operation that changes an item's translation group (I-3360): the
- * home page's version in another language has that language's home as its
- * address, so joining or leaving the home page's group moves it. The tree
- * locks come first, then the rows; each published item whose address
- * changes is moved, the old address kept as history, and both purged
- * after commit.
- */
 trait MovesVersionAddresses
 {
     /**

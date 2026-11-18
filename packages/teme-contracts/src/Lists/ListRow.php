@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One content item on a list page, for a column to key its own cache and
+ * choose a value.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Lists;

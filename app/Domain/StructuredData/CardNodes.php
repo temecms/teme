@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The nodes an item's cards give for themselves (I-704), read from
+ * their attributes in the revision the page shows. Nothing is read while no
+ * registered card gives any.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -11,11 +21,6 @@ use App\Domain\Site\Document\JsonLdNode;
 use App\Domain\Site\ViewModels\ArticleView;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The nodes an item's cards give for themselves (I-704), read from
- * their attributes in the revision the page shows. Nothing is read while no
- * registered card gives any.
- */
 final readonly class CardNodes
 {
     public function __construct(private CardRegistry $cards) {}

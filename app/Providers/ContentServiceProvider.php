@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Declares the Content settings group — how long trashed content is kept —
+ * and builds the field registry with the built-in fields, ready for the
+ * content Operations to validate against. It also rebuilds search when the
+ * site language changes, and says so in the Status banner meanwhile, counts
+ * the months again when the time zone changes, and tags Select all matching's job kind
+ * and the background move of the pages under a page.
+ * A worker's next job and a process's next request read the site's own fields again.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -24,15 +38,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Declares the Content settings group — how long trashed content is kept —
- * and builds the field registry with the built-in fields, ready for the
- * content Operations to validate against. It also rebuilds search when the
- * site language changes, and says so in the Status banner meanwhile, counts
- * the months again when the time zone changes, and tags Select all matching's job kind
- * and the background move of the pages under a page.
- * A worker's next job and a process's next request read the site's own fields again.
- */
 final class ContentServiceProvider extends ServiceProvider
 {
     public function register(): void

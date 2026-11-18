@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Builds the content-type and taxonomy registries with the core types, and
+ * checks once everything is registered that each type's declaration holds
+ * together. A misconfigured type is a deploy error, so the check throws in
+ * every environment.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -23,12 +34,6 @@ use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * Builds the content-type and taxonomy registries with the core types, and
- * checks once everything is registered that each type's declaration holds
- * together. A misconfigured type is a deploy error, so the check throws in
- * every environment.
- */
 final class TypesServiceProvider extends ServiceProvider
 {
     public function register(): void

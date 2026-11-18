@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One plugin's status check, asked as Teme asks its own: shown to holders
+ * of plugins.manage, always below every banner of Teme's own, its text cut
+ * to 300 characters, and reported under its plugin, showing nothing, when
+ * it throws (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
@@ -10,12 +21,6 @@ use App\Domain\Status\StatusCheck;
 use Teme\Contracts\Status\StatusCheck as PluginCheck;
 use Throwable;
 
-/**
- * One plugin's status check, asked as Teme asks its own: shown to holders
- * of plugins.manage, always below every banner of Teme's own, its text cut
- * to 300 characters, and reported under its plugin, showing nothing, when
- * it throws (I-3353).
- */
 final readonly class PluginStatusCheck implements StatusCheck
 {
     /** Each level's priority: below the lowest core banner's, 5. */
@@ -39,6 +44,8 @@ final readonly class PluginStatusCheck implements StatusCheck
 
     /**
      * The plugin's name, so its row is labelled and marked as the plugin's.
+     *
+     * @since 0.8.0-alpha.1
      */
     public function label(): string
     {

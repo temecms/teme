@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a run saw at one place: whether restic reached it, and the words for
+ * what went wrong there, or none. EndBackupRun turns it into the place's
+ * state, as the keys-and-places part does for a test of a place (I-360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -7,11 +17,6 @@ namespace App\Domain\Backups;
 use App\Domain\Backups\Tools\ResticOutcome;
 use App\Domain\Backups\Tools\ResticResult;
 
-/**
- * What a run saw at one place: whether restic reached it, and the words for
- * what went wrong there, or none. EndBackupRun turns it into the place's
- * state, as the keys-and-places part does for a test of a place (I-360).
- */
 final readonly class PlaceOutcome
 {
     private function __construct(public bool $reached, public ?string $error) {}

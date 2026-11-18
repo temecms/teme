@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The test restore's private work folder, storage/app/verify/{ulid}, mode 0700: the dump and the media files read back, each removed by its known name, then the folder; never a listing (NoStorageListingTest).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Verify;
@@ -8,9 +16,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use RuntimeException;
 
-/**
- * The test restore's private work folder, storage/app/verify/{ulid}, mode 0700: the dump and the media files read back, each removed by its known name, then the folder; never a listing (NoStorageListingTest).
- */
 final class VerifyFiles
 {
     /** @var array<string, true> */

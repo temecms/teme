@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Api\Shapes;
-
 /**
  * A media file as the API gives it (D6), wherever it appears: its kind and
  * type, the use's alt text, its size and focal point, its address and its
  * sizes. An image's original is private, so an image's address is its
  * widest size; no storage path, title or upload time is given.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Api\Shapes;
+
 final class MediaShape
 {
     /**

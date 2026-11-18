@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The rules of a plugin record's form (docs/plans/plugin-sockets-2.md, A2,
+ * A8), from its declaration: each field's type, bounds and options, the
+ * pickers' values against core's current lists, a repeater's items one by
+ * one. Hidden fields are dropped first, never validated, never sent on.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -14,12 +25,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * The rules of a plugin record's form (docs/plans/plugin-sockets-2.md, A2,
- * A8), from its declaration: each field's type, bounds and options, the
- * pickers' values against core's current lists, a repeater's items one by
- * one. Hidden fields are dropped first, never validated, never sent on.
- */
 final class AreaForms
 {
     /** A colour value. */

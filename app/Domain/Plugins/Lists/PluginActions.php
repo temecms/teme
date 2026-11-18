@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The actions a plugin declares for its settings page
+ * (docs/proposals/plugin-sockets-1.md): buttons that queue one of its jobs,
+ * offered only while it is enabled and granted jobs.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Lists;
@@ -12,11 +22,6 @@ use App\Domain\Plugins\PluginRecords;
 use App\Domain\Plugins\PluginRegistry;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * The actions a plugin declares for its settings page
- * (docs/proposals/plugin-sockets-1.md): buttons that queue one of its jobs,
- * offered only while it is enabled and granted jobs.
- */
 final readonly class PluginActions
 {
     public function __construct(

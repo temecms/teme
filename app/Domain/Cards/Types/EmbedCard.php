@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Something from another site: a video, a track, a post or a link. The editor
+ * fetches its details (I-164); this class only renders. A video, audio or
+ * social embed is drawn in a sandboxed frame whose address comes from the
+ * allow-list in config/embeds.php. The provider's own markup, kept in `html`,
+ * is never printed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -13,13 +25,6 @@ use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Media\MediaUrls;
 
-/**
- * Something from another site: a video, a track, a post or a link. The editor
- * fetches its details (I-164); this class only renders. A video, audio or
- * social embed is drawn in a sandboxed frame whose address comes from the
- * allow-list in config/embeds.php. The provider's own markup, kept in `html`,
- * is never printed.
- */
 final class EmbedCard implements CardType
 {
     private const string SANDBOX = 'allow-scripts allow-same-origin allow-presentation';

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A plugin's own class, the one its teme-plugin.json names under `plugin`.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Plugins;

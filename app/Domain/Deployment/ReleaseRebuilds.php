@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The rebuilds a release may ask for (I-3113): work on existing content too
+ * big for one SQL statement in a migration, which teme:deploy queues as the
+ * operator once the migrations have run. A migration asks in its own
+ * transaction, so the request stands exactly when the migration does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -12,12 +23,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
-/**
- * The rebuilds a release may ask for (I-3113): work on existing content too
- * big for one SQL statement in a migration, which teme:deploy queues as the
- * operator once the migrations have run. A migration asks in its own
- * transaction, so the request stands exactly when the migration does.
- */
 final readonly class ReleaseRebuilds
 {
     /**

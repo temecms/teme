@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › Management API's page: the switch and the limit as the
+ * settings form draws them, every key with its person and when it was
+ * made, last used, expires or was revoked, and the choices a new key takes.
+ * A key's secret is never read: only its start, shown in the list.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Queries;
@@ -11,12 +22,6 @@ use App\Domain\Settings\Queries\SettingsForm;
 use App\Models\User;
 use RuntimeException;
 
-/**
- * Settings › Management API's page: the switch and the limit as the
- * settings form draws them, every key with its person and when it was
- * made, last used, expires or was revoked, and the choices a new key takes.
- * A key's secret is never read: only its start, shown in the list.
- */
 final readonly class ManagementApiScreen
 {
     public function __construct(private SettingsForm $form) {}

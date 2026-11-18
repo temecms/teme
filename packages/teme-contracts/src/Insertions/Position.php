@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Where an insertion sits among an article's top-level blocks: before or after
+ * the content, after a paragraph, every N paragraphs, beside a heading, or
+ * near the end.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

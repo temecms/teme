@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Whether an AI surface shows (I-321): AI is on for the site, the task has a
+ * model that can do it, from a provider that is ready, and the person holds
+ * ai.use. Shared by the admin's pages; it reads no table but the `ai` group's
+ * settings row.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use App\Models\User;
 
-/**
- * Whether an AI surface shows (I-321): AI is on for the site, the task has a
- * model that can do it, from a provider that is ready, and the person holds
- * ai.use. Shared by the admin's pages; it reads no table but the `ai` group's
- * settings row.
- */
 final readonly class AiAvailability
 {
     public function __construct(

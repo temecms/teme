@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Tells Operations that this request is a signed-in browser, so a recent
+ * password confirmation can satisfy elevation. Without it every sensitive
+ * change is refused.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Middleware;
@@ -12,11 +22,6 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Tells Operations that this request is a signed-in browser, so a recent
- * password confirmation can satisfy elevation. Without it every sensitive
- * change is refused.
- */
 final class BindSessionElevation
 {
     public function __construct(

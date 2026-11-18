@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The sentences started plugins add to the translator, from their own
+ * lang/<locale>.json (docs/plans/plugin-sockets-1.md, A-W14). A plugin
+ * only adds: a line is kept only for a key its own code passes to __(),
+ * that none of core's lang/*.json holds, and that no plugin started before
+ * it claimed. They answer only a key core has no line for, and never while
+ * core's own words are asked for, on the consent and refusal screens.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -9,14 +22,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Translation\Translator;
 use Throwable;
 
-/**
- * The sentences started plugins add to the translator, from their own
- * lang/<locale>.json (docs/plans/plugin-sockets-1.md, A-W14). A plugin
- * only adds: a line is kept only for a key its own code passes to __(),
- * that none of core's lang/*.json holds, and that no plugin started before
- * it claimed. They answer only a key core has no line for, and never while
- * core's own words are asked for, on the consent and refusal screens.
- */
 final class PluginSentences
 {
     /** @var list<array{name: string, path: string, keys: array<string, true>}> started plugins with a lang folder, in the order they started */

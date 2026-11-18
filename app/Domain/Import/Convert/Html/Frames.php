@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Known players' frames as Embed cards (I-164): YouTube's, Vimeo's and
+ * Spotify's frame addresses written back as the page addresses
+ * config/embeds.php frames. Any other frame is pruned and counted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Html;
@@ -8,11 +18,6 @@ use App\Domain\Import\Convert\BlockContext;
 use App\Domain\Import\Convert\Blocks\Embeds;
 use Dom\Element;
 
-/**
- * Known players' frames as Embed cards (I-164): YouTube's, Vimeo's and
- * Spotify's frame addresses written back as the page addresses
- * config/embeds.php frames. Any other frame is pruned and counted.
- */
 final class Frames
 {
     /** A player's frame address, and its provider's page address. */

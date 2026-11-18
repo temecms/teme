@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes when the nightly backup starts and how many backups are kept
+ * (I-361), on Tools › Backups: an administrator after the password, each
+ * value checked by the group's own rules, against the version the form was
+ * opened on. The group is sensitive, so the change is logged.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -16,12 +27,6 @@ use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Changes when the nightly backup starts and how many backups are kept
- * (I-361), on Tools › Backups: an administrator after the password, each
- * value checked by the group's own rules, against the version the form was
- * opened on. The group is sensitive, so the change is logged.
- */
 final class ChangeBackupSchedule extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

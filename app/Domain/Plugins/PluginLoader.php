@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Starts the enabled plugins at boot (I-3353): each one is built with only
+ * what Teme offers plugins, given its own Hooks, and skipped, with what it
+ * subscribed removed, when it fails to start.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -18,11 +28,6 @@ use ReflectionNamedType;
 use Teme\Contracts\Plugins\Plugin;
 use Throwable;
 
-/**
- * Starts the enabled plugins at boot (I-3353): each one is built with only
- * what Teme offers plugins, given its own Hooks, and skipped, with what it
- * subscribed removed, when it fails to start.
- */
 final readonly class PluginLoader
 {
     public function __construct(
@@ -94,6 +99,8 @@ final readonly class PluginLoader
      * this one rule.
      *
      * @param  true|list<string>|null  $disabledOnServer  the server's switch, read afresh when null
+     *
+     * @since 1.0.0
      */
     public function skipReason(PluginRecord $record, ?FoundPlugin $plugin, true|array|null $disabledOnServer = null): ?PluginState
     {
@@ -174,6 +181,8 @@ final readonly class PluginLoader
      * Builds the plugin with its doors, without registering it — for a job
      * run that needs the same doors as boot, optionally with a longer
      * outbound ceiling and a larger answer (I-3445).
+     *
+     * @since 1.0.0
      */
     public function instance(FoundPlugin $plugin, PluginRecord $record, ?int $httpSeconds = null, ?int $answerBytes = null): Plugin
     {

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One scheduled publication: which revision of which article goes live, and
+ * when (I-181, 4A). It is a row, not a queued job, so a lost job or a
+ * redeploy cannot lose it. Pending means not completed, failed or cancelled;
+ * a held row is still pending.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Models;
@@ -11,11 +22,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 
 /**
- * One scheduled publication: which revision of which article goes live, and
- * when (I-181, 4A). It is a row, not a queued job, so a lost job or a
- * redeploy cannot lose it. Pending means not completed, failed or cancelled;
- * a held row is still pending.
- *
  * @property Carbon $run_at
  * @property Carbon|null $claimed_at
  * @property Carbon|null $completed_at

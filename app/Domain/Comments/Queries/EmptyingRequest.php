@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What an Empty spam or Empty trash press covers (1.8c′'s D4): who pressed it,
+ * the view, the item and search the list was narrowed by, and the cut-off,
+ * when the list was opened.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
 
 use Carbon\CarbonImmutable;
 
-/**
- * What an Empty spam or Empty trash press covers (1.8c′'s D4): who pressed it,
- * the view, the item and search the list was narrowed by, and the cut-off,
- * when the list was opened.
- */
 final readonly class EmptyingRequest
 {
     public function __construct(

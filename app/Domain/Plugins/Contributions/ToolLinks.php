@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The links plugins add to the Tools page, filled as plugins start at boot
+ * and held in memory only, each with the plugin that added it (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Contributions;
 
 use App\Domain\Plugins\ManifestText;
 
-/**
- * The links plugins add to the Tools page, filled as plugins start at boot
- * and held in memory only, each with the plugin that added it (I-3353).
- */
 final class ToolLinks
 {
     /** @var list<ToolLink> */

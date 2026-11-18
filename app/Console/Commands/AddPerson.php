@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:people:add — adds a person with no account, who can be credited on
+ * items, as the operator, through CreatePerson (I-3366).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -14,10 +23,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:people:add — adds a person with no account, who can be credited on
- * items, as the operator, through CreatePerson (I-3366).
- */
 final class AddPerson extends Command
 {
     /** @var string */

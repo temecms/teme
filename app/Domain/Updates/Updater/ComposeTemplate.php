@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Dokploy template's published files, read by the updater: compose-hashes.json, which lists the hash of every
+ * compose file the template has released and of its current one, and the current compose file beside it. Read
+ * from TEME_DOKPLOY_COMPOSE_HASHES_URL, by default the template repository's raw address, over https only.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -7,11 +17,6 @@ namespace App\Domain\Updates\Updater;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
-/**
- * The Dokploy template's published files, read by the updater: compose-hashes.json, which lists the hash of every
- * compose file the template has released and of its current one, and the current compose file beside it. Read
- * from TEME_DOKPLOY_COMPOSE_HASHES_URL, by default the template repository's raw address, over https only.
- */
 final readonly class ComposeTemplate
 {
     /** Where the template keeps its compose file, beside compose-hashes.json. */

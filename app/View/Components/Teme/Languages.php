@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `<x-teme::languages />`: a link to each language version of the page, for a
+ * theme that places its own switcher.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

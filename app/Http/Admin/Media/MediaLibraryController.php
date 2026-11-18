@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The Media screen, read through MediaLibrary, and uploads, one file per
+ * request, through UploadMedia.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Media;
@@ -19,10 +28,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The Media screen, read through MediaLibrary, and uploads, one file per
- * request, through UploadMedia.
- */
 final class MediaLibraryController extends Controller
 {
     public function index(Request $request, MediaLibrary $library, MediaMonths $months, SettingsReader $settings, UploadedForItem $items): Response

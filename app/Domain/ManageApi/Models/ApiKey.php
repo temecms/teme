@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One management API key (docs/proposals/management-api.md): its name, the
+ * person it acts as, its abilities, the hash of its secret and the start
+ * shown in the list. Only CreateApiKey and RevokeApiKey write it, and
+ * ApiKeys touches when it was last used.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi\Models;
@@ -10,11 +21,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One management API key (docs/proposals/management-api.md): its name, the
- * person it acts as, its abilities, the hash of its secret and the start
- * shown in the list. Only CreateApiKey and RevokeApiKey write it, and
- * ApiKeys touches when it was last used.
- *
  * @property string $id
  * @property string $name
  * @property int $user_id

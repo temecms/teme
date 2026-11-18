@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Enables a plugin (I-3353, I-3442): a person who holds plugins.manage, after
+ * their password, or the operator. Its manifest is checked and its code
+ * scanned afresh, never from the cache, and what the person agreed to must
+ * be what it asks for now; none of its public routes may collide with one
+ * that answers already. Runs its waiting migrations inside the same
+ * transaction, records that consent, for this exact version and by whom,
+ * and clears its faults and stopped parts. Refused while a plugin it
+ * requires isn't enabled at a version it accepts. Returns its name.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -37,16 +52,6 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Enables a plugin (I-3353, I-3442): a person who holds plugins.manage, after
- * their password, or the operator. Its manifest is checked and its code
- * scanned afresh, never from the cache, and what the person agreed to must
- * be what it asks for now; none of its public routes may collide with one
- * that answers already. Runs its waiting migrations inside the same
- * transaction, records that consent, for this exact version and by whom,
- * and clears its faults and stopped parts. Refused while a plugin it
- * requires isn't enabled at a version it accepts. Returns its name.
- */
 final class EnablePlugin extends BaseOperation implements RequiresElevation
 {
     use AuthorizesPluginChanges;

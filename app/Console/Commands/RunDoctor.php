@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * teme:doctor — runs the doctor's checks and prints what each found with how
+ * to fix it, most serious first (I-157). It exits 1 on any error, so a
+ * deploy can refuse; it is the operator's tool and never needs the site to
+ * start.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -8,12 +19,6 @@ use App\Domain\Deployment\Health\Doctor;
 use App\Domain\Deployment\Health\Severity;
 use Illuminate\Console\Command;
 
-/**
- * teme:doctor — runs the doctor's checks and prints what each found with how
- * to fix it, most serious first (I-157). It exits 1 on any error, so a
- * deploy can refuse; it is the operator's tool and never needs the site to
- * start.
- */
 final class RunDoctor extends Command
 {
     /** @var string */

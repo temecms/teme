@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Renames a category or tag, or changes its slug, parent or description. A
+ * category can never be moved inside itself. Its assignments are untouched.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations;
@@ -19,10 +28,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Renames a category or tag, or changes its slug, parent or description. A
- * category can never be moved inside itself. Its assignments are untouched.
- */
 final class UpdateTerm extends BaseOperation
 {
     use ValidatesTerms;

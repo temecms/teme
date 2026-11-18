@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whether this request previews Settings › Design's unpublished changes, and
+ * the drafts it shows, which SettingsRepository lays over the live values of
+ * the `design` and `theme.{code}` groups. Scoped to one request, and set on
+ * every public request by DesignPreviewLink, active or not.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -7,12 +18,6 @@ namespace App\Domain\Settings;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use Illuminate\Database\Eloquent\Builder;
 
-/**
- * Whether this request previews Settings › Design's unpublished changes, and
- * the drafts it shows, which SettingsRepository lays over the live values of
- * the `design` and `theme.{code}` groups. Scoped to one request, and set on
- * every public request by DesignPreviewLink, active or not.
- */
 final class DesignPreview
 {
     private const string DESIGN_GROUP = 'design';

@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What UploadExtension needs: the archive's file name and its bytes, and who uploads it, or null for the operator.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What UploadExtension needs: the archive's file name and its bytes, and who uploads it, or null for the operator.
- */
 final readonly class UploadExtensionInput implements OperationInput
 {
     public function __construct(

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * One page of live, public items for the API's list (D5, D19): newest
+ * first, oldest first, or in their order under a parent, by cursor,
+ * filtered by type, term, author, dates, parent and language, each from its
+ * published revision. One statement for the page;
+ * its terms, authors and images in one statement each (ItemShapes).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
@@ -15,13 +27,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
-/**
- * One page of live, public items for the API's list (D5, D19): newest
- * first, oldest first, or in their order under a parent, by cursor,
- * filtered by type, term, author, dates, parent and language, each from its
- * published revision. One statement for the page;
- * its terms, authors and images in one statement each (ItemShapes).
- */
 final readonly class ItemsQuery
 {
     /**

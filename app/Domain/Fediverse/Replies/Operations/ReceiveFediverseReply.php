@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Takes a fediverse reply to one of the site's items, or to a reply on
+ * one, as a comment (docs/plans/fediverse-publishing.md, D4): through the
+ * comment rules a guest's goes through, the Discussion settings, the
+ * bound moderator and the waiting queue, at most ten an hour from one
+ * account; its words as the restricted comment document, its writer named
+ * from the remote account, with no email or IP address. The reply's
+ * address is kept, linking the comment to the account. Returns the
+ * comment's ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies\Operations;
@@ -33,16 +48,6 @@ use Teme\Contracts\Comments\ModerationVerdict;
 use Teme\Contracts\Operations\OperationInput;
 use UnexpectedValueException;
 
-/**
- * Takes a fediverse reply to one of the site's items, or to a reply on
- * one, as a comment (docs/plans/fediverse-publishing.md, D4): through the
- * comment rules a guest's goes through, the Discussion settings, the
- * bound moderator and the waiting queue, at most ten an hour from one
- * account; its words as the restricted comment document, its writer named
- * from the remote account, with no email or IP address. The reply's
- * address is kept, linking the comment to the account. Returns the
- * comment's ID.
- */
 final class ReceiveFediverseReply extends BaseOperation
 {
     use WrittenByTheSender;

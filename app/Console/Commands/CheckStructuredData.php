@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Checks the structured-data terms Teme may write against a schema.org
+ * release (I-706), run by hand when schema.org publishes one or the list
+ * grows: each term the release doesn't define, or supersedes, is named.
+ * Nothing is fetched; the release file is read where it was saved.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -7,12 +18,6 @@ namespace App\Console\Commands;
 use App\Domain\StructuredData\Vocabulary;
 use Illuminate\Console\Command;
 
-/**
- * Checks the structured-data terms Teme may write against a schema.org
- * release (I-706), run by hand when schema.org publishes one or the list
- * grows: each term the release doesn't define, or supersedes, is named.
- * Nothing is fetched; the release file is read where it was saved.
- */
 final class CheckStructuredData extends Command
 {
     /** @var string */

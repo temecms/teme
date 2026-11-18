@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Where one API answer's body links lead (rule 9, D7), read for the whole
+ * document at once: every item, term and person it links to by ID in one
+ * statement, by the site's rule (a current address, as PathLinkResolver
+ * reads it), so a body of many links costs what a body of one costs. Files
+ * are the site's resolver's, read with the body's media. Made for one answer
+ * and shared by its HTML and its JSON; the public site's resolver is untouched.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
@@ -15,14 +28,6 @@ use App\Domain\Languages\SiteLanguages;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Where one API answer's body links lead (rule 9, D7), read for the whole
- * document at once: every item, term and person it links to by ID in one
- * statement, by the site's rule (a current address, as PathLinkResolver
- * reads it), so a body of many links costs what a body of one costs. Files
- * are the site's resolver's, read with the body's media. Made for one answer
- * and shared by its HTML and its JSON; the public site's resolver is untouched.
- */
 final class BodyLinks implements LinkResolver
 {
     /**

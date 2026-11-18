@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A public page, as a plugin's head tags and structured data read it: its
+ * kind, its addresses, its language, and for an article what it is, the
+ * plugin's own Search and social values for it, and its FAQ and Steps cards.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Head;

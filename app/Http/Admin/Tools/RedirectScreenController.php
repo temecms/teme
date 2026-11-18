@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Tools › Redirects (I-871, I-872): the redirects a page at a time, found
+ * by address or note, and the 404 log beside them, the most asked for
+ * first. It reads only; every change goes through RedirectController.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -15,11 +25,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Tools › Redirects (I-871, I-872): the redirects a page at a time, found
- * by address or note, and the 404 log beside them, the most asked for
- * first. It reads only; every change goes through RedirectController.
- */
 final class RedirectScreenController extends Controller
 {
     /** Where an import's report waits in the session, for one visit. */

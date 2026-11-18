@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Carries on an import that stopped (I-332): the run runs again under a new
+ * token, from the phase it stopped in, and every object already done is
+ * skipped by the map. A person confirms their password first; the operator
+ * doesn't.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -22,12 +33,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Carries on an import that stopped (I-332): the run runs again under a new
- * token, from the phase it stopped in, and every object already done is
- * skipped by the map. A person confirms their password first; the operator
- * doesn't.
- */
 final class ContinueImportRun extends BaseOperation implements RequiresElevation
 {
     use AuthorizesImports;

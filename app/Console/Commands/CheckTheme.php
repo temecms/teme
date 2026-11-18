@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * `teme:theme:check {code?}`: the preflight check for a theme, the active one
+ * by default. It lists every manifest error, finds the built assets and
+ * measures each file compressed, and warns past the budgets (study Q §4:
+ * 15 KB of CSS, 5 KB of JavaScript). It refuses an inline script in the
+ * theme's views. It draws the home page and a published item's page with the
+ * theme, as the public site does, and refuses a page with no `<h1>` or more
+ * than one. It fails when there are errors.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -18,15 +32,6 @@ use Illuminate\Console\Command;
 use Illuminate\Http\Request;
 use RuntimeException;
 
-/**
- * `teme:theme:check {code?}`: the preflight check for a theme, the active one
- * by default. It lists every manifest error, finds the built assets and
- * measures each file compressed, and warns past the budgets (study Q §4:
- * 15 KB of CSS, 5 KB of JavaScript). It refuses an inline script in the
- * theme's views. It draws the home page and a published item's page with the
- * theme, as the public site does, and refuses a page with no `<h1>` or more
- * than one. It fails when there are errors.
- */
 final class CheckTheme extends Command
 {
     /** Compressed bytes of CSS a page may load before a warning. */

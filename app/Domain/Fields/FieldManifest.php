@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fields;
-
 /**
  * What the editor is told about the fields of one content type: each field's
  * label and rules for the browser, where it is drawn, and which control draws
  * it with what settings, from its type's edit().
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fields;
+
 final class FieldManifest
 {
     /**

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Export;
-
 /**
  * What an export leaves out on purpose, and why (I-2408): written into every
  * manifest and the format reference, so a reader never mistakes a gap for a
  * fault.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Export;
+
 final class LeftOut
 {
     /** @var list<array{what: string, why: string}> */

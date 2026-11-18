@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A plugin's own check for an inbound POST (HTTP Signatures and the like).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Routes;

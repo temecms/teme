@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The command palette's search (I-103): articles by their title, and media,
+ * terms, users and settings screens. Each group is offered only to someone
+ * who may open its screen, and matches by that screen's own rule, so the
+ * palette shows what the screen would. One query per group, however many
+ * rows it finds. The published text is searched in the list, which the
+ * palette links to (B-199). It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Search\Queries;
@@ -15,14 +28,6 @@ use App\Models\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The command palette's search (I-103): articles by their title, and media,
- * terms, users and settings screens. Each group is offered only to someone
- * who may open its screen, and matches by that screen's own rule, so the
- * palette shows what the screen would. One query per group, however many
- * rows it finds. The published text is searched in the list, which the
- * palette links to (B-199). It reads only.
- */
 final readonly class AdminSearch
 {
     public function __construct(

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the site's database address must look like, and what a DATABASE_URL holds. A host that is really
+ * an address, or a URL that can't be read, is named in a sentence that never repeats either, since both carry
+ * the password.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -7,11 +17,6 @@ namespace App\Domain\Deployment;
 use Illuminate\Contracts\Config\Repository;
 use SensitiveParameter;
 
-/**
- * What the site's database address must look like, and what a DATABASE_URL holds. A host that is really
- * an address, or a URL that can't be read, is named in a sentence that never repeats either, since both carry
- * the password.
- */
 final class DatabaseAddress
 {
     private const array SCHEMES = ['postgres', 'postgresql', 'pgsql'];

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Site › Types › {type} › Fields (I-3320): the type's own fields in order,
+ * the fields Teme's features give it, its removed fields and those that
+ * can't be read, and the field types the side sheet offers. It reads; the
+ * Operations change.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Queries;
@@ -17,12 +28,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Site › Types › {type} › Fields (I-3320): the type's own fields in order,
- * the fields Teme's features give it, its removed fields and those that
- * can't be read, and the field types the side sheet offers. It reads; the
- * Operations change.
- */
 final readonly class FieldsScreen
 {
     /**

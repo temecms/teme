@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Scheduled: what will publish, soonest first. It reads
+ * contents.scheduled_for, which 1.5e keeps equal to the pending schedule, so
+ * a scheduled update to a live article counts as well as a new one. For the
+ * types whose edit.any the viewer holds it shows every item
+ * (contents_scheduled_for); for the rest, only their own
+ * (contents_mine_scheduled_for). A held schedule says why; an item with a
+ * time and no pending schedule is one whose schedule failed (B-167). One
+ * query. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Panels;
@@ -11,16 +26,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Scheduled: what will publish, soonest first. It reads
- * contents.scheduled_for, which 1.5e keeps equal to the pending schedule, so
- * a scheduled update to a live article counts as well as a new one. For the
- * types whose edit.any the viewer holds it shows every item
- * (contents_scheduled_for); for the rest, only their own
- * (contents_mine_scheduled_for). A held schedule says why; an item with a
- * time and no pending schedule is one whose schedule failed (B-167). One
- * query. It reads only.
- */
 final class Scheduled implements DashboardPanelQuery
 {
     /** Why a held schedule cannot run, in words. */

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Images from the outside sites the person ticked (I-1703), brought into
+ * the library before posts convert: the content list read for each <img>
+ * on a ticked host, each address downloaded once through the safe
+ * downloader, stored by its bytes and recorded in the map. A job spends at
+ * most fifty seconds, then carries on at the last item it finished.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Media;
@@ -26,13 +38,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Images from the outside sites the person ticked (I-1703), brought into
- * the library before posts convert: the content list read for each <img>
- * on a ticked host, each address downloaded once through the safe
- * downloader, stored by its bytes and recorded in the map. A job spends at
- * most fifty seconds, then carries on at the last item it finished.
- */
 final readonly class OutsideImagesStep implements StepPhase
 {
     /** Content items a read. */

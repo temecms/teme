@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * How one Composer run ended: its exit code and what it printed.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
 
-/**
- * How one Composer run ended: its exit code and what it printed.
- */
 final readonly class ComposerResult
 {
     public function __construct(

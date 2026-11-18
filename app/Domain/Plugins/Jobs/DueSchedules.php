@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Queues each enabled plugin's due schedules (I-3445): one pass over enabled
+ * plugins that were granted jobs, whose code is present. Records each run
+ * time on the plugin row in the same transaction as StartJob. Each schedule
+ * runs as the administrator who enabled the plugin (`consented_by`), with
+ * that person's normal permissions — never the operator's elevation. A
+ * plugin whose schedules can't run, by ScheduleRunner, is skipped. A
+ * schedule is due its interval after its last run was queued, not on the
+ * clock, and a missed pass catches up once (docs/guides/developers/plugins/jobs.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
@@ -19,15 +34,6 @@ use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
 /**
- * Queues each enabled plugin's due schedules (I-3445): one pass over enabled
- * plugins that were granted jobs, whose code is present. Records each run
- * time on the plugin row in the same transaction as StartJob. Each schedule
- * runs as the administrator who enabled the plugin (`consented_by`), with
- * that person's normal permissions — never the operator's elevation. A
- * plugin whose schedules can't run, by ScheduleRunner, is skipped. A
- * schedule is due its interval after its last run was queued, not on the
- * clock, and a missed pass catches up once (docs/guides/developers/plugins/jobs.md).
- *
  * A schedule may name its plugin's own settings: a boolean that switches it
  * on and off, and a select that says how often it runs. They are read on
  * every pass, so a change counts at the next minute's check; a setting that

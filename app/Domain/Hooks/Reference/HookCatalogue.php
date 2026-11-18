@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every hook the contracts package publishes, in the order the reference
+ * lists them (I-3353). A plugin's manifest names hooks by their short
+ * names, which are unique across the package.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks\Reference;
@@ -29,11 +39,6 @@ use Teme\Contracts\Media\MediaStored;
 use Teme\Contracts\Privacy\CollectPersonalDataHolders;
 use Teme\Contracts\Settings\SettingsChanged;
 
-/**
- * Every hook the contracts package publishes, in the order the reference
- * lists them (I-3353). A plugin's manifest names hooks by their short
- * names, which are unique across the package.
- */
 final class HookCatalogue
 {
     /** @var list<class-string<Hook>> */
@@ -67,6 +72,8 @@ final class HookCatalogue
      * class isn't loaded shows no verb and no capability.
      *
      * @return array<string, list<array{name: string, verb: string, description: string, capability: string|null}>>
+     *
+     * @since 1.0.0
      */
     public static function plugins(): array
     {

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Content and its revisions are reassigned first, as WordPress does; the
+ * database refuses a delete that would orphan them (I-102). The person's
+ * uploads are reassigned first too. A revision's document and fields stay
+ * immutable — only its attribution moves, and the security log records to
+ * whom. What they wrote keeps their name: a credited writer stays as a
+ * person with no account, with their author page (issue 396).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -28,14 +41,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Content and its revisions are reassigned first, as WordPress does; the
- * database refuses a delete that would orphan them (I-102). The person's
- * uploads are reassigned first too. A revision's document and fields stay
- * immutable — only its attribution moves, and the security log records to
- * whom. What they wrote keeps their name: a credited writer stays as a
- * person with no account, with their author page (issue 396).
- */
 final class DeleteUser extends BaseOperation implements RequiresElevation
 {
     use KeepsDepartedWriters;

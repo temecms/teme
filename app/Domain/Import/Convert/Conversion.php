@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What the converter made of one item's blocks (I-335): the document,
+ * ready for DocumentNormaliser and DocumentValidator; the messages saying
+ * what was left out or changed; and what the second pass still puts in.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert;
 
 use App\Domain\Import\Phases\ImportMessage;
 
-/**
- * What the converter made of one item's blocks (I-335): the document,
- * ready for DocumentNormaliser and DocumentValidator; the messages saying
- * what was left out or changed; and what the second pass still puts in.
- */
 final readonly class Conversion
 {
     /**

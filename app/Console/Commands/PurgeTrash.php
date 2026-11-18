@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * teme:trash:purge — deletes for good the content, media and comments that have
+ * been in the trash longer than content.trash_days, a chunk at a time, each
+ * through DeleteContentPermanently, DeleteMediaPermanently or
+ * DeleteCommentPermanently (comments deepest first, 1.8c′). It also keeps
+ * abandoned autosaves as revisions and deletes old preview links. Runs daily.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -25,13 +37,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * teme:trash:purge — deletes for good the content, media and comments that have
- * been in the trash longer than content.trash_days, a chunk at a time, each
- * through DeleteContentPermanently, DeleteMediaPermanently or
- * DeleteCommentPermanently (comments deepest first, 1.8c′). It also keeps
- * abandoned autosaves as revisions and deletes old preview links. Runs daily.
- */
 final class PurgeTrash extends Command
 {
     /** @var string */

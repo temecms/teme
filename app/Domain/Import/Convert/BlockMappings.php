@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The block mapping registry (I-349): core's rows, and those plugins tag
+ * under TAG. A block finds its row by its exact name, then by its
+ * namespace (`canvas/*`); two rows for one name are refused when the
+ * registry is first asked.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert;
@@ -21,12 +32,6 @@ use App\Domain\Import\Convert\Blocks\Tables;
 use Illuminate\Contracts\Container\Container;
 use LogicException;
 
-/**
- * The block mapping registry (I-349): core's rows, and those plugins tag
- * under TAG. A block finds its row by its exact name, then by its
- * namespace (`canvas/*`); two rows for one name are refused when the
- * registry is first asked.
- */
 final class BlockMappings
 {
     // Later (I-349): BlockMapping and its context's contract move to Teme's contracts package, free of Illuminate.

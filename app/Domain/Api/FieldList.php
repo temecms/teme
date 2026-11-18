@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The one rule for which of a type's own fields the API shows (I-3359, Q3 A):
+ * its stored live fields shown on the site, after or before the article,
+ * never a hidden one nor one of code's built-in fields; and each one's type
+ * name as the API gives it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
@@ -9,12 +20,6 @@ use App\Domain\Fields\FieldRegistry;
 use App\Domain\Fields\FieldShow;
 use App\Domain\Fields\Types\DatetimeField;
 
-/**
- * The one rule for which of a type's own fields the API shows (I-3359, Q3 A):
- * its stored live fields shown on the site, after or before the article,
- * never a hidden one nor one of code's built-in fields; and each one's type
- * name as the API gives it.
- */
 final class FieldList
 {
     /**

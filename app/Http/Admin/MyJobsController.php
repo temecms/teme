@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The header's jobs button (I-104): the signed-in person's own latest jobs and
+ * counts, as JSON, and their own Retry and Cancel through RetryJob and
+ * CancelJob, which refuse anyone else's. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -19,11 +29,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The header's jobs button (I-104): the signed-in person's own latest jobs and
- * counts, as JSON, and their own Retry and Cancel through RetryJob and
- * CancelJob, which refuse anyone else's. It changes nothing itself.
- */
 final class MyJobsController extends Controller
 {
     /** How many of a person's jobs the panel lists. */

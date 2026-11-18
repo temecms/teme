@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Decides who may change or remove a media item: anyone holding the "any"
+ * permission, and uploaders for their own files. The media Operations ask it
+ * before they write.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Policies;
@@ -7,11 +17,6 @@ namespace App\Domain\Media\Policies;
 use App\Domain\Media\Models\Media;
 use App\Models\User;
 
-/**
- * Decides who may change or remove a media item: anyone holding the "any"
- * permission, and uploaders for their own files. The media Operations ask it
- * before they write.
- */
 final class MediaPolicy
 {
     public function update(User $user, Media $media): bool

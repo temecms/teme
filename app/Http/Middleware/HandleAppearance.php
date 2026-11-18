@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Gives the page template the person's appearance, light or dark, so it is
+ * applied before the page paints. Signed in, it is their preference (1.5f);
+ * the cookie is read only on the signed-out screens, sign-in and password
+ * reset.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -10,12 +21,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Gives the page template the person's appearance, light or dark, so it is
- * applied before the page paints. Signed in, it is their preference (1.5f);
- * the cookie is read only on the signed-out screens, sign-in and password
- * reset.
- */
 class HandleAppearance
 {
     /**

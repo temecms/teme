@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A taxonomy as the file and the table hold it: labels, admin address,
+ * arrangement, address base and the code types that use it, before the
+ * registries check it (I-414).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
 
 use App\Domain\Types\Exceptions\InvalidTaxonomyDefinition;
 
-/**
- * A taxonomy as the file and the table hold it: labels, admin address,
- * arrangement, address base and the code types that use it, before the
- * registries check it (I-414).
- */
 final readonly class TaxonomyDefinition
 {
     /** @var list<string> */

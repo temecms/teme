@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert;
-
 /**
  * A row of the block mapping registry (I-349): the WordPress blocks it
  * converts, and the Tiptap nodes each becomes. Core's rows are listed in
  * BlockMappings::CORE; a plugin tags its own under BlockMappings::TAG.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert;
+
 interface BlockMapping
 {
     /**

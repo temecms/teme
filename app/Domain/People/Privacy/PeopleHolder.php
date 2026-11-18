@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An account's byline: exported as their author page shows it, and kept on
+ * erasure while anything credits the account, by the rule `DeleteUser`
+ * keeps a departed writer by, since a byline is the site's record of who
+ * wrote what (I-3366).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Privacy;
@@ -14,12 +25,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * An account's byline: exported as their author page shows it, and kept on
- * erasure while anything credits the account, by the rule `DeleteUser`
- * keeps a departed writer by, since a byline is the site's record of who
- * wrote what (I-3366).
- */
 final class PeopleHolder implements PersonalDataHolder
 {
     public function __construct(private readonly People $people, private readonly Credits $credits) {}

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Why a file wasn't downloaded, in the words people read, in the editor's
+ * Import images and in an import's report; its message is its sentence.
+ * Retryable when trying again later could help.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Downloads;
@@ -7,11 +17,6 @@ namespace App\Domain\Media\Downloads;
 use App\Domain\Support\Network\AddressRefused;
 use RuntimeException;
 
-/**
- * Why a file wasn't downloaded, in the words people read, in the editor's
- * Import images and in an import's report; its message is its sentence.
- * Retryable when trying again later could help.
- */
 final class DownloadRefused extends RuntimeException
 {
     public const string ADDRESS = 'address';

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One section of Settings › AI (I-315): a heading and its settings, registered
+ * under AiSettings::SECTIONS from its part's own provider. Where it sits is its
+ * own order, never a list in a shared file; core's sections are numbered in
+ * hundreds, so another fits between two.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use Teme\Contracts\Settings\Setting;
 
-/**
- * One section of Settings › AI (I-315): a heading and its settings, registered
- * under AiSettings::SECTIONS from its part's own provider. Where it sits is its
- * own order, never a list in a shared file; core's sections are numbered in
- * hundreds, so another fits between two.
- */
 interface AiSettingsSection
 {
     /**

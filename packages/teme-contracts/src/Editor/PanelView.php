@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A short status line, its tone, and the suggestions waiting for the person.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

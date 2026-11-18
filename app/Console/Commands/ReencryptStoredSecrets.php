@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * teme:secrets:reencrypt — writes every value Teme keeps encrypted again under this server's APP_KEY, opening each with an old key read from a file or a hidden prompt, never an argument (I-119): after a restore by hand, or when the operator changes APP_KEY.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,9 +21,6 @@ use Illuminate\Console\Command;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:secrets:reencrypt — writes every value Teme keeps encrypted again under this server's APP_KEY, opening each with an old key read from a file or a hidden prompt, never an argument (I-119): after a restore by hand, or when the operator changes APP_KEY.
- */
 final class ReencryptStoredSecrets extends Command
 {
     /** @var string */

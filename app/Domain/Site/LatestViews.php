@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The latest items of the types Settings › Reading ticks (I-3298), at the
+ * site's address or the posts page's (I-442): on page 1 the lead, the newest
+ * pinned item or else the newest, and up to three more pinned items, then a
+ * feed of the rest in one query (study Q §4); later pages hold the feed alone.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -19,12 +30,6 @@ use App\Domain\Site\ViewModels\Subject;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The latest items of the types Settings › Reading ticks (I-3298), at the
- * site's address or the posts page's (I-442): on page 1 the lead, the newest
- * pinned item or else the newest, and up to three more pinned items, then a
- * feed of the rest in one query (study Q §4); later pages hold the feed alone.
- */
 final readonly class LatestViews
 {
     /** Pinned posts shown beside the lead on page 1. */

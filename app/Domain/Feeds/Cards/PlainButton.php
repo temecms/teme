@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The button card in a feed: a paragraph holding a link, to the article's current address or to the address it was given.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -7,9 +15,6 @@ namespace App\Domain\Feeds\Cards;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Feeds\FeedCardRenderer;
 
-/**
- * The button card in a feed: a paragraph holding a link, to the article's current address or to the address it was given.
- */
 final readonly class PlainButton implements FeedCardRenderer
 {
     public function card(): string

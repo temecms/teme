@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups\Tools;
-
 /**
  * How one restic call ended (I-366): its outcome and exit status, what it
  * printed, and its own words for what went wrong with every secret of the
  * call hidden.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups\Tools;
+
 final readonly class ResticResult
 {
     /** The most of restic's own words kept, in characters. */

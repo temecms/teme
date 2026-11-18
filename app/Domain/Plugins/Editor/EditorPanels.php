@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Which plugins' editor panels a person sees (docs/proposals/plugin-sockets-3.md,
+ * B2): those of enabled plugins granted content.read and jobs, on an item of
+ * a type the panel names, for a person who may update the item and holds the
+ * panel's permission when it names one. Read from the records and manifests
+ * each time; holds nothing itself.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
@@ -18,13 +30,6 @@ use Teme\Contracts\Editor\EditorPanel;
 use Teme\Contracts\Editor\HasEditorPanels;
 use Throwable;
 
-/**
- * Which plugins' editor panels a person sees (docs/proposals/plugin-sockets-3.md,
- * B2): those of enabled plugins granted content.read and jobs, on an item of
- * a type the panel names, for a person who may update the item and holds the
- * panel's permission when it names one. Read from the records and manifests
- * each time; holds nothing itself.
- */
 final readonly class EditorPanels
 {
     public function __construct(

@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * The composers that add data to theme views (I-251): core's first, then
+ * the active theme's in its manifest's order, each built once. One view
+ * composer, registered on `theme::*`, runs them for the views each names.
+ * The list is built again whenever the active theme changes, never added
+ * to, so no composer runs twice. A key a view already has is an error,
+ * unless it came down from the view that drew it: an @included partial and
+ * an @extends layout get every variable of their view, so a composer that
+ * serves both meets the value it gave before, which is kept. A name in
+ * RESERVED is an error from a theme's composer, whatever the view has.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -17,17 +33,6 @@ use ReflectionClass;
 use ReflectionNamedType;
 use Teme\Contracts\Themes\ViewComposer;
 
-/**
- * The composers that add data to theme views (I-251): core's first, then
- * the active theme's in its manifest's order, each built once. One view
- * composer, registered on `theme::*`, runs them for the views each names.
- * The list is built again whenever the active theme changes, never added
- * to, so no composer runs twice. A key a view already has is an error,
- * unless it came down from the view that drew it: an @included partial and
- * an @extends layout get every variable of their view, so a composer that
- * serves both meets the value it gave before, which is kept. A name in
- * RESERVED is an error from a theme's composer, whatever the view has.
- */
 final class ComposerRegistry
 {
     /** @var list<class-string<ViewComposer>> core's composers, run before any theme's */

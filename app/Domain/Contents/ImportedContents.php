@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a WordPress post or page the import writes must meet (I-332): Teme's
+ * own rules for its type, title, slug, status, author, terms, fields,
+ * template, document and address; the fingerprint a later run compares to
+ * know it is as the import left it; and the address it would have here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -21,12 +32,6 @@ use DateTimeInterface;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-/**
- * What a WordPress post or page the import writes must meet (I-332): Teme's
- * own rules for its type, title, slug, status, author, terms, fields,
- * template, document and address; the fingerprint a later run compares to
- * know it is as the import left it; and the address it would have here.
- */
 final class ImportedContents
 {
     /** The statuses an imported item may have. */

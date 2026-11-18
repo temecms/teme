@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Every public address: the home page and the fallback route, with no
+ * session or cookies (I-262). PathResolver decides what the path is; this
+ * turns its answer into a 301, or a page rendered through the theme, a 404
+ * in place for an address with nothing at it (I-249), unless a redirect
+ * answers it there (I-297).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -20,13 +32,6 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-/**
- * Every public address: the home page and the fallback route, with no
- * session or cookies (I-262). PathResolver decides what the path is; this
- * turns its answer into a 301, or a page rendered through the theme, a 404
- * in place for an address with nothing at it (I-249), unless a redirect
- * answers it there (I-297).
- */
 final class PublicController extends Controller
 {
     public function handle(Request $request): Response

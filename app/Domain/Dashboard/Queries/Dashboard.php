@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The admin's Home screen for one person: their panels, each one bounded
+ * query on its own index, and the site's figures. A panel is asked only for
+ * the types on which the viewer holds all its actions, read once per type
+ * through ContentAbilities (B-178), so the dashboard restates no policy rule
+ * of its own; a panel no type grants is not sent. Empty rows panels stay out
+ * of `panels` outside Customize (I-161); the person's arrangement is their
+ * preferences (I-210). It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Queries;
@@ -17,15 +31,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Models\User;
 use Throwable;
 
-/**
- * The admin's Home screen for one person: their panels, each one bounded
- * query on its own index, and the site's figures. A panel is asked only for
- * the types on which the viewer holds all its actions, read once per type
- * through ContentAbilities (B-178), so the dashboard restates no policy rule
- * of its own; a panel no type grants is not sent. Empty rows panels stay out
- * of `panels` outside Customize (I-161); the person's arrangement is their
- * preferences (I-210). It reads only.
- */
 final readonly class Dashboard
 {
     /** At most this many rows in any panel. */

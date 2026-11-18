@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What a region's document may hold, from its theme's declaration: only the
+ * cards the region allows, at any depth, and at most `max` top-level blocks.
+ * Prose is always allowed. DocumentValidator applies it when a region is
+ * saved, and PublishRevision again when it's published, against the
+ * declaration as it is then.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Regions;
@@ -10,13 +22,6 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Types\CoreTypes;
 
-/**
- * What a region's document may hold, from its theme's declaration: only the
- * cards the region allows, at any depth, and at most `max` top-level blocks.
- * Prose is always allowed. DocumentValidator applies it when a region is
- * saved, and PublishRevision again when it's published, against the
- * declaration as it is then.
- */
 final readonly class RegionRules
 {
     /**

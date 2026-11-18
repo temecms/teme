@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin granted sitemaps whose manifest declares sitemaps: core lists each
+ * in the site's sitemap index after its own, as
+ * `sitemap-plugin-{code}-{id}.xml`, and caches its pages as it caches its own.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Sitemaps;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An item's title as one person may see it in the admin (I-1700): a
+ * private item's only for whoever may edit it, as ContentPolicy::update()
+ * says through ContentAbilities; "A private item" for anyone else.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -8,11 +18,6 @@ use App\Domain\Contents\Visibility;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * An item's title as one person may see it in the admin (I-1700): a
- * private item's only for whoever may edit it, as ContentPolicy::update()
- * says through ContentAbilities; "A private item" for anyone else.
- */
 final class PrivateTitles
 {
     /**

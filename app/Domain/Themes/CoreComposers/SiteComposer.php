@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Core's composer, run before any theme's on every theme view: `site`, the
+ * site's name, tagline, home address, language and year, and `isFront`, true
+ * only on the home page and its numbered pages (I-442). The language is the
+ * site language setting's (I-435), the default, whatever the page's own
+ * (I-3360), which `$language` gives.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes\CoreComposers;
@@ -11,13 +23,6 @@ use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Themes\ViewComposer;
 use Teme\Contracts\Themes\ViewContext;
 
-/**
- * Core's composer, run before any theme's on every theme view: `site`, the
- * site's name, tagline, home address, language and year, and `isFront`, true
- * only on the home page and its numbered pages (I-442). The language is the
- * site language setting's (I-435), the default, whatever the page's own
- * (I-3360), which `$language` gives.
- */
 final readonly class SiteComposer implements ViewComposer
 {
     public function __construct(private SettingsReader $settings, private SiteLanguage $site) {}

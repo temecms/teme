@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A table cell as the site draws it: tiptap-php's, plus the alignment Tiptap
+ * 3.31 gives every cell, drawn after the spans as the editor's renderer draws
+ * it (I-452). A header cell shares the attribute (TableHeaderNode).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Tiptap;
@@ -7,11 +17,6 @@ namespace App\Domain\Cards\Tiptap;
 use App\Domain\Cards\DocumentSchema;
 use Tiptap\Nodes\TableCell;
 
-/**
- * A table cell as the site draws it: tiptap-php's, plus the alignment Tiptap
- * 3.31 gives every cell, drawn after the spans as the editor's renderer draws
- * it (I-452). A header cell shares the attribute (TableHeaderNode).
- */
 final class TableCellNode extends TableCell
 {
     /**

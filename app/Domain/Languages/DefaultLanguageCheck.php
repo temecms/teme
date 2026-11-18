@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Keeps the site's default language while it publishes in others (Q1 A):
+ * rows store null for the default, so a new default would silently move
+ * every default-language row into it. Refuses, too, a new default that is
+ * already one of the other languages.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
 
 use App\Domain\Settings\SettingsCheck;
 
-/**
- * Keeps the site's default language while it publishes in others (Q1 A):
- * rows store null for the default, so a new default would silently move
- * every default-language row into it. Refuses, too, a new default that is
- * already one of the other languages.
- */
 final readonly class DefaultLanguageCheck implements SettingsCheck
 {
     public function __construct(private SiteLanguages $languages) {}

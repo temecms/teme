@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Calls one procedure of Dokploy's API with the owner's key. Every failure becomes a PlatformRefused built
+ * from Teme's own words and the status, since Dokploy's body, and Laravel's exception carrying it, may echo the key
+ * or a registry's login.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -12,11 +22,6 @@ use SensitiveParameter;
 use Teme\Contracts\Settings\SecretReader;
 use Throwable;
 
-/**
- * Calls one procedure of Dokploy's API with the owner's key. Every failure becomes a PlatformRefused built
- * from Teme's own words and the status, since Dokploy's body, and Laravel's exception carrying it, may echo the key
- * or a registry's login.
- */
 final class DokployApi
 {
     public function __construct(private readonly SecretReader $secrets) {}

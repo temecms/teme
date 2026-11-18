@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What ChangeBrandColour needs: the colour as typed, # and six hex digits
+ * or empty for the theme's own, the design group's version the form was
+ * opened on, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ChangeBrandColour needs: the colour as typed, # and six hex digits
- * or empty for the theme's own, the design group's version the form was
- * opened on, and who is asking.
- */
 final readonly class ChangeBrandColourInput implements OperationInput
 {
     public function __construct(

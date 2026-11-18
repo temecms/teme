@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's people.read door (docs/plans/plugin-sockets-3.md): the people
+ * content can be credited to, as AuthorOptions finds them, each by account
+ * ID and display name only, in account order a page at a time.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -11,11 +21,6 @@ use Teme\Contracts\People\PeopleReader;
 use Teme\Contracts\People\PersonPage;
 use Teme\Contracts\People\PersonRef;
 
-/**
- * A plugin's people.read door (docs/plans/plugin-sockets-3.md): the people
- * content can be credited to, as AuthorOptions finds them, each by account
- * ID and display name only, in account order a page at a time.
- */
 final readonly class PluginPeopleReader implements PeopleReader
 {
     public const int MOST_PEOPLE = 200;

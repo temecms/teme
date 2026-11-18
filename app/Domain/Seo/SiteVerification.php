@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Search and social's section "Site verification" (docs/studies/seo.md
+ * §3.12): name and content pairs that services such as Google Search
+ * Console ask a site to show, each written on the home page as an escaped
+ * meta tag, never as markup (I-288). Its own check refuses a name that isn't
+ * a meta tag's, or one Teme writes itself, since the site's entry would win
+ * over core's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo;
@@ -9,14 +22,6 @@ use App\Domain\Site\Document\MetaTag;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "Site verification" (docs/studies/seo.md
- * §3.12): name and content pairs that services such as Google Search
- * Console ask a site to show, each written on the home page as an escaped
- * meta tag, never as markup (I-288). Its own check refuses a name that isn't
- * a meta tag's, or one Teme writes itself, since the site's entry would win
- * over core's.
- */
 final class SiteVerification implements SearchAndSocialSection, SettingsCheck
 {
     public const string TAGS = 'site_verification';

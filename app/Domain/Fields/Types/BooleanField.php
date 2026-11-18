@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A yes-or-no switch. Anything PHP reads as true is stored as true.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -7,9 +15,6 @@ namespace App\Domain\Fields\Types;
 use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 
-/**
- * A yes-or-no switch. Anything PHP reads as true is stored as true.
- */
 final class BooleanField implements FieldType
 {
     public function name(): string

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * One page of a plugin's area as its screen needs it
+ * (docs/plans/plugin-sockets-2.md, A6, A9): the plugin, the area's pages,
+ * and each block's declaration, its words through AreaWords. Each block's
+ * data is read on its own, under AreaReads' budgets, so the screen can
+ * defer it and one slow block never holds the page.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
@@ -16,12 +28,6 @@ use Closure;
 use Teme\Contracts\Admin\TableQuery;
 
 /**
- * One page of a plugin's area as its screen needs it
- * (docs/plans/plugin-sockets-2.md, A6, A9): the plugin, the area's pages,
- * and each block's declaration, its words through AreaWords. Each block's
- * data is read on its own, under AreaReads' budgets, so the screen can
- * defer it and one slow block never holds the page.
- *
  * @phpstan-type TableAsk array{page?: mixed, search?: mixed, filters?: mixed, sort?: mixed, direction?: mixed}
  */
 final readonly class PluginAreaScreen

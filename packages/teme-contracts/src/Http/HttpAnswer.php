@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What a remote host answered: its status, its body and its headers.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Http;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Writes a WordPress post or page as a new Teme item, as WordPress had it
+ * (I-332): its row, one revision of the import's, its schedule, review or
+ * trash, its projections, its address and its old addresses. Only an
+ * import's actor may call it, and it writes no security log per item.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -16,12 +27,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Writes a WordPress post or page as a new Teme item, as WordPress had it
- * (I-332): its row, one revision of the import's, its schedule, review or
- * trash, its projections, its address and its old addresses. Only an
- * import's actor may call it, and it writes no security log per item.
- */
 final class ImportContent extends BaseOperation
 {
     use AuthorizesImports;

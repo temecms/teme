@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A term as a link: its name, its address, and its taxonomy's key.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

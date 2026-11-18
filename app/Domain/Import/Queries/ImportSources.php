@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * Looks up the WordPress sites Teme keeps for import.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
 
 use App\Domain\Import\Models\ImportSource;
 
-/**
- * Looks up the WordPress sites Teme keeps for import.
- */
 final class ImportSources
 {
     /**

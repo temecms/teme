@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What one teme:deploy found and did, step by step, filled in as it runs:
+ * the doctor's findings, the lock, the migrations, the backup, the
+ * rebuilds, each step's state, and how it ended. toArray() is the JSON
+ * --json prints (I-3189). Until a run ends it reads as failed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -8,12 +19,6 @@ use App\Domain\Backups\BackupResult;
 use App\Domain\Deployment\Health\DoctorResult;
 use stdClass;
 
-/**
- * What one teme:deploy found and did, step by step, filled in as it runs:
- * the doctor's findings, the lock, the migrations, the backup, the
- * rebuilds, each step's state, and how it ended. toArray() is the JSON
- * --json prints (I-3189). Until a run ends it reads as failed.
- */
 final class DeployReport
 {
     /** The JSON's shape; a key may be added, never renamed or removed. */

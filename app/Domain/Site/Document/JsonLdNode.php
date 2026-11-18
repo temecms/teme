@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Document;
-
-use InvalidArgumentException;
-
 /**
  * One node of the page's JSON-LD graph (I-697): plain values keyed as
  * schema.org names them, with an absolute @id that other nodes link to and
  * an @type. Checked when it is made, so the encoder can never fail on it:
  * only text in UTF-8, finite numbers, booleans, nulls and arrays of them,
  * and no @context, which the graph carries once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Document;
+
+use InvalidArgumentException;
+
 final readonly class JsonLdNode
 {
     /**

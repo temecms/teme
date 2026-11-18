@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Changes a fediverse reply's words when its writer edits it: the comment
+ * keeps its place, and its words become the edited reply's as the
+ * restricted comment document. A shown reply goes through the bound
+ * moderator again and is held when it doesn't pass or its links changed;
+ * edits count toward the account's replies an hour. Only the account that
+ * wrote it may. Returns the comment's ID.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies\Operations;
@@ -27,14 +40,6 @@ use Teme\Contracts\Comments\CommentStatusChanged;
 use Teme\Contracts\Comments\ModerationVerdict;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes a fediverse reply's words when its writer edits it: the comment
- * keeps its place, and its words become the edited reply's as the
- * restricted comment document. A shown reply goes through the bound
- * moderator again and is held when it doesn't pass or its links changed;
- * edits count toward the account's replies an hour. Only the account that
- * wrote it may. Returns the comment's ID.
- */
 final class UpdateFediverseReply extends BaseOperation
 {
     use WrittenByTheSender;

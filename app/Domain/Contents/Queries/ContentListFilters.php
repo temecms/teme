@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One reading of a content list's address (I-140): the keys the type's list
+ * knows and the site month or days they name, so the list screen and a run over the
+ * list filter alike. It reads nothing from the database.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -9,11 +19,6 @@ use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use Carbon\CarbonImmutable;
 
-/**
- * One reading of a content list's address (I-140): the keys the type's list
- * knows and the site month or days they name, so the list screen and a run over the
- * list filter alike. It reads nothing from the database.
- */
 final readonly class ContentListFilters
 {
     /**

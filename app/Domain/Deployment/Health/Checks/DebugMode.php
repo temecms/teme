@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Says whether debug mode is on (I-378): on a production site it makes an
+ * error page show visitors the configuration and its secrets.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -8,10 +17,6 @@ use App\Domain\Deployment\Health\DoctorCheck;
 use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 
-/**
- * Says whether debug mode is on (I-378): on a production site it makes an
- * error page show visitors the configuration and its secrets.
- */
 final readonly class DebugMode implements DoctorCheck
 {
     public function title(): string

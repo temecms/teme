@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An image a template draws with `<x-teme::image>`: the media item, the alt
+ * text for this use (null for the item's own), whether it is decorative, and
+ * its caption and credit, when known.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

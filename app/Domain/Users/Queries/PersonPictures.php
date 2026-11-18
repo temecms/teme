@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Each account's picture as an address made now from the site's own address
+ * (rule 9): the image's square thumbnail, or none while the account has no
+ * picture, the image is in the trash, or its thumbnail is not made yet.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Users\Queries;
 use App\Domain\Media\MediaUrls;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Each account's picture as an address made now from the site's own address
- * (rule 9): the image's square thumbnail, or none while the account has no
- * picture, the image is in the trash, or its thumbnail is not made yet.
- */
 final class PersonPictures
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One sound file from the library, played by the browser's own player, with
+ * a caption and a transcript readers can open (I-446). The file is held by
+ * ID; its address is worked out when drawn, never stored.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -12,11 +22,6 @@ use App\Domain\Cards\ChangeList;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RenderContext;
 
-/**
- * One sound file from the library, played by the browser's own player, with
- * a caption and a transcript readers can open (I-446). The file is held by
- * ID; its address is worked out when drawn, never stored.
- */
 final class AudioCard implements CardType
 {
     public function name(): string

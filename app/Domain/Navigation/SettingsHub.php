@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The Settings hub: it opens on the first Settings page the person may
+ * open, and lists them all for the palette.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Navigation;
@@ -7,10 +16,6 @@ namespace App\Domain\Navigation;
 use App\Domain\Settings\Queries\SettingsNavigation;
 use App\Models\User;
 
-/**
- * The Settings hub: it opens on the first Settings page the person may
- * open, and lists them all for the palette.
- */
 final readonly class SettingsHub implements NavHub
 {
     public function __construct(private SettingsNavigation $settings) {}

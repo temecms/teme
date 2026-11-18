@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * The verdict on the site's backups (I-2409): the red problems, the ones of them that email, the amber cautions, and when the newest good backup ended. Red when there is any problem, amber when there is only a caution, green when there is neither.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
 
 use Carbon\CarbonImmutable;
 
-/**
- * The verdict on the site's backups (I-2409): the red problems, the ones of them that email, the amber cautions, and when the newest good backup ended. Red when there is any problem, amber when there is only a caution, green when there is neither.
- */
 final readonly class BackupVerdict
 {
     public const string RED = 'error';

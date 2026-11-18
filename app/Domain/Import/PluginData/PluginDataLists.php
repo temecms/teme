@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The companion's extension route as import lists
+ * (docs/specs/companion-extension-route.md): for each plugin, one paged
+ * list per declared post type, then its people's meta, then its terms'
+ * meta, each asking only for the declared keys and naming the plugin it is
+ * read for; and the map's reference for each record.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -10,13 +22,6 @@ use App\Domain\Import\Phases\SourceRef;
 use InvalidArgumentException;
 use Teme\Contracts\Import\WordPressRecord;
 
-/**
- * The companion's extension route as import lists
- * (docs/specs/companion-extension-route.md): for each plugin, one paged
- * list per declared post type, then its people's meta, then its terms'
- * meta, each asking only for the declared keys and naming the plugin it is
- * read for; and the map's reference for each record.
- */
 final readonly class PluginDataLists
 {
     /** The companion's export API that first has the extension route. */

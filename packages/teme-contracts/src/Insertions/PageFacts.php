@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a public page is, so a contributor can decide what to give: its kind,
+ * its path, its language, and for an article or a term's archive what it is
+ * about.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

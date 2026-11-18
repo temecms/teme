@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Says when a type saved on this site can't be used (I-411): code now
+ * declares its key or segment, or it names a taxonomy or feature that is
+ * gone, so its screens and addresses are missing until it is put right.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -9,11 +19,6 @@ use App\Domain\Status\StatusCheck;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TypeAccess;
 
-/**
- * Says when a type saved on this site can't be used (I-411): code now
- * declares its key or segment, or it names a taxonomy or feature that is
- * gone, so its screens and addresses are missing until it is put right.
- */
 final readonly class StoredTypesRefused implements StatusCheck
 {
     public function ability(): string
@@ -21,6 +26,9 @@ final readonly class StoredTypesRefused implements StatusCheck
         return TypeAccess::MANAGE;
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Types');

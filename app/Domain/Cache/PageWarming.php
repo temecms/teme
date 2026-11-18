@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cache;
-
-use App\Domain\Api\ApiPaths;
-use Throwable;
-
 /**
  * Which pages a change draws again, on the queue (docs/studies/page-cache.md
  * §3.11): up to `page_cache.warm.limit` of the pages it is about to remove,
@@ -15,7 +8,19 @@ use Throwable;
  * anything but 200; the home page first (D9). None while warming is off, or
  * on the sync queue, where the request that made the change would draw them
  * itself (D10).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cache;
+
+use App\Domain\Api\ApiPaths;
+use Throwable;
+
 final readonly class PageWarming
 {
     public function __construct(private PageStore $store) {}

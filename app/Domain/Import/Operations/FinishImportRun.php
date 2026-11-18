@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Ends a run that went through every phase (I-332): finished, its counts tallied, logged, and the page cache purged once, after the run's last commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -17,9 +25,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Ends a run that went through every phase (I-332): finished, its counts tallied, logged, and the page cache purged once, after the run's last commit.
- */
 final class FinishImportRun extends BaseOperation
 {
     use AuthorizesImports;

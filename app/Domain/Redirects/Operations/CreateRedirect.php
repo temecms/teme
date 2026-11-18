@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Adds a redirect, for whoever holds redirects.manage (I-850, I-694): from
+ * an address on this site to an address, another site's address, an item or
+ * a media file, or answering 410 or 451. Refused when its source is taken or
+ * it would make a loop or a chain (I-859); recorded in the security log; the
+ * stored "not found" pages it replaces purged after commit. Returns its ID
+ * and its state, which may be waiting (I-858).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations;
@@ -20,14 +33,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds a redirect, for whoever holds redirects.manage (I-850, I-694): from
- * an address on this site to an address, another site's address, an item or
- * a media file, or answering 410 or 451. Refused when its source is taken or
- * it would make a loop or a chain (I-859); recorded in the security log; the
- * stored "not found" pages it replaces purged after commit. Returns its ID
- * and its state, which may be waiting (I-858).
- */
 final class CreateRedirect extends BaseOperation
 {
     public function __construct(

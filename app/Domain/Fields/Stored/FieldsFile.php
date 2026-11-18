@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The fields list of teme-types.json: every live field of the site's own,
+ * each naming its type, in type order then position; a list's order is its
+ * fields' order (I-3320).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Stored;
@@ -10,11 +20,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
-/**
- * The fields list of teme-types.json: every live field of the site's own,
- * each naming its type, in type order then position; a list's order is its
- * fields' order (I-3320).
- */
 final class FieldsFile
 {
     private const string ULID = '/^[0-9A-HJKMNP-TV-Z]{26}$/';

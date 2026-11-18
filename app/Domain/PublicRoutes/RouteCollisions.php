@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The refusals (docs/plans/plugin-public-routes.md) for a plugin's declared public routes: reserved paths,
+ * unconditional paths outside /{code}/ and /.well-known/, core .well-known
+ * names and public addresses, missing POST verifiers, unknown secret
+ * settings, and two entries that could match one request.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
@@ -7,12 +18,6 @@ namespace App\Domain\PublicRoutes;
 use App\Domain\Addresses\Paths;
 use App\Domain\Plugins\Manifest;
 
-/**
- * The refusals (docs/plans/plugin-public-routes.md) for a plugin's declared public routes: reserved paths,
- * unconditional paths outside /{code}/ and /.well-known/, core .well-known
- * names and public addresses, missing POST verifiers, unknown secret
- * settings, and two entries that could match one request.
- */
 final class RouteCollisions
 {
     /** Prefixes a plugin may not claim (Settled §3). */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One item of a Bulk Edit (I-204): its terms and author through one
+ * UpdateContentDetails, then its status through PublishRevision or
+ * UnpublishContent, then its Discussion through SetDiscussion. It writes
+ * nothing itself; each step is an Operation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -20,12 +31,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * One item of a Bulk Edit (I-204): its terms and author through one
- * UpdateContentDetails, then its status through PublishRevision or
- * UnpublishContent, then its Discussion through SetDiscussion. It writes
- * nothing itself; each step is an Operation.
- */
 final readonly class BulkEditItem
 {
     public function __construct(private ContentPointers $pointers) {}

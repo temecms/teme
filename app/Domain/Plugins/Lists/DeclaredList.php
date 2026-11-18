@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * One list a plugin declares for its settings page, read from its manifest's
+ * `contributes.lists` (docs/proposals/plugin-sockets-1.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Lists;
 
-/**
- * One list a plugin declares for its settings page, read from its manifest's
- * `contributes.lists` (docs/proposals/plugin-sockets-1.md).
- */
 final readonly class DeclaredList
 {
     /**

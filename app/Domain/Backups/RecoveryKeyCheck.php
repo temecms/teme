@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What checking a recovery key found (I-359): its label when the site knows
+ * it, the places it opens and the places it doesn't, oldest first.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
 
-/**
- * What checking a recovery key found (I-359): its label when the site knows
- * it, the places it opens and the places it doesn't, oldest first.
- */
 final readonly class RecoveryKeyCheck
 {
     /**

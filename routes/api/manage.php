@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The management API's routes, signed in with a key.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Http\Api\Manage\ItemsController;

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Where a reply goes in its thread (I-272; 1.8c′'s D12): under the comment it
+ * answers, one level deeper, or beside it, under its ancestor, when it sits
+ * at the deepest level the settings allow or below it. One rule for the
+ * form's replies and the admin's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
 
 use App\Domain\Comments\Models\Comment;
 
-/**
- * Where a reply goes in its thread (I-272; 1.8c′'s D12): under the comment it
- * answers, one level deeper, or beside it, under its ancestor, when it sits
- * at the deepest level the settings allow or below it. One rule for the
- * form's replies and the admin's.
- */
 final class CommentPlace
 {
     /**

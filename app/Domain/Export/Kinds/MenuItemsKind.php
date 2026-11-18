@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every menu's links, by ID, each pointing at its target by ID (rule 9). A
+ * child may come before its parent; position orders siblings. A table's own
+ * kind column is written as link_kind.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -8,11 +18,6 @@ use App\Domain\Export\ExportContext;
 use App\Domain\Export\ExportKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every menu's links, by ID, each pointing at its target by ID (rule 9). A
- * child may come before its parent; position orders siblings. A table's own
- * kind column is written as link_kind.
- */
 final readonly class MenuItemsKind implements ExportKind
 {
     private const int PAGE = 1000;

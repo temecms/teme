@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Fetches a remote fediverse document, guarded against reaching inside the
+ * server's network (SSRF): https only, every address checked public and
+ * pinned, each redirect checked again, at most three of them, five seconds
+ * and a megabyte at most, signed as the application actor when there is
+ * one. The document's id must be on the host that answered.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Remote;
@@ -14,13 +26,6 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Fetches a remote fediverse document, guarded against reaching inside the
- * server's network (SSRF): https only, every address checked public and
- * pinned, each redirect checked again, at most three of them, five seconds
- * and a megabyte at most, signed as the application actor when there is
- * one. The document's id must be on the host that answered.
- */
 final readonly class RemoteFetcher
 {
     public const int MAX_BYTES = 1_048_576;

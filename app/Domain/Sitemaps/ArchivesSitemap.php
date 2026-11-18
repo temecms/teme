@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The type archive pages as a child of their own (I-3304): each shown, not
+ * hidden by its row, and listing a live item, at its address, dated by its
+ * type's newest item; and, for each other shown language (I-3360), its home
+ * and its type archive pages that list a live item in it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps;
@@ -15,12 +26,6 @@ use App\Domain\Sitemaps\Queries\ListedItems;
 use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 
-/**
- * The type archive pages as a child of their own (I-3304): each shown, not
- * hidden by its row, and listing a live item, at its address, dated by its
- * type's newest item; and, for each other shown language (I-3360), its home
- * and its type archive pages that list a live item in it.
- */
 final readonly class ArchivesSitemap implements SitemapProvider
 {
     public const string NAME = 'archives';

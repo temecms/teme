@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Imports redirects from a CSV file of from, to, status, note and on, for
+ * whoever holds redirects.manage (I-850, I-872): each line checked as one
+ * added by hand, against the table and the lines before it; a line that
+ * fails is left out and reported with its number and why; the rest added,
+ * marked imported. One entry in the security log for the file; the stored
+ * "not found" pages they replace purged after commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Operations;
@@ -19,14 +32,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Imports redirects from a CSV file of from, to, status, note and on, for
- * whoever holds redirects.manage (I-850, I-872): each line checked as one
- * added by hand, against the table and the lines before it; a line that
- * fails is left out and reported with its number and why; the rest added,
- * marked imported. One entry in the security log for the file; the stored
- * "not found" pages they replace purged after commit.
- */
 final class ImportRedirects extends BaseOperation
 {
     /** The most lines a file may hold. */

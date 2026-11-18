@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The answer: text, or data when a schema was sent; the model; the tokens; the
+ * cost when known; and the ID of the request's record.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Ai;

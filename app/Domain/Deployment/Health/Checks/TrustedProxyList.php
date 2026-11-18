@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Says which proxies Teme believes (I-380): an empty list in production
+ * makes every reader look like the proxy, so it is a warning there.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -10,10 +19,6 @@ use App\Domain\Deployment\Health\Severity;
 use App\Domain\Support\Security\TrustedProxies;
 use InvalidArgumentException;
 
-/**
- * Says which proxies Teme believes (I-380): an empty list in production
- * makes every reader look like the proxy, so it is a warning there.
- */
 final readonly class TrustedProxyList implements DoctorCheck
 {
     public function title(): string

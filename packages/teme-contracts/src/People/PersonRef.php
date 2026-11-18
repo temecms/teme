@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One person as a plugin may know them: their account ID and display name.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\People;

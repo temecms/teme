@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Benchmark\BackupBench;
-
 /**
  * The backup benchmark's sizes (I-367): the folder its place and key go in,
  * the items and images, each file's share of its size, the night's new
  * images, and the seeder's other counts.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Benchmark\BackupBench;
+
 final readonly class BackupBenchOptions
 {
     public function __construct(

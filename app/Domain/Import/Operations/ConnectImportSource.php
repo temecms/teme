@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Keeps a WordPress site to import from (I-1708), once the companion plugin
+ * has answered with the user name and application password: its home
+ * address and API root, the plugin's version, and the password, encrypted.
+ * A site Teme already knows is updated, taking its password back if it was
+ * forgotten. Nothing is imported here, so the password isn't asked again.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -19,13 +31,6 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Keeps a WordPress site to import from (I-1708), once the companion plugin
- * has answered with the user name and application password: its home
- * address and API root, the plugin's version, and the password, encrypted.
- * A site Teme already knows is updated, taking its password back if it was
- * forgotten. Nothing is imported here, so the password isn't asked again.
- */
 final class ConnectImportSource extends BaseOperation
 {
     use AuthorizesImports;

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The fediverse's own authorization: whoever holds settings.fediverse.manage,
+ * or the operator for a null actor.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations\Concerns;
@@ -9,10 +18,6 @@ use App\Domain\Users\Actors;
 use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * The fediverse's own authorization: whoever holds settings.fediverse.manage,
- * or the operator for a null actor.
- */
 trait AuthorizesFediverseWork
 {
     /**

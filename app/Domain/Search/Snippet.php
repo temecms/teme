@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A search result's snippet as safe HTML. PostgreSQL's ts_headline marks the
+ * matches with two private-use characters; the text is escaped first, and
+ * only then do the markers become <mark>, so nothing in the text is ever
+ * markup. The one place search output is printed raw.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Search;
 
 use Illuminate\Support\Str;
 
-/**
- * A search result's snippet as safe HTML. PostgreSQL's ts_headline marks the
- * matches with two private-use characters; the text is escaped first, and
- * only then do the markers become <mark>, so nothing in the text is ever
- * markup. The one place search output is printed raw.
- */
 final class Snippet
 {
     /** Where ts_headline starts a match. */

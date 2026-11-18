@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * How a plugin granted content.write creates and changes items, publishes and
+ * schedules them, and links language versions, always on behalf of a named
+ * person.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

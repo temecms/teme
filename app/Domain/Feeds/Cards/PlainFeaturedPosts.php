@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The featured posts card in a feed: nothing. It belongs in theme regions only, which no
+ * feed carries, so this version exists only so every card has one.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -7,10 +16,6 @@ namespace App\Domain\Feeds\Cards;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Feeds\FeedCardRenderer;
 
-/**
- * The featured posts card in a feed: nothing. It belongs in theme regions only, which no
- * feed carries, so this version exists only so every card has one.
- */
 final readonly class PlainFeaturedPosts implements FeedCardRenderer
 {
     public function card(): string

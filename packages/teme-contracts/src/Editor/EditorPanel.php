@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What one panel shows for one item, and what happens when the person uses or
+ * discards one of its suggestions.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

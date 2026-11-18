@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes one of the site's own taxonomies and which types use it: names,
+ * admin address, icon, how its terms are arranged and whether they have
+ * public pages, under the rules its terms and items set (I-412). Its address
+ * base stays the one it was made with; Settings › Addresses changes that.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations;
@@ -19,12 +30,6 @@ use App\Domain\Types\TaxonomyRules;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes one of the site's own taxonomies and which types use it: names,
- * admin address, icon, how its terms are arranged and whether they have
- * public pages, under the rules its terms and items set (I-412). Its address
- * base stays the one it was made with; Settings › Addresses changes that.
- */
 final class UpdateTaxonomy extends BaseOperation
 {
     use ManagesTaxonomies;

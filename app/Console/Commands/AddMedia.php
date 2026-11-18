@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:media:add — adds files from the server's disk to the media library, as
+ * the operator, through UploadMedia. Used for quick checks and small imports.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -12,10 +21,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:media:add — adds files from the server's disk to the media library, as
- * the operator, through UploadMedia. Used for quick checks and small imports.
- */
 final class AddMedia extends Command
 {
     /** @var string */

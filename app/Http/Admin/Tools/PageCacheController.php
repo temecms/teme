@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Tools › Page cache (I-467): how the page cache is set up, and clearing
+ * it through ClearPageCache. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -13,10 +22,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Tools › Page cache (I-467): how the page cache is set up, and clearing
- * it through ClearPageCache. It changes nothing itself.
- */
 final class PageCacheController extends Controller
 {
     public function show(PageCacheScreen $screen): Response

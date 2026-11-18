@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The images whose variants were made with an older set, in ID order, for
+ * teme:media:regenerate to page through. Uses the (variant_set, id) index.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -7,10 +16,6 @@ namespace App\Domain\Media\Queries;
 use App\Domain\Media\MediaVariants;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The images whose variants were made with an older set, in ID order, for
- * teme:media:regenerate to page through. Uses the (variant_set, id) index.
- */
 final class ImagesNeedingVariants
 {
     /**

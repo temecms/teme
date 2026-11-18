@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
 /**
  * The plain files the static-file driver writes for the web server
  * (slice 1.7d″): a row for each, by its page's entry, with the address it
@@ -13,7 +7,18 @@ use Illuminate\Support\Facades\Schema;
  * row is written before its file and deleted only after it, by the prune,
  * so the table knows every file and nothing lists the folder. Cache data,
  * never backed up or exported, like page_cache_tags.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
 return new class extends Migration
 {
     public function up(): void

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Refused before sending (reason as AiStanding's, or no-person, no-permission,
+ * in-transaction, no-task, too-many-tokens, no-schema, too-long), or failed
+ * after (unavailable, rate-limited, invalid-output, timeout, refused).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Ai;

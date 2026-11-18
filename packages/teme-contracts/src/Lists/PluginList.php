@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One list's rows on a plugin's settings page, newest or most useful first.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Lists;

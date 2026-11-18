@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Sets backups up (I-2401): the first place and its repository, opened by
+ * the machine key, and a recovery key shown once, which ConfirmRecoveryKey
+ * records when two of its groups are typed back. On a setup not yet finished,
+ * it keeps the place, sweeps the key nobody saw, and shows a new one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -28,12 +39,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Sets backups up (I-2401): the first place and its repository, opened by
- * the machine key, and a recovery key shown once, which ConfirmRecoveryKey
- * records when two of its groups are typed back. On a setup not yet finished,
- * it keeps the place, sweeps the key nobody saw, and shows a new one.
- */
 final class SetUpBackups extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

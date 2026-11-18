@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Whether a task can be asked now, why not in plain words, and this plugin's
+ * month.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Ai;

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The snippet card in a feed: its code escaped in a `pre`, with no highlighting, and its caption.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -7,9 +15,6 @@ namespace App\Domain\Feeds\Cards;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Feeds\FeedCardRenderer;
 
-/**
- * The snippet card in a feed: its code escaped in a `pre`, with no highlighting, and its caption.
- */
 final readonly class PlainSnippet implements FeedCardRenderer
 {
     public function card(): string

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Checks a whole document against the schema before it is stored: every
+ * node, mark and attribute must be one the schema or a registered card
+ * declares. Anything else is refused, never dropped, so nothing the browser
+ * sends reaches the database unchecked.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
@@ -9,12 +20,6 @@ use App\Domain\Regions\RegionRules;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Checks a whole document against the schema before it is stored: every
- * node, mark and attribute must be one the schema or a registered card
- * declares. Anything else is refused, never dropped, so nothing the browser
- * sends reaches the database unchecked.
- */
 final readonly class DocumentValidator
 {
     /** The keys a Tiptap node may have. */

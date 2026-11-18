@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * teme:import:walk, the proof that an imported site keeps its addresses
+ * (I-339): asks this site for every old address the WordPress site lists, as
+ * a reader would, and prints those that answer neither a page nor a redirect
+ * that reaches one. It exits 1 when any doesn’t.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -11,12 +22,6 @@ use App\Domain\Import\Source\SourceRefused;
 use App\Domain\Support\Network\AddressRefused;
 use Illuminate\Console\Command;
 
-/**
- * teme:import:walk, the proof that an imported site keeps its addresses
- * (I-339): asks this site for every old address the WordPress site lists, as
- * a reader would, and prints those that answer neither a page nor a redirect
- * that reaches one. It exits 1 when any doesn’t.
- */
 final class WalkImportAddresses extends Command
 {
     /** @var string */

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Stops a running import (I-332), by a person's word or a job's: stopped with its reason and words, its counts tallied, logged, and the page cache purged once. A job gives its attempt's token, and a stale one stops nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -18,9 +26,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Stops a running import (I-332), by a person's word or a job's: stopped with its reason and words, its counts tallied, logged, and the page cache purged once. A job gives its attempt's token, and a stale one stops nothing.
- */
 final class StopImportRun extends BaseOperation
 {
     use AuthorizesImports;

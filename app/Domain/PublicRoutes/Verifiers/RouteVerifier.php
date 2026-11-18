@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Picks the POST verifier a declared route named and runs it with the
+ * plugin's secret setting, or with '' when a custom verifier names none.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes\Verifiers;
@@ -8,10 +17,6 @@ use App\Domain\PublicRoutes\DeclaredRoute;
 use Teme\Contracts\Routes\PublicRequest;
 use Teme\Contracts\Settings\SecretReader;
 
-/**
- * Picks the POST verifier a declared route named and runs it with the
- * plugin's secret setting, or with '' when a custom verifier names none.
- */
 final readonly class RouteVerifier
 {
     public function __construct(

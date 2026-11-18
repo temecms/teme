@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One plugin's stored row (I-3353): enabled or disabled and why, the
+ * version and access the person agreed to, and its listeners' recent faults
+ * and stopped parts. EnablePlugin and DisablePlugin write it; every other
+ * state is worked out from the plugin on disk.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Models;
@@ -13,11 +24,6 @@ use Illuminate\Database\Eloquent\Model;
 use stdClass;
 
 /**
- * One plugin's stored row (I-3353): enabled or disabled and why, the
- * version and access the person agreed to, and its listeners' recent faults
- * and stopped parts. EnablePlugin and DisablePlugin write it; every other
- * state is worked out from the plugin on disk.
- *
  * @property string $id
  * @property string $name
  * @property string $code

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A theme's teme-theme.json, read into typed getters (study B §3a, I-243).
+ * It holds what the file says even when ManifestValidator found errors, so a
+ * broken theme can still be named; a getter whose value is missing or of the
+ * wrong type answers empty. Keys 1.6b doesn't use are kept in raw().
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
 
 use App\Domain\Support\HttpsLink;
 
-/**
- * A theme's teme-theme.json, read into typed getters (study B §3a, I-243).
- * It holds what the file says even when ManifestValidator found errors, so a
- * broken theme can still be named; a getter whose value is missing or of the
- * wrong type answers empty. Keys 1.6b doesn't use are kept in raw().
- */
 final readonly class Manifest
 {
     /** Listing pages' length when a theme doesn't set its own, as 1.6a's listings were. */
@@ -47,6 +52,8 @@ final readonly class Manifest
 
     /**
      * Who wrote the theme, or ''.
+     *
+     * @since 1.0.0
      */
     public function author(): string
     {
@@ -55,6 +62,8 @@ final readonly class Manifest
 
     /**
      * The author’s website, or ''.
+     *
+     * @since 1.0.0
      */
     public function authorUrl(): string
     {
@@ -63,6 +72,8 @@ final readonly class Manifest
 
     /**
      * The theme's home page, or ''.
+     *
+     * @since 1.0.0
      */
     public function homepage(): string
     {

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A plugin's door to send the hooks it declares
+ * (docs/plans/plugin-sockets-3.md): it refuses any other class, then hands
+ * the hook to core's dispatcher unchanged, so listeners' faults, failure
+ * rules, order and depth are those of core's hooks. A notification waits
+ * for the outermost commit (rule 6).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Hooks;
@@ -13,13 +25,6 @@ use Teme\Contracts\Hooks\HookSender;
 use Teme\Contracts\Hooks\Notification;
 use Teme\Contracts\Hooks\Transform;
 
-/**
- * A plugin's door to send the hooks it declares
- * (docs/plans/plugin-sockets-3.md): it refuses any other class, then hands
- * the hook to core's dispatcher unchanged, so listeners' faults, failure
- * rules, order and depth are those of core's hooks. A notification waits
- * for the outermost commit (rule 6).
- */
 final readonly class PluginHookSender implements HookSender
 {
     /**

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Core's head tags beside robots (I-290, I-292, I-293): the page's
+ * description, its canonical, and the newer and older pages of a listing,
+ * each from the values PageHead resolved for the page, the page's social
+ * card: one set of Open Graph tags, its language among them, and
+ * `twitter:card` (I-293), and an `hreflang` link to each of the page's
+ * language versions, `x-default` to the default language's (I-306).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Head;
@@ -16,14 +29,6 @@ use App\Domain\Site\Document\Precedence;
 use App\Domain\Site\ViewModels\Alternate;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Core's head tags beside robots (I-290, I-292, I-293): the page's
- * description, its canonical, and the newer and older pages of a listing,
- * each from the values PageHead resolved for the page, the page's social
- * card: one set of Open Graph tags, its language among them, and
- * `twitter:card` (I-293), and an `hreflang` link to each of the page's
- * language versions, `x-default` to the default language's (I-306).
- */
 final class HeadTags implements HeadContributor
 {
     public function __construct(

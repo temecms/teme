@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Brings one WordPress account into Teme as a new person, for an import
+ * (I-340): their role, their address, and their WordPress password hash as
+ * WordPress kept it, so their WordPress password signs them in until the
+ * sign-in upgrades it. Only an importer may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -22,12 +33,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings one WordPress account into Teme as a new person, for an import
- * (I-340): their role, their address, and their WordPress password hash as
- * WordPress kept it, so their WordPress password signs them in until the
- * sign-in upgrades it. Only an importer may.
- */
 final class ImportUser extends BaseOperation
 {
     use AuthorizesImports;

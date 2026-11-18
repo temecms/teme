@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The people content can be attributed to, for author pickers and filters.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Queries;
@@ -7,9 +15,6 @@ namespace App\Domain\Users\Queries;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-/**
- * The people content can be attributed to, for author pickers and filters.
- */
 final class AuthorOptions
 {
     /**
@@ -34,6 +39,8 @@ final class AuthorOptions
      * the same people (docs/proposals/management-api.md).
      *
      * @return Builder<User>
+     *
+     * @since 1.0.0
      */
     public function people(): Builder
     {

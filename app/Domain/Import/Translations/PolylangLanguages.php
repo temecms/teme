@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Translations;
-
 /**
  * What the old site's Polylang says of its languages, as the companion's
  * `languages` route sends it (docs/specs/companion-languages.md): whether it
@@ -12,7 +8,16 @@ namespace App\Domain\Import\Translations;
  * translates, its menus per language, its string translations, and the
  * other translation plugins the site has on. Read from JSON alone; it
  * never fails on an answer it can't read whole.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Translations;
+
 final readonly class PolylangLanguages
 {
     /** Polylang sets the language from the content: addresses carry none. */

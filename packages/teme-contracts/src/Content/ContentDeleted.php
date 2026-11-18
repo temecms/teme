@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * An item was deleted for good, from the trash.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

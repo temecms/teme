@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The documents the site answers at its fediverse addresses: an actor, its
+ * outbox, followers (a count only) and following (always empty), found by
+ * the full address asked for, so an imported actor answers at its old one.
+ * Read whether the fediverse is on or paused (proposal, Settled 4).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Queries;
@@ -17,12 +28,6 @@ use App\Domain\Fediverse\Sockets\ObjectTransforms;
 use App\Domain\People\Models\Person;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The documents the site answers at its fediverse addresses: an actor, its
- * outbox, followers (a count only) and following (always empty), found by
- * the full address asked for, so an imported actor answers at its old one.
- * Read whether the fediverse is on or paused (proposal, Settled 4).
- */
 final readonly class FediverseDocuments
 {
     /** How many activities the outbox shows (proposal, P3). */

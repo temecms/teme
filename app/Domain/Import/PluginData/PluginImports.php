@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The plugins an import hands WordPress data to (I-349): those enabled and
+ * running in this process, granted import.wordpress, that declare what they
+ * bring, in the order of their codes. A disabled plugin, or one never
+ * granted the capability, gets nothing and has nothing read for it.
+ * Bound scoped: find() remembers each plugin, and so its importer, by code
+ * for the life of one job or request.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -12,14 +25,6 @@ use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\Seams\PluginServices;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * The plugins an import hands WordPress data to (I-349): those enabled and
- * running in this process, granted import.wordpress, that declare what they
- * bring, in the order of their codes. A disabled plugin, or one never
- * granted the capability, gets nothing and has nothing read for it.
- * Bound scoped: find() remembers each plugin, and so its importer, by code
- * for the life of one job or request.
- */
 final class PluginImports
 {
     /** @var array<string, ?PluginImport> what find() answered, by code */

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Whether a plugin's declared task can be asked now, and why not in words
+ * the plugin may show on its own pages: AI on for the site and for the
+ * plugin, a model chosen that can do the task, from a provider that is
+ * ready, neither budget reached, and the plugin under its hourly limit.
+ * Budgets and the limit are soft: requests already running may pass them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Plugins;
@@ -12,13 +24,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Ai\AiStanding;
 
-/**
- * Whether a plugin's declared task can be asked now, and why not in words
- * the plugin may show on its own pages: AI on for the site and for the
- * plugin, a model chosen that can do the task, from a provider that is
- * ready, neither budget reached, and the plugin under its hourly limit.
- * Budgets and the limit are soft: requests already running may pass them.
- */
 final readonly class PluginAiStanding
 {
     public function __construct(

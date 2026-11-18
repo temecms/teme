@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins\Columns;
-
 /**
  * Cleans the text of a plugin's cell, for list columns and for the lists on
  * a plugin's settings page alike: control and direction characters become
  * spaces, runs of space one, and text longer than its limit is cut.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins\Columns;
+
 final class CellText
 {
     /**

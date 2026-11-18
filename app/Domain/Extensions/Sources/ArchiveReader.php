@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Unpacks an uploaded ZIP into the extensions folder's packages/<vendor>/<name>/<version>/,
+ * in the installer only, after checking it holds one safe package: no path
+ * that leaves the folder, no symlink, no archive bomb, and a composer.json
+ * and manifest that match the upload (I-211). Nothing in it is run.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Sources;
@@ -11,12 +22,6 @@ use RecursiveIteratorIterator;
 use RuntimeException;
 use ZipArchive;
 
-/**
- * Unpacks an uploaded ZIP into the extensions folder's packages/<vendor>/<name>/<version>/,
- * in the installer only, after checking it holds one safe package: no path
- * that leaves the folder, no symlink, no archive bomb, and a composer.json
- * and manifest that match the upload (I-211). Nothing in it is run.
- */
 final readonly class ArchiveReader
 {
     /** The most entries an archive may hold. */

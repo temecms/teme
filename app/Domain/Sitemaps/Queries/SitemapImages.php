@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The images a sitemap names for each item (I-296): the live images its
+ * published version uses, read from media_usages, each once, at the
+ * widest width made, as an absolute address made now; at most MOST an item.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Sitemaps\Queries;
 use App\Domain\Media\MediaDisks;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The images a sitemap names for each item (I-296): the live images its
- * published version uses, read from media_usages, each once, at the
- * widest width made, as an absolute address made now; at most MOST an item.
- */
 final class SitemapImages
 {
     /** At most this many images an address, Google's limit. */

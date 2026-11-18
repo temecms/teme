@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:security-log:prune`: deletes security events older than the retention
+ * period. Runs daily.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -7,10 +16,6 @@ namespace App\Console\Commands;
 use App\Domain\Security\SecurityLog;
 use Illuminate\Console\Command;
 
-/**
- * `teme:security-log:prune`: deletes security events older than the retention
- * period. Runs daily.
- */
 final class PruneSecurityLog extends Command
 {
     /** @var string */

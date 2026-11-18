@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert\Shortcodes;
-
 /**
  * One shortcode as a mapping row sees it (I-349): its name, its attributes
  * as WordPress reads them, its opening tag as written, and the HTML between
  * its tags when it is closed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert\Shortcodes;
+
 final readonly class Shortcode
 {
     /**

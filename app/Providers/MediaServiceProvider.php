@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Wires media: the image engine on the configured driver, the media policy,
+ * and the Media settings group.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -15,10 +24,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Wires media: the image engine on the configured driver, the media policy,
- * and the Media settings group.
- */
 final class MediaServiceProvider extends ServiceProvider
 {
     public function register(): void

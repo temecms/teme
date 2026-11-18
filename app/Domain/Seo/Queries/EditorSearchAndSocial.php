@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * What the editor's Search and social section reads beside the item's own
+ * fields (I-290): the title row its head uses and the tokens the
+ * screen can't know, whether the site or its type keeps it out of search,
+ * the host an outside canonical is compared with, the site's default social
+ * image, what the type says its items are, whether its address follows its
+ * primary category, whether the theme draws a trail, and the canonical's
+ * chosen item. Every rule is PageHead's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Seo\Queries;
@@ -19,15 +33,6 @@ use App\Domain\StructuredData\TypeSchemas;
 use App\Domain\Types\ContentTypeRegistry;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What the editor's Search and social section reads beside the item's own
- * fields (I-290): the title row its head uses and the tokens the
- * screen can't know, whether the site or its type keeps it out of search,
- * the host an outside canonical is compared with, the site's default social
- * image, what the type says its items are, whether its address follows its
- * primary category, whether the theme draws a trail, and the canonical's
- * chosen item. Every rule is PageHead's.
- */
 final readonly class EditorSearchAndSocial
 {
     public function __construct(

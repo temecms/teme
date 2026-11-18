@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What one change queued for the fediverse: the activities stored, in the
+ * order they go out, and the delivery rows made for them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
 
 use App\Domain\Fediverse\Models\Activity;
 
-/**
- * What one change queued for the fediverse: the activities stored, in the
- * order they go out, and the delivery rows made for them.
- */
 final readonly class QueuedActivities
 {
     /**

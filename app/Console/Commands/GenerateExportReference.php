@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:docs:export`: writes `docs/reference/export.md` from the export's
+ * kinds, its manifest and what it leaves out (I-365). The reference is
+ * generated, never edited by hand.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,11 +20,6 @@ use App\Domain\Export\ExportManifest;
 use App\Domain\Export\LeftOut;
 use Illuminate\Console\Command;
 
-/**
- * `teme:docs:export`: writes `docs/reference/export.md` from the export's
- * kinds, its manifest and what it leaves out (I-365). The reference is
- * generated, never edited by hand.
- */
 final class GenerateExportReference extends Command
 {
     /** @var list<string> */

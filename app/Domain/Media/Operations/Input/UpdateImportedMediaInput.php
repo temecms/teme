@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What UpdateImportedMedia needs: the item, what an import last wrote to it,
+ * WordPress's title, alt text and caption now, WordPress's new file if it
+ * changed, where it came from, and who is importing it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What UpdateImportedMedia needs: the item, what an import last wrote to it,
- * WordPress's title, alt text and caption now, WordPress's new file if it
- * changed, where it came from, and who is importing it.
- */
 final readonly class UpdateImportedMediaInput implements OperationInput
 {
     /**

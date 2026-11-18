@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Carries out the open update one pass at a time (I-3326): each pass reads the request's row, moves one step at most
+ * one state, and records it, so a restarted updater carries on from the row. It moves the service through the
+ * platform with one deploy, its image and, when the release brings one, its compose file together, watches each
+ * part, and switches back by deploying the old image and file when the new release isn't healthy.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -24,12 +35,6 @@ use App\Domain\Updates\UpdatePlan;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Carries out the open update one pass at a time (I-3326): each pass reads the request's row, moves one step at most
- * one state, and records it, so a restarted updater carries on from the row. It moves the service through the
- * platform with one deploy, its image and, when the release brings one, its compose file together, watches each
- * part, and switches back by deploying the old image and file when the new release isn't healthy.
- */
 final readonly class UpdateRunner
 {
     public const int PROBES = 3;

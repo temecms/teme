@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Each person's slug, for their author address (`author/{slug}`), made from
+ * their name as the User model's creating event makes it, and unique.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
@@ -8,10 +17,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
-/**
- * Each person's slug, for their author address (`author/{slug}`), made from
- * their name as the User model's creating event makes it, and unique.
- */
 return new class extends Migration
 {
     public function up(): void

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Blocks a server and every domain below it (proposal, Settled 8): its
+ * requests are refused at the inbox before anything else, and nothing is
+ * sent to it. For whoever holds settings.fediverse.manage, or the
+ * operator; returns the host as stored, lower-cased.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -11,12 +22,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Blocks a server and every domain below it (proposal, Settled 8): its
- * requests are refused at the inbox before anything else, and nothing is
- * sent to it. For whoever holds settings.fediverse.manage, or the
- * operator; returns the host as stored, lower-cased.
- */
 final class BlockHost extends BaseOperation
 {
     use AuthorizesFediverseWork;

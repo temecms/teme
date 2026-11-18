@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What ChangeBackupDestination needs: the place, its name and location as
+ * they should be, new credentials (none keeps the stored ones), and who is
+ * asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Backups\Operations\Input;
 use SensitiveParameter;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ChangeBackupDestination needs: the place, its name and location as
- * they should be, new credentials (none keeps the stored ones), and who is
- * asking.
- */
 final readonly class ChangeBackupDestinationInput implements OperationInput
 {
     /**

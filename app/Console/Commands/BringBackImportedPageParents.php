@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * teme:import:page-parents, the operator's Bring back page parents for a WordPress site imported before (I-3363): starts the job that puts its pages back under their WordPress parents, at their WordPress addresses; a queue worker does the work, and this never waits for it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -14,9 +22,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:import:page-parents, the operator's Bring back page parents for a WordPress site imported before (I-3363): starts the job that puts its pages back under their WordPress parents, at their WordPress addresses; a queue worker does the work, and this never waits for it.
- */
 final class BringBackImportedPageParents extends Command
 {
     /** @var string */

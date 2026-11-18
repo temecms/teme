@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Records what processing produced for one file version of an image: its
+ * variants, or the error that stopped them. Called by the queue job as the
+ * person whose change caused it, or by the operator's regeneration. Refuses
+ * a result for a file that has since been replaced. An actor who may not
+ * change the image may still record its variants for an item they may edit
+ * that uses it as its featured or social image.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -21,14 +34,6 @@ use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records what processing produced for one file version of an image: its
- * variants, or the error that stopped them. Called by the queue job as the
- * person whose change caused it, or by the operator's regeneration. Refuses
- * a result for a file that has since been replaced. An actor who may not
- * change the image may still record its variants for an item they may edit
- * that uses it as its featured or social image.
- */
 final class RecordMediaVariants extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

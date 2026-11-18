@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The password form's post (I-1700). The right password sends the reader
+ * back to the page with a key for it in their cookie; a wrong one draws the
+ * form again. No session and no token: a form another site sent is turned
+ * away unread, and guessing is what the count of tries limits.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -17,12 +28,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * The password form's post (I-1700). The right password sends the reader
- * back to the page with a key for it in their cookie; a wrong one draws the
- * form again. No session and no token: a form another site sent is turned
- * away unread, and guessing is what the count of tries limits.
- */
 final class UnlockController extends Controller
 {
     /** Tries one reader's address may make a minute, and an hour. */

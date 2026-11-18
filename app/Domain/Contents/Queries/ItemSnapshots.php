@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An item's working revision as the content reader gives it to a plugin
+ * (docs/plans/plugin-sockets-3.md): its body, fields by handle, terms by
+ * taxonomy, slug, the accounts it credits and its other language versions.
+ * It reads only, and never checks who asks: the reader does.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -13,12 +24,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Content\ItemSnapshot;
 
-/**
- * An item's working revision as the content reader gives it to a plugin
- * (docs/plans/plugin-sockets-3.md): its body, fields by handle, terms by
- * taxonomy, slug, the accounts it credits and its other language versions.
- * It reads only, and never checks who asks: the reader does.
- */
 final readonly class ItemSnapshots
 {
     public function __construct(private FieldRegistry $fields) {}

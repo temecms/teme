@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Thrown when another deploy, or a backup, still held its lock after the
+ * longest wait teme:deploy was given; nothing has changed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
 
 use RuntimeException;
 
-/**
- * Thrown when another deploy, or a backup, still held its lock after the
- * longest wait teme:deploy was given; nothing has changed.
- */
 final class DeployBusy extends RuntimeException
 {
     public static function lock(int $seconds): self

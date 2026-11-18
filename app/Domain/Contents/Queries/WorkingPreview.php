@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Which revision a signed-in person's Preview shows: an item's working
+ * revision, its latest saved version, and whether this person may see it,
+ * which is whether they may edit the item (I-409). It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -8,11 +18,6 @@ use App\Domain\Contents\Models\Content;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Which revision a signed-in person's Preview shows: an item's working
- * revision, its latest saved version, and whether this person may see it,
- * which is whether they may edit the item (I-409). It reads only.
- */
 final class WorkingPreview
 {
     /**

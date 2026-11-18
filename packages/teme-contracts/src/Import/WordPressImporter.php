@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a plugin granted import.wordpress implements to receive the data it
+ * declared under its manifest's `imports`, as an import of a WordPress site
+ * reads it: its options once a run, then each record of its post types, of
+ * people's meta and of terms' meta, one at a time.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Import;

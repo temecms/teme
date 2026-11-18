@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Keeps an old site's chains of rules from becoming chains here (I-859): a
+ * rule whose target already redirects takes that redirect's target, one
+ * step on; and an import redirect that already sends readers to a rule's
+ * address moves on to its target first, so no order of rules makes two
+ * steps. A person's redirect is never moved.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Redirects;
@@ -11,13 +23,6 @@ use App\Domain\Redirects\RedirectStatus;
 use App\Domain\Redirects\RedirectTarget;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Keeps an old site's chains of rules from becoming chains here (I-859): a
- * rule whose target already redirects takes that redirect's target, one
- * step on; and an import redirect that already sends readers to a rule's
- * address moves on to its target first, so no order of rules makes two
- * steps. A person's redirect is never moved.
- */
 final readonly class RedirectChains
 {
     /**

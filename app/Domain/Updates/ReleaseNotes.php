@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Turns a release's markdown notes into an outline of plain text, never HTML (I-3329): the page
+ * draws headings, paragraphs and items, so whatever GitHub returns cannot carry markup.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
 
-/**
- * Turns a release's markdown notes into an outline of plain text, never HTML (I-3329): the page
- * draws headings, paragraphs and items, so whatever GitHub returns cannot carry markup.
- */
 final class ReleaseNotes
 {
     /**

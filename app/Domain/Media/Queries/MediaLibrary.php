@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Every media library list: one page, paged by keyset in either direction so
+ * every page costs the same, with the tab counts from media_counts. Two
+ * tabs, All and Trash; a kind is a filter. Filters
+ * and search show no total (docs/architecture/media.md, "The library").
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -10,12 +21,6 @@ use App\Domain\Support\Queries\Cursor;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every media library list: one page, paged by keyset in either direction so
- * every page costs the same, with the tab counts from media_counts. Two
- * tabs, All and Trash; a kind is a filter. Filters
- * and search show no total (docs/architecture/media.md, "The library").
- */
 final class MediaLibrary
 {
     private const int PAGE = 60;

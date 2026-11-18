@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * `/_teme/comments/pending`: this browser's own comments on an item, for
+ * core's script (I-276, 1.8b′'s D6), found by the key the browser holds,
+ * sent in a header and never in the address, and by the item's address,
+ * never its ID (1.7c's D11); each drawn by the theme as only its writer
+ * sees it. No session, no cookie, and nothing keeps the answer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -10,13 +22,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * `/_teme/comments/pending`: this browser's own comments on an item, for
- * core's script (I-276, 1.8b′'s D6), found by the key the browser holds,
- * sent in a header and never in the address, and by the item's address,
- * never its ID (1.7c's D11); each drawn by the theme as only its writer
- * sees it. No session, no cookie, and nothing keeps the answer.
- */
 final class PendingCommentsController extends Controller
 {
     /** The header the key comes in. */

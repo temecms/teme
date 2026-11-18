@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * When the scheduler and each queue's workers last showed they were alive
+ * (I-3112): one row a name, overwritten in place, never added to. A
+ * telemetry sink, read only by the Status banners and the doctor.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
@@ -9,11 +19,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use PDOException;
 
-/**
- * When the scheduler and each queue's workers last showed they were alive
- * (I-3112): one row a name, overwritten in place, never added to. A
- * telemetry sink, read only by the Status banners and the doctor.
- */
 final readonly class Heartbeats
 {
     public const string SCHEDULER = 'scheduler';
@@ -21,7 +26,11 @@ final readonly class Heartbeats
     /** The updater, which carries out an update asked for from the admin (I-3326). */
     public const string UPDATER = 'updater';
 
-    /** The installer, which carries out a plugin or theme request asked for from the admin (I-211). */
+    /**
+     * The installer, which carries out a plugin or theme request asked for from the admin (I-211).
+     *
+     * @since 1.0.0
+     */
     public const string INSTALLER = 'installer';
 
     /** A queue's row is named this, then the queue's name. */

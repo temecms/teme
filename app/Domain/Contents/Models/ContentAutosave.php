@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One person's unsaved work in one article: the whole draft as they left it,
+ * and the revision it was based on. It is not a revision; a checkpoint turns
+ * it into one. Only the editor's Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Models;
@@ -11,10 +21,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * One person's unsaved work in one article: the whole draft as they left it,
- * and the revision it was based on. It is not a revision; a checkpoint turns
- * it into one. Only the editor's Operations write it.
- *
  * @property array<string, mixed> $document
  * @property array<string, mixed> $fields
  * @property list<string> $terms

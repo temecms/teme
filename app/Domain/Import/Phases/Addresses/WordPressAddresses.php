@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Teme's address settings for a WordPress site's (I-393): its permalink
+ * structure as a pattern, tag by tag, its category and tag bases, and an
+ * empty category base where the site strips it. What Teme can't write takes
+ * the nearest it can, and says so; each old address then answers as an old
+ * address of what it led to.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Addresses;
@@ -13,13 +25,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
-/**
- * Teme's address settings for a WordPress site's (I-393): its permalink
- * structure as a pattern, tag by tag, its category and tag bases, and an
- * empty category base where the site strips it. What Teme can't write takes
- * the nearest it can, and says so; each old address then answers as an old
- * address of what it led to.
- */
 final class WordPressAddresses
 {
     /** WordPress's post type for posts. */

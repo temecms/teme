@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A short passage set apart from the text around it: a note, a tip or a
+ * warning.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -11,10 +20,6 @@ use App\Domain\Cards\ChangeList;
 use App\Domain\Cards\DocumentSchema;
 use App\Domain\Cards\RenderContext;
 
-/**
- * A short passage set apart from the text around it: a note, a tip or a
- * warning.
- */
 final class CalloutCard implements CardType
 {
     public function name(): string

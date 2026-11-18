@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who a plugin may write for: only the person on CurrentJobActor when a job
+ * is running, otherwise the signed-in person of the current request.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -8,10 +17,6 @@ use App\Domain\Users\Actors;
 use Illuminate\Support\Facades\Auth;
 use Teme\Contracts\Content\WriteRefused;
 
-/**
- * Who a plugin may write for: only the person on CurrentJobActor when a job
- * is running, otherwise the signed-in person of the current request.
- */
 final class ActingPerson
 {
     /**

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Export;
-
 /**
  * One kind of thing a site holds, written as one NDJSON file of the export
  * (I-365): its name, version and fields in words, which the format reference
  * is generated from, and its lines, read a page at a time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Export;
+
 interface ExportKind
 {
     /** The file's name without `.ndjson`, and every line's `kind`: lowercase letters and underscores. */

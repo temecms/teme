@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Deployment;
-
 /**
  * Two site fingerprints read and compared line by line (I-385): which lines
  * differ, which of the differences are the server's own work, and which
  * addresses the first one asked.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Deployment;
+
 final class FingerprintComparison
 {
     private const string HEADING = '# Teme site fingerprint';

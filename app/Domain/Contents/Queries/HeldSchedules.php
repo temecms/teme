@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The scheduled publications of one content type that are held, waiting for
+ * someone to reschedule them, by reason. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * The scheduled publications of one content type that are held, waiting for
- * someone to reschedule them, by reason. It reads only.
- */
 final class HeldSchedules
 {
     /**

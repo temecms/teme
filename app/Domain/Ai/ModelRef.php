@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai;
-
 /**
  * A model as a setting names it: provider:model. The provider key is
  * everything before the first colon; the model is the rest, as the provider
  * names it, so an OpenRouter model may hold its own slashes and colons.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai;
+
 final readonly class ModelRef
 {
     public function __construct(public string $provider, public string $model) {}

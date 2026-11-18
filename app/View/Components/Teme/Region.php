@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `<x-teme::region name="after-content" />`: the site's own content a theme
+ * places, such as a newsletter box after the article, drawn from the region's
+ * published revision, its cards recorded for the page's head.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

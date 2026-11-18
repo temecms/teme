@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Updates\Updater;
-
 /**
  * The hash a release lists for each Dokploy compose file Teme has published, and the updater compares the
  * service's file against: SHA-256 of the text with Windows line endings made plain and one newline at the end.
  * scripts/release-notes.php hashes the same way, on its own.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Updates\Updater;
+
 final class ComposeHash
 {
     /** A hash as a release lists it. */

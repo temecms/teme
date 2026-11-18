@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Takes an item out of the trash with its status unchanged. If a live item
+ * has taken its slug meanwhile, the restored item gets the next free suffix
+ * and the result reports the change; if another version of its group now
+ * holds its language, it leaves the group, and the result says so (I-3360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -33,12 +44,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\ContentRestored;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Takes an item out of the trash with its status unchanged. If a live item
- * has taken its slug meanwhile, the restored item gets the next free suffix
- * and the result reports the change; if another version of its group now
- * holds its language, it leaves the group, and the result says so (I-3360).
- */
 final class RestoreContent extends BaseOperation
 {
     use FollowsTree;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Registers the registry of notice kinds and declares core's own into it,
+ * then the enabled plugins' own kinds,
+ * binds the contracts a plugin will use when mail.send opens (I-3364), and
+ * shares the site's title with every mail view.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -14,12 +25,6 @@ use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Notices\NoticeRegistrar;
 use Teme\Contracts\Notices\Notices;
 
-/**
- * Registers the registry of notice kinds and declares core's own into it,
- * then the enabled plugins' own kinds,
- * binds the contracts a plugin will use when mail.send opens (I-3364), and
- * shares the site's title with every mail view.
- */
 final class NoticeServiceProvider extends ServiceProvider
 {
     public function register(): void

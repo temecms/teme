@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Records one ask of GitHub (I-?? draft): a list found replaces
+ * teme_releases whole, an unchanged answer keeps it, a failure keeps it and
+ * says why; update_checks' one row says when and with what result. The
+ * operator only: the scheduler or teme:updates:check.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Operations;
@@ -15,12 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records one ask of GitHub (I-?? draft): a list found replaces
- * teme_releases whole, an unchanged answer keeps it, a failure keeps it and
- * says why; update_checks' one row says when and with what result. The
- * operator only: the scheduler or teme:updates:check.
- */
 final class RecordReleaseCheck extends BaseOperation
 {
     /** The advisory lock that keeps two checks from interleaving. */

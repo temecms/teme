@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:jobs:prune — deletes jobs that ended more than 90 days ago, a chunk
+ * at a time, through PruneJobs as the operator (I-104). Runs daily.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,10 +19,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:jobs:prune — deletes jobs that ended more than 90 days ago, a chunk
- * at a time, through PruneJobs as the operator (I-104). Runs daily.
- */
 final class PruneEndedJobs extends Command
 {
     /** @var string */

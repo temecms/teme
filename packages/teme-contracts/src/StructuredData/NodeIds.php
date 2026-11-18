@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The fragments core's structured-data nodes end their @id with, so an
+ * extension adds to core's node by naming it, rather than describing the same
+ * thing twice.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\StructuredData;

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The site's backups in one verdict (I-2409), read from the
+ * backup tables, two settings and the configuration in four statements,
+ * never from restic: on every admin page's banner, in the alert email and
+ * on Tools › Backups, so the three always agree. When it says when the first
+ * backup starts it asks BackupWords, as the rest of that screen does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -11,13 +23,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The site's backups in one verdict (I-2409), read from the
- * backup tables, two settings and the configuration in four statements,
- * never from restic: on every admin page's banner, in the alert email and
- * on Tools › Backups, so the three always agree. When it says when the first
- * backup starts it asks BackupWords, as the rest of that screen does.
- */
 final readonly class BackupStatus
 {
     /** How long after the hour a backup that hasn't started is overdue. */

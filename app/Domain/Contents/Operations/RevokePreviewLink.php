@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Stops a preview link working, at once and for good. Anyone who may edit
+ * its article may revoke it, the same rule as making one. The link stays
+ * listed, marked revoked, so the writer can see what they shared.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -14,11 +24,6 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\Gate;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Stops a preview link working, at once and for good. Anyone who may edit
- * its article may revoke it, the same rule as making one. The link stays
- * listed, marked revoked, so the writer can see what they shared.
- */
 final class RevokePreviewLink extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

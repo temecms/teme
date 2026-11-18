@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Deployment;
-
 /**
  * How a teme:deploy ended, and the exit code a program reads for it
  * (I-3189): zero for a site at this release, and one code for each way it
  * stopped, telling whether anything changed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Deployment;
+
 enum DeployOutcome: string
 {
     case Deployed = 'deployed';

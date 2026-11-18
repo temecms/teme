@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Extensions;
-
 /**
  * The release of the extensions folder this process loaded, as
  * bootstrap/extensions.php found it before Laravel started: its folder and
  * the core it was checked against, or the release held back because it
  * wasn't checked against this core. Never in config: the release changes
  * while config stays cached.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Extensions;
+
 final readonly class ActiveRelease
 {
     /**

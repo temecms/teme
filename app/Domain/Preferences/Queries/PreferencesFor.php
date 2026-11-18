@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One person's preferences, as every screen reads them: each declared key,
+ * with what they set or else its default. A stored value that is no longer
+ * allowed, or no longer declared, is passed over; a stored list keeps the
+ * items still allowed, so a removed menu entry leaves no hole. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Preferences\Queries;
@@ -7,12 +18,6 @@ namespace App\Domain\Preferences\Queries;
 use App\Domain\Preferences\PreferenceRegistry;
 use App\Models\User;
 
-/**
- * One person's preferences, as every screen reads them: each declared key,
- * with what they set or else its default. A stored value that is no longer
- * allowed, or no longer declared, is passed over; a stored list keeps the
- * items still allowed, so a removed menu entry leaves no hole. It reads only.
- */
 final class PreferencesFor
 {
     /**

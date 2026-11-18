@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Puts a hook's listeners in the order they run: stage by stage, and inside
+ * a stage after and before the plugins they name, ties in registration
+ * order, never by a number (study C, docs/studies/hooks-and-extensions.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks;
 
 use Teme\Contracts\Hooks\Stage;
 
-/**
- * Puts a hook's listeners in the order they run: stage by stage, and inside
- * a stage after and before the plugins they name, ties in registration
- * order, never by a number (study C, docs/studies/hooks-and-extensions.md).
- */
 final class ListenerOrder
 {
     /**

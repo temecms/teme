@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * teme:import, the operator's import of a WordPress site (I-332): connects
+ * it, asking for the application password without showing it, and starts a
+ * full import or a catch-up; carries an import on, stops it, forgets the
+ * site's password, or says how its last import went. A queue worker does
+ * the work; this never waits for it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -27,13 +39,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
-/**
- * teme:import, the operator's import of a WordPress site (I-332): connects
- * it, asking for the application password without showing it, and starts a
- * full import or a catch-up; carries an import on, stops it, forgets the
- * site's password, or says how its last import went. A queue worker does
- * the work; this never waits for it.
- */
 final class ImportSite extends Command
 {
     /** @var string */

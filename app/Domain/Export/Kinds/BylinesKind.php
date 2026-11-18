@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every person a byline names, with an account or without, as pages show
+ * them (I-3366): a person with no account by their own name, address and
+ * biography, an account's person by the account's. Never an email.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -8,11 +18,6 @@ use App\Domain\Export\ExportContext;
 use App\Domain\Export\ExportKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every person a byline names, with an account or without, as pages show
- * them (I-3366): a person with no account by their own name, address and
- * biography, an account's person by the account's. Never an email.
- */
 final readonly class BylinesKind implements ExportKind
 {
     public function name(): string

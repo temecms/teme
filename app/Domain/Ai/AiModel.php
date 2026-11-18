@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * One model a provider offers: its own name for it, the name people read,
+ * what it can do (I-887) and, when Teme knows it, its price.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use InvalidArgumentException;
 
-/**
- * One model a provider offers: its own name for it, the name people read,
- * what it can do (I-887) and, when Teme knows it, its price.
- */
 final readonly class AiModel
 {
     /**

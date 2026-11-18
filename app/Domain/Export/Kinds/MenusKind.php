@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Every menu, by ID. The links are in their own file, which refers to each
+ * menu by ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -9,10 +18,6 @@ use App\Domain\Export\ExportJson;
 use App\Domain\Export\ExportKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every menu, by ID. The links are in their own file, which refers to each
- * menu by ID.
- */
 final readonly class MenusKind implements ExportKind
 {
     private const int PAGE = 1000;

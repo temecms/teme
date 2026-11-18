@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Core's one runner for a plugin's declared job (I-3445): builds the plugin
+ * with its doors, runs the handler, tracks progress, and records success or
+ * failure. Carries only scalars plus the actor.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
@@ -26,11 +36,6 @@ use Teme\Contracts\Jobs\JobStopped;
 use Teme\Contracts\Jobs\PluginHasJobs;
 use Throwable;
 
-/**
- * Core's one runner for a plugin's declared job (I-3445): builds the plugin
- * with its doors, runs the handler, tracks progress, and records success or
- * failure. Carries only scalars plus the actor.
- */
 final class RunPluginJob implements ShouldQueue
 {
     use Queueable;

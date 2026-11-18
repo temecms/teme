@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * teme:installer — the installer service (I-211): when it starts, checks
+ * that the installed plugins and themes fit this image and rebuilds them
+ * when they don't, then carries out the requests asked for from the admin,
+ * one step a pass, as the operator. It alone writes the extensions folder.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -16,12 +27,6 @@ use Illuminate\Support\Sleep;
 use PDOException;
 use Throwable;
 
-/**
- * teme:installer — the installer service (I-211): when it starts, checks
- * that the installed plugins and themes fit this image and rebuilds them
- * when they don't, then carries out the requests asked for from the admin,
- * one step a pass, as the operator. It alone writes the extensions folder.
- */
 final class RunInstaller extends Command
 {
     /** The advisory lock a pass holds, so two installers never act at once. */

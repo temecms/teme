@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * The words a card uses to say how it changed between two revisions: which
  * attributes differ, and the line the comparison shows. Each card lists its
  * own parts; this only compares values and joins the words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 final class ChangeList
 {
     /**

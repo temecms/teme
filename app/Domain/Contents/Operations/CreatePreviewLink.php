@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Makes a link that shows one revision of one article to someone with no
+ * account, for `editor.preview_hours`. It returns the plain token, the only
+ * copy there will ever be: only its hash is stored, as with an API key.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -17,11 +27,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Makes a link that shows one revision of one article to someone with no
- * account, for `editor.preview_hours`. It returns the plain token, the only
- * copy there will ever be: only its hash is stored, as with an API key.
- */
 final class CreatePreviewLink extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

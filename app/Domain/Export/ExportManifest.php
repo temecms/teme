@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Export;
-
 /**
  * The export's manifest (I-365, I-2408): its format and Teme's version,
  * each NDJSON file with its lines, bytes and SHA-256, the types file's
  * name, bytes and SHA-256, the media folder's count and the originals missing or changed, and what is left out and
  * why. Written last, so a folder holding one is a whole export.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Export;
+
 final class ExportManifest
 {
     public const string FORMAT = 'teme-export';

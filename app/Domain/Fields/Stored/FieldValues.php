@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What items hold for a stored field, read-only: how many hold a value for
+ * each key, in the working revision, the live copy or an autosave, trashed
+ * items included (docs/studies/content-and-fields.md §5.3).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Stored;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * What items hold for a stored field, read-only: how many hold a value for
- * each key, in the working revision, the live copy or an autosave, trashed
- * items included (docs/studies/content-and-fields.md §5.3).
- */
 final class FieldValues
 {
     /**

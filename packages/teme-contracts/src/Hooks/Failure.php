@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a listener's failure does, declared by core on the hook, never by the
+ * plugin.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

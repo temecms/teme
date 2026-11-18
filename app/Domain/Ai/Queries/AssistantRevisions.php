@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What wrote the assistant's revisions on an article's History pane (I-1307):
+ * the option's words or the task's, and, for those who may open AI activity,
+ * the request's row. One statement on the index of revisions, and none for a
+ * page with no assistant revision.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
@@ -7,12 +18,6 @@ namespace App\Domain\Ai\Queries;
 use App\Domain\Ai\AiTasks;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What wrote the assistant's revisions on an article's History pane (I-1307):
- * the option's words or the task's, and, for those who may open AI activity,
- * the request's row. One statement on the index of revisions, and none for a
- * page with no assistant revision.
- */
 final readonly class AssistantRevisions
 {
     public function __construct(private AiTasks $tasks) {}

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Every sentence the management API says to whoever calls it, beside the
+ * delivery API's ApiWords, so its words live in one place.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
 
-/**
- * Every sentence the management API says to whoever calls it, beside the
- * delivery API's ApiWords, so its words live in one place.
- */
 final class ManageApiWords
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Numbered pages with a capped count for the admin's lists (I-3421): pages 1
+ * to 50 are read by offset, the count stops at the cap so it costs the same
+ * on any site, and past the cap the lists page by keyset as before (I-140).
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Support\Queries;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Numbered pages with a capped count for the admin's lists (I-3421): pages 1
- * to 50 are read by offset, the count stops at the cap so it costs the same
- * on any site, and past the cap the lists page by keyset as before (I-140).
- */
 final class ListPages
 {
     /** The last page reached by number; past it, Previous and Next page by keyset. */

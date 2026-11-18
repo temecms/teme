@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Media;
-
 /**
  * The files one media row names (docs/architecture/media.md): its original,
  * on the originals role for an image and the public role otherwise, with
  * its recorded SHA-256, and every variant, on the public role. Read from
  * the row, never from a folder's listing, so a backup and a move see the
  * same files.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Media;
+
 final class MediaFiles
 {
     /**

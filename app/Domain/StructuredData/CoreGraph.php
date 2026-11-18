@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Core's structured data on every public page (I-701): the site and who
+ * publishes it, and the page with what it is about, from the head's resolved values and the
+ * page's view model. Never a theme's: themes carry no functionality.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -16,11 +26,6 @@ use App\Domain\Site\ViewModels\ListingView;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\StructuredData\NodeIds;
 
-/**
- * Core's structured data on every public page (I-701): the site and who
- * publishes it, and the page with what it is about, from the head's resolved values and the
- * page's view model. Never a theme's: themes carry no functionality.
- */
 final readonly class CoreGraph implements HeadContributor
 {
     public function __construct(

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Makes a theme the one the public site is drawn with, from Site › Themes:
+ * the switch is drafted, so the brand colour is checked against the theme's
+ * light background (I-457), and the whole design draft is published with
+ * it, the theme's settings and menu places changed while it was previewed
+ * among them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations;
@@ -16,13 +28,6 @@ use LogicException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Makes a theme the one the public site is drawn with, from Site › Themes:
- * the switch is drafted, so the brand colour is checked against the theme's
- * light background (I-457), and the whole design draft is published with
- * it, the theme's settings and menu places changed while it was previewed
- * among them.
- */
 final class ActivateTheme extends BaseOperation
 {
     use ManagesDesign;

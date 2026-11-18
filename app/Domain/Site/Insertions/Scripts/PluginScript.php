@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One inline script a plugin asked to keep in what it inserts, and what a
+ * person decided about it: waiting, approved or refused, by its exact
+ * text's hash (docs/plans/plugin-sockets-2.md, B4). Only the plugin script
+ * Operations write it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Scripts;
@@ -9,11 +20,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One inline script a plugin asked to keep in what it inserts, and what a
- * person decided about it: waiting, approved or refused, by its exact
- * text's hash (docs/plans/plugin-sockets-2.md, B4). Only the plugin script
- * Operations write it.
- *
  * @property string $id
  * @property string $plugin_code
  * @property string $name

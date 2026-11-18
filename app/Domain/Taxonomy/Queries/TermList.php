@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The rows of a taxonomy's screen, such as Categories and Tags: a nesting
+ * taxonomy's terms as whole branches, a child under its parent, and a flat
+ * taxonomy's, or any search's, by name, 50 at a time, by number up to the
+ * cap and by keyset past it (I-3421). Each row carries what the screen's
+ * form, confirmation and count links need (I-225).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Queries;
@@ -10,12 +22,6 @@ use App\Domain\Support\Queries\ListPages;
 use Illuminate\Support\Facades\DB;
 
 /**
- * The rows of a taxonomy's screen, such as Categories and Tags: a nesting
- * taxonomy's terms as whole branches, a child under its parent, and a flat
- * taxonomy's, or any search's, by name, 50 at a time, by number up to the
- * cap and by keyset past it (I-3421). Each row carries what the screen's
- * form, confirmation and count links need (I-225).
- *
  * @phpstan-type Pages array{number: int|null, last: int, more: bool, from: int|null, to: int|null, total: int|null, newer: string|null, older: string|null}
  * @phpstan-type TermRow array{id: string, name: string, slug: string, description: string, path: string, depth: int, parentId: string|null, parentName: string|null, children: int, counts: array<string, int>, address: string|null}
  */

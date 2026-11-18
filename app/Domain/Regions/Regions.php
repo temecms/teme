@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The published documents of the regions one page draws, each read once, so
+ * a region drawn twice costs one query. It is scoped to a request, and
+ * start() empties it for each page, as one application may serve several
+ * (B-227), as SlotMenus does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Regions;
@@ -11,12 +22,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Types\CoreTypes;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The published documents of the regions one page draws, each read once, so
- * a region drawn twice costs one query. It is scoped to a request, and
- * start() empties it for each page, as one application may serve several
- * (B-227), as SlotMenus does.
- */
 final class Regions
 {
     /** @var array<string, array<mixed>|null> */

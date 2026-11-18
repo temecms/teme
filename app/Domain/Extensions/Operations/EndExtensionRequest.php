@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Ends an open extension request: done, failed or cancelled, with the reason
+ * and the installer's report, and deletes its upload. When the change
+ * touched an enabled plugin or the active theme, the whole page cache is
+ * purged after commit. The operator only: the installer.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -18,12 +29,6 @@ use stdClass;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Ends an open extension request: done, failed or cancelled, with the reason
- * and the installer's report, and deletes its upload. When the change
- * touched an enabled plugin or the active theme, the whole page cache is
- * purged after commit. The operator only: the installer.
- */
 final class EndExtensionRequest extends BaseOperation
 {
     /** The statuses an open request may end in. */

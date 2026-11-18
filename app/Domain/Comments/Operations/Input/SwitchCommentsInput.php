@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What SwitchComments needs: the switch's new value, 'on' or 'off', the
+ * modules group's version the form was opened on, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What SwitchComments needs: the switch's new value, 'on' or 'off', the
- * modules group's version the form was opened on, and who is asking.
- */
 final readonly class SwitchCommentsInput implements OperationInput
 {
     public function __construct(

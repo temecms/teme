@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Saves a record in a plugin's area (docs/plans/plugin-sockets-2.md, A8):
+ * for a person who holds the area's permission, the values checked against
+ * the record's declared form, hidden fields left out, then handed to the
+ * plugin inside this transaction. Never as the operator, never with
+ * elevation. Returns the record's id and whether anything changed.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -15,13 +27,6 @@ use Teme\Contracts\Admin\PluginArea;
 use Teme\Contracts\Admin\Saved;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Saves a record in a plugin's area (docs/plans/plugin-sockets-2.md, A8):
- * for a person who holds the area's permission, the values checked against
- * the record's declared form, hidden fields left out, then handed to the
- * plugin inside this transaction. Never as the operator, never with
- * elevation. Returns the record's id and whether anything changed.
- */
 final class SavePluginRecord extends BaseOperation
 {
     use WritesPluginArea;

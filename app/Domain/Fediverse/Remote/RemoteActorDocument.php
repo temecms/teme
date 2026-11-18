@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fediverse\Remote;
-
-use InvalidArgumentException;
-
 /**
  * Reads a remote actor document into what fediverse_remote_actors keeps:
  * its address, handle, host, name, pages, inboxes and key, the one the
  * sender signed with when known. Refuses one without an https address, an
  * https inbox on the same server, or a key on the same server; a shared
  * inbox, when it names one, must be on the same server too.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fediverse\Remote;
+
+use InvalidArgumentException;
+
 final class RemoteActorDocument
 {
     /**

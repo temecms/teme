@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Thrown when a plugin's read of a draft is refused.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

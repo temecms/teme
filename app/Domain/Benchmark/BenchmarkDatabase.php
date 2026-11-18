@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Points the application, and its cache, at the benchmark's own database,
+ * and refuses to proceed unless that database's name ends in _bench, so the
+ * benchmark's migrate:fresh and bulk writes can never reach a real site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -8,11 +18,6 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * Points the application, and its cache, at the benchmark's own database,
- * and refuses to proceed unless that database's name ends in _bench, so the
- * benchmark's migrate:fresh and bulk writes can never reach a real site.
- */
 final class BenchmarkDatabase
 {
     /**

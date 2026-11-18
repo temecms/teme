@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Where a tracked job stands: waiting for its first step, running, or ended as
+ * finished, failed or cancelled (I-104).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs;
 
-/**
- * Where a tracked job stands: waiting for its first step, running, or ended as
- * finished, failed or cancelled (I-104).
- */
 enum JobState: string
 {
     case Waiting = 'waiting';

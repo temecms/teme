@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A warning or an error about one object, or a run (I-345): a code of
+ * lower-case words joined by dots, the words people read, and a flat
+ * context of plain values. Never a password hash, an email address, an IP
+ * address or article text.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
@@ -7,12 +18,6 @@ namespace App\Domain\Import\Phases;
 use App\Domain\Import\ImportMessageLevel;
 use InvalidArgumentException;
 
-/**
- * A warning or an error about one object, or a run (I-345): a code of
- * lower-case words joined by dots, the words people read, and a flat
- * context of plain values. Never a password hash, an email address, an IP
- * address or article text.
- */
 final readonly class ImportMessage
 {
     /**

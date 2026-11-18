@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * WordPress's comment pages, `/slug/comment-page-N/`, redirected to where
+ * their comments are now (I-610): Teme's own page N when WordPress's paging
+ * came across, the item otherwise, each through the import's one redirect
+ * Operation. At most 200 items and 1,000 redirects a job, carrying on at the
+ * last item's ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Comments;
@@ -19,13 +31,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use stdClass;
 
-/**
- * WordPress's comment pages, `/slug/comment-page-N/`, redirected to where
- * their comments are now (I-610): Teme's own page N when WordPress's paging
- * came across, the item otherwise, each through the import's one redirect
- * Operation. At most 200 items and 1,000 redirects a job, carrying on at the
- * last item's ID.
- */
 final readonly class CommentPagesStep implements StepPhase
 {
     /** The most redirects one job asks for, so it ends well inside its 75 seconds. */

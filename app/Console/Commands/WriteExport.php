@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * teme:export — writes the site's content, people and media as NDJSON files, the media's originals and a manifest into a new folder at the server, as the operator (I-365, I-2407).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -15,9 +23,6 @@ use Illuminate\Support\Number;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * teme:export — writes the site's content, people and media as NDJSON files, the media's originals and a manifest into a new folder at the server, as the operator (I-365, I-2407).
- */
 final class WriteExport extends Command
 {
     /** @var string */

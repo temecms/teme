@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a menu's Show in card needs for "For readers of"
+ * (docs/proposals/multilingual-screens.md, 5): the site's languages, the
+ * menu's own, and the menu each of the theme's places shows to each other
+ * language's readers. It reads only; BindNavigationSlot writes.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Queries;
@@ -9,12 +20,6 @@ use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What a menu's Show in card needs for "For readers of"
- * (docs/proposals/multilingual-screens.md, 5): the site's languages, the
- * menu's own, and the menu each of the theme's places shows to each other
- * language's readers. It reads only; BindNavigationSlot writes.
- */
 final class MenuLanguages
 {
     /**

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Writes Argon2id only. Verifies by the stored hash's format: Teme's own
+ * Argon2id and bcrypt, and WordPress's MD5, phpass and bcrypt, so an imported
+ * account signs in until its hash is replaced (I-124). Unknown formats never
+ * verify.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Security;
@@ -7,12 +18,6 @@ namespace App\Domain\Users\Security;
 use Illuminate\Hashing\Argon2IdHasher;
 use SensitiveParameter;
 
-/**
- * Writes Argon2id only. Verifies by the stored hash's format: Teme's own
- * Argon2id and bcrypt, and WordPress's MD5, phpass and bcrypt, so an imported
- * account signs in until its hash is replaced (I-124). Unknown formats never
- * verify.
- */
 final class PasswordHasher extends Argon2IdHasher
 {
     /**

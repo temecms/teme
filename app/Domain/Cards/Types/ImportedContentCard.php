@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Real writing from a WordPress site that the importer couldn't turn into
+ * Teme's own blocks, kept as readers saw it and cleaned to one list (I-329).
+ * Only the importer adds one; in the editor it is converted, kept or deleted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -16,11 +26,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Media\ImageMarkup;
 use Illuminate\Support\Str;
 
-/**
- * Real writing from a WordPress site that the importer couldn't turn into
- * Teme's own blocks, kept as readers saw it and cleaned to one list (I-329).
- * Only the importer adds one; in the editor it is converted, kept or deleted.
- */
 final class ImportedContentCard implements CardType
 {
     /** Where a card's markup came from on the old site. */

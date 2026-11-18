@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * One model's answer: its text, or its data decoded from JSON when the request
+ * carried a schema; the model as the provider named it; the tokens it used;
+ * and how long it took.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use InvalidArgumentException;
 
-/**
- * One model's answer: its text, or its data decoded from JSON when the request
- * carried a schema; the model as the provider named it; the tokens it used;
- * and how long it took.
- */
 final readonly class AiResult
 {
     /**

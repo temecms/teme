@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Where plugins change what core sends (docs/plans/fediverse-publishing.md,
+ * D5): an item's object, built by the first plugin builder for its type
+ * and then changed by ObjectBuilt, and an actor's document, changed by
+ * ActorDocumentBuilt; each with the keys that say who and where put back
+ * as core wrote them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Sockets;
@@ -14,13 +26,6 @@ use Teme\Contracts\Fediverse\ObjectBuilder;
 use Teme\Contracts\Fediverse\ObjectBuilt;
 use Throwable;
 
-/**
- * Where plugins change what core sends (docs/plans/fediverse-publishing.md,
- * D5): an item's object, built by the first plugin builder for its type
- * and then changed by ObjectBuilt, and an actor's document, changed by
- * ActorDocumentBuilt; each with the keys that say who and where put back
- * as core wrote them.
- */
 final readonly class ObjectTransforms
 {
     /** What a builder may not change in an item's object. */

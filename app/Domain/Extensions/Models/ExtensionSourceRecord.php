@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A saved place packages come from: a Git address or a vendor's Composer
+ * source, with its key encrypted under the app key and never sent to the
+ * browser. Written only by the extension Operations.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Models;
@@ -10,10 +20,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * A saved place packages come from: a Git address or a vendor's Composer
- * source, with its key encrypted under the app key and never sent to the
- * browser. Written only by the extension Operations.
- *
  * @property string $id
  * @property string $kind
  * @property string $label

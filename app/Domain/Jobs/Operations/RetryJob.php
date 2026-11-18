@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Sets a failed job waiting again and, after commit, asks its kind to queue
+ * the work from where it stopped (I-1714). Only a failed job whose kind is
+ * installed can be retried.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Sets a failed job waiting again and, after commit, asks its kind to queue
- * the work from where it stopped (I-1714). Only a failed job whose kind is
- * installed can be retried.
- */
 final class RetryJob extends BaseOperation
 {
     public function __construct(private JobAccess $access, private JobKinds $kinds) {}

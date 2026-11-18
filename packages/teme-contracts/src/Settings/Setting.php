@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One setting's declaration: its type, its default, its constraints and the
+ * documentation that the reference is generated from.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Settings;

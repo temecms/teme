@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Says what a path ending in a feed name means (I-299). An address
+ * that exists is never a feed's, so a page called "rss" is a page; a
+ * comment feed is gone; a term's, an author's or a type's archive page's
+ * old address leads to its current feed; under a shown language's prefix,
+ * each feed is that language's (I-3360); any other spelling of a feed leads to the canonical one;
+ * and everything else is the public site's to answer, so redirects and the
+ * 404 log still apply. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -14,15 +28,6 @@ use App\Domain\Site\ListingViews;
 use App\Domain\Taxonomy\Models\Term;
 use App\Domain\Types\ContentTypeRegistry;
 
-/**
- * Says what a path ending in a feed name means (I-299). An address
- * that exists is never a feed's, so a page called "rss" is a page; a
- * comment feed is gone; a term's, an author's or a type's archive page's
- * old address leads to its current feed; under a shown language's prefix,
- * each feed is that language's (I-3360); any other spelling of a feed leads to the canonical one;
- * and everything else is the public site's to answer, so redirects and the
- * 404 log still apply. It reads only.
- */
 final class FeedResolver
 {
     /**

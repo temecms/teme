@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Phases;
-
 /**
  * A list phase that must do something before an object's transaction opens,
  * such as downloading a file: what it prepares is handed to import(), and
  * released afterwards, whatever happened.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Phases;
+
 interface PreparesObjects
 {
     /**

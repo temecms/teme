@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What Site › Types shows (I-3302): every type, code's and the site's own,
+ * refused ones with the registry's reason, their public addresses as
+ * Settings › Addresses has them, and their items. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Queries;
@@ -24,11 +34,6 @@ use Illuminate\Support\Facades\DB;
 use JsonException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What Site › Types shows (I-3302): every type, code's and the site's own,
- * refused ones with the registry's reason, their public addresses as
- * Settings › Addresses has them, and their items. It reads only.
- */
 final readonly class TypesScreen
 {
     /**

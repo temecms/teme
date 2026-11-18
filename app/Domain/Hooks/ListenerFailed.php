@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A listener's failure as core reports it, with whose listener it was in
+ * its context, or the failure of a check core marked as one that fails the
+ * Operation (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks;
@@ -7,11 +17,6 @@ namespace App\Domain\Hooks;
 use RuntimeException;
 use Throwable;
 
-/**
- * A listener's failure as core reports it, with whose listener it was in
- * its context, or the failure of a check core marked as one that fails the
- * Operation (I-3353).
- */
 final class ListenerFailed extends RuntimeException
 {
     /**

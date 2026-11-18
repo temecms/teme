@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The rules a person with no account's details follow, and who may be
+ * changed this way (I-3366): a name, an
+ * address slug as an account's is made, free among accounts and people and
+ * at an address no one else holds, and a short biography.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations\Concerns;
@@ -10,12 +21,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The rules a person with no account's details follow, and who may be
- * changed this way (I-3366): a name, an
- * address slug as an account's is made, free among accounts and people and
- * at an address no one else holds, and a short biography.
- */
 trait ValidatesPersonDetails
 {
     /**

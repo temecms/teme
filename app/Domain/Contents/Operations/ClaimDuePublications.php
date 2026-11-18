@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Claims the scheduled publications that are due, for one run of the
+ * scheduler: marks each claimed and counts the attempt, so a second runner
+ * passes them by. A claim older than ten minutes belongs to a run that died,
+ * and is claimed again. Only the operator claims.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -12,12 +23,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Claims the scheduled publications that are due, for one run of the
- * scheduler: marks each claimed and counts the attempt, so a second runner
- * passes them by. A claim older than ten minutes belongs to a run that died,
- * and is claimed again. Only the operator claims.
- */
 final class ClaimDuePublications extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * An area that holds pages of its own, such as Settings, Tools or Reports.
+ * New areas join a hub before they claim a top-level entry (I-221).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Navigation;
 
 use App\Models\User;
 
-/**
- * An area that holds pages of its own, such as Settings, Tools or Reports.
- * New areas join a hub before they claim a top-level entry (I-221).
- */
 interface NavHub
 {
     /**

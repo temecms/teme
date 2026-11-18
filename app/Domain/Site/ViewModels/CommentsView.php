@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An item's thread on one page, as a theme is given it: how many approved
+ * comments it has, whether it takes new ones now, this page's conversations
+ * with their replies under them, the links between its pages, and the form
+ * while it's open.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

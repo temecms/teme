@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Running Teme on a server (I-375): what a production site needs before
+ * it starts, the proxies it trusts, and how it says it is unwell.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -22,10 +31,6 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Running Teme on a server (I-375): what a production site needs before
- * it starts, the proxies it trusts, and how it says it is unwell.
- */
 final class DeploymentServiceProvider extends ServiceProvider
 {
     public function register(): void

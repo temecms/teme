@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What `SetImportSourceHosts` needs: the import source, the other host
+ * names to keep (or an empty list to clear them), and who sets them
+ * (null for the operator).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `SetImportSourceHosts` needs: the import source, the other host
- * names to keep (or an empty list to clear them), and who sets them
- * (null for the operator).
- */
 final readonly class SetImportSourceHostsInput implements OperationInput
 {
     /**

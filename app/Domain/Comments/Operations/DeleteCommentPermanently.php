@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Deletes a comment in the trash or spam for good (I-278, D3). One with any
+ * replies becomes a tombstone that keeps its place in the thread, its words
+ * and its writer's details erased; one with none is deleted, with every
+ * tombstone above it left holding nothing. Whoever looks after the item's
+ * comments may, and the operator's purge of the trash; a cut-off leaves alone a
+ * comment moved since (1.8c′).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -20,14 +33,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes a comment in the trash or spam for good (I-278, D3). One with any
- * replies becomes a tombstone that keeps its place in the thread, its words
- * and its writer's details erased; one with none is deleted, with every
- * tombstone above it left holding nothing. Whoever looks after the item's
- * comments may, and the operator's purge of the trash; a cut-off leaves alone a
- * comment moved since (1.8c′).
- */
 final class DeleteCommentPermanently extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

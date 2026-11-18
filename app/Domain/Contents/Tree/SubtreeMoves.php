@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Contents\Tree;
-
 /**
  * What every move of the pages under a page did in this request or job
  * (I-3363), for the admin's message once the Operation has returned; bound
  * scoped, so it starts empty for each.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Contents\Tree;
+
 final class SubtreeMoves
 {
     /** @var list<SubtreeOutcome> */

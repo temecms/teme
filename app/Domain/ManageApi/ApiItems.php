@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * POST /api/manage/v1/items, step by step (docs/proposals/management-api.md,
+ * P3): the draft through CreateDraft as the key's person, recorded as
+ * written through the key; then its slug and author through
+ * UpdateContentDetails; then PublishRevision or SchedulePublication when
+ * asked. What the request names is checked before anything is written; a
+ * later step's refusal keeps the draft and is answered with it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
@@ -25,14 +38,6 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * POST /api/manage/v1/items, step by step (docs/proposals/management-api.md,
- * P3): the draft through CreateDraft as the key's person, recorded as
- * written through the key; then its slug and author through
- * UpdateContentDetails; then PublishRevision or SchedulePublication when
- * asked. What the request names is checked before anything is written; a
- * later step's refusal keeps the draft and is answered with it.
- */
 final readonly class ApiItems
 {
     /** The statuses a new item may be asked for. */

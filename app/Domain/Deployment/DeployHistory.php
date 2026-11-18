@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records each teme:deploy that ran through RecordDeployRun (I-?? draft).
+ * A record that can't be written never changes the deploy's outcome: the
+ * failure is logged and the deploy's exit code stands.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -10,11 +20,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
-/**
- * Records each teme:deploy that ran through RecordDeployRun (I-?? draft).
- * A record that can't be written never changes the deploy's outcome: the
- * failure is logged and the deploy's exit code stands.
- */
 final readonly class DeployHistory
 {
     public function __construct(private RecordDeployRun $record) {}

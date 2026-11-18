@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Document;
-
-use Illuminate\Contracts\Container\Container;
-
 /**
  * The fragments every placement contributor gives one placement of the page
  * (I-228), read plugin, then site, then core, each key's first kept, for the
  * document shell to write as given. A plugin's fragments come cleaned, their
  * scripts' hashes taken from the markup it gave, never from the page
  * (PluginPlacements, I-697).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Document;
+
+use Illuminate\Contracts\Container\Container;
+
 final readonly class Placements
 {
     /** The container tag a placement contributor is registered under, from its own provider's register(). */

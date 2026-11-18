@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Settings › AI's data (I-1308): the group's sections in their order, each
+ * service with its key's state and never its key, each task with the models
+ * able to do it and why it is off, the limits with this month's figures, and
+ * the values and version to save against. While the server has AI switched
+ * off, only that.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
@@ -26,13 +38,6 @@ use App\Domain\Settings\Queries\SettingsForm;
 use App\Models\User;
 use RuntimeException;
 
-/**
- * Settings › AI's data (I-1308): the group's sections in their order, each
- * service with its key's state and never its key, each task with the models
- * able to do it and why it is off, the limits with this month's figures, and
- * the values and version to save against. While the server has AI switched
- * off, only that.
- */
 final readonly class AiSettingsScreen
 {
     /** Core's words under each of core's tasks, by task key; another part's task has none. */

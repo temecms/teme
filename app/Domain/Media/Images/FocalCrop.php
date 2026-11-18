@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Media\Images;
-
 /**
  * The arithmetic of a crop that keeps the focal point in view: resize
  * so the shorter side fills the square, then place the square as close to
  * centred on the focal point as the edges allow.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Media\Images;
+
 final class FocalCrop
 {
     /**

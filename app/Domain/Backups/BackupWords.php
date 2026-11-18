@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Dates, durations, names and what's kept as plain words (I-364), made on
+ * the server so Tools › Backups, the banner and the email say the same thing.
+ * It holds no state.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -9,11 +19,6 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Dates, durations, names and what's kept as plain words (I-364), made on
- * the server so Tools › Backups, the banner and the email say the same thing.
- * It holds no state.
- */
 final readonly class BackupWords
 {
     public function __construct(private SettingsReader $settings, private DueBackupWork $due) {}

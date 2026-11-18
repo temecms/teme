@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Places each category WordPress lists before its parent (I-397): once
+ * every term of the run is here, a term the terms phase left at the top is
+ * moved under its parent, two hundred at a time. Reads nothing from the
+ * old site; a run carried on runs it again from the start.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Terms;
@@ -16,12 +27,6 @@ use App\Domain\Taxonomy\Operations\Input\ImportTermInput;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Places each category WordPress lists before its parent (I-397): once
- * every term of the run is here, a term the terms phase left at the top is
- * moved under its parent, two hundred at a time. Reads nothing from the
- * old site; a run carried on runs it again from the start.
- */
 final readonly class TermParentsStep implements StepPhase
 {
     public const int PAGE = 200;

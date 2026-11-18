@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Updates;
-
 /**
  * Teme's own version (I-?? draft): the release the image was tagged with,
  * which the image workflow bakes in as TEME_VERSION, or UNTAGGED for a build
  * from a branch and for development. Also how two releases compare.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Updates;
+
 final class TemeVersion
 {
     /** What a build that isn't a release reports; every theme's ^0.1 accepts it. */

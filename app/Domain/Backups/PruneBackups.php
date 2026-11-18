@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Removes the backups the settings no longer keep (I-361), under the backup
+ * lock, so never beside a backup: at each place in use, every run KeptRuns
+ * doesn't keep is forgotten by its snapshots' IDs, restic's prune frees
+ * their data, and restic's check follows. Each place is a run of its own,
+ * and one failing doesn't stop the others.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -22,13 +34,6 @@ use Illuminate\Support\Facades\Log;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * Removes the backups the settings no longer keep (I-361), under the backup
- * lock, so never beside a backup: at each place in use, every run KeptRuns
- * doesn't keep is forgotten by its snapshots' IDs, restic's prune frees
- * their data, and restic's check follows. Each place is a run of its own,
- * and one failing doesn't stop the others.
- */
 final readonly class PruneBackups
 {
     /** Snapshots forgotten in one call, so a command line stays short on every system. */

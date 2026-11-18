@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Who looks after an item's comments (I-483, I-570): whoever holds comments.moderate,
+ * on every item, and whoever may publish the item, so an author on their own
+ * posts, and never a contributor. They moderate its comments, and
+ * their own comments there are approved at once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -8,12 +19,6 @@ use App\Domain\Contents\Models\Content;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Who looks after an item's comments (I-483, I-570): whoever holds comments.moderate,
- * on every item, and whoever may publish the item, so an author on their own
- * posts, and never a contributor. They moderate its comments, and
- * their own comments there are approved at once.
- */
 final class CommentModeration
 {
     /** The permission to look after every item's comments: editors' and administrators'. */

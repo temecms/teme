@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Starts Select all matching from a content list (I-143): the action and the list's filters, through StartBulkRun, which refuses what the tab can't take in words the bar shows. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -13,9 +21,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-/**
- * Starts Select all matching from a content list (I-143): the action and the list's filters, through StartBulkRun, which refuses what the tab can't take in words the bar shows. It changes nothing itself.
- */
 final class BulkMatchingController extends Controller
 {
     public function __invoke(Request $request, string $type, StartBulkRun $start, BulkRunWords $words): RedirectResponse

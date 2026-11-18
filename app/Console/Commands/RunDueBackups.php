@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * teme:backup:due — starts, as the operator, whatever backup work is due
+ * (I-361): a backup someone put in line, or the nightly backup, each as a
+ * tracked job, then the weekly prune, the nightly read-back and the weekly
+ * test restore, and emails the administrators when the backups' verdict calls
+ * for it (I-2409). Runs every minute; while the backup lock is held it does
+ * nothing, and asks again next minute.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -21,14 +34,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Throwable;
 
-/**
- * teme:backup:due — starts, as the operator, whatever backup work is due
- * (I-361): a backup someone put in line, or the nightly backup, each as a
- * tracked job, then the weekly prune, the nightly read-back and the weekly
- * test restore, and emails the administrators when the backups' verdict calls
- * for it (I-2409). Runs every minute; while the backup lock is held it does
- * nothing, and asks again next minute.
- */
 final class RunDueBackups extends Command
 {
     /** @var string */

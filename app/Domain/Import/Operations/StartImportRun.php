@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Starts an import of a site Teme keeps (I-332): a full run, or a catch-up
+ * of what changed since the last finished one. One runs per site at
+ * a time; every failure the site has is marked for the run, which tries it
+ * again when it meets it: a full import meets everything, a catch-up only
+ * what changed on WordPress. A person confirms
+ * their password first; the operator doesn't. After commit the
+ * engine starts the run's first phase, its jobs acting for whoever started
+ * it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -24,16 +39,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Starts an import of a site Teme keeps (I-332): a full run, or a catch-up
- * of what changed since the last finished one. One runs per site at
- * a time; every failure the site has is marked for the run, which tries it
- * again when it meets it: a full import meets everything, a catch-up only
- * what changed on WordPress. A person confirms
- * their password first; the operator doesn't. After commit the
- * engine starts the run's first phase, its jobs acting for whoever started
- * it.
- */
 final class StartImportRun extends BaseOperation implements RequiresElevation
 {
     use AuthorizesImports;

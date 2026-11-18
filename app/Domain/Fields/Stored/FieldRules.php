@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a site's field must meet before it is stored: its label, help and
+ * handle, a field type the builder offers that never changes in place,
+ * settings that keep stored values meaning what they meant, and only the
+ * boxes its field type offers (docs/studies/content-and-fields.md §5.3).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Stored;
@@ -10,12 +21,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\StoredTypes;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What a site's field must meet before it is stored: its label, help and
- * handle, a field type the builder offers that never changes in place,
- * settings that keep stored values meaning what they meant, and only the
- * boxes its field type offers (docs/studies/content-and-fields.md §5.3).
- */
 final class FieldRules
 {
     private const string HANDLE = '/^[a-z][a-z0-9_]{0,63}$/';

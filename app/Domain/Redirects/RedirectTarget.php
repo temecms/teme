@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where a redirect sends readers, read from what someone chose or typed
+ * (I-694, I-860): a path on this site, an address on another site, an item
+ * or a media file by ID. Nothing keeps the site's own scheme and host
+ * (rule 9), and nothing a browser would read as another site gets through.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects;
@@ -10,12 +21,6 @@ use App\Domain\Addresses\PublicRequestPath;
 use Illuminate\Support\Facades\DB;
 use Normalizer;
 
-/**
- * Where a redirect sends readers, read from what someone chose or typed
- * (I-694, I-860): a path on this site, an address on another site, an item
- * or a media file by ID. Nothing keeps the site's own scheme and host
- * (rule 9), and nothing a browser would read as another site gets through.
- */
 final readonly class RedirectTarget
 {
     public const string ADDRESS = 'address';

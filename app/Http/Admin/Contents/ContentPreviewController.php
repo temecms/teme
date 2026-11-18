@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Shows a person the latest saved version of an item they may edit, as
+ * readers would see it once published: the active theme's page for the
+ * item's working revision, under a bar that says what it is, with no site
+ * code. It writes nothing, so no Operation runs, and the page is never
+ * indexed or kept.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -19,13 +31,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\View;
 
-/**
- * Shows a person the latest saved version of an item they may edit, as
- * readers would see it once published: the active theme's page for the
- * item's working revision, under a bar that says what it is, with no site
- * code. It writes nothing, so no Operation runs, and the page is never
- * indexed or kept.
- */
 final class ContentPreviewController extends Controller
 {
     public function __invoke(Request $request, string $content, WorkingPreview $previews, ArticleViews $articles): Response

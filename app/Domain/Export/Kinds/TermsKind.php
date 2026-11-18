@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Every term of every taxonomy with its parent by ID, by ID. A child may come
+ * before its parent. Never the counts, which any importer rebuilds.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -9,10 +18,6 @@ use App\Domain\Export\ExportJson;
 use App\Domain\Export\ExportKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every term of every taxonomy with its parent by ID, by ID. A child may come
- * before its parent. Never the counts, which any importer rebuilds.
- */
 final readonly class TermsKind implements ExportKind
 {
     public function name(): string

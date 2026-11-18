@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Builds a hook's plain values from core's own (I-3353): never a model, a
+ * collection or a framework date, which would tie every plugin to
+ * Laravel's version (rule 5).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks;
@@ -20,11 +30,6 @@ use DateTimeZone;
 use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Media\MediaRef;
 
-/**
- * Builds a hook's plain values from core's own (I-3353): never a model, a
- * collection or a framework date, which would tie every plugin to
- * Laravel's version (rule 5).
- */
 final class Payloads
 {
     /**

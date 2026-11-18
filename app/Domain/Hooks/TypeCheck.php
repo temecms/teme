@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Hooks;
-
 /**
  * Whether a value a listener gave has the type its hook names: string, int,
  * float, bool, array, list, or a class or interface, optionally prefixed
  * with `?` (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Hooks;
+
 final class TypeCheck
 {
     /**

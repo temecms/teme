@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Holds publishing and scheduling to the fields a type marks required; a
+ * draft may be saved half-done (I-3343).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields;
@@ -7,10 +16,6 @@ namespace App\Domain\Fields;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Holds publishing and scheduling to the fields a type marks required; a
- * draft may be saved half-done (I-3343).
- */
 final class RequiredFields
 {
     /**

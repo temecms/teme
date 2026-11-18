@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The month's AI spend, read from its own table and never summed from the
+ * record (docs/superpowers/specs/2026-09-17-cms-design.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
@@ -10,10 +19,6 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The month's AI spend, read from its own table and never summed from the
- * record (docs/superpowers/specs/2026-09-17-cms-design.md).
- */
 final readonly class AiSpend
 {
     /**

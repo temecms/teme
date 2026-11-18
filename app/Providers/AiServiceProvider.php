@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers Settings › AI: its Models, Plugins and Limits sections, the check on the
+ * models chosen, and, once every provider has registered its own tasks and
+ * sections, the group they make; and the per-person hourly limit (I-320).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -15,11 +25,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Registers Settings › AI: its Models, Plugins and Limits sections, the check on the
- * models chosen, and, once every provider has registered its own tasks and
- * sections, the group they make; and the per-person hourly limit (I-320).
- */
 final class AiServiceProvider extends ServiceProvider
 {
     public function register(): void

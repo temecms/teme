@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * teme:content:rebuild-derivations — fills in the plain text and word count
+ * of revisions written before 1.5b, and the search text of published items,
+ * a chunk at a time, as the operator (I-422). With --check it only counts,
+ * and fails when anything needs filling in. The operator runs it once on
+ * each site after deploying 1.5c; running it again changes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -11,13 +23,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:content:rebuild-derivations — fills in the plain text and word count
- * of revisions written before 1.5b, and the search text of published items,
- * a chunk at a time, as the operator (I-422). With --check it only counts,
- * and fails when anything needs filling in. The operator runs it once on
- * each site after deploying 1.5c; running it again changes nothing.
- */
 final class RebuildDocumentDerivations extends Command
 {
     /** @var string */

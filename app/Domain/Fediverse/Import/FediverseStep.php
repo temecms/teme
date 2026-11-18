@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * After the people, the posts and the comments' settings
+ * (docs/plans/fediverse-import.md): the WordPress ActivityPub plugin's
+ * accounts with their keys, its settings and switch, then its followers a
+ * page a job, then the old address of each post it federated, a batch a
+ * job. A companion too old for the route is reported once, and the step
+ * skips. Never federates: the run is in import mode.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Import;
@@ -16,14 +29,6 @@ use App\Domain\Import\Source\SourceReader;
 use App\Domain\Import\Source\SourceRefused;
 use Illuminate\Support\Facades\DB;
 
-/**
- * After the people, the posts and the comments' settings
- * (docs/plans/fediverse-import.md): the WordPress ActivityPub plugin's
- * accounts with their keys, its settings and switch, then its followers a
- * page a job, then the old address of each post it federated, a batch a
- * job. A companion too old for the route is reported once, and the step
- * skips. Never federates: the run is in import mode.
- */
 final readonly class FediverseStep implements StepPhase
 {
     /** How many imported posts one job gives an address. */

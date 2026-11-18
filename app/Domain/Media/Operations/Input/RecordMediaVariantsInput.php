@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * A processing result for one file version of an image: the variants made
+ * with a given set, or the error that stopped them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * A processing result for one file version of an image: the variants made
- * with a given set, or the error that stopped them.
- */
 final readonly class RecordMediaVariantsInput implements OperationInput
 {
     /**

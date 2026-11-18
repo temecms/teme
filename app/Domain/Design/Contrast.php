@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * WCAG 2.x contrast between two colours, and the site accent's rules (I-457):
+ * one accent, reaching 4.5:1 against the light background with its text
+ * reaching 4.5:1 on it, and, for the dark scheme, a lighter version of the
+ * same colour derived to meet the same rules there. resources/js/lib/contrast.ts
+ * mirrors it, word for word and sum for sum, for the admin's live readout.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design;
@@ -7,13 +19,6 @@ namespace App\Domain\Design;
 use App\Domain\Themes\Manifest;
 use InvalidArgumentException;
 
-/**
- * WCAG 2.x contrast between two colours, and the site accent's rules (I-457):
- * one accent, reaching 4.5:1 against the light background with its text
- * reaching 4.5:1 on it, and, for the dark scheme, a lighter version of the
- * same colour derived to meet the same rules there. resources/js/lib/contrast.ts
- * mirrors it, word for word and sum for sum, for the admin's live readout.
- */
 final class Contrast
 {
     /** The two colours text on the accent can take: the one that contrasts more wins. */

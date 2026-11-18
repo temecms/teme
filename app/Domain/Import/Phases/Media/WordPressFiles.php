@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Which file map keys an attachment needs (I-338): the path below the
+ * uploads folder of its original, its main file, its edited copies and its
+ * sizes, each as ConversionSite::fileKey() makes a key, leaving out any a
+ * key already listed reaches by taking a size, then -scaled or -rotated,
+ * off, as ImportedMedia::file() and the converter's trace do.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Media;
@@ -7,13 +19,6 @@ namespace App\Domain\Import\Phases\Media;
 use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Convert\Media\ImageTrace;
 
-/**
- * Which file map keys an attachment needs (I-338): the path below the
- * uploads folder of its original, its main file, its edited copies and its
- * sizes, each as ConversionSite::fileKey() makes a key, leaving out any a
- * key already listed reaches by taking a size, then -scaled or -rotated,
- * off, as ImportedMedia::file() and the converter's trace do.
- */
 final class WordPressFiles
 {
     /**

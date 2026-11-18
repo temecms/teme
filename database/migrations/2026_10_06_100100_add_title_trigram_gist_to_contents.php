@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
-
 /**
  * The palette's title search: a trigram GiST index both filters by
  * `title ILIKE` and returns titles in word-similarity order (`<<->`), so the
  * first twenty come from one index scan however many titles match (B-199).
  * The GIN index beside it stays for the lists, which order by other columns.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
 return new class extends Migration
 {
     public function up(): void

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One place that keeps personal data, answering export and erase requests a
+ * page at a time, so a holder with thousands of rows never runs long.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Privacy;

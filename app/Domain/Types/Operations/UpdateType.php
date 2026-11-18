@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes one of the site's own content types, and its own permissions,
+ * when it has them: names, admin address, icon, features and taxonomies,
+ * and mends a saved row nobody can read (I-411). Its public address pattern
+ * stays the one it was made with; Settings › Addresses changes that.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations;
@@ -14,12 +25,6 @@ use App\Domain\Types\TypeRules;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes one of the site's own content types, and its own permissions,
- * when it has them: names, admin address, icon, features and taxonomies,
- * and mends a saved row nobody can read (I-411). Its public address pattern
- * stays the one it was made with; Settings › Addresses changes that.
- */
 final class UpdateType extends BaseOperation
 {
     use ManagesTypes;

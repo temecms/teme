@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The database step of a container that runs every role: given the login to a PostgreSQL service, makes
+ * Teme's own limited login, gives it the site's database and a spare one for the weekly test restore, and lets
+ * no other login connect. Safe to run on every start. A login that is no superuser can't do this, so Teme runs as it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -10,11 +20,6 @@ use Illuminate\Support\Facades\DB;
 use PDOException;
 use SensitiveParameter;
 
-/**
- * The database step of a container that runs every role: given the login to a PostgreSQL service, makes
- * Teme's own limited login, gives it the site's database and a spare one for the weekly test restore, and lets
- * no other login connect. Safe to run on every start. A login that is no superuser can't do this, so Teme runs as it.
- */
 final class PrepareDatabase
 {
     /** The longest name PostgreSQL keeps for a role. */

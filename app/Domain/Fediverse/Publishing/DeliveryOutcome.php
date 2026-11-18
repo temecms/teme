@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fediverse\Publishing;
-
 /**
  * What one try of a delivery came to: sent; refused for good; gone (the
  * remote account no longer exists); a failure that may pass, to try again;
  * or skipped without a try, with why.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fediverse\Publishing;
+
 final readonly class DeliveryOutcome
 {
     public const string SENT = 'sent';

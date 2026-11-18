@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Settings › Site code (I-863): the entries and their changes, each change
+ * handed to its Operation, which asks for the password again; ads.txt through
+ * UpdateAdsTxt. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -22,11 +32,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › Site code (I-863): the entries and their changes, each change
- * handed to its Operation, which asks for the password again; ads.txt through
- * UpdateAdsTxt. It changes nothing itself.
- */
 final class SiteCodeController extends Controller
 {
     public function show(SiteCodeScreen $screen): Response
@@ -66,6 +71,9 @@ final class SiteCodeController extends Controller
         return self::told(__('Code deleted. No page includes “:name” any more.', ['name' => $result['name']]));
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function updateAdsTxt(Request $request, UpdateAdsTxt $update): RedirectResponse
     {
         try {

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What Tools › Import draws (I-227): the sites Teme imports from, where each stands, a run with its steps and counts, and, for a report, a run's objects by kind and outcome, its messages and its two files. It writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
@@ -16,9 +24,6 @@ use App\Domain\Import\PluginData\PluginDataReport;
 use App\Domain\Import\Tracking\ImportRunJobs;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What Tools › Import draws (I-227): the sites Teme imports from, where each stands, a run with its steps and counts, and, for a report, a run's objects by kind and outcome, its messages and its two files. It writes nothing.
- */
 final readonly class ImportScreen
 {
     /** A site's state, with the words people read. */

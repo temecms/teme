@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Reads one page of one list of a list phase and imports its objects, each
+ * through ImportObject, in import mode; then queues the list's next page,
+ * so a list is read in ID order (I-332). It carries IDs only, never the old
+ * site's data, and does nothing once its run has stopped or moved on.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Jobs;
@@ -42,12 +53,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * Reads one page of one list of a list phase and imports its objects, each
- * through ImportObject, in import mode; then queues the list's next page,
- * so a list is read in ID order (I-332). It carries IDs only, never the old
- * site's data, and does nothing once its run has stopped or moved on.
- */
 final class ImportListPage implements ShouldQueue
 {
     use Batchable;

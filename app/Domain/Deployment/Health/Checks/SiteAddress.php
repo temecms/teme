@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Says whether a production site's address is https (I-378): without it
+ * passwords and session cookies cross the network unencrypted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -8,10 +17,6 @@ use App\Domain\Deployment\Health\DoctorCheck;
 use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 
-/**
- * Says whether a production site's address is https (I-378): without it
- * passwords and session cookies cross the network unencrypted.
- */
 final readonly class SiteAddress implements DoctorCheck
 {
     public function title(): string

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Whether backups are set up, as a deploy and the doctor ask before
+ * migrating (I-2401): false where the backup tables don't exist yet, on a
+ * new database or a site from before them, instead of failing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -7,11 +17,6 @@ namespace App\Domain\Deployment;
 use App\Domain\Backups\Queries\BackupPlaces;
 use Illuminate\Database\QueryException;
 
-/**
- * Whether backups are set up, as a deploy and the doctor ask before
- * migrating (I-2401): false where the backup tables don't exist yet, on a
- * new database or a site from before them, instead of failing.
- */
 final readonly class BackupsSetUp
 {
     /** PostgreSQL's undefined table. */

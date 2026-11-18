@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Replaces this site's database with a backup's, the one class that writes
+ * SQL outside an Operation (docs/architecture/operations.md): the
+ * dump fetched into a private file, the tables it lacks dropped, the dump
+ * restored by pg_restore in one transaction with the cache's tables and the
+ * installed extensions left as they are, the cache emptied but for
+ * maintenance mode's flag, and this Teme's newer migrations run.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -18,14 +31,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
-/**
- * Replaces this site's database with a backup's, the one class that writes
- * SQL outside an Operation (docs/architecture/operations.md): the
- * dump fetched into a private file, the tables it lacks dropped, the dump
- * restored by pg_restore in one transaction with the cache's tables and the
- * installed extensions left as they are, the cache emptied but for
- * maintenance mode's flag, and this Teme's newer migrations run.
- */
 final readonly class DatabaseRestore
 {
     public function __construct(private Restic $restic, private PostgresTools $postgres) {}

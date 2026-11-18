@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Answers one request for an AI suggestion (I-320): asks the task's model,
+ * and its fallback once if the first can't be reached, is busy or takes too
+ * long, all within one deadline (I-1321); checks the answer twice; records the request's figures for
+ * the person who asked; and leaves the answer for the page to collect. It
+ * carries IDs and offsets, never text, so no queue row holds an article.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking\Jobs;
@@ -33,13 +45,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
-/**
- * Answers one request for an AI suggestion (I-320): asks the task's model,
- * and its fallback once if the first can't be reached, is busy or takes too
- * long, all within one deadline (I-1321); checks the answer twice; records the request's figures for
- * the person who asked; and leaves the answer for the page to collect. It
- * carries IDs and offsets, never text, so no queue row holds an article.
- */
 final class AnswerAiRequest implements ShouldQueue
 {
     use Queueable;

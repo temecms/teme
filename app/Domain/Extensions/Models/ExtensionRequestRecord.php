@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One request to install, update, remove, roll back or rebuild plugins and
+ * themes, and how the installer carried it out. Written only by the
+ * extension Operations; one may be open at a time.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Models;
@@ -12,10 +22,6 @@ use Illuminate\Database\Eloquent\Model;
 use stdClass;
 
 /**
- * One request to install, update, remove, roll back or rebuild plugins and
- * themes, and how the installer carried it out. Written only by the
- * extension Operations; one may be open at a time.
- *
  * @property string $id
  * @property string $action
  * @property string $kind

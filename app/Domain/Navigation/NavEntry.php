@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Navigation;
-
 /**
  * One entry in the admin's main menu: where it sits, where it links — a
  * route, or a hub that finds the first page the person may open — and the
  * ability it needs, the module it belongs to, and its badge's provider.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Navigation;
+
 final readonly class NavEntry
 {
     /**

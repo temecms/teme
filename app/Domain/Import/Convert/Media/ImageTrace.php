@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Finds the media Teme imported for an image in WordPress's HTML (I-338),
+ * four ways, the first match winning: an attachment ID (the block's, the
+ * `wp-image-N` class, a legacy gallery's `data-id`, a caption shortcode's),
+ * then the file's path below the uploads folder, across its sizes and
+ * edited copies. Only the site's own addresses are traced by file.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Media;
@@ -7,13 +19,6 @@ namespace App\Domain\Import\Convert\Media;
 use App\Domain\Import\Convert\ConversionSite;
 use Dom\Element;
 
-/**
- * Finds the media Teme imported for an image in WordPress's HTML (I-338),
- * four ways, the first match winning: an attachment ID (the block's, the
- * `wp-image-N` class, a legacy gallery's `data-id`, a caption shortcode's),
- * then the file's path below the uploads folder, across its sizes and
- * edited copies. Only the site's own addresses are traced by file.
- */
 final class ImageTrace
 {
     /** Where an image's address may be: lazy-loading plugins move it out of src. */

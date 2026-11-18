@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Moves one item to another site language (I-3360, D10): its terms to
+ * their versions in that language, its slug kept while free there, else
+ * the next; a published item's address takes the prefix, the old one kept
+ * as history so it redirects, and its search words are rebuilt in the
+ * language's rules. Refused when its group has a live item in that
+ * language, when a term it is filed under has no version there, and for a
+ * page with a parent or pages under it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -39,15 +53,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Moves one item to another site language (I-3360, D10): its terms to
- * their versions in that language, its slug kept while free there, else
- * the next; a published item's address takes the prefix, the old one kept
- * as history so it redirects, and its search words are rebuilt in the
- * language's rules. Refused when its group has a live item in that
- * language, when a term it is filed under has no version there, and for a
- * page with a parent or pages under it.
- */
 final class ChangeContentLanguage extends BaseOperation
 {
     use PurgesTranslations;

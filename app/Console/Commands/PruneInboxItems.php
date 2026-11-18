@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:inbox:prune — deletes inbox items that arrived more than 90 days ago,
+ * read or not, a chunk at a time, through PruneInbox as the operator (I-221).
+ * Runs daily.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -10,11 +20,6 @@ use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 
-/**
- * teme:inbox:prune — deletes inbox items that arrived more than 90 days ago,
- * read or not, a chunk at a time, through PruneInbox as the operator (I-221).
- * Runs daily.
- */
 final class PruneInboxItems extends Command
 {
     /** @var string */

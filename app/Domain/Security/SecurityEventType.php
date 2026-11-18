@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Every kind of event the security log records. The noisy ones are counted per
+ * hour instead of stored one by one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Security;
 
-/**
- * Every kind of event the security log records. The noisy ones are counted per
- * hour instead of stored one by one.
- */
 enum SecurityEventType: string
 {
     case SignInSucceeded = 'signin.succeeded';

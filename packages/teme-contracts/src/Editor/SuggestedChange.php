@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The changes core knows how to check, show and apply in the editor: the
+ * title, a scalar field, terms, an internal link on a phrase, or a whole
+ * document shown as a proposal.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

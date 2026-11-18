@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Backups (docs/studies/backup.md): the lock a running backup holds, bound
+ * once per request or job, and the `backups` settings group. Each later
+ * part of the slice adds its own lines at its signpost.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -15,11 +25,6 @@ use App\Domain\Status\StatusChecks;
 use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Backups (docs/studies/backup.md): the lock a running backup holds, bound
- * once per request or job, and the `backups` settings group. Each later
- * part of the slice adds its own lines at its signpost.
- */
 final class BackupServiceProvider extends ServiceProvider
 {
     public function register(): void

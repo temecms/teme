@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The reads behind a feed, and the rules for what it may hold (I-299): only
+ * published, live items of the types the subject's page lists (I-3298), each
+ * read from its published revision and never from a working one. A feed that
+ * can show a draft's title is a leak; every query here starts from
+ * ListingViews::archive() or joins the published revision.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -11,13 +23,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The reads behind a feed, and the rules for what it may hold (I-299): only
- * published, live items of the types the subject's page lists (I-3298), each
- * read from its published revision and never from a working one. A feed that
- * can show a draft's title is a leak; every query here starts from
- * ListingViews::archive() or joins the published revision.
- */
 final class FeedItems
 {
     public function __construct(private TaxonomyRegistry $taxonomies) {}

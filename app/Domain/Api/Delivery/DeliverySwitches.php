@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whether the site shares its published content as data: the API's switch
+ * and llms.txt's, both off until an administrator ticks them (I-713).
+ * Read through the settings, so every answer that asks carries the seo tag
+ * and ticking a box purges it at once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Delivery;
@@ -7,12 +18,6 @@ namespace App\Domain\Api\Delivery;
 use App\Domain\Seo\SearchAndSocial;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Whether the site shares its published content as data: the API's switch
- * and llms.txt's, both off until an administrator ticks them (I-713).
- * Read through the settings, so every answer that asks carries the seo tag
- * and ticking a box purges it at once.
- */
 final class DeliverySwitches
 {
     /** The API's switch, in Search and social's row. */

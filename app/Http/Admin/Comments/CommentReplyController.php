@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The inline reply on the Comments screen (1.8c′'s D11, D13): one
+ * ReplyToComment, then the list as it was, with a toast; an empty or overlong
+ * reply goes back to its form, and a comment that changed meanwhile answers
+ * with a warning.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Comments;
@@ -15,12 +26,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * The inline reply on the Comments screen (1.8c′'s D11, D13): one
- * ReplyToComment, then the list as it was, with a toast; an empty or overlong
- * reply goes back to its form, and a comment that changed meanwhile answers
- * with a warning.
- */
 final class CommentReplyController extends Controller
 {
     public function __invoke(Request $request, ReplyToComment $reply): RedirectResponse

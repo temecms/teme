@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a production site needs before it serves a request or starts a role
+ * (I-375): its own APP_KEY, an address with a host, sessions in the
+ * database, and over https a Secure __Host- session cookie and an HSTS
+ * value Teme would send. Every problem is named at once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -9,12 +20,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Encryption\Encrypter;
 use SensitiveParameter;
 
-/**
- * What a production site needs before it serves a request or starts a role
- * (I-375): its own APP_KEY, an address with a host, sessions in the
- * database, and over https a Secure __Host- session cookie and an HSTS
- * value Teme would send. Every problem is named at once.
- */
 final class StartRules
 {
     /**

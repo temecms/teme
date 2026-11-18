@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The kinds of notice plugins declare, `contributes.notices`
+ * (docs/plans/plugin-sockets-3.md): their shape as the manifest gives them,
+ * and the enabled plugins' kinds registered beside core's, each under the
+ * plugin's stem, offered only while the plugin is enabled.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Notices;
@@ -16,12 +27,6 @@ use Teme\Contracts\Notices\NoticeKind;
 use Teme\Contracts\Plugins\Capability;
 use Throwable;
 
-/**
- * The kinds of notice plugins declare, `contributes.notices`
- * (docs/plans/plugin-sockets-3.md): their shape as the manifest gives them,
- * and the enabled plugins' kinds registered beside core's, each under the
- * plugin's stem, offered only while the plugin is enabled.
- */
 final readonly class DeclaredNotices
 {
     /** A kind's id within its plugin. */

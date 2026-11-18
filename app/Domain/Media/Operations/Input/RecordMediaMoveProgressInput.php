@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What RecordMediaMoveProgress needs: the run, the last media ID a chunk
+ * handled in full, the chunk's counts and the problems it found.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What RecordMediaMoveProgress needs: the run, the last media ID a chunk
- * handled in full, the chunk's counts and the problems it found.
- */
 final readonly class RecordMediaMoveProgressInput implements OperationInput
 {
     /**

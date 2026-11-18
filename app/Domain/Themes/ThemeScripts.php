@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What teme:theme:check refuses in a theme's views (I-3375): an inline
+ * script, an on* attribute, or core's own inline-script component, each of
+ * which stops working once the public site's content security policy is
+ * enforced. A check against mistakes, not a security boundary: the policy
+ * is the boundary, and a page never scans views.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -9,13 +21,6 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 
-/**
- * What teme:theme:check refuses in a theme's views (I-3375): an inline
- * script, an on* attribute, or core's own inline-script component, each of
- * which stops working once the public site's content security policy is
- * enforced. A check against mistakes, not a security boundary: the policy
- * is the boundary, and a page never scans views.
- */
 final class ThemeScripts
 {
     /** A script with no src attribute (data-src is not one) that isn't JSON-LD; its tag may span lines. */

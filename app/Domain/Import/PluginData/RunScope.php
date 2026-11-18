@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a plugin's importer may ask of the run it is part of: what core's
+ * import made of WordPress's posts and people, read from the import map
+ * (I-332), and whether the run is a catch-up. It writes nothing.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -13,11 +23,6 @@ use App\Domain\Import\Queries\ImportMap;
 use Teme\Contracts\Content\ItemRef;
 use Teme\Contracts\Import\ImportScope;
 
-/**
- * What a plugin's importer may ask of the run it is part of: what core's
- * import made of WordPress's posts and people, read from the import map
- * (I-332), and whether the run is a catch-up. It writes nothing.
- */
 final readonly class RunScope implements ImportScope
 {
     public function __construct(private ImportContext $context, private ImportMap $map) {}

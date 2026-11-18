@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What UpdateContentDetails needs: which item, the revision the editor
+ * started from, who is asking, and only the details to change — a null
+ * leaves that detail as it is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Contents\Operations\Input;
 use App\Domain\Contents\Tree\TreePlace;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What UpdateContentDetails needs: which item, the revision the editor
- * started from, who is asking, and only the details to change — a null
- * leaves that detail as it is.
- */
 final readonly class UpdateContentDetailsInput implements OperationInput
 {
     /**

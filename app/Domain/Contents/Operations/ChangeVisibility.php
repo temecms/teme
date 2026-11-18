@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Sets who may read an item (I-1700): anyone; only whoever may edit it, in
+ * the admin, its address answering "not found"; or whoever gives the
+ * password it keeps sealed. For whoever may publish it, at once and outside
+ * any revision, and never an edit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -33,12 +44,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\ContentVisibilityChanged;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Sets who may read an item (I-1700): anyone; only whoever may edit it, in
- * the admin, its address answering "not found"; or whoever gives the
- * password it keeps sealed. For whoever may publish it, at once and outside
- * any revision, and never an edit.
- */
 final class ChangeVisibility extends BaseOperation
 {
     use FollowsTree;

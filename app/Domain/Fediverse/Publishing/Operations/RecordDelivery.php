@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Records what one try of a delivery came to (docs/plans/fediverse-publishing.md,
+ * D3): sent; refused for good; gone, which ends that account's follows; or
+ * failed for a reason that may pass, queued again on the retry schedule
+ * until it runs out, the server marked failing from its first such
+ * failure and no longer once it answers. Only the site's own delivery
+ * work records; returns the seconds until the next try, or null for none.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing\Operations;
@@ -16,14 +29,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records what one try of a delivery came to (docs/plans/fediverse-publishing.md,
- * D3): sent; refused for good; gone, which ends that account's follows; or
- * failed for a reason that may pass, queued again on the retry schedule
- * until it runs out, the server marked failing from its first such
- * failure and no longer once it answers. Only the site's own delivery
- * work records; returns the seconds until the next try, or null for none.
- */
 final class RecordDelivery extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Who is calling the management API: the key, by ID and name, the person
+ * it acts as and its abilities. What the HTTP layer holds instead of the
+ * key's row.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
@@ -7,11 +17,6 @@ namespace App\Domain\ManageApi;
 use App\Domain\ManageApi\Models\ApiKey;
 use App\Models\User;
 
-/**
- * Who is calling the management API: the key, by ID and name, the person
- * it acts as and its abilities. What the HTTP layer holds instead of the
- * key's row.
- */
 final readonly class ApiCaller
 {
     /**

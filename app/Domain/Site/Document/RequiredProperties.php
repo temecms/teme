@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Document;
-
-use InvalidArgumentException;
-
 /**
  * What a node must hold to be written at all (I-703): for each type Google
  * gives a rich result, its required properties, each requirement met by any
@@ -13,7 +7,18 @@ use InvalidArgumentException;
  * left out of its page's graph; the page keeps the rest, and publishing is
  * never blocked. A pack adds its own types' requirements, stricter where
  * the manual-action test is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Document;
+
+use InvalidArgumentException;
+
 final class RequiredProperties
 {
     /** How many references one path follows, so references that loop can't hang it. */

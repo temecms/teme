@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Core's composer of the three names a page's language fills (I-3360), run
+ * on every theme view: `$language`, the page's language with its own name
+ * and home address; `$direction`, `ltr` or `rtl`; and `$alternates`, every
+ * shown version of the page a reader can open, `[]` when there is only the
+ * page itself.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -10,13 +22,6 @@ use App\Domain\Site\ViewModels\PageLanguageView;
 use Teme\Contracts\Themes\ViewComposer;
 use Teme\Contracts\Themes\ViewContext;
 
-/**
- * Core's composer of the three names a page's language fills (I-3360), run
- * on every theme view: `$language`, the page's language with its own name
- * and home address; `$direction`, `ltr` or `rtl`; and `$alternates`, every
- * shown version of the page a reader can open, `[]` when there is only the
- * page itself.
- */
 final readonly class LanguageComposer implements ViewComposer
 {
     public function __construct(

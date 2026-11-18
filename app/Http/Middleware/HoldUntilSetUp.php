@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Holds the public site and the API at a 503 until the site has its first
+ * account (issue 246, I-3377): core's own page, before any theme runs, never
+ * stored.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Middleware;
@@ -14,11 +24,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Holds the public site and the API at a 503 until the site has its first
- * account (issue 246, I-3377): core's own page, before any theme runs, never
- * stored.
- */
 final readonly class HoldUntilSetUp
 {
     /** Seconds a client is asked to wait: WordPress's figure for its own maintenance page (wp_maintenance()). */

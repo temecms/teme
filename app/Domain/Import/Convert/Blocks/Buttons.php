@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Buttons as Button cards (I-335): the link's words as the label, an
+ * article on the old site by its ID, any other address as it is, an
+ * outline button secondary. One the card can't hold becomes a paragraph
+ * with its words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -11,12 +22,6 @@ use App\Domain\Import\Convert\ParsedBlock;
 use Dom\Element;
 use Illuminate\Support\Str;
 
-/**
- * Buttons as Button cards (I-335): the link's words as the label, an
- * article on the old site by its ID, any other address as it is, an
- * outline button secondary. One the card can't hold becomes a paragraph
- * with its words.
- */
 final readonly class Buttons implements BlockMapping
 {
     /** The longest label a Button card holds (ButtonCard's rule). */

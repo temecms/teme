@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * One thing AI may be asked to do (I-316), registered
+ * under AiTasks::TAG from its part's own provider. It is made at every boot,
+ * to build Settings › AI, so its constructor reads no table.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use App\Domain\Support\Operations\BaseOperation;
 
-/**
- * One thing AI may be asked to do (I-316), registered
- * under AiTasks::TAG from its part's own provider. It is made at every boot,
- * to build Settings › AI, so its constructor reads no table.
- */
 interface AiTask
 {
     /**

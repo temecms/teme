@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Policy\Reports;
-
 /**
  * Where a browser's policy report lands without a write to the database
  * (I-3375): one line appended to a file in the folder the page cache's
  * processes share, which RecordPolicyReports adds to its table a minute
  * later. A sink (docs/architecture/operations.md, Telemetry sinks): nothing
  * decides anything from it, and a line that can't be written is dropped.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Policy\Reports;
+
 final readonly class PolicyReportSpool
 {
     /** The spool's folder, inside the page cache's, beside the 404 log's. */

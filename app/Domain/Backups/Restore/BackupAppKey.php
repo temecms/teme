@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The APP_KEY a backup was made under, and its previous keys, read from the
+ * backup into memory only (I-359): never shown, never stored, never queued.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -8,10 +17,6 @@ use InvalidArgumentException;
 use LogicException;
 use SensitiveParameter;
 
-/**
- * The APP_KEY a backup was made under, and its previous keys, read from the
- * backup into memory only (I-359): never shown, never stored, never queued.
- */
 final class BackupAppKey
 {
     /**

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The one write step for settings, called only from inside an Operation's
+ * perform(), in its transaction: UpdateSettings for the generic screen, and
+ * the Operations of groups that have their own screen. It stores only
+ * changed values, never defaults, records every change, and tells the page
+ * cache of the group's declared tags.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -19,13 +31,6 @@ use RuntimeException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Settings\SettingsChanged as SettingsChangedHook;
 
-/**
- * The one write step for settings, called only from inside an Operation's
- * perform(), in its transaction: UpdateSettings for the generic screen, and
- * the Operations of groups that have their own screen. It stores only
- * changed values, never defaults, records every change, and tells the page
- * cache of the group's declared tags.
- */
 final readonly class SettingsWriter
 {
     private const int HISTORY_KEPT = 100;
@@ -175,6 +180,8 @@ final readonly class SettingsWriter
      *
      * @param  array<string, mixed>  $values  translatable key => that language's value
      * @param  list<string>  $reset  translatable keys to return to the default language's value
+     *
+     * @since 1.0.0
      */
     public function writeTranslations(string $group, string $language, array $values, array $reset, ?int $expectedVersion, ?string $actorId, string $origin = 'human'): int
     {

@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * What the public site answers for a path (spec §5.9): the canonical form
+ * of an address, an old address's redirect, a type's archive page, or a
+ * page, with the ViewIntent
+ * its template is chosen by and the view model it draws, built by
+ * ArticleViews, ListingViews, LatestViews and SearchViews, and a 404 in
+ * place for anything else. It reads only, so PublicController touches no model.
+ * A protected item answers core's password form unless the reader's keys open
+ * it (I-1700); callers that pass none get the form.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -29,16 +44,6 @@ use App\Domain\Themes\ViewIntent;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What the public site answers for a path (spec §5.9): the canonical form
- * of an address, an old address's redirect, a type's archive page, or a
- * page, with the ViewIntent
- * its template is chosen by and the view model it draws, built by
- * ArticleViews, ListingViews, LatestViews and SearchViews, and a 404 in
- * place for anything else. It reads only, so PublicController touches no model.
- * A protected item answers core's password form unless the reader's keys open
- * it (I-1700); callers that pass none get the form.
- */
 final class PathResolver
 {
     /** The deepest listing page served; deeper pages answer 404 (OFFSET stays bounded), and no listing counts past it. */

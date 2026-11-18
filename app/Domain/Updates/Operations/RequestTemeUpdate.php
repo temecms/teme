@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Asks for Teme to be updated, or rolled back to the release before (I-3326): a person who holds
+ * updates.manage, after their password, or the operator. It records the request; the updater carries it
+ * out. One at a time. Every administrator is emailed once it is recorded. Returns the request's ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Operations;
@@ -19,11 +29,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Asks for Teme to be updated, or rolled back to the release before (I-3326): a person who holds
- * updates.manage, after their password, or the operator. It records the request; the updater carries it
- * out. One at a time. Every administrator is emailed once it is recorded. Returns the request's ID.
- */
 final class RequestTemeUpdate extends BaseOperation implements RequiresElevation
 {
     use AuthorizesUpdateRequests;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where a redirect starts, read from what someone typed (I-297): a path on
+ * this site in the path table's own form, exact or a pattern of [name] and
+ * [...rest] placeholders (I-287), compiled once into a regex PCRE and
+ * PostgreSQL read alike.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects;
@@ -7,12 +18,6 @@ namespace App\Domain\Redirects;
 use App\Domain\Addresses\Paths;
 use App\Domain\Addresses\PublicRequestPath;
 
-/**
- * Where a redirect starts, read from what someone typed (I-297): a path on
- * this site in the path table's own form, exact or a pattern of [name] and
- * [...rest] placeholders (I-287), compiled once into a regex PCRE and
- * PostgreSQL read alike.
- */
 final readonly class RedirectSource
 {
     /** A placeholder: [name] for one part of an address, [...rest] for the rest of it. */

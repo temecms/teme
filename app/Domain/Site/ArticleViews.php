@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Articles as their templates see them (I-250): built from the published
+ * revision, or, for a preview, from the revision shared, with the dates to
+ * show in the article's language, the reading time, the lead image decided
+ * exactly, the body rendered, its kicker and tags, and its related posts.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -34,12 +45,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Teme\Contracts\Insertions\ArticleFacts;
 use Teme\Contracts\Insertions\Insertion;
 
-/**
- * Articles as their templates see them (I-250): built from the published
- * revision, or, for a preview, from the revision shared, with the dates to
- * show in the article's language, the reading time, the lead image decided
- * exactly, the body rendered, its kicker and tags, and its related posts.
- */
 final readonly class ArticleViews
 {
     /** A revision this much newer than the first publication shows as updated. */

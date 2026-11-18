@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * Where Teme runs and how the updater moves it (I-3333): one service with two image settings, a compose file and one deploy. The updater reads and sets an image setting and the compose file, asks the platform to deploy the service, and watches the deployment and each part's health.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
 
-/**
- * Where Teme runs and how the updater moves it (I-3333): one service with two image settings, a compose file and one deploy. The updater reads and sets an image setting and the compose file, asks the platform to deploy the service, and watches the deployment and each part's health.
- */
 interface Platform
 {
     /** A short name for people: "Dokploy". */
@@ -15,6 +20,8 @@ interface Platform
     /**
      * Whether the updater runs as a service of its own, apart from the site, with an image of its own that a
      * release asks to restart; false when it runs in the same container as the site, which a release replaces whole.
+     *
+     * @since 1.0.0
      */
     public function hasUpdaterOfItsOwn(): bool;
 
@@ -36,6 +43,8 @@ interface Platform
      * The service's compose file as the platform holds it, and whether the platform takes it from Git.
      *
      * @throws PlatformRefused
+     *
+     * @since 1.0.0
      */
     public function compose(): PlatformCompose;
 
@@ -44,6 +53,8 @@ interface Platform
      * the platform takes from Git.
      *
      * @throws PlatformRefused
+     *
+     * @since 1.0.0
      */
     public function setCompose(string $compose): void;
 

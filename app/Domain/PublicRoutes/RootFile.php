@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One plain-text file a plugin declares at the site's root under `rootFiles`
+ * (docs/guides/developers/plugins/root-files.md): its name and body, each a
+ * literal or filled from one of the plugin's own text settings. Core serves
+ * it; no plugin code runs.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
 
 use App\Domain\Plugins\Manifest;
 
-/**
- * One plain-text file a plugin declares at the site's root under `rootFiles`
- * (docs/guides/developers/plugins/root-files.md): its name and body, each a
- * literal or filled from one of the plugin's own text settings. Core serves
- * it; no plugin code runs.
- */
 final readonly class RootFile
 {
     /** A root file's name: 8 to 128 letters, digits and hyphens, then .txt. */

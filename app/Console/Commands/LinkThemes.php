@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:themes:link`: links `public/themes/{code}` to each usable theme's
+ * `public/` folder, so its built assets are served, replacing a link left
+ * from before. Like `storage:link`, it runs at deploy and image build (study
+ * X §3.1); on Windows each link is a junction.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -8,12 +19,6 @@ use App\Domain\Themes\ThemeRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
-/**
- * `teme:themes:link`: links `public/themes/{code}` to each usable theme's
- * `public/` folder, so its built assets are served, replacing a link left
- * from before. Like `storage:link`, it runs at deploy and image build (study
- * X §3.1); on Windows each link is a junction.
- */
 final class LinkThemes extends Command
 {
     /** @var string */

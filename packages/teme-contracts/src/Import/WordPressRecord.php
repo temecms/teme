@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One record a plugin receives from the WordPress site an import reads: plain
+ * values only, never a WordPress or Laravel object.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Import;

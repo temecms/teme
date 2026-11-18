@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Cleans insertion markup like site code (I-064, I-697): in every namespace,
+ * SVG and MathML included, drops scripts without src, every on* attribute,
+ * srcdoc, and addresses that run script or draw a page; keeps script src,
+ * iframe and img, and collects their https origins for the page's policy.
+ * An inline script is kept only when its exact text was approved for the
+ * plugin that gave it, while the host allows site code, and its hash goes
+ * to the page's policy (docs/plans/plugin-sockets-2.md, B4).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -10,15 +24,6 @@ use App\Domain\SiteCode\SiteCodePolicy;
 use Dom\Element;
 use Dom\HTMLDocument;
 
-/**
- * Cleans insertion markup like site code (I-064, I-697): in every namespace,
- * SVG and MathML included, drops scripts without src, every on* attribute,
- * srcdoc, and addresses that run script or draw a page; keeps script src,
- * iframe and img, and collects their https origins for the page's policy.
- * An inline script is kept only when its exact text was approved for the
- * plugin that gave it, while the host allows site code, and its hash goes
- * to the page's policy (docs/plans/plugin-sockets-2.md, B4).
- */
 final class InsertionCleaner
 {
     /** Attributes that hold an address a browser follows or loads. */

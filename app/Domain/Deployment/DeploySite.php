@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Brings a site to the release its code is (I-377): the doctor's errors
+ * stop it first; then, under the deploy lock, a backup when migrations
+ * wait, the migrations, the doctor's deferred checks, the release's
+ * rebuilds, the workers' restart and the page cache. Every run ends in a
+ * DeployReport.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -25,13 +37,6 @@ use RuntimeException;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-/**
- * Brings a site to the release its code is (I-377): the doctor's errors
- * stop it first; then, under the deploy lock, a backup when migrations
- * wait, the migrations, the doctor's deferred checks, the release's
- * rebuilds, the workers' restart and the page cache. Every run ends in a
- * DeployReport.
- */
 final readonly class DeploySite
 {
     /** How often a deploy asks again for the backup lock while a backup runs, in seconds. */

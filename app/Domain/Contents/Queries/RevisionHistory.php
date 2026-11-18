@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An article's revisions, newest first: who made each one, what kind it is,
+ * and how many words it added or took away. It pages by keyset (I-140), with
+ * no count and no offset.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -12,11 +22,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * An article's revisions, newest first: who made each one, what kind it is,
- * and how many words it added or took away. It pages by keyset (I-140), with
- * no count and no offset.
- */
 final class RevisionHistory
 {
     public const int PAGE = 25;

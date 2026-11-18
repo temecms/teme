@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A child for each public taxonomy with an archive base and a listed term
+ * (I-296): its terms in ID order, each at its archive's address. A taxonomy
+ * its hide box hides has none, as its archives say noindex.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps;
@@ -16,11 +26,6 @@ use App\Domain\Sitemaps\Queries\ListedItems;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * A child for each public taxonomy with an archive base and a listed term
- * (I-296): its terms in ID order, each at its archive's address. A taxonomy
- * its hide box hides has none, as its archives say noindex.
- */
 final readonly class TermsSitemap implements SitemapProvider
 {
     public const string PREFIX = 'terms-';

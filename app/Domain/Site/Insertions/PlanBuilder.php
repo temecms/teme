@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Maps each insertion to the top-level document index it is drawn before
+ * (I-064): paragraphs and headings only count as top-level nodes, so a
+ * point never falls inside a list, card, quote, table or code block.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -8,11 +18,6 @@ use Teme\Contracts\Insertions\ArticleFacts;
 use Teme\Contracts\Insertions\Insertion;
 use Teme\Contracts\Insertions\Position;
 
-/**
- * Maps each insertion to the top-level document index it is drawn before
- * (I-064): paragraphs and headings only count as top-level nodes, so a
- * point never falls inside a list, card, quote, table or code block.
- */
 final class PlanBuilder
 {
     /**

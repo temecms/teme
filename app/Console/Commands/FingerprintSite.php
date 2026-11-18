@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:site:fingerprint — writes what this site holds and what its addresses
+ * answer, so another server can be compared with it after a restore (I-385).
+ * It changes nothing, and refuses while the site is in maintenance mode.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,11 +19,6 @@ use App\Domain\Deployment\SiteFingerprint;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * teme:site:fingerprint — writes what this site holds and what its addresses
- * answer, so another server can be compared with it after a restore (I-385).
- * It changes nothing, and refuses while the site is in maintenance mode.
- */
 final class FingerprintSite extends Command
 {
     /** @var string */

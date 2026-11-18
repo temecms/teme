@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The posts a featured posts card lists, read when the page is drawn: the
+ * chosen ones in their order, or the newest of a type in the page's
+ * language, optionally filed under one term. The page records what it shows
+ * by the page cache's own tags, so the purges that exist already redraw it
+ * (I-263).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Regions;
@@ -15,13 +27,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The posts a featured posts card lists, read when the page is drawn: the
- * chosen ones in their order, or the newest of a type in the page's
- * language, optionally filed under one term. The page records what it shows
- * by the page cache's own tags, so the purges that exist already redraw it
- * (I-263).
- */
 final readonly class FeaturedPosts
 {
     public function __construct(

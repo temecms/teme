@@ -1,13 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards\Tiptap;
-
-use App\Domain\Cards\DocumentSchema;
-use App\Domain\Cards\RenderContext;
-use Tiptap\Marks\Link;
-
 /**
  * The link mark as the site renders it. A link by ID (`teme:content/`,
  * `teme:term/`, `teme:user/` or `teme:media/` and an ID, I-1702) is drawn at
@@ -19,7 +11,20 @@ use Tiptap\Marks\Link;
  * the stored link asks for one. The attributes plugins ask for on an
  * article's links, already sifted by ArticleLinkAttributes, are written on
  * top (docs/plans/plugin-sockets-3.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards\Tiptap;
+
+use App\Domain\Cards\DocumentSchema;
+use App\Domain\Cards\RenderContext;
+use Tiptap\Marks\Link;
+
 final class LinkMark extends Link
 {
     /**

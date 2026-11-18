@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cache;
-
 /**
  * One stored page: the key it answers, its status, headers and HTML, when
  * it was stored and when it expires, and the tags that find it again
  * (docs/studies/page-cache.md §3.8).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cache;
+
 final readonly class PageEntry
 {
     /**

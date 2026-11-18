@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The lock a backup holds from its database snapshot to its last media file
+ * (I-358): a session-level PostgreSQL advisory lock, seen alike by the web,
+ * the queue worker, the scheduler and teme:deploy, and never emptied by
+ * cache:clear. It is held on a connection of its own, let go at once when
+ * the work ends, and that connection closed after, so no transaction the
+ * work leaves broken can strand it. A file deletion asks isHeld() and waits
+ * while it is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -10,15 +24,6 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 use Throwable;
 
-/**
- * The lock a backup holds from its database snapshot to its last media file
- * (I-358): a session-level PostgreSQL advisory lock, seen alike by the web,
- * the queue worker, the scheduler and teme:deploy, and never emptied by
- * cache:clear. It is held on a connection of its own, let go at once when
- * the work ends, and that connection closed after, so no transaction the
- * work leaves broken can strand it. A file deletion asks isHeld() and waits
- * while it is.
- */
 final class BackupLock
 {
     /** The lock's name, which PostgreSQL's hashtext() turns into its key. */

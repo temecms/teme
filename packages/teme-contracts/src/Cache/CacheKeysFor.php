@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A change to something the public site shows, as the page cache is told of
+ * it: what changed, and the page-cache tags core purges for it, from before
+ * the change and after.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Cache;

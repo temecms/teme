@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * I-115: off until a site lists roles in security.two_factor_required_roles.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Middleware;
@@ -11,9 +19,6 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * I-115: off until a site lists roles in security.two_factor_required_roles.
- */
 final class RequireTwoFactorEnrolment
 {
     private const array ALWAYS_ALLOWED = [

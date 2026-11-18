@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Lets plugins change an item's object before it is answered or sent, such as
+ * adding a tag.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:extensions:pins`: pins every package the image installed at its
+ * exact version, for the extensions folder's composer.json, and writes them
+ * to bootstrap/cache/teme-core-pins.php at image build
+ * (docs/plans/plugin-installer.md). Nothing else writes that file.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,12 +20,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Env;
 use RuntimeException;
 
-/**
- * `teme:extensions:pins`: pins every package the image installed at its
- * exact version, for the extensions folder's composer.json, and writes them
- * to bootstrap/cache/teme-core-pins.php at image build
- * (docs/plans/plugin-installer.md). Nothing else writes that file.
- */
 final class WriteCorePins extends Command
 {
     /** @var string */

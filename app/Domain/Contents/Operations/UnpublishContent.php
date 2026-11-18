@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Reverts a published item to a draft, so the public site stops showing it.
+ * Anyone who may publish the item may unpublish it. Its revisions and its
+ * published date are kept.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -29,11 +39,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Content\ContentUnpublished;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Reverts a published item to a draft, so the public site stops showing it.
- * Anyone who may publish the item may unpublish it. Its revisions and its
- * published date are kept.
- */
 final class UnpublishContent extends BaseOperation
 {
     use FollowsTree;

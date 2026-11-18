@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One AI task a plugin declares in its manifest's `contributes.aiTasks`:
+ * its id, the label and description people read, what a model needs to do
+ * it, what it sends (its own brief, a draft, or published text), and the
+ * most tokens an answer may hold.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Plugins;
 
 use App\Domain\Ai\AiCapability;
 
-/**
- * One AI task a plugin declares in its manifest's `contributes.aiTasks`:
- * its id, the label and description people read, what a model needs to do
- * it, what it sends (its own brief, a draft, or published text), and the
- * most tokens an answer may hold.
- */
 final readonly class DeclaredAiTask
 {
     /**

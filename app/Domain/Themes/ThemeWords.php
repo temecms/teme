@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The active theme's own words (I-3360): its `lang/{locale}.json` files,
+ * read after core's, so a theme may word core's keys its own way. Added
+ * only when a public page is drawn, never in the admin, and in place of
+ * another theme's when the active theme changes in the same process.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -7,12 +18,6 @@ namespace App\Domain\Themes;
 use Closure;
 use Illuminate\Translation\FileLoader;
 
-/**
- * The active theme's own words (I-3360): its `lang/{locale}.json` files,
- * read after core's, so a theme may word core's keys its own way. Added
- * only when a public page is drawn, never in the admin, and in place of
- * another theme's when the active theme changes in the same process.
- */
 final class ThemeWords
 {
     /**

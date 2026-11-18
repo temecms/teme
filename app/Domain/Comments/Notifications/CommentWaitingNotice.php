@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The moderators' email when a comment waits for approval (E5, I-689): the
+ * comment's words, the moderator's reason, a link to the comment in the
+ * admin and how many wait; never an IP address, a browser, an email address
+ * or a one-click action. Sent at once by SendCommentWaitingEmails, which is
+ * itself the queued job, with values it read when it ran.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Notifications;
@@ -11,13 +23,6 @@ use App\Domain\Notices\SentAsNotice;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-/**
- * The moderators' email when a comment waits for approval (E5, I-689): the
- * comment's words, the moderator's reason, a link to the comment in the
- * admin and how many wait; never an IP address, a browser, an email address
- * or a one-click action. Sent at once by SendCommentWaitingEmails, which is
- * itself the queued job, with values it read when it ran.
- */
 final class CommentWaitingNotice extends Notification
 {
     use SentAsNotice;

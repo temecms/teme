@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A hook that lets listeners change a value, one after another.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cache;
-
-use Carbon\CarbonImmutable;
-
 /**
  * What the page cache learns about one public page while it renders: when
  * drawing began and the number of the latest purge by then, the tags of
@@ -14,7 +8,18 @@ use Carbon\CarbonImmutable;
  * (docs/studies/page-cache.md §3.1). Scoped to a
  * request; the page cache starts it afresh for each page it may store, as
  * one application may serve several (B-227).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cache;
+
+use Carbon\CarbonImmutable;
+
 final class RenderRecord
 {
     public const string DEGRADED = 'degraded render';

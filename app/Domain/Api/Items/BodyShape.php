@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * An item's body as the API gives it (D7, rules 7 and 9): the feed's HTML,
+ * the Tiptap document with every link resolved now, and the files its
+ * cards show. What a reader can't reach is left out, as the page leaves it.
+ * Both forms draw their links from one BodyLinks, which reads every target
+ * of the document in one statement.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
@@ -12,13 +24,6 @@ use App\Domain\Feeds\FeedBody;
 use App\Domain\Feeds\FeedUrls;
 use stdClass;
 
-/**
- * An item's body as the API gives it (D7, rules 7 and 9): the feed's HTML,
- * the Tiptap document with every link resolved now, and the files its
- * cards show. What a reader can't reach is left out, as the page leaves it.
- * Both forms draw their links from one BodyLinks, which reads every target
- * of the document in one statement.
- */
 final readonly class BodyShape
 {
     /**

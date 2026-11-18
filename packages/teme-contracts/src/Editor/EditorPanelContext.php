@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The item the editor shows, and who is looking: the item's ID, its working
+ * revision, type and language, the person's ID and language, and which of the
+ * plugin's own permissions they hold.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Editor;

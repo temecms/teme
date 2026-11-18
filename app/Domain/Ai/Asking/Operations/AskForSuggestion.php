@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Asks AI for a suggestion (I-317): checks that this person may ask about
+ * this item or image, that the request names something real, and that the
+ * task can run and the month's budget isn't spent; then starts the
+ * request's hand-off and queues it with IDs only (I-320). Returns the
+ * request's id, which becomes its activity row's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking\Operations;
@@ -30,13 +42,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Asks AI for a suggestion (I-317): checks that this person may ask about
- * this item or image, that the request names something real, and that the
- * task can run and the month's budget isn't spent; then starts the
- * request's hand-off and queues it with IDs only (I-320). Returns the
- * request's id, which becomes its activity row's.
- */
 final class AskForSuggestion extends BaseOperation
 {
     private const int MAX_OPTIONS = 8;

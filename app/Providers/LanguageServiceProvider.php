@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Wires the site's languages (I-3360): the `languages` settings group,
+ * built from the types and taxonomies when read, and the classes that
+ * answer what language the site and a page are in.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -14,11 +24,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * Wires the site's languages (I-3360): the `languages` settings group,
- * built from the types and taxonomies when read, and the classes that
- * answer what language the site and a page are in.
- */
 final class LanguageServiceProvider extends ServiceProvider
 {
     public function register(): void

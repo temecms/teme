@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * What RecordPrivacyRequest needs: export or erase, the address the request
+ * is about, the operator's note on why and how they checked who asked,
+ * whether to email the person when it ends, and who is asking (null for
+ * the operator).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What RecordPrivacyRequest needs: export or erase, the address the request
- * is about, the operator's note on why and how they checked who asked,
- * whether to email the person when it ends, and who is asking (null for
- * the operator).
- */
 final readonly class RecordPrivacyRequestInput implements OperationInput
 {
     public function __construct(

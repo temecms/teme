@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a plugin's notice may say (docs/plans/plugin-sockets-3.md):
+ * plain words of a set length, no one's quoted words, and an action that
+ * leads only to the plugin's own settings or an item's editor. Core's
+ * layout escapes every word as it does for its own notices.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Notices;
@@ -7,12 +18,6 @@ namespace App\Domain\Plugins\Notices;
 use InvalidArgumentException;
 use Teme\Contracts\Notices\NoticeMessage;
 
-/**
- * What a plugin's notice may say (docs/plans/plugin-sockets-3.md):
- * plain words of a set length, no one's quoted words, and an action that
- * leads only to the plugin's own settings or an item's editor. Core's
- * layout escapes every word as it does for its own notices.
- */
 final class PluginNoticeRules
 {
     /** At most this many characters in a subject. */

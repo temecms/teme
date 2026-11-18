@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert\Media;
-
 /**
  * Media IDs already known, by attachment ID and by file path below the
  * uploads folder: what a test gives the converter, or a phase that read a
  * page's IDs at once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert\Media;
+
 final readonly class KnownMedia implements MediaTargets
 {
     /**

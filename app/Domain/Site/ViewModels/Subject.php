@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a listing is about: a term, an author, a date, the latest posts at the
+ * posts page (`posts`), or a search, with its title, a description and an
+ * image; a term's also with its taxonomy, its parent and its children.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

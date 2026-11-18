@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What Tools › Page cache shows (I-467, I-500): whether the page cache is
+ * on, where it keeps pages, how long they live, the CDN in front of it,
+ * and when it was last cleared from the admin and by whom, read from the
+ * security log for display only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache\Queries;
@@ -11,12 +22,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What Tools › Page cache shows (I-467, I-500): whether the page cache is
- * on, where it keeps pages, how long they live, the CDN in front of it,
- * and when it was last cleared from the admin and by whom, read from the
- * security log for display only.
- */
 final readonly class PageCacheScreen
 {
     public function __construct(private SettingsReader $settings) {}

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Quick draft (I-240, from WordPress): a title and a few lines saved as a
+ * draft of the main type without opening the editor. The lines become
+ * paragraphs of plain text — never parsed as HTML (rule 7). CreateDraft
+ * authorizes; a refusal is a 403, as everywhere.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Dashboard;
@@ -12,12 +23,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-/**
- * Quick draft (I-240, from WordPress): a title and a few lines saved as a
- * draft of the main type without opening the editor. The lines become
- * paragraphs of plain text — never parsed as HTML (rule 7). CreateDraft
- * authorizes; a refusal is a 403, as everywhere.
- */
 final class QuickDraftController extends Controller
 {
     public function __invoke(Request $request, CreateDraft $create): RedirectResponse

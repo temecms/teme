@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * General's Brand colour: saved at once by ChangeBrandColour, every refusal
+ * under the field, so General's own form shows none of them. It changes
+ * nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -13,11 +23,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * General's Brand colour: saved at once by ChangeBrandColour, every refusal
- * under the field, so General's own form shows none of them. It changes
- * nothing itself.
- */
 final class BrandColourController extends Controller
 {
     public function __invoke(Request $request, ChangeBrandColour $change): RedirectResponse

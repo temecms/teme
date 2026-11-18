@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tools › Jobs' list (I-104, I-3445): every tracked job, newest first, a
+ * keyset page at a time, each as the screen draws it with who started it
+ * and, for a plugin job, the plugin's mark; the failed jobs Retry all
+ * failed would retry; and a run's jobs. It writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Queries;
@@ -16,11 +27,6 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 
 /**
- * Tools › Jobs' list (I-104, I-3445): every tracked job, newest first, a
- * keyset page at a time, each as the screen draws it with who started it
- * and, for a plugin job, the plugin's mark; the failed jobs Retry all
- * failed would retry; and a run's jobs. It writes nothing.
- *
  * @phpstan-type JobRow array{id: string, kind: string, label: string, owner: string, plugin: string|null, state: string, stateLabel: string, message: string|null, total: int|null, done: int, percent: int|null, startedAt: string, endedAt: string|null, startedBy: array{kind: string, name: string|null}, canRetry: bool, canCancel: bool}
  */
 final readonly class TrackedJobList

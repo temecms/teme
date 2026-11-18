@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Languages;
-
-use Illuminate\Support\Facades\DB;
-
 /**
  * The site's languages' lock (I-3360), held to the end of the transaction:
  * shared by every Operation that gives an item or term a language or a
  * group, exclusive for one that removes a language or stops a type being
  * translated, so neither commits while the other is in flight. Always the
  * first lock an Operation takes, before a tree's and any row's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Languages;
+
+use Illuminate\Support\Facades\DB;
+
 final class LanguageLock
 {
     /**

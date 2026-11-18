@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * restic, pg_dump or pg_restore isn't where the configuration says (I-366),
+ * in words that say what to install or set.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
 
 use RuntimeException;
 
-/**
- * restic, pg_dump or pg_restore isn't where the configuration says (I-366),
- * in words that say what to install or set.
- */
 final class BackupToolMissing extends RuntimeException
 {
     public static function restic(string $configured): self

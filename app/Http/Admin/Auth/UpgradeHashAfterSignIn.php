@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The last step of Fortify's sign-in pipeline: once the password has signed
+ * someone in, a stored hash in another format or at other costs is replaced
+ * with Argon2id through `UpgradePasswordHash`, never by Laravel's own rehash
+ * (I-124). A sign-in that fails, is throttled or waits for a second factor
+ * never reaches it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Auth;
@@ -11,13 +23,6 @@ use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\Request;
 
-/**
- * The last step of Fortify's sign-in pipeline: once the password has signed
- * someone in, a stored hash in another format or at other costs is replaced
- * with Argon2id through `UpgradePasswordHash`, never by Laravel's own rehash
- * (I-124). A sign-in that fails, is throttled or waits for a second factor
- * never reaches it.
- */
 final class UpgradeHashAfterSignIn
 {
     public function __construct(

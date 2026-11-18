@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\PluginData;
-
 /**
  * The names a plugin may declare under its manifest's `imports`
  * (docs/architecture/plugins.md): the shape of a WordPress option or meta
  * key, how many in all, and the keys Teme never brings across whatever a
  * plugin declares, because they are passwords, sessions or core's own roles.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\PluginData;
+
 final readonly class WordPressNames
 {
     /** A WordPress option name or meta key: what WordPress's own columns hold, at most 191 characters. */

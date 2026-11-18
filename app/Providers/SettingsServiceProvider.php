@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers the settings registry and its readers, and declares the General
+ * settings group, the Reading group built from the content types, and the
+ * modules group of module switches.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -20,11 +30,6 @@ use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Registers the settings registry and its readers, and declares the General
- * settings group, the Reading group built from the content types, and the
- * modules group of module switches.
- */
 final class SettingsServiceProvider extends ServiceProvider
 {
     public function register(): void

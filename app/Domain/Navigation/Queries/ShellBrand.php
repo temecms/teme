@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the admin's shell prints about this installation: the letter that
+ * marks the site, and the product, version and environment under its name.
+ * Someone who has not signed in is not told the version.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Navigation\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Navigation\Queries;
 use Illuminate\Contracts\Foundation\Application;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What the admin's shell prints about this installation: the letter that
- * marks the site, and the product, version and environment under its name.
- * Someone who has not signed in is not told the version.
- */
 final readonly class ShellBrand
 {
     public function __construct(

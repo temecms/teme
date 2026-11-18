@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The updater's side of the signed probe (I-3326): asks this site's own /up, through the address readers use, which Teme answers.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
@@ -8,9 +16,6 @@ use App\Domain\Updates\TemeVersion;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
-/**
- * The updater's side of the signed probe (I-3326): asks this site's own /up, through the address readers use, which Teme answers.
- */
 final readonly class VersionProbe
 {
     /**

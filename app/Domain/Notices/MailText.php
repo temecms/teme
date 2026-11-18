@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Notices;
-
-use Illuminate\Support\HtmlString;
-
 /**
  * Puts words someone else wrote into a Markdown email as words, for every notice (1.8d's D10):
  * a commenter's name, an item's title, a moderator's reason and a comment's
@@ -13,7 +7,18 @@ use Illuminate\Support\HtmlString;
  * lines are Markdown, and Blade's escaping stops HTML but not `[`, `*` or
  * `#`; CommonMark reads a backslash before ASCII punctuation as that
  * character, plainly.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Notices;
+
+use Illuminate\Support\HtmlString;
+
 final class MailText
 {
     /**

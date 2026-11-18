@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Your items in review: the viewer's pending submissions, newest first — a
+ * live article's update as well as a new article in review, since it reads
+ * the reviews, not the status. One query on
+ * content_reviews_pending_by_submitter. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Panels;
@@ -11,12 +22,6 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Your items in review: the viewer's pending submissions, newest first — a
- * live article's update as well as a new article in review, since it reads
- * the reviews, not the status. One query on
- * content_reviews_pending_by_submitter. It reads only.
- */
 final class MyItemsInReview implements DashboardPanelQuery
 {
     public function rows(User $viewer, array $types, int $limit): array

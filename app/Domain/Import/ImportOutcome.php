@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What became of a source object in the run that last touched it (I-345):
+ * one outcome per object, in the report and its CSV.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import;
 
-/**
- * What became of a source object in the run that last touched it (I-345):
- * one outcome per object, in the report and its CSV.
- */
 enum ImportOutcome: string
 {
     case Created = 'created';

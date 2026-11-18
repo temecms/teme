@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A term as the API gives it: on an item, its ID, taxonomy, name, slug and
+ * address (D6); on its own, also its description, parent and count (D27).
+ * Built from a `terms` row and its current address, read by the caller.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Shapes;
 
 use App\Domain\Addresses\Addresses;
 
-/**
- * A term as the API gives it: on an item, its ID, taxonomy, name, slug and
- * address (D6); on its own, also its description, parent and count (D27).
- * Built from a `terms` row and its current address, read by the caller.
- */
 final class TermShape
 {
     /**

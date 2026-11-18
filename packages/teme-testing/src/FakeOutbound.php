@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Answers the requests plugins send through their outbound door, below the
+ * door, so every check the door makes still runs: what each host answers,
+ * 200 with an empty body unless told otherwise, and every request sent.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Testing;
@@ -10,11 +20,6 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Assert;
 
-/**
- * Answers the requests plugins send through their outbound door, below the
- * door, so every check the door makes still runs: what each host answers,
- * 200 with an empty body unless told otherwise, and every request sent.
- */
 final class FakeOutbound
 {
     /** @var array<string, array{status: int, body: string, headers: array<string, string>}> what each host answers once its turns are used */

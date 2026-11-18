@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What a restore will do, found by the preflight and shown before the person confirms: the backup, its place and size, whether a safety backup comes first, and anything to know.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
 
 use Carbon\CarbonImmutable;
 
-/**
- * What a restore will do, found by the preflight and shown before the person confirms: the backup, its place and size, whether a safety backup comes first, and anything to know.
- */
 final readonly class RestorePlan
 {
     /**

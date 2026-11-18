@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › AI, the `ai` group (I-315): one group, one row and one ability,
+ * built from every section registered under SECTIONS, in the sections' own
+ * order. It asks for the password again: a key spends the site's money, and a
+ * provider decides where drafts are sent. No public page reads it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
@@ -9,12 +20,6 @@ use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsGroup;
 use UnexpectedValueException;
 
-/**
- * Settings › AI, the `ai` group (I-315): one group, one row and one ability,
- * built from every section registered under SECTIONS, in the sections' own
- * order. It asks for the password again: a key spends the site's money, and a
- * provider decides where drafts are sent. No public page reads it.
- */
 final readonly class AiSettings
 {
     public const string KEY = 'ai';

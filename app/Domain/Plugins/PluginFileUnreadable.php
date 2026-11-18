@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's file or folder Teme couldn't read (I-3353): where it is inside
+ * the plugin, and why in one word, so the person who reads it sees no
+ * server path; PHP's own message stays in the previous exception, for the log.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -7,11 +17,6 @@ namespace App\Domain\Plugins;
 use RuntimeException;
 use Throwable;
 
-/**
- * A plugin's file or folder Teme couldn't read (I-3353): where it is inside
- * the plugin, and why in one word, so the person who reads it sees no
- * server path; PHP's own message stays in the previous exception, for the log.
- */
 final class PluginFileUnreadable extends RuntimeException
 {
     /** It couldn't be opened or listed. */

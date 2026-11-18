@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The page's JSON-LD: one graph, its nodes merged by @id, passed through the
+ * graph's filters and tidied, and the one encoder that writes it (I-698).
+ * Plain arrays in, one script's text out; no value is ever read for
+ * template tokens.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Document;
 
 use Closure;
 
-/**
- * The page's JSON-LD: one graph, its nodes merged by @id, passed through the
- * graph's filters and tidied, and the one encoder that writes it (I-698).
- * Plain arrays in, one script's text out; no value is ever read for
- * template tokens.
- */
 final class JsonLd
 {
     /**

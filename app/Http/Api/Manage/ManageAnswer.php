@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A management API answer: its data in the delivery API's envelope, encoded
+ * as every API answer is.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\Manage;
@@ -7,10 +16,6 @@ namespace App\Http\Api\Manage;
 use App\Domain\Api\Problems;
 use Illuminate\Http\JsonResponse;
 
-/**
- * A management API answer: its data in the delivery API's envelope, encoded
- * as every API answer is.
- */
 final class ManageAnswer
 {
     /**

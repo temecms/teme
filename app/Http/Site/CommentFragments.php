@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Pieces of a public page core's script puts in place (1.8b′'s D7, D8): a
+ * comment drawn by the theme's own partial, or core's plain one for a theme
+ * without it, and core's form drawn as a thread draws it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -11,11 +21,6 @@ use App\Domain\Themes\ThemeWords;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 
-/**
- * Pieces of a public page core's script puts in place (1.8b′'s D7, D8): a
- * comment drawn by the theme's own partial, or core's plain one for a theme
- * without it, and core's form drawn as a thread draws it.
- */
 final class CommentFragments
 {
     /**

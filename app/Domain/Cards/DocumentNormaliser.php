@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * Repairs the values a paste or another editor can bring that would
  * otherwise refuse a whole save (I-452): odd attribute values, link
@@ -12,7 +8,16 @@ namespace App\Domain\Cards;
  * headings' included (the later one is set to null, I-3362). Runs on the server before
  * DocumentValidator, so every client gets it; everything else is left for
  * the validator to refuse.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 final class DocumentNormaliser
 {
     /** @var array<array-key, string|null> each link address in this document, and what it keeps */

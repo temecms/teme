@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What SendToInbox needs: who receives the item, what kind it is, its words
+ * and link, and who is sending.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox\Operations\Input;
@@ -7,10 +16,6 @@ namespace App\Domain\Inbox\Operations\Input;
 use App\Domain\Inbox\InboxLink;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What SendToInbox needs: who receives the item, what kind it is, its words
- * and link, and who is sending.
- */
 final readonly class SendToInboxInput implements OperationInput
 {
     public function __construct(

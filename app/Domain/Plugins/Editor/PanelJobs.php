@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A panel's work on one item (docs/proposals/plugin-sockets-3.md): the
+ * plugin jobs its actions queued for it that wait or run, and those that
+ * ended in the last 15 minutes, newest first, each with its label, state,
+ * progress and message.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Editor;
@@ -8,12 +19,6 @@ use App\Domain\Jobs\JobState;
 use App\Domain\Plugins\Jobs\PluginJobKind;
 use Illuminate\Support\Facades\DB;
 
-/**
- * A panel's work on one item (docs/proposals/plugin-sockets-3.md): the
- * plugin jobs its actions queued for it that wait or run, and those that
- * ended in the last 15 minutes, newest first, each with its label, state,
- * progress and message.
- */
 final class PanelJobs
 {
     /** How long an ended job stays in the panel, in minutes. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What RecordExtensionStep needs: the step and its state, a sentence, and,
+ * when they change, the releases, what waits for agreement and whether the
+ * request runs or waits.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations\Input;
@@ -8,11 +18,6 @@ use App\Domain\Extensions\RequestStatus;
 use App\Domain\Extensions\RequestStep;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What RecordExtensionStep needs: the step and its state, a sentence, and,
- * when they change, the releases, what waits for agreement and whether the
- * request runs or waits.
- */
 final readonly class RecordExtensionStepInput implements OperationInput
 {
     /**

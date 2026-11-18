@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * Whose autosave, in which article, to throw away.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Whose autosave, in which article, to throw away.
- */
 final readonly class DiscardAutosaveInput implements OperationInput
 {
     public function __construct(

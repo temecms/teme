@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The run report's section for each plugin that received data
+ * (docs/proposals/plugin-import-socket.md): its records brought, skipped
+ * and failed, by plugin, in the order of their codes. It writes nothing.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -8,11 +18,6 @@ use App\Domain\Import\ImportOutcome;
 use App\Domain\Plugins\PluginRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The run report's section for each plugin that received data
- * (docs/proposals/plugin-import-socket.md): its records brought, skipped
- * and failed, by plugin, in the order of their codes. It writes nothing.
- */
 final readonly class PluginDataReport
 {
     public function __construct(private PluginRegistry $registry) {}

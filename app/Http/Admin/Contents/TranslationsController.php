@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One item's translations (I-3360): translate it into a new draft, link
+ * another item as a version of it, unlink a version, move it to another
+ * language, and mark it up to date. Each hands its Operation the request
+ * and answers with a toast, as ContentActionController does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -27,12 +38,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * One item's translations (I-3360): translate it into a new draft, link
- * another item as a version of it, unlink a version, move it to another
- * language, and mark it up to date. Each hands its Operation the request
- * and answers with a toast, as ContentActionController does.
- */
 final class TranslationsController extends Controller
 {
     public function __construct(private readonly ContentPointers $pointers, private readonly TranslationMessages $messages) {}
@@ -61,6 +66,8 @@ final class TranslationsController extends Controller
     /**
      * The items "Link a different post…" offers in one language, by title:
      * only for someone who may change this item, as linking asks.
+     *
+     * @since 1.0.0
      */
     public function candidates(Request $request, string $type, string $content): JsonResponse
     {

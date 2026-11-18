@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What an import's map says of Teme's terms: which Teme term a WordPress
+ * term became, found by WordPress's own term ID, whether a source made a
+ * given term, and which terms have a parent on WordPress (I-397).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Terms;
 
 use App\Domain\Import\Models\ImportMapEntry;
 
-/**
- * What an import's map says of Teme's terms: which Teme term a WordPress
- * term became, found by WordPress's own term ID, whether a source made a
- * given term, and which terms have a parent on WordPress (I-397).
- */
 final readonly class ImportedTerms
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One running plugin granted import.wordpress, with what its manifest
+ * declares it brings across from WordPress; its importer is built, with
+ * only what Teme offers that plugin, when the import first asks for it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -10,11 +20,6 @@ use ReflectionNamedType;
 use Teme\Contracts\Import\WordPressImporter;
 use Throwable;
 
-/**
- * One running plugin granted import.wordpress, with what its manifest
- * declares it brings across from WordPress; its importer is built, with
- * only what Teme offers that plugin, when the import first asks for it.
- */
 final class PluginImport
 {
     private ?WordPressImporter $importer = null;

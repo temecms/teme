@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What the admin shows of plugins and themes installed from it (docs/architecture/plugins.md): the
+ * requests and the open one's steps, whether the installer is running, the commands that carry a request
+ * out without it, the saved sources without their keys, the extensions folder's current release and the
+ * packages in it, the releases kept before it, and which packages the image itself has. It reads
+ * Composer's files in the folder as data and runs nothing.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Queries;
@@ -13,13 +25,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Env;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What the admin shows of plugins and themes installed from it (docs/architecture/plugins.md): the
- * requests and the open one's steps, whether the installer is running, the commands that carry a request
- * out without it, the saved sources without their keys, the extensions folder's current release and the
- * packages in it, the releases kept before it, and which packages the image itself has. It reads
- * Composer's files in the folder as data and runs nothing.
- */
 final readonly class ExtensionsScreen
 {
     /** A release's folder name: a lowercase ULID. */

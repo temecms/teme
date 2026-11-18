@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A public request's path in the form addresses are stored in: URL-decoded,
+ * NFC-normalised, lower-cased, repeated slashes collapsed, and no leading or
+ * trailing slash ('' for the home page).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
 
 use Normalizer;
 
-/**
- * A public request's path in the form addresses are stored in: URL-decoded,
- * NFC-normalised, lower-cased, repeated slashes collapsed, and no leading or
- * trailing slash ('' for the home page).
- */
 final class PublicRequestPath
 {
     /**

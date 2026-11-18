@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One page of ContentReader::queue(): its items, and the cursor for the next
+ * page.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

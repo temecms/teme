@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The media one source's import brought in, as the converter asks for it
+ * (I-338): by WordPress attachment ID, by any file address below the old
+ * site's uploads folder, by the address of an image from a site the person
+ * ticked, and by the WordPress post they were uploaded to. Every answer is
+ * an item still here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Media;
@@ -9,13 +21,6 @@ use App\Domain\Import\Convert\Media\MediaTargets;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The media one source's import brought in, as the converter asks for it
- * (I-338): by WordPress attachment ID, by any file address below the old
- * site's uploads folder, by the address of an image from a site the person
- * ticked, and by the WordPress post they were uploaded to. Every answer is
- * an item still here.
- */
 final readonly class ImportedMedia implements MediaTargets
 {
     /** An image file's extensions: an address ending in one names its file, and a query only resizes it. */

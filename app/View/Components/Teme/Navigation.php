@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `<x-teme::navigation slot="primary" label="Main" />`: the menu a theme's
+ * slot shows, as a labelled landmark with `aria-current` on the page being
+ * shown.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

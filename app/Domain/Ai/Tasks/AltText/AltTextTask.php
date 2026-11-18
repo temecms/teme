@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The alt-text task (I-319): a description of one library image,
+ * from a re-encoded copy of it, its title and caption, and the title of the
+ * latest published item that shows it. Always a description: whether an
+ * image is decorative is chosen where it is used.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\AltText;
@@ -16,12 +27,6 @@ use App\Domain\Ai\Tasks\AltText\Queries\LatestPublishedUse;
 use App\Domain\Media\Models\Media;
 use App\Domain\Media\Operations\UpdateMediaDetails;
 
-/**
- * The alt-text task (I-319): a description of one library image,
- * from a re-encoded copy of it, its title and caption, and the title of the
- * latest published item that shows it. Always a description: whether an
- * image is decorative is chosen where it is used.
- */
 final readonly class AltTextTask implements AiTask
 {
     public const string KEY = 'alt-text';

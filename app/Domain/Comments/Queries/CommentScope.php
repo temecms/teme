@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Whose comments a person looks after (I-483, I-570), as SQL over `contents`
+ * (1.8c's D2): every item for comments.moderate holders; for anyone else,
+ * the items of the types that take comments whose publish ability they
+ * hold, every one with the type's edit.any and their own without it. It
+ * restates CommentModeration::allows(), through ContentPolicy::publish() as
+ * ContentAbilities reads it; CommentScopeTest holds the two together.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -10,14 +23,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
 
-/**
- * Whose comments a person looks after (I-483, I-570), as SQL over `contents`
- * (1.8c's D2): every item for comments.moderate holders; for anyone else,
- * the items of the types that take comments whose publish ability they
- * hold, every one with the type's edit.any and their own without it. It
- * restates CommentModeration::allows(), through ContentPolicy::publish() as
- * ContentAbilities reads it; CommentScopeTest holds the two together.
- */
 final readonly class CommentScope
 {
     /**

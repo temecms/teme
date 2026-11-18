@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Brings one WordPress menu in as a Teme menu (I-343): made with its name
+ * and whole tree, or, on a later run, its name and tree replaced, only
+ * while it is as the import last left it, so a later run never undoes a
+ * person's edit. The tree meets SaveNavigationItems' own checks and is
+ * written by the same code.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations;
@@ -18,13 +30,6 @@ use stdClass;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings one WordPress menu in as a Teme menu (I-343): made with its name
- * and whole tree, or, on a later run, its name and tree replaced, only
- * while it is as the import last left it, so a later run never undoes a
- * person's edit. The tree meets SaveNavigationItems' own checks and is
- * written by the same code.
- */
 final class ImportNavigation extends BaseOperation
 {
     use AuthorizesImports;

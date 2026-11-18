@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Core's comment addresses: posting the form (I-593), a comment's own
+ * address (I-272), and the reply page without JavaScript (I-594). It reads
+ * through CommentViews and RespondViews and writes through SubmitComment,
+ * never a model.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -17,12 +28,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Core's comment addresses: posting the form (I-593), a comment's own
- * address (I-272), and the reply page without JavaScript (I-594). It reads
- * through CommentViews and RespondViews and writes through SubmitComment,
- * never a model.
- */
 final class CommentController extends Controller
 {
     /**

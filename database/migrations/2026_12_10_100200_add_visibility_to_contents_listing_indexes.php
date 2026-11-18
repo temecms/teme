@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Migration: adds visibility to contents listing indexes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;

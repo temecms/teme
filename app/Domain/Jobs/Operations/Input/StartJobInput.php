@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What StartJob needs: which kind of work, its label, its total if known, the run it belongs to, who is starting it and which part owns it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What StartJob needs: which kind of work, its label, its total if known, the run it belongs to, who is starting it and which part owns it.
- */
 final readonly class StartJobInput implements OperationInput
 {
     /**

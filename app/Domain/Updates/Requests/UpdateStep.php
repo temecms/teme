@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * The seven steps of an update, in the order the updater takes them, and the states a step is recorded in.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Requests;
 
-/**
- * The seven steps of an update, in the order the updater takes them, and the states a step is recorded in.
- */
 enum UpdateStep: string
 {
     case Deploy = 'deploy';

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Who a queued job acts for (I-392): a person, by ID, or the operator. The
+ * operator is made only while the operator is present at the server's
+ * shell, so a job queued from a web request can never act as the operator;
+ * on the worker, bind() gives the job the operator's elevation, and nothing
+ * else does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Security;
@@ -7,13 +19,6 @@ namespace App\Domain\Support\Security;
 use InvalidArgumentException;
 use LogicException;
 
-/**
- * Who a queued job acts for (I-392): a person, by ID, or the operator. The
- * operator is made only while the operator is present at the server's
- * shell, so a job queued from a web request can never act as the operator;
- * on the worker, bind() gives the job the operator's elevation, and nothing
- * else does.
- */
 final readonly class JobActor
 {
     private function __construct(public ?string $userId) {}

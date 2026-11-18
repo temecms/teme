@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Themes\Reference;
-
 /**
  * The pin of everything a template can read, kept in docs/reference/theme-view-data.json:
  * what each value's type is, what it was, and what is gone, so a value is never
  * renamed, retyped or removed without a line in the changelog (I-3346).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Themes\Reference;
+
 final class ViewDataPin
 {
     /**

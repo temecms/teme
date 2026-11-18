@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Turns a stored document into HTML on the server. Runs of prose go to
+ * tiptap-php; each card renders itself through its CardType. That keeps
+ * card HTML entirely ours and limits what we ask of tiptap-php (study L,
+ * §2.10). Nothing it produces is stored (rule 7).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards;
@@ -19,12 +30,6 @@ use Tiptap\Nodes\TableRow;
 use Tiptap\Nodes\TaskItem;
 use Tiptap\Nodes\TaskList;
 
-/**
- * Turns a stored document into HTML on the server. Runs of prose go to
- * tiptap-php; each card renders itself through its CardType. That keeps
- * card HTML entirely ours and limits what we ask of tiptap-php (study L,
- * §2.10). Nothing it produces is stored (rule 7).
- */
 final readonly class DocumentRenderer
 {
     public function __construct(private CardRegistry $cards, private CardMedia $media) {}

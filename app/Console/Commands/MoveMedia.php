@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:media:move`: the operator's copy of a media library from one
+ * location to another, resumable and verified, and later the deletion of
+ * the source's copies (I-3456). It works in this process, as the operator.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -12,11 +22,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-/**
- * `teme:media:move`: the operator's copy of a media library from one
- * location to another, resumable and verified, and later the deletion of
- * the source's copies (I-3456). It works in this process, as the operator.
- */
 final class MoveMedia extends Command
 {
     /** @var string */

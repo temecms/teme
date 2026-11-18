@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The copy of a library image that alt text is asked about (I-319): its
+ * 960-pixel variant, never the private original and never a link, decoded
+ * and written again as a WebP still, its longer side cut to what a model
+ * reads and its bytes under the cap.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\AltText;
@@ -11,12 +22,6 @@ use App\Domain\Media\Models\Media;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use League\Flysystem\FilesystemException;
 
-/**
- * The copy of a library image that alt text is asked about (I-319): its
- * 960-pixel variant, never the private original and never a link, decoded
- * and written again as a WebP still, its longer side cut to what a model
- * reads and its bytes under the cap.
- */
 final readonly class AltTextImage
 {
     /** The variant I-319 names; a narrower original's own-width copy stands in for it. */

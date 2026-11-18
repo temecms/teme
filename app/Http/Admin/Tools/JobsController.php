@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Tools › Jobs (I-104): every tracked job, a keyset page at a time, polled
+ * while one is under way; retrying and cancelling through RetryJob and
+ * CancelJob. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -20,11 +30,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Tools › Jobs (I-104): every tracked job, a keyset page at a time, polled
- * while one is under way; retrying and cancelling through RetryJob and
- * CancelJob. It changes nothing itself.
- */
 final class JobsController extends Controller
 {
     public function index(Request $request, TrackedJobList $list, SettingsReader $settings): Response

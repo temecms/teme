@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Back up now (I-361): puts a backup in line, as a tracked job that waits
+ * for the scheduler, which runs it within a minute as whoever asked. One
+ * waits at a time; a backup, a prune or a check running meanwhile only
+ * makes it wait longer. Returns the job's ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Back up now (I-361): puts a backup in line, as a tracked job that waits
- * for the scheduler, which runs it within a minute as whoever asked. One
- * waits at a time; a backup, a prune or a check running meanwhile only
- * makes it wait longer. Returns the job's ID.
- */
 final class RequestBackup extends BaseOperation
 {
     use AuthorizesBackupRuns;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › Languages (I-3360; docs/proposals/multilingual-screens.md): the
+ * site's languages in one table, and which types are translated. Adding,
+ * changing, reordering and removing a language go through their
+ * Operations, each answered with a toast.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -25,12 +36,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › Languages (I-3360; docs/proposals/multilingual-screens.md): the
- * site's languages in one table, and which types are translated. Adding,
- * changing, reordering and removing a language go through their
- * Operations, each answered with a toast.
- */
 final class LanguagesController extends Controller
 {
     public function show(): Response
@@ -81,6 +86,9 @@ final class LanguagesController extends Controller
         )), __('Removed :language.', ['language' => $label]));
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function reorder(Request $request, ReorderSiteLanguages $reorder): RedirectResponse
     {
         return $this->answered(fn () => $reorder->execute(new ReorderSiteLanguagesInput(

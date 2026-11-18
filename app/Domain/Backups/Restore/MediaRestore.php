@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Puts a backup's media back (I-2404): each media disk's folder made the
+ * snapshot's exactly. Its targets are checked first, since a restore
+ * deletes what the snapshot lacks.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -13,11 +23,6 @@ use Illuminate\Filesystem\LocalFilesystemAdapter;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Puts a backup's media back (I-2404): each media disk's folder made the
- * snapshot's exactly. Its targets are checked first, since a restore
- * deletes what the snapshot lacks.
- */
 final readonly class MediaRestore
 {
     public function __construct(private Restic $restic) {}

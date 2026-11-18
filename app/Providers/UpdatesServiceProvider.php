@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Registers the Status banner that tells administrators a newer Teme release exists (I-221), and the platform the updater moves Teme's parts through.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -15,9 +23,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsRegistrar;
 
-/**
- * Registers the Status banner that tells administrators a newer Teme release exists (I-221), and the platform the updater moves Teme's parts through.
- */
 final class UpdatesServiceProvider extends ServiceProvider
 {
     public function register(): void

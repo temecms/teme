@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Two to twenty-four images shown together, with one caption. The images are
+ * held by ID in the order the writer set; any that have gone since are left
+ * out when it renders.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -14,11 +24,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Media\ImageMarkup;
 use Illuminate\Support\Facades\Validator;
 
-/**
- * Two to twenty-four images shown together, with one caption. The images are
- * held by ID in the order the writer set; any that have gone since are left
- * out when it renders.
- */
 final class GalleryCard implements CardType
 {
     public function name(): string

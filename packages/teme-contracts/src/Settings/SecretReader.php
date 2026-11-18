@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The only way to read a secret setting.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Settings;

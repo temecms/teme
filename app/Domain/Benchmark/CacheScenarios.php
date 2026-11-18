@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The page cache's scenarios for the benchmark (slice 1.7e): hits, misses, a
+ * STALE answer, a wait and a change with the cache on, for the file store
+ * and, when a Valkey answers, the Redis store; a change with a CDN and with
+ * warming; a miss, a change and the prune with the static-file driver. Each
+ * switches the cache on for itself, in a folder and a prefix of its own, and
+ * leaves nothing behind (D7).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -28,14 +41,6 @@ use Illuminate\Support\Sleep;
 use RuntimeException;
 use Throwable;
 
-/**
- * The page cache's scenarios for the benchmark (slice 1.7e): hits, misses, a
- * STALE answer, a wait and a change with the cache on, for the file store
- * and, when a Valkey answers, the Redis store; a change with a CDN and with
- * warming; a miss, a change and the prune with the static-file driver. Each
- * switches the cache on for itself, in a folder and a prefix of its own, and
- * leaves nothing behind (D7).
- */
 final class CacheScenarios
 {
     /** The benchmark's own prefix for the Redis store's keys. */

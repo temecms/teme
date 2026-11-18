@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Mail can fail and registration is off; an operator with a shell must never
+ * be locked out (study G, S12). The link is Laravel's ordinary reset link,
+ * valid for 60 minutes, used once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Mail can fail and registration is off; an operator with a shell must never
- * be locked out (study G, S12). The link is Laravel's ordinary reset link,
- * valid for 60 minutes, used once.
- */
 final class IssuePasswordResetLink extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

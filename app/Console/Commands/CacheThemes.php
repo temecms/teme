@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:themes:cache`: finds and validates Composer's themes once, and
+ * writes them to `config('teme.theme_cache')`, so requests stop validating
+ * their manifests. `optimize` runs it. The theme_paths folders are never
+ * cached.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -8,12 +19,6 @@ use App\Domain\Themes\ThemeRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
-/**
- * `teme:themes:cache`: finds and validates Composer's themes once, and
- * writes them to `config('teme.theme_cache')`, so requests stop validating
- * their manifests. `optimize` runs it. The theme_paths folders are never
- * cached.
- */
 final class CacheThemes extends Command
 {
     /** @var string */

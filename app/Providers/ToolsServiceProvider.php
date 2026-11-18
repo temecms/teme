@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Adds the Tools section to the admin's menu (I-467): its entry, between
+ * Users and Settings, and the hub that lists the tools a person may open.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -10,10 +19,6 @@ use App\Domain\Navigation\NavSection;
 use App\Domain\Navigation\ToolsHub;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Adds the Tools section to the admin's menu (I-467): its entry, between
- * Users and Settings, and the hub that lists the tools a person may open.
- */
 final class ToolsServiceProvider extends ServiceProvider
 {
     public function boot(): void

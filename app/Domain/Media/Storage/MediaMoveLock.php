@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The lock one media move holds while it works (I-3456), so two never copy
+ * or delete at once: a session-level PostgreSQL advisory lock on a
+ * connection of its own, as the backup lock is, seen by every process and
+ * let go when the work ends or the process dies.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Storage;
@@ -10,12 +21,6 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 use Throwable;
 
-/**
- * The lock one media move holds while it works (I-3456), so two never copy
- * or delete at once: a session-level PostgreSQL advisory lock on a
- * connection of its own, as the backup lock is, seen by every process and
- * let go when the work ends or the process dies.
- */
 final class MediaMoveLock
 {
     /** The lock's name, which PostgreSQL's hashtext() turns into its key. */

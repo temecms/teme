@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Runs Composer in one release's folder and nowhere else, with no package's
+ * scripts or Composer plugins, and an environment that holds none of the
+ * site's secrets: only what Composer needs, and the sources' keys in
+ * COMPOSER_AUTH. Not final, so a test can stand in for the advisory check.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
@@ -12,12 +23,6 @@ use SensitiveParameter;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
-/**
- * Runs Composer in one release's folder and nowhere else, with no package's
- * scripts or Composer plugins, and an environment that holds none of the
- * site's secrets: only what Composer needs, and the sources' keys in
- * COMPOSER_AUTH. Not final, so a test can stand in for the advisory check.
- */
 class ComposerRunner
 {
     /** How long one Composer run may take, in seconds. */
