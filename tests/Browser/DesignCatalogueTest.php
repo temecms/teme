@@ -173,3 +173,22 @@ it('keeps the page patterns in their frames at 375 pixels, with one h1 each and 
     $page->assertScript('document.documentElement.scrollWidth <= document.documentElement.clientWidth')
         ->assertScript('[...document.querySelectorAll(\'[data-test^="catalogue-pattern-"]\')].every((frame) => frame.querySelectorAll(\'[data-test="pattern-title"]\').length === 1)');
 });
+
+it('keeps a space between a required field\'s label and its "Required" (#503)', function (): void {
+    $page = cmNavigate(cmSignIn($this->admin), '/admin/_catalogue');
+    cmWaitUntil($page, 'document.querySelector(\'label[for="catalogue-input-error"]\') !== null');
+
+    $label = cmScriptArray($page, <<<'JS'
+        () => {
+            const label = document.querySelector('label[for="catalogue-input-error"]');
+            const mark = label.querySelector('span');
+            const words = document.createRange();
+            words.selectNodeContents(label.firstChild);
+
+            return { text: label.innerText.trim(), gap: Math.round(mark.getBoundingClientRect().left - words.getBoundingClientRect().right) };
+        }
+        JS);
+
+    expect($label['text'])->toBe('Address Required')
+        ->and($label['gap'])->toBeGreaterThan(0);
+});

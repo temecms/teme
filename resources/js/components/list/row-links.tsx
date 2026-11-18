@@ -13,9 +13,8 @@ const LINK =
 /**
  * A row's actions as links under its title (I-3130): up to four on the line,
  * and past four the first three and the destructive one, the rest under
- * More. The line is unseen until its row is hovered or holds focus, or its
- * More is open, and always shown on a touch screen; it always keeps its
- * space, so rows never jump.
+ * More. The line is always shown, never only on hover, so touch screens
+ * and the keyboard find it (docs/architecture/design-system.md, 4.26).
  */
 export function RowLinks({
     items,
@@ -35,7 +34,7 @@ export function RowLinks({
             role="group"
             aria-label={label}
             data-test="row-links"
-            className="mt-0.5 flex flex-wrap items-center gap-x-1 text-xs opacity-0 group-focus-within/row:opacity-100 group-hover/row:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-100 [@media(pointer:coarse)]:opacity-100"
+            className="mt-0.5 flex flex-wrap items-center gap-x-1 text-xs"
         >
             {line.map((item, at) => (
                 <Fragment key={item.id}>

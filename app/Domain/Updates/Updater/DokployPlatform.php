@@ -337,7 +337,7 @@ final class DokployPlatform implements Platform
         $token = $this->secrets->secret(UpdatesSettings::GROUP, UpdatesSettings::DOKPLOY_API_KEY);
 
         if (! is_string($token) || $token === '') {
-            throw new PlatformRefused('Teme has no Dokploy API key. Paste one in Settings › Updates.');
+            throw PlatformRefused::noKey();
         }
 
         $address = $this->address($procedure);

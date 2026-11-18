@@ -36,7 +36,7 @@ function Textarea({
         onInput?.(event)
       }}
       className={cn(
-        "flex w-full min-w-0 rounded-md px-3 py-2 text-body leading-normal text-ink placeholder:text-ink-3 transition-[border-color] duration-(--dur-1) ease-(--ease) outline-none focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-ring",
+        "flex w-full min-w-0 rounded-md px-3 py-2 text-body leading-normal text-ink placeholder:text-ink-3 transition-[border-color] duration-(--dur-1) ease-(--ease) outline-none focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-0 focus-visible:outline-ring",
         autoGrow
           ? "resize-none overflow-hidden border-0 bg-transparent"
           : "resize-y border border-edge bg-surface focus-visible:border-transparent",

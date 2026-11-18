@@ -72,7 +72,19 @@ class AuthenticationTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('logout'));
 
-        $response->assertRedirect(route('home'));
+        $response->assertRedirect(route('login'));
+
+        $this->assertGuest();
+    }
+
+    public function test_signing_out_from_the_admin_leaves_it_for_the_sign_in_page_in_a_full_visit(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('logout'), [], ['X-Inertia' => 'true']);
+
+        $response->assertStatus(409)
+            ->assertHeader('X-Inertia-Location', route('login'));
 
         $this->assertGuest();
     }

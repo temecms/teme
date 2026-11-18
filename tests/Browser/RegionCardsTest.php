@@ -180,3 +180,15 @@ it('passes axe with both cards\' panels open at :dataset', function (int $width,
     '375, light' => [375, 'light'],
     '375, dark' => [375, 'dark'],
 ]);
+
+it('gives a region its own checks in the rail, and none of a post\'s search checks (#529)', function (): void {
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1280, 900), $this->edit));
+
+    cmWaitUntil($page, "document.querySelector('[data-test=\"rail-region-checks\"]') !== null")
+        ->assertScript("[...document.querySelectorAll('[data-test=\"rail-region-checks\"] [data-check]')].map((check) => check.dataset.check).join('|')", 'blocks|cards|alt')
+        ->assertScript("document.querySelector('[data-test=\"rail-region-checks\"] [data-check=\"blocks\"]').textContent.includes('Empty. The theme draws nothing here until the region has something in it.')")
+        ->assertScript("document.querySelector('[data-test=\"rail-region-checks\"] [data-check=\"alt\"]').textContent.includes('No images without alt text.')")
+        ->assertSeeIn('[data-test="rail-region-checks-note"]', 'A warning never blocks saving a draft. Publishing is refused while the region is over its limit or holds a card it does not take.')
+        ->assertNotPresent('[data-test="rail-checks"]')
+        ->assertNotPresent('[data-test="rail-search-note"]');
+});

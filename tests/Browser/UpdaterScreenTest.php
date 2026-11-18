@@ -267,3 +267,13 @@ it('keeps its last block and goes on polling when one poll gets a 404 or loses i
     ]);
     ($this->seen)($page, 'Updated to Teme 0.1.0-rc.15 at');
 })->with(['a plain-text 404' => 'plain-404', 'a lost connection' => 'network']);
+
+it('links Settings › Updates where a stopped update says to paste the Dokploy key there (#534)', function (): void {
+    ($this->row)('failed', ['failed', 'pending', 'pending', 'pending', 'pending', 'pending', 'pending'], ['error' => 'Teme has no Dokploy API key. Paste one in Settings › Updates.']);
+
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/updates');
+    ($this->seen)($page, 'The update to Teme 0.1.0-rc.15 stopped: Teme has no Dokploy API key. Paste one in Settings › Updates.');
+
+    $page->assertScript("document.querySelector('#update-lead a')?.textContent", 'Settings › Updates')
+        ->assertScript("new URL(document.querySelector('#update-lead a').href).pathname", '/admin/settings/updates');
+});

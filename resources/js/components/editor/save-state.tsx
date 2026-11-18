@@ -1,13 +1,15 @@
 import { cn } from '@/lib/utils';
 import type { SaveFailure } from './save-failure';
 import type { AutosaveState } from './use-autosave';
+import { adminLocale, siteZone } from '@/lib/dates';
 
-/** A time as the person's clock shows it, hours and minutes. */
+/** A time on the site's clock, hours and minutes. */
 function clock(iso: string): string {
-    return new Date(iso).toLocaleTimeString([], {
+    return new Intl.DateTimeFormat(adminLocale(), {
+        timeZone: siteZone(),
         hour: '2-digit',
         minute: '2-digit',
-    });
+    }).format(new Date(iso));
 }
 
 /** Where saving stands, as the header's hook names it. */

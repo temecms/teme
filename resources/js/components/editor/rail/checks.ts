@@ -574,3 +574,68 @@ export function descriptionSource(
             return 'Description: none. Search engines will choose text from the page.';
     }
 }
+
+export type RegionChecksInput = {
+    document: unknown;
+    media: Record<string, CardMedia>;
+    /** The most top-level blocks the region holds. */
+    max: number;
+    /** The cards the region takes, by name. */
+    allowed: string[];
+    /** Every card's label, by name: what tells a card from text. */
+    cardLabels: Record<string, string>;
+};
+
+/** What a theme region's checks read (issue 529); the rail words them. */
+export type RegionFacts = {
+    /** Its top-level blocks; an editor holding only an empty line holds none. */
+    blocks: number;
+    max: number;
+    /** The labels of the cards it holds but doesn't take, each once. */
+    refused: string[];
+    /** The labels of the cards it takes. */
+    takes: string[];
+    /** Its cards with an image that has no alt text. */
+    noAlt: number;
+};
+
+/** Whether a top-level block is an empty paragraph, as an empty editor holds. */
+const isEmptyParagraph = (node: Node): boolean =>
+    node.type === 'paragraph' && (node.content ?? []).length === 0;
+
+/**
+ * A theme region's own facts (issue 529), in place of a post's search
+ * checks, none of which a region has: its blocks against its limit, the
+ * cards it holds but doesn't take, and its images without alt text.
+ */
+export function regionFacts(input: RegionChecksInput): RegionFacts {
+    const top = ((input.document as Node | null)?.content ?? []).filter(
+        (node) => typeof node === 'object' && node !== null,
+    );
+    const refused: string[] = [];
+    const walk = (node: Node) => {
+        const type = node.type ?? '';
+
+        if (
+            Object.hasOwn(input.cardLabels, type) &&
+            !input.allowed.includes(type) &&
+            !refused.includes(type)
+        ) {
+            refused.push(type);
+        }
+
+        (node.content ?? []).forEach(walk);
+    };
+    top.forEach(walk);
+
+    const labelOf = (name: string): string =>
+        Object.hasOwn(input.cardLabels, name) ? input.cardLabels[name] : name;
+
+    return {
+        blocks: top.every(isEmptyParagraph) ? 0 : top.length,
+        max: input.max,
+        refused: refused.map(labelOf),
+        takes: input.allowed.map(labelOf),
+        noAlt: cardsMissingAlt(input.document, input.media).length,
+    };
+}

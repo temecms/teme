@@ -42,7 +42,7 @@ it('passes axe on Settings › Updates with every target 24 pixels or more, at 1
 
     $page = cmNavigate(cmSignIn($this->admin)->resize($width, 900), '/admin/settings/updates');
     $page->assertSee('Dokploy API key')
-        ->assertSeeIn('[data-test="settings-notice"]', 'Teme has no Dokploy API key. Paste one in Settings › Updates.')
+        ->assertSeeIn('[data-test="settings-notice"]', 'Updating from Tools › Updates needs a Dokploy API key. Paste it below.')
         ->assertNoAccessibilityIssues(3);
 
     $targets = cmSmallTargets($page);

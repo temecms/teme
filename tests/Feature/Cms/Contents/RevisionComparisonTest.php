@@ -56,6 +56,18 @@ it('shows a changed paragraph with the words that differ', function (): void {
         ->and($blocks[0]->after)->toContain('<del>Three</del>');
 });
 
+it('keeps a space between a removed word and the word that replaced it, so the words never run together (#531)', function (): void {
+    $before = docWith(docText('Serve it hot with dough on the quay.'));
+    $after = docWith(docText('Serve it four, with coffee on the harbour.'));
+
+    $after = app(DocumentDiff::class)->between($before, $after)[0]->after;
+    $read = html_entity_decode(strip_tags((string) $after));
+
+    expect($read)->toBe('Serve it hot four, with dough coffee on the quay. harbour.')
+        ->and($after)->not->toContain('</del><ins>')
+        ->and($after)->not->toContain('</ins><del>');
+});
+
 it('escapes the text it marks up', function (): void {
     $blocks = app(DocumentDiff::class)->between(
         docWith(docText('Plain.')),

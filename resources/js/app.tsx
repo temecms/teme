@@ -15,6 +15,7 @@ import AccountLayout from '@/layouts/account/layout';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { installHistoryGuard } from '@/lib/history-guard';
+import { setDateContext } from '@/lib/dates';
 import { setWords } from '@/lib/i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Teme';
@@ -39,8 +40,9 @@ void createInertiaApp({
     },
     strictMode: true,
     withApp(app, { page }) {
-        // The first page's words, before anything is drawn.
+        // The first page's words, zone and language, before anything is drawn.
         setWords(page.props.i18n);
+        setDateContext(page.props.siteTimezone, page.props.i18n?.locale);
 
         return (
             <TooltipProvider delayDuration={0}>
@@ -55,7 +57,13 @@ void createInertiaApp({
     },
 });
 
-// Every later page's words, before it is drawn: the same while the catalogue is unchanged.
-router.on('beforeUpdate', (event) => setWords(event.detail.page.props.i18n));
+// Every later page's words, zone and language, before it is drawn: the same while the catalogue is unchanged.
+router.on('beforeUpdate', (event) => {
+    setWords(event.detail.page.props.i18n);
+    setDateContext(
+        event.detail.page.props.siteTimezone,
+        event.detail.page.props.i18n?.locale,
+    );
+});
 
 initializeTheme();
