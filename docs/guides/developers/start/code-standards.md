@@ -23,7 +23,37 @@ None of these is checked. They are what Teme's own code does, and what makes a p
 
 - `declare(strict_types=1);` at the top of every PHP file;
 - Pint for formatting, PHPStan for static analysis, and Pest for tests, with a failing test written first (see [Testing a plugin or theme](../testing.md));
-- a docblock of one to three sentences on every class, saying what it is for;
-- `@since` tags only if your package publishes an API of its own for other packages to build on. For the `@since` tags on Teme's contracts, and what they mean for `requires.teme`, see [Hooks](../concepts/hooks.md#since-and-the-teme-you-require).
+- a header on every PHP file, the same shape as Teme's own, saying what the file is for, your package, the version of your package that first held the file, and your licence (below);
+- `@since` on your public methods, constants and hooks, with a change note for each release that changed one, as the maintainers' own plugins do. For the `@since` tags on Teme's contracts, and what they mean for `requires.teme`, see [Hooks](../concepts/hooks.md#since-and-the-teme-you-require).
+
+### The file header
+
+Teme's own PHP files each open with this header, and the maintainers' plugins and themes use it too. In a file that holds one class, its sentences are the class's purpose, moved up rather than said twice.
+
+```php
+<?php
+
+/**
+ * Suggests internal links for an article, from the words it shares with
+ * the site's other items.
+ *
+ * @package teme/seo
+ * @since   1.0.0
+ * @license MIT
+ */
+
+declare(strict_types=1);
+```
+
+`@package` is your Composer package name, `@since` is your own package's version, not Teme's, and `@license` is your licence. Leave out `@author`, the year and `@copyright`: git and your licence file hold them. A member added or changed later says so where it is declared:
+
+```php
+/**
+ * @since 1.0.0
+ * @since 1.2.0 Accepts a list of channels.
+ */
+```
+
+Write `@since next` while a release is being built, and replace it with the version when you prepare the release. Teme's own `scripts/file-headers.php` does both for a plugin or theme kept in Teme's repository: `apply` adds the headers, and `release <version> --path=plugins/<name>` stamps the version.
 
 If you want your code to read like Teme's, follow its [coding standards](../../../architecture/coding-standards.md) too. Nothing requires it.
