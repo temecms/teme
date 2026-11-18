@@ -1,0 +1,4 @@
+/* The admin's own fonts alone (I-196), for the pages drawn outside its app:
+   the error pages and the holding page link this and nothing else. */
+@import '@fontsource-variable/ibm-plex-sans/wght.css';
+@import '@fontsource/ibm-plex-serif/600.css';

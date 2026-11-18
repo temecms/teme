@@ -12,6 +12,8 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.tsx',
+                // The admin's fonts alone, which the error pages link (issue 533).
+                'resources/css/admin-fonts.css',
                 // One stylesheet per card, which the public page links only when it draws that card (I-248).
                 'resources/css/cards/image.css',
                 'resources/css/cards/gallery.css',
