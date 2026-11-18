@@ -59,7 +59,7 @@ The `label` is at most 24 characters. A `description` of at most 160 characters 
 
 - `text`, at most 200 characters, or the `maxLength` you give, up to 2,000;
 - `textarea`, at most 2,000 characters, or the `maxLength` you give;
-- `url`, an `http` or `https` address;
+- `url`, an `http` or `https` address on another site. An address on this site is refused, because the site writes its own addresses at render so they follow it when it moves. Join a path to `HeadPage`'s `home` instead;
 - `number`, within an optional `min` and `max`;
 - `boolean`;
 - `select`, one of its `options`, an object of values and labels.

@@ -102,6 +102,8 @@ final readonly class PluginSearchFields
                     $errors["fields.{$key}.{$name}"] = __('“:tab” has no field :name.', ['tab' => $sections[$key]['section']['label'], 'name' => (string) $name]);
                 } elseif (! $this->validator->fits($field, $value)) {
                     $errors["fields.{$key}.{$name}"] = __('“:label” doesn’t take that value.', ['label' => (string) $field['label']]);
+                } elseif ($this->validator->onThisSite($field, $value)) {
+                    $errors["fields.{$key}.{$name}"] = __('“:label” is on this site. Teme writes the site’s own addresses itself, so they stay right if it moves.', ['label' => (string) $field['label']]);
                 } elseif ($value !== null && $value !== '') {
                     $kept[(string) $name] = is_string($value) ? trim($value) : $value;
                 }

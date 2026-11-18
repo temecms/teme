@@ -146,6 +146,24 @@ final class SeoValidator
     }
 
     /**
+     * Whether a value for an address field is on the site's own host, which
+     * is never stored: the site makes its own addresses at render, so they
+     * follow it when it moves (rule 9, docs/guides/developers/plugins/seo.md).
+     *
+     * @param  array<array-key, mixed>  $field
+     */
+    public function onThisSite(array $field, mixed $value): bool
+    {
+        if (($field['type'] ?? null) !== 'url' || ! is_string($value) || $value === '') {
+            return false;
+        }
+
+        $host = parse_url($value, PHP_URL_HOST);
+
+        return is_string($host) && mb_strtolower($host) === mb_strtolower((string) parse_url(url('/'), PHP_URL_HOST));
+    }
+
+    /**
      * Whether a value fits a section's field as declared: its kind, length,
      * option or bounds. Null always fits: it clears the value.
      *
