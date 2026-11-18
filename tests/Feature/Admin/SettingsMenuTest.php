@@ -25,7 +25,7 @@ it('orders core\'s Settings pages by the menu\'s own order, not by when their pa
         ->toBe(['general', 'writing', 'addresses', 'media', 'people']);
 });
 
-it('puts a page the order doesn\'t name after core\'s, and a plugin\'s group last, under Plugin settings', function (): void {
+it('puts a page the order doesn\'t name after core\'s, and a plugin\'s group last, under From plugins', function (): void {
     $registry = app(SettingsRegistry::class);
     // The plugin's group registers first, so its place can't come from registering.
     $registry->group(new SettingsGroup(
@@ -50,8 +50,8 @@ it('puts a page the order doesn\'t name after core\'s, and a plugin\'s group las
     $menu = app(SettingsNavigation::class)->forUser($this->admin->id);
 
     expect(array_slice($menu, -2))->toBe([
-        ['key' => 'test_extra', 'label' => 'Extra', 'href' => route('settings.show', ['group' => 'test_extra'], false), 'heading' => 'Site'],
-        ['key' => 'plugin.example', 'label' => 'Example', 'href' => route('settings.show', ['group' => 'plugin.example'], false), 'heading' => 'Plugin settings'],
+        ['key' => 'test_extra', 'label' => 'Extra', 'href' => route('settings.show', ['group' => 'test_extra'], false), 'heading' => 'Site', 'plugin' => false],
+        ['key' => 'plugin.example', 'label' => 'Example', 'href' => route('settings.show', ['group' => 'plugin.example'], false), 'heading' => 'From plugins', 'plugin' => true],
     ]);
 });
 
@@ -60,7 +60,7 @@ it('lists only what the person may open, each with its address and heading', fun
     $editor->givePermissionTo('settings.media.manage');
 
     expect(app(SettingsNavigation::class)->forUser($editor->id))->toBe([
-        ['key' => 'media', 'label' => 'Media', 'href' => route('settings.show', ['group' => 'media'], false), 'heading' => 'Site'],
+        ['key' => 'media', 'label' => 'Media', 'href' => route('settings.show', ['group' => 'media'], false), 'heading' => 'Site', 'plugin' => false],
     ]);
 });
 

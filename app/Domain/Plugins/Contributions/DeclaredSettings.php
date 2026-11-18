@@ -14,7 +14,7 @@ use Teme\Contracts\Settings\SettingType;
 
 /**
  * Builds the settings group a plugin declares in its manifest's
- * `contributes.settings`, which Teme draws under Plugin settings for
+ * `contributes.settings`, which Teme draws under From plugins for
  * holders of plugins.manage (I-3353).
  */
 final class DeclaredSettings
