@@ -5,6 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Admin\Settings;
 
 use App\Domain\Settings\Exceptions\StaleSettingsException;
+use App\Domain\Site\Insertions\Operations\ApprovePluginScript;
+use App\Domain\Site\Insertions\Operations\Input\ApprovePluginScriptInput;
+use App\Domain\Site\Insertions\Operations\Input\RefusePluginScriptInput;
+use App\Domain\Site\Insertions\Operations\Input\RevokePluginScriptInput;
+use App\Domain\Site\Insertions\Operations\RefusePluginScript;
+use App\Domain\Site\Insertions\Operations\RevokePluginScript;
+use App\Domain\Site\Insertions\Queries\PluginScriptsList;
 use App\Domain\SiteCode\Operations\DeleteSiteCode;
 use App\Domain\SiteCode\Operations\Input\DeleteSiteCodeInput;
 use App\Domain\SiteCode\Operations\Input\SaveSiteCodeInput;
@@ -16,6 +23,7 @@ use App\Domain\SiteCode\Operations\UpdateAdsTxt;
 use App\Domain\SiteCode\Queries\SiteCodeScreen;
 use App\Domain\SiteCode\SiteCode;
 use App\Http\Controllers\Controller;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -25,13 +33,14 @@ use Inertia\Response;
 /**
  * Settings › Site code (I-863): the entries and their changes, each change
  * handed to its Operation, which asks for the password again; ads.txt through
- * UpdateAdsTxt. It changes nothing itself.
+ * UpdateAdsTxt; and plugins' scripts approved, refused or revoked through
+ * their Operations. It changes nothing itself.
  */
 final class SiteCodeController extends Controller
 {
-    public function show(SiteCodeScreen $screen): Response
+    public function show(SiteCodeScreen $screen, PluginScriptsList $scripts): Response
     {
-        return Inertia::render('settings/site-code', $screen->data());
+        return Inertia::render('settings/site-code', [...$screen->data(), 'pluginScripts' => $scripts->all()]);
     }
 
     public function store(Request $request, SaveSiteCode $save): RedirectResponse
@@ -85,6 +94,30 @@ final class SiteCodeController extends Controller
         return self::told(__('ads.txt saved.'));
     }
 
+    public function approveScript(Request $request, ApprovePluginScript $approve, string $script): RedirectResponse
+    {
+        return self::decided(
+            fn (): array => $approve->execute(new ApprovePluginScriptInput($script, (string) $request->user()?->getAuthIdentifier())),
+            'Script approved. Pages that hold “:name” run it now.',
+        );
+    }
+
+    public function refuseScript(Request $request, RefusePluginScript $refuse, string $script): RedirectResponse
+    {
+        return self::decided(
+            fn (): array => $refuse->execute(new RefusePluginScriptInput($script, (string) $request->user()?->getAuthIdentifier())),
+            'Script refused. Pages leave it out of “:name”.',
+        );
+    }
+
+    public function revokeScript(Request $request, RevokePluginScript $revoke, string $script): RedirectResponse
+    {
+        return self::decided(
+            fn (): array => $revoke->execute(new RevokePluginScriptInput($script, (string) $request->user()?->getAuthIdentifier())),
+            'Decision revoked. Pages leave the script out of “:name” until it’s approved.',
+        );
+    }
+
     private function save(Request $request, SaveSiteCode $save, ?string $entry): RedirectResponse
     {
         $name = trim((string) $request->input('name'));
@@ -109,6 +142,25 @@ final class SiteCodeController extends Controller
         };
 
         return self::told(($result['added'] ? __('Code added.') : __('Code saved.')).' '.$where);
+    }
+
+    /**
+     * A decision on a plugin's script, said in a toast; one refused because
+     * someone else decided first is said as an error.
+     *
+     * @param  Closure(): array{name: string, plugin: string}  $decide
+     */
+    private static function decided(Closure $decide, string $message): RedirectResponse
+    {
+        try {
+            $result = $decide();
+        } catch (ValidationException $refused) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => (string) collect($refused->errors())->flatten()->first()]);
+
+            return to_route('settings.site-code');
+        }
+
+        return self::told(__($message, ['name' => $result['name']]));
     }
 
     private static function told(string $message): RedirectResponse

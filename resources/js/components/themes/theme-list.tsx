@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
 import type { CSSProperties } from 'react';
-import ThemesController from '@/actions/App/Http/Admin/ThemesController';
 import type { Change } from '@/components/extensions/installer';
 import { originLabel } from '@/components/extensions/words';
 import InputError from '@/components/input-error';
@@ -108,7 +107,7 @@ export function ThemeList({
     onChange,
 }: {
     themes: DesignTheme[];
-    /** The theme whose settings can be changed, so its card links to them. */
+    /** The theme whose settings can be changed, so its card leads down to them. */
     settingsOf: string | null;
     /** A refused Preview, shown under that theme's card. */
     error: { code: string; message: string } | null;
@@ -298,14 +297,15 @@ export function ThemeList({
                                                 size="sm"
                                                 asChild
                                             >
-                                                <Link
-                                                    href={ThemesController.settings(
-                                                        { code: theme.code },
-                                                    )}
+                                                <a
+                                                    href="#theme-settings"
                                                     data-test="theme-settings-link"
                                                 >
-                                                    Theme settings
-                                                </Link>
+                                                    {theme.state ===
+                                                    'previewing'
+                                                        ? __('Its settings')
+                                                        : __('Theme settings')}
+                                                </a>
                                             </Button>
                                         )}
                                     </div>
