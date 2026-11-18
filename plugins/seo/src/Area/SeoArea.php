@@ -16,6 +16,7 @@ use Teme\Contracts\Admin\TableQuery;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
 use Teme\Contracts\Content\ItemChanges;
+use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Lists\Cell;
@@ -33,6 +34,9 @@ use Teme\Seo\TemeSeo;
  */
 final readonly class SeoArea implements PluginArea
 {
+    /** The most unpublished items a table looks through for one person. */
+    private const int MOST_DRAFTS = 5000;
+
     public function __construct(
         private ItemIndex $index,
         private SearchFigures $search,
@@ -85,7 +89,7 @@ final readonly class SeoArea implements PluginArea
         return match ($record) {
             'search' => $this->searchRows($query),
             'link' => $this->linkRows($query),
-            default => $this->itemRows($query),
+            default => $this->itemRows($query, $context->personId),
         };
     }
 
@@ -229,11 +233,15 @@ final readonly class SeoArea implements PluginArea
      * doesn't say which table asks, so each row carries both tables' cells
      * (plugins/seo/FINDINGS.md). Items with the most problems come first.
      */
-    private function itemRows(TableQuery $query): RowPage
+    private function itemRows(TableQuery $query, string $personId): RowPage
     {
         $conditions = BuiltInChecks::conditions();
         $thin = $this->thinWords();
-        $builder = $this->index->query()->where('i.trashed', false);
+        $editable = $this->editableDrafts($personId);
+        $builder = $this->index->query()
+            ->where('i.trashed', false)
+            // A draft shows only to a person who may edit it, as core's own queue shows it.
+            ->where(fn (Builder $visible) => $visible->where('i.status', 'published')->orWhereIn('i.id', $editable));
         $this->search($builder, $query->search);
         $check = $query->filters['check'] ?? null;
 
@@ -304,6 +312,34 @@ final readonly class SeoArea implements PluginArea
         }
 
         return new RowPage($rows, $total);
+    }
+
+    /**
+     * The IDs of the unpublished items this person may edit, as core's
+     * queue lists them, up to the most a table looks through.
+     *
+     * @return list<string>
+     */
+    private function editableDrafts(string $personId): array
+    {
+        $ids = [];
+        $after = null;
+
+        do {
+            try {
+                $page = $this->reader->queue(new QueueQuery(after: $after, limit: 200), $personId);
+            } catch (ReadRefused) {
+                return [];
+            }
+
+            foreach ($page->items as $item) {
+                $ids[] = $item->item->id;
+            }
+
+            $after = $page->next;
+        } while ($after !== null && count($ids) < self::MOST_DRAFTS);
+
+        return $ids;
     }
 
     /**

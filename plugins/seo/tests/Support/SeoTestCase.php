@@ -34,10 +34,12 @@ abstract class SeoTestCase extends TemeTestCase
     }
 
     /**
-     * Signs this person in to the admin for the requests that follow.
+     * Signs this person in to the admin for the requests that follow, in a
+     * fresh session, as another browser would.
      */
     protected function signIn(Person $person): void
     {
+        $this->flushSession();
         $this->actingAs(User::query()->findOrFail($person->id));
     }
 }

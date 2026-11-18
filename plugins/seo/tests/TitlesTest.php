@@ -37,6 +37,33 @@ final class TitlesTest extends SeoTestCase
                 ->where('block_titles.rows.0.cells.description.value', 'How and when.')));
     }
 
+    #[TestDox('lists to a person only the drafts they may edit, on both pages that list items')]
+    public function test_it_lists_to_a_person_only_the_drafts_they_may_edit_on_both_pages_that_list_items(): void
+    {
+        $author = $this->person('author');
+        User::query()->findOrFail($author->id)->givePermissionTo('plugin.seo.manage');
+        $published = seoWrite($this->editor, 'Feeding roses');
+        $secret = seoWrite($this->editor, 'An editor’s secret plan', publish: false);
+        $own = seoWrite($author, 'My own draft', publish: false);
+
+        $this->signIn($author);
+
+        foreach (['titles' => 'titles', 'audit' => 'problems'] as $page => $block) {
+            $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => $page]))
+                ->assertOk()
+                ->assertInertia(fn (Assert $view) => $view->loadDeferredProps('block_'.$block, fn (Assert $reload) => $reload
+                    ->where('block_'.$block.'.total', 2)
+                    ->where('block_'.$block.'.rows', fn ($rows): bool => collect($rows)->pluck('id')->sort()->values()->all() === collect([$published->id, $own->id])->sort()->values()->all())));
+        }
+
+        // The drafts an editor may edit are all theirs to see.
+        $this->signIn($this->editor);
+        $this->get(route('plugins.area.show', ['code' => 'seo', 'page' => 'titles', 't' => ['titles' => ['search' => 'secret plan']]]))
+            ->assertInertia(fn (Assert $view) => $view->loadDeferredProps('block_titles', fn (Assert $reload) => $reload
+                ->where('block_titles.total', 1)
+                ->where('block_titles.rows.0.id', $secret->id)));
+    }
+
     #[TestDox('saves a new title and description as a revision of the draft, as the person editing')]
     public function test_it_saves_a_new_title_and_description_as_a_revision_of_the_draft_as_the_person_editing(): void
     {
