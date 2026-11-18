@@ -74,7 +74,10 @@ function FieldError({
 
 function RequiredMark({ required }: { required?: boolean }) {
   return required ? (
-    <span className="font-normal text-ink-3">{__("Required")}</span>
+    <>
+      {" "}
+      <span className="font-normal text-ink-3">{__("Required")}</span>
+    </>
   ) : null
 }
 
