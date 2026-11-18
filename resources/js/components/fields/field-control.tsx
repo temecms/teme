@@ -1,14 +1,19 @@
+import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Combobox } from '@/components/ui/combobox';
+import type { ComboboxOption } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
+import { Switch } from '@/components/ui/switch';
 import { __ } from '@/lib/i18n';
 import type { CardMedia, FieldDefinition, SecretStatus } from '@/types';
 import { HoursSetting } from './hours-setting';
 import { MediaSetting } from './media-setting';
 import { PairsSetting } from './pairs-setting';
+import { SecretControl } from './secret-control';
 
 const controlClass =
-    'border-edge bg-page focus-visible:ring-ring w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:outline-none';
+    'border-edge bg-surface text-body focus-visible:outline-ring w-full rounded-md border px-3 py-2 focus-visible:outline-2 focus-visible:outline-offset-0';
 
 type Props = {
     field: FieldDefinition;
@@ -65,12 +70,12 @@ export function FieldControl({
                         min={field.min ?? undefined}
                         max={field.max ?? undefined}
                         disabled={disabled}
-                        className="w-22 font-mono tabular-nums"
+                        className="w-32 tabular-nums"
                     />
                     {field.unit !== null && field.unit !== undefined && (
                         <span
                             data-test="field-unit"
-                            className="text-ink-2 text-[13px]"
+                            className="text-body text-ink-2"
                         >
                             {field.unit}
                         </span>
@@ -86,7 +91,7 @@ export function FieldControl({
                         value="0"
                         disabled={disabled}
                     />
-                    <Checkbox
+                    <Switch
                         id={id}
                         aria-describedby={describedBy}
                         name={name}
@@ -96,29 +101,33 @@ export function FieldControl({
                     />
                 </div>
             );
-        case 'select':
-        case 'timezone':
+        case 'select': {
+            const choices = Object.entries(field.options).map(
+                ([optionValue, label]) => ({ value: optionValue, label }),
+            );
+
             return (
-                <select
+                <SelectField
                     id={id}
                     aria-describedby={describedBy}
                     name={name}
+                    options={choices}
                     defaultValue={text}
-                    required={field.required}
                     disabled={disabled}
-                    className={controlClass.replace(
-                        'w-full',
-                        'w-auto max-w-full',
-                    )}
-                >
-                    {Object.entries(field.options).map(
-                        ([optionValue, label]) => (
-                            <option key={optionValue} value={optionValue}>
-                                {label}
-                            </option>
-                        ),
-                    )}
-                </select>
+                    className="w-80 max-w-full"
+                />
+            );
+        }
+        case 'timezone':
+            return (
+                <TimezoneControl
+                    id={id}
+                    name={name}
+                    options={field.options}
+                    value={text}
+                    describedBy={describedBy}
+                    disabled={disabled}
+                />
             );
         case 'multiselect':
             return (
@@ -242,26 +251,13 @@ export function FieldControl({
             );
         case 'secret':
             return (
-                <div className="space-y-2">
-                    <Input
-                        id={id}
-                        aria-describedby={describedBy}
-                        type="password"
-                        name={name}
-                        autoComplete="off"
-                        placeholder={
-                            secret?.isSet
-                                ? 'Set — leave empty to keep'
-                                : 'Not set'
-                        }
-                        disabled={disabled || secret?.source === 'environment'}
-                    />
-                    {secret?.source === 'environment' && (
-                        <p className="text-ink-2 text-xs">
-                            Provided by the server's environment.
-                        </p>
-                    )}
-                </div>
+                <SecretControl
+                    id={id}
+                    name={name}
+                    describedBy={describedBy}
+                    secret={secret}
+                    disabled={disabled}
+                />
             );
         default:
             return (
@@ -289,7 +285,59 @@ export function FieldControl({
     }
 }
 
-/** Ticked boxes for a setting that holds several of its options. */
+/**
+ * A time zone, chosen from a list typed into: there are hundreds. Each
+ * reads as the server names it, such as "Africa/Lagos (WAT, UTC+1)".
+ */
+function TimezoneControl({
+    id,
+    name,
+    options,
+    value,
+    describedBy,
+    disabled,
+}: {
+    id: string;
+    name: string;
+    options: Record<string, string>;
+    value: string;
+    describedBy: string;
+    disabled?: boolean;
+}) {
+    const choices: ComboboxOption[] = Object.entries(options).map(
+        ([optionValue, label]) => ({ value: optionValue, label }),
+    );
+    const [chosen, setChosen] = useState<ComboboxOption | null>(
+        choices.find((choice) => choice.value === value) ?? null,
+    );
+
+    return (
+        <div className="w-80 max-w-full">
+            <Combobox
+                id={id}
+                options={choices}
+                value={chosen}
+                onValueChange={setChosen}
+                placeholder={__('Choose a time zone')}
+                searchPlaceholder={__('Find a time zone')}
+                emptyText={__('No time zone matches.')}
+                aria-describedby={describedBy}
+                disabled={disabled}
+            />
+            <input
+                type="hidden"
+                name={name}
+                value={chosen?.value ?? ''}
+                disabled={disabled}
+            />
+        </div>
+    );
+}
+
+/**
+ * Ticked boxes for a setting that holds several of its options; more than
+ * three sit in two columns. The group is named by the field's label.
+ */
 function Choices({
     id,
     name,
@@ -303,8 +351,16 @@ function Choices({
     value: unknown;
     disabled?: boolean;
 }) {
+    const columns = Object.keys(options).length > 3;
+
     return (
-        <fieldset id={id} className="space-y-2">
+        <div
+            id={id}
+            role="group"
+            aria-labelledby={`${id}-label`}
+            aria-describedby={`${id}-hint ${id}-error`}
+            className={`grid gap-2 ${columns ? 'sm:grid-cols-2' : ''}`}
+        >
             {/* Sent when nothing is ticked, so clearing the selection saves. */}
             <input
                 type="hidden"
@@ -315,7 +371,7 @@ function Choices({
             {Object.entries(options).map(([optionValue, label]) => (
                 <label
                     key={optionValue}
-                    className="flex items-center gap-2 text-sm"
+                    className="text-body text-ink flex items-center gap-2"
                 >
                     <Checkbox
                         name={`${name}[]`}
@@ -328,6 +384,6 @@ function Choices({
                     {label}
                 </label>
             ))}
-        </fieldset>
+        </div>
     );
 }

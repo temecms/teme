@@ -33,12 +33,13 @@ it('generates the General settings page from the registry', function (): void {
             ->where('version', 0));
 });
 
-it('sends the time zone field its options', function (): void {
+it('sends the time zone field its options, each named as a person reads it', function (): void {
     $this->actingAs($this->admin)
         ->get('/admin/settings/general')
         ->assertInertia(fn (Assert $page) => $page
             ->where('fields.3.key', 'timezone')
-            ->where('fields.3.options.Europe/London', 'Europe/London'));
+            ->where('fields.3.options.Africa/Lagos', 'Africa/Lagos (WAT, UTC+1)')
+            ->where('fields.3.options.Asia/Kolkata', 'Asia/Kolkata (IST, UTC+5:30)'));
 });
 
 it('saves through UpdateSettings and shows the new value', function (): void {
@@ -74,8 +75,8 @@ it('returns 404 for an unknown group', function (): void {
     $this->actingAs($this->admin)->get('/admin/settings/nope')->assertNotFound();
 });
 
-it('sends /admin/settings to the General group', function (): void {
-    $this->actingAs($this->admin)->get('/admin/settings')->assertRedirect('/admin/settings/general');
+it('opens /admin/settings on the Settings hub', function (): void {
+    $this->actingAs($this->admin)->get('/admin/settings')->assertOk()->assertInertia(fn (Assert $page) => $page->component('settings/index'));
 });
 
 it('shares the site title and the groups the user may manage', function (): void {
@@ -85,7 +86,7 @@ it('shares the site title and the groups the user may manage', function (): void
 
     $shared = app(HandleInertiaRequests::class)->share($request);
 
-    $entry = fn (string $key, string $label): array => ['key' => $key, 'label' => $label, 'href' => route('settings.show', ['group' => $key], false), 'heading' => 'Site'];
+    $entry = fn (string $key, string $label): array => ['key' => $key, 'label' => $label, 'href' => route('settings.show', ['group' => $key], false), 'heading' => 'Site', 'plugin' => false];
 
     // The Settings menu's order (SettingsNavigation::ORDER), pages that aren't groups among them.
     expect($shared['name'])->toBe('My Teme site')
