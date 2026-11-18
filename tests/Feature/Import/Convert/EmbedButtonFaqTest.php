@@ -117,6 +117,13 @@ it('keeps an FAQ block as headings and paragraphs when an answer holds more than
         ->and($content[0])->toBe(($this->h3)(['type' => 'text', 'text' => 'Prices?']));
 });
 
+it('keeps an FAQ block as headings and paragraphs when a question has no answer, so the item still imports', function (): void {
+    [$content] = ($this->convert)([wpBlock('yoast/faq-block', '<div class="schema-faq wp-block-yoast-faq-block"><div class="schema-faq-section"><strong class="schema-faq-question">Asked?</strong> <p class="schema-faq-answer"></p> </div><div class="schema-faq-section"><strong class="schema-faq-question">Where?</strong> <p class="schema-faq-answer">Online.</p> </div></div>')]);
+
+    expect(array_column($content, 'type'))->not->toContain('faq')
+        ->and($content[0])->toBe(($this->h3)(['type' => 'text', 'text' => 'Asked?']));
+});
+
 it('reads a FAQ block with no questions as any HTML', function (): void {
     [$content] = ($this->convert)([wpBlock('yoast/faq-block', '<div class="schema-faq wp-block-yoast-faq-block"><p>Just text</p></div>')]);
 

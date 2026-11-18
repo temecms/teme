@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
 
+use App\Domain\Cards\CardProse;
 use App\Domain\Cards\Types\FaqCard;
 use App\Domain\Import\Convert\BlockContext;
 use App\Domain\Import\Convert\BlockMapping;
@@ -15,7 +16,8 @@ use App\Domain\Import\Convert\ParsedBlock;
 /**
  * Yoast's and Rank Math's FAQ blocks as Teme's FAQ card: each question its
  * words, each answer its text. A block whose answers hold what a card's
- * text can't, such as an image, becomes headings and paragraphs instead,
+ * text can't, such as an image, or with a question left unanswered, which
+ * the card refuses, becomes headings and paragraphs instead,
  * each question a level-3 heading (I-335), so nothing is lost; a block with
  * no question found is read as any HTML.
  */
@@ -54,7 +56,7 @@ final readonly class Faq implements BlockMapping
             $words = $asked === null ? '' : HtmlFragment::text($asked);
             $text = CardText::of($blocks);
 
-            if ($words === '' || mb_strlen($words) > FaqCard::MOST_QUESTION || $text === null) {
+            if ($words === '' || mb_strlen($words) > FaqCard::MOST_QUESTION || $text === null || CardProse::text($text) === '') {
                 $fits = false;
 
                 continue;
