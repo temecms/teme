@@ -19,6 +19,7 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\PublicRoutes\RootFile;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
+use App\Domain\Sitemaps\Sitemaps;
 use App\Domain\Support\Operations\BaseOperation;
 use App\Domain\Support\Security\Elevation;
 use App\Domain\Support\Security\OperatorElevation;
@@ -88,6 +89,17 @@ final class DisablePlugin extends BaseOperation
         // Its root files stop answering, so a stored "not found" at their addresses can stand again (docs/guides/developers/plugins/root-files.md).
         $manifest = $this->registry->find($input->name)?->manifest;
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...($manifest !== null && RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
+
+        // Its head tags, structured data and sitemaps leave every page (docs/guides/developers/plugins/seo.md).
+        $granted = (array) ($record->consent['capabilities'] ?? []);
+        $seoTags = [
+            ...(in_array(Capability::PagesHead->value, $granted, true) ? [PageTags::SEO] : []),
+            ...(in_array(Capability::Sitemaps->value, $granted, true) ? [Sitemaps::CACHE_TAG] : []),
+        ];
+
+        if ($seoTags !== []) {
+            $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, $seoTags));
+        }
 
         // Its insertions and link attributes leave the pages that drew them, after commit (I-064).
         if (array_intersect([Capability::ContentInsert->value, Capability::PagesInsert->value, Capability::ContentLinks->value], $record->consent['capabilities'] ?? []) !== []) {

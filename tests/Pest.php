@@ -3402,6 +3402,20 @@ function wpWithoutIds(array $node): array
         $node['content'] = array_map(fn (array $child): array => wpWithoutIds($child), $node['content']);
     }
 
+    // An FAQ's questions and a Steps card's steps carry IDs of their own.
+    foreach (['items', 'steps'] as $list) {
+        if (isset($node['attrs'][$list]) && is_array($node['attrs'][$list])) {
+            $node['attrs'][$list] = array_map(function (mixed $entry): mixed {
+                if (is_array($entry) && array_key_exists('id', $entry)) {
+                    expect($entry['id'])->toMatch(DocumentSchema::NODE_ID);
+                    unset($entry['id']);
+                }
+
+                return $entry;
+            }, $node['attrs'][$list]);
+        }
+    }
+
     return $node;
 }
 

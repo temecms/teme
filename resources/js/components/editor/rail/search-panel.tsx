@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CheckCircle2, ChevronDown, CircleAlert } from 'lucide-react';
+import { CheckCircle2, ChevronDown, CircleAlert, Plug } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { BooleanControl } from '@/components/editor/fields/boolean-control';
@@ -25,7 +25,9 @@ import {
     useMetadata,
 } from '@/components/editor/rail/use-metadata';
 import type { MetadataBinding } from '@/components/editor/rail/use-metadata';
+import { PluginChecks } from '@/components/editor/rail/plugin-checks';
 import { BoxRow } from '@/components/editor/search-social/box-row';
+import { PluginTab } from '@/components/editor/search-social/plugin-tab';
 import { orderTabs } from '@/components/editor/search-social/tab-order';
 import type { CheckId } from '@/components/editor/rail/checks';
 import type { SearchPreview } from '@/components/editor/use-search-preview';
@@ -35,7 +37,14 @@ import { Segmented, SegmentedItem } from '@/components/ui/segmented';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
-import type { CardMedia, EditorField, EditorSeo } from '@/types/editor';
+import type {
+    CardMedia,
+    EditorField,
+    EditorSeo,
+    PluginCheckGroup,
+    PluginCheckResult,
+    PluginSearchTab,
+} from '@/types/editor';
 import { quotedTitle } from '@/lib/titles';
 
 /** A text field's value, or nothing. */
@@ -75,11 +84,14 @@ function Count({
     );
 }
 
-/** The box's tabs, core's four in their order (I-3418); a plugin's join once plugins ship admin code. */
-const TABS = orderTabs([]);
+/** Each tab's name: core's, or a plugin's own label. */
+function tabName(tab: string, plugins: PluginSearchTab[]): string {
+    const plugin = plugins.find((each) => each.key === tab);
 
-/** Each tab's name. */
-function tabName(tab: string): string {
+    if (plugin !== undefined) {
+        return plugin.label;
+    }
+
     switch (tab) {
         case 'social':
             return __('Social');
@@ -143,6 +155,9 @@ export function SearchPanel({
     onGoToChecks,
     tab: shownTab,
     onTabChange,
+    pluginTabs = [],
+    pluginChecks = [],
+    onGoToPlugin,
 }: {
     fields: EditorField[];
     values: Record<string, unknown>;
@@ -165,7 +180,20 @@ export function SearchPanel({
     /** The tab shown, when the editor leads to a field; the box keeps its own otherwise. */
     tab?: string;
     onTabChange?: (tab: string) => void;
+    /** The plugins' tabs, each where its plugin declared it (docs/guides/developers/plugins/seo.md). */
+    pluginTabs?: PluginSearchTab[];
+    /** The plugins' checks, after core's, each under its plugin's name. */
+    pluginChecks?: PluginCheckGroup[];
+    /** Puts the cursor on the field a plugin's check names. */
+    onGoToPlugin?: (code: string, result: PluginCheckResult) => void;
 }) {
+    const tabs = orderTabs(
+        pluginTabs.map((each) => ({
+            id: each.key,
+            owner: each.code,
+            position: each.position,
+        })),
+    );
     const [ownTab, setOwnTab] = useState('search');
     const tab = shownTab ?? ownTab;
     const setTab = onTabChange ?? setOwnTab;
@@ -409,7 +437,7 @@ export function SearchPanel({
                 {proposes && <SuggestMetadataNote state={suggestion} />}
                 <Tabs value={tab} onValueChange={setTab}>
                     <TabsList className="flex-wrap">
-                        {TABS.map((each) => (
+                        {tabs.map((each) => (
                             <TabsTrigger
                                 key={each}
                                 value={each}
@@ -424,7 +452,15 @@ export function SearchPanel({
                                         : undefined
                                 }
                             >
-                                {tabName(each)}
+                                {pluginTabs.some(
+                                    (plugin) => plugin.key === each,
+                                ) && (
+                                    <Plug
+                                        aria-hidden
+                                        className="text-ink-3 size-3.5"
+                                    />
+                                )}
+                                {tabName(each, pluginTabs)}
                                 {each !== tab && waitingOn.has(each) && (
                                     <span
                                         aria-hidden
@@ -435,7 +471,7 @@ export function SearchPanel({
                             </TabsTrigger>
                         ))}
                     </TabsList>
-                    {TABS.map((each) => (
+                    {tabs.map((each) => (
                         <span
                             key={each}
                             id={`editor-tab-${each}-waiting`}
@@ -701,6 +737,20 @@ export function SearchPanel({
                             </Link>
                         )}
                     </TabsContent>
+                    {pluginTabs.map((each) => (
+                        <TabsContent
+                            key={each.key}
+                            value={each.key}
+                            forceMount
+                            hidden={tab !== each.key}
+                        >
+                            <PluginTab
+                                tab={each}
+                                value={values[each.key]}
+                                onChange={(next) => onChange(each.key, next)}
+                            />
+                        </TabsContent>
+                    ))}
                     <TabsContent
                         value="advanced"
                         forceMount
@@ -849,7 +899,11 @@ export function SearchPanel({
                         </li>
                     ))}
                 </ul>
-                {/* Later (I-286): the SEO provider's panel, its keyphrase and score, goes here, after core's checks: a plugin declares it and core draws it (phase 5). */}
+                <PluginChecks
+                    groups={pluginChecks}
+                    onGoTo={onGoToPlugin}
+                    testId="search-plugin-checks"
+                />
             </div>
         </section>
     );

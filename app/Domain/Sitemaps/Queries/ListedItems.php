@@ -212,6 +212,44 @@ final class ListedItems
     }
 
     /**
+     * Of these items, those live and listed by their own box and canonical
+     * at a current address, in a shown language, as listed() decides one,
+     * each with its address's path, type and when it last changed, by ID.
+     * A plugin's sitemap names them (docs/guides/developers/plugins/seo.md).
+     *
+     * @param  list<string>  $ids
+     *
+     * @return array<string, array{path: string, type: string, changed_at: string}>
+     */
+    public function addressesOf(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter($ids, fn (string $id): bool => preg_match('/^[0-9a-hjkmnp-tv-z]{26}$/', $id) === 1)));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $hidden = $this->languages->hidden();
+        $sql = <<<'SQL'
+            SELECT live.id, live.type, address.path, GREATEST(live.published_at, revision.created_at) AS changed_at
+            FROM contents live
+            JOIN content_revisions revision ON revision.id = live.published_revision_id
+            JOIN paths address ON address.target_type = 'content' AND address.target_id = live.id::text AND address.is_current
+            WHERE live.id = ANY(?::text[]) AND live.status = 'published' AND live.deleted_at IS NULL AND live.visibility = 'public' AND live.published_at <= ?
+            SQL;
+
+        $shown = $hidden === [] ? '' : ' AND (live.language IS NULL OR live.language <> ALL(?::text[]))';
+        $rows = DB::select($sql.$shown.' AND '.self::rule(), ['{'.implode(',', $ids).'}', now(), ...($hidden === [] ? [] : ['{'.implode(',', $hidden).'}']), '', self::ADDRESS]);
+        $found = [];
+
+        foreach ($rows as $row) {
+            $found[(string) $row->id] = ['path' => (string) $row->path, 'type' => (string) $row->type, 'changed_at' => (string) $row->changed_at];
+        }
+
+        return $found;
+    }
+
+    /**
      * When the newest live item of these types, in this language as stored
      * (null for the default), last changed, the later of going live and its
      * published revision: the date the site's address carries while it

@@ -17,6 +17,7 @@ use App\Domain\Plugins\Operations\Input\EnablePluginInput;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginSentences;
 use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\SettingHosts;
 use App\Domain\PublicRoutes\RootFile;
 use App\Domain\Support\Security\Elevation;
@@ -130,6 +131,10 @@ final class EnablePluginCommand extends Command
         }
 
         foreach ($manifest === null ? [] : DeclaredPanel::consentWords($manifest) as $words) {
+            $this->line('  '.$words);
+        }
+
+        foreach ($manifest === null ? [] : SeoDeclarations::consentWords($manifest) as $words) {
             $this->line('  '.$words);
         }
 

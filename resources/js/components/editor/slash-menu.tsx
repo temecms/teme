@@ -4,7 +4,9 @@
 import type { Editor } from '@tiptap/core';
 import { useEditorState } from '@tiptap/react';
 import {
+    CircleHelp,
     Code,
+    Footprints,
     Globe,
     Heading2,
     Heading3,
@@ -213,6 +215,8 @@ const ICONS: Record<string, LucideIcon> = {
     callout: MessageSquare,
     button: MousePointerClick,
     code: Code,
+    faq: CircleHelp,
+    steps: Footprints,
 };
 
 /** The cards that hold a picture, a sound or a film, which the picker lists under Media. */

@@ -46,6 +46,8 @@ final readonly class DocumentRenderer
         $content = array_values((array) ($document['content'] ?? []));
         $plan = $context->target === 'web' ? $context->insertions : null;
         $at = $plan?->at() ?? [];
+        // The page's title is its level-1 heading; a card's headings sit one below the last heading before it.
+        $heading = 1;
 
         foreach ($content as $index => $node) {
             if (isset($at[$index])) {
@@ -57,6 +59,10 @@ final readonly class DocumentRenderer
             $card = is_array($node) ? $this->cards->find((string) ($node['type'] ?? '')) : null;
 
             if ($card === null) {
+                if (is_array($node) && ($node['type'] ?? null) === 'heading') {
+                    $heading = (int) ($node['attrs']['level'] ?? 2);
+                }
+
                 $run[] = $node;
 
                 continue;
@@ -66,7 +72,10 @@ final readonly class DocumentRenderer
             $run = [];
             // For the document shell, which links only the styles of cards drawn (I-248).
             $context->usage?->record($card->name());
-            $html .= $card->renderHtml($this->withDefaults($card, (array) ($node['attrs'] ?? [])), $context);
+            $attrs = $this->withDefaults($card, (array) ($node['attrs'] ?? []));
+            $html .= $card instanceof OutlinedCard
+                ? $card->renderInOutline($attrs, $context, max(2, min(6, $heading + 1)))
+                : $card->renderHtml($attrs, $context);
         }
 
         $end = count($content);

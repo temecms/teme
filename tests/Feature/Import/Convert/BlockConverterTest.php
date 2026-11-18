@@ -34,7 +34,7 @@ it('converts a whole article, as the companion sends it, into a document Teme st
 
     wpAccepted($conversion->document);
 
-    expect(array_column($content, 'type'))->toBe(['heading', 'paragraph', 'image', 'bulletList', 'blockquote', 'table', 'heading', 'paragraph', 'embed', 'imported', 'horizontalRule', 'paragraph'])
+    expect(array_column($content, 'type'))->toBe(['heading', 'paragraph', 'image', 'bulletList', 'blockquote', 'table', 'faq', 'embed', 'imported', 'horizontalRule', 'paragraph'])
         ->and($content[1]['content'])->toBe([
             ['type' => 'text', 'text' => 'Boats leave the '],
             ['type' => 'text', 'text' => 'harbour', 'marks' => [['type' => 'bold']]],
@@ -44,7 +44,7 @@ it('converts a whole article, as the companion sends it, into a document Teme st
         ])
         ->and($content[2]['attrs']['mediaId'])->toBe($this->harbour)
         ->and($content[2]['attrs']['caption'])->toBe('The harbour at six')
-        ->and(array_map(fn (PendingReference $reference): array => $reference->toArray(), $conversion->references))->toBe([['type' => 'post', 'id' => '77', 'at' => [9]]])
+        ->and(array_map(fn (PendingReference $reference): array => $reference->toArray(), $conversion->references))->toBe([['type' => 'post', 'id' => '77', 'at' => [8]]])
         ->and($conversion->pendingLinks)->toBe(['/ferries/'])
         ->and(wpEditorCheck(['article' => $conversion->document]))->toBe(['article' => null]);
 });

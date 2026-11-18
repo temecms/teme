@@ -9,6 +9,7 @@ import { CalloutCard, CalloutSettings } from './callout-card';
 import type { CardSettingsProps } from './card-environment';
 import { CodeCard, CodeSettings } from './code-card';
 import { EmbedCard, EmbedSettings } from './embed-card';
+import { FaqCard, FaqSettings } from './faq-card';
 import {
     FeaturedPostsCard,
     FeaturedPostsSettings,
@@ -20,6 +21,7 @@ import {
     ImportedContentSettings,
 } from './imported-content-card';
 import { SiteCodeCard, SiteCodeSettings } from './site-code-card';
+import { StepsCard, StepsSettings } from './steps-card';
 import { VideoCard, VideoSettings } from './video-card';
 
 /**
@@ -40,6 +42,8 @@ export const cardViews: Record<string, ComponentType<ReactNodeViewProps>> = {
     imported: ImportedContentCard,
     'site-code': SiteCodeCard,
     'featured-posts': FeaturedPostsCard,
+    faq: FaqCard,
+    steps: StepsCard,
 };
 
 /**
@@ -58,6 +62,8 @@ export const cardSettings: Record<string, ComponentType<CardSettingsProps>> = {
     imported: ImportedContentSettings,
     'site-code': SiteCodeSettings,
     'featured-posts': FeaturedPostsSettings,
+    faq: FaqSettings,
+    steps: StepsSettings,
 };
 
 export function UnknownCard({ node, selected }: ReactNodeViewProps) {

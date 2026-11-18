@@ -25,6 +25,7 @@ use App\Domain\PublicRoutes\RootFile;
 use App\Domain\PublicRoutes\RouteCollisions;
 use App\Domain\Security\SecurityEventType;
 use App\Domain\Security\SecurityLog;
+use App\Domain\Sitemaps\Sitemaps;
 use App\Domain\Support\Operations\BaseOperation;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -208,6 +209,16 @@ final class EnablePlugin extends BaseOperation implements RequiresElevation
         ]);
         // A stored "not found" at an address its root files now answer goes too (docs/guides/developers/plugins/root-files.md).
         $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, ['plugin:'.$code, ...(RootFile::declaredIn($manifest) === [] ? [] : [PageTags::ROOT_FILES])]));
+
+        // Every page is drawn again with its head tags and structured data, and the sitemaps with its own (docs/guides/developers/plugins/seo.md).
+        $seoTags = [
+            ...(in_array(Capability::PagesHead->value, $input->capabilities, true) ? [PageTags::SEO] : []),
+            ...(in_array(Capability::Sitemaps->value, $input->capabilities, true) ? [Sitemaps::CACHE_TAG] : []),
+        ];
+
+        if ($seoTags !== []) {
+            $this->purgeAfterCommit(new CacheKeysFor(CacheKeysFor::SITE, 'plugin:'.$code, $seoTags));
+        }
 
         // Every stored feed is drawn again with its links, after commit (docs/plans/plugin-sockets-1.md, A3).
         if (($manifest->contributes()['feedLinks'] ?? []) !== []) {

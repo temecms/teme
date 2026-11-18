@@ -18,6 +18,7 @@ use App\Domain\Plugins\Notices\DeclaredNotices;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Plugins\PluginState;
 use App\Domain\Plugins\PluginWords;
+use App\Domain\Plugins\Seo\SeoDeclarations;
 use App\Domain\Plugins\Tables\PluginMigrations;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Plugins\Capability;
@@ -109,6 +110,7 @@ final readonly class PluginsScreen
                     ...$this->insertionHostsLine($this->agreedInsertionHosts($row->consent), false),
                     ...$this->permissionLines($manifest, (array) ($row->consent['permissions'] ?? []), false),
                     ...$this->panelLines($manifest, $row->consent['capabilities'] ?? []),
+                    ...$this->seoLines($manifest, $row->consent['capabilities'] ?? []),
                 ],
                 // Everything is new at a first enable, so NEW marks only what an update adds to an earlier agreement.
                 'asks' => [...$this->accessLines(
@@ -127,7 +129,7 @@ final readonly class PluginsScreen
                 ), ...$this->insertionHostsLine(
                     $manifest === null ? [] : array_merge(...array_values(Consent::declaredInsertionHosts($manifest))),
                     $row->consent !== [] && ($row->added['insertionHosts'] ?? []) !== [],
-                ), ...$this->permissionLines($manifest, null, $row->consent !== [] && ($row->added['permissions'] ?? []) !== []), ...$this->panelLines($manifest, null)],
+                ), ...$this->permissionLines($manifest, null, $row->consent !== [] && ($row->added['permissions'] ?? []) !== []), ...$this->panelLines($manifest, null), ...$this->seoLines($manifest, null)],
                 'listensFor' => array_map(PluginWords::hook(...), $row->asks['hooks']),
                 // The plugins it needs, then those that need it, by their own names (docs/plans/plugin-sockets-3.md).
                 'requires' => array_map(fn (string $name): array => [
@@ -192,6 +194,20 @@ final readonly class PluginsScreen
         }
 
         return array_map(fn (string $words): array => ['words' => $words, 'new' => false], DeclaredPanel::consentWords($manifest));
+    }
+
+    /**
+     * The lines for what the manifest declares for search engines: its
+     * checks, its Search and social tab and its sitemaps
+     * (docs/guides/developers/plugins/seo.md).
+     *
+     * @param  list<string>|null  $agreed  the capabilities agreed, or null for what it asks
+     *
+     * @return list<array{words: string, new: bool}>
+     */
+    private function seoLines(?Manifest $manifest, ?array $agreed): array
+    {
+        return $manifest === null ? [] : array_map(fn (string $words): array => ['words' => $words, 'new' => false], SeoDeclarations::consentWords($manifest, $agreed));
     }
 
     /**

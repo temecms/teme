@@ -102,7 +102,9 @@
                     "ai",
                     "people.read",
                     "notices.send",
-                    "content.links"
+                    "content.links",
+                    "pages.head",
+                    "sitemaps"
                 ]
             }
         },
@@ -996,6 +998,184 @@
                                     }
                                 }
                             }
+                        }
+                    }
+                },
+                "editorChecks": {
+                    "type": "array",
+                    "maxItems": 20,
+                    "description": "Checks core asks the plugin to run on the item being edited, drawn beside the editor's own under the plugin's name. Needs content.read.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "label", "types"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,23}$",
+                                "description": "The check's id, which each result names."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 60,
+                                "description": "The check's name in the editor, unless a result gives its own."
+                            },
+                            "types": {
+                                "type": "array",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                                },
+                                "description": "The content types whose editor runs the check."
+                            }
+                        }
+                    }
+                },
+                "searchSection": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["label", "types", "fields"],
+                    "description": "The plugin's own tab in the editor's Search and social box: fields saved with each item's revision, under the plugin's key.",
+                    "properties": {
+                        "label": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 24,
+                            "description": "The tab's name."
+                        },
+                        "description": {
+                            "type": "string",
+                            "maxLength": 160,
+                            "description": "One line at the top of the tab."
+                        },
+                        "types": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                            },
+                            "description": "The content types whose box shows the tab."
+                        },
+                        "position": {
+                            "enum": ["after-search", "after-social", "last"],
+                            "description": "Where the tab sits among core's; last when absent."
+                        },
+                        "fields": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["key", "type", "label"],
+                                "properties": {
+                                    "key": {
+                                        "type": "string",
+                                        "pattern": "^[a-z][a-z0-9_]{0,31}$",
+                                        "description": "The value's key under the plugin's own."
+                                    },
+                                    "type": {
+                                        "enum": [
+                                            "text",
+                                            "textarea",
+                                            "number",
+                                            "boolean",
+                                            "select",
+                                            "url"
+                                        ],
+                                        "description": "The kind of field."
+                                    },
+                                    "label": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 40,
+                                        "description": "The field's label."
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 200,
+                                        "description": "A line under the field."
+                                    },
+                                    "maxLength": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 2000,
+                                        "description": "The longest text a text or textarea field takes; 200 and 2,000 when absent."
+                                    },
+                                    "options": {
+                                        "type": "object",
+                                        "minProperties": 1,
+                                        "additionalProperties": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "description": "A select field's options, each value and its label."
+                                    },
+                                    "min": {
+                                        "type": "number",
+                                        "description": "A number field's least value."
+                                    },
+                                    "max": {
+                                        "type": "number",
+                                        "description": "A number field's greatest value."
+                                    },
+                                    "summary": {
+                                        "type": "boolean",
+                                        "description": "Whether the field's value shows in the tab's one-line summary; the first field's does when none says."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "sitemaps": {
+                    "type": "array",
+                    "maxItems": 4,
+                    "description": "Sitemaps the plugin adds to the site's sitemap index, each at sitemap-plugin-{code}-{id}.xml. Needs sitemaps.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["id", "label"],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9-]{1,23}$",
+                                "description": "The sitemap's id, in its address."
+                            },
+                            "label": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "description": "What it lists, as the consent names it."
+                            }
+                        }
+                    }
+                },
+                "structuredData": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "description": "The schema.org terms the plugin's graph nodes use beyond the graph's own list. Needs pages.head.",
+                    "properties": {
+                        "types": {
+                            "type": "array",
+                            "maxItems": 40,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[A-Z][A-Za-z0-9]{1,63}$"
+                            },
+                            "description": "schema.org types, such as FAQPage."
+                        },
+                        "properties": {
+                            "type": "array",
+                            "maxItems": 80,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[a-z][A-Za-z0-9]{1,63}$"
+                            },
+                            "description": "schema.org properties, such as acceptedAnswer."
                         }
                     }
                 },

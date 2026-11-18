@@ -13,17 +13,21 @@ use App\Domain\Cards\Types\AudioCard;
 use App\Domain\Cards\Types\ButtonCard;
 use App\Domain\Cards\Types\CalloutCard;
 use App\Domain\Cards\Types\EmbedCard;
+use App\Domain\Cards\Types\FaqCard;
 use App\Domain\Cards\Types\FeaturedPostsCard;
 use App\Domain\Cards\Types\GalleryCard;
 use App\Domain\Cards\Types\ImageCard;
 use App\Domain\Cards\Types\ImportedContentCard;
 use App\Domain\Cards\Types\SiteCodeCard;
 use App\Domain\Cards\Types\SnippetCard;
+use App\Domain\Cards\Types\StepsCard;
 use App\Domain\Cards\Types\VideoCard;
 use App\Domain\Feeds\Cards\PlainAudio;
+use App\Domain\Feeds\Cards\PlainFaq;
 use App\Domain\Feeds\Cards\PlainFeaturedPosts;
 use App\Domain\Feeds\Cards\PlainImported;
 use App\Domain\Feeds\Cards\PlainSiteCode;
+use App\Domain\Feeds\Cards\PlainSteps;
 use App\Domain\Feeds\Cards\PlainVideo;
 use App\Domain\Feeds\FeedCards;
 use Illuminate\Support\ServiceProvider;
@@ -40,7 +44,7 @@ final class CardServiceProvider extends ServiceProvider
         $this->app->singleton(CardRegistry::class, function (): CardRegistry {
             $registry = new CardRegistry;
 
-            foreach ([ImageCard::class, GalleryCard::class, EmbedCard::class, CalloutCard::class, SnippetCard::class, ButtonCard::class, AudioCard::class, VideoCard::class, ImportedContentCard::class, SiteCodeCard::class, FeaturedPostsCard::class] as $card) {
+            foreach ([ImageCard::class, GalleryCard::class, EmbedCard::class, CalloutCard::class, SnippetCard::class, ButtonCard::class, AudioCard::class, VideoCard::class, ImportedContentCard::class, SiteCodeCard::class, FeaturedPostsCard::class, FaqCard::class, StepsCard::class] as $card) {
                 $registry->register(new $card);
             }
 
@@ -48,7 +52,7 @@ final class CardServiceProvider extends ServiceProvider
         });
 
         // The cards' plain versions in feeds (I-861), registered beside them.
-        $this->app->tag([PlainAudio::class, PlainVideo::class, PlainImported::class, PlainSiteCode::class, PlainFeaturedPosts::class], FeedCards::RENDERERS);
+        $this->app->tag([PlainAudio::class, PlainVideo::class, PlainImported::class, PlainSiteCode::class, PlainFeaturedPosts::class, PlainFaq::class, PlainSteps::class], FeedCards::RENDERERS);
 
         // What a request or job has read of the media its cards show, kept
         // for the rest of it and forgotten with it (issue 30): the queue

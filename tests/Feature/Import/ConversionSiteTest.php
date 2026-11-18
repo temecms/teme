@@ -7,6 +7,7 @@ use App\Domain\Import\Convert\BlockConverter;
 use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Convert\KnownTargets;
 use App\Domain\Import\Convert\Media\KnownMedia;
+use App\Domain\Import\Phases\SecondPass\SecondPassDocument;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Fixtures\Convert\WordPressContent;
 
@@ -87,4 +88,15 @@ it('leaves a sibling host outside when only another address is listed', function
     expect($href)->toBe('https://dev.example.com/draft/')
         ->and($src)->toBe('https://dev.example.com/wp-content/uploads/2026/01/a.jpg')
         ->and($said)->not->toContain('links.other-host', 'images.other-host');
+});
+
+it('leaves a link in an FAQ answer to a page not imported yet for the second pass, which finishes it by ID', function (): void {
+    $conversion = wpConvert([wpBlock('yoast/faq-block', '<div class="schema-faq wp-block-yoast-faq-block"><div class="schema-faq-section"><strong class="schema-faq-question">Where?</strong> <p class="schema-faq-answer">See <a href="https://old.example/later-story/">later</a>.</p> </div></div>')]);
+    $answer = fn (array $content): mixed => $content[0]['attrs']['items'][0]['answer']['content'][0]['content'][1]['marks'][0]['attrs']['href'] ?? null;
+
+    $done = SecondPassDocument::relink($conversion->document['content'], ['/later-story/' => 'teme:content/01k5z0f1ed0000000000000abc']);
+
+    expect($conversion->pendingLinks)->toBe(['/later-story/'])
+        ->and($answer($conversion->document['content']))->toBe('/later-story/')
+        ->and($answer($done))->toBe('teme:content/01k5z0f1ed0000000000000abc');
 });

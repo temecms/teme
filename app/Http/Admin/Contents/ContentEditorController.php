@@ -27,6 +27,7 @@ use App\Domain\Contents\Queries\RevisionAuthor;
 use App\Domain\Fields\FieldManifest;
 use App\Domain\Media\Queries\MissingAltText;
 use App\Domain\Plugins\Editor\EditorPanels;
+use App\Domain\Plugins\Seo\PluginSearchFields;
 use App\Domain\Regions\Queries\RegionScreens;
 use App\Domain\Seo\Queries\EditorSearchAndSocial;
 use App\Domain\SiteCode\Queries\SiteCodeScreen;
@@ -83,6 +84,8 @@ final class ContentEditorController extends Controller
             'ai' => $assistant->for($request->user()),
             // The plugins' panels this person sees on this item, as tools in the bar (docs/proposals/plugin-sockets-3.md).
             'panels' => $panels->toolsOn($content, $userId),
+            // The plugins' tabs in Search and social for this type (docs/guides/developers/plugins/seo.md).
+            'searchTabs' => $region === null ? app(PluginSearchFields::class)->tabsFor($session->type) : [],
             // Asked for on its own, every half presence window, so someone
             // reading without typing still learns who else is in the article.
             'otherEditors' => Inertia::optional(fn (): array => EditorPresence::othersIn($content, $userId)),
