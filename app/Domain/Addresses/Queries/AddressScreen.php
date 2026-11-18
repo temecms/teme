@@ -20,7 +20,7 @@ use Teme\Contracts\Settings\SettingsReader;
 /**
  * What Settings › Addresses shows: the public types and taxonomies in
  * registry order with their current patterns and bases, the author base,
- * each type's archive page, and the newest item's details of the type whose
+ * each type's archive page, the site's own address for the previews, and the newest item's details of the type whose
  * address takes the presets.
  * It reads only.
  */
@@ -30,9 +30,10 @@ final class AddressScreen
      * The screen's props.
      *
      * @return array{
-     *     types: list<array{key: string, singular: string, plural: string, main: bool, pattern: string}>,
-     *     taxonomies: list<array{key: string, singular: string, plural: string, base: string}>,
+     *     types: list<array{key: string, singular: string, plural: string, main: bool, hierarchical: bool, pattern: string}>,
+     *     taxonomies: list<array{key: string, singular: string, plural: string, hierarchical: bool, base: string}>,
      *     authorBase: string,
+     *     site: string,
      *     example: array<string, string>|null,
      *     archives: list<array{key: string, plural: string, base: string, address: string, feed: string, holder: string|null}>
      * }
@@ -44,7 +45,7 @@ final class AddressScreen
 
         foreach (app(ContentTypeRegistry::class)->all() as $type) {
             if ($settings->hasPattern($type->key)) {
-                $types[] = ['key' => $type->key, 'singular' => $type->singular, 'plural' => $type->plural, 'main' => $type->key === ListingTypes::first(), 'pattern' => $settings->patterns[$type->key]];
+                $types[] = ['key' => $type->key, 'singular' => $type->singular, 'plural' => $type->plural, 'main' => $type->key === ListingTypes::first(), 'hierarchical' => $type->hierarchical, 'pattern' => $settings->patterns[$type->key]];
             }
         }
 
@@ -52,7 +53,7 @@ final class AddressScreen
 
         foreach (app(TaxonomyRegistry::class)->all() as $taxonomy) {
             if ($settings->hasBase($taxonomy->key)) {
-                $taxonomies[] = ['key' => $taxonomy->key, 'singular' => $taxonomy->singular, 'plural' => $taxonomy->plural, 'base' => $settings->bases[$taxonomy->key]];
+                $taxonomies[] = ['key' => $taxonomy->key, 'singular' => $taxonomy->singular, 'plural' => $taxonomy->plural, 'hierarchical' => $taxonomy->hierarchical, 'base' => $settings->bases[$taxonomy->key]];
             }
         }
 
@@ -74,6 +75,7 @@ final class AddressScreen
             'types' => $types,
             'taxonomies' => $taxonomies,
             'authorBase' => $settings->authorBase,
+            'site' => rtrim(url('/'), '/'),
             'example' => self::example(),
             'archives' => $archives,
         ];

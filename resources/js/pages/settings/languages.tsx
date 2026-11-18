@@ -1,13 +1,10 @@
 import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/react';
-import { MoreHorizontal, Plus } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { HTMLAttributes } from 'react';
 import LanguagesController from '@/actions/App/Http/Admin/Settings/LanguagesController';
-import {
-    SettingsPanel,
-    SettingsPanelBody,
-    SettingsPanelFooter,
-} from '@/components/fields/settings-panel';
+import { SettingsForm } from '@/components/fields/settings-form';
+import { SettingsPanel } from '@/components/fields/settings-panel';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { ResponsiveDialogContent } from '@/components/patterns/responsive-dialog';
@@ -25,13 +22,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Field, FieldInline } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Notice } from '@/components/ui/notice';
@@ -43,9 +33,11 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { StatusPill } from '@/components/ui/status-pill';
-import { TextButton } from '@/components/ui/text-button';
 import { __, __n } from '@/lib/i18n';
-import { show as showSettings } from '@/routes/settings';
+import {
+    index as settingsIndex,
+    show as showSettings,
+} from '@/routes/settings';
 
 /** One of the site's languages, as LanguagesScreen gives it. */
 type SiteLanguageRow = {
@@ -85,66 +77,6 @@ function holds(row: SiteLanguageRow): string {
     ]
         .filter(Boolean)
         .join(' · ');
-}
-
-/** The row's "⋯": Move up, Move down and Remove. */
-function RowMenu({
-    row,
-    first,
-    last,
-    onMove,
-    onRemove,
-}: {
-    row: SiteLanguageRow;
-    first: boolean;
-    last: boolean;
-    onMove: (row: SiteLanguageRow, by: -1 | 1) => void;
-    onRemove: (row: SiteLanguageRow, opener: HTMLElement | null) => void;
-}) {
-    const trigger = useRef<HTMLButtonElement>(null);
-
-    return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    ref={trigger}
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    data-test="language-menu"
-                    aria-label={__('More actions for :name', {
-                        name: row.name,
-                    })}
-                >
-                    <MoreHorizontal aria-hidden="true" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                    disabled={first}
-                    data-test="language-move-up"
-                    onSelect={() => onMove(row, -1)}
-                >
-                    {__('Move up')}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                    disabled={last}
-                    data-test="language-move-down"
-                    onSelect={() => onMove(row, 1)}
-                >
-                    {__('Move down')}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                    variant="destructive"
-                    data-test="language-remove"
-                    onSelect={() => onRemove(row, trigger.current)}
-                >
-                    {__('Remove…')}
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    );
 }
 
 /** The sheet's form: a new language, or one being changed. */
@@ -281,15 +213,17 @@ function LanguageForm({
     );
 }
 
-/** Which types and taxonomies have versions in other languages, saved on its own. */
+/** Which types and taxonomies have versions in other languages, saved by the page's one save bar. */
 function TranslatedContent({
     types,
     taxonomies,
     version,
+    defaultName,
 }: {
     types: TranslatedChoice[];
     taxonomies: TranslatedChoice[];
     version: number;
+    defaultName: string;
 }) {
     const [untranslatedTypes, setUntranslatedTypes] = useState(() =>
         types.filter((type) => !type.translated).map((type) => type.key),
@@ -299,8 +233,6 @@ function TranslatedContent({
             .filter((taxonomy) => !taxonomy.translated)
             .map((taxonomy) => taxonomy.key),
     );
-    const [saving, setSaving] = useState(false);
-    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const toggle = (
         list: string[],
@@ -309,39 +241,33 @@ function TranslatedContent({
         on: boolean,
     ) => set(on ? list.filter((each) => each !== key) : [...list, key]);
 
-    const save = () =>
-        router.put(
-            LanguagesController.translated.url(),
-            {
-                untranslated_types: untranslatedTypes,
-                untranslated_taxonomies: untranslatedTaxonomies,
-                expected_version: version,
-            },
-            {
-                preserveScroll: true,
-                onStart: () => setSaving(true),
-                onFinish: () => setSaving(false),
-                onError: (next) => setErrors(next),
-                onSuccess: () => setErrors({}),
-            },
-        );
-
     const group = (
         legend: string,
+        hint: string,
         choices: TranslatedChoice[],
         list: string[],
         set: (next: string[]) => void,
         prefix: string,
+        field: string,
     ) => (
-        <fieldset className="grid gap-2">
-            <legend className="text-small text-ink-2 mb-2 font-medium">
+        <fieldset className="grid content-start gap-2">
+            <legend className="text-small text-ink mb-2 font-medium">
                 {legend}
             </legend>
+            {/* What is not ticked is what the server stores: the untranslated keys. */}
+            {list.map((key) => (
+                <input
+                    key={key}
+                    type="hidden"
+                    name={`${field}[]`}
+                    value={key}
+                />
+            ))}
             {choices.map((choice) => (
-                <FieldInline
+                <label
                     key={choice.key}
                     htmlFor={`${prefix}-${choice.key}`}
-                    label={choice.label}
+                    className="text-body text-ink flex items-center gap-2"
                 >
                     <Checkbox
                         id={`${prefix}-${choice.key}`}
@@ -350,60 +276,73 @@ function TranslatedContent({
                             toggle(list, set, choice.key, on === true)
                         }
                     />
-                </FieldInline>
+                    {choice.label}
+                </label>
             ))}
+            <p className="text-caption text-ink-3">{hint}</p>
         </fieldset>
     );
 
-    const refusal =
-        errors.untranslated_types ??
-        errors.untranslated_taxonomies ??
-        errors.expected_version;
-
     return (
-        <SettingsPanel
-            as="section"
-            bare
-            id="translated-content"
-            title={__('Translated content')}
-            description={__(
-                'Which content types and taxonomies have versions in other languages. The rest are always in the default language.',
-            )}
+        <SettingsForm
+            action={LanguagesController.translated.form()}
+            what={__('Translated content')}
         >
-            <SettingsPanelBody>
-                {refusal !== undefined && (
-                    <Notice tone="danger" role="alert">
-                        {refusal}
-                    </Notice>
-                )}
-                {group(
-                    __('Content types'),
-                    types,
-                    untranslatedTypes,
-                    setUntranslatedTypes,
-                    'translated-type',
-                )}
-                {taxonomies.length > 0 &&
-                    group(
-                        __('Taxonomies'),
-                        taxonomies,
-                        untranslatedTaxonomies,
-                        setUntranslatedTaxonomies,
-                        'translated-taxonomy',
-                    )}
-            </SettingsPanelBody>
-            <SettingsPanelFooter>
-                <Button
-                    type="button"
-                    variant="primary"
-                    loading={saving}
-                    onClick={save}
-                    data-test="translated-save"
-                >
-                    {__('Save translated content')}
-                </Button>
-            </SettingsPanelFooter>
-        </SettingsPanel>
+            {({ errors }) => {
+                const refusal =
+                    errors.untranslated_types ??
+                    errors.untranslated_taxonomies ??
+                    errors.expected_version;
+
+                return (
+                    <SettingsPanel
+                        as="section"
+                        id="translated-content"
+                        title={__('Translated content')}
+                        description={__(
+                            'Choose what can have versions in other languages. Anything not ticked is always in :language, and its addresses have no prefix.',
+                            { language: defaultName },
+                        )}
+                    >
+                        <input
+                            type="hidden"
+                            name="expected_version"
+                            value={version}
+                        />
+                        {refusal !== undefined && (
+                            <Notice tone="danger" role="alert">
+                                {refusal}
+                            </Notice>
+                        )}
+                        <div className="grid gap-6 sm:grid-cols-2">
+                            {group(
+                                __('Content types'),
+                                __(
+                                    'Each translated type gets a version per language, linked to the others.',
+                                ),
+                                types,
+                                untranslatedTypes,
+                                setUntranslatedTypes,
+                                'translated-type',
+                                'untranslated_types',
+                            )}
+                            {taxonomies.length > 0 &&
+                                group(
+                                    __('Taxonomies'),
+                                    __(
+                                        'Terms of a taxonomy that isn’t translated are shared by every language.',
+                                    ),
+                                    taxonomies,
+                                    untranslatedTaxonomies,
+                                    setUntranslatedTaxonomies,
+                                    'translated-taxonomy',
+                                    'untranslated_taxonomies',
+                                )}
+                        </div>
+                    </SettingsPanel>
+                );
+            }}
+        </SettingsForm>
     );
 }
 
@@ -425,9 +364,12 @@ export default function LanguagesSettings({
     const [refusal, setRefusal] = useState<string | null>(null);
     const opener = useRef<HTMLElement | null>(null);
     const others = languages.filter((row) => !row.isDefault);
+    const defaultLanguage = languages.find((row) => row.isDefault);
+    const defaultName = defaultLanguage?.name ?? '';
 
     setLayoutProps({
         breadcrumbs: [
+            { title: __('Settings'), href: settingsIndex() },
             {
                 title: __('Languages'),
                 href: LanguagesController.show.url(),
@@ -477,16 +419,8 @@ export default function LanguagesSettings({
             minWidth: 200,
             cell: (row) => (
                 <div className="grid gap-1 whitespace-normal">
-                    <span className="text-ink flex flex-wrap items-center gap-2 font-semibold">
-                        <span lang={row.tag}>{row.name}</span>
-                        {row.isDefault && (
-                            <StatusPill
-                                tone="info"
-                                data-test="language-default"
-                            >
-                                {__('Default')}
-                            </StatusPill>
-                        )}
+                    <span lang={row.tag} className="text-ink font-semibold">
+                        {row.name}
                     </span>
                     <span lang={row.tag} className="text-small text-ink-3">
                         {row.native}
@@ -497,12 +431,10 @@ export default function LanguagesSettings({
         {
             id: 'prefix',
             owner: 'core',
-            header: __('Address'),
+            header: __('Addresses'),
             width: 104,
             cell: (row) => (
-                <code className="text-small">
-                    {row.isDefault ? '/…' : `/${row.prefix}/…`}
-                </code>
+                <code className="text-small">{`/${row.prefix}/…`}</code>
             ),
         },
         {
@@ -528,41 +460,59 @@ export default function LanguagesSettings({
             owner: 'core',
             header: <span className="sr-only">{__('Actions')}</span>,
             label: __('Actions'),
-            width: 136,
-            cell: (row) =>
-                row.isDefault ? (
-                    <TextButton asChild className="text-small">
-                        <Link href={showSettings({ group: 'general' })}>
-                            {__('Change in General')}
-                        </Link>
-                    </TextButton>
-                ) : (
-                    <div className="flex items-center justify-end gap-1">
-                        <Button
-                            type="button"
-                            variant="neutral"
-                            size="sm"
-                            data-test="language-edit"
-                            onClick={(event) => {
-                                opener.current = event.currentTarget;
-                                setSheet(row);
-                            }}
-                        >
-                            {__('Edit')}
-                            <span className="sr-only"> {row.name}</span>
-                        </Button>
-                        <RowMenu
-                            row={row}
-                            first={others[0]?.tag === row.tag}
-                            last={others[others.length - 1]?.tag === row.tag}
-                            onMove={move}
-                            onRemove={(chosen, from) => {
-                                opener.current = from;
-                                setRemoving(chosen);
-                            }}
-                        />
-                    </div>
-                ),
+            width: 240,
+            cell: (row) => (
+                <div className="flex items-center justify-end gap-1">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        data-test="language-move-up"
+                        disabled={others[0]?.tag === row.tag}
+                        aria-label={__('Move :name up', { name: row.name })}
+                        onClick={() => move(row, -1)}
+                    >
+                        <ArrowUp aria-hidden="true" />
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        data-test="language-move-down"
+                        disabled={others[others.length - 1]?.tag === row.tag}
+                        aria-label={__('Move :name down', { name: row.name })}
+                        onClick={() => move(row, 1)}
+                    >
+                        <ArrowDown aria-hidden="true" />
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="neutral"
+                        size="sm"
+                        data-test="language-edit"
+                        onClick={(event) => {
+                            opener.current = event.currentTarget;
+                            setSheet(row);
+                        }}
+                    >
+                        {__('Change')}
+                        <span className="sr-only"> {row.name}</span>
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="danger-quiet"
+                        size="sm"
+                        data-test="language-remove"
+                        onClick={(event) => {
+                            opener.current = event.currentTarget;
+                            setRemoving(row);
+                        }}
+                    >
+                        {__('Remove')}
+                        <span className="sr-only"> {row.name}</span>
+                    </Button>
+                </div>
+            ),
         },
     ];
 
@@ -573,7 +523,7 @@ export default function LanguagesSettings({
             <SettingsPage
                 title={__('Languages')}
                 description={__(
-                    'The language your site is written in, and the other languages it publishes in. Readers’ language switcher lists them in this order.',
+                    'The language your site is written in, and the other languages it publishes in.',
                 )}
             >
                 <div className="grid gap-4">
@@ -588,41 +538,104 @@ export default function LanguagesSettings({
                         </Notice>
                     )}
 
-                    <div data-test="languages-table">
-                        <DataTable
-                            columns={columns}
-                            rows={languages}
-                            rowKey={(row) => row.tag}
-                            caption={__('Your site’s languages')}
-                            rowProps={(row) =>
-                                ({
-                                    'data-language': row.tag,
-                                }) as HTMLAttributes<HTMLTableRowElement>
-                            }
-                        />
-                    </div>
+                    <SettingsPanel
+                        as="section"
+                        id="default-language"
+                        title={__('Default language')}
+                        description={__(
+                            'Every item that names no other language is in it. Its addresses have no prefix.',
+                        )}
+                    >
+                        <dl className="text-body grid gap-2">
+                            <div className="flex flex-wrap gap-x-6 gap-y-1">
+                                <dt className="text-ink-3 w-24">
+                                    {__('Language')}
+                                </dt>
+                                <dd className="text-ink flex flex-wrap items-center gap-2">
+                                    <span lang={defaultLanguage?.tag}>
+                                        {defaultName}
+                                    </span>
+                                    <StatusPill
+                                        tone="neutral"
+                                        flat
+                                        data-test="language-default"
+                                    >
+                                        {__('Default')}
+                                    </StatusPill>
+                                </dd>
+                            </div>
+                            <div className="flex flex-wrap gap-x-6 gap-y-1">
+                                <dt className="text-ink-3 w-24">
+                                    {__('Addresses')}
+                                </dt>
+                                <dd className="text-ink font-mono">
+                                    {__('/about/ (no prefix)')}
+                                </dd>
+                            </div>
+                        </dl>
+                        <div>
+                            <Button variant="neutral" size="sm" asChild>
+                                <Link
+                                    href={`${showSettings.url({ group: 'general' })}#field-language`}
+                                >
+                                    {__('Change it in General')}
+                                </Link>
+                            </Button>
+                        </div>
+                    </SettingsPanel>
 
-                    <div>
-                        <Button
-                            type="button"
-                            variant="neutral"
-                            data-test="language-add"
-                            disabled={choices.length === 0}
-                            onClick={(event) => {
-                                opener.current = event.currentTarget;
-                                setSheet('new');
-                            }}
-                        >
-                            <Plus aria-hidden="true" />
-                            {__('Add a language')}
-                        </Button>
-                    </div>
+                    <SettingsPanel
+                        as="section"
+                        id="other-languages"
+                        title={__('Other languages')}
+                        description={__(
+                            'Each has its own address prefix. Hide one while you translate it: readers get nothing in it until you show it.',
+                        )}
+                    >
+                        {others.length > 0 ? (
+                            <div data-test="languages-table">
+                                <DataTable
+                                    columns={columns}
+                                    rows={others}
+                                    rowKey={(row) => row.tag}
+                                    caption={__('Your site’s languages')}
+                                    rowProps={(row) =>
+                                        ({
+                                            'data-language': row.tag,
+                                        }) as HTMLAttributes<HTMLTableRowElement>
+                                    }
+                                />
+                            </div>
+                        ) : (
+                            <p className="text-body text-ink-2">
+                                {__(
+                                    'Your site publishes in one language. Add another to translate posts and pages into it.',
+                                )}
+                            </p>
+                        )}
+                        <div>
+                            <Button
+                                type="button"
+                                variant="neutral"
+                                data-test="language-add"
+                                disabled={choices.length === 0}
+                                onClick={(event) => {
+                                    opener.current = event.currentTarget;
+                                    setSheet('new');
+                                }}
+                            >
+                                <Plus aria-hidden="true" />
+                                {__('Add a language')}
+                            </Button>
+                        </div>
+                    </SettingsPanel>
 
                     <TranslatedContent
                         key={version}
                         types={types}
                         taxonomies={taxonomies}
                         version={version}
+                        defaultName={defaultName}
                     />
                 </div>
 
@@ -644,7 +657,7 @@ export default function LanguagesSettings({
                             <SheetTitle>
                                 {sheet === null || sheet === 'new'
                                     ? __('Add a language')
-                                    : __('Edit :name', { name: sheet.name })}
+                                    : __('Change :name', { name: sheet.name })}
                             </SheetTitle>
                             <SheetDescription>
                                 {sheet === null || sheet === 'new'
