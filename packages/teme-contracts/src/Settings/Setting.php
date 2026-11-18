@@ -12,6 +12,7 @@ use InvalidArgumentException;
  * modifier returns a new declaration.
  *
  * @since 0.1.0
+ * @since 1.0.0 Term, content type, code and repeater settings, and sections: $taxonomy, $multiple, $section, $fields, $itemTitle and $scripts.
  */
 final class Setting
 {

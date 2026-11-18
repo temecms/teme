@@ -10,6 +10,7 @@ namespace Teme\Contracts\Content;
  * its own item, with its own ID and address; a hook tells of one version.
  *
  * @since 0.5.0
+ * @since 1.0.0 Carries $indexable, whether search engines may list the item's page.
  */
 final readonly class ItemRef
 {
@@ -23,6 +24,7 @@ final readonly class ItemRef
      * @param  bool  $indexable  Whether search engines may list its page: false when it has no url, or when its page says noindex (its own "Hide from search engines", its type hidden in Search and social, the whole site discouraged, or a password on it). Worked out by the code that writes the page's robots meta, so the two never disagree. @since 1.0.0
      *
      * @since 0.5.0
+     * @since 1.0.0 Takes $indexable.
      */
     public function __construct(
         public string $id,

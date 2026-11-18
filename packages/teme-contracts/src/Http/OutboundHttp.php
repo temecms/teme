@@ -12,6 +12,7 @@ use InvalidArgumentException;
  * 16 MB for an answer inside a long job.
  *
  * @since 0.5.0
+ * @since 1.0.0 Allows 300 seconds and 16 MB for an answer inside a long job.
  */
 interface OutboundHttp
 {
