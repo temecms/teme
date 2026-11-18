@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file. Versioning follows the scheme in `docs/roadmap.md`.
 
+## [1.1.0] — 2026-11-18
+
+### Added
+
+- Sockets for search engine plugins, in `teme/contracts` at 1.1.0:
+  - Editor checks: a plugin's checks run on the server when a version is saved and show after core's own, under the plugin's name.
+  - A plugin's own tab in the editor's Search and social section, with its fields drawn by core and saved with each revision.
+  - Head tags, JSON-LD nodes that merge into core's graph, and sitemaps of the plugin's own, each with a time budget; a failure is recorded on the plugin's row and the page carries on.
+  - The developer handbook's new "Search engine plugins" page, with a worked example.
+- The FAQ card: questions that open their answers without JavaScript, with headings that follow the page's outline.
+- The Steps card: a summary, total time, materials and tools, then numbered steps with text and an optional image.
+- The WordPress import turns Yoast's and Rank Math's FAQ and how-to blocks into these cards.
+- Teme SEO 1.0.0, a first-party plugin in `plugins/seo`: internal link suggestions and cornerstone items in the editor, links in and out, orphaned items, a site audit, a titles and descriptions editor, a Search Console overview, and AI link ideas and keyphrase rewrites through the site's AI connection. In each language Teme ships.
+
+### Changed
+
+- The README names the address for reporting security problems.
+
 ## [1.0.1] — 2026-11-17
 
 ### Fixed
