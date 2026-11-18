@@ -31,6 +31,9 @@ void createInertiaApp({
                 return null;
             case name.startsWith('account/'):
                 return [AppLayout, AccountLayout];
+            case name === 'settings/index':
+                // The Settings hub is a hub, outside the Settings frame.
+                return AppLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:

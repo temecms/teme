@@ -79,31 +79,74 @@ export function HubCard({
     );
 }
 
+/** One heading of a hub and the cards under it, with an optional hint beside the heading. */
+export type HubSection = {
+    heading: string;
+    hint?: string;
+    cards: ReactNode[];
+};
+
 /**
  * A hub (docs/architecture/design-system.md, section 5): the page header,
- * a grid of cards, then the cards plugins added under their own heading.
+ * a grid of cards, or the cards under headings (Settings' "The site",
+ * "Writing and discussion"…), then the cards plugins added under their own
+ * heading.
  */
 export function HubPage({
     title,
     description,
-    cards,
+    cards = [],
+    sections = [],
     pluginCards = [],
     titleAs,
 }: {
     title: string;
     description?: ReactNode;
-    cards: ReactNode[];
+    cards?: ReactNode[];
+    sections?: HubSection[];
     pluginCards?: ReactNode[];
     titleAs?: 'h1' | 'div';
 }) {
     return (
         <Page>
             <PageHeader title={title} description={description} as={titleAs} />
-            <ul className="grid grid-cols-(--hub-cols) gap-4" style={GRID}>
-                {cards.map((card, index) => (
-                    <li key={index}>{card}</li>
-                ))}
-            </ul>
+            {cards.length > 0 && (
+                <ul className="grid grid-cols-(--hub-cols) gap-4" style={GRID}>
+                    {cards.map((card, index) => (
+                        <li key={index}>{card}</li>
+                    ))}
+                </ul>
+            )}
+            {sections.map((section, index) => (
+                <section
+                    key={section.heading}
+                    aria-labelledby={`hub-section-${index}`}
+                    className="mb-10"
+                    data-test="hub-section"
+                >
+                    <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <h2
+                            id={`hub-section-${index}`}
+                            className="text-lead text-ink font-semibold"
+                        >
+                            {section.heading}
+                        </h2>
+                        {section.hint !== undefined && (
+                            <span className="text-small text-ink-3">
+                                {section.hint}
+                            </span>
+                        )}
+                    </div>
+                    <ul
+                        className="grid grid-cols-(--hub-cols) gap-4"
+                        style={GRID}
+                    >
+                        {section.cards.map((card, cardIndex) => (
+                            <li key={cardIndex}>{card}</li>
+                        ))}
+                    </ul>
+                </section>
+            ))}
             {pluginCards.length > 0 && (
                 <section aria-labelledby="hub-from-plugins" className="mt-8">
                     <h2
