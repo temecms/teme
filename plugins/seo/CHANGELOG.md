@@ -13,3 +13,4 @@ All notable changes to Teme SEO are listed here. Teme SEO follows [Semantic Vers
 - The **Titles and descriptions** page, to find and fix items' titles, SEO titles and descriptions one after another, each saved as a new revision.
 - The **Keyphrase rewrite** panel, which asks your site's AI connection to rewrite the introduction, the headings or a few paragraphs around a keyphrase, shown word by word before you use it.
 - The **Search Console** page: clicks, impressions, click rate and position over the last 28 days, by day, with the top searches and pages.
+- Translations into German, Spanish, French, Hindi, Italian, Japanese and Brazilian Portuguese.

@@ -53,4 +53,4 @@ The AI features use your site's own AI connection, set up under **Settings › A
 - For Search Console: a Google account that can see your property, and an OAuth client as above.
 - For the AI features: an AI connection in **Settings › AI**, with a model chosen for Teme SEO's two tasks.
 
-Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+What comes next is listed in [ROADMAP.md](ROADMAP.md), and changes in [CHANGELOG.md](CHANGELOG.md).
