@@ -29,7 +29,7 @@ beforeEach(function (): void {
         ->get('_probe', fn () => ApiResponse::one(['ok' => true], ['self' => url('/api/v1/_probe')]));
 });
 
-it('adds Apps and AI tools to Search and social, after robots.txt and before the 404 log', function (): void {
+it('adds For apps and AI tools to Search and social, after robots.txt and before the 404 log', function (): void {
     $sections = array_map(fn (SearchAndSocialSection $section): string => $section->key(), SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS)));
     $ours = ['robots-txt', 'apps-and-ai', 'not-found-log'];
     $section = collect(SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS)))->first(fn (SearchAndSocialSection $section): bool => $section->key() === 'apps-and-ai');
@@ -38,12 +38,12 @@ it('adds Apps and AI tools to Search and social, after robots.txt and before the
     $llms = $group?->setting(DeliverySwitches::LLMS);
 
     expect(array_values(array_intersect($sections, $ours)))->toBe($ours)
-        ->and($section?->label())->toBe('Apps and AI tools')
-        ->and($api?->label)->toBe('Let apps and other sites read your published content as data')
-        ->and($api?->description)->toBe('Apps, other sites and tools can read your published content as data through the API, at https://example.com/api/v1: posts, pages and your own types, with their fields, terms and images. They see only what readers see: never drafts, private items, what’s behind a password, or fields you hide on the site.')
+        ->and($section?->label())->toBe('For apps and AI tools')
+        ->and($api?->label)->toBe('Let apps and other sites read the published content through the API')
+        ->and($api?->description)->toBe('They see only what readers see, at https://example.com/api/v1: posts, pages and your own types, with their fields, terms and images. Never drafts, private items or what’s behind a password.')
         ->and($api?->since)->toBe('0.3.0')
-        ->and($llms?->label)->toBe('Publish llms.txt')
-        ->and($llms?->description)->toBe('A short guide to your site at https://example.com/llms.txt, for AI assistants and coding tools that someone points at it, with a plain-text copy of each listed post and page at its address followed by .md. It lists only what search engines may list, and nothing while the site discourages search engines.')
+        ->and($llms?->label)->toBe('Publish an llms.txt guide to the site')
+        ->and($llms?->description)->toBe('A short guide at https://example.com/llms.txt, for AI assistants and coding tools that someone points at it, with a plain-text copy of each listed post and page. It lists only what search engines may list.')
         ->and($llms?->since)->toBe('0.3.0');
 });
 

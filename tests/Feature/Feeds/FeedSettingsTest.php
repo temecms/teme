@@ -30,7 +30,7 @@ it('adds the Feeds section to Search and social at order 600, with its two setti
         ->and($content?->type)->toBe(SettingType::Select)
         ->and($content?->label)->toBe('Feeds show')
         ->and($content?->description)->toBe('The full text can be read in a feed reader; the excerpt sends readers to the site to read on.')
-        ->and($content?->options)->toBe(['full' => 'The full text', 'excerpt' => 'The excerpt'])
+        ->and($content?->options)->toBe(['full' => 'The full text', 'excerpt' => 'The excerpt only'])
         ->and($content?->default)->toBe('full')
         ->and(array_map(fn (SearchAndSocialSection $section): array => [$section->order(), $section->key(), $section->label()], SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS))))
         ->toContain([600, 'feeds', 'Feeds']);

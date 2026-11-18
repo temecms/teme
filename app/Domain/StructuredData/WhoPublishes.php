@@ -66,7 +66,7 @@ final class WhoPublishes implements SearchAndSocialSection, SettingsCheck
 
     public function order(): int
     {
-        return 300;
+        return 850;
     }
 
     public function key(): string

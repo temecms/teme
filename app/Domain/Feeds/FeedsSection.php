@@ -43,10 +43,10 @@ final class FeedsSection implements SearchAndSocialSection
     {
         return [
             Setting::number(self::ITEMS, 'Items in feeds', 'How many of the newest items each feed holds, from 1 to 100.', '0.1.0')
-                ->default(10)->min(1)->max(100),
+                ->default(10)->min(1)->max(100)->unit('items'),
             Setting::select(self::CONTENT, 'Feeds show', 'The full text can be read in a feed reader; the excerpt sends readers to the site to read on.', '0.1.0', [
                 self::FULL => 'The full text',
-                self::EXCERPT => 'The excerpt',
+                self::EXCERPT => 'The excerpt only',
             ]),
         ];
     }

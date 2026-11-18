@@ -28,13 +28,13 @@ beforeEach(function (): void {
     $this->setting = fn (string $key): Setting => collect((new WhoPublishes)->settings())->firstWhere('key', $key);
 });
 
-it('adds "Who publishes the site" to Search and social at 300, after the whole site and before social cards, naming nobody in particular until set (I-874, I-876)', function (): void {
+it('adds "Who publishes the site" to Search and social at 850, after the 404 log, naming nobody in particular until set (I-874, I-876)', function (): void {
     $sections = SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS));
     $keys = array_map(fn (SearchAndSocialSection $section): string => $section->key(), $sections);
     $who = collect($sections)->first(fn (SearchAndSocialSection $section): bool => $section->key() === 'who-publishes');
 
-    expect(array_values(array_intersect($keys, ['whole-site', 'who-publishes', 'social-cards'])))->toBe(['whole-site', 'who-publishes', 'social-cards'])
-        ->and([$who->order(), $who->label()])->toBe([300, 'Who publishes the site'])
+    expect(array_values(array_intersect($keys, ['not-found-log', 'who-publishes', 'page-and-article-types'])))->toBe(['not-found-log', 'who-publishes', 'page-and-article-types'])
+        ->and([$who->order(), $who->label()])->toBe([850, 'Who publishes the site'])
         ->and(array_map(fn (Setting $setting): string => $setting->key, $who->settings()))->toBe([
             'publisher_type', 'publisher_name', 'publisher_alternate_name', 'publisher_logo', 'publisher_profiles', 'publisher_person',
             'business_street_address', 'business_locality', 'business_region', 'business_postal_code', 'business_country',
