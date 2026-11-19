@@ -26,6 +26,9 @@ it('draws a missing admin page inside the admin for someone signed in', function
     $this->actingAs($author)
         ->get('/admin/no-such-page')
         ->assertNotFound()
+        // Said in the page itself too, for a browser that runs no script.
+        ->assertSee('<noscript>', false)
+        ->assertSee('We can’t find that page')
         ->assertInertia(fn (Assert $page) => $page
             ->component('errors/in-admin')
             ->where('status', 404)

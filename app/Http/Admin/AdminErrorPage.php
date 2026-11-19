@@ -50,13 +50,40 @@ final class AdminErrorPage
         }
 
         $user = app(CurrentUserData::class)->find($request->user()->getAuthIdentifier());
+        $site = app(StandalonePage::class)->brand()['name'];
+        $reason = $status === 403 ? self::reason($exception) : null;
 
         return Inertia::render('errors/in-admin', [
             'status' => $status,
-            'site' => app(StandalonePage::class)->brand()['name'],
+            'site' => $site,
             'role' => $user['role'] ?? null,
-            'reason' => $status === 403 ? self::reason($exception) : null,
-        ])->toResponse($request)->setStatusCode($status);
+            'reason' => $reason,
+        ])->withViewData(['fallback' => self::words($status, $site, $reason)])
+            ->toResponse($request)
+            ->setStatusCode($status);
+    }
+
+    /**
+     * The page's title and what happened, in the in-admin page's own words,
+     * which the root view also draws for a browser that runs no script.
+     *
+     * @return array{title: string, text: string}
+     */
+    private static function words(int $status, ?string $site, ?string $reason): array
+    {
+        if ($status === 404) {
+            return [
+                'title' => __('We can’t find that page'),
+                'text' => __('The address may be mistyped, or the item may have moved to the Trash. Search the admin to find it.'),
+            ];
+        }
+
+        return [
+            'title' => __('You can’t open this page'),
+            'text' => $reason ?? ($site === null
+                ? __('Your account doesn’t have permission to do that. If you need it, ask an administrator to change your role.')
+                : __('Your account doesn’t have permission to do that. If you need it, ask an administrator of :site to change your role.', ['site' => $site])),
+        ];
     }
 
     /**
