@@ -27,6 +27,7 @@ Teme builds a plugin's class with only these, each when the plugin was granted, 
 | `Teme\Contracts\Ai\SiteAi` | granted `ai` and its manifest declares `contributes.aiTasks` | 1.0.0 |
 | `Teme\Contracts\Hooks\HookSender` | its manifest declares `contributes.hooks` | 1.0.0 |
 | `Teme\Contracts\Notices\Notices` | granted `notices.send` | 0.5.0 |
+| `Teme\Contracts\Content\HtmlToDocument` | always | next |
 
 ## Teme\Contracts\Admin
 
@@ -309,6 +310,14 @@ How a plugin granted content.write creates and changes items, publishes and sche
 - `publish(ItemRef $item, string $actingPersonId): ItemRef` — Publishes the item's latest revision now. Since 1.0.0.
 - `schedule(ItemRef $item, DateTimeImmutable $at, string $actingPersonId): ItemRef` — Schedules the item's latest revision. Since 1.0.0.
 - `linkTranslations(array $itemIds, string $actingPersonId): void` — Links existing items as language versions of one another: every version each already has joins one group. Since 1.0.0.
+
+### HtmlToDocument
+
+`Teme\Contracts\Content\HtmlToDocument`, interface. Since next.
+
+Turns HTML into the Tiptap document Teme stores, with the same converter Teme's importer uses, offered to every plugin with no capability: it reads nothing and writes nothing. A plugin bringing in text written elsewhere, such as a README turned from Markdown into HTML, converts it here and hands the document to ContentWriter.
+
+- `convert(string $html): array` — The document the HTML becomes: `['type' => 'doc', 'content' => [...]]`, with headings, paragraphs, lists, quotes, code, rules, tables and images as the editor holds them. Since next.
 
 ### ItemChanges
 

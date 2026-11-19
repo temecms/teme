@@ -48,6 +48,7 @@ use App\Domain\Users\Queries\AuthorOptions;
 use Teme\Contracts\Ai\SiteAi;
 use Teme\Contracts\Content\ContentReader;
 use Teme\Contracts\Content\ContentWriter;
+use Teme\Contracts\Content\HtmlToDocument;
 use Teme\Contracts\Fediverse\FediverseFollowers;
 use Teme\Contracts\Fediverse\FediverseSender;
 use Teme\Contracts\Hooks\HookSender;
@@ -81,6 +82,7 @@ final readonly class PluginDoors implements PluginServices
         private AuthorOptions $authors,
         private HookDispatcher $dispatcher,
         private NoticeSender $notices,
+        private HtmlToDocument $html,
     ) {}
 
     /**
@@ -133,6 +135,8 @@ final readonly class PluginDoors implements PluginServices
         }
 
         $offered[SiteInfo::class] = $this->site;
+        // Reads nothing and writes nothing, so every plugin is given it.
+        $offered[HtmlToDocument::class] = $this->html;
 
         // Its own settings group only, for the person its work runs for (docs/proposals/plugin-sockets-1.md).
         $settings = $this->registry->find($name)?->manifest?->contributes()['settings'] ?? null;

@@ -8,6 +8,7 @@ use App\Domain\Plugins\Doors\PluginHttp;
 use App\Domain\Plugins\Doors\PluginSecrets;
 use App\Domain\Site\CoreSiteInfo;
 use Illuminate\Support\Facades\Http;
+use Teme\Contracts\Content\HtmlToDocument;
 use Teme\Contracts\Http\HostRefused;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Settings\SecretReader;
@@ -36,7 +37,7 @@ it('offers the outbound door only to a plugin granted http, limited to its hosts
 it('offers every plugin the settings reader, its own secrets and the site’s public facts', function (): void {
     $offered = app(PluginDoors::class)->for('acme/feeds', 'feeds', [], []);
 
-    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class, SiteInfo::class])
+    expect(array_keys($offered))->toEqualCanonicalizing([SettingsReader::class, SecretReader::class, SiteInfo::class, HtmlToDocument::class])
         ->and($offered[SiteInfo::class])->toBeInstanceOf(CoreSiteInfo::class)
         ->and($offered[SettingsReader::class])->toBe(app(SettingsReader::class))
         ->and($offered[SecretReader::class])->toBeInstanceOf(PluginSecrets::class)

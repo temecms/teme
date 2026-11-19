@@ -3,7 +3,7 @@ title: Plugins writing content
 type: how-to
 audience: plugin
 summary: How a plugin granted content.write creates, changes, publishes and schedules items, with their slugs, credits and language versions, always on behalf of a named person.
-rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentWriter.php, app/Domain/Plugins/Doors/ActingPerson.php, docs/architecture/plugins.md, docs/architecture/operations.md]
+rests_on: [packages/teme-contracts/src/Content, app/Domain/Plugins/Doors/PluginContentWriter.php, app/Domain/Import/Convert/HtmlDocuments.php, app/Domain/Plugins/Doors/ActingPerson.php, docs/architecture/plugins.md, docs/architecture/operations.md]
 ---
 
 # Plugins writing content
@@ -42,6 +42,15 @@ To link items that already exist, call `linkTranslations()` with their IDs, betw
 ## When a write is refused
 
 Every refusal is a `WriteRefused` exception, with a message that says why: no person, the wrong person, a permission the person lacks, an item that doesn't exist, a field the type doesn't have, or a value that fails the type's checks. Nothing is written when one is thrown. Catch it where you can tell the person, and let it fail a job otherwise, so the run is marked failed with that message.
+
+## Bodies written as HTML
+
+A body is a Tiptap document, never HTML. When what you bring in is HTML, such as a page from another service or a README turned from Markdown into HTML, ask for `Teme\Contracts\Content\HtmlToDocument` in your constructor. Every plugin is given it, with no capability, because it reads and writes nothing. `convert($html)` answers the document Teme's own importer makes of that HTML: headings, paragraphs, lists, quotes, code, rules, tables and images as the editor holds them, with script, style and unknown markup left out. Links and images stay at the addresses given; hand the document to `create()` or `change()` as the body.
+
+```php
+$body = $this->html->convert($html);
+$this->content->create(new NewItem(type: 'post', title: $title, body: $body), $personId);
+```
 
 ## Test it
 

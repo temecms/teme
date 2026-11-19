@@ -15,6 +15,7 @@ namespace App\Providers;
 
 use App\Domain\Fediverse\Import\FediverseRepliesStep;
 use App\Domain\Fediverse\Import\FediverseStep;
+use App\Domain\Import\Convert\HtmlDocuments;
 use App\Domain\Import\ImportMode;
 use App\Domain\Import\Phases\Addresses\AddressClashStep;
 use App\Domain\Import\Phases\Addresses\AddressSettingsStep;
@@ -57,6 +58,7 @@ use App\Domain\Jobs\JobKinds;
 use App\Domain\Support\Network\DnsHostResolver;
 use App\Domain\Support\Network\HostResolver;
 use Illuminate\Support\ServiceProvider;
+use Teme\Contracts\Content\HtmlToDocument;
 
 final class ImportServiceProvider extends ServiceProvider
 {
@@ -65,6 +67,8 @@ final class ImportServiceProvider extends ServiceProvider
         $this->app->scoped(ImportMode::class);
         $this->app->scoped(PluginImports::class);
         $this->app->bind(HostResolver::class, DnsHostResolver::class);
+        // The importer's converter, for plugins and core alike.
+        $this->app->bind(HtmlToDocument::class, HtmlDocuments::class);
 
         // Core's phases, each tagged ImportPhases::TAG from its own line, in I-333's order.
 
