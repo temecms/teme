@@ -46,6 +46,12 @@ export type ContentRow = {
     discussion: { value: Discussion; canSet: boolean } | null;
     /** Its group's versions by language tag, for the language marks; null on a site with one language. */
     versions?: Record<string, 'there' | 'outOfDate'> | null;
+    /** The item it sits under, for the Parent column; null at the top. */
+    parent?: { id: string; title: string } | null;
+    /** The name of the template it chose, null for the theme's default. */
+    template?: string | null;
+    /** Its values for the type's list fields, by field key, as a cell shows them; an empty one is left out. */
+    fields?: Record<string, string>;
 };
 
 export type ContentTab = { key: string; label: string; count: number };
@@ -100,6 +106,12 @@ export type ContentIndexPage = {
     /** Whether the list has a Comments column: the type takes comments and they're on. */
     takesComments: boolean;
     typeTaxonomies: TypeTaxonomy[];
+    /** The type's own fields a list may show as columns, in the editor's order. */
+    listFields: { key: string; label: string; kind: string }[];
+    /** Whether the type nests, so its list offers the Parent column. */
+    hasParent: boolean;
+    /** Whether its items choose a template, so its list offers the Template column. */
+    hasTemplate: boolean;
     labels: { singular: string; plural: string };
     /** The site's languages, in order, for the marks and the Language filter; none when the type has no versions. */
     languages?: { tag: string; name: string }[];

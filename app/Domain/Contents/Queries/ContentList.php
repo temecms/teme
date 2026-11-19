@@ -25,6 +25,7 @@ use App\Domain\Site\SiteLanguage;
 use App\Domain\Support\Queries\Cursor;
 use App\Domain\Support\Queries\ListPages;
 use App\Domain\Taxonomy\Queries\TermTree;
+use App\Domain\Themes\TemplateChoice;
 use App\Domain\Types\Taxonomy;
 use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
@@ -37,10 +38,10 @@ use stdClass;
 final class ContentList
 {
     /** Rows per page when the request asks for a size the lists do not offer. */
-    private const int PAGE = 50;
+    private const int PAGE = 10;
 
     /** @var list<int> The page sizes a person may choose (lists.per_page). */
-    private const array PAGE_SIZES = [25, 50, 100];
+    private const array PAGE_SIZES = [10, 25, 50, 100];
 
     /** @var array<string, array{0: string, 1: string}> sort => [column, default direction] */
     private const array SORTS = [
@@ -89,6 +90,9 @@ final class ContentList
      * (1.8c's D21), else null. Each row's `discussion` is its state and
      * whether the person may publish it, by the same rule, else null. Each
      * row's `viewUrl` is its live address, or null for anything not live.
+     * Each row's `parent` is its parent's ID and title, or null; `template`
+     * the name of the template it chose, or null for the default; `fields`
+     * its values for the type's list fields (ListFields), as cells show them.
      *
      * @return array{rows: list<array<string, mixed>>, paging: array{number: int|null, last: int, more: bool, from: int|null, to: int|null, total: int|null, newer: string|null, older: string|null}, newer: string|null, older: string|null, tabs: list<array{key: string, label: string, count: int}>, filtered: bool, sort: string, direction: string}
      */
@@ -122,8 +126,10 @@ final class ContentList
                 // The Scheduled tab's and the author sort's cursors are built
                 // from these.
                 'contents.scheduled_for', 'contents.author_sort', 'contents.comment_status', 'contents.visibility',
-                'contents.language', 'contents.translation_group', 'users.name as author_name',
+                'contents.language', 'contents.translation_group', 'contents.parent_id', 'users.name as author_name',
             ])
+            // The parent's title for the Parent column, in the same statement (I-3363).
+            ->selectRaw('(SELECT parents.title FROM contents AS parents WHERE parents.id = contents.parent_id) AS parent_title')
             // Whether the viewer may edit each row: ContentPolicy::update's
             // rule as SQL (ContentAbilities), so fifty rows ask no policy.
             ->selectRaw("({$canEdit}) AS can_edit", $canEditBindings);
@@ -162,7 +168,10 @@ final class ContentList
 
         $terms = $this->termsFor($rows->pluck('id')->all());
         $taxonomies = array_map(fn (Taxonomy $taxonomy): string => $taxonomy->key, app(TaxonomyRegistry::class)->forType($request->type));
-        $images = $this->featuredImagesFor($rows->pluck('id')->all());
+        $revisionFields = $this->revisionFieldsFor($rows->pluck('id')->all());
+        $images = $this->featuredImagesFor($revisionFields);
+        $listFields = ListFields::of($request->type);
+        $templates = TemplateChoice::declared($request->type);
         $addresses = $this->addressesFor($rows, $request->type);
         // Every row, not only the scheduled ones, so every page of a list
         // costs the same queries whatever it holds (the benchmark holds it).
@@ -194,6 +203,10 @@ final class ContentList
                 'authorName' => $row->author_name,
                 'terms' => array_combine($taxonomies, array_map(fn (string $key): array => $terms[$row->id][$key] ?? [], $taxonomies)),
                 'featuredImage' => $images[$row->id] ?? null,
+                'parent' => $row->parent_id === null ? null : ['id' => (string) $row->parent_id, 'title' => (string) $row->parent_title],
+                // The template's name as the active theme gives it; null for the theme's default.
+                'template' => $this->templateOf($revisionFields[(string) $row->id] ?? [], $templates),
+                'fields' => ListFields::cells($listFields, $revisionFields[(string) $row->id] ?? []),
                 'viewUrl' => $addresses[(string) $row->id] ?? null,
                 'updatedAt' => $row->updated_at,
                 'publishedAt' => $row->published_at,
@@ -591,25 +604,39 @@ final class ContentList
     }
 
     /**
-     * The featured image of each item's working revision, from the revisions'
-     * fields column — never the document — and one lookup of the items.
+     * The fields of each item's working revision, by item, from the
+     * revisions' fields column — never the document — in one statement.
      *
      * @param  list<string>  $contentIds
      *
-     * @return array<string, array{id: string, title: string, thumbUrl: string|null, alt: string|null, decorative: bool}>
+     * @return array<string, array<string, mixed>>
      */
-    private function featuredImagesFor(array $contentIds): array
+    private function revisionFieldsFor(array $contentIds): array
     {
         if ($contentIds === []) {
             return [];
         }
 
-        $uses = DB::table('contents')
+        return DB::table('contents')
             ->join('content_revisions', 'content_revisions.id', '=', 'contents.working_revision_id')
             ->whereIn('contents.id', $contentIds)
-            ->selectRaw('contents.id, content_revisions.fields -> ? AS featured', [BuiltInFields::FEATURED_IMAGE])
-            ->get()
-            ->mapWithKeys(fn (object $row): array => [(string) $row->id => json_decode((string) $row->featured, true)])
+            ->get(['contents.id', 'content_revisions.fields'])
+            ->mapWithKeys(fn (object $row): array => [(string) $row->id => (array) json_decode((string) $row->fields, true)])
+            ->all();
+    }
+
+    /**
+     * The featured image of each item, from its working revision's fields,
+     * with one lookup of the images.
+     *
+     * @param  array<string, array<string, mixed>>  $revisionFields
+     *
+     * @return array<string, array{id: string, title: string, thumbUrl: string|null, alt: string|null, decorative: bool}>
+     */
+    private function featuredImagesFor(array $revisionFields): array
+    {
+        $uses = collect($revisionFields)
+            ->map(fn (array $fields): mixed => $fields[BuiltInFields::FEATURED_IMAGE] ?? null)
             ->filter(fn (mixed $use): bool => is_array($use) && is_string($use['id'] ?? null));
 
         if ($uses->isEmpty()) {
@@ -623,7 +650,7 @@ final class ContentList
             $item = $items[$use['id']] ?? null;
 
             if ($item !== null) {
-                $images[$contentId] = [
+                $images[(string) $contentId] = [
                     'id' => (string) $item->id,
                     'title' => (string) $item->title,
                     'thumbUrl' => MediaUrls::variant((array) json_decode((string) $item->variants, true)),
@@ -634,6 +661,20 @@ final class ContentList
         }
 
         return $images;
+    }
+
+    /**
+     * The name of the template an item chose, as the active theme offers it,
+     * or its slug when the theme no longer does; null for the default.
+     *
+     * @param  array<string, mixed>  $fields
+     * @param  array<string, string>  $templates  slug => label
+     */
+    private function templateOf(array $fields, array $templates): ?string
+    {
+        $slug = $fields[BuiltInFields::TEMPLATE] ?? null;
+
+        return is_string($slug) && $slug !== '' ? ($templates[$slug] ?? $slug) : null;
     }
 
     /**

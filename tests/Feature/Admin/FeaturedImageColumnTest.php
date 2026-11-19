@@ -30,16 +30,16 @@ beforeEach(function (): void {
     };
 });
 
-it('offers Featured image among each list\'s columns, and shows it to nobody by default (I-3120)', function (): void {
+it('shows thumbnails on each list by default, until the person turns them off', function (): void {
     $registry = app(PreferenceRegistry::class);
 
-    expect($registry->get('lists.post.columns')->default)->not->toContain('featured')
-        ->and($registry->get('lists.page.columns')->default)->not->toContain('featured')
-        ->and(PreferencesFor::user($this->editor)['lists.post.columns'])->not->toContain('featured');
+    expect($registry->get('lists.post.columns')->default)->toContain('featured')
+        ->and($registry->get('lists.page.columns')->default)->toContain('featured')
+        ->and(PreferencesFor::user($this->editor)['lists.post.columns'])->toContain('featured');
 
-    lscrPrefer($this->editor, ['lists.post.columns' => ['featured', 'author', 'date']]);
+    lscrPrefer($this->editor, ['lists.post.columns' => ['author', 'date']]);
 
-    expect(PreferencesFor::user($this->editor)['lists.post.columns'])->toBe(['featured', 'author', 'date']);
+    expect(PreferencesFor::user($this->editor)['lists.post.columns'])->toBe(['author', 'date']);
 });
 
 it('gives each row its featured image\'s smallest variant, never the original, and none to a row without one', function (): void {

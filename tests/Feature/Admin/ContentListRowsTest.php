@@ -58,7 +58,7 @@ it('labels a row Published, with its published date, only while it is live', fun
     expect(uiComponent('pages/content/index.tsx'))
         ->toContain("const live = row.status === 'published' && !row.trashed;")
         ->toMatch('/live\s*\?\s*\(?row\.publishedAt \?\? row\.updatedAt\)?\s*:\s*row\.updatedAt/')
-        ->toMatch("/live\s*\?\s*__\('Published'\)\s*:\s*__\('Last modified'\)/");
+        ->toMatch("/live\s*\?\s*__\('Published'\)\s*:\s*__\('Last edited'\)/");
 })->with([
     'a live item' => ['a live item', true],
     'a reverted draft, which keeps its published date' => ['a reverted draft', false],

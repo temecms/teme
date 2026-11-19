@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Preferences;
 
+use App\Domain\Contents\Queries\ListFields;
 use App\Domain\Dashboard\DashboardPanel;
 use App\Domain\Dashboard\DashboardRegistry;
 use App\Domain\Navigation\Queries\AdminNavigation;
@@ -35,7 +36,7 @@ final class BuiltInPreferences
         $registry->register(new PreferenceDefinition('editor.focus_mode_default', 'boolean', false, 'Open in focus mode', 'Open the editor with everything but the writing hidden.'));
         // Pinned to the editor's bar (DS 4.39), with the plugins' panels the signed-in person may see on some item.
         $registry->register(new PreferenceDefinition('editor.pinned_tools', 'list', ['assistant', 'share'], 'Pinned editor tools', allowed: fn (): array => ['assistant', 'share', ...app(EditorPanels::class)->toolIdsFor(Auth::id() === null ? null : (string) Auth::id())], maxItems: 3));
-        $registry->register(new PreferenceDefinition('lists.per_page', 'select', 50, 'Rows per page', 'How many items the Posts, Pages and other lists show at a time.', options: [25 => '25', 50 => '50', 100 => '100']));
+        $registry->register(new PreferenceDefinition('lists.per_page', 'select', 10, 'Rows per page', 'How many items the Posts, Pages and other lists show at a time.', options: [10 => '10', 25 => '25', 50 => '50', 100 => '100']));
         $registry->register(new PreferenceDefinition('appearance.mode', 'select', 'system', 'Light or dark', 'Light, dark, or whatever your system is set to.', options: ['light' => 'Light', 'dark' => 'Dark', 'system' => 'Match the system']));
         $registry->register(new PreferenceDefinition('dashboard.getting_started_hidden', 'boolean', false, 'Hide Getting started', 'The checklist a new site shows on Home. Turn this off to see it again.'));
 
@@ -45,7 +46,6 @@ final class BuiltInPreferences
 
         // Later (I-200): row actions, bulk actions and filters from plugins wait.
         // Later (I-416): a type's filterable fields join its options, as fields.{handle}, in phase 2.
-        // Later (I-239): a Parent column for a hierarchical type arrives with hierarchy, which phase 1 does not have.
         foreach (app(ContentTypeRegistry::class)->all() as $type) {
             // A type that isn't listed, such as a region, has no list, so no columns.
             if (! $type->listed) {
@@ -56,12 +56,17 @@ final class BuiltInPreferences
             $typeKey = $type->key;
 
             $registry->register(new PreferenceDefinition(
-                "lists.{$type->key}.columns", 'list', $columns, "{$type->plural} columns",
-                // Featured image is offered, and never on until someone turns it on (I-3120);
-                // Languages too (docs/proposals/multilingual-screens.md, 4). Plugin columns join
-                // the same way. maxItems is null: the allowed set bounds the list, and a fixed
-                // number would have to know how many plugins run.
-                allowed: fn (): array => ['featured', 'languages', ...self::columnsOf($typeKey), ...app(PluginColumns::class)->keysFor($typeKey)],
+                "lists.{$type->key}.columns", 'list', self::shownAtFirst($type->key), "{$type->plural} columns",
+                // Thumbnails show until someone turns them off, as the approved design draws the
+                // lists; Languages is offered (docs/proposals/multilingual-screens.md, 4). A type's
+                // own fields are `fields` until the person chooses among them, each as field-{key}.
+                // Plugin columns join the same way. maxItems is null: the allowed set bounds the list,
+                // and a fixed number would have to know how many plugins run.
+                allowed: fn (): array => [
+                    'featured', 'languages', 'fields', ...self::columnsOf($typeKey),
+                    ...array_map(fn (array $field): string => "field-{$field['key']}", ListFields::columns($typeKey)),
+                    ...app(PluginColumns::class)->keysFor($typeKey),
+                ],
                 maxItems: null,
             ));
         }
@@ -89,9 +94,10 @@ final class BuiltInPreferences
 
     /**
      * The columns a type's list may show, as the list page's column ids:
-     * Author, one per taxonomy the type uses, in the type's order, Comments,
+     * Parent, for a type that nests, Author, one per taxonomy the type uses,
+     * in the type's order, Template, for a type that chooses one, Comments,
      * for a type that takes comments, then Date. Title is always shown, so it
-     * is no option; a row's state follows its title.
+     * is no option; nor is Status, which always comes before the Date.
      *
      * @return list<string>
      */
@@ -103,11 +109,46 @@ final class BuiltInPreferences
             return [];
         }
 
+        $type = app(ContentTypeRegistry::class)->get($typeKey);
+
         return [
+            ...($type->hierarchical ? ['parent'] : []),
             'author',
             ...array_map(fn (Taxonomy $taxonomy): string => "taxonomy-{$taxonomy->key}", app(TaxonomyRegistry::class)->forType($typeKey)),
-            ...(app(ContentTypeRegistry::class)->get($typeKey)->comments === null ? [] : ['comments']),
+            ...($type->supports('template') ? ['template'] : []),
+            ...($type->comments === null ? [] : ['comments']),
             'date',
         ];
+    }
+
+    /**
+     * What a list shows before the person chooses, so every column fits
+     * beside the title at 1440 wide: the thumbnails, every column but a flat
+     * taxonomy beside a nesting one, Comments, and Template on a type that
+     * doesn't nest, and the type's own
+     * fields (read when the list is drawn, never at boot).
+     *
+     * @return list<string>
+     */
+    private static function shownAtFirst(string $typeKey): array
+    {
+        $taxonomies = app(ContentTypeRegistry::class)->has($typeKey) ? app(TaxonomyRegistry::class)->forType($typeKey) : [];
+        $nests = array_filter($taxonomies, fn (Taxonomy $taxonomy): bool => $taxonomy->hierarchical) !== [];
+        $nesting = app(ContentTypeRegistry::class)->has($typeKey) && app(ContentTypeRegistry::class)->get($typeKey)->hierarchical;
+        $offeredOnly = [
+            'comments',
+            // Pages show their template; Posts offer it.
+            ...($nesting ? [] : ['template']),
+            ...array_map(
+                fn (Taxonomy $taxonomy): string => "taxonomy-{$taxonomy->key}",
+                array_filter($taxonomies, fn (Taxonomy $taxonomy): bool => $nests && ! $taxonomy->hierarchical),
+            ),
+        ];
+        $shown = array_values(array_filter(self::columnsOf($typeKey), fn (string $id): bool => ! in_array($id, $offeredOnly, true)));
+        $dateAt = array_search('date', $shown, true);
+
+        return $dateAt === false
+            ? ['featured', ...$shown]
+            : ['featured', ...array_slice($shown, 0, $dateAt), 'fields', ...array_slice($shown, $dateAt)];
     }
 }

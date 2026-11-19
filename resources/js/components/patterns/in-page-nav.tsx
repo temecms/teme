@@ -37,19 +37,22 @@ function Count({ count }: { count?: number }) {
 /**
  * Views of one place that change the address
  * (docs/architecture/design-system.md, section 4.27): links in a labelled
- * nav, the current one marked; the first five show, the rest are under
+ * nav, the current one marked; the first five (or `visible`) show, the rest are under
  * More, which shows the current item's name when it is one of them. One
  * row, never wrapping.
  */
 export function InPageNav({
     label,
     items,
+    visible = SHOWN,
 }: {
     label: string;
     items: InPageNavItem[];
+    /** How many items show before the rest go under More; five unless the page's design draws more. */
+    visible?: number;
 }) {
-    const shown = items.slice(0, SHOWN);
-    const more = items.slice(SHOWN);
+    const shown = items.slice(0, visible);
+    const more = items.slice(visible);
     const currentInMore = more.find((item) => item.current);
 
     return (
