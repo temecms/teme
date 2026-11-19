@@ -146,7 +146,7 @@ it('gives every new contract its @since and nothing from a framework', function 
     [AnswerTooLarge::class, '0.5.0'],
     [RequestFailed::class, '0.5.0'],
     [ItemRef::class, '0.5.0'],
-    [ContentWriter::class, '1.0.0'],
+    [ContentWriter::class, '1.0.0', ['unpublish' => 'next']],
     [NewItem::class, '1.0.0'],
     [ItemChanges::class, '1.0.0'],
     [WriteRefused::class, '1.0.0'],
@@ -245,6 +245,8 @@ it('names the capabilities a plugin can ask for in the first release', function 
         'content.links',
         'pages.head',
         'sitemaps',
+        'directory.read',
+        'content.submissions',
     ]);
 });
 
