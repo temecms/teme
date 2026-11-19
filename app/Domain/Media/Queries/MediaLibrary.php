@@ -25,7 +25,11 @@ final class MediaLibrary
 {
     private const int PAGE = 60;
 
-    /** The most a chip counts; past it, the chip shows this many and a plus. */
+    /**
+     * The most a chip counts; past it, the chip shows this many and a plus.
+     *
+     * @since next
+     */
     public const int CHIP_MOST = 999;
 
     /** @var array<string, string> */
@@ -170,6 +174,8 @@ final class MediaLibrary
      * unused and imported, each counted up to CHIP_MOST plus one, in one query.
      *
      * @return array{missingAlt: int, unused: int, imported: int}
+     *
+     * @since next
      */
     public function chips(): array
     {
