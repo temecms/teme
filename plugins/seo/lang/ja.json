@@ -147,5 +147,7 @@
     "Links in: :in. Links out: :out. Cornerstone content: :mark": "被リンク: :in。発リンク: :out。コーナーストーン: :mark",
     "No": "いいえ",
     "Without a featured image": "アイキャッチ画像なし",
-    "Yes": "はい"
+    "Yes": "はい",
+    "Clicks by day": "日別クリック数",
+    "Impressions by day": "日別インプレッション"
 }

@@ -80,16 +80,18 @@ final readonly class SeoArea implements PluginArea
     }
 
     /**
-     * Returns Search Console's clicks and impressions by day, the last 28 days.
+     * Returns Search Console's clicks or impressions by day, the last 28 days.
+     * Each series has its own chart so the smaller line isn't flattened.
      */
     public function chart(string $page, string $block, AreaContext $context): Chart
     {
         $days = $this->search->days(28);
+        $labels = array_column($days, 'day');
 
-        return new Chart(array_column($days, 'day'), [
-            'clicks' => array_column($days, 'clicks'),
-            'impressions' => array_column($days, 'impressions'),
-        ]);
+        return match ($block) {
+            'search-impressions' => new Chart($labels, ['impressions' => array_column($days, 'impressions')]),
+            default => new Chart($labels, ['clicks' => array_column($days, 'clicks')]),
+        };
     }
 
     /**

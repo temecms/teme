@@ -147,5 +147,7 @@
     "Links in: :in. Links out: :out. Cornerstone content: :mark": "Link in entrata: :in. Link in uscita: :out. Contenuto cornerstone: :mark",
     "No": "No",
     "Without a featured image": "Senza immagine in evidenza",
-    "Yes": "Sì"
+    "Yes": "Sì",
+    "Clicks by day": "Clic per giorno",
+    "Impressions by day": "Impressioni per giorno"
 }

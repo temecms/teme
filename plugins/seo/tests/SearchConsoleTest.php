@@ -63,7 +63,14 @@ final class SearchConsoleTest extends SeoTestCase
                     ->where('block_search-totals.items.0.value', 560)
                     ->where('block_search-totals.items.0.change', 1)
                     ->where('block_search-totals.items.1.value', 11200))
-                ->loadDeferredProps('block_search-daily', fn (Assert $reload) => $reload->has('block_search-daily.labels', 28))
+                ->loadDeferredProps('block_search-clicks', fn (Assert $reload) => $reload
+                    ->has('block_search-clicks.labels', 28)
+                    ->where('block_search-clicks.series', fn (iterable $series): bool => count(iterator_to_array($series)) === 1
+                        && iterator_to_array($series)[0]['id'] === 'clicks'))
+                ->loadDeferredProps('block_search-impressions', fn (Assert $reload) => $reload
+                    ->has('block_search-impressions.labels', 28)
+                    ->where('block_search-impressions.series', fn (iterable $series): bool => count(iterator_to_array($series)) === 1
+                        && iterator_to_array($series)[0]['id'] === 'impressions'))
                 ->loadDeferredProps('block_search', fn (Assert $reload) => $reload
                     ->where('block_search.total', 1)
                     ->where('block_search.rows.0.cells.key.value', 'https://example.com/feeding-roses/')));

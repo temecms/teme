@@ -147,5 +147,7 @@
     "Links in: :in. Links out: :out. Cornerstone content: :mark": "आने वाले लिंक: :in. जाने वाले लिंक: :out. कॉर्नरस्टोन सामग्री: :mark",
     "No": "नहीं",
     "Without a featured image": "बिना फीचर्ड इमेज",
-    "Yes": "हाँ"
+    "Yes": "हाँ",
+    "Clicks by day": "दिन के अनुसार क्लिक",
+    "Impressions by day": "दिन के अनुसार इंप्रेशन"
 }

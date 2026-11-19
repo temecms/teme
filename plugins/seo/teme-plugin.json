@@ -551,14 +551,22 @@
                         },
                         {
                             "type": "chart",
-                            "id": "search-daily",
-                            "label": "Clicks and impressions by day",
+                            "id": "search-clicks",
+                            "label": "Clicks by day",
                             "kind": "line",
                             "series": [
                                 {
                                     "id": "clicks",
                                     "label": "Clicks"
-                                },
+                                }
+                            ]
+                        },
+                        {
+                            "type": "chart",
+                            "id": "search-impressions",
+                            "label": "Impressions by day",
+                            "kind": "line",
+                            "series": [
                                 {
                                     "id": "impressions",
                                     "label": "Impressions"
