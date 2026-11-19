@@ -199,7 +199,7 @@ jobs:
           docker compose config --quiet
           docker compose up --detach
           status=""
-          for attempt in $(seq 1 60); do
+          for _ in $(seq 1 60); do
             web_id="$(docker compose ps --quiet web)"
             if [ -n "$web_id" ]; then
               status="$(docker inspect --format '{{.State.Health.Status}}' "$web_id")"
@@ -310,7 +310,7 @@ jobs:
           postgres="$(sed -n 's/^ *image: \(postgres:.*\)$/\1/p' docker/compose.yml)"
           docker run --detach --name teme-aio-db --network teme-aio \
             --env POSTGRES_PASSWORD="$password" --env POSTGRES_DB=teme "$postgres"
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             docker exec teme-aio-db pg_isready --host 127.0.0.1 --username postgres > /dev/null 2>&1 && break
             sleep 2
           done

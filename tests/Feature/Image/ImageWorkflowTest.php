@@ -10,13 +10,14 @@ use Tests\Fixtures\Deployment\ImageFiles;
  * in the suite.
  */
 
-it('runs by hand, on version tags, and for a pull request that changes the image, never for a pushed branch', function (): void {
+it('runs by hand, from the nightly run, on version tags, and for a pull request that changes the image, never for a pushed branch', function (): void {
     $on = ImageFiles::workflow()['on'];
 
-    expect(array_keys($on))->toBe(['pull_request', 'workflow_dispatch', 'push'])
+    expect(array_keys($on))->toBe(['pull_request', 'workflow_dispatch', 'workflow_call', 'push'])
         ->and($on['pull_request'])->toBe(['paths' => ['Dockerfile', '.dockerignore', 'docker/**', '.github/workflows/image.yml']])
         ->and($on['push'])->toBe(['tags' => ['v*']])
-        ->and($on['workflow_dispatch']['inputs']['publish']['default'])->toBeFalse();
+        ->and($on['workflow_dispatch']['inputs']['publish']['default'])->toBeFalse()
+        ->and($on['workflow_call']['inputs']['publish']['default'])->toBeFalse();
 });
 
 it('starts the image as one container that runs every role, and waits for its health check', function (): void {
