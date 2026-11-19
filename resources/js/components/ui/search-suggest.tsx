@@ -150,7 +150,7 @@ function SearchSuggest({
         aria-label={label}
         role="combobox"
         aria-expanded={showing}
-        aria-controls={listId}
+        aria-controls={showing ? listId : undefined}
         aria-autocomplete="list"
         aria-activedescendant={
           showing && results[selected] ? `${listId}-${selected}` : undefined
@@ -159,11 +159,12 @@ function SearchSuggest({
         className="ps-10"
         data-test={testId}
       />
+      {/* Drawn only while open, so no listbox lingers in the page for anything else to meet. */}
+      {showing && (
       <ul
         id={listId}
         role="listbox"
         aria-label={listLabel}
-        hidden={!showing}
         data-test={testId === undefined ? undefined : `${testId}-list`}
         style={LIST}
         className="absolute start-0 top-full z-(--z-float) mt-1 grid w-(--suggest-w) max-w-(--suggest-max) gap-0.5 rounded-lg bg-surface p-1 shadow-float"
@@ -198,6 +199,7 @@ function SearchSuggest({
           </li>
         )}
       </ul>
+      )}
       <span className="sr-only" role="status">
         {status}
       </span>
