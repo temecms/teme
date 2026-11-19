@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * The folders Teme writes to while it runs, which every role mounts
+ * (I-378): storage/app, storage/framework, and the page cache's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
 
-/**
- * The folders Teme writes to while it runs, which every role mounts
- * (I-378): storage/app, storage/framework, and the page cache's.
- */
 final class HealthFolders
 {
     /**

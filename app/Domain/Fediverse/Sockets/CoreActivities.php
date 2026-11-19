@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fediverse\Sockets;
-
 /**
  * The activity types Teme takes and sends itself
  * (docs/plans/fediverse-publishing.md, D5): never given to a plugin's
  * handler, never sent through a plugin's FediverseSender.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fediverse\Sockets;
+
 final class CoreActivities
 {
     /** @var list<string> */

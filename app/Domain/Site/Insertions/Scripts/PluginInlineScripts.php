@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's door to ask for its inline scripts to be approved, through
+ * RequestPluginScript, for the person this work runs for: the signed-in
+ * person, or a job's; never the operator. It can only ask.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Scripts;
@@ -13,11 +23,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Content\WriteRefused;
 use Teme\Contracts\Insertions\InlineScripts;
 
-/**
- * A plugin's door to ask for its inline scripts to be approved, through
- * RequestPluginScript, for the person this work runs for: the signed-in
- * person, or a job's; never the operator. It can only ask.
- */
 final readonly class PluginInlineScripts implements InlineScripts
 {
     public function __construct(private string $code) {}

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert\Media;
-
 /**
  * The media Teme imported from the old site, as the converter asks for it
  * (I-338). The caller implements it: the posts phase on the import map,
  * tests and pages read at once with KnownMedia.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert\Media;
+
 interface MediaTargets
 {
     /**

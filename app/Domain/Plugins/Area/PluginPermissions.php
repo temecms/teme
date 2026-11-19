@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The permissions a plugin declares (docs/plans/plugin-sockets-2.md, A1):
+ * their names, `plugin.{code}.{id}`, what the consent lists, and making and
+ * removing their rows. The plugin Operations write through it, inside their
+ * transaction, with the query builder only, as TypePermissions does.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
@@ -9,12 +20,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * The permissions a plugin declares (docs/plans/plugin-sockets-2.md, A1):
- * their names, `plugin.{code}.{id}`, what the consent lists, and making and
- * removing their rows. The plugin Operations write through it, inside their
- * transaction, with the query builder only, as TypePermissions does.
- */
 final class PluginPermissions
 {
     /** The most permissions a plugin may declare. */

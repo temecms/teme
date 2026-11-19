@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The words a person reads from one plugin's manifest, in their language
+ * (docs/plans/plugin-sockets-2.md, C2): looked up by the English text in
+ * that plugin's own lang/<locale>.json, never in core's or another
+ * plugin's, and the English text when it has no line.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
 
 use Throwable;
 
-/**
- * The words a person reads from one plugin's manifest, in their language
- * (docs/plans/plugin-sockets-2.md, C2): looked up by the English text in
- * that plugin's own lang/<locale>.json, never in core's or another
- * plugin's, and the English text when it has no line.
- */
 final class ManifestText
 {
     /** @var array<string, array<string, string>> each locale's lines, read once */

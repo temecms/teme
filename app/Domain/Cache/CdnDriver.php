@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cache;
-
-use Symfony\Component\HttpFoundation\Response;
-
 /**
  * A CDN in front of the site that the page cache purges (spec §5.6,
  * I-514): what a stored page tells it, and how Teme purges it: by key, by
  * address for a page the web server served as a file (slice 1.7d″), or
  * whole. Cloudflare's is the first; another CDN is one more class, named in
  * configuration (`page_cache.cdn.driver`, CdnPurges::driver()).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cache;
+
+use Symfony\Component\HttpFoundation\Response;
+
 interface CdnDriver
 {
     /**

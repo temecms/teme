@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What a feed is of: the whole site, a term, an author or a type's archive page, with the name, the stored path of its page, the facts the builder reads and the language its items are in (I-3360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
 
 use App\Domain\People\Credit;
 
-/**
- * What a feed is of: the whole site, a term, an author or a type's archive page, with the name, the stored path of its page, the facts the builder reads and the language its items are in (I-3360).
- */
 final readonly class FeedSubject
 {
     public const string SITE = 'site';

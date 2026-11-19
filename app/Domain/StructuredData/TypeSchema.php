@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * What a content type's items are, as structured data says it (I-709): the
+ * kind of page each is drawn on, its main entity, if any, and the main
+ * entities an item may choose instead. Declared in the type's registry
+ * entry, and checked when it is made.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
 
 use InvalidArgumentException;
 
-/**
- * What a content type's items are, as structured data says it (I-709): the
- * kind of page each is drawn on, its main entity, if any, and the main
- * entities an item may choose instead. Declared in the type's registry
- * entry, and checked when it is made.
- */
 final readonly class TypeSchema
 {
     /** The kinds of page an item may be drawn on (I-709). */

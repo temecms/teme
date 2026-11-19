@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A settings page's "In other languages" table (docs/proposals/
+ * multilingual-screens.md, 6): the group's word settings, the default
+ * language's words for each, and each other language's own, where it has
+ * any. A theme's menu places are chosen on Navigation, not here. It reads
+ * only; TranslateSettings writes.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Queries;
@@ -12,13 +24,6 @@ use App\Domain\Settings\TranslatableSettings;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * A settings page's "In other languages" table (docs/proposals/
- * multilingual-screens.md, 6): the group's word settings, the default
- * language's words for each, and each other language's own, where it has
- * any. A theme's menu places are chosen on Navigation, not here. It reads
- * only; TranslateSettings writes.
- */
 final class SettingsWords
 {
     /**

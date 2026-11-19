@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The Comments screen's list (1.8c): one page of a view, newest first, by
+ * number up to the cap and by keyset past it (I-3421), for the items the person looks after (CommentScope), items in the
+ * trash left out; each view's count (C10); the item a list is narrowed to;
+ * the order deleting many runs in; and what an Empty press covers (1.8c′).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -16,12 +27,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The Comments screen's list (1.8c): one page of a view, newest first, by
- * number up to the cap and by keyset past it (I-3421), for the items the person looks after (CommentScope), items in the
- * trash left out; each view's count (C10); the item a list is narrowed to;
- * the order deleting many runs in; and what an Empty press covers (1.8c′).
- */
 final class CommentList
 {
     /** All: every comment readers see or wait on, as WordPress's All (C10). */

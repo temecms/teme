@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Seo;
-
-use Teme\Contracts\Settings\Setting;
-
 /**
  * One section of Settings › Search and social (docs/studies/seo.md §3.14):
  * a heading and its settings, registered under SearchAndSocial::SECTIONS
  * from its part's own provider. Where it sits is its own order, never a list
  * in a shared file; core's sections are numbered in hundreds, so another
  * fits between two.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Seo;
+
+use Teme\Contracts\Settings\Setting;
+
 interface SearchAndSocialSection
 {
     /**

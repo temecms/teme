@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:extensions:caches`: the installer's own step, run in a child
+ * process: writes a staged release's plugin and theme caches for this
+ * core. It registers the release's packages with Composer's runtime data
+ * through a loader that can load no class, so no package code runs.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -8,12 +19,6 @@ use App\Domain\Extensions\Installer\ReleaseCaches;
 use Composer\Autoload\ClassLoader;
 use Illuminate\Console\Command;
 
-/**
- * `teme:extensions:caches`: the installer's own step, run in a child
- * process: writes a staged release's plugin and theme caches for this
- * core. It registers the release's packages with Composer's runtime data
- * through a loader that can load no class, so no package code runs.
- */
 final class WriteReleaseCaches extends Command
 {
     /** @var string */

@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * Every plugin on disk (I-3353): Composer packages of type `teme-plugin`,
+ * found through Composer's runtime data, then the folders in
+ * `config('teme.plugin_paths')`. What each one's manifest, class and code
+ * say is kept in the plugin cache under an identity that changes when the
+ * plugin does, and read again when it differs; the Teme version and the
+ * hooks are checked on every read. It only reads files; it never runs a
+ * plugin's code, and a plugin it can't read, or a cache it can't load,
+ * never stops it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -17,15 +32,6 @@ use Throwable;
 use ValueError;
 
 /**
- * Every plugin on disk (I-3353): Composer packages of type `teme-plugin`,
- * found through Composer's runtime data, then the folders in
- * `config('teme.plugin_paths')`. What each one's manifest, class and code
- * say is kept in the plugin cache under an identity that changes when the
- * plugin does, and read again when it differs; the Teme version and the
- * hooks are checked on every read. It only reads files; it never runs a
- * plugin's code, and a plugin it can't read, or a cache it can't load,
- * never stops it.
- *
  * @phpstan-type Reading array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null, handlers?: array<string, array{plugin: bool, parameters: list<array{name: string, type: string|null, named: bool}>, unreadable: array{0: string, 1: string}|null}|null>}
  * @phpstan-type Entry array{path: string, package: string|null, identity: string, manifest: array<string, mixed>|null, composer: array<string, mixed>|null, reading: Reading|null, code: list<string>, migrations: list<string>}
  */

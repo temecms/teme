@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The hosts a plugin reaches because a person entered them in its own url
+ * or urls settings, the ones its manifest's `hostsFrom` names
+ * (docs/plans/plugin-sockets-1.md, A2): only exact host names, and only
+ * those a person agreed to, at enable or on a settings save, while a
+ * setting still names them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -8,13 +20,6 @@ use App\Domain\Settings\Models\SettingsGroupRecord;
 use App\Domain\Settings\SettingsRegistry;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The hosts a plugin reaches because a person entered them in its own url
- * or urls settings, the ones its manifest's `hostsFrom` names
- * (docs/plans/plugin-sockets-1.md, A2): only exact host names, and only
- * those a person agreed to, at enable or on a settings save, while a
- * setting still names them.
- */
 final readonly class SettingHosts
 {
     /** The most settings `hostsFrom` may name. */

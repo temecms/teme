@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The trail a theme draws, as search engines read it (I-702): a
+ * BreadcrumbList of the same steps, each at its position, every step but
+ * the last with its address; nothing for a trail of fewer than two steps,
+ * which Google doesn't show.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\StructuredData;
@@ -8,12 +19,6 @@ use App\Domain\Site\Document\JsonLdNode;
 use App\Domain\Site\ViewModels\Crumb;
 use Teme\Contracts\StructuredData\NodeIds;
 
-/**
- * The trail a theme draws, as search engines read it (I-702): a
- * BreadcrumbList of the same steps, each at its position, every step but
- * the last with its address; nothing for a trail of fewer than two steps,
- * which Google doesn't show.
- */
 final class TrailNode
 {
     /**

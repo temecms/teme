@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What a content type's list asks for: the type, tab, sort, page or paging cursor and
+ * filters, and who is looking — the Mine tab needs to know.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
-/**
- * What a content type's list asks for: the type, tab, sort, page or paging cursor and
- * filters, and who is looking — the Mine tab needs to know.
- */
 final readonly class ContentListRequest
 {
     /**

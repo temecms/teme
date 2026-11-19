@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The page cache at the door (I-262): an anonymous reader's request is
+ * answered from a stored page before any route, session or maintenance
+ * check runs, and a public page drawn for one is stored when the rules
+ * allow. One request at a time draws a page, under its lock; the others
+ * get its stale copy or wait for it (docs/studies/page-cache.md §3.9).
+ * Global, after the proxies are trusted and before maintenance mode
+ * (bootstrap/app.php). Switched off, it does nothing at all.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Middleware;
@@ -13,15 +27,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * The page cache at the door (I-262): an anonymous reader's request is
- * answered from a stored page before any route, session or maintenance
- * check runs, and a public page drawn for one is stored when the rules
- * allow. One request at a time draws a page, under its lock; the others
- * get its stale copy or wait for it (docs/studies/page-cache.md §3.9).
- * Global, after the proxies are trusted and before maintenance mode
- * (bootstrap/app.php). Switched off, it does nothing at all.
- */
 final class CachePublicPages
 {
     public function handle(Request $request, Closure $next): Response

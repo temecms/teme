@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Writes docs/reference/theme.md: the manifest, the kinds of page, what every
+ * template gets, the page's values, the field values and the components, from the schema and
+ * the catalogue, the same on every machine (I-3346).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes\Reference;
@@ -8,11 +18,6 @@ use App\Domain\Site\FieldViews;
 use App\Domain\Themes\TemplateResolver;
 use App\Domain\Themes\ViewIntent;
 
-/**
- * Writes docs/reference/theme.md: the manifest, the kinds of page, what every
- * template gets, the page's values, the field values and the components, from the schema and
- * the catalogue, the same on every machine (I-3346).
- */
 final class ThemeReference
 {
     public function __construct(private readonly TemplateResolver $resolver) {}

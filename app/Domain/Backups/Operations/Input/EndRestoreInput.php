@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What EndRestore needs: the restore's run if one was written, the backup's run, how it ended, its sentence and figures, and who restores.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What EndRestore needs: the restore's run if one was written, the backup's run, how it ended, its sentence and figures, and who restores.
- */
 final readonly class EndRestoreInput implements OperationInput
 {
     /**

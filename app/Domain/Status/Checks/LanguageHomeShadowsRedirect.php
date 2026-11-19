@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tells whoever manages redirects when a redirect's source is a shown
+ * language's prefix (I-3360): that language's home page answers the address
+ * first, so the redirect never does. The one shadowing a prefix's refusals
+ * can't prevent, since a redirect never holds an address of its own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -9,12 +20,6 @@ use App\Domain\Status\StatusBanner;
 use App\Domain\Status\StatusCheck;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Tells whoever manages redirects when a redirect's source is a shown
- * language's prefix (I-3360): that language's home page answers the address
- * first, so the redirect never does. The one shadowing a prefix's refusals
- * can't prevent, since a redirect never holds an address of its own.
- */
 final readonly class LanguageHomeShadowsRedirect implements StatusCheck
 {
     /** As ApiAddressTaken's: something of the site that lost its address. */
@@ -25,6 +30,9 @@ final readonly class LanguageHomeShadowsRedirect implements StatusCheck
         return 'redirects.manage';
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Languages');

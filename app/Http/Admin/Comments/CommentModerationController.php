@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Moves comments on the Comments screen (1.8c's D10, D11): one
+ * ModerateComment each, at most 100 a request, each authorized on its own,
+ * the person read once for the batch (B-201). It answers with a toast that
+ * says what moved, names what couldn't, and offers Undo: the same moves
+ * back to where the Operation found each comment.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Comments;
@@ -20,13 +32,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Moves comments on the Comments screen (1.8c's D10, D11): one
- * ModerateComment each, at most 100 a request, each authorized on its own,
- * the person read once for the batch (B-201). It answers with a toast that
- * says what moved, names what couldn't, and offers Undo: the same moves
- * back to where the Operation found each comment.
- */
 final class CommentModerationController extends Controller
 {
     /** What a move to each status is called: for one comment, then for several (v9's modWords). */

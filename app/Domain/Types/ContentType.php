@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One content type, such as post or page: its labels and admin segment, the
+ * taxonomies it uses, the features it supports (which built-in fields it
+ * gets), whether its items take comments, the abilities that govern it,
+ * and what its items are as structured data (study Y, I-410, I-413).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -8,12 +19,6 @@ use App\Domain\Comments\Discussion;
 use App\Domain\StructuredData\TypeSchema;
 use InvalidArgumentException;
 
-/**
- * One content type, such as post or page: its labels and admin segment, the
- * taxonomies it uses, the features it supports (which built-in fields it
- * gets), whether its items take comments, the abilities that govern it,
- * and what its items are as structured data (study Y, I-410, I-413).
- */
 final readonly class ContentType
 {
     /** The actions a type's abilities cover, with the global ability each defaults to. */

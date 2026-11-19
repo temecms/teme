@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * PostgreSQL's two programs a backup and a restore run (I-366).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
 
-/**
- * PostgreSQL's two programs a backup and a restore run (I-366).
- */
 enum PostgresProgram: string
 {
     case Dump = 'pg_dump';

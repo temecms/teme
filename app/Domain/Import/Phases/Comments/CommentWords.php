@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A WordPress comment's stored text as I-267's restricted document: set
+ * into paragraphs and line breaks as WordPress shows it, read by the
+ * converter's HTML reader, and kept to paragraphs, quotes, line breaks,
+ * bold, italic, code and links, a link to the old site's own item by its
+ * ID. It writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Comments;
@@ -16,13 +28,6 @@ use Dom\Element;
 use Dom\Node;
 use Dom\Text;
 
-/**
- * A WordPress comment's stored text as I-267's restricted document: set
- * into paragraphs and line breaks as WordPress shows it, read by the
- * converter's HTML reader, and kept to paragraphs, quotes, line breaks,
- * bold, italic, code and links, a link to the old site's own item by its
- * ID. It writes nothing.
- */
 final readonly class CommentWords
 {
     /** Tags WordPress sets apart from a comment's paragraphs when it shows them. */

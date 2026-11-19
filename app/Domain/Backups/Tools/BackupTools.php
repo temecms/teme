@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Finds restic and PostgreSQL's pg_dump and pg_restore where the
+ * configuration says, and checks each is a version Teme can back up with
+ * (I-366): restic at or above the version Teme is tested with, the
+ * PostgreSQL tools at or above both PostgreSQL 18 and the database server,
+ * and the two from one installation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
@@ -11,13 +23,6 @@ use Illuminate\Support\Str;
 use Symfony\Component\Process\Exception\RuntimeException as ProcessFailed;
 use Symfony\Component\Process\ExecutableFinder;
 
-/**
- * Finds restic and PostgreSQL's pg_dump and pg_restore where the
- * configuration says, and checks each is a version Teme can back up with
- * (I-366): restic at or above the version Teme is tested with, the
- * PostgreSQL tools at or above both PostgreSQL 18 and the database server,
- * and the two from one installation.
- */
 final readonly class BackupTools
 {
     /** The restic Teme is tested with (I-2400); an older one is refused. */

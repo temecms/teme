@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Keeps privacy requests only as long as they are needed (I-3375): stops a
+ * request left unfinished for 7 days, deletes every file of an export after
+ * 7 days whatever its state, and of a failed one at once, clears the
+ * address and the account after 30, keeping the hash, and deletes the
+ * record after a year. The files go after commit. The operator's daily run
+ * alone.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Operations;
@@ -13,14 +26,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Keeps privacy requests only as long as they are needed (I-3375): stops a
- * request left unfinished for 7 days, deletes every file of an export after
- * 7 days whatever its state, and of a failed one at once, clears the
- * address and the account after 30, keeping the hash, and deletes the
- * record after a year. The files go after commit. The operator's daily run
- * alone.
- */
 final class PrunePrivacyRequests extends BaseOperation
 {
     public const int EXPORT_DAYS = 7;

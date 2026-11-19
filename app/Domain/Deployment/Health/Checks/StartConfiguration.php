@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Reports each rule a production site must meet to start (I-375): the
+ * start rules' own sentences, an error in production and a warning
+ * elsewhere, where the site starts regardless.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -9,11 +19,6 @@ use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 use App\Domain\Deployment\StartRules;
 
-/**
- * Reports each rule a production site must meet to start (I-375): the
- * start rules' own sentences, an error in production and a warning
- * elsewhere, where the site starts regardless.
- */
 final readonly class StartConfiguration implements DoctorCheck
 {
     public function title(): string

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A request's query parameters, each given once, as plain text, and named
+ * among those its route takes (D5); anything else is refused, all at once,
+ * so a typo is told and the page cache stores no copy for it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
@@ -7,11 +17,6 @@ namespace App\Domain\Api;
 use App\Domain\Languages\SiteLanguages;
 use Illuminate\Http\Request;
 
-/**
- * A request's query parameters, each given once, as plain text, and named
- * among those its route takes (D5); anything else is refused, all at once,
- * so a typo is told and the page cache stores no copy for it.
- */
 final readonly class ApiQuery
 {
     /** A list's size when the request names none. */
@@ -106,6 +111,8 @@ final readonly class ApiQuery
      * unknown alike, is noted as one problem with the same words (I-3360).
      *
      * @param  array<string, string>  $problems
+     *
+     * @since 1.0.0
      */
     public static function language(self $query, array &$problems): ?string
     {

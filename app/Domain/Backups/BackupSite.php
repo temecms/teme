@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Backs the site up (the spec's BackupSite; I-358): under the backup lock,
+ * at the first place in use that answers, one run of four restic snapshots:
+ * the database as one moment saw it, dumped by pg_dump straight into
+ * restic; the media disks' folders; the APP_KEY; and the manifest, last.
+ * Every row it writes goes through StartBackupRun and EndBackupRun, each in
+ * its own transaction, so a run is seen while it works and recorded however
+ * it ends. teme:backup:run, teme:backup:due and teme:deploy call it inline.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -25,15 +39,6 @@ use Illuminate\Support\Facades\Log;
 use SensitiveParameter;
 use Throwable;
 
-/**
- * Backs the site up (the spec's BackupSite; I-358): under the backup lock,
- * at the first place in use that answers, one run of four restic snapshots:
- * the database as one moment saw it, dumped by pg_dump straight into
- * restic; the media disks' folders; the APP_KEY; and the manifest, last.
- * Every row it writes goes through StartBackupRun and EndBackupRun, each in
- * its own transaction, so a run is seen while it works and recorded however
- * it ends. teme:backup:run, teme:backup:due and teme:deploy call it inline.
- */
 final readonly class BackupSite
 {
     /** How long a place may take to answer before the next is tried, in seconds. */

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Security;
-
 /**
  * What one run did to one registered column: how many values it wrote again,
  * how many were already under this server's key, and the rows no key opened.
  * It holds counts and row keys, never a value or anything from inside one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Security;
+
 final readonly class ReencryptedColumn
 {
     /**

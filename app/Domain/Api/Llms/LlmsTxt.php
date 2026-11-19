@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The text of /llms.txt (I-713): the site's name and tagline, then a section
+ * for each public type with addresses, its newest listed items each linking
+ * to the plain-text copy of its page. It lists what the sitemap lists
+ * (I-1118), and only items whose `.md` address the route can answer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Llms;
@@ -14,12 +25,6 @@ use App\Domain\Sitemaps\Queries\ListedItems;
 use App\Domain\Types\ContentTypeRegistry;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The text of /llms.txt (I-713): the site's name and tagline, then a section
- * for each public type with addresses, its newest listed items each linking
- * to the plain-text copy of its page. It lists what the sitemap lists
- * (I-1118), and only items whose `.md` address the route can answer.
- */
 final class LlmsTxt
 {
     /** The most items a section lists. */

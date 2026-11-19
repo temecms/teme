@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The kinds of notice core sends (I-3375), in the order the account's
+ * notifications screen lists the ones a person may turn off. The backup and
+ * update emails stay required, as I-2409 and I-3326 decided.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -12,11 +22,6 @@ use App\Domain\SiteCode\SiteCode;
 use App\Models\User;
 use Teme\Contracts\Notices\NoticeKind;
 
-/**
- * The kinds of notice core sends (I-3375), in the order the account's
- * notifications screen lists the ones a person may turn off. The backup and
- * update emails stay required, as I-2409 and I-3326 decided.
- */
 final class BuiltInNotices
 {
     public static function register(NoticeRegistry $registry): void

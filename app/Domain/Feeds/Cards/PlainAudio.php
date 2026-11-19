@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The audio card in a feed: the browser's own player at an absolute address, loading nothing until pressed, a link to the file inside it for a reader without one, and the caption.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -8,9 +16,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Feeds\FeedCardRenderer;
 use App\Domain\Feeds\FeedUrls;
 
-/**
- * The audio card in a feed: the browser's own player at an absolute address, loading nothing until pressed, a link to the file inside it for a reader without one, and the caption.
- */
 final readonly class PlainAudio implements FeedCardRenderer
 {
     public function __construct(private FeedUrls $urls) {}

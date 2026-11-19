@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The item a comment form posts to, found by the address the form sends, never
+ * its ID: its ID, for SubmitComment, and its title and address, for the pages
+ * that answer the form.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

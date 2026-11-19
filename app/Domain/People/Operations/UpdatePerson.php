@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Changes a person with no account's name, address slug or biography
+ * (I-3366). A new slug moves their page and keeps the old address as a
+ * redirect, and moves the items whose address holds {author}, in the
+ * background. An account's person is changed through the account.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes a person with no account's name, address slug or biography
- * (I-3366). A new slug moves their page and keeps the old address as a
- * redirect, and moves the items whose address holds {author}, in the
- * background. An account's person is changed through the account.
- */
 final class UpdatePerson extends BaseOperation
 {
     use ManagesUsers;

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One piece of markup a contributor wants drawn at a position inside an
+ * article.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Teme\Testing;
-
 /**
  * One request a plugin sent through its outbound door while the test's
  * outbound() fake was answering: what was sent, as the remote host would
  * have received it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace Teme\Testing;
+
 final readonly class SentRequest
 {
     /**

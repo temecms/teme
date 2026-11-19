@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * POST /api/manage/v1/items: a new item of a type, as a draft, published or
+ * scheduled (docs/proposals/management-api.md). Checks the request's shape
+ * here and leaves every write to ApiItems' Operations.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\Manage;
@@ -12,11 +22,6 @@ use DateTimeImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * POST /api/manage/v1/items: a new item of a type, as a draft, published or
- * scheduled (docs/proposals/management-api.md). Checks the request's shape
- * here and leaves every write to ApiItems' Operations.
- */
 final class ItemsController
 {
     /** The longest html body converted: the import's converter parses all of it at once. */

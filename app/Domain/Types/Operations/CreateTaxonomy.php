@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Makes one of the site's own taxonomies and adds it to the types that use
+ * it, live in every process at once (I-3296). Its address base is set now
+ * and never follows a later change here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations;
@@ -17,11 +27,6 @@ use App\Domain\Types\TaxonomyRules;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Makes one of the site's own taxonomies and adds it to the types that use
- * it, live in every process at once (I-3296). Its address base is set now
- * and never follows a later change here.
- */
 final class CreateTaxonomy extends BaseOperation
 {
     use ManagesTaxonomies;

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * WordPress's caption shortcode, `[caption]` and `[wp_caption]` (I-336),
+ * in both its forms: the caption as an attribute, or as the words after
+ * the image. As WordPress shows it, a caption needs a width of at least 1;
+ * an `attachment_N` ID traces the image.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Shortcodes;
 
 use App\Domain\Import\Convert\BlockContext;
 
-/**
- * WordPress's caption shortcode, `[caption]` and `[wp_caption]` (I-336),
- * in both its forms: the caption as an attribute, or as the words after
- * the image. As WordPress shows it, a caption needs a width of at least 1;
- * an `attachment_N` ID traces the image.
- */
 final readonly class Captions implements ShortcodeMapping
 {
     public function shortcodes(): array

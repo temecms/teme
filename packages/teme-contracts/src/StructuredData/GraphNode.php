@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One node a plugin gives a page's JSON-LD graph: schema.org's names for keys,
+ * an absolute @id that other nodes link to, an @type, and plain values.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\StructuredData;

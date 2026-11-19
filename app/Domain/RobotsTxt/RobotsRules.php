@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\RobotsTxt;
-
 /**
  * The robots.txt lines an administrator may add (I-866): User-agent, Allow,
  * Disallow and Sitemap rules, `#` notes and blank lines, nothing else. Each
  * line is checked on its own, numbered as the person sees it, and a line
  * that fails never reaches the file.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\RobotsTxt;
+
 final class RobotsRules
 {
     /** A rule: its field in any case, as RFC 9309 reads it, a colon, and its value. */

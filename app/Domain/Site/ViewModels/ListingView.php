@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One page of a listing as its template sees it, as `$page`: what it is about
+ * (null for the latest posts at the site's address), its items, and its pages;
+ * and, for a search only, what a search has besides, so an archive template
+ * drawing a search meets the one shape it always meets.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

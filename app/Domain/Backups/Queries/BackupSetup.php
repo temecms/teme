@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Whether backups are set up, and the places and recovery keys in use
+ * (I-2401): what Tools › Backups, the Status check and the backup run read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -11,10 +20,6 @@ use App\Domain\Backups\Models\BackupKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
-/**
- * Whether backups are set up, and the places and recovery keys in use
- * (I-2401): what Tools › Backups, the Status check and the backup run read.
- */
 final readonly class BackupSetup
 {
     /**

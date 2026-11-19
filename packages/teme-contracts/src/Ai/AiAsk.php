@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One request: the plugin's instructions, its named inputs (each fenced by
+ * core), an optional JSON schema.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Ai;

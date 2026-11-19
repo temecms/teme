@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Puts the one email layout around a message (I-772): greeted by name,
+ * signed with the site's title, and a footer saying why it came and, for a
+ * kind a person may turn off, where to turn it off. It adds the recipient's
+ * own name and nothing else about them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -8,12 +19,6 @@ use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Puts the one email layout around a message (I-772): greeted by name,
- * signed with the site's title, and a footer saying why it came and, for a
- * kind a person may turn off, where to turn it off. It adds the recipient's
- * own name and nothing else about them.
- */
 final class NoticeLayout
 {
     /**

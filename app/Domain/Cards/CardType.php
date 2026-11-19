@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * One kind of card, declared once (spec §5.5). From this single declaration
  * come the editor's menu entry, the stored attributes and their rules, the
  * HTML the site renders, the text search indexes, and the references the
  * projections record.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 interface CardType
 {
     /**

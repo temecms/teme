@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Brings one batch of items', terms', accounts' or people's addresses in step with the
+ * settings, for RecomputeAddresses. Idempotent: a target already at its
+ * address is left alone, and a moved one keeps its old address as history.
+ * It tells the page cache of each target it moves. With `under`, it moves
+ * a step of the pages under a page, as the person who changed that page
+ * (I-3363).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Operations;
@@ -29,14 +42,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings one batch of items', terms', accounts' or people's addresses in step with the
- * settings, for RecomputeAddresses. Idempotent: a target already at its
- * address is left alone, and a moved one keeps its old address as history.
- * It tells the page cache of each target it moves. With `under`, it moves
- * a step of the pages under a page, as the person who changed that page
- * (I-3363).
- */
 final class RebuildPaths extends BaseOperation
 {
     /** The largest batch, as RecomputeAddresses sends it. */

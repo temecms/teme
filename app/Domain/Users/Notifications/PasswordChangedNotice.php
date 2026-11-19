@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The queued email telling someone their password was just changed, with a way
+ * to reset it if it was not them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Notifications;
@@ -12,10 +21,6 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The queued email telling someone their password was just changed, with a way
- * to reset it if it was not them.
- */
 final class PasswordChangedNotice extends Notification implements ShouldQueue
 {
     use Queueable, SentAsNotice;

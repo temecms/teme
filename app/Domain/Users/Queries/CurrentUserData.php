@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What the admin is allowed to know about the signed-in user. The whole model
+ * never reaches the HTTP layer or the browser.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Queries;
@@ -7,10 +16,6 @@ namespace App\Domain\Users\Queries;
 use App\Domain\Users\Roles;
 use App\Models\User;
 
-/**
- * What the admin is allowed to know about the signed-in user. The whole model
- * never reaches the HTTP layer or the browser.
- */
 final class CurrentUserData
 {
     public function __construct(private readonly PersonPictures $pictures) {}

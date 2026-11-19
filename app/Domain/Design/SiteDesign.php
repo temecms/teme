@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What core draws from the design settings: the site's accent, the two
+ * theme settings core reads by fixed name when the active theme declares
+ * them, `color_scheme` and `featured_image_style` (docs/architecture/themes.md),
+ * and all the active theme's own settings for its views: the one reader of
+ * a theme's settings.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design;
@@ -9,13 +21,6 @@ use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Themes\ActiveTheme;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What core draws from the design settings: the site's accent, the two
- * theme settings core reads by fixed name when the active theme declares
- * them, `color_scheme` and `featured_image_style` (docs/architecture/themes.md),
- * and all the active theme's own settings for its views: the one reader of
- * a theme's settings.
- */
 final readonly class SiteDesign
 {
     /** The schemes `color_scheme` may name; auto follows the reader's own. */

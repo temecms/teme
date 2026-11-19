@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The time a Transform hook's listeners may take on one page: each call
+ * at most $callMs, and all of them together at most $pageMs, kept across
+ * every ask on the page (docs/plans/plugin-sockets-3.md). A listener over
+ * its call's budget, or reached once the page's is spent, is left out.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Hooks;
@@ -7,12 +18,6 @@ namespace App\Domain\Hooks;
 use Closure;
 use Throwable;
 
-/**
- * The time a Transform hook's listeners may take on one page: each call
- * at most $callMs, and all of them together at most $pageMs, kept across
- * every ask on the page (docs/plans/plugin-sockets-3.md). A listener over
- * its call's budget, or reached once the page's is spent, is left out.
- */
 final class TimeBudget
 {
     /** Nanoseconds the page's listeners have taken so far. */

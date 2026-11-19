@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * A catch-up's list of what WordPress deleted since it was imported
+ * (I-345): each person, category, tag, file, post, page, comment and menu
+ * the import brought that WordPress no longer has but Teme still does,
+ * found by comparing WordPress's lists with the map a page at a time.
+ * Nothing is deleted or changed. At its end it says how many earlier
+ * failures the catch-up didn't meet again. Fifty seconds a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Finish;
@@ -17,14 +30,6 @@ use App\Domain\Import\Source\SourceReader;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * A catch-up's list of what WordPress deleted since it was imported
- * (I-345): each person, category, tag, file, post, page, comment and menu
- * the import brought that WordPress no longer has but Teme still does,
- * found by comparing WordPress's lists with the map a page at a time.
- * Nothing is deleted or changed. At its end it says how many earlier
- * failures the catch-up didn't meet again. Fifty seconds a job.
- */
 final readonly class DeletedStep implements StepPhase
 {
     /** Seconds a job works before it hands on to the next. */

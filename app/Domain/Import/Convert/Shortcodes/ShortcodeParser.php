@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert\Shortcodes;
-
 /**
  * Reads WordPress's shortcodes out of a piece of HTML (I-336), any name,
  * as WordPress's own pattern reads a registered one: pieces of markup and
  * text kept as they are, and tags, paired as HTML pairs elements. Brackets
  * inside a tag, a comment, or a code, preformatted, script, style or
  * textarea element are text.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert\Shortcodes;
+
 final class ShortcodeParser
 {
     /** An opening tag at the offset: its name, then anything but `]` (a `/` only when no `]` follows it), then `]` or `/]`. */

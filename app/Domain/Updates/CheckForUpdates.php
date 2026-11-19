@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Asks GitHub for Teme's releases once and records the answer (I-?? draft), unless this server has switched the check off.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
@@ -9,9 +17,6 @@ use App\Domain\Updates\Operations\RecordReleaseCheck;
 use App\Domain\Updates\Queries\UpdateState;
 use Carbon\CarbonImmutable;
 
-/**
- * Asks GitHub for Teme's releases once and records the answer (I-?? draft), unless this server has switched the check off.
- */
 final readonly class CheckForUpdates
 {
     public function __construct(

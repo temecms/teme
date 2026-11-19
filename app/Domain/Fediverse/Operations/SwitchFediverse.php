@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Switches the fediverse on or off (docs/plans/fediverse-actors.md, D6): the
+ * `modules` group's switch, at the top of Settings › Fediverse, for whoever
+ * holds settings.modules.manage. Switched on, the blog's and the
+ * application's accounts are made with their keys if the site has none;
+ * off, it is paused and keeps them. Every page is purged after commit, as
+ * the group declares.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -21,14 +34,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Switches the fediverse on or off (docs/plans/fediverse-actors.md, D6): the
- * `modules` group's switch, at the top of Settings › Fediverse, for whoever
- * holds settings.modules.manage. Switched on, the blog's and the
- * application's accounts are made with their keys if the site has none;
- * off, it is paused and keeps them. Every page is purged after commit, as
- * the group declares.
- */
 final class SwitchFediverse extends BaseOperation
 {
     use MakesLocalActors;

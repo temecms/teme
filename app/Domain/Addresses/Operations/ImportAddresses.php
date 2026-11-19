@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Sets the address settings an import of another site brings (I-393), with
+ * the checks Settings › Addresses makes, for the operator or a person who
+ * may import, recorded as the import's, including each type's archive page's
+ * address; after commit, every address that moves is moved in the background,
+ * the old ones kept as history.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Operations;
@@ -19,13 +31,6 @@ use App\Domain\Support\Security\JobActor;
 use Illuminate\Support\Facades\Cache;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Sets the address settings an import of another site brings (I-393), with
- * the checks Settings › Addresses makes, for the operator or a person who
- * may import, recorded as the import's, including each type's archive page's
- * address; after commit, every address that moves is moved in the background,
- * the old ones kept as history.
- */
 final class ImportAddresses extends BaseOperation
 {
     use AuthorizesImports;

@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
 /**
  * A comment's judgement in words, for the Comments screen's drawer (1.8c's
  * D16): who judged it, its stored reason, and, for core's moderator, the
  * checks it ran in its order, each before the deciding one passed. Core's
  * moderator stops at the first rule that applies and records that rule
  * alone (BuiltInModerator), so the checks after it are never shown.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
 final class CommentVerdict
 {
     /** The name core's moderator signs its verdicts with (BuiltInModerator::name()). */

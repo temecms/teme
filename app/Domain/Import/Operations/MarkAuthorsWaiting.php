@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Marks for the content phase the posts the import credited to the fallback
+ * owner (I-2998), once a run has made a person or first matched one: their
+ * map rows become work again, so the next full run gives each to its author
+ * if they came. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Marks for the content phase the posts the import credited to the fallback
- * owner (I-2998), once a run has made a person or first matched one: their
- * map rows become work again, so the next full run gives each to its author
- * if they came. Only an import's actor may call it.
- */
 final class MarkAuthorsWaiting extends BaseOperation
 {
     use AuthorizesImports;

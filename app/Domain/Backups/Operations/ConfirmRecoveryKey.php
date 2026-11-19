@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Puts a shown recovery key in use once two of its groups are typed back
+ * (I-2401): its pending rows at every place become in use, and for a
+ * replacement the old key's rows are marked removed, and the old key leaves
+ * the repositories after the commit. Until then the key is pending, and the
+ * next attempt sweeps it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -23,13 +35,6 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 use Throwable;
 
-/**
- * Puts a shown recovery key in use once two of its groups are typed back
- * (I-2401): its pending rows at every place become in use, and for a
- * replacement the old key's rows are marked removed, and the old key leaves
- * the repositories after the commit. Until then the key is pending, and the
- * next attempt sweeps it.
- */
 final class ConfirmRecoveryKey extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

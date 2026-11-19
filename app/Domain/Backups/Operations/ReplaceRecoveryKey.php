@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Shows a new key to replace a recovery key, added to every place in use;
+ * ConfirmRecoveryKey records it and only then removes the old one, so the
+ * backups are never left without it (I-359).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Shows a new key to replace a recovery key, added to every place in use;
- * ConfirmRecoveryKey records it and only then removes the old one, so the
- * backups are never left without it (I-359).
- */
 final class ReplaceRecoveryKey extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

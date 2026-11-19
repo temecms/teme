@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * After everything is written and the home page is chosen (I-3446): the
+ * old site's Polylang maps joined by union into groups, posts and pages
+ * apart from terms, and each group linked as one translation group, 500
+ * groups a job. A group that can't be linked is skipped and said, never
+ * half-linked; a language's home page moves to its home as it is linked.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Languages;
@@ -19,13 +31,6 @@ use App\Domain\Import\Translations\PolylangGroups;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-/**
- * After everything is written and the home page is chosen (I-3446): the
- * old site's Polylang maps joined by union into groups, posts and pages
- * apart from terms, and each group linked as one translation group, 500
- * groups a job. A group that can't be linked is skipped and said, never
- * half-linked; a language's home page moves to its home as it is linked.
- */
 final readonly class TranslationsStep implements StepPhase
 {
     /** The kinds of map rows linked, in order: posts and pages, then terms. */

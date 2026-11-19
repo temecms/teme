@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Adds a place to keep backups (I-2402): its repository made with the
+ * chunker of a place already in use, locked with the machine key and with the
+ * recovery key a person typed once, which Teme then forgets.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -24,11 +34,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Adds a place to keep backups (I-2402): its repository made with the
- * chunker of a place already in use, locked with the machine key and with the
- * recovery key a person typed once, which Teme then forgets.
- */
 final class AddBackupDestination extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

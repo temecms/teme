@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Wires public addresses: the `addresses` settings group, built from the
+ * types and taxonomies when read, and again when they change, and the
+ * banner for anything that already had an address under /api.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -18,11 +28,6 @@ use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Wires public addresses: the `addresses` settings group, built from the
- * types and taxonomies when read, and again when they change, and the
- * banner for anything that already had an address under /api.
- */
 final class AddressServiceProvider extends ServiceProvider
 {
     public function register(): void

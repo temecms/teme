@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The address a stored page answers (docs/studies/page-cache.md §3.2): the
+ * scheme and host, the path exactly as asked, and of the query the names a
+ * public page or an enabled declared route depends on (plus `s`), so tracking
+ * parameters share a page; when a path varies by Accept, the key carries that
+ * type too. Cookies are never part of it. The path keeps its case, because
+ * 1.6a answers an address in capitals with a 301 to its one true form.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -8,14 +21,6 @@ use App\Domain\Api\ApiPaths;
 use App\Domain\PublicRoutes\PublicRouteRegistry;
 use Illuminate\Http\Request;
 
-/**
- * The address a stored page answers (docs/studies/page-cache.md §3.2): the
- * scheme and host, the path exactly as asked, and of the query the names a
- * public page or an enabled declared route depends on (plus `s`), so tracking
- * parameters share a page; when a path varies by Accept, the key carries that
- * type too. Cookies are never part of it. The path keeps its case, because
- * 1.6a answers an address in capitals with a 301 to its one true form.
- */
 final readonly class PageKey
 {
     /** The query parameters a public page's answer depends on without plugins: PathResolver reads `s` (1.6h). */

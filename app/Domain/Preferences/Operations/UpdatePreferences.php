@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Changes the actor's own preferences, merged over what they already set.
+ * Each value is read as its declared type first — a form's '0', '1' and
+ * '400' — then checked; one undeclared key or bad value refuses the whole
+ * change. A preference is per person by definition: nothing here can reach
+ * anyone else's row.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Preferences\Operations;
@@ -12,13 +24,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Changes the actor's own preferences, merged over what they already set.
- * Each value is read as its declared type first — a form's '0', '1' and
- * '400' — then checked; one undeclared key or bad value refuses the whole
- * change. A preference is per person by definition: nothing here can reach
- * anyone else's row.
- */
 final class UpdatePreferences extends BaseOperation
 {
     public function __construct(private readonly PreferenceRegistry $registry) {}

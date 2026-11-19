@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Where an export is written, and how (I-365): a folder readable by Teme's
+ * user alone, made beside the target and renamed to it only when the
+ * manifest is written, so the target exists only when complete. Every file
+ * and folder it makes is recorded, so a failed export is removed by those
+ * paths, deepest first, and never by listing a folder.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
@@ -12,13 +24,6 @@ use RuntimeException;
 use stdClass;
 use Throwable;
 
-/**
- * Where an export is written, and how (I-365): a folder readable by Teme's
- * user alone, made beside the target and renamed to it only when the
- * manifest is written, so the target exists only when complete. Every file
- * and folder it makes is recorded, so a failed export is removed by those
- * paths, deepest first, and never by listing a folder.
- */
 final class ExportFolder
 {
     /** Bytes of an original read and written at a time. */

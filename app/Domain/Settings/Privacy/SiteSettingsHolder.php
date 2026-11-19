@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The site's settings that can name a person by their address: the
+ * administration email, the comment hold and block lists, and the history
+ * of their changes. Exported where a value equals the address, and kept on
+ * erasure, each with its reason: they run the site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Privacy;
@@ -14,12 +25,6 @@ use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The site's settings that can name a person by their address: the
- * administration email, the comment hold and block lists, and the history
- * of their changes. Exported where a value equals the address, and kept on
- * erasure, each with its reason: they run the site.
- */
 final class SiteSettingsHolder implements PersonalDataHolder
 {
     /** The settings that can hold an address, by group. */

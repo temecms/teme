@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * Which password hashes an import keeps as they are: those Teme can check
+ * at sign-in, an Argon2id one only in PHP's exact form and at Teme's own
+ * costs or below (I-1761), since its costs are what every sign-in attempt
+ * for that account will spend.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users;
 
 use App\Domain\Users\Security\PasswordHashFormat;
 
-/**
- * Which password hashes an import keeps as they are: those Teme can check
- * at sign-in, an Argon2id one only in PHP's exact form and at Teme's own
- * costs or below (I-1761), since its costs are what every sign-in attempt
- * for that account will spend.
- */
 final class ImportedHashes
 {
     /** The formats Teme never writes itself: a person whose stored hash is one of them hasn't signed in or reset here. */

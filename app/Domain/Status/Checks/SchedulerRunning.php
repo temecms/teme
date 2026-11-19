@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tells administrators of a production site when its scheduler has been
+ * silent five minutes, or has never run (I-3112): scheduled posts,
+ * backups and every other timed job wait on it, and only this banner can
+ * say so.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -10,12 +21,6 @@ use App\Domain\Status\StatusCheck;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 
-/**
- * Tells administrators of a production site when its scheduler has been
- * silent five minutes, or has never run (I-3112): scheduled posts,
- * backups and every other timed job wait on it, and only this banner can
- * say so.
- */
 final readonly class SchedulerRunning implements StatusCheck
 {
     /** Seconds since the last beat at which the scheduler counts as stopped. */
@@ -31,6 +36,9 @@ final readonly class SchedulerRunning implements StatusCheck
         return 'settings.general.manage';
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Scheduled tasks');

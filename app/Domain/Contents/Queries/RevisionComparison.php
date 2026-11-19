@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Two revisions of one article, compared: who made each, the fields and
+ * terms that changed, and the blocks that stayed, arrived, left, changed or
+ * moved. It is computed each time and never stored.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -21,11 +31,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
-/**
- * Two revisions of one article, compared: who made each, the fields and
- * terms that changed, and the blocks that stayed, arrived, left, changed or
- * moved. It is computed each time and never stored.
- */
 final class RevisionComparison
 {
     /**

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One uploaded file: an image, a video, an audio file or a document, with the
+ * paths of its original and its variants. Only the media Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Models;
@@ -11,9 +20,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use stdClass;
 
 /**
- * One uploaded file: an image, a video, an audio file or a document, with the
- * paths of its original and its variants. Only the media Operations write it.
- *
  * @property string $id
  * @property string $kind
  * @property string $mime_type

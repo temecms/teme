@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Plugins\Operations\Input;
-
-use Teme\Contracts\Operations\OperationInput;
-
 /**
  * Enabling a plugin: its Composer name, and the version, capabilities,
  * hosts and hooks the person was shown and agrees to, and the hosts its
  * settings name that they agree to it reaching. A null actor is the
  * operator at the server's shell, who names the administrator its schedules
  * run as (docs/proposals/plugin-sockets-1.md).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Plugins\Operations\Input;
+
+use Teme\Contracts\Operations\OperationInput;
+
 final readonly class EnablePluginInput implements OperationInput
 {
     /**

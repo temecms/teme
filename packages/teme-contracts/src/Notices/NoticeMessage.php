@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a notice says, as plain words: the layout escapes them and adds the
+ * greeting, the sign-off and the footer.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Notices;

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:plugins:remove-data`: drops a plugin's recorded tables as the
+ * operator (I-3442). Lists the tables and asks unless --force.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -15,10 +24,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * `teme:plugins:remove-data`: drops a plugin's recorded tables as the
- * operator (I-3442). Lists the tables and asks unless --force.
- */
 final class RemovePluginDataCommand extends Command
 {
     /** @var string */

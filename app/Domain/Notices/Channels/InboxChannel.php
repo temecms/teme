@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Delivers a plain notice to the recipient's own inbox, as that person: a
+ * person putting an item in their own inbox, with no elevation. Core's seven
+ * kinds use mail only, so nothing in core reaches the inbox this way yet
+ * (I-1921); a plugin's kind is filed under the plugin's code.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices\Channels;
@@ -13,12 +24,6 @@ use App\Models\User;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
-/**
- * Delivers a plain notice to the recipient's own inbox, as that person: a
- * person putting an item in their own inbox, with no elevation. Core's seven
- * kinds use mail only, so nothing in core reaches the inbox this way yet
- * (I-1921); a plugin's kind is filed under the plugin's code.
- */
 final class InboxChannel
 {
     public function __construct(private readonly SendToInbox $send) {}

@@ -1,16 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert;
-
 /**
  * What the import made of the old site, beyond its media, as the converter
  * asks for it (I-1702): its pages, terms and people as link
  * targets, the outside images the choices step brought in, and the files
  * attached to a post. The caller implements it: the posts phase on the
  * import map, tests with KnownTargets.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert;
+
 interface SourceTargets
 {
     /**

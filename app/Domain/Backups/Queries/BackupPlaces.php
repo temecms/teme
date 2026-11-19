@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The places a backup run may use, whether backups are set up or paused,
+ * and the machine key the runs open places with (I-360). Whether backups
+ * are set up and the machine key are asked of the classes that own them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Queries;
@@ -10,11 +20,6 @@ use App\Domain\Backups\Models\BackupDestination;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The places a backup run may use, whether backups are set up or paused,
- * and the machine key the runs open places with (I-360). Whether backups
- * are set up and the machine key are asked of the classes that own them.
- */
 final readonly class BackupPlaces
 {
     /** What a backup, a prune or a key change says while a restore's places wait for an answer. */

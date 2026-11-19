@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Says whether this process reaches the folder the web server stores pages
+ * in (I-480): the file store names its folder in the cache, and a process
+ * that removes pages from another leaves them served until they expire.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -10,11 +20,6 @@ use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\Severity;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * Says whether this process reaches the folder the web server stores pages
- * in (I-480): the file store names its folder in the cache, and a process
- * that removes pages from another leaves them served until they expire.
- */
 final readonly class PageCacheFolder implements DoctorCheck
 {
     private const string FIX = 'Mount the same page-cache volume at PAGE_CACHE_PATH in every role.';

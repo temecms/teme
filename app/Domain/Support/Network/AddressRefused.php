@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Why Teme won't connect to an address, with the words people read; its
+ * message is its sentence.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Network;
 
 use RuntimeException;
 
-/**
- * Why Teme won't connect to an address, with the words people read; its
- * message is its sentence.
- */
 final class AddressRefused extends RuntimeException
 {
     public const string MALFORMED = 'malformed';

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Site › Types › {type} › Fields (I-3320): the page, and each change to one
+ * field handed to its Operation. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -23,10 +32,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Site › Types › {type} › Fields (I-3320): the page, and each change to one
- * field handed to its Operation. It changes nothing itself.
- */
 final class TypeFieldsController extends Controller
 {
     public function index(FieldsScreen $screen, string $key): Response

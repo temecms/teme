@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The `design` settings group: which theme the public site is drawn with,
+ * chosen from the usable themes, and the site's accent colour, which is
+ * empty to use the theme's own. It is built from the themes found, so it
+ * registers through replace() and can be built again when they change.
+ * Site › Themes is its screen, and its Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -9,13 +21,6 @@ use App\Domain\Settings\SettingsRegistry;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * The `design` settings group: which theme the public site is drawn with,
- * chosen from the usable themes, and the site's accent colour, which is
- * empty to use the theme's own. It is built from the themes found, so it
- * registers through replace() and can be built again when they change.
- * Site › Themes is its screen, and its Operations write it.
- */
 final class DesignSettingsGroup
 {
     public static function register(SettingsRegistry $registry, ThemeRegistry $themes): void

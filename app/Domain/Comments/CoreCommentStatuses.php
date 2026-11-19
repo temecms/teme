@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Comments;
-
 /**
  * Core's comment statuses (I-224, docs/studies/comments.md §3.8): pending,
  * approved, spam and trash, which moderators move comments between, and
  * removed, a tombstone's, which only deleting a comment with replies makes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Comments;
+
 final class CoreCommentStatuses
 {
     public static function register(CommentStatusRegistry $registry): void

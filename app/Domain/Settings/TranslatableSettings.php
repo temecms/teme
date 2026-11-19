@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Which settings are words a site writes once per language (I-3360): the
+ * site title and tagline, Search and social's title templates, and the menu
+ * each theme slot shows. Every other setting has one value for every
+ * language. Their other languages' values are kept in the group row's
+ * `translations`, and read over the default's on a page in that language.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -7,13 +19,6 @@ namespace App\Domain\Settings;
 use App\Domain\Menus\ThemeSlotSettings;
 use App\Domain\Seo\SearchAndSocial;
 
-/**
- * Which settings are words a site writes once per language (I-3360): the
- * site title and tagline, Search and social's title templates, and the menu
- * each theme slot shows. Every other setting has one value for every
- * language. Their other languages' values are kept in the group row's
- * `translations`, and read over the default's on a page in that language.
- */
 final class TranslatableSettings
 {
     /** The general group's words. */

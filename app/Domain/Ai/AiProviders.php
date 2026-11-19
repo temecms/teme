@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Every registered AI provider (I-314), read through the container each time,
+ * so it holds no state; and the models and prices they offer.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
@@ -7,10 +16,6 @@ namespace App\Domain\Ai;
 use Illuminate\Contracts\Container\Container;
 use UnexpectedValueException;
 
-/**
- * Every registered AI provider (I-314), read through the container each time,
- * so it holds no state; and the models and prices they offer.
- */
 final readonly class AiProviders
 {
     /** The container tag a provider is registered under, from its part's own provider's register(). */

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Makes a new RSA key pair for one of the site's fediverse accounts, as
+ * Mastodon and the WordPress plugin use: 2048 bits, both halves PEM.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Signatures;
 
 use RuntimeException;
 
-/**
- * Makes a new RSA key pair for one of the site's fediverse accounts, as
- * Mastodon and the WordPress plugin use: 2048 bits, both halves PEM.
- */
 final class KeyPairs
 {
     /**

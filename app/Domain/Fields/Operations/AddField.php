@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Adds one field to a type, last among its fields, under a new key its
+ * values will be stored under; it works at once (I-3320).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Operations;
@@ -18,10 +27,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Adds one field to a type, last among its fields, under a new key its
- * values will be stored under; it works at once (I-3320).
- */
 final class AddField extends BaseOperation
 {
     use ManagesFields;

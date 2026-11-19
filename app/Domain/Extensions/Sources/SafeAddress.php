@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Checks a Git or vendor address before the installer hands it to Composer:
+ * https only, no user name or key written into it, and a host that resolves,
+ * to public addresses only by the plugin HTTP guard's ranges, unless the
+ * operator allows private hosts for a server on their own network (I-211).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Sources;
@@ -10,12 +21,6 @@ use App\Domain\Plugins\Doors\PublicAddress;
 use App\Domain\Support\Network\AddressRefused;
 use RuntimeException;
 
-/**
- * Checks a Git or vendor address before the installer hands it to Composer:
- * https only, no user name or key written into it, and a host that resolves,
- * to public addresses only by the plugin HTTP guard's ranges, unless the
- * operator allows private hosts for a server on their own network (I-211).
- */
 final readonly class SafeAddress
 {
     public function __construct(private HostResolver $resolver) {}

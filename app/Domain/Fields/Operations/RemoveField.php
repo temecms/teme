@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Hides one field of a type from the editor, the site and search; every
+ * value items hold for it stays stored, so Restore brings it back with them
+ * (docs/studies/content-and-fields.md §5.3).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Hides one field of a type from the editor, the site and search; every
- * value items hold for it stays stored, so Restore brings it back with them
- * (docs/studies/content-and-fields.md §5.3).
- */
 final class RemoveField extends BaseOperation
 {
     use ManagesFields;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a list of terms was asked for (D5, D39), every parameter checked:
+ * a public taxonomy, a parent (an ID, or `none` for the top level), a slug,
+ * a language (I-3360), the page's size and the position after which to read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Catalogue;
@@ -11,11 +21,6 @@ use App\Domain\Api\InvalidParameters;
 use App\Domain\Api\Live;
 use App\Domain\Api\Ulids;
 
-/**
- * What a list of terms was asked for (D5, D39), every parameter checked:
- * a public taxonomy, a parent (an ID, or `none` for the top level), a slug,
- * a language (I-3360), the page's size and the position after which to read.
- */
 final readonly class TermFilters
 {
     /** The sort a terms cursor names: by name, then ID. */

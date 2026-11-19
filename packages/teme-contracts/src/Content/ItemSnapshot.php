@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One item's working revision: its parts by handle and slug, never a model.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

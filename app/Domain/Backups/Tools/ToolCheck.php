@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * What Teme found of one program: where it looked, where the program is, and the version it said; null for what it couldn't find or read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
 
-/**
- * What Teme found of one program: where it looked, where the program is, and the version it said; null for what it couldn't find or read.
- */
 final readonly class ToolCheck
 {
     public function __construct(

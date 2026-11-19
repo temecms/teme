@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * The cards one public page drew, recorded while its body renders, so the
  * document shell links only those cards' styles (I-248). It is scoped to a
  * request, and start() empties it for each page, as one application may
  * serve several (B-227).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 final class CardUsage
 {
     /** @var array<string, true> */

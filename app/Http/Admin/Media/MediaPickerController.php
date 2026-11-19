@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The media modal's data: one page of files the caller may choose, of the
+ * kinds it allows, as JSON.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Media;
@@ -12,10 +21,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The media modal's data: one page of files the caller may choose, of the
- * kinds it allows, as JSON.
- */
 final class MediaPickerController extends Controller
 {
     public function __invoke(Request $request, MediaPicker $picker, MediaMonths $months, SettingsReader $settings): JsonResponse

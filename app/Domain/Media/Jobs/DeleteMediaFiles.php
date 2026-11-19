@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Deletes files a committed change no longer needs, by the paths the row
+ * recorded — never by listing a folder. It changes no database state. While
+ * a backup holds its lock it waits, so a backup that read these files' rows
+ * still finds them (I-358); it is never lost to the wait.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Jobs;
@@ -11,12 +22,6 @@ use DateTimeInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/**
- * Deletes files a committed change no longer needs, by the paths the row
- * recorded — never by listing a folder. It changes no database state. While
- * a backup holds its lock it waits, so a backup that read these files' rows
- * still finds them (I-358); it is never lost to the wait.
- */
 final class DeleteMediaFiles implements ShouldQueue
 {
     use Queueable;

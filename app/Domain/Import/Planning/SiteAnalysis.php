@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a WordPress site's report says an import would bring across and
+ * leave behind (docs/studies/import.md, §4.0 and §5), and what the choices
+ * step needs from it. Read from the Teme Companion's site report, whose
+ * counts may arrive as text; it never fails on a report it can't read whole.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Planning;
@@ -7,12 +18,6 @@ namespace App\Domain\Import\Planning;
 use Carbon\CarbonImmutable;
 use Throwable;
 
-/**
- * What a WordPress site's report says an import would bring across and
- * leave behind (docs/studies/import.md, §4.0 and §5), and what the choices
- * step needs from it. Read from the Teme Companion's site report, whose
- * counts may arrive as text; it never fails on a report it can't read whole.
- */
 final readonly class SiteAnalysis
 {
     /** The statuses an item comes across in: published, scheduled, draft, pending, private and trashed. */
@@ -181,6 +186,8 @@ final readonly class SiteAnalysis
      * The analysis with more of what doesn't come across, after its own.
      *
      * @param  list<array{key: string, wordpressKey: string|null, label: string, count: int, why: string}>  $stays
+     *
+     * @since 1.0.0
      */
     public function withStays(array $stays): self
     {

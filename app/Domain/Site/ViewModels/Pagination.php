@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A listing's pages: the current one, how many there are (null when unknown),
+ * and the addresses of the newer page and the older one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

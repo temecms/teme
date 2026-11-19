@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Writes the calling plugin's own settings group, `plugin.{code}`, for a named
+ * person.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Settings;

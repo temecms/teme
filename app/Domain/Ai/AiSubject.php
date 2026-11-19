@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What one request is about, by IDs only, so a queued job carries no text
+ * (I-320): the item or media item, the revision asked about, the target inside
+ * it (a block's ID or a field's key), and the task's options, such as a preset
+ * or a selection's offsets.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
@@ -7,12 +18,6 @@ namespace App\Domain\Ai;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
-/**
- * What one request is about, by IDs only, so a queued job carries no text
- * (I-320): the item or media item, the revision asked about, the target inside
- * it (a block's ID or a field's key), and the task's options, such as a preset
- * or a selection's offsets.
- */
 final readonly class AiSubject
 {
     /**

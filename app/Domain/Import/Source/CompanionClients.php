@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Makes companion clients: one to connect a site, finding where its export
+ * API answers, and one to read a site Teme keeps, its address checked again
+ * each time, since a name can move.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Source;
@@ -9,11 +19,6 @@ use App\Domain\Support\Network\AddressRefused;
 use App\Domain\Support\Network\PublicAddresses;
 use SensitiveParameter;
 
-/**
- * Makes companion clients: one to connect a site, finding where its export
- * API answers, and one to read a site Teme keeps, its address checked again
- * each time, since a name can move.
- */
 final readonly class CompanionClients
 {
     public function __construct(private PublicAddresses $addresses) {}

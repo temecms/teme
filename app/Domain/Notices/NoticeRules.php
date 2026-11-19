@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Core's own rules beside a notice kind, never part of the published
+ * contract: whether the kind exists on this site now, the site's switch for
+ * it, the line shown when it is switched off, and its label worded for one
+ * person.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -7,12 +18,6 @@ namespace App\Domain\Notices;
 use App\Models\User;
 use Closure;
 
-/**
- * Core's own rules beside a notice kind, never part of the published
- * contract: whether the kind exists on this site now, the site's switch for
- * it, the line shown when it is switched off, and its label worded for one
- * person.
- */
 final readonly class NoticeRules
 {
     /**

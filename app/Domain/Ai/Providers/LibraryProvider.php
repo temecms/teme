@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * An AI service Teme asks through laravel/ai's stateless request alone:
+ * its key from Settings › AI or the server, its shipped models and the one an
+ * administrator adds, its section of Settings › AI and that section's check.
+ * The service's errors become Teme's five failure types and are let go, so
+ * its words never leave this class (I-314). Each service's class says only
+ * what differs.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Providers;
@@ -38,14 +51,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * An AI service Teme asks through laravel/ai's stateless request alone:
- * its key from Settings › AI or the server, its shipped models and the one an
- * administrator adds, its section of Settings › AI and that section's check.
- * The service's errors become Teme's five failure types and are let go, so
- * its words never leave this class (I-314). Each service's class says only
- * what differs.
- */
 abstract class LibraryProvider implements AiProvider, AiSettingsSection, SettingsCheck
 {
     /** Room for a reasoning model to think within the answer's limit (I-1360). */

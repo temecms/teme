@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The old site's Polylang languages for an import (I-3446): read from the
+ * companion's `languages` route by the first step of a run, and kept in the
+ * cache six hours, as the site's analysis is (I-261: the cache is
+ * disposable), so each later job asks the old site at most once. Turns an
+ * item's Polylang slug into the language it is stored in here.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Translations;
@@ -14,13 +26,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Support\Network\AddressRefused;
 use Illuminate\Contracts\Cache\Repository;
 
-/**
- * The old site's Polylang languages for an import (I-3446): read from the
- * companion's `languages` route by the first step of a run, and kept in the
- * cache six hours, as the site's analysis is (I-261: the cache is
- * disposable), so each later job asks the old site at most once. Turns an
- * item's Polylang slug into the language it is stored in here.
- */
 final readonly class ImportedLanguages
 {
     /** How long the answer is kept: as long as Tools › Import keeps the analysis. */

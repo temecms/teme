@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:updater — carries out the update asked for from the admin, through the platform, as the operator
+ * (I-3326): it looks for a request every 30 seconds, every 5 while one runs, and takes the lock each pass, so
+ * two updaters never act at once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -16,11 +26,6 @@ use Illuminate\Support\Sleep;
 use PDOException;
 use Throwable;
 
-/**
- * teme:updater — carries out the update asked for from the admin, through the platform, as the operator
- * (I-3326): it looks for a request every 30 seconds, every 5 while one runs, and takes the lock each pass, so
- * two updaters never act at once.
- */
 final class RunUpdater extends Command
 {
     /** The advisory lock a pass holds, so the updater that replaces this one and this one never both act. */

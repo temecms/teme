@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * The places media can live (config/media.php, I-3456): the server's two
+ * folders and the two buckets, each a public disk and an originals disk,
+ * and which of them the site uses now.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
 
 use InvalidArgumentException;
 
-/**
- * The places media can live (config/media.php, I-3456): the server's two
- * folders and the two buckets, each a public disk and an originals disk,
- * and which of them the site uses now.
- */
 final class MediaLocations
 {
     /**

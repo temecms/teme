@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Emails whoever looks after an item's comments that one waits for approval
+ * (E5, I-689; 1.8d's D7, D9). Everything is read when it runs, never when it
+ * was queued: the comment must still wait, its item be out of the trash,
+ * comments and the email be on, and only people who look after the item now
+ * receive it. It carries the person whose action queued it, who is never
+ * emailed about their own comment; it calls no Operation, writes nothing and
+ * asks for no elevation, so it runs as the queue does, under DeniedElevation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Jobs;
@@ -17,15 +31,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Emails whoever looks after an item's comments that one waits for approval
- * (E5, I-689; 1.8d's D7, D9). Everything is read when it runs, never when it
- * was queued: the comment must still wait, its item be out of the trash,
- * comments and the email be on, and only people who look after the item now
- * receive it. It carries the person whose action queued it, who is never
- * emailed about their own comment; it calls no Operation, writes nothing and
- * asks for no elevation, so it runs as the queue does, under DeniedElevation.
- */
 final class SendCommentWaitingEmails implements ShouldQueue
 {
     use Queueable;

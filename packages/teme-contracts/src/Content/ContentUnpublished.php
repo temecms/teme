@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A published item was taken off the site and went back to being a draft.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

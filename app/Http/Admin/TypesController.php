@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Site › Types (I-3302): the types and a type's page, each change handed to
+ * CreateType, UpdateType or DeleteType, and the types file. It changes
+ * nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -21,11 +31,6 @@ use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Site › Types (I-3302): the types and a type's page, each change handed to
- * CreateType, UpdateType or DeleteType, and the types file. It changes
- * nothing itself.
- */
 final class TypesController extends Controller
 {
     public function index(TypesScreen $screen): Response

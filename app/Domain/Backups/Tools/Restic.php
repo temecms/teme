@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Runs restic (I-366), one process a call, against one repository: the
+ * repository and its key in the child's environment only, never on its
+ * command line; nothing Teme was started with that restic, S3 or
+ * PostgreSQL reads; its JSON messages handed on as it prints them; and its
+ * exit status turned into a ResticResult.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
@@ -13,13 +25,6 @@ use SensitiveParameter;
 use Symfony\Component\Process\Exception\ProcessSignaledException;
 use Symfony\Component\Process\Exception\RuntimeException as ProcessFailed;
 
-/**
- * Runs restic (I-366), one process a call, against one repository: the
- * repository and its key in the child's environment only, never on its
- * command line; nothing Teme was started with that restic, S3 or
- * PostgreSQL reads; its JSON messages handed on as it prints them; and its
- * exit status turned into a ResticResult.
- */
 final readonly class Restic
 {
     /** A call's time limit when its caller names none, in seconds. */

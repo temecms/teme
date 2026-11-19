@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Uses a suggestion the person chose (I-317). Refused when its target
+ * changed since the asking; otherwise written through the same path as
+ * every edit: a text block as a new working revision marked as the
+ * assistant's and attributed to the person, an image's alt text through
+ * UpdateMediaDetails. Then the activity row is settled. Only the person who
+ * asked may use it, while they may still change what it is about.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking\Operations;
@@ -35,14 +48,6 @@ use Illuminate\Support\Facades\Gate;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Uses a suggestion the person chose (I-317). Refused when its target
- * changed since the asking; otherwise written through the same path as
- * every edit: a text block as a new working revision marked as the
- * assistant's and attributed to the person, an image's alt text through
- * UpdateMediaDetails. Then the activity row is settled. Only the person who
- * asked may use it, while they may still change what it is about.
- */
 final class ApplyAiSuggestion extends BaseOperation
 {
     public const string BLOCK_CHANGED = 'This paragraph changed after you asked. Ask again.';

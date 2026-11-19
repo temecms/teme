@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The queues whose jobs no worker is taking (I-3112): a job a worker could
+ * take has waited WAIT seconds or more, no job on the queue is held by a
+ * worker, and no worker has finished one there for WAIT seconds. "Could
+ * take" is the database queue's own test, retry_after and all.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
@@ -7,12 +18,6 @@ namespace App\Domain\Deployment\Health;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The queues whose jobs no worker is taking (I-3112): a job a worker could
- * take has waited WAIT seconds or more, no job on the queue is held by a
- * worker, and no worker has finished one there for WAIT seconds. "Could
- * take" is the database queue's own test, retry_after and all.
- */
 final readonly class UntakenJobs
 {
     /** Seconds a job waits, with nothing taking its queue's jobs, before it counts. */

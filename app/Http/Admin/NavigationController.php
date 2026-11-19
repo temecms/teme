@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Content › Navigation: the menus, and the editor of one, where its items
+ * are arranged and the theme's places that show it are chosen. It reads
+ * through NavigationScreens and hands each change to its Operation; it
+ * changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -23,12 +34,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Content › Navigation: the menus, and the editor of one, where its items
- * are arranged and the theme's places that show it are chosen. It reads
- * through NavigationScreens and hands each change to its Operation; it
- * changes nothing itself.
- */
 final class NavigationController extends Controller
 {
     public function index(NavigationScreens $screens): Response

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Records how a media move ended (I-3456): finished, with when, or stopped,
+ * to be resumed from its cursor by the same command run again.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -14,10 +23,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records how a media move ended (I-3456): finished, with when, or stopped,
- * to be resumed from its cursor by the same command run again.
- */
 final class EndMediaMove extends BaseOperation
 {
     /**

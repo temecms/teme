@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Quick edit's save on the Comments screen (1.8c′'s D9, D13): one
+ * EditComment, then the list as it was, with a toast; a field's refusal goes
+ * back to the form, and a comment that changed meanwhile answers with a
+ * warning.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Comments;
@@ -15,12 +26,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Quick edit's save on the Comments screen (1.8c′'s D9, D13): one
- * EditComment, then the list as it was, with a toast; a field's refusal goes
- * back to the form, and a comment that changed meanwhile answers with a
- * warning.
- */
 final class CommentEditController extends Controller
 {
     public function __invoke(Request $request, EditComment $edit): RedirectResponse

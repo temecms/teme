@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Answers an address the site itself didn't (I-297, I-858): an enabled
+ * exact redirect from it, else the first enabled pattern that matches, kept
+ * compiled in Cache::memo(), with where it sends readers made now. A
+ * redirect whose item or file isn't there waits, and the address answers
+ * "not found" (I-857). It keeps nothing itself between requests.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects;
@@ -17,13 +29,6 @@ use App\Domain\Media\Models\Media;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Answers an address the site itself didn't (I-297, I-858): an enabled
- * exact redirect from it, else the first enabled pattern that matches, kept
- * compiled in Cache::memo(), with where it sends readers made now. A
- * redirect whose item or file isn't there waits, and the address answers
- * "not found" (I-857). It keeps nothing itself between requests.
- */
 final class RedirectLookup
 {
     /**

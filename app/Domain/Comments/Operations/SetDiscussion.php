@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Sets whether an item takes comments, Open, Closed or Hidden, for whoever
+ * may publish it (I-571): from the editor's Discussion row, Quick edit and
+ * Bulk edit. Live at once, outside any revision, and never an edit, so when
+ * the item was last updated stays as it was.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -19,12 +30,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Sets whether an item takes comments, Open, Closed or Hidden, for whoever
- * may publish it (I-571): from the editor's Discussion row, Quick edit and
- * Bulk edit. Live at once, outside any revision, and never an edit, so when
- * the item was last updated stays as it was.
- */
 final class SetDiscussion extends BaseOperation
 {
     public function __construct(private readonly ContentTypeRegistry $types) {}

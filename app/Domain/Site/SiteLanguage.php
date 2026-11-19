@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The language the site is written in (I-435): its canonical BCP 47 code,
+ * the text-search configuration that stems its words, and the one question
+ * everything asks, what language one item is in: its own, from its row,
+ * where a null language is the site's (I-3360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -8,12 +19,6 @@ use App\Domain\Contents\Models\Content;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The language the site is written in (I-435): its canonical BCP 47 code,
- * the text-search configuration that stems its words, and the one question
- * everything asks, what language one item is in: its own, from its row,
- * where a null language is the site's (I-3360).
- */
 final class SiteLanguage
 {
     /** The language of a site that hasn't chosen one. */

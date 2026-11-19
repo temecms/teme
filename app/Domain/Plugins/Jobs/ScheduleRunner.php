@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whom a plugin's schedules run as, and the one answer the scheduler, the
+ * Plugins screen and `teme:plugins` give when they can't run (docs/proposals/plugin-sockets-1.md):
+ * the administrator who enabled it, who must still have an account and
+ * still manage plugins.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
@@ -13,12 +24,6 @@ use App\Domain\Users\Actors;
 use App\Models\User;
 use Illuminate\Support\Str;
 
-/**
- * Whom a plugin's schedules run as, and the one answer the scheduler, the
- * Plugins screen and `teme:plugins` give when they can't run (docs/proposals/plugin-sockets-1.md):
- * the administrator who enabled it, who must still have an account and
- * still manage plugins.
- */
 final readonly class ScheduleRunner
 {
     public function __construct(

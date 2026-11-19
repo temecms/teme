@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What a backup is (I-2405), read before a restore on another server
+ * and by the checks: Teme's version; the database's PostgreSQL, newest
+ * migration and rows; the media and every original's SHA-256; the active
+ * theme and every package's version. JSON with a format version, kept in
+ * the repository beside the dump; never a secret, never code.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -12,13 +24,6 @@ use Composer\InstalledVersions;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * What a backup is (I-2405), read before a restore on another server
- * and by the checks: Teme's version; the database's PostgreSQL, newest
- * migration and rows; the media and every original's SHA-256; the active
- * theme and every package's version. JSON with a format version, kept in
- * the repository beside the dump; never a secret, never code.
- */
 final readonly class Manifest
 {
     /** The manifest's format; a reader refuses any other. */

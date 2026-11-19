@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The Tools hub (I-220, I-467): the utilities for looking after the site,
+ * each behind an ability of its own, then plugins' areas the menu has no
+ * room for, then the links plugins add (I-3353).
+ * The menu's Tools entry leads to the hub's page, and isn't shown to
+ * someone who may open none of them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Navigation;
@@ -10,13 +22,6 @@ use App\Domain\Plugins\Contributions\ToolLinks;
 use App\Domain\Plugins\PluginAccess;
 use App\Models\User;
 
-/**
- * The Tools hub (I-220, I-467): the utilities for looking after the site,
- * each behind an ability of its own, then plugins' areas the menu has no
- * room for, then the links plugins add (I-3353).
- * The menu's Tools entry leads to the hub's page, and isn't shown to
- * someone who may open none of them.
- */
 final readonly class ToolsHub implements NavHub
 {
     public function __construct(private ToolLinks $links) {}

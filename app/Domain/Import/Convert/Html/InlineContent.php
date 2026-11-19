@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A textblock's inline content as Tiptap nodes (I-1722). The element was
+ * read by the native parser; its HTML, serialised again, goes to tiptap-php
+ * only for its marks, and what comes back is kept to the text, hard breaks,
+ * marks and link attributes DocumentSchema allows. Images are taken out
+ * first, for the caller to place after the textblock.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Html;
@@ -24,13 +36,6 @@ use Tiptap\Nodes\HardBreak;
 use Tiptap\Nodes\Paragraph;
 use Tiptap\Nodes\Text;
 
-/**
- * A textblock's inline content as Tiptap nodes (I-1722). The element was
- * read by the native parser; its HTML, serialised again, goes to tiptap-php
- * only for its marks, and what comes back is kept to the text, hard breaks,
- * marks and link attributes DocumentSchema allows. Images are taken out
- * first, for the caller to place after the textblock.
- */
 final readonly class InlineContent
 {
     /** Images an emoji script draws: each becomes its alt, the character itself. */

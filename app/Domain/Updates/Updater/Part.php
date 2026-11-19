@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * Teme's services in the Compose file, in the order an update watches them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Updater;
 
-/**
- * Teme's services in the Compose file, in the order an update watches them.
- */
 enum Part: string
 {
     case Deploy = 'deploy';

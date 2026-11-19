@@ -1,20 +1,29 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\SiteCode;
-
 /**
  * Settings › Site code (I-288): who may change it, the most code one entry
  * holds, the words for each placement, and the host's switch that keeps it
  * all off.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\SiteCode;
+
 final class SiteCode
 {
     /** Administrators' (I-850). */
     public const string ABILITY = 'site-code.manage';
 
-    /** The place of code drawn nowhere by itself, only where a region's Custom HTML card places it (I-3127). */
+    /**
+     * The place of code drawn nowhere by itself, only where a region's Custom HTML card places it (I-3127).
+     *
+     * @since 1.0.0
+     */
     public const string PLACED = 'placed';
 
     /** The most characters one entry's code holds. */

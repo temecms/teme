@@ -1,19 +1,32 @@
 <?php
 
+/**
+ * One panel on the admin's Home screen, declared once. Core's panels and, in
+ * phase 5, plugins' are the same kind of entry (I-200).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard;
 
-/**
- * One panel on the admin's Home screen, declared once. Core's panels and, in
- * phase 5, plugins' are the same kind of entry (I-200).
- */
 final readonly class DashboardPanel
 {
-    /** The widths a panel may declare or a person may choose. */
+    /**
+     * The widths a panel may declare or a person may choose.
+     *
+     * @since 0.8.0-alpha.1
+     */
     public const array SIZES = ['small', 'medium', 'large', 'full'];
 
-    /** The kinds of body a panel may draw. */
+    /**
+     * The kinds of body a panel may draw.
+     *
+     * @since 0.8.0-alpha.1
+     */
     public const array KINDS = ['rows', 'quick-draft'];
 
     /**

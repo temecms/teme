@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Hands one revision of an article to an editor for review (decision 5A).
+ * The revision is pinned, so the editor reviews what was handed over, not
+ * whatever has been typed since. A draft goes into review; a live article
+ * stays published while its update waits, because readers still see it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -18,12 +29,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Hands one revision of an article to an editor for review (decision 5A).
- * The revision is pinned, so the editor reviews what was handed over, not
- * whatever has been typed since. A draft goes into review; a live article
- * stays published while its update waits, because readers still see it.
- */
 final class SubmitForReview extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

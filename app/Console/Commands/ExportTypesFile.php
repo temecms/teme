@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * teme:types:export — prints the site's own content types as a teme-types.json
+ * file, or writes it where told (I-411).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -7,10 +16,6 @@ namespace App\Console\Commands;
 use App\Domain\Types\TypesFile;
 use Illuminate\Console\Command;
 
-/**
- * teme:types:export — prints the site's own content types as a teme-types.json
- * file, or writes it where told (I-411).
- */
 final class ExportTypesFile extends Command
 {
     /** @var string */

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:docs:hooks`: writes `docs/reference/hooks.md` from the hook classes
+ * in teme/contracts, so the reference can never drift from the code.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -17,10 +26,6 @@ use Teme\Contracts\Hooks\Notification;
 use Teme\Contracts\Hooks\Resolve;
 use Teme\Contracts\Hooks\Transform;
 
-/**
- * `teme:docs:hooks`: writes `docs/reference/hooks.md` from the hook classes
- * in teme/contracts, so the reference can never drift from the code.
- */
 final class GenerateHooksReference extends Command
 {
     /** @var list<class-string> */

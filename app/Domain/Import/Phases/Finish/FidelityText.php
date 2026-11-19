@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The words a reader reads in a piece of HTML (I-337), the same way for
+ * WordPress's rendered page and Teme's: what scripts, styles, players and
+ * forms hold and what Teme drops on purpose left out, a break at every block, and each word lower case,
+ * its quotes straight and its edges free of punctuation.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Finish;
@@ -9,12 +20,6 @@ use Dom\Element;
 use Dom\Node;
 use Dom\Text;
 
-/**
- * The words a reader reads in a piece of HTML (I-337), the same way for
- * WordPress's rendered page and Teme's: what scripts, styles, players and
- * forms hold and what Teme drops on purpose left out, a break at every block, and each word lower case,
- * its quotes straight and its edges free of punctuation.
- */
 final class FidelityText
 {
     /** Elements whose text no reader reads as the article's. */
@@ -26,6 +31,8 @@ final class FidelityText
      * (Dropped::CONTENTS_LISTS, and the boxes contents plugins insert),
      * listings of other posts (core's dynamic blocks), and Jetpack's sharing
      * and related-posts boxes. Teme's theme draws its own, or none.
+     *
+     * @since 0.8.0-alpha.1
      */
     public const array NOT_ARTICLE = [
         '.wp-block-yoast-seo-table-of-contents', '.wp-block-rank-math-toc-block', '.rank-math-toc-block', '.wp-block-simpletoc-toc',

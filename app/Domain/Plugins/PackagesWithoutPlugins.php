@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Laravel's package discovery, without plugins (I-3353): a package of type
+ * teme-plugin reaches Teme only through its Plugin class, so Laravel never
+ * registers the providers or aliases it lists under extra.laravel, enabled
+ * or not, built afresh or read from a cache written before.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -7,12 +18,6 @@ namespace App\Domain\Plugins;
 use Composer\InstalledVersions;
 use Illuminate\Foundation\PackageManifest;
 
-/**
- * Laravel's package discovery, without plugins (I-3353): a package of type
- * teme-plugin reaches Teme only through its Plugin class, so Laravel never
- * registers the providers or aliases it lists under extra.laravel, enabled
- * or not, built afresh or read from a cache written before.
- */
 final class PackagesWithoutPlugins extends PackageManifest
 {
     /**

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Phases\Terms;
-
 /**
  * Text WordPress stored for display, as Teme keeps it: names WordPress
  * escaped once on the way in, decoded once; descriptions and biographies
  * it filtered as HTML, as plain text, which Teme's templates escape.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Phases\Terms;
+
 final class WordPressText
 {
     /**

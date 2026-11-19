@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The video card in a feed: the browser's own player at an absolute address with its poster and size, always with controls and never playing by itself, a link to the file inside it, and the caption. Caption tracks stay on the page: a reader's page can't load them from another site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -9,9 +17,6 @@ use App\Domain\Feeds\FeedCardRenderer;
 use App\Domain\Feeds\FeedImages;
 use App\Domain\Feeds\FeedUrls;
 
-/**
- * The video card in a feed: the browser's own player at an absolute address with its poster and size, always with controls and never playing by itself, a link to the file inside it, and the caption. Caption tracks stay on the page: a reader's page can't load them from another site.
- */
 final readonly class PlainVideo implements FeedCardRenderer
 {
     public function __construct(private FeedUrls $urls, private FeedImages $images) {}

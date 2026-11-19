@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a composer may know about the theme view it composes: its name, the
+ * page's kind and whether it is the home page, from the request's
+ * ViewIntent, the site's locale, and the view's data so far, read live. A
+ * view made with no page behind it has the kind '' and is not the home page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -7,12 +18,6 @@ namespace App\Domain\Themes;
 use Illuminate\Contracts\View\View;
 use Teme\Contracts\Themes\ViewContext;
 
-/**
- * What a composer may know about the theme view it composes: its name, the
- * page's kind and whether it is the home page, from the request's
- * ViewIntent, the site's locale, and the view's data so far, read live. A
- * view made with no page behind it has the kind '' and is not the home page.
- */
 final readonly class ThemeContext implements ViewContext
 {
     public function __construct(

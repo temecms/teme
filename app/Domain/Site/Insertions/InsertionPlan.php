@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Insertions;
-
 /**
  * Where cleaned insertion HTML sits in a document: each top-level index
  * maps to the markup drawn before that node (count of content means after
  * the last). Built by PlanBuilder for DocumentRenderer.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Insertions;
+
 final readonly class InsertionPlan
 {
     /**

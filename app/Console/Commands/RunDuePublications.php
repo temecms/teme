@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * teme:content:run-due-publications — claims the scheduled publications that
+ * are due and runs each in its own transaction, so one failure never undoes
+ * another. A held or failed row is recorded, not an error of the command.
+ * Runs every minute.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -19,12 +30,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-/**
- * teme:content:run-due-publications — claims the scheduled publications that
- * are due and runs each in its own transaction, so one failure never undoes
- * another. A held or failed row is recorded, not an error of the command.
- * Runs every minute.
- */
 final class RunDuePublications extends Command
 {
     /** @var string */

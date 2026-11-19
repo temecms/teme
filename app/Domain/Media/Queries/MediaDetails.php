@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Everything the media drawer shows about one item, and what the viewer may
+ * do with it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -12,10 +21,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * Everything the media drawer shows about one item, and what the viewer may
- * do with it.
- */
 final class MediaDetails
 {
     public function __construct(private readonly UploadedForItem $items) {}

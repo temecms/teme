@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Extensions\Sources;
-
 /**
  * One kind of place packages come from (Packagist, a Git address, a vendor's
  * Composer source, an upload): what it adds to a release's composer.json,
  * its part of Composer's credentials, and its work before Composer runs.
  * Internal: Teme's signed directory is a later kind, with no change here.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Extensions\Sources;
+
 interface SourceKind
 {
     /** The kind's key, stored in extension_sources.kind and extension_requests.source_kind. */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whether the restored site answers, before it opens (I-363): this Teme's
+ * newest migration is the database's, and the home page and the newest
+ * published item answer 200 at this server's address, each a request this
+ * process handles, carrying the restore's bypass cookie.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -11,12 +22,6 @@ use Illuminate\Foundation\Http\MaintenanceModeBypassCookie;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Whether the restored site answers, before it opens (I-363): this Teme's
- * newest migration is the database's, and the home page and the newest
- * published item answer 200 at this server's address, each a request this
- * process handles, carrying the restore's bypass cookie.
- */
 final readonly class SmokeTest
 {
     /**

@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One person's draft as they left it a moment ago — title, document, fields
+ * and terms — and the revision it was based on, to keep until a checkpoint.
+ * The editor numbers its saves, so one that arrives after a newer one is
+ * known as older.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * One person's draft as they left it a moment ago — title, document, fields
- * and terms — and the revision it was based on, to keep until a checkpoint.
- * The editor numbers its saves, so one that arrives after a newer one is
- * known as older.
- */
 final readonly class SaveAutosaveInput implements OperationInput
 {
     /**

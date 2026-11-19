@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Every entry in the admin's main menu, core's included, so a plugin's entry
+ * in phase 5 is just another registration (I-220).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Navigation;
 
 use InvalidArgumentException;
 
-/**
- * Every entry in the admin's main menu, core's included, so a plugin's entry
- * in phase 5 is just another registration (I-220).
- */
 final class NavigationRegistry
 {
     /** @var array<string, NavEntry> */

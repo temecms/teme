@@ -1,5 +1,20 @@
 <?php
 
+/**
+ * A public page rendered through the template its intent resolves to, with
+ * the view model as `$page`, for the template and the document shell, and,
+ * outside production, headers naming the template, its candidates and the
+ * composers that ran. An error page falls back to core's own when the
+ * theme's fails (I-249). A design preview's page carries a bar saying so.
+ * A page core's fallback drew is a degraded render, which the page cache
+ * never stores. Every page it draws carries the public site's content
+ * security policy, built while it was drawn.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -31,16 +46,6 @@ use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
-/**
- * A public page rendered through the template its intent resolves to, with
- * the view model as `$page`, for the template and the document shell, and,
- * outside production, headers naming the template, its candidates and the
- * composers that ran. An error page falls back to core's own when the
- * theme's fails (I-249). A design preview's page carries a bar saying so.
- * A page core's fallback drew is a degraded render, which the page cache
- * never stores. Every page it draws carries the public site's content
- * security policy, built while it was drawn.
- */
 final class PublicPage
 {
     /**

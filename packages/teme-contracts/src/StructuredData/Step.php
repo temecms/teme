@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One step of a Steps card: its title, its words as plain text and as the page
+ * draws them, its image's address, and the address of the step on the page,
+ * all made from the site's address now.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\StructuredData;

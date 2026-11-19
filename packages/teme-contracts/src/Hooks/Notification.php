@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A hook that tells listeners what happened.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

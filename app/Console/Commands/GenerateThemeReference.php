@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:docs:theme`: writes `docs/reference/theme.md` and the pin of
+ * everything a template can read, `docs/reference/theme-view-data.json`, from
+ * the code and the manifest's schema (I-3346).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,11 +19,6 @@ use App\Domain\Themes\Reference\ViewDataCatalogue;
 use App\Domain\Themes\Reference\ViewDataPin;
 use Illuminate\Console\Command;
 
-/**
- * `teme:docs:theme`: writes `docs/reference/theme.md` and the pin of
- * everything a template can read, `docs/reference/theme-view-data.json`, from
- * the code and the manifest's schema (I-3346).
- */
 final class GenerateThemeReference extends Command
 {
     /** @var string */

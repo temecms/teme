@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Settings pages. It shows a settings group from its declaration, on the
+ * page that draws it, and hands saves to the `SaveSettingsPage` Operation; it
+ * changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -32,11 +42,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * The Settings pages. It shows a settings group from its declaration, on the
- * page that draws it, and hands saves to the `SaveSettingsPage` Operation; it
- * changes nothing itself.
- */
 final class SettingsController extends Controller
 {
     public function show(Request $request, string $group, SettingsForm $form, SettingsPageSections $sections, SettingHosts $hosts, PluginActions $actions, PluginLists $lists, SettingsRegistry $registry): Response|RedirectResponse
@@ -198,6 +203,8 @@ final class SettingsController extends Controller
      * Saves a group's words in other languages through SaveSettingsWords,
      * every language or none; an empty word falls back to the default
      * language's.
+     *
+     * @since 1.0.0
      */
     public function words(Request $request, string $group, SaveSettingsWords $save): RedirectResponse
     {

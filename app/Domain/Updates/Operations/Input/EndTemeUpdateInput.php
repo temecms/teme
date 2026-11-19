@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * What EndTemeUpdate needs: the request, how it ended, and the sentence that says why. Only the operator, the updater or a restore, runs it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Operations\Input;
@@ -7,9 +15,6 @@ namespace App\Domain\Updates\Operations\Input;
 use App\Domain\Updates\Requests\UpdateStatus;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What EndTemeUpdate needs: the request, how it ended, and the sentence that says why. Only the operator, the updater or a restore, runs it.
- */
 final readonly class EndTemeUpdateInput implements OperationInput
 {
     public function __construct(

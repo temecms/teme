@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The content reader's list (docs/plans/plugin-sockets-3.md): published,
+ * public items an anonymous visitor may open, newest first, one page at a
+ * time by an opaque cursor, filtered by type, language, terms and date. One
+ * statement for the page, then the items' addresses as Payloads makes them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -17,12 +28,6 @@ use Teme\Contracts\Content\ItemPage;
 use Teme\Contracts\Content\ItemQuery;
 use Teme\Contracts\Content\ItemRef;
 
-/**
- * The content reader's list (docs/plans/plugin-sockets-3.md): published,
- * public items an anonymous visitor may open, newest first, one page at a
- * time by an opaque cursor, filtered by type, language, terms and date. One
- * statement for the page, then the items' addresses as Payloads makes them.
- */
 final readonly class PublishedItems
 {
     public const int MOST_ITEMS = 200;

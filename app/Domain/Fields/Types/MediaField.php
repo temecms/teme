@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A reference to a media item, stored as its ID — never a path or URL (rule
+ * 9) — with the alt text and decorative mark for this one use, which are
+ * versioned with the content (docs/architecture/media.md, "Alt text").
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -11,11 +21,6 @@ use App\Domain\Fields\Rules\MediaReference;
 use App\Domain\Site\ViewModels\ImageRef;
 use App\Domain\StructuredData\ImageObjects;
 
-/**
- * A reference to a media item, stored as its ID — never a path or URL (rule
- * 9) — with the alt text and decorative mark for this one use, which are
- * versioned with the content (docs/architecture/media.md, "Alt text").
- */
 final class MediaField implements FieldType
 {
     /**

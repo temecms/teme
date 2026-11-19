@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Creates an empty menu, in the site's default language or another of its
+ * languages (I-3360). Its handle is made from its name, unique among menus,
+ * and never changes, so a theme or 1.7's cache tags can rely on it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations;
@@ -12,11 +22,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Creates an empty menu, in the site's default language or another of its
- * languages (I-3360). Its handle is made from its name, unique among menus,
- * and never changes, so a theme or 1.7's cache tags can rely on it.
- */
 final class CreateNavigation extends BaseOperation
 {
     use ManagesNavigation;

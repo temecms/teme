@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The backup benchmark (I-367): the synthetic site, then each backup, check
+ * and restore a site has, in order, as the operator, each timed whole and
+ * step by step; and its report.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark\BackupBench;
@@ -29,11 +39,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Number;
 use Spatie\Permission\PermissionRegistrar;
 
-/**
- * The backup benchmark (I-367): the synthetic site, then each backup, check
- * and restore a site has, in order, as the operator, each timed whole and
- * step by step; and its report.
- */
 final class BackupBenchmark
 {
     public function __construct(

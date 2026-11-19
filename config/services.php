@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Credentials and settings for the outside services Teme talks to.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 return [

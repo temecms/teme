@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The queued notice telling a person their personal data was erased, and
+ * what was kept and why (I-3375). Every reason goes through MailText, so a
+ * plugin's words never become Markdown.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Notifications;
@@ -13,11 +23,6 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The queued notice telling a person their personal data was erased, and
- * what was kept and why (I-3375). Every reason goes through MailText, so a
- * plugin's words never become Markdown.
- */
 final class PersonalDataErased extends Notification implements ShouldQueue
 {
     use Queueable, SentAsNotice;

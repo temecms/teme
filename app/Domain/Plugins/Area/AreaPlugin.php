@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * An enabled plugin that declares an area: its Composer name, code and
+ * label, the area as declared, and its data while it runs in this process.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Area;
 
 use Teme\Contracts\Admin\PluginArea;
 
-/**
- * An enabled plugin that declares an area: its Composer name, code and
- * label, the area as declared, and its data while it runs in this process.
- */
 final readonly class AreaPlugin
 {
     public function __construct(

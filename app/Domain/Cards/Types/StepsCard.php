@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * How to do something: an optional summary, a total time, what it uses up
+ * and what it needs, then numbered steps, each a title, short rich text and
+ * an optional image. Its steps go to plugins that add structured data
+ * (docs/guides/developers/plugins/seo.md); core adds none of its own.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Types;
@@ -16,12 +27,6 @@ use App\Domain\Cards\RenderContext;
 use App\Domain\Media\ImageMarkup;
 use Illuminate\Validation\ValidationException;
 
-/**
- * How to do something: an optional summary, a total time, what it uses up
- * and what it needs, then numbered steps, each a title, short rich text and
- * an optional image. Its steps go to plugins that add structured data
- * (docs/guides/developers/plugins/seo.md); core adds none of its own.
- */
 final class StepsCard implements CardType, OutlinedCard
 {
     /** The most steps one card holds. */

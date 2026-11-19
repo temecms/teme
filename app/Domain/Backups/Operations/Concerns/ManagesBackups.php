@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Who may change backups: a person who holds backups.manage, after their
+ * password, or the operator at the server (docs/architecture/operations.md,
+ * The operator). Every backup Operation uses it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations\Concerns;
@@ -22,11 +32,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Who may change backups: a person who holds backups.manage, after their
- * password, or the operator at the server (docs/architecture/operations.md,
- * The operator). Every backup Operation uses it.
- */
 trait ManagesBackups
 {
     public function requiresElevation(OperationInput $input): bool

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * What validating a staged release found: reasons to refuse it, what waits
+ * for the administrator's agreement, and warnings the report keeps.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
 
-/**
- * What validating a staged release found: reasons to refuse it, what waits
- * for the administrator's agreement, and warnings the report keeps.
- */
 final readonly class StageOutcome
 {
     /**

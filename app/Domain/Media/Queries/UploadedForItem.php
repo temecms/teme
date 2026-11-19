@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * The content item a file was uploaded for (I-553), as the media drawer's
+ * line and the library's filter name it: its title, its status, and whether
+ * it is in the trash.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * The content item a file was uploaded for (I-553), as the media drawer's
- * line and the library's filter name it: its title, its status, and whether
- * it is in the trash.
- */
 final class UploadedForItem
 {
     /** A content item's ID: 26 lower-case letters and digits. */

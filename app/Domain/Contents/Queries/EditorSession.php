@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * What the editor opens on for one person: their own autosave when they have
+ * one, the working revision otherwise, never another person's unsaved work.
+ * Title, document, fields and terms always come from the same one of the
+ * two. It also says who else is in the article, what this person may do,
+ * the media the document's cards show, and where the article stands in
+ * scheduling and review.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -28,14 +41,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * What the editor opens on for one person: their own autosave when they have
- * one, the working revision otherwise, never another person's unsaved work.
- * Title, document, fields and terms always come from the same one of the
- * two. It also says who else is in the article, what this person may do,
- * the media the document's cards show, and where the article stands in
- * scheduling and review.
- */
 final readonly class EditorSession
 {
     /**

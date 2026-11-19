@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Shows a new recovery key once, added to every place in use, for
+ * ConfirmRecoveryKey to record when two of its groups are typed back (I-359).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -16,10 +25,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Shows a new recovery key once, added to every place in use, for
- * ConfirmRecoveryKey to record when two of its groups are typed back (I-359).
- */
 final class AddRecoveryKey extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

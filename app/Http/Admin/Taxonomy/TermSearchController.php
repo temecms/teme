@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The term pickers' search, as JSON: anyone who writes content may look terms
+ * up, not only those who manage them. Any registered taxonomy can be searched.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Taxonomy;
@@ -10,10 +19,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * The term pickers' search, as JSON: anyone who writes content may look terms
- * up, not only those who manage them. Any registered taxonomy can be searched.
- */
 final class TermSearchController extends Controller
 {
     public function __invoke(Request $request, TermPicker $picker, TaxonomyRegistry $taxonomies): JsonResponse

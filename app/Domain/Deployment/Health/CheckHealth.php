@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What /up checks before it answers 200 (I-378): the database answers and
+ * holds every migration the code ships, in one query, and every folder
+ * Teme writes to can be written. Any problem fails the check, and Laravel's
+ * route reports it and answers 500 with nothing of it in the body.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
@@ -7,12 +18,6 @@ namespace App\Domain\Deployment\Health;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Throwable;
 
-/**
- * What /up checks before it answers 200 (I-378): the database answers and
- * holds every migration the code ships, in one query, and every folder
- * Teme writes to can be written. Any problem fails the check, and Laravel's
- * route reports it and answers 500 with nothing of it in the body.
- */
 final readonly class CheckHealth
 {
     public function __construct(private PendingMigrations $migrations) {}

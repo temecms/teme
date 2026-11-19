@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Policy\Reports;
-
-use App\Domain\Addresses\PublicRequestPath;
-use App\Domain\Cache\StaticPages;
-
 /**
  * Reads a browser's policy reports from a request's body (I-3375): level 2's
  * one report and level 3's list, kept to the few things Teme aggregates and
@@ -16,7 +9,19 @@ use App\Domain\Cache\StaticPages;
  * unassigned character or invalid UTF-8: a report that did is dropped whole,
  * never repaired, because the table's jsonb refuses a NUL and a console
  * would act on an escape sequence.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Policy\Reports;
+
+use App\Domain\Addresses\PublicRequestPath;
+use App\Domain\Cache\StaticPages;
+
 final class PolicyReportReader
 {
     /** Reports one body may hold. */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Sends the purges waiting for the CDN (CdnPurges::drain()), one drain
+ * queued at a time. It never fails for waiting: it is released for as long
+ * as the CDN's rate or the CDN itself says, and a minute after a failure;
+ * teme:cache:prune queues it again whenever purges wait (D5).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache\Jobs;
@@ -10,12 +21,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Jobs\SyncJob;
 
-/**
- * Sends the purges waiting for the CDN (CdnPurges::drain()), one drain
- * queued at a time. It never fails for waiting: it is released for as long
- * as the CDN's rate or the CDN itself says, and a minute after a failure;
- * teme:cache:prune queues it again whenever purges wait (D5).
- */
 final class PurgeCdn implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;

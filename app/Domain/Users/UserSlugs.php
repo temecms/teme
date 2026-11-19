@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Slugs for people, for their author address: made from their name, unique
+ * among every account and every person with no account (I-3366).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users;
@@ -7,10 +16,6 @@ namespace App\Domain\Users;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Slugs for people, for their author address: made from their name, unique
- * among every account and every person with no account (I-3366).
- */
 final class UserSlugs
 {
     /**

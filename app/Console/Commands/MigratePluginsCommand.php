@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:plugins:migrate`: runs waiting migrations for one enabled plugin, or
+ * every enabled plugin that has them, as the operator (I-3442).
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -15,10 +24,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * `teme:plugins:migrate`: runs waiting migrations for one enabled plugin, or
- * every enabled plugin that has them, as the operator (I-3442).
- */
 final class MigratePluginsCommand extends Command
 {
     /** @var string */

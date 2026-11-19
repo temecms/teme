@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Convert;
-
 /**
  * What the import made of the old site, already known: each answer an array
  * lookup. What a test gives the converter, or a phase that read a page's
  * answers at once (I-1702).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Convert;
+
 final readonly class KnownTargets implements SourceTargets
 {
     /**

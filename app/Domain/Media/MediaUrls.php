@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Public URLs for a media item's files, built from its recorded paths and the
+ * disk's configured URL at the moment of asking — never stored (rule 9).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
 
-/**
- * Public URLs for a media item's files, built from its recorded paths and the
- * disk's configured URL at the moment of asking — never stored (rule 9).
- */
 final class MediaUrls
 {
     /**

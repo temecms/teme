@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What Settings › Languages shows (docs/proposals/multilingual-screens.md):
+ * the site's languages in the switcher's order, the default first, each
+ * with its prefix, whether readers see it and what is in it; the languages
+ * it could add; which types and taxonomies are translated; and the group's
+ * version every form on the screen carries. It reads only.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Queries;
@@ -9,13 +21,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What Settings › Languages shows (docs/proposals/multilingual-screens.md):
- * the site's languages in the switcher's order, the default first, each
- * with its prefix, whether readers see it and what is in it; the languages
- * it could add; which types and taxonomies are translated; and the group's
- * version every form on the screen carries. It reads only.
- */
 final class LanguagesScreen
 {
     /**

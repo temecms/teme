@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * The scenarios docs/studies/seo.md §3.15 sets: a redirect found among
+ * 100,000, as a lookup and as a reader's request; addresses nothing
+ * answers, each request answered with no write, and the minute's run that
+ * writes a full log's worth of them into a log at its cap; that log's
+ * screen and Tools › Redirects at their size; the sitemap index and its
+ * deepest page of posts; and an article whose head takes every fallback.
+ * A reader's request notes what it met in a spool folder of the
+ * benchmark's own, never the site's, and each scenario puts back what it
+ * changes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -33,16 +49,6 @@ use Illuminate\Support\Facades\File;
 use RuntimeException;
 
 /**
- * The scenarios docs/studies/seo.md §3.15 sets: a redirect found among
- * 100,000, as a lookup and as a reader's request; addresses nothing
- * answers, each request answered with no write, and the minute's run that
- * writes a full log's worth of them into a log at its cap; that log's
- * screen and Tools › Redirects at their size; the sitemap index and its
- * deepest page of posts; and an article whose head takes every fallback.
- * A reader's request notes what it met in a spool folder of the
- * benchmark's own, never the site's, and each scenario puts back what it
- * changes.
- *
  * @phpstan-type Scenario array{name: string, group: string, indexOrder: bool, run: Closure(int): mixed, queriesLike?: string, items?: int, within?: list<array{items: int, seconds: int, what: string}>, planWrites?: bool, writesNothing?: bool, reads?: list<string>, prepare?: Closure(): void, finish?: Closure(): void, before?: Closure(int): void}
  */
 final class SeoScenarios

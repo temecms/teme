@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Records a request to export or erase a person's personal data (I-3375),
+ * with one entry for each holder that will be asked, in order. Nothing is
+ * exported or erased yet: RunPrivacyExport and RunPrivacyErasure step
+ * through it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records a request to export or erase a person's personal data (I-3375),
- * with one entry for each holder that will be asked, in order. Nothing is
- * exported or erased yet: RunPrivacyExport and RunPrivacyErasure step
- * through it.
- */
 final class RecordPrivacyRequest extends BaseOperation
 {
     use AuthorizesPrivacyWork;

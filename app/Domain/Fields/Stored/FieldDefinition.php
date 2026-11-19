@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One field a site made for one of its types, as the table stores it and
+ * teme-types.json carries it (docs/studies/content-and-fields.md §5.3): its
+ * key, which values are stored under, its handle, what the editor shows,
+ * and its settings. Its position is the table's; a file's order is its own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Stored;
@@ -10,12 +21,6 @@ use App\Domain\Fields\FieldShow;
 use Carbon\CarbonImmutable;
 use InvalidArgumentException;
 
-/**
- * One field a site made for one of its types, as the table stores it and
- * teme-types.json carries it (docs/studies/content-and-fields.md §5.3): its
- * key, which values are stored under, its handle, what the editor shows,
- * and its settings. Its position is the table's; a file's order is its own.
- */
 final readonly class FieldDefinition
 {
     /** The names a file entry may have, in the order it is written. */

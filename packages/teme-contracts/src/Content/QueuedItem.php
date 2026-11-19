@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One unpublished item in ContentReader::queue(): the item, whose status says
+ * where it waits, and when it is scheduled for.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

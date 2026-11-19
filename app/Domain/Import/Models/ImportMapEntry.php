@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One row per source object: what it became in Teme, its state, the last
+ * run's outcome and the hash of the source's item. Written only by the
+ * import Operations (I-332).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Models;
@@ -13,10 +23,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One row per source object: what it became in Teme, its state, the last
- * run's outcome and the hash of the source's item. Written only by the
- * import Operations (I-332).
- *
  * @property string $id
  * @property string $source_id
  * @property string $object_type

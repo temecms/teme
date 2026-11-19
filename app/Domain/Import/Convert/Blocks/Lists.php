@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Core's lists (I-335): the format of WordPress 6.1 and later, a list of
+ * list-item blocks, and the older one, a list in HTML. An ordered list
+ * keeps its start and type.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -9,11 +19,6 @@ use App\Domain\Import\Convert\BlockMapping;
 use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 
-/**
- * Core's lists (I-335): the format of WordPress 6.1 and later, a list of
- * list-item blocks, and the older one, a list in HTML. An ordered list
- * keeps its start and type.
- */
 final readonly class Lists implements BlockMapping
 {
     public function blocks(): array

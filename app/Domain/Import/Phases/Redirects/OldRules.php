@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The redirect rules of the stores the companion reads (I-297): Redirection,
+ * Rank Math, Safe Redirect Manager, Yoast SEO Premium and Simple 301
+ * Redirects, each rule read as the redirects it becomes in Teme's form, with
+ * what can't come said in words. Pure.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Redirects;
@@ -8,12 +19,6 @@ use App\Domain\Import\Phases\ImportMessage;
 use App\Domain\Import\Phases\SourceRef;
 use Illuminate\Support\Str;
 
-/**
- * The redirect rules of the stores the companion reads (I-297): Redirection,
- * Rank Math, Safe Redirect Manager, Yoast SEO Premium and Simple 301
- * Redirects, each rule read as the redirects it becomes in Teme's form, with
- * what can't come said in words. Pure.
- */
 final class OldRules
 {
     /** Each store, in the order it's read: true for one paged by ID, false for a whole answer. */

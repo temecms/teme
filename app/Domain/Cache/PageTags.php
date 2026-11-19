@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The page cache's tags (docs/studies/page-cache.md §3.4, I-263): what a
+ * page records for everything it shows, and what an Operation purges for a
+ * change. A thing as shown is `{kind}:{id}`; a list is named by its query,
+ * never by the IDs it happened to return. Built from rows and the
+ * registries, never from a quoted type name.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -7,13 +19,6 @@ namespace App\Domain\Cache;
 use App\Domain\Addresses\PublicRequestPath;
 use Carbon\CarbonInterface;
 
-/**
- * The page cache's tags (docs/studies/page-cache.md §3.4, I-263): what a
- * page records for everything it shows, and what an Operation purges for a
- * change. A thing as shown is `{kind}:{id}`; a list is named by its query,
- * never by the IDs it happened to return. Built from rows and the
- * registries, never from a quoted type name.
- */
 final class PageTags
 {
     /** Every stored page's, without a row of its own: purging it purges them all. */
@@ -31,16 +36,32 @@ final class PageTags
     /** Search and social's settings, which every page the document shell draws reads, its robots meta at least. */
     public const string SEO = 'seo';
 
-    /** Every published article page that asks contributors for insertions, drawn or not (I-064). */
+    /**
+     * Every published article page that asks contributors for insertions, drawn or not (I-064).
+     *
+     * @since 1.0.0
+     */
     public const string INSERTIONS = 'insertions';
 
-    /** Every stored "not found" page at an address a plugin's root file could answer (docs/guides/developers/plugins/root-files.md). */
+    /**
+     * Every stored "not found" page at an address a plugin's root file could answer (docs/guides/developers/plugins/root-files.md).
+     *
+     * @since 1.0.0
+     */
     public const string ROOT_FILES = 'root-files';
 
-    /** Every feed, which carries the links plugins add to it (docs/plans/plugin-sockets-1.md, A3). */
+    /**
+     * Every feed, which carries the links plugins add to it (docs/plans/plugin-sockets-1.md, A3).
+     *
+     * @since 1.0.0
+     */
     public const string FEED_LINKS = 'feed-links';
 
-    /** Every public page that asks contributors for page insertions, drawn or not. */
+    /**
+     * Every public page that asks contributors for page insertions, drawn or not.
+     *
+     * @since 1.0.0
+     */
     public const string PAGE_INSERTIONS = 'page-insertions';
 
     /**

@@ -27,6 +27,17 @@ Open an issue with the **Feature request** form, and start with the problem rath
 
 A check comments on issues and pull requests that are missing what the forms ask for. Fill in the missing parts and it clears itself.
 
+## File headers and `@since`
+
+Every PHP file in `app/`, `config/`, `database/`, `routes/` and the packages' `src/` opens with a short header saying what it is for, `@package`, `@since` and `@license`; [the coding standards](docs/architecture/coding-standards.md#file-headers) show it. A new file, and a new public method or constant, says `@since next`. `php scripts/file-headers.php apply` adds the header to new files for you.
+
+## Maintainers' notes: preparing a release
+
+1. Write the version's section of `CHANGELOG.md`.
+2. Run `php scripts/file-headers.php release <version>`, such as `php scripts/file-headers.php release 1.2.0`. It replaces every `@since next` in Teme's own files with the version. For a plugin or theme in this repository, add `--path=plugins/<name>` and give its own version.
+3. Run `composer check`, and commit both changes together.
+4. Tag the commit `v<version>`. The image workflow's `since` job stops the release if any `@since next` is left.
+
 ## Licence
 
 By sending a change you agree that it is released under the project's [MIT licence](LICENSE).

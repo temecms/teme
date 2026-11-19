@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Declares one list preference for every kind a person may turn off (I-110):
+ * the channels they keep, with `[]` meaning off. A required kind declares
+ * none, so a stored value can never narrow it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -7,11 +17,6 @@ namespace App\Domain\Notices;
 use App\Domain\Preferences\PreferenceDefinition;
 use App\Domain\Preferences\PreferenceRegistry;
 
-/**
- * Declares one list preference for every kind a person may turn off (I-110):
- * the channels they keep, with `[]` meaning off. A required kind declares
- * none, so a stored value can never narrow it.
- */
 final class NoticePreferences
 {
     /** What every notice choice's preference key starts with. */

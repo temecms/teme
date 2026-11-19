@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * A hook that asks listeners for one answer.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

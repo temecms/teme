@@ -1,12 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Console\Commands;
-
-use App\Domain\Plugins\PluginRegistry;
-use Illuminate\Console\Command;
-
 /**
  * `teme:plugins:cache`: reads every plugin, Composer's and the plugin_paths
  * folders, now, and writes its manifest, its class's reading and what its
@@ -14,7 +7,19 @@ use Illuminate\Console\Command;
  * stop scanning. `optimize` runs it; nothing else writes it. A plugin that
  * changed since is read again by each process until it runs again; the
  * Teme version and the hooks are checked on every read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Domain\Plugins\PluginRegistry;
+use Illuminate\Console\Command;
+
 final class CachePlugins extends Command
 {
     /** @var string */

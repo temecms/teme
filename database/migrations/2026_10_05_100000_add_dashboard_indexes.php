@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * One index per dashboard panel, so each panel is an index range scan with a
+ * LIMIT, whatever the size of the site (study P §3, I-161).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-/**
- * One index per dashboard panel, so each panel is an index range scan with a
- * LIMIT, whatever the size of the site (study P §3, I-161).
- */
 return new class extends Migration
 {
     public function up(): void

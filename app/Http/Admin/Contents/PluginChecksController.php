@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The plugins' checks on one revision of an item, for the editor's
+ * Checks (docs/guides/developers/plugins/seo.md), for whoever may edit the
+ * item. Read only; the query decides who may ask.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -9,11 +19,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * The plugins' checks on one revision of an item, for the editor's
- * Checks (docs/guides/developers/plugins/seo.md), for whoever may edit the
- * item. Read only; the query decides who may ask.
- */
 final class PluginChecksController extends Controller
 {
     public function __invoke(Request $request, string $content, PluginChecks $checks): JsonResponse

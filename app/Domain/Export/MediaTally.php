@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * The media originals an export copied, their bytes, and the IDs of those it
+ * couldn't read or whose file has changed since upload, for the manifest.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
 
-/**
- * The media originals an export copied, their bytes, and the IDs of those it
- * couldn't read or whose file has changed since upload, for the manifest.
- */
 final class MediaTally
 {
     public int $files = 0;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Says when the site represents a person who no longer has an account
+ * (I-878): search engines are then told nobody in particular publishes
+ * it, until someone else is chosen. It goes when the choice is made again.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -12,11 +22,6 @@ use App\Domain\StructuredData\WhoPublishes;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Says when the site represents a person who no longer has an account
- * (I-878): search engines are then told nobody in particular publishes
- * it, until someone else is chosen. It goes when the choice is made again.
- */
 final readonly class RepresentedPersonGone implements StatusCheck
 {
     public function __construct(private SettingsReader $settings) {}
@@ -26,6 +31,9 @@ final readonly class RepresentedPersonGone implements StatusCheck
         return SearchAndSocial::ABILITY;
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Search and social');

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A place to keep backups as a person describes it, before it exists (I-360):
+ * a folder on this server, S3-compatible storage, or an SFTP server, its
+ * location never a secret and its credentials hidden. problems() says in
+ * words what can't be used.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
@@ -12,12 +23,6 @@ use InvalidArgumentException;
 use LogicException;
 use SensitiveParameter;
 
-/**
- * A place to keep backups as a person describes it, before it exists (I-360):
- * a folder on this server, S3-compatible storage, or an SFTP server, its
- * location never a secret and its credentials hidden. problems() says in
- * words what can't be used.
- */
 final class NewPlace
 {
     /** A host name or an IPv4 or IPv6 address: nothing that could end a line of ssh_config or start an option. */

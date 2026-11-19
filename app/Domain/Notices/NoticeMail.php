@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plain message of a declared kind (Notices::send()), queued: its subject,
+ * lines, quote and action drawn into the one layout when it is sent. Everything
+ * written by someone else goes through MailText.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Notices;
@@ -10,11 +20,6 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Teme\Contracts\Notices\NoticeMessage;
 
-/**
- * A plain message of a declared kind (Notices::send()), queued: its subject,
- * lines, quote and action drawn into the one layout when it is sent. Everything
- * written by someone else goes through MailText.
- */
 final class NoticeMail extends Notification implements ShouldQueue
 {
     use Queueable, SentAsNotice;

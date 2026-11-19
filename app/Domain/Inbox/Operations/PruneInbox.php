@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Deletes one chunk of inbox items that arrived before a moment, read or not,
+ * as the operator (I-221: kept 90 days).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox\Operations;
@@ -12,10 +21,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes one chunk of inbox items that arrived before a moment, read or not,
- * as the operator (I-221: kept 90 days).
- */
 final class PruneInbox extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

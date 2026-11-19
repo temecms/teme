@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where no plugin starts, so a plugin that breaks Teme can always be
+ * disabled (study C Decision 3): signing in and confirming a password, the
+ * Plugins page, Tools › Updates, the health check, and the console commands
+ * that build, migrate, describe or take down Teme. A plugin can't opt out.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -11,12 +22,6 @@ use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputOption;
 use Throwable;
 
-/**
- * Where no plugin starts, so a plugin that breaks Teme can always be
- * disabled (study C Decision 3): signing in and confirming a password, the
- * Plugins page, Tools › Updates, the health check, and the console commands
- * that build, migrate, describe or take down Teme. A plugin can't opt out.
- */
 final readonly class SafeMode
 {
     /** Request paths, as Request::is() reads them. */

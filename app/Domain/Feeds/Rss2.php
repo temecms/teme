@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Feeds;
-
 /**
  * A feed as RSS 2.0 (I-299): the channel and its items, with the content,
  * dc, atom and media namespaces, written element by element so every value
  * passes through Xml. The elements and their order are WordPress's, less
  * what Teme drops and plus the featured image's media:content.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Feeds;
+
 final class Rss2 implements FeedFormat
 {
     public const string NAME = 'rss2';

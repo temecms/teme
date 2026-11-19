@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What became of each object a catch-up finds WordPress deleted since
+ * (I-345): whether its Teme object is still here as a person would want it
+ * listed, and the words that say so.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Finish;
@@ -10,11 +20,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * What became of each object a catch-up finds WordPress deleted since
- * (I-345): whether its Teme object is still here as a person would want it
- * listed, and the words that say so.
- */
 final readonly class GoneObjects
 {
     /** Characters of a title or name in the words. */

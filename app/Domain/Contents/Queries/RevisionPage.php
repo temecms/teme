@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * One page of an article's history, newest first, and the cursor for the
+ * page of older revisions after it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
 
-/**
- * One page of an article's history, newest first, and the cursor for the
- * page of older revisions after it.
- */
 final readonly class RevisionPage
 {
     /**

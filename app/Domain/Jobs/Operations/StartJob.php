@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records a piece of background work as it's queued, waiting for its first
+ * step, so people can follow it (I-104). The part that starts the work calls
+ * it, as the person starting it or the operator, having authorized the work.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Jobs\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records a piece of background work as it's queued, waiting for its first
- * step, so people can follow it (I-104). The part that starts the work calls
- * it, as the person starting it or the operator, having authorized the work.
- */
 final class StartJob extends BaseOperation
 {
     public function __construct(private Actors $actors, private JobKinds $kinds) {}

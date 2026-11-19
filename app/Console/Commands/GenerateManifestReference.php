@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `teme:docs:manifest`: writes `docs/reference/plugin-manifest.md` and
+ * `theme-manifest.md` from the JSON schemas in teme/contracts.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -8,10 +17,6 @@ use Illuminate\Console\Command;
 use JsonException;
 use RuntimeException;
 
-/**
- * `teme:docs:manifest`: writes `docs/reference/plugin-manifest.md` and
- * `theme-manifest.md` from the JSON schemas in teme/contracts.
- */
 final class GenerateManifestReference extends Command
 {
     /** @var string */

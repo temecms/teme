@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What ImportAddresses needs: the patterns and bases to set, the author base, the home page and each type's archive page's address, each kept as it is when null, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ImportAddresses needs: the patterns and bases to set, the author base, the home page and each type's archive page's address, each kept as it is when null, and who is asking.
- */
 final readonly class ImportAddressesInput implements OperationInput
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One enabled plugin as the search sockets see it: its Composer name, code
+ * and label in the admin's language, its manifest, what was agreed, and the
+ * plugin itself while it runs in this process.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seo;
@@ -8,11 +18,6 @@ use App\Domain\Plugins\Manifest;
 use App\Domain\Plugins\Models\PluginRecord;
 use Teme\Contracts\Plugins\Plugin;
 
-/**
- * One enabled plugin as the search sockets see it: its Composer name, code
- * and label in the admin's language, its manifest, what was agreed, and the
- * plugin itself while it runs in this process.
- */
 final readonly class SeoPlugin
 {
     /**

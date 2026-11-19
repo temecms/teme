@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Site › Themes: the installed themes, a theme's preview and activation, the
+ * regions each places, and each chosen theme's settings page with its menu
+ * places, every change drafted and published through the design's
+ * Operations. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -33,12 +44,6 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Teme\Contracts\Settings\Setting;
 
-/**
- * Site › Themes: the installed themes, a theme's preview and activation, the
- * regions each places, and each chosen theme's settings page with its menu
- * places, every change drafted and published through the design's
- * Operations. It changes nothing itself.
- */
 final class ThemesController extends Controller
 {
     public function index(Request $request, DesignScreen $screen, RegionScreens $regions, ThemeRegistry $themes, ExtensionsScreen $extensions): Response
@@ -60,6 +65,8 @@ final class ThemesController extends Controller
      * One theme's own settings and menu places. Only the theme the design names
      * has them to change (the one previewed, else the one in use), so any other
      * installed theme's address leads back to the list.
+     *
+     * @since 0.8.0-alpha.1
      */
     public function settings(string $code, DesignScreen $screen, ThemeRegistry $themes): Response|RedirectResponse
     {

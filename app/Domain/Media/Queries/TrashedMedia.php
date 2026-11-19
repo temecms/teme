@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Media in the trash, for the daily purge.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -7,9 +15,6 @@ namespace App\Domain\Media\Queries;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Media in the trash, for the daily purge.
- */
 final class TrashedMedia
 {
     /**

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What `SaveDraft` needs: which content, the new title, document and fields,
+ * the revision the editor started from, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `SaveDraft` needs: which content, the new title, document and fields,
- * the revision the editor started from, and who is asking.
- */
 final readonly class SaveDraftInput implements OperationInput
 {
     /**

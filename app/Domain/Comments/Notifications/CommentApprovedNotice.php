@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The author's email when a comment on their item is approved (E6, I-690):
+ * the comment's words, a link to read it on the site, and, for an author who
+ * looks after the item, a link to it in Comments; never an IP address, a
+ * browser or an email address. Sent at once by SendCommentApprovedEmail,
+ * which is itself the queued job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Notifications;
@@ -11,13 +23,6 @@ use App\Domain\Notices\SentAsNotice;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-/**
- * The author's email when a comment on their item is approved (E6, I-690):
- * the comment's words, a link to read it on the site, and, for an author who
- * looks after the item, a link to it in Comments; never an IP address, a
- * browser or an email address. Sent at once by SendCommentApprovedEmail,
- * which is itself the queued job.
- */
 final class CommentApprovedNotice extends Notification
 {
     use SentAsNotice;

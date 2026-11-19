@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * An image sent with a request, as bytes, never a link (I-319): a draft's
+ * media is private, so the provider gets a copy. Raster only, 4 MB at most.
+ * Made in the job that asks, never queued: the job carries IDs.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use InvalidArgumentException;
 
-/**
- * An image sent with a request, as bytes, never a link (I-319): a draft's
- * media is private, so the provider gets a copy. Raster only, 4 MB at most.
- * Made in the job that asks, never queued: the job carries IDs.
- */
 final readonly class AiImage
 {
     public const int MAX_BYTES = 4 * 1024 * 1024;

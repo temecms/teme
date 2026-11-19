@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:bylines:set — sets the people an item credits, by their address
+ * slugs, in order, as the operator, through SetBylines; --owner credits its
+ * owner again (I-3366). Nothing is written until every slug is found.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -13,11 +23,6 @@ use App\Domain\Support\Security\OperatorElevation;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * teme:bylines:set — sets the people an item credits, by their address
- * slugs, in order, as the operator, through SetBylines; --owner credits its
- * owner again (I-3366). Nothing is written until every slug is found.
- */
 final class SetBylinesCommand extends Command
 {
     /** @var string */

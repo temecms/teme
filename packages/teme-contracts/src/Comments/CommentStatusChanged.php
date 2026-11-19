@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A comment arrived, or its status changed: approved, held, marked as spam or
+ * trashed by a moderator, or posted as a reply from the admin.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Comments;

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Sets the people an item credits, in order (I-3366): accounts and people
+ * with no account, at most twenty; none, and the item credits its owner.
+ * Bylines live on the item, never in a revision, so they show at once. Its
+ * locks: the tree, the credited accounts, the item, then the people named.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations;
@@ -27,12 +38,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Sets the people an item credits, in order (I-3366): accounts and people
- * with no account, at most twenty; none, and the item credits its owner.
- * Bylines live on the item, never in a revision, so they show at once. Its
- * locks: the tree, the credited accounts, the item, then the people named.
- */
 final class SetBylines extends BaseOperation
 {
     use FollowsTree;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The checks CreateTerm and UpdateTerm share: who may manage the taxonomy's
+ * terms, and what a valid name, slug and parent are. The taxonomy registry
+ * decides which taxonomies exist and which of them nest (I-414).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations\Concerns;
@@ -15,11 +25,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * The checks CreateTerm and UpdateTerm share: who may manage the taxonomy's
- * terms, and what a valid name, slug and parent are. The taxonomy registry
- * decides which taxonomies exist and which of them nest (I-414).
- */
 trait ValidatesTerms
 {
     /**

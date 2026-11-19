@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * The page store for several servers (I-265): pages in Valkey, each a hash
+ * of its JSON line and its HTML, found through a set per tag as MilliCache
+ * keeps them (docs/studies/page-cache.md §3.8), under a generation that
+ * flush() moves on, never KEYS. Every command is one of the fixed Lua
+ * scripts below, run whole in one round trip; a page's values travel as a
+ * script's arguments, never its text, and the client passes them as
+ * given, never serialized (rule 4).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cache;
@@ -12,15 +26,6 @@ use InvalidArgumentException;
 use LogicException;
 use Throwable;
 
-/**
- * The page store for several servers (I-265): pages in Valkey, each a hash
- * of its JSON line and its HTML, found through a set per tag as MilliCache
- * keeps them (docs/studies/page-cache.md §3.8), under a generation that
- * flush() moves on, never KEYS. Every command is one of the fixed Lua
- * scripts below, run whole in one round trip; a page's values travel as a
- * script's arguments, never its text, and the client passes them as
- * given, never serialized (rule 4).
- */
 final readonly class RedisPageStore implements PageStore
 {
     /** Members of a tag's set, or expired pages, one script takes: a few milliseconds of Valkey's time. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The people who could have a fediverse account of their own: everyone an
+ * item can credit, by the name and author slug their author page shows,
+ * whether or not they have an account.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Fediverse\Queries;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The people who could have a fediverse account of their own: everyone an
- * item can credit, by the name and author slug their author page shows,
- * whether or not they have an account.
- */
 final class FediverseAuthors
 {
     /**

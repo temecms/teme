@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One request as laravel/ai asks it (I-311): the system message as its
+ * instructions, any earlier user messages, the answer's token limit and the
+ * options that set a model's reasoning. Made for one request and dropped: it
+ * remembers nothing and has no tools.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Providers;
@@ -13,11 +24,6 @@ use Laravel\Ai\Messages\UserMessage;
 use Laravel\Ai\Promptable;
 
 /**
- * One request as laravel/ai asks it (I-311): the system message as its
- * instructions, any earlier user messages, the answer's token limit and the
- * options that set a model's reasoning. Made for one request and dropped: it
- * remembers nothing and has no tools.
- *
  * @phpstan-consistent-constructor
  */
 class RequestAgent implements Agent, Conversational, HasProviderOptions

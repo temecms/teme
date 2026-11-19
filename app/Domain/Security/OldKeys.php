@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The application keys a value may have been encrypted under before this
+ * server's (I-359): a restored backup's key and its previous keys, or the
+ * key an operator is moving away from. Held in memory only: it hides its
+ * keys when dumped and refuses to be serialized, so none reaches a log, a
+ * session or a queue, and no refusal repeats what it was given.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Security;
@@ -9,13 +21,6 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use SensitiveParameter;
 
-/**
- * The application keys a value may have been encrypted under before this
- * server's (I-359): a restored backup's key and its previous keys, or the
- * key an operator is moving away from. Held in memory only: it hides its
- * keys when dumped and refuses to be serialized, so none reaches a log, a
- * session or a queue, and no refusal repeats what it was given.
- */
 final readonly class OldKeys
 {
     public const string NOT_A_KEY = 'That isn’t an application key. Give it as the old server’s environment had it: base64: and the characters after it.';

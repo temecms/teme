@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The keys a reader holds to items protected by a password (I-1700), read
+ * from their cookie, never a session, which public requests don't have.
+ * Each key opens one item while its password stays as it is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -9,11 +19,6 @@ use App\Domain\Contents\ReaderPasswords;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Cookie;
 
-/**
- * The keys a reader holds to items protected by a password (I-1700), read
- * from their cookie, never a session, which public requests don't have.
- * Each key opens one item while its password stays as it is.
- */
 final readonly class ReaderKeys
 {
     /** The cookie's name. */

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai;
-
 /**
  * Why a request failed, in five types (I-314), and the one plain sentence
  * each that people read, wherever a failure is shown. Never the service's
  * own words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai;
+
 enum AiFailureType: string
 {
     case Unavailable = 'unavailable';

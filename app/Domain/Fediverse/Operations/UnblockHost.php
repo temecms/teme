@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Takes a server off the blocked list. For whoever holds
+ * settings.fediverse.manage, or the operator; returns whether it was there.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Operations;
@@ -10,10 +19,6 @@ use App\Domain\Fediverse\Operations\Input\UnblockHostInput;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Takes a server off the blocked list. For whoever holds
- * settings.fediverse.manage, or the operator; returns whether it was there.
- */
 final class UnblockHost extends BaseOperation
 {
     use AuthorizesFediverseWork;

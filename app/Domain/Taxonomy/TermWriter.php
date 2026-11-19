@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Writes a new term, as CreateTerm and Translate's missing terms (I-3360)
+ * both make one: its slug unique within its taxonomy and language, its
+ * address projected. Call it inside an Operation's perform(); the caller
+ * purges the keys it answers after commit.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy;
@@ -10,12 +21,6 @@ use App\Domain\Contents\Slugs;
 use App\Domain\Taxonomy\Models\Term;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * Writes a new term, as CreateTerm and Translate's missing terms (I-3360)
- * both make one: its slug unique within its taxonomy and language, its
- * address projected. Call it inside an Operation's perform(); the caller
- * purges the keys it answers after commit.
- */
 final class TermWriter
 {
     /**

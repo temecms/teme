@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Saves ads.txt on Settings › Site code: the text, or a permanent redirect
+ * to an https address on another host. Whoever holds site-code.manage, against
+ * the version the form was opened on.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Operations;
@@ -19,11 +29,6 @@ use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Saves ads.txt on Settings › Site code: the text, or a permanent redirect
- * to an https address on another host. Whoever holds site-code.manage, against
- * the version the form was opened on.
- */
 final class UpdateAdsTxt extends BaseOperation
 {
     /** An https address with a host, then anything without spaces. */

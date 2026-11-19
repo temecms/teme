@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One choice from the field's options, stored as the option's value.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields\Types;
@@ -8,9 +16,6 @@ use App\Domain\Fields\Field;
 use App\Domain\Fields\FieldType;
 use Illuminate\Validation\Rule;
 
-/**
- * One choice from the field's options, stored as the option's value.
- */
 final class SelectField implements FieldType
 {
     public function name(): string

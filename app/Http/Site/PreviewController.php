@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Shows one revision of one article to someone with no account, through a
+ * preview link, exactly as the published page would look: the same theme,
+ * template and document shell, with a bar above it saying what it is. It
+ * asks the domain for the link, records the view, and renders through
+ * PublicPage. A bad, expired or revoked token is a 404, never a 403, which
+ * would confirm the link once existed. A preview is never indexed or cached.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -21,14 +34,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\View;
 
-/**
- * Shows one revision of one article to someone with no account, through a
- * preview link, exactly as the published page would look: the same theme,
- * template and document shell, with a bar above it saying what it is. It
- * asks the domain for the link, records the view, and renders through
- * PublicPage. A bad, expired or revoked token is a 404, never a 403, which
- * would confirm the link once existed. A preview is never indexed or cached.
- */
 final class PreviewController extends Controller
 {
     public function show(Request $request, string $token, PreviewLinks $links, PreviewLinkViews $views, ArticleViews $articles, SiteLanguage $language): Response

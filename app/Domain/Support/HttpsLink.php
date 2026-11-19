@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * The one check a link read from a package's file passes before it reaches
+ * an href: an https address of at most 2000 characters, or nothing.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support;
 
-/**
- * The one check a link read from a package's file passes before it reaches
- * an href: an https address of at most 2000 characters, or nothing.
- */
 final class HttpsLink
 {
     public const int MOST = 2000;

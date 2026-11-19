@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `teme:user:reset-link`: prints a one-time password reset link for any
+ * account. It acts as the operator, for when someone is locked out and email
+ * is not working.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -11,11 +21,6 @@ use App\Domain\Users\Operations\IssuePasswordResetLink;
 use Illuminate\Console\Command;
 use Illuminate\Validation\ValidationException;
 
-/**
- * `teme:user:reset-link`: prints a one-time password reset link for any
- * account. It acts as the operator, for when someone is locked out and email
- * is not working.
- */
 final class IssueResetLink extends Command
 {
     /** @var string */

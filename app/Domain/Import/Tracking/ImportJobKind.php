@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An import as a kind of tracked job. Retrying carries a stopped run on as
+ * whoever asked, which asks for their password (I-1707); when that is
+ * refused the job goes back to failed and the refusal goes on to them, in
+ * words. Cancelling stops the run as whoever asked, when they may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Tracking;
@@ -22,12 +33,6 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
-/**
- * An import as a kind of tracked job. Retrying carries a stopped run on as
- * whoever asked, which asks for their password (I-1707); when that is
- * refused the job goes back to failed and the refusal goes on to them, in
- * words. Cancelling stops the run as whoever asked, when they may.
- */
 final readonly class ImportJobKind implements JobKind
 {
     /** The kind's key, which is also the run type its jobs carry. */

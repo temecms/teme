@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Saves a settings group's "In other languages" table
+ * (docs/proposals/multilingual-screens.md, 6): TranslateSettings once per
+ * language, each on the version the last left, all in one transaction, so
+ * one language refused keeps none of the others.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations;
@@ -14,12 +25,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Saves a settings group's "In other languages" table
- * (docs/proposals/multilingual-screens.md, 6): TranslateSettings once per
- * language, each on the version the last left, all in one transaction, so
- * one language refused keeps none of the others.
- */
 final class SaveSettingsWords extends BaseOperation implements RequiresElevation
 {
     public function __construct(

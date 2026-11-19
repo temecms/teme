@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What one entry of site code needs from the public site's policy
+ * (I-3375): the hash of each inline script and each on* handler, as a
+ * browser hashes them once it has parsed the code, and the https origins
+ * its tags load from, by directive, with those its administrator declared.
+ * Worked out from the code as saved, never from a drawn page.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode;
@@ -8,13 +20,6 @@ use App\Domain\Plugins\HostPattern;
 use App\Domain\Site\Policy\PagePolicy;
 use Dom\HTMLDocument;
 
-/**
- * What one entry of site code needs from the public site's policy
- * (I-3375): the hash of each inline script and each on* handler, as a
- * browser hashes them once it has parsed the code, and the https origins
- * its tags load from, by directive, with those its administrator declared.
- * Worked out from the code as saved, never from a drawn page.
- */
 final class SiteCodePolicy
 {
     /** Each tag that loads from an address, the attribute that holds it, and the directive it falls under. */

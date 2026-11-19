@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\StructuredData;
-
 /**
  * The kinds of publisher a site may say it is (I-876): nobody in
  * particular, an organization of one of six kinds, a local business of one
  * of five, or a person; each but nobody stored as its schema.org type's
  * name, which the publisher's node takes as its @type.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\StructuredData;
+
 final class PublisherKinds
 {
     /** Nobody in particular: the site names no publisher. */

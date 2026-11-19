@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The test case a plugin's or theme's tests run on: the Teme checkout this
+ * kit sits in, booted afresh for each test with a fresh database, nothing
+ * sent out of the machine unless a test fakes it, and every method of
+ * InteractsWithTeme. A test file starts with
+ * `uses(Teme\Testing\TemeTestCase::class);`.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Testing;
@@ -11,13 +23,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase;
 use Illuminate\Support\Facades\Http;
 
-/**
- * The test case a plugin's or theme's tests run on: the Teme checkout this
- * kit sits in, booted afresh for each test with a fresh database, nothing
- * sent out of the machine unless a test fakes it, and every method of
- * InteractsWithTeme. A test file starts with
- * `uses(Teme\Testing\TemeTestCase::class);`.
- */
 abstract class TemeTestCase extends TestCase
 {
     use InteractsWithTeme;

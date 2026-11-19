@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Migration: adds migrations to plugins.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;

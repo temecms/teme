@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fields;
-
-use App\Domain\Cards\CardReference;
-
 /**
  * One kind of field value, text, a number, an image, and everything the
  * system asks of it: how it is checked, defaulted and stored, how the editor
  * draws it, how a template and structured data read it, what it points at,
  * the words it adds to search and how an index sorts it. Internal until the
  * plugin API; docs/studies/content-and-fields.md §5.1.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fields;
+
+use App\Domain\Cards\CardReference;
+
 interface FieldType
 {
     /**

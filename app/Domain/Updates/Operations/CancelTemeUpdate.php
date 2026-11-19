@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Cancels an update request that the updater hasn't begun (I-3326): a person who holds updates.manage, or
+ * the operator. No password is asked: it only stops what hasn't started, and reveals nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Operations;
@@ -13,10 +22,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Cancels an update request that the updater hasn't begun (I-3326): a person who holds updates.manage, or
- * the operator. No password is asked: it only stops what hasn't started, and reveals nothing.
- */
 final class CancelTemeUpdate extends BaseOperation
 {
     use AuthorizesUpdateRequests;

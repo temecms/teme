@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * The installer's steps for one request, in the order it takes them
+ * (docs/plans/plugin-installer.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions;
 
-/**
- * The installer's steps for one request, in the order it takes them
- * (docs/plans/plugin-installer.md).
- */
 enum RequestStep: string
 {
     case Checking = 'checking';

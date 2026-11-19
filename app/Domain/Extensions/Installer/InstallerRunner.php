@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Carries out extension requests one step a pass, as the operator: the row
+ * is the state, so a pass reads it, takes one step and records it. Also
+ * checks, when the installer starts, that the current release still fits
+ * the image (docs/plans/plugin-installer.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
@@ -34,12 +45,6 @@ use RuntimeException;
 use SplFileInfo;
 use Throwable;
 
-/**
- * Carries out extension requests one step a pass, as the operator: the row
- * is the state, so a pass reads it, takes one step and records it. Also
- * checks, when the installer starts, that the current release still fits
- * the image (docs/plans/plugin-installer.md).
- */
 final class InstallerRunner
 {
     /** The least free space a release may be staged with, in bytes. */

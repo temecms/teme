@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Whether this server can restore a backup, by its manifest (I-2405): Teme,
+ * the migrations, PostgreSQL, the theme and the packages, each named when
+ * it can't. Reads this server's facts only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Restore;
@@ -9,11 +19,6 @@ use App\Domain\Themes\ThemeRegistry;
 use App\Domain\Updates\TemeVersion;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Whether this server can restore a backup, by its manifest (I-2405): Teme,
- * the migrations, PostgreSQL, the theme and the packages, each named when
- * it can't. Reads this server's facts only.
- */
 final class RestoreCompatibility
 {
     /** Packages named in one problem; the rest are counted. */

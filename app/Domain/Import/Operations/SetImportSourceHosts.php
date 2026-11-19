@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Sets the other old addresses of an import source: staging hosts and
+ * former domains that convert like the home host. A person confirms their
+ * password first; the operator doesn't. Refused while a run is running.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Sets the other old addresses of an import source: staging hosts and
- * former domains that convert like the home host. A person confirms their
- * password first; the operator doesn't. Refused while a run is running.
- */
 final class SetImportSourceHosts extends BaseOperation implements RequiresElevation
 {
     use AuthorizesImports;

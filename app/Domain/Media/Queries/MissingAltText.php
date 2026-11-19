@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Which images a published item shows without alt text: not marked
+ * decorative, no override for this use, and no default on the item
+ * (docs/architecture/media.md, "Alt text").
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
@@ -7,11 +17,6 @@ namespace App\Domain\Media\Queries;
 use App\Domain\Media\MediaProjection;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Which images a published item shows without alt text: not marked
- * decorative, no override for this use, and no default on the item
- * (docs/architecture/media.md, "Alt text").
- */
 final class MissingAltText
 {
     /**

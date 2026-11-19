@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * An item's body sent as HTML, converted to the Tiptap document Teme stores
+ * (rule 7) by the import's converter, run with no import: one classic
+ * chunk, an old site no address belongs to and no media known, so links
+ * and images are kept as given (docs/proposals/management-api.md, P1).
+ * CreateDraft's DocumentNormaliser then stores a link to this site by ID (rule 9).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
@@ -9,13 +21,6 @@ use App\Domain\Import\Convert\ConversionSite;
 use App\Domain\Import\Convert\Media\KnownMedia;
 use App\Domain\Import\Phases\ImportMessage;
 
-/**
- * An item's body sent as HTML, converted to the Tiptap document Teme stores
- * (rule 7) by the import's converter, run with no import: one classic
- * chunk, an old site no address belongs to and no media known, so links
- * and images are kept as given (docs/proposals/management-api.md, P1).
- * CreateDraft's DocumentNormaliser then stores a link to this site by ID (rule 9).
- */
 final readonly class HtmlBodies
 {
     /** An address no link can be on, so no link is read as the old site's own. */

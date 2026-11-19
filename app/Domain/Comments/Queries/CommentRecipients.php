@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Who a comment's emails go to (1.8d's D7, D8), read when the email is sent,
+ * never when it was queued: whoever looks after the item's comments for the
+ * moderators' email, the item's author for theirs. Only verified accounts
+ * that aren't suspended, never the people the caller leaves out, and never
+ * someone who turned the email off.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Queries;
@@ -12,13 +24,6 @@ use App\Domain\Types\TypePermissions;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
-/**
- * Who a comment's emails go to (1.8d's D7, D8), read when the email is sent,
- * never when it was queued: whoever looks after the item's comments for the
- * moderators' email, the item's author for theirs. Only verified accounts
- * that aren't suspended, never the people the caller leaves out, and never
- * someone who turned the email off.
- */
 final class CommentRecipients
 {
     /**

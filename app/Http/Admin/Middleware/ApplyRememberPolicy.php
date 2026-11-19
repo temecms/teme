@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Remember-me lasts security.session_remember_days — 14, not Laravel's 400 —
+ * and 0 removes it. Runs on every admin request, so the two-factor challenge,
+ * which completes the sign-in on a later request, gets the same duration.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Middleware;
@@ -11,11 +21,6 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Remember-me lasts security.session_remember_days — 14, not Laravel's 400 —
- * and 0 removes it. Runs on every admin request, so the two-factor challenge,
- * which completes the sign-in on a later request, gets the same duration.
- */
 final class ApplyRememberPolicy
 {
     public function __construct(private readonly SettingsReader $settings) {}

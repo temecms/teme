@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * A row of the shortcode mapping registry (I-349): the WordPress
+ * shortcodes it converts, and the Tiptap nodes each becomes. Core's rows
+ * are listed in ShortcodeMappings::CORE; a plugin tags its own under
+ * ShortcodeMappings::TAG.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Shortcodes;
 
 use App\Domain\Import\Convert\BlockContext;
 
-/**
- * A row of the shortcode mapping registry (I-349): the WordPress
- * shortcodes it converts, and the Tiptap nodes each becomes. Core's rows
- * are listed in ShortcodeMappings::CORE; a plugin tags its own under
- * ShortcodeMappings::TAG.
- */
 interface ShortcodeMapping
 {
     /**

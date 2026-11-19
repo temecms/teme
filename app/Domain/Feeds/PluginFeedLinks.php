@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The links plugins add to every feed (docs/plans/plugin-sockets-1.md, A3):
+ * values their manifests declare under `contributes.feedLinks`, read for
+ * the started plugins whose enabled row grants feeds.links, in the order
+ * they started. Core writes the XML; a plugin runs no code here. A link
+ * that isn't an absolute https address is skipped, each rel and href once,
+ * and a plugin whose links can't be read is recorded and skipped.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -13,14 +26,6 @@ use Teme\Contracts\Plugins\Capability;
 use Teme\Contracts\Settings\SettingsReader;
 use Throwable;
 
-/**
- * The links plugins add to every feed (docs/plans/plugin-sockets-1.md, A3):
- * values their manifests declare under `contributes.feedLinks`, read for
- * the started plugins whose enabled row grants feeds.links, in the order
- * they started. Core writes the XML; a plugin runs no code here. A link
- * that isn't an absolute https address is skipped, each rel and href once,
- * and a plugin whose links can't be read is recorded and skipped.
- */
 final readonly class PluginFeedLinks
 {
     /** The most links one urls setting gives. */

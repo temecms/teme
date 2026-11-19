@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One of a plugin's sitemaps: where each of its pages after the first starts,
+ * and the entries of one page.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Sitemaps;

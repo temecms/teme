@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The import map read (I-332): an object's row, the Teme IDs objects
+ * became, the hash of a source item, and whether an object is on a run's
+ * work list, and how many earlier failures a run left untried.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
@@ -9,11 +19,6 @@ use App\Domain\Import\ImportStatus;
 use App\Domain\Import\Models\ImportMapEntry;
 use App\Domain\Import\Phases\SourceRef;
 
-/**
- * The import map read (I-332): an object's row, the Teme IDs objects
- * became, the hash of a source item, and whether an object is on a run's
- * work list, and how many earlier failures a run left untried.
- */
 final readonly class ImportMap
 {
     /**

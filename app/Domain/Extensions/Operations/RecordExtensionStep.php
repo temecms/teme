@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records where one step of an open extension request stands: its state
+ * and a sentence, the releases it moves between, and what it waits for the
+ * administrator to agree to. The operator only: the installer.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -16,11 +26,6 @@ use Illuminate\Validation\ValidationException;
 use stdClass;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records where one step of an open extension request stands: its state
- * and a sentence, the releases it moves between, and what it waits for the
- * administrator to agree to. The operator only: the installer.
- */
 final class RecordExtensionStep extends BaseOperation
 {
     /** The states a step is recorded in. */

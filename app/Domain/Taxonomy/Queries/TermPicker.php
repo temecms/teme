@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Finds categories or tags by the start of their name, for the pickers in
+ * quick edit and, later, the editor. Never returns more than 20, and names one by
+ * its ID for a list's filter.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * Finds categories or tags by the start of their name, for the pickers in
- * quick edit and, later, the editor. Never returns more than 20, and names one by
- * its ID for a list's filter.
- */
 final class TermPicker
 {
     private const int LIMIT = 20;

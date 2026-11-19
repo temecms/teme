@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What ApproveReview and ReturnForChanges share: who may decide — whoever
+ * may publish the article, as the policy asks its type — that the review is
+ * still pending, and the locks, the article first and then the review.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -12,11 +22,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
-/**
- * What ApproveReview and ReturnForChanges share: who may decide — whoever
- * may publish the article, as the policy asks its type — that the review is
- * still pending, and the locks, the article first and then the review.
- */
 final class ReviewDecisions
 {
     public static function authorize(ReviewDecisionInput $input): Content

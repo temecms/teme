@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The editor's checks ask here whether the articles a link was just added to
+ * are published, for the warning about links to unpublished articles. It
+ * reads only, and shows anyone who may write nothing the link picker and the
+ * lists do not already show them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -9,12 +20,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * The editor's checks ask here whether the articles a link was just added to
- * are published, for the warning about links to unpublished articles. It
- * reads only, and shows anyone who may write nothing the link picker and the
- * lists do not already show them.
- */
 final class LinkedContentController extends Controller
 {
     public function __invoke(Request $request): JsonResponse

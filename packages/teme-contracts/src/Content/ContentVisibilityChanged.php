@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who may read an item changed: it was made private, protected by a password,
+ * or public again.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

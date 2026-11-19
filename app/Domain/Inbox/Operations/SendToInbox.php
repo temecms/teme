@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Puts a result in a person's inbox, unread (I-221). Only code sends: the
+ * part whose work it reports, as a person or as the operator; no route does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox\Operations;
@@ -15,10 +24,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Puts a result in a person's inbox, unread (I-221). Only code sends: the
- * part whose work it reports, as a person or as the operator; no route does.
- */
 final class SendToInbox extends BaseOperation
 {
     /** A kind's or a job kind's key: lower-case words, hyphens inside, dots between. */

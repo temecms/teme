@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * What a document points at: the media its cards use, the articles its cards
  * lead to, and whatever its links lead to by ID, read from the stored JSON.
  * The projections are built from this, so they can always be rebuilt from
  * revisions.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 final class References
 {
     /**

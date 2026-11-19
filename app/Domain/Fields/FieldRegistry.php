@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Every field content can carry: declared in code, and the site's own,
+ * read from the stored fields at first ask and again when they change
+ * (I-3296). It refuses a code field without documentation, a duplicate
+ * key, and — once every type is registered — two fields with one handle on
+ * the same type, so the generated reference is complete and stored values
+ * are never ambiguous.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields;
@@ -11,14 +24,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use InvalidArgumentException;
 use Throwable;
 
-/**
- * Every field content can carry: declared in code, and the site's own,
- * read from the stored fields at first ask and again when they change
- * (I-3296). It refuses a code field without documentation, a duplicate
- * key, and — once every type is registered — two fields with one handle on
- * the same type, so the generated reference is complete and stored values
- * are never ambiguous.
- */
 final class FieldRegistry
 {
     private const string ULID = '/^[0-9A-HJKMNP-TV-Z]{26}$/';

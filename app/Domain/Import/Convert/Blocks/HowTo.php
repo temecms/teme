@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Yoast's and Rank Math's how-to blocks as Teme's Steps card: the
+ * description as its summary, the block's days, hours and minutes as its
+ * total time, and each step's name, text and first image. A block whose
+ * steps hold what a card's text can't becomes headings and paragraphs
+ * instead, each step's name a level-3 heading, so nothing is lost; a block
+ * with no step found is read as any HTML.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -13,14 +26,6 @@ use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 use Dom\Element;
 
-/**
- * Yoast's and Rank Math's how-to blocks as Teme's Steps card: the
- * description as its summary, the block's days, hours and minutes as its
- * total time, and each step's name, text and first image. A block whose
- * steps hold what a card's text can't becomes headings and paragraphs
- * instead, each step's name a level-3 heading, so nothing is lost; a block
- * with no step found is read as any HTML.
- */
 final readonly class HowTo implements BlockMapping
 {
     /** For each block: its description's selector, its steps', and a step's name and text within one. */

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The site code every page draws: the entries that are on, by placement, in
+ * the order they were added, each with what it needs from the page's
+ * content security policy (I-3375), worked out once, read once and kept in
+ * the cache until a site code Operation forgets them after its commit. Plain
+ * arrays of text, so the cache table holds nothing I-261 doesn't allow.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode;
@@ -7,13 +19,6 @@ namespace App\Domain\SiteCode;
 use App\Domain\SiteCode\Models\SiteCodeEntry;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * The site code every page draws: the entries that are on, by placement, in
- * the order they were added, each with what it needs from the page's
- * content security policy (I-3375), worked out once, read once and kept in
- * the cache until a site code Operation forgets them after its commit. Plain
- * arrays of text, so the cache table holds nothing I-261 doesn't allow.
- */
 final class SiteCodeEntries
 {
     /** The second shape, with each entry's policy: a value cached in the first is never read. */

@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * Finds the open request of a kind for an address, so a run a killed
+ * process left behind is continued rather than recorded again, and reads a
+ * request as the console reports it. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Queries;
 
 use App\Domain\Privacy\Models\PrivacyRequest;
 
-/**
- * Finds the open request of a kind for an address, so a run a killed
- * process left behind is continued rather than recorded again, and reads a
- * request as the console reports it. It reads only.
- */
 final class OpenPrivacyRequest
 {
     /**

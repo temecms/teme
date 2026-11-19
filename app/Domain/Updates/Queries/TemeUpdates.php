@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The update requests (I-3326), read from teme_updates: the one that is open, one by its ID, and the one the screen shows.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates\Queries;
@@ -9,9 +17,6 @@ use App\Domain\Updates\Requests\UpdateStatus;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The update requests (I-3326), read from teme_updates: the one that is open, one by its ID, and the one the screen shows.
- */
 final readonly class TemeUpdates
 {
     /** Days a finished update stays at the top of Tools › Updates. */

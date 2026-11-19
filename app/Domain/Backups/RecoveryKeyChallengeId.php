@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups;
-
 /**
  * A short name for one recovery key challenge (I-2401): the key page sends
  * it back with the typed groups, so groups typed from one key are never
  * checked against a newer key's challenge from another tab.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups;
+
 final class RecoveryKeyChallengeId
 {
     /**

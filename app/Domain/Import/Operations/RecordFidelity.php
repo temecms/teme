@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records one imported post's comparison with WordPress's rendered page on
+ * its map row (I-337): the revision compared, the share of words lost, and
+ * its one message, or none. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -15,11 +25,6 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records one imported post's comparison with WordPress's rendered page on
- * its map row (I-337): the revision compared, the share of words lost, and
- * its one message, or none. Only an import's actor may call it.
- */
 final class RecordFidelity extends BaseOperation
 {
     use AuthorizesImports;

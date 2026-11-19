@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Marker for a typed, immutable input to an Operation.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Operations;

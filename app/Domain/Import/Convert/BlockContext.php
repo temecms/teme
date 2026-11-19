@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a block mapping may use while one item converts (I-335): the old
+ * site's addresses, the report, and the converter's readers for inner
+ * blocks, HTML, inline content and images. Made afresh for each item.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert;
@@ -25,11 +35,6 @@ use Dom\Node;
 use Dom\Text;
 use Illuminate\Support\Str;
 
-/**
- * What a block mapping may use while one item converts (I-335): the old
- * site's addresses, the report, and the converter's readers for inner
- * blocks, HTML, inline content and images. Made afresh for each item.
- */
 final class BlockContext
 {
     /** The longest alt an Image card keeps (ImageCard's rule). */

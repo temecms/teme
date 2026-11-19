@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Before anything is written (I-1706): each address of the old site's
+ * posts, pages, categories and tags that Teme already gives something this
+ * import didn't make, listed, and the run stopped when there is any. Read a
+ * page at a time from the companion's urls, fifty seconds a job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Addresses;
@@ -20,12 +31,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-/**
- * Before anything is written (I-1706): each address of the old site's
- * posts, pages, categories and tags that Teme already gives something this
- * import didn't make, listed, and the run stopped when there is any. Read a
- * page at a time from the companion's urls, fifty seconds a job.
- */
 final readonly class AddressClashStep implements StepPhase
 {
     /** Seconds a job reads for before it hands on to the next. */

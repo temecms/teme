@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's own area (docs/plans/plugin-sockets-2.md, A6): its pages, each
+ * block's data deferred so one slow block never holds the page, a record's
+ * form, and the writes, each through its Operation as the signed-in person.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -26,11 +36,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * A plugin's own area (docs/plans/plugin-sockets-2.md, A6): its pages, each
- * block's data deferred so one slow block never holds the page, a record's
- * form, and the writes, each through its Operation as the signed-in person.
- */
 final class PluginAreaController extends Controller
 {
     public function show(Request $request, string $code, PluginAreaScreen $screen, ?string $page = null): Response

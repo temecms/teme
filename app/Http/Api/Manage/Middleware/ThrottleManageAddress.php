@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The management API's limit per address, asked before a key is read:
+ * an address that has failed to sign in 30 times in a minute is answered
+ * rate_limited until the minute ends. AuthenticateApiKey counts each
+ * failure; a key that signs in is limited per key instead.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Api\Manage\Middleware;
@@ -10,12 +21,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * The management API's limit per address, asked before a key is read:
- * an address that has failed to sign in 30 times in a minute is answered
- * rate_limited until the minute ends. AuthenticateApiKey counts each
- * failure; a key that signs in is limited per key instead.
- */
 final class ThrottleManageAddress
 {
     /** Failed sign-ins a minute from one address. */

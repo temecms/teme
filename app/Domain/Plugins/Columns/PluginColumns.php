@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The list columns running plugins offer for each content type: drawn from
+ * each plugin's manifest, asked only when a person has turned the column on,
+ * under a per-call and per-page time budget.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Columns;
@@ -19,11 +29,6 @@ use Teme\Contracts\Lists\ListRows;
 use Teme\Contracts\Plugins\Capability;
 use Throwable;
 
-/**
- * The list columns running plugins offer for each content type: drawn from
- * each plugin's manifest, asked only when a person has turned the column on,
- * under a per-call and per-page time budget.
- */
 final class PluginColumns
 {
     public const int CALL_BUDGET_MS = 100;

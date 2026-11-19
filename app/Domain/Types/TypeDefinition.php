@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A content type as the file and the table hold it: labels, admin address,
+ * features and comments, before the registries check it (I-411).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types;
@@ -7,10 +16,6 @@ namespace App\Domain\Types;
 use App\Domain\Comments\Discussion;
 use App\Domain\Types\Exceptions\InvalidTypeDefinition;
 
-/**
- * A content type as the file and the table hold it: labels, admin address,
- * features and comments, before the registries check it (I-411).
- */
 final readonly class TypeDefinition
 {
     public const string SHARED = 'shared';

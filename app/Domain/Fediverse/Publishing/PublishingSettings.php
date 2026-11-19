@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What the site sends to the fediverse: which content types, as which
+ * object type, and which of its actors speak for an item. Read from the
+ * `fediverse` settings group, with the defaults here for what it does not
+ * hold yet; who speaks follows Settings › Fediverse's "Who can be followed".
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
@@ -8,12 +19,6 @@ use App\Domain\Fediverse\FediverseSettingsGroup;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What the site sends to the fediverse: which content types, as which
- * object type, and which of its actors speak for an item. Read from the
- * `fediverse` settings group, with the defaults here for what it does not
- * hold yet; who speaks follows Settings › Fediverse's "Who can be followed".
- */
 final readonly class PublishingSettings
 {
     public const string GROUP = 'fediverse';

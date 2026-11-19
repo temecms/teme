@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Tools › Backups (I-364): the verdict, the places, the checks and the keys,
+ * read from the tables; it changes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools\Backups;
@@ -14,10 +23,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Tools › Backups (I-364): the verdict, the places, the checks and the keys,
- * read from the tables; it changes nothing.
- */
 final class BackupsScreenController extends Controller
 {
     public function index(Request $request, BackupsScreen $screen, SftpSteps $sftp, BackupJobs $jobs): Response

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * Each plugin's own Hooks, and the subscriptions it made (I-3353):
+ * DispatcherSubscriptions gives the dispatcher's own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
 
 use Teme\Contracts\Hooks\Hooks;
 
-/**
- * Each plugin's own Hooks, and the subscriptions it made (I-3353):
- * DispatcherSubscriptions gives the dispatcher's own.
- */
 interface HookSubscriptions
 {
     /**

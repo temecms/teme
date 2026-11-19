@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One request to export or erase a person's personal data (I-3375): who it
+ * is about, who asked and why, and what each holder answered, in the order
+ * they ran. Only the privacy Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy\Models;
@@ -10,10 +20,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One request to export or erase a person's personal data (I-3375): who it
- * is about, who asked and why, and what each holder answered, in the order
- * they ran. Only the privacy Operations write it.
- *
  * @property string $id
  * @property string $kind
  * @property string|null $email

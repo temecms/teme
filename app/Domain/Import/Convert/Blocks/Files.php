@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The File block as a paragraph linking to the file by its ID, its name as
+ * the words (I-1705). Its download button and its embedded viewer are
+ * presentation, and are left out.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -11,11 +21,6 @@ use App\Domain\Import\Convert\Html\HtmlFragment;
 use App\Domain\Import\Convert\Html\Nodes;
 use App\Domain\Import\Convert\ParsedBlock;
 
-/**
- * The File block as a paragraph linking to the file by its ID, its name as
- * the words (I-1705). Its download button and its embedded viewer are
- * presentation, and are left out.
- */
 final readonly class Files implements BlockMapping
 {
     public function blocks(): array

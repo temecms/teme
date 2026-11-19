@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every item not in the trash, of every type, with the revision readers see
+ * and the draft being edited, each as stored: Tiptap JSON (rule 7) and every
+ * reference an ID (rule 9). Read 100 items at a time by ID.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export\Kinds;
@@ -13,11 +23,6 @@ use App\Domain\Export\ExportKind;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Every item not in the trash, of every type, with the revision readers see
- * and the draft being edited, each as stored: Tiptap JSON (rule 7) and every
- * reference an ID (rule 9). Read 100 items at a time by ID.
- */
 final readonly class ContentsKind implements ExportKind
 {
     /** Items a page: documents are the largest rows the export reads. */

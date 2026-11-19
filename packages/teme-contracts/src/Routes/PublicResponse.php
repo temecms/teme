@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a declared public route's handler answers: status, type, body, and
+ * extra headers from Teme's allow-list.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Routes;

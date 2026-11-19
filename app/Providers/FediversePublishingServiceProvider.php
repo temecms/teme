@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The fediverse's publishing part (I-058): what the site sends when its
+ * items change, the replies it takes, and the sockets plugins use.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -13,10 +22,6 @@ use App\Domain\Site\Document\DocumentMeta;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * The fediverse's publishing part (I-058): what the site sends when its
- * items change, the replies it takes, and the sockets plugins use.
- */
 final class FediversePublishingServiceProvider extends ServiceProvider
 {
     public function register(): void

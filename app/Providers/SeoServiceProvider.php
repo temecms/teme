@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Registers core's head contributor, the robots meta, and Settings › Search
+ * and social: its first section, The whole site, the sections and head
+ * entries Search and social's own screen adds, and, once every provider has
+ * registered its own sections, the group they make.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -24,12 +35,6 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * Registers core's head contributor, the robots meta, and Settings › Search
- * and social: its first section, The whole site, the sections and head
- * entries Search and social's own screen adds, and, once every provider has
- * registered its own sections, the group they make.
- */
 final class SeoServiceProvider extends ServiceProvider
 {
     public function register(): void

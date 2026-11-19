@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The Steps card in a feed and the API: the summary, the time and the
+ * lists as paragraphs and lists, then the steps as an ordered list, each
+ * item its title in bold, its image and its text.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds\Cards;
@@ -10,11 +20,6 @@ use App\Domain\Cards\Types\StepsCard;
 use App\Domain\Feeds\FeedCardRenderer;
 use App\Domain\Feeds\FeedImages;
 
-/**
- * The Steps card in a feed and the API: the summary, the time and the
- * lists as paragraphs and lists, then the steps as an ordered list, each
- * item its title in bold, its image and its text.
- */
 final readonly class PlainSteps implements FeedCardRenderer
 {
     public function __construct(private FeedImages $images) {}

@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups\Tools;
-
 /**
  * How a restic call ended, by restic's own exit statuses, and the two Teme
  * adds: timed out, and not started. Anything but Ok is a failure,
  * Incomplete included (I-366).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups\Tools;
+
 enum ResticOutcome
 {
     case Ok;

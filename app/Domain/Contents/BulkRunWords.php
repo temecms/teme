@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The words of Select all matching (I-143): a run's label, its closing words,
+ * what it has skipped so far and how far a failed one got, each naming the type.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
 
 use App\Domain\Types\ContentType;
 
-/**
- * The words of Select all matching (I-143): a run's label, its closing words,
- * what it has skipped so far and how far a failed one got, each naming the type.
- */
 final readonly class BulkRunWords
 {
     /** The actions a run takes, as the bar names them. */

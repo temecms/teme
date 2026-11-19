@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A past moment in words, as the dashboard shows it: "just now",
+ * "15 minutes ago", "2 hours ago", "3 days ago", or the date when it was
+ * longer ago than a month.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support;
 
 use Carbon\CarbonImmutable;
 
-/**
- * A past moment in words, as the dashboard shows it: "just now",
- * "15 minutes ago", "2 hours ago", "3 days ago", or the date when it was
- * longer ago than a month.
- */
 final class RelativeTime
 {
     public static function from(CarbonImmutable $at, CarbonImmutable $now): string

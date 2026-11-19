@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Rebuilds search after the site language changes (I-435), one batch of
+ * ReindexSearch a run, queueing the next until none remain. It carries whoever
+ * changed the language, an administrator or the operator (I-392), whom the
+ * Operation authorizes. The count still to go is kept in the cache for the Status
+ * banner, and forgotten when the rebuild is done.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Jobs;
@@ -11,13 +23,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * Rebuilds search after the site language changes (I-435), one batch of
- * ReindexSearch a run, queueing the next until none remain. It carries whoever
- * changed the language, an administrator or the operator (I-392), whom the
- * Operation authorizes. The count still to go is kept in the cache for the Status
- * banner, and forgotten when the rebuild is done.
- */
 final class ReindexSearchJob implements ShouldQueue
 {
     use Queueable;

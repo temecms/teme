@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a taxonomy's screen shows around its rows: the taxonomies filed with
+ * it under one content type, as tabs, each with how many terms it has, and
+ * the listed types whose items its counts count (I-225).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Queries;
@@ -10,11 +20,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What a taxonomy's screen shows around its rows: the taxonomies filed with
- * it under one content type, as tabs, each with how many terms it has, and
- * the listed types whose items its counts count (I-225).
- */
 final class TermScreen
 {
     /**

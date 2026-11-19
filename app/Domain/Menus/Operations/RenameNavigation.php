@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Renames a menu, and sets its language when one is given
+ * (docs/proposals/multilingual-screens.md, 5). Its handle stays as it was made.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations;
@@ -10,10 +19,6 @@ use App\Domain\Menus\Operations\Input\RenameNavigationInput;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Renames a menu, and sets its language when one is given
- * (docs/proposals/multilingual-screens.md, 5). Its handle stays as it was made.
- */
 final class RenameNavigation extends BaseOperation
 {
     use ManagesNavigation;

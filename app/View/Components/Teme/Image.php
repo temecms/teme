@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `<x-teme::image>`: a theme's way to draw a media item, such as
+ * `<x-teme::image :id="$page->lead->id" context="feature" :priority="true"
+ * />`.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * One declared public address in the registry: who owns it, how it matches,
+ * how POSTs are verified, and how GETs are cached.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
 
 use App\Domain\Plugins\Manifest;
 
-/**
- * One declared public address in the registry: who owns it, how it matches,
- * how POSTs are verified, and how GETs are cached.
- */
 final readonly class DeclaredRoute
 {
     public const string OWNER_CORE = 'core';

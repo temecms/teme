@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One piece of markup a contributor wants drawn at a place on a public page.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

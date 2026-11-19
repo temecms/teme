@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Says what the old site's widgets were (I-343), since none is imported:
+ * how many each sidebar held, and of which kinds, from the companion's
+ * site report, so the theme's regions can be set up again; mapping them
+ * to regions is parked. Once a full run; writes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Menus;
@@ -12,12 +23,6 @@ use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Source\SourceReader;
 use Closure;
 
-/**
- * Says what the old site's widgets were (I-343), since none is imported:
- * how many each sidebar held, and of which kinds, from the companion's
- * site report, so the theme's regions can be set up again; mapping them
- * to regions is parked. Once a full run; writes nothing.
- */
 final readonly class WidgetsStep implements StepPhase
 {
     /** WordPress's holder for widgets no sidebar shows, and its kinds' prefix in the report. */

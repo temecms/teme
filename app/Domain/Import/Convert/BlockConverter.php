@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Converts one WordPress item's block tree, as the companion plugin sends
+ * it, into a Tiptap document Teme stores (I-335): each block through its
+ * row in BlockMappings, a block no row maps by the unmapped rules, then the
+ * document fitted. It reads no table and calls no network: the caller
+ * hands in the old site's addresses and the media Teme has.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert;
@@ -11,13 +23,6 @@ use App\Domain\Import\Convert\Html\InlineContent;
 use App\Domain\Import\Convert\Media\MediaTargets;
 use App\Domain\Import\Convert\Shortcodes\ShortcodeMappings;
 
-/**
- * Converts one WordPress item's block tree, as the companion plugin sends
- * it, into a Tiptap document Teme stores (I-335): each block through its
- * row in BlockMappings, a block no row maps by the unmapped rules, then the
- * document fitted. It reads no table and calls no network: the caller
- * hands in the old site's addresses and the media Teme has.
- */
 final readonly class BlockConverter
 {
     public function __construct(private BlockMappings $mappings, private HtmlBlocks $html, private InlineContent $inline, private MarkupCleaner $cleaner, private ShortcodeMappings $shortcodes) {}

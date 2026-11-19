@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The management API's settings group: its own switch, off until an
+ * administrator turns it on (I-485), and how many requests a minute one
+ * key may make (docs/proposals/management-api.md). Drawn on Settings ›
+ * Management API, at the group's own address, and saved through
+ * UpdateSettings as the generic form saves any group.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\ManageApi;
@@ -8,13 +20,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The management API's settings group: its own switch, off until an
- * administrator turns it on (I-485), and how many requests a minute one
- * key may make (docs/proposals/management-api.md). Drawn on Settings ›
- * Management API, at the group's own address, and saved through
- * UpdateSettings as the generic form saves any group.
- */
 final class ManageApiSettings
 {
     /** The group's key. */

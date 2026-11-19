@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Brings an item an earlier import made up to date with WordPress (I-338):
+ * its title, alt text and caption, and its file when WordPress's changed,
+ * each only while it is still what the import wrote, so a person's change
+ * here is never taken back. Only an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -21,12 +32,6 @@ use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Brings an item an earlier import made up to date with WordPress (I-338):
- * its title, alt text and caption, and its file when WordPress's changed,
- * each only while it is still what the import wrote, so a person's change
- * here is never taken back. Only an import's actor may call it.
- */
 final class UpdateImportedMedia extends BaseOperation
 {
     use AuthorizesImports;

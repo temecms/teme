@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Plugins and themes installed from the admin (I-211): asks the installer for a change, cancels or
+ * agrees to one, keeps the sources and uploads it reads, searches Packagist, and answers the request
+ * sheet's polls. Every change goes through its Operation, which asks for the password; this records a
+ * request and never writes code.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin;
@@ -30,12 +41,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Plugins and themes installed from the admin (I-211): asks the installer for a change, cancels or
- * agrees to one, keeps the sources and uploads it reads, searches Packagist, and answers the request
- * sheet's polls. Every change goes through its Operation, which asks for the password; this records a
- * request and never writes code.
- */
 final class ExtensionsController extends Controller
 {
     /**

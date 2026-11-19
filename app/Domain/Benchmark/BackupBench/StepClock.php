@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The sentences a run says as each step starts, each with when it was said,
+ * so a run's steps are timed without changing the run.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark\BackupBench;
 
 use Closure;
 
-/**
- * The sentences a run says as each step starts, each with when it was said,
- * so a run's steps are timed without changing the run.
- */
 final class StepClock
 {
     /** @var list<array{step: string, at: float}> */

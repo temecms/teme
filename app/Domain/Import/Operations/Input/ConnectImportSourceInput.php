@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What `ConnectImportSource` needs: the WordPress site's address, an
+ * administrator's user name there, the application password made for Teme,
+ * and who is asking (null for the operator).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Operations\Input;
 use SensitiveParameter;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `ConnectImportSource` needs: the WordPress site's address, an
- * administrator's user name there, the application password made for Teme,
- * and who is asking (null for the operator).
- */
 final readonly class ConnectImportSourceInput implements OperationInput
 {
     public function __construct(

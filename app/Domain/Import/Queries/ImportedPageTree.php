@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An imported site's page tree as WordPress had it (I-3363): its pages
+ * top-down, each with its rank among its WordPress siblings, for placing
+ * them under their parents; and the notes of those left where they were.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Queries;
@@ -8,11 +18,6 @@ use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * An imported site's page tree as WordPress had it (I-3363): its pages
- * top-down, each with its rank among its WordPress siblings, for placing
- * them under their parents; and the notes of those left where they were.
- */
 final readonly class ImportedPageTree
 {
     /** The deepest a WordPress branch is followed; deeper pages, and those in a loop, are never reached. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The public side of a preview link: what a token opens, if anything. It is
+ * the one door into unpublished content, so everything it cannot vouch for
+ * is simply not found.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -9,11 +19,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The public side of a preview link: what a token opens, if anything. It is
- * the one door into unpublished content, so everything it cannot vouch for
- * is simply not found.
- */
 final class PreviewLinks
 {
     /**

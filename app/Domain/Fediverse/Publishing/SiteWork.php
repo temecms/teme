@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The site's own fediverse work, as a token (docs/plans/fediverse-publishing.md,
+ * follow-up R7): what QueueActivity accepts in place of a person when core's
+ * content listener asks, so no one runs with the operator's power and the
+ * plugins' listeners it calls act for nobody. Only ContentActivities issues
+ * one; a token it did not issue is refused.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
@@ -7,13 +19,6 @@ namespace App\Domain\Fediverse\Publishing;
 use LogicException;
 use WeakMap;
 
-/**
- * The site's own fediverse work, as a token (docs/plans/fediverse-publishing.md,
- * follow-up R7): what QueueActivity accepts in place of a person when core's
- * content listener asks, so no one runs with the operator's power and the
- * plugins' listeners it calls act for nobody. Only ContentActivities issues
- * one; a token it did not issue is refused.
- */
 final class SiteWork
 {
     /** Where the container keeps the tokens issued in this process. */

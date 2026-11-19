@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A person's inbox: exported, and kept on erasure, since it goes with the
+ * account when the account is deleted.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox\Privacy;
@@ -12,10 +21,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * A person's inbox: exported, and kept on erasure, since it goes with the
- * account when the account is deleted.
- */
 final class InboxHolder implements PersonalDataHolder
 {
     private const int EXPORT_PAGE = 200;

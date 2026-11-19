@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The only image names the updater sends a platform (I-3326; GHSA-jxxj-gmpx-h5rj): Teme's own repository
+ * on ghcr.io, from TEME_IMAGE_REPOSITORY, and a release's version. Anything else is refused before any request.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Updates;
 
 use App\Domain\Updates\Updater\PlatformRefused;
 
-/**
- * The only image names the updater sends a platform (I-3326; GHSA-jxxj-gmpx-h5rj): Teme's own repository
- * on ghcr.io, from TEME_IMAGE_REPOSITORY, and a release's version. Anything else is refused before any request.
- */
 final class ImageName
 {
     /** D: $ never matches before a final newline. */

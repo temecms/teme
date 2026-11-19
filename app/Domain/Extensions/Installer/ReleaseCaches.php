@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A release's plugin and theme caches for one core, and its links to the
+ * themes' public files: written by the installer before the release runs,
+ * so no request scans its packages (docs/plans/plugin-installer.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
@@ -10,11 +20,6 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Themes\ThemeRegistry;
 use Symfony\Component\Process\Process;
 
-/**
- * A release's plugin and theme caches for one core, and its links to the
- * themes' public files: written by the installer before the release runs,
- * so no request scans its packages (docs/plans/plugin-installer.md).
- */
 final readonly class ReleaseCaches
 {
     /**

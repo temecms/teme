@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Removes a person with no account, and their page, once nothing credits
+ * them (I-3366); the database refuses a credit added in between (I-102).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\People\Operations;
@@ -15,10 +24,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Removes a person with no account, and their page, once nothing credits
- * them (I-3366); the database refuses a credit added in between (I-102).
- */
 final class DeletePerson extends BaseOperation
 {
     use ManagesUsers;

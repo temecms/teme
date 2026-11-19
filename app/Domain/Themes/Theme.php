@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Themes;
-
 /**
  * One theme found on disk: its code, its folder, its manifest (null when
  * teme-theme.json couldn't be read at all) and every error found in it. A
  * theme with any error is broken, listed with its errors, and never used.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Themes;
+
 final readonly class Theme
 {
     /**

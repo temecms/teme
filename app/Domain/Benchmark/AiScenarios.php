@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Tools › AI activity at the size a busy site's year leaves (I-318): the
+ * record's first page and one halfway down, a month's first page and one
+ * halfway into it, a person's month, a task's month, and the spend and
+ * filters the screen shows beside them. Each calls the screen's own queries
+ * and changes nothing, so there is nothing to put back.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Benchmark;
@@ -14,12 +26,6 @@ use Closure;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Tools › AI activity at the size a busy site's year leaves (I-318): the
- * record's first page and one halfway down, a month's first page and one
- * halfway into it, a person's month, a task's month, and the spend and
- * filters the screen shows beside them. Each calls the screen's own queries
- * and changes nothing, so there is nothing to put back.
- *
  * @phpstan-type Scenario array{name: string, group: string, indexOrder: bool, run: Closure(int): mixed, queriesLike?: string, reads?: list<string>}
  */
 final class AiScenarios

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Core's listener on the content hooks (docs/plans/fediverse-publishing.md,
+ * D1): each change to an item goes to QueueActivity as the site's own work
+ * (a SiteWork token, never the operator), whoever made the change. The hooks come after commit and
+ * never during an import run. Core listens only once the fediverse is on,
+ * checked as each request, command or queued job starts, so a site that
+ * never turns it on builds no hook for it; nothing is asked while paused.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing;
@@ -17,14 +30,6 @@ use Teme\Contracts\Content\ContentVisibilityChanged;
 use Throwable;
 use WeakMap;
 
-/**
- * Core's listener on the content hooks (docs/plans/fediverse-publishing.md,
- * D1): each change to an item goes to QueueActivity as the site's own work
- * (a SiteWork token, never the operator), whoever made the change. The hooks come after commit and
- * never during an import run. Core listens only once the fediverse is on,
- * checked as each request, command or queued job starts, so a site that
- * never turns it on builds no hook for it; nothing is asked while paused.
- */
 final class ContentActivities
 {
     /** Where the container keeps the dispatchers core listens on. */

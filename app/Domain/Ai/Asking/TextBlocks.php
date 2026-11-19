@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai\Asking;
-
 /**
  * A paragraph's or heading's text measured as the editor measures it, so an
  * offset the editor sends means the same here (I-1305): a text node counts
  * its UTF-16 code units, any other inline node one. Finds a block by its
  * path, hashes its text for the staleness check, and slices and splices it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai\Asking;
+
 final class TextBlocks
 {
     /** A block's path: child indexes from the document down, joined by dots. */

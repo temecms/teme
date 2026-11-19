@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The lines that tell an operator how to make the first administrator from
+ * the browser (issue 246), shared by `teme:deploy` and `teme:setup-code`.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands\Concerns;
 
 use App\Domain\Users\SetupCode;
 
-/**
- * The lines that tell an operator how to make the first administrator from
- * the browser (issue 246), shared by `teme:deploy` and `teme:setup-code`.
- */
 trait PrintsSetupCode
 {
     /**

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Settings › Addresses: the Permalinks screen. Saving goes through
+ * ChangeAddresses, and the screen polls the background recompute's progress.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -16,10 +25,6 @@ use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › Addresses: the Permalinks screen. Saving goes through
- * ChangeAddresses, and the screen polls the background recompute's progress.
- */
 final class AddressesController extends Controller
 {
     public function show(): Response

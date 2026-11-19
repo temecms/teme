@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The API's routes, under /api, answered before the public site.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Http\Api\Manage\Middleware\AnswerManageApi;

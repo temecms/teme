@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Saves changes on Settings › Design as a draft, which no reader sees until
+ * PublishDesign. The draft holds only the keys changed, each stored as
+ * publishing would store it; a value put back to the live one leaves the
+ * draft. A slot's menu must exist, and an accent must pass contrast against
+ * the light background of the theme that would be active (I-457).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations;
@@ -21,13 +33,6 @@ use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * Saves changes on Settings › Design as a draft, which no reader sees until
- * PublishDesign. The draft holds only the keys changed, each stored as
- * publishing would store it; a value put back to the live one leaves the
- * draft. A slot's menu must exist, and an accent must pass contrast against
- * the light background of the theme that would be active (I-457).
- */
 final class SaveDesignDraft extends BaseOperation
 {
     use ManagesDesign;

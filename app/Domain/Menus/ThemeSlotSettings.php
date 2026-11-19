@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A theme's navigation slots as its settings: each theme's group,
+ * `theme.{code}` (spec §5.9), which ThemeSettings registers, holds one text
+ * setting per slot it declares, `nav_{slot}`, with the ID of the menu shown
+ * there, or '' for none.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus;
@@ -10,12 +21,6 @@ use App\Domain\Themes\Theme;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * A theme's navigation slots as its settings: each theme's group,
- * `theme.{code}` (spec §5.9), which ThemeSettings registers, holds one text
- * setting per slot it declares, `nav_{slot}`, with the ID of the menu shown
- * there, or '' for none.
- */
 final readonly class ThemeSlotSettings
 {
     public const string GROUP_PREFIX = 'theme.';

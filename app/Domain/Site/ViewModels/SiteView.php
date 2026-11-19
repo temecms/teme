@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The site as every theme view sees it, as `$site`: its name and tagline, its
+ * home address, and its language, both as a locale for PHP, such as "pt_BR",
+ * and as the BCP 47 tag `lang` takes, such as "pt-BR"; and the current year on
+ * the site's clock, for a footer's copyright.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\ViewModels;

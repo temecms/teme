@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What `SwitchSiteCode` needs: the entry, whether it is to be on, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `SwitchSiteCode` needs: the entry, whether it is to be on, and who is asking.
- */
 final readonly class SwitchSiteCodeInput implements OperationInput
 {
     public function __construct(

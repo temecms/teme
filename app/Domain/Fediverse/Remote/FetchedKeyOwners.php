@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Finds who owns a remote key: from the cache of keys fetched lately, from
+ * the remote accounts Teme holds, or by fetching the key's actor. A key is
+ * accepted only when its actor's own document names it. What is fetched is
+ * kept in the cache, never written to a table here: the inbox's job records
+ * the account through RecordRemoteActor.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Remote;
@@ -9,13 +21,6 @@ use App\Domain\Fediverse\Signatures\KeyOwner;
 use App\Domain\Fediverse\Signatures\KeyOwners;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * Finds who owns a remote key: from the cache of keys fetched lately, from
- * the remote accounts Teme holds, or by fetching the key's actor. A key is
- * accepted only when its actor's own document names it. What is fetched is
- * kept in the cache, never written to a table here: the inbox's job records
- * the account through RecordRemoteActor.
- */
 final readonly class FetchedKeyOwners implements KeyOwners
 {
     /** How long a fetched key and actor stay in the cache. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What an import's map says of Teme's people: whether an account of a
+ * source already became a given person, and whether that source made them
+ * or found them here by their email address (I-1706).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Users;
@@ -7,11 +17,6 @@ namespace App\Domain\Import\Phases\Users;
 use App\Domain\Import\Models\ImportMapEntry;
 use Illuminate\Database\Eloquent\Builder;
 
-/**
- * What an import's map says of Teme's people: whether an account of a
- * source already became a given person, and whether that source made them
- * or found them here by their email address (I-1706).
- */
 final readonly class ImportedPeople
 {
     /**

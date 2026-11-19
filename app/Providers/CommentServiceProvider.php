@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Wires reader comments (slice 1.8, docs/studies/comments.md): the statuses
+ * registry with core's five, the moderator slot, the Discussion settings
+ * group, built from the types registered before it boots, and the gate ability
+ * that opens the Comments screen (1.8c).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -18,12 +29,6 @@ use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Comments\CommentModerator;
 use Teme\Contracts\Settings\SettingsGroup;
 
-/**
- * Wires reader comments (slice 1.8, docs/studies/comments.md): the statuses
- * registry with core's five, the moderator slot, the Discussion settings
- * group, built from the types registered before it boots, and the gate ability
- * that opens the Comments screen (1.8c).
- */
 final class CommentServiceProvider extends ServiceProvider
 {
     public function register(): void

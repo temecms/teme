@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Writes an imported site's words in another language (I-3446), as
+ * starting an import allows, the way TranslateSettings would: the site
+ * title, the tagline, a title template or the menu a theme slot shows in
+ * that language. A word this site already has in that language is kept,
+ * so a person's translation, or a menu they chose, is never replaced.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -16,13 +28,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Writes an imported site's words in another language (I-3446), as
- * starting an import allows, the way TranslateSettings would: the site
- * title, the tagline, a title template or the menu a theme slot shows in
- * that language. A word this site already has in that language is kept,
- * so a person's translation, or a menu they chose, is never replaced.
- */
 final class ImportTranslatedSettings extends BaseOperation
 {
     use AuthorizesImports;

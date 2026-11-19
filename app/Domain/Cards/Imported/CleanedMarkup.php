@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards\Imported;
-
 /**
  * What MarkupCleaner made of one chunk of HTML: the tree an Imported content
  * card holds, and what it removed, counted by name for the import's report
  * (I-329).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards\Imported;
+
 final readonly class CleanedMarkup
 {
     /**

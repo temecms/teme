@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Acts on one verified activity from an inbox (docs/plans/fediverse-actors.md,
+ * D8): a Follow of one of the site's actors is accepted, an Undo of a
+ * Follow ends it, and an account's Delete of itself marks it gone and ends
+ * its follows. Every change goes through an Operation, for the verified
+ * sender. Anything else is left to the publishing part.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Jobs;
@@ -23,13 +35,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Acts on one verified activity from an inbox (docs/plans/fediverse-actors.md,
- * D8): a Follow of one of the site's actors is accepted, an Undo of a
- * Follow ends it, and an account's Delete of itself marks it gone and ends
- * its follows. Every change goes through an Operation, for the verified
- * sender. Anything else is left to the publishing part.
- */
 final class ProcessInboxActivity implements ShouldQueue
 {
     use Queueable;

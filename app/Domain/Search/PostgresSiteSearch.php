@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Core's site search, over each published item's `search_tsv` (1.5b), in the
+ * rules of the language searched, and among its items alone (I-435): items of searchable types only, the newest
+ * matches up to the cap ranked by ts_rank_cd among themselves (I-458), with
+ * a count that stops at the cap, and snippets made for the page's rows alone,
+ * since ts_headline is the query's dearest part.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Search;
@@ -16,13 +28,6 @@ use Teme\Contracts\Search\SearchHits;
 use Teme\Contracts\Search\SearchRequest;
 use Teme\Contracts\Search\SiteSearch;
 
-/**
- * Core's site search, over each published item's `search_tsv` (1.5b), in the
- * rules of the language searched, and among its items alone (I-435): items of searchable types only, the newest
- * matches up to the cap ranked by ts_rank_cd among themselves (I-458), with
- * a count that stops at the cap, and snippets made for the page's rows alone,
- * since ts_headline is the query's dearest part.
- */
 final readonly class PostgresSiteSearch implements SiteSearch
 {
     /** The longest query read, in characters. */

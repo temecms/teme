@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a running plugin job may read and report (I-3445): its payload,
+ * attempt and the person it acts for, and progress that stops the handler
+ * when the run was cancelled or the plugin disabled.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Jobs;
@@ -13,11 +23,6 @@ use App\Domain\Support\Security\JobActor;
 use Teme\Contracts\Jobs\JobContext;
 use Teme\Contracts\Jobs\JobStopped;
 
-/**
- * What a running plugin job may read and report (I-3445): its payload,
- * attempt and the person it acts for, and progress that stops the handler
- * when the run was cancelled or the plugin disabled.
- */
 final class PluginJobContext implements JobContext
 {
     private int $reported = 0;

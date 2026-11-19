@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Warns administrators when a process that removes pages from the page
+ * cache, such as the queue worker or the scheduler, reaches another folder
+ * than the one the web server stores them in, so changes show late, by as
+ * long as a page lives (docs/architecture/page-cache.md). It reads one cached value, which the
+ * file store sets for a day each time that happens.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -11,13 +23,6 @@ use App\Domain\Status\StatusCheck;
 use Carbon\CarbonInterval;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * Warns administrators when a process that removes pages from the page
- * cache, such as the queue worker or the scheduler, reaches another folder
- * than the one the web server stores them in, so changes show late, by as
- * long as a page lives (docs/architecture/page-cache.md). It reads one cached value, which the
- * file store sets for a day each time that happens.
- */
 final readonly class PageCacheFolderShared implements StatusCheck
 {
     public function ability(): string
@@ -25,6 +30,9 @@ final readonly class PageCacheFolderShared implements StatusCheck
         return 'settings.general.manage';
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Page cache');

@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * A plugin's only way out (http, I-3353): https to port 443, to a host its
+ * consent covers, resolved here and refused when any address is private or
+ * reserved, connected to that address only (no second lookup, so DNS can't
+ * be rebound), never following a redirect, within 10 seconds and 1 MB each
+ * way, with a JSON or a form body; inside a long job's run, 300 seconds and an answer of 16 MB. The lookup comes before those 10 seconds and has no limit of its own:
+ * the system resolver's, by default 5 seconds a try, two tries a server, for
+ * up to three servers, so as long as 30 seconds when DNS is down.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -22,22 +36,17 @@ use Teme\Contracts\Http\HttpAnswer;
 use Teme\Contracts\Http\OutboundHttp;
 use Teme\Contracts\Http\RequestFailed;
 
-/**
- * A plugin's only way out (http, I-3353): https to port 443, to a host its
- * consent covers, resolved here and refused when any address is private or
- * reserved, connected to that address only (no second lookup, so DNS can't
- * be rebound), never following a redirect, within 10 seconds and 1 MB each
- * way, with a JSON or a form body; inside a long job's run, 300 seconds and an answer of 16 MB. The lookup comes before those 10 seconds and has no limit of its own:
- * the system resolver's, by default 5 seconds a try, two tries a server, for
- * up to three servers, so as long as 30 seconds when DNS is down.
- */
 final readonly class PluginHttp implements OutboundHttp
 {
     public const int MOST_SECONDS = 10;
 
     public const int MOST_BYTES = 1_048_576;
 
-    /** The largest answer inside a long job's run; a request stays at MOST_BYTES. */
+    /**
+     * The largest answer inside a long job's run; a request stays at MOST_BYTES.
+     *
+     * @since 1.0.0
+     */
     public const int LONG_ANSWER_BYTES = 16_777_216;
 
     /**
@@ -70,6 +79,9 @@ final readonly class PluginHttp implements OutboundHttp
         return $this->send('POST', $url, fn (string $host): string => self::jsonBody($json, $host), 'application/json', $headers, $timeoutSeconds);
     }
 
+    /**
+     * @since 1.0.0
+     */
     public function postForm(string $url, array $fields, array $headers = [], int $timeoutSeconds = 5): HttpAnswer
     {
         self::checkFields($fields);

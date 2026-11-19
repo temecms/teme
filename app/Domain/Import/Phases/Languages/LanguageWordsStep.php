@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * After the site's own settings (I-3446): Polylang's string translations
+ * of the site title, the tagline and Yoast's title templates become that
+ * language's words here; a template whose parts Teme has no token for, and
+ * every other plugin's and the theme's strings, are said, not imported.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Languages;
@@ -23,12 +34,6 @@ use App\Domain\Types\TaxonomyRegistry;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
-/**
- * After the site's own settings (I-3446): Polylang's string translations
- * of the site title, the tagline and Yoast's title templates become that
- * language's words here; a template whose parts Teme has no token for, and
- * every other plugin's and the theme's strings, are said, not imported.
- */
 final readonly class LanguageWordsStep implements StepPhase
 {
     /** Polylang's names for WordPress's own two strings, and the general setting each is. */

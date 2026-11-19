@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Everything a template can read, found by reflection from the page models
+ * and the site view, with each value's type and a one-line description: the
+ * source of docs/reference/theme.md and of the pin (I-3346).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes\Reference;
@@ -23,11 +33,6 @@ use ReflectionParameter;
 use ReflectionProperty;
 use ReflectionType;
 
-/**
- * Everything a template can read, found by reflection from the page models
- * and the site view, with each value's type and a one-line description: the
- * source of docs/reference/theme.md and of the pin (I-3346).
- */
 final class ViewDataCatalogue
 {
     /** The namespace of the page models, which every type below is shown without. */

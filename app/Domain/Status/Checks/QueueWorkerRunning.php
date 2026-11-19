@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Tells administrators of a production site when a queue's jobs have
+ * waited ten minutes with no worker taking them (I-3112), naming each
+ * such queue, so a missing worker is found before its work is missed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -11,11 +21,6 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\QueryException;
 
-/**
- * Tells administrators of a production site when a queue's jobs have
- * waited ten minutes with no worker taking them (I-3112), naming each
- * such queue, so a missing worker is found before its work is missed.
- */
 final readonly class QueueWorkerRunning implements StatusCheck
 {
     /** Below the scheduler's banner, above every other. */
@@ -28,6 +33,9 @@ final readonly class QueueWorkerRunning implements StatusCheck
         return 'settings.general.manage';
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Background jobs');

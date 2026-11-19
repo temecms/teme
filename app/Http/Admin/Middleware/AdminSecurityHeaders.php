@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Study G, S13. Scripts are strict: the site's own files or this request's
+ * nonce. Styles allow inline, because components inject <style> at run time
+ * and style injection is a far smaller risk — revisited when the editor
+ * arrives in 1.5, which must fit the script policy, never loosen it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Middleware;
@@ -11,12 +22,6 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Study G, S13. Scripts are strict: the site's own files or this request's
- * nonce. Styles allow inline, because components inject <style> at run time
- * and style injection is a far smaller risk — revisited when the editor
- * arrives in 1.5, which must fit the script policy, never loosen it.
- */
 final class AdminSecurityHeaders
 {
     /**

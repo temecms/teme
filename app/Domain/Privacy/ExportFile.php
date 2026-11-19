@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The files of a personal data export, on the private disk: one per page a
+ * holder answered, named so a retried page overwrites itself, and the one
+ * file the person gets, assembled from them in the holders' order. Every
+ * file is found by its name from the request's results, never by listing a
+ * folder. The disk doesn't throw, so every write and read is checked here: a
+ * failed one throws, the step rolls back, and the request fails.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Privacy;
@@ -12,14 +25,6 @@ use RuntimeException;
 use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The files of a personal data export, on the private disk: one per page a
- * holder answered, named so a retried page overwrites itself, and the one
- * file the person gets, assembled from them in the holders' order. Every
- * file is found by its name from the request's results, never by listing a
- * folder. The disk doesn't throw, so every write and read is checked here: a
- * failed one throws, the step rolls back, and the request fails.
- */
 final class ExportFile
 {
     /** The disk the files live on: storage/app/private, never public. */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Every plugin, for the console, the Status banner and the Plugins page
+ * (I-3353): each one found, and each row whose code is gone, with where it
+ * stands and why. It reads code only from its source, never running it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
@@ -24,11 +34,6 @@ use Composer\Semver\Semver;
 use Teme\Contracts\Plugins\Capability;
 use UnexpectedValueException;
 
-/**
- * Every plugin, for the console, the Status banner and the Plugins page
- * (I-3353): each one found, and each row whose code is gone, with where it
- * stands and why. It reads code only from its source, never running it.
- */
 final readonly class PluginList
 {
     public function __construct(

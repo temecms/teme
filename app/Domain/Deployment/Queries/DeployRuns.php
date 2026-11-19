@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The deploys that ran (I-?? draft), read from deploy_runs; empty on a database a deploy hasn't brought to the release that makes the table.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Queries;
@@ -8,9 +16,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * The deploys that ran (I-?? draft), read from deploy_runs; empty on a database a deploy hasn't brought to the release that makes the table.
- */
 final class DeployRuns
 {
     /**

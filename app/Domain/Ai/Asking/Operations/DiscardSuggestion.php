@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Cancels a request or puts a suggestion aside (I-317): one still working is
+ * marked cancelled, so its job asks no model, or discards the answer; a
+ * ready one is settled as discarded; a failed one is forgotten. Only the
+ * person who asked may.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking\Operations;
@@ -17,12 +28,6 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Cancels a request or puts a suggestion aside (I-317): one still working is
- * marked cancelled, so its job asks no model, or discards the answer; a
- * ready one is settled as discarded; a failed one is forgotten. Only the
- * person who asked may.
- */
 final class DiscardSuggestion extends BaseOperation
 {
     public function __construct(

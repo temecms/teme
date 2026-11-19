@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Stops Teme using a place (I-360): its backups stay where they are, and it
+ * keeps no credentials.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -15,10 +24,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Stops Teme using a place (I-360): its backups stay where they are, and it
- * keeps no credentials.
- */
 final class RemoveBackupDestination extends BaseOperation implements RequiresElevation
 {
     use ManagesBackups;

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A password confirmation within security.elevation_minutes, by the person the
+ * Operation acts for. Fortify records the confirmation time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Support\Security;
@@ -9,10 +18,6 @@ use Illuminate\Support\Facades\Date;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * A password confirmation within security.elevation_minutes, by the person the
- * Operation acts for. Fortify records the confirmation time.
- */
 final class SessionElevation implements Elevation
 {
     public function __construct(

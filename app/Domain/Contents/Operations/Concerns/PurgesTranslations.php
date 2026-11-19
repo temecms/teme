@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a change to a translation group purges (I-3360, D12): the pages that
+ * drew each group's alternates, and every published member's own page,
+ * whose alternates change. Read before and after the change.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Concerns;
@@ -8,11 +18,6 @@ use App\Domain\Cache\PageTags;
 use App\Domain\Contents\Models\Content;
 use Teme\Contracts\Cache\CacheKeysFor;
 
-/**
- * What a change to a translation group purges (I-3360, D12): the pages that
- * drew each group's alternates, and every published member's own page,
- * whose alternates change. Read before and after the change.
- */
 trait PurgesTranslations
 {
     /**

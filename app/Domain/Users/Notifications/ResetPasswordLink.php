@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Queued, so sending adds no time that depends on whether the account
+ * exists; and built from APP_URL, so a forged Host header cannot put another
+ * domain into a genuine email. Study G, S6 and S7.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Notifications;
@@ -15,11 +25,6 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * Queued, so sending adds no time that depends on whether the account
- * exists; and built from APP_URL, so a forged Host header cannot put another
- * domain into a genuine email. Study G, S6 and S7.
- */
 final class ResetPasswordLink extends ResetPassword implements ShouldQueue
 {
     use Queueable, SentAsNotice;

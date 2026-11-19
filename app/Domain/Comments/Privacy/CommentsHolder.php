@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The comments a person wrote, found by their account, or by their address
+ * when no other account wrote them: exported with their words, and erased
+ * by anonymising them, their words and their place in the thread kept
+ * (I-285, I-278). A comment with the address that another account wrote is
+ * that account's, kept and counted with its reason.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Privacy;
@@ -18,13 +30,6 @@ use Teme\Contracts\Privacy\ExportPage;
 use Teme\Contracts\Privacy\PersonalDataHolder;
 use Teme\Contracts\Privacy\PersonalDataSubject;
 
-/**
- * The comments a person wrote, found by their account, or by their address
- * when no other account wrote them: exported with their words, and erased
- * by anonymising them, their words and their place in the thread kept
- * (I-285, I-278). A comment with the address that another account wrote is
- * that account's, kept and counted with its reason.
- */
 final class CommentsHolder implements PersonalDataHolder
 {
     private const int EXPORT_PAGE = 100;

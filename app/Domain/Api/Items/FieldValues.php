@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An item's fields as the API gives them (D6, Q3 A): only those its type
+ * shows on the site, keyed by handle in the type's order, each read from
+ * its stored value, never through a field type's render(). The items an
+ * entry field names are read in one statement, and its files in one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
@@ -20,12 +31,6 @@ use Illuminate\Support\Facades\DB;
 use stdClass;
 use Throwable;
 
-/**
- * An item's fields as the API gives them (D6, Q3 A): only those its type
- * shows on the site, keyed by handle in the type's order, each read from
- * its stored value, never through a field type's render(). The items an
- * entry field names are read in one statement, and its files in one.
- */
 final readonly class FieldValues
 {
     /**

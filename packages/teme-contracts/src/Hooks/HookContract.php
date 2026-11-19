@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The rules core declares on a hook's class: what a plugin must have been
+ * granted to listen, what a listener's failure does, and, for a hook being
+ * retired, when it stops being sent and what replaces it.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Hooks;

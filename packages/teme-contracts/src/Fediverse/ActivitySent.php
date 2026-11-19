@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An activity the site queued for its followers, sent after it is stored: a
+ * Create, Update, Delete or Announce of an item, the Accept of a Follow, or
+ * one a plugin sent through FediverseSender.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

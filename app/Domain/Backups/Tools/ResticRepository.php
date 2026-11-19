@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where one restic repository is and the key that opens it (I-359), for one
+ * call: the location restic reads, the key, and the backend's own variables
+ * and options. Never serialized and never dumped: a queued job carries a
+ * place's ID and builds this inside the job.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Tools;
@@ -8,12 +19,6 @@ use InvalidArgumentException;
 use LogicException;
 use SensitiveParameter;
 
-/**
- * Where one restic repository is and the key that opens it (I-359), for one
- * call: the location restic reads, the key, and the backend's own variables
- * and options. Never serialized and never dumped: a queued job carries a
- * place's ID and builds this inside the job.
- */
 final readonly class ResticRepository
 {
     /**

@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What ImportTranslatedSettings needs: the settings group, the other
+ * language whose words the old site had, those words by key, and who is
+ * importing (null for the operator).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ImportTranslatedSettings needs: the settings group, the other
- * language whose words the old site had, those words by key, and who is
- * importing (null for the operator).
- */
 final readonly class ImportTranslatedSettingsInput implements OperationInput
 {
     /**

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Feeds;
-
 /**
  * A stored path read as a feed address (I-299): WordPress's spellings, which
  * are the base, then `feed`, or `feed/{name}`, or a bare `{name}`, with the
  * names feed, rdf, rss, rss2 and atom. Says what the base is and whether the
  * path is already the one canonical spelling, `{base}/feed`.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Feeds;
+
 final readonly class FeedPath
 {
     /** The names WordPress gives a feed (`$wp_rewrite->feeds`). */

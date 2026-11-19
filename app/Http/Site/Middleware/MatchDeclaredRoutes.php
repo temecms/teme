@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Checks declared routes in front of the public site's own routes: whatever
+ * entry the registry matches, conditional or not, answers; only when none
+ * matches does the request pass through unchanged.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Middleware;
@@ -13,11 +23,6 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-/**
- * Checks declared routes in front of the public site's own routes: whatever
- * entry the registry matches, conditional or not, answers; only when none
- * matches does the request pass through unchanged.
- */
 final class MatchDeclaredRoutes
 {
     public function __construct(

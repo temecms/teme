@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Settings › AI (I-1308): a screen of its own for the `ai` group, saved by
+ * UpdateSettings as the generic form saves any group. It changes nothing
+ * itself, and no key it is given reaches the session.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -18,11 +28,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * Settings › AI (I-1308): a screen of its own for the `ai` group, saved by
- * UpdateSettings as the generic form saves any group. It changes nothing
- * itself, and no key it is given reaches the session.
- */
 final class AiSettingsController extends Controller
 {
     public function show(Request $request, AiSettingsScreen $screen): Response

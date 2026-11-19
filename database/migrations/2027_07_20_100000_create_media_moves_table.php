@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Migration: creates media moves table.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;

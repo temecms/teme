@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A reply is written, changed and taken back only by the remote account
+ * itself, verified by its signature, as the inbox's job runs it: never by
+ * a person, and never for another account.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Replies\Operations\Concerns;
@@ -8,11 +18,6 @@ use App\Domain\Fediverse\Models\RemoteActor;
 use App\Domain\Fediverse\Replies\Operations\Input\FediverseReplyInput;
 use Illuminate\Auth\Access\AuthorizationException;
 
-/**
- * A reply is written, changed and taken back only by the remote account
- * itself, verified by its signature, as the inbox's job runs it: never by
- * a person, and never for another account.
- */
 trait WrittenByTheSender
 {
     /**

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The API's two envelopes: one thing as `data` with its `links`, and a list
+ * as `data` with `meta.limit` and `links.self` and `links.next`; `data`,
+ * `meta` and `links` are the only top-level members of a success.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api;
@@ -7,11 +17,6 @@ namespace App\Domain\Api;
 use Illuminate\Http\JsonResponse;
 use stdClass;
 
-/**
- * The API's two envelopes: one thing as `data` with its `links`, and a list
- * as `data` with `meta.limit` and `links.self` and `links.next`; `data`,
- * `meta` and `links` are the only top-level members of a success.
- */
 final class ApiResponse
 {
     /**

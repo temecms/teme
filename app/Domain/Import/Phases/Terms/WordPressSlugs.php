@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Import\Phases\Terms;
-
 /**
  * A WordPress slug as Teme keeps it (I-397): percent-encoding decoded, so
  * caf%c3%a9 stays café at the same address, and anything Teme's slugs
  * can't hold turned into single hyphens, so its caller can say the address
  * changed. People's author addresses use it too.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Import\Phases\Terms;
+
 final class WordPressSlugs
 {
     /** Teme's slug rule, as ValidatesTerms holds it: letters and numbers of any script, lower-case, joined by single hyphens. */

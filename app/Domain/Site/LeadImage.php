@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * An article's lead image, the one it loads first (I-245), decided exactly:
+ * its featured image when it has one and the theme shows it; otherwise an
+ * image card placed before any paragraph, heading or list with text;
+ * otherwise none. An image in the trash is never the lead.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site;
@@ -11,12 +22,6 @@ use App\Domain\Fields\BuiltInFields;
 use App\Domain\Site\ViewModels\ImageRef;
 use Illuminate\Support\Facades\DB;
 
-/**
- * An article's lead image, the one it loads first (I-245), decided exactly:
- * its featured image when it has one and the theme shows it; otherwise an
- * image card placed before any paragraph, heading or list with text;
- * otherwise none. An image in the trash is never the lead.
- */
 final class LeadImage
 {
     /** The node types that end the search for an opening image card, once they hold text. */

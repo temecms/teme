@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Wires themes: discovery, the active theme and its composers, once per
+ * request or job; core's own views under `teme::`; the `design` settings
+ * group, and each theme's `theme.{code}` group of its own settings and
+ * navigation slots; and the theme cache, which `optimize` builds and
+ * `optimize:clear` removes. Boot reads no setting: `theme::` is pointed when
+ * the active theme is first read.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -23,14 +36,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
-/**
- * Wires themes: discovery, the active theme and its composers, once per
- * request or job; core's own views under `teme::`; the `design` settings
- * group, and each theme's `theme.{code}` group of its own settings and
- * navigation slots; and the theme cache, which `optimize` builds and
- * `optimize:clear` removes. Boot reads no setting: `theme::` is pointed when
- * the active theme is first read.
- */
 final class ThemeServiceProvider extends ServiceProvider
 {
     public function register(): void

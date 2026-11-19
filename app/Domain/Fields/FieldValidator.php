@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Checks the fields submitted for one content item against the registry and
+ * returns them as they are stored: known keys only, each value normalised.
+ * Missing fields are not filled in — defaults resolve when read. A
+ * plugin's Search and social values are checked by PluginSearchFields.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fields;
@@ -8,12 +19,6 @@ use App\Domain\Plugins\Seo\PluginSearchFields;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Checks the fields submitted for one content item against the registry and
- * returns them as they are stored: known keys only, each value normalised.
- * Missing fields are not filled in — defaults resolve when read. A
- * plugin's Search and social values are checked by PluginSearchFields.
- */
 final class FieldValidator
 {
     public function __construct(private readonly FieldRegistry $registry) {}

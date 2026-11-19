@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What the Operations a step calls on one object share (I-332): the run,
+ * held while it writes so a stop waits for it, and the object's own
+ * messages of one kind written again, each run listing each once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations\Concerns;
@@ -10,11 +20,6 @@ use App\Domain\Import\Models\ImportMessageRecord;
 use App\Domain\Import\Models\ImportRun;
 use App\Domain\Import\Phases\ImportMessage;
 
-/**
- * What the Operations a step calls on one object share (I-332): the run,
- * held while it writes so a stop waits for it, and the object's own
- * messages of one kind written again, each run listing each once.
- */
 trait NotesObjects
 {
     /**

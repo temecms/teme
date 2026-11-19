@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * A moderator's answer for one comment: approved, held for a person to decide,
+ * or spam, with one sentence saying why and the signals it saw.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Comments;

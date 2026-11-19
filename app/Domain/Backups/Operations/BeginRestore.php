@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Records that a restore begins, in this database's security log, before anything is written: a restore that stops early is in the log it leaves.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -11,9 +19,6 @@ use App\Domain\Security\SecurityLog;
 use App\Domain\Support\Operations\BaseOperation;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records that a restore begins, in this database's security log, before anything is written: a restore that stops early is in the log it leaves.
- */
 final class BeginRestore extends BaseOperation
 {
     use AuthorizesRestores;

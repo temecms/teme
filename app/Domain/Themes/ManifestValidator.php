@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Checks a teme-theme.json against manifest version 1 and the theme's own
+ * files, and says in plain words what is wrong. A theme with any error is
+ * broken and never used. The code's folder rule and duplicate codes need the
+ * other themes, so ThemeRegistry checks those; later parts (1.6c onward)
+ * extend this for the keys they bring into use.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Themes;
@@ -12,13 +24,6 @@ use Composer\Semver\Semver;
 use Teme\Contracts\Settings\Setting;
 use UnexpectedValueException;
 
-/**
- * Checks a teme-theme.json against manifest version 1 and the theme's own
- * files, and says in plain words what is wrong. A theme with any error is
- * broken and never used. The code's folder rule and duplicate codes need the
- * other themes, so ThemeRegistry checks those; later parts (1.6c onward)
- * extend this for the keys they bring into use.
- */
 final class ManifestValidator
 {
     /** A theme's code, as a route constrains its parameter: 2 to 40 lower-case letters, digits and hyphens. */

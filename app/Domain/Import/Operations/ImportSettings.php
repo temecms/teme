@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Writes the settings one step of an import brings (I-342), and that step's
+ * map row, in one transaction: each value goes in unless a person changed it
+ * since the import last wrote it, which the row's fingerprints tell. The
+ * address settings go through ImportAddresses, the rest as the import's.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -24,12 +35,6 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Writes the settings one step of an import brings (I-342), and that step's
- * map row, in one transaction: each value goes in unless a person changed it
- * since the import last wrote it, which the row's fingerprints tell. The
- * address settings go through ImportAddresses, the rest as the import's.
- */
 final class ImportSettings extends BaseOperation
 {
     use AuthorizesImports;

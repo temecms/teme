@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The API's items: the list, one item, and an item by its address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Http\Api\V1\ItemsController;

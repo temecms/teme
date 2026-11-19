@@ -1,14 +1,19 @@
 <?php
 
+/**
+ * What one job of a step did: its messages for the run, and the cursor the next job starts at, or none when the step is done.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases;
 
 use InvalidArgumentException;
 
-/**
- * What one job of a step did: its messages for the run, and the cursor the next job starts at, or none when the step is done.
- */
 final readonly class StepResult
 {
     /**

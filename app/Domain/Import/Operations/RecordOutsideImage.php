@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Records what became of an image an outside site's post showed (I-1703):
+ * its map row of type outside-image, keyed by its address, with the run
+ * that met it, created or replaced, so the report lists every one.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -15,11 +25,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Records what became of an image an outside site's post showed (I-1703):
- * its map row of type outside-image, keyed by its address, with the run
- * that met it, created or replaced, so the report lists every one.
- */
 final class RecordOutsideImage extends BaseOperation
 {
     use AuthorizesImports;

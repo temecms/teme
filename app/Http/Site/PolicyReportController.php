@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Where browsers post the public site's policy reports (I-3375). Anyone may
+ * send one, so it writes none of Teme's tables: what it can read it appends
+ * to the spool, which RecordPolicyReports adds up a minute later, and it
+ * answers 204 whatever happened, so a sender learns nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site;
@@ -11,12 +22,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Where browsers post the public site's policy reports (I-3375). Anyone may
- * send one, so it writes none of Teme's tables: what it can read it appends
- * to the spool, which RecordPolicyReports adds up a minute later, and it
- * answers 204 whatever happened, so a sender learns nothing.
- */
 final class PolicyReportController extends Controller
 {
     /** The most bytes of a report body that is read. */

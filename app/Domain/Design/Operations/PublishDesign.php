@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Publishes every design draft at once, through SettingsWriter, so the
+ * settings history records it. Only the keys a draft holds are written, so
+ * every other setting keeps its live value, including a menu placed on
+ * Content › Navigation after the draft was saved. Either everything
+ * publishes or nothing does, and every page drawn in the design is purged
+ * after commit, through SettingsWriter.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Design\Operations;
@@ -15,14 +28,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Publishes every design draft at once, through SettingsWriter, so the
- * settings history records it. Only the keys a draft holds are written, so
- * every other setting keeps its live value, including a menu placed on
- * Content › Navigation after the draft was saved. Either everything
- * publishes or nothing does, and every page drawn in the design is purged
- * after commit, through SettingsWriter.
- */
 final class PublishDesign extends BaseOperation
 {
     use ManagesDesign;

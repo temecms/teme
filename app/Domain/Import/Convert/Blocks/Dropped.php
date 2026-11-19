@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Blocks left out (I-335): core's dynamic blocks, which
+ * WordPress draws when the page loads and Teme's theme does instead, and
+ * tables of contents, each named in the report; page breaks, reported as
+ * pages joined; spacers and markers, without a word.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Convert\Blocks;
@@ -8,12 +19,6 @@ use App\Domain\Import\Convert\BlockContext;
 use App\Domain\Import\Convert\BlockMapping;
 use App\Domain\Import\Convert\ParsedBlock;
 
-/**
- * Blocks left out (I-335): core's dynamic blocks, which
- * WordPress draws when the page loads and Teme's theme does instead, and
- * tables of contents, each named in the report; page breaks, reported as
- * pages joined; spacers and markers, without a word.
- */
 final readonly class Dropped implements BlockMapping
 {
     /** Core's dynamic blocks: those WordPress draws with a PHP file in wp-includes/blocks. */

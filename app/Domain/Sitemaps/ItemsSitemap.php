@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A child for each public content type with addresses and a live item
+ * (I-296): its listed items in every shown language, in ID order, each at
+ * its address with when it last changed, its images, and its other
+ * language versions (I-3360). A type its hide box hides has none, as its
+ * pages say noindex.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Sitemaps;
@@ -16,13 +28,6 @@ use App\Domain\Sitemaps\Queries\SitemapImages;
 use App\Domain\Types\ContentTypeRegistry;
 use Carbon\CarbonImmutable;
 
-/**
- * A child for each public content type with addresses and a live item
- * (I-296): its listed items in every shown language, in ID order, each at
- * its address with when it last changed, its images, and its other
- * language versions (I-3360). A type its hide box hides has none, as its
- * pages say noindex.
- */
 final readonly class ItemsSitemap implements SitemapProvider
 {
     public const string PREFIX = 'items-';

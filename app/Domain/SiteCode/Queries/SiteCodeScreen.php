@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What Settings › Site code shows (I-866): every entry by placement, with
+ * who changed it last and when; whether the host has switched site code
+ * off; and the newest changes, read from the security log for display only,
+ * each with the entry before and after it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Queries;
@@ -14,12 +25,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What Settings › Site code shows (I-866): every entry by placement, with
- * who changed it last and when; whether the host has switched site code
- * off; and the newest changes, read from the security log for display only,
- * each with the entry before and after it.
- */
 final readonly class SiteCodeScreen
 {
     /** How many changes the screen lists, newest first. */
@@ -118,6 +123,8 @@ final readonly class SiteCodeScreen
      * code, which only administrators see.
      *
      * @return list<array{id: string, name: string, on: bool}>
+     *
+     * @since 1.0.0
      */
     public static function placed(): array
     {

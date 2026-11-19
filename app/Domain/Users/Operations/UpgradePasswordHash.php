@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Replaces the stored hash of your password with Argon2id at the configured
+ * costs, after you have signed in with it (I-124): a hash imported from
+ * WordPress, an older bcrypt one, or Argon2id at other costs. It checks the
+ * password itself and writes nothing unless it matches; the password stays
+ * the same, so sessions and the remember token are kept.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -15,13 +27,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Replaces the stored hash of your password with Argon2id at the configured
- * costs, after you have signed in with it (I-124): a hash imported from
- * WordPress, an older bcrypt one, or Argon2id at other costs. It checks the
- * password itself and writes nothing unless it matches; the password stays
- * the same, so sessions and the remember token are kept.
- */
 final class UpgradePasswordHash extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

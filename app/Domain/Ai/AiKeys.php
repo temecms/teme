@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * The one rule for the keys of AI providers, tasks and settings sections:
+ * lower-case words joined by hyphens, each key once in its registry.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
 
 use InvalidArgumentException;
 
-/**
- * The one rule for the keys of AI providers, tasks and settings sections:
- * lower-case words joined by hyphens, each key once in its registry.
- */
 final class AiKeys
 {
     public const string PATTERN = '/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/';

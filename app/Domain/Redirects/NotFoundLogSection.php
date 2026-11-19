@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Search and social's section "The 404 log" (I-874): how many addresses the
+ * log keeps, and which it ignores. The minute's run reads both and applies
+ * them, never a reader's request, so a stored "not found" page is still
+ * served without the database (I-298).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects;
@@ -10,12 +21,6 @@ use App\Domain\Seo\SearchAndSocialSection;
 use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Search and social's section "The 404 log" (I-874): how many addresses the
- * log keeps, and which it ignores. The minute's run reads both and applies
- * them, never a reader's request, so a stored "not found" page is still
- * served without the database (I-298).
- */
 final class NotFoundLogSection implements SearchAndSocialSection
 {
     public const string SIZE = 'not_found_log_size';

@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Whether the source's copies may be deleted after a move (I-3456): only
+ * once the site reads the target for every role moved, the latest finished
+ * copy found no failure and began after that switch, an unbroken chain of
+ * catch-ups leads back from it to a full copy with no failure, and no
+ * backup or other move is working.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Storage;
@@ -9,13 +21,6 @@ use App\Domain\Media\MediaLocations;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Whether the source's copies may be deleted after a move (I-3456): only
- * once the site reads the target for every role moved, the latest finished
- * copy found no failure and began after that switch, an unbroken chain of
- * catch-ups leads back from it to a full copy with no failure, and no
- * backup or other move is working.
- */
 final readonly class MoveGate
 {
     public function __construct(private BackupLock $backups, private MediaMoveLock $moves) {}

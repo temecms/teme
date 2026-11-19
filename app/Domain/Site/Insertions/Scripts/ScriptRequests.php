@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Asks for the inline scripts in a piece of a plugin's markup to be
+ * approved, each through RequestPluginScript, as core does when a code
+ * field that may hold scripts is saved; and says how many wait.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Scripts;
@@ -8,11 +18,6 @@ use App\Domain\Site\Insertions\Operations\Input\RequestPluginScriptInput;
 use App\Domain\Site\Insertions\Operations\RequestPluginScript;
 use Dom\HTMLDocument;
 
-/**
- * Asks for the inline scripts in a piece of a plugin's markup to be
- * approved, each through RequestPluginScript, as core does when a code
- * field that may hold scripts is saved; and says how many wait.
- */
 final class ScriptRequests
 {
     /**

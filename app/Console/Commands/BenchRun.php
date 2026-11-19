@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:bench:run`: replays every list, filter, search, term screen and quick
+ * edit against the seeded benchmark database, checks each against its budget
+ * and query-plan rules, and writes the result to docs/benchmarks/. It only
+ * ever touches a database whose name ends in _bench.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -11,12 +22,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-/**
- * `teme:bench:run`: replays every list, filter, search, term screen and quick
- * edit against the seeded benchmark database, checks each against its budget
- * and query-plan rules, and writes the result to docs/benchmarks/. It only
- * ever touches a database whose name ends in _bench.
- */
 final class BenchRun extends Command
 {
     /** @var string */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Imports a CSV file of redirects through ImportRedirects (I-872): a file
+ * that imports whole says so in a toast; one with lines left out leaves
+ * its report for the list to show once. It changes nothing itself.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -13,11 +23,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-/**
- * Imports a CSV file of redirects through ImportRedirects (I-872): a file
- * that imports whole says so in a toast; one with lines left out leaves
- * its report for the list to show once. It changes nothing itself.
- */
 final class ImportRedirectsController extends Controller
 {
     /** The largest file taken: 5,000 lines of redirects fit with room to spare. */

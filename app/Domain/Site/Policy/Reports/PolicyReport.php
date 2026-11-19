@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Policy\Reports;
-
 /**
  * One policy violation a browser reported (I-3375), reduced to what Teme
  * keeps: the directive, the blocked origin or keyword, the page's path, how
  * the policy was sent, and for an inline script or eval its short sample.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Policy\Reports;
+
 final readonly class PolicyReport
 {
     /** The directives a report may name: the fetch and document directives CSP3 lists. */

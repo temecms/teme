@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * How the export writes JSON (I-365): JSONB read back as objects, so an
+ * empty object stays an object; one line per value; zero fractions,
+ * slashes and every script kept, and the line and paragraph separators
+ * escaped; times in UTC. A value that can't be written fails the export.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Export;
@@ -7,12 +18,6 @@ namespace App\Domain\Export;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 
-/**
- * How the export writes JSON (I-365): JSONB read back as objects, so an
- * empty object stays an object; one line per value; zero fractions,
- * slashes and every script kept, and the line and paragraph separators
- * escaped; times in UTC. A value that can't be written fails the export.
- */
 final class ExportJson
 {
     public const int FLAGS = JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION;

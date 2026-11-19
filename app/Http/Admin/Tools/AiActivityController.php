@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tools › AI activity (I-1307): every AI request in the record, a page at a
+ * time, narrowed by person, task and month, with the month's spend above it
+ * and a drawer that has its own address. It reads only; nothing here changes
+ * anything, and a filter it cannot read is ignored.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
@@ -18,12 +29,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Tools › AI activity (I-1307): every AI request in the record, a page at a
- * time, narrowed by person, task and month, with the month's spend above it
- * and a drawer that has its own address. It reads only; nothing here changes
- * anything, and a filter it cannot read is ignored.
- */
 final class AiActivityController extends Controller
 {
     public function __invoke(Request $request, AiActivityList $list, AiActivityFilters $filters, AiMonthSummary $summary, AiAvailability $availability, SettingsReader $settings, AltTextChanges $altTextChanges): Response

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The items that have a plain-text `.md` copy (I-713): exactly those the
+ * sitemap lists and /llms.txt may name, found by the address the copy is at.
+ * The page shown as the home page is `/index.md`. Everything else is left
+ * to the public site, which answers it as it would any address.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Llms;
@@ -18,12 +29,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The items that have a plain-text `.md` copy (I-713): exactly those the
- * sitemap lists and /llms.txt may name, found by the address the copy is at.
- * The page shown as the home page is `/index.md`. Everything else is left
- * to the public site, which answers it as it would any address.
- */
 final class MarkdownPages
 {
     /**

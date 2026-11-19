@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A commenter's picture (I-269): their initials on a colour made from their
+ * name, never a photo fetched from another service and never from their
+ * email address, which is never shown.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
 
 use Normalizer;
 
-/**
- * A commenter's picture (I-269): their initials on a colour made from their
- * name, never a photo fetched from another service and never from their
- * email address, which is never shown.
- */
 final class CommentPicture
 {
     /** How many colours a picture may take. */

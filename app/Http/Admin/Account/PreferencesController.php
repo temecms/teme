@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The person's own preferences screen, drawn from the registry with the
+ * settings screen's components, and the one way to change them, through
+ * UpdatePreferences. A background save — the rail's width, the light or dark
+ * switch — asks for JSON and gets 204, so nothing re-renders. The comment
+ * notice choices are Account › Notifications' (I-691).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Account;
@@ -16,13 +28,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
-/**
- * The person's own preferences screen, drawn from the registry with the
- * settings screen's components, and the one way to change them, through
- * UpdatePreferences. A background save — the rail's width, the light or dark
- * switch — asks for JSON and gets 204, so nothing re-renders. The comment
- * notice choices are Account › Notifications' (I-691).
- */
 final class PreferencesController extends Controller
 {
     public function edit(Request $request, PreferenceRegistry $registry): Response

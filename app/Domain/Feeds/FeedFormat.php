@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Feeds;
-
 /**
  * A way of writing a Feed (I-308): its name, the type it is served as, and
  * the document. RSS 2.0 is the one that exists; Atom and JSON Feed are one
  * more class each.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Feeds;
+
 interface FeedFormat
 {
     /**

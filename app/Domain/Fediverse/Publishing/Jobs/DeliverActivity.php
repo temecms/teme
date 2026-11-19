@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Delivers one activity to one inbox (docs/plans/fediverse-publishing.md,
+ * D3), as the site's own work: skipped for a blocked server, a server
+ * failing for 7 days (tried once a day to learn it answers again); left
+ * queued, untried, by a copy of the site at another address or outside
+ * production; otherwise signed and posted, and RecordDelivery keeps what
+ * came of it, putting a fresh job on the queue for the next try. At most
+ * four deliveries reach one server at a time: each takes one of four locks
+ * named for its host. A job may wait a day for its lock; one that gives up
+ * puts its delivery back on the queue.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Publishing\Jobs;
@@ -24,17 +40,6 @@ use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
 
-/**
- * Delivers one activity to one inbox (docs/plans/fediverse-publishing.md,
- * D3), as the site's own work: skipped for a blocked server, a server
- * failing for 7 days (tried once a day to learn it answers again); left
- * queued, untried, by a copy of the site at another address or outside
- * production; otherwise signed and posted, and RecordDelivery keeps what
- * came of it, putting a fresh job on the queue for the next try. At most
- * four deliveries reach one server at a time: each takes one of four locks
- * named for its host. A job may wait a day for its lock; one that gives up
- * puts its delivery back on the queue.
- */
 final class DeliverActivity implements ShouldQueue
 {
     use Queueable;

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * Turns an address on this site back into what it leads to, so a link
  * written as an address is stored by ID (rule 9): an article, a term, an
  * author or a library file. LinkResolver answers the other way, at render
  * time.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 interface InternalLinks
 {
     /**

@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A byline as the API gives it: name, slug, address and bio, as the
+ * person's author page shows them. A person need not have an account.
+ * Never an ID, an email or a role.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Shapes;
 
 use App\Domain\Addresses\Addresses;
 
-/**
- * A byline as the API gives it: name, slug, address and bio, as the
- * person's author page shows them. A person need not have an account.
- * Never an ID, an email or a role.
- */
 final class AuthorShape
 {
     /**

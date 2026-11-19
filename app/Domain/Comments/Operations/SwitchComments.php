@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Switches comments on or off for the whole site (I-077, I-485; 1.8d's D3):
+ * the `modules` group's switch, at the top of Settings › Discussion, changed
+ * by whoever holds settings.modules.manage, against the version the form was
+ * opened on. Every page is purged after commit, as the group declares (I-484).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -16,12 +27,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Switches comments on or off for the whole site (I-077, I-485; 1.8d's D3):
- * the `modules` group's switch, at the top of Settings › Discussion, changed
- * by whoever holds settings.modules.manage, against the version the form was
- * opened on. Every page is purged after commit, as the group declares (I-484).
- */
 final class SwitchComments extends BaseOperation
 {
     public function __construct(

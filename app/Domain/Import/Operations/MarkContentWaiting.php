@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Marks for the content phase the posts and pages whose media was missing
+ * (I-338), once a run's media phase has brought media: their map rows
+ * become work again, so the same run converts them with what came. Only
+ * an import's actor may call it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -15,12 +26,6 @@ use App\Domain\Support\Operations\BaseOperation;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Marks for the content phase the posts and pages whose media was missing
- * (I-338), once a run's media phase has brought media: their map rows
- * become work again, so the same run converts them with what came. Only
- * an import's actor may call it.
- */
 final class MarkContentWaiting extends BaseOperation
 {
     use AuthorizesImports;

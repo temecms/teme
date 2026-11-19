@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * After posts and pages (I-553): each imported attachment's item records
+ * the post or page WordPress uploaded it to as its Uploaded for, never
+ * overwritten, and its attachment page answers with a 301 to that post, or
+ * to the file by ID when it has none. Two hundred a job, in the map's
+ * order; a run carried on runs it again and finds nothing left.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Media;
@@ -20,13 +32,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-/**
- * After posts and pages (I-553): each imported attachment's item records
- * the post or page WordPress uploaded it to as its Uploaded for, never
- * overwritten, and its attachment page answers with a 301 to that post, or
- * to the file by ID when it has none. Two hundred a job, in the map's
- * order; a run carried on runs it again and finds nothing left.
- */
 final readonly class MediaParentsStep implements StepPhase
 {
     public const int PAGE = 200;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Have I Been Pwned by k-anonymity: only five characters of the SHA-1 hash
+ * leave the server. Fails open — an outage must never stop an editor setting
+ * a password — and says so in the log. Study G, S3.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Security;
@@ -9,11 +19,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-/**
- * Have I Been Pwned by k-anonymity: only five characters of the SHA-1 hash
- * leave the server. Fails open — an outage must never stop an editor setting
- * a password — and says so in the log. Study G, S3.
- */
 final class BreachedPasswordVerifier implements UncompromisedVerifier
 {
     private const int TIMEOUT_SECONDS = 3;

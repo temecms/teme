@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Returns a pending review to its writer with a note saying why, which the
+ * writer sees in the editor until they submit again. A draft in review goes
+ * back to being a draft; a live article stays published.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations;
@@ -13,11 +23,6 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Returns a pending review to its writer with a note saying why, which the
- * writer sees in the editor until they submit again. A draft in review goes
- * back to being a draft; a live article stays published.
- */
 final class ReturnForChanges extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

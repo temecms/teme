@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Deletes one chunk of AI activity rows made before a moment, as the
+ * operator (I-318: kept 12 months). The months' totals stay.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Operations;
@@ -12,10 +21,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes one chunk of AI activity rows made before a moment, as the
- * operator (I-318: kept 12 months). The months' totals stay.
- */
 final class PruneAiActivity extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

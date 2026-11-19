@@ -1,18 +1,23 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
-use Illuminate\Validation\Rule;
-
 /**
  * What a stored document may contain beyond its cards: the prose nodes and
  * marks, the attributes each may carry and the rule each value must pass
  * (a heading, paragraph, quote, code block, list item, task item or table
  * may carry an optional `id`), the link rules, and the size limits. DocumentValidator refuses anything
  * outside it; the cards declare their own attributes.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
+use Illuminate\Validation\Rule;
+
 final class DocumentSchema
 {
     /** @var list<string> */

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What a plugin asks ContentWriter::create() to make: a draft of this type
+ * with this title, body, fields and terms, and when given its slug, the people
+ * it credits and the item it is a translation of.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

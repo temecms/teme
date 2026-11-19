@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The check on a plugin's settings group when the plugin names a root file
+ * from a setting (docs/guides/developers/plugins/root-files.md): a value whose filled name another
+ * plugin answers now is refused when it is saved, so two plugins never
+ * claim one address. Registered for each such group as its plugin starts.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\PublicRoutes;
@@ -8,12 +19,6 @@ use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Settings\SettingsCheck;
 use Illuminate\Contracts\Container\Container;
 
-/**
- * The check on a plugin's settings group when the plugin names a root file
- * from a setting (docs/guides/developers/plugins/root-files.md): a value whose filled name another
- * plugin answers now is refused when it is saved, so two plugins never
- * claim one address. Registered for each such group as its plugin starts.
- */
 final readonly class RootFileNames implements SettingsCheck
 {
     public function __construct(

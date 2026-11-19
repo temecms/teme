@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The password readers give for an item protected by one (I-1700): its
+ * rules; sealed with the application key, so whoever sets it can read it
+ * back to share it; opened only here; and the key a reader's cookie holds
+ * for it once they have given it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -9,12 +20,6 @@ use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
 use SensitiveParameter;
 
-/**
- * The password readers give for an item protected by one (I-1700): its
- * rules; sealed with the application key, so whoever sets it can read it
- * back to share it; opened only here; and the key a reader's cookie holds
- * for it once they have given it.
- */
 final class ReaderPasswords
 {
     /** The longest password, in characters, as WordPress's post_password holds. */

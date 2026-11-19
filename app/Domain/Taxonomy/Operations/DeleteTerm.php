@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Deletes a category or tag. A category's children move up to its parent.
+ * Its assignments disappear from the projection; revisions keep the ID and
+ * the projection skips it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy\Operations;
@@ -18,11 +28,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Deletes a category or tag. A category's children move up to its parent.
- * Its assignments disappear from the projection; revisions keep the ID and
- * the projection skips it.
- */
 final class DeleteTerm extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

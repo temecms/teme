@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One result in a person's inbox: what it says, where it leads, and whether
+ * they've read it (I-221). Only the inbox Operations write it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Inbox\Models;
@@ -8,9 +17,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * One result in a person's inbox: what it says, where it leads, and whether
- * they've read it (I-221). Only the inbox Operations write it.
- *
  * @property string $id
  * @property int $user_id
  * @property string $kind

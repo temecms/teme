@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Says whether every folder Teme writes to while it runs can be written
+ * (I-378): the same folders /up checks, but naming each one that can't.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health\Checks;
@@ -9,10 +18,6 @@ use App\Domain\Deployment\Health\Finding;
 use App\Domain\Deployment\Health\HealthFolders;
 use App\Domain\Deployment\Health\Severity;
 
-/**
- * Says whether every folder Teme writes to while it runs can be written
- * (I-378): the same folders /up checks, but naming each one that can't.
- */
 final readonly class Storage implements DoctorCheck
 {
     public function title(): string

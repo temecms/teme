@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a setting's value must be, and the form it is stored in, shared by
+ * every writer: UpdateSettings and SettingsWriter for live values, and
+ * SaveDesignDraft for drafts, so a draft holds each value exactly as
+ * publishing it would store it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings;
@@ -14,24 +25,30 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsGroup;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * What a setting's value must be, and the form it is stored in, shared by
- * every writer: UpdateSettings and SettingsWriter for live values, and
- * SaveDesignDraft for drafts, so a draft holds each value exactly as
- * publishing it would store it.
- */
 final class SettingRules
 {
     /** An address on another site: http or https, a host, then anything without spaces. */
     private const string ADDRESS = '~^https?://[^\s/?#@]+(?:[/?#]\S*)?$~iu';
 
-    /** The most terms one term setting holds. */
+    /**
+     * The most terms one term setting holds.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_TERMS = 100;
 
-    /** The longest a code setting may be. */
+    /**
+     * The longest a code setting may be.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_CODE = 65_535;
 
-    /** The most items a repeater holds when its max isn't set. */
+    /**
+     * The most items a repeater holds when its max isn't set.
+     *
+     * @since 1.0.0
+     */
     public const int MOST_ITEMS = 20;
 
     /** An opening or closing time: 24-hour hours and minutes. */

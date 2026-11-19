@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * What RecordBulkRunStep needs: the run, the cursor the step read its page
+ * from and the cursor past it, the rows it handled, what it skipped by
+ * reason, the first refusal's words, and the run's person.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What RecordBulkRunStep needs: the run, the cursor the step read its page
- * from and the cursor past it, the rows it handled, what it skipped by
- * reason, the first refusal's words, and the run's person.
- */
 final readonly class RecordBulkRunStepInput implements OperationInput
 {
     /**

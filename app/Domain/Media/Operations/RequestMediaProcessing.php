@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Queues an image's variants to be made again — the library's Retry. Anyone
+ * who may change the item can ask.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -15,10 +24,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Queues an image's variants to be made again — the library's Retry. Anyone
- * who may change the item can ask.
- */
 final class RequestMediaProcessing extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

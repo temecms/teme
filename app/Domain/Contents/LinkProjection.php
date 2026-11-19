@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Keeps content_links equal to what an item's revisions say, as
+ * TermProjection does for terms: the articles the working revision links to
+ * while the item is live, and the published revision's while it is live and
+ * published. Links are derived, never authored, so this can always be rerun.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents;
@@ -9,12 +20,6 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Contents\Models\ContentRevision;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Keeps content_links equal to what an item's revisions say, as
- * TermProjection does for terms: the articles the working revision links to
- * while the item is live, and the published revision's while it is live and
- * published. Links are derived, never authored, so this can always be rerun.
- */
 final class LinkProjection
 {
     /**

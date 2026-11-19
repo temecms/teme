@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Every redirect written out (I-872): as CSV, to edit and import again, and
+ * as nginx rules, for a server in front of the site. Items are written at
+ * their current addresses and files at their public ones, read 500
+ * redirects at a time, so a million never sit in memory at once.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Redirects\Queries;
@@ -17,12 +28,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-/**
- * Every redirect written out (I-872): as CSV, to edit and import again, and
- * as nginx rules, for a server in front of the site. Items are written at
- * their current addresses and files at their public ones, read 500
- * redirects at a time, so a million never sit in memory at once.
- */
 final readonly class RedirectExport
 {
     /** How many redirects are read at a time. */

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * A translation group's versions and whether each is out of date (I-3360,
+ * D9): worked out from the revision each was translated from, never stored.
+ * A version is out of date when the item that revision belongs to, still
+ * live, has published a newer revision since.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -8,12 +19,6 @@ use App\Domain\Contents\Models\Content;
 use App\Domain\Languages\SiteLanguages;
 use Illuminate\Support\Facades\DB;
 
-/**
- * A translation group's versions and whether each is out of date (I-3360,
- * D9): worked out from the revision each was translated from, never stored.
- * A version is out of date when the item that revision belongs to, still
- * live, has published a newer revision since.
- */
 final readonly class TranslationStatus
 {
     public function __construct(private SiteLanguages $languages) {}

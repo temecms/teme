@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tells whoever may manage plugins when one isn't doing its work (I-3353):
+ * an error when an enabled plugin can't run, else a warning when Teme
+ * disabled one, else a warning when one stopped part of its work. A plugin
+ * a person or the server disabled says nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Status\Checks;
@@ -13,12 +24,6 @@ use App\Domain\Plugins\Queries\PluginRow;
 use App\Domain\Status\StatusBanner;
 use App\Domain\Status\StatusCheck;
 
-/**
- * Tells whoever may manage plugins when one isn't doing its work (I-3353):
- * an error when an enabled plugin can't run, else a warning when Teme
- * disabled one, else a warning when one stopped part of its work. A plugin
- * a person or the server disabled says nothing.
- */
 final readonly class PluginsRunning implements StatusCheck
 {
     public function __construct(
@@ -31,6 +36,9 @@ final readonly class PluginsRunning implements StatusCheck
         return PluginAccess::MANAGE;
     }
 
+    /**
+     * @since 0.8.0-alpha.1
+     */
     public function label(): string
     {
         return __('Plugins');

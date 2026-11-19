@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Tells a plugin's editor panel that the person used or discarded one of
+ * its suggestions (docs/proposals/plugin-sockets-3.md). The plugin's own
+ * writes happen inside this transaction, under a 2-second budget; a
+ * refusal, a fault or a call over budget rolls them all back.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Operations;
@@ -22,12 +33,6 @@ use Teme\Contracts\Editor\Suggestion;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * Tells a plugin's editor panel that the person used or discarded one of
- * its suggestions (docs/proposals/plugin-sockets-3.md). The plugin's own
- * writes happen inside this transaction, under a 2-second budget; a
- * refusal, a fault or a call over budget rolls them all back.
- */
 final class SettleEditorSuggestion extends BaseOperation
 {
     /** The longest the plugin's settled() may take, in milliseconds. */

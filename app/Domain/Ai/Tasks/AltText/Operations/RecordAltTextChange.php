@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Keeps an image's alt text from before and after a person used AI's
+ * suggestion for it (I-1312), so an administrator can put the old one back:
+ * the one exception to the record keeping figures only. Run inside
+ * ApplyAiSuggestion, before the request is settled, by the person who asked.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Tasks\AltText\Operations;
@@ -18,12 +29,6 @@ use Illuminate\Support\Facades\Gate;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Keeps an image's alt text from before and after a person used AI's
- * suggestion for it (I-1312), so an administrator can put the old one back:
- * the one exception to the record keeping figures only. Run inside
- * ApplyAiSuggestion, before the request is settled, by the person who asked.
- */
 final class RecordAltTextChange extends BaseOperation
 {
     /** As long as an image's alt text can be (UpdateMediaDetails). */

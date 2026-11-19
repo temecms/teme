@@ -1,22 +1,30 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Ai;
-
-use InvalidArgumentException;
-
 /**
  * One request to one model: its messages, the
  * images that go with the user's, an optional JSON schema the answer must
  * follow, a limit on the answer's tokens and a timeout. The timeout stays
  * under the queue worker's 60 seconds (I-320); a long request, made only
  * inside a long job whose worker allows 1,800, may wait up to 600.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Ai;
+
+use InvalidArgumentException;
+
 final readonly class AiRequest
 {
     public const int MAX_TIMEOUT = 55;
 
+    /**
+     * @since 1.0.0
+     */
     public const int MAX_LONG_TIMEOUT = 600;
 
     public const int MAX_OUTPUT_TOKENS = 64_000;

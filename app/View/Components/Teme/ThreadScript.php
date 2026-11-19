@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * `<x-teme::thread-script>`: core's comments script, pushed once onto the
+ * shell's stack.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Laravel's and Fortify's authentication events, into the security log.
+ * Fortify's own writes are I-100's exception; this is its second safeguard.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Security\Listeners;
@@ -18,10 +27,6 @@ use Laravel\Fortify\Events\TwoFactorAuthenticationDisabled;
 use Laravel\Fortify\Events\TwoFactorAuthenticationFailed;
 use Laravel\Fortify\Fortify;
 
-/**
- * Laravel's and Fortify's authentication events, into the security log.
- * Fortify's own writes are I-100's exception; this is its second safeguard.
- */
 final class RecordSecurityEvents
 {
     public function __construct(private readonly SecurityLog $log) {}

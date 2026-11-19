@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * What a site holds and what its public addresses answer, in lines two
+ * servers can compare after a restore (I-385): each table's rows, and each
+ * page asked as a reader would, drawn with the page cache off and the
+ * site's own host made neutral. It writes nothing itself; a page it asks
+ * writes what a reader's does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -10,13 +22,6 @@ use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What a site holds and what its public addresses answer, in lines two
- * servers can compare after a restore (I-385): each table's rows, and each
- * page asked as a reader would, drawn with the page cache off and the
- * site's own host made neutral. It writes nothing itself; a page it asks
- * writes what a reader's does.
- */
 final readonly class SiteFingerprint
 {
     /** The addresses every fingerprint asks first. */

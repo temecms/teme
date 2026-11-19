@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a Settings page draws besides its own group's form (I-440): the
+ * theme's own number of items a page and the home page on Reading, the
+ * brand colour on General, the image widths on Media. Each is null on a
+ * page that draws none. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
@@ -17,12 +28,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * What a Settings page draws besides its own group's form (I-440): the
- * theme's own number of items a page and the home page on Reading, the
- * brand colour on General, the image widths on Media. Each is null on a
- * page that draws none. It reads only.
- */
 final readonly class SettingsPageSections
 {
     public function __construct(private ActiveTheme $active, private ContentTypeRegistry $types, private SettingsReader $settings) {}

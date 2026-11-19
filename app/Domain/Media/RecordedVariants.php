@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * The result of recording variants: the paths the item no longer uses, which
+ * the caller deletes once the record has committed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media;
 
-/**
- * The result of recording variants: the paths the item no longer uses, which
- * the caller deletes once the record has committed.
- */
 final readonly class RecordedVariants
 {
     /**

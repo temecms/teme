@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The editor screen: it opens an article on the person's own autosave or the
+ * working revision, and turns their autosave into a revision when they save
+ * explicitly. It changes nothing itself; the Operations do.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -41,11 +51,6 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The editor screen: it opens an article on the person's own autosave or the
- * working revision, and turns their autosave into a revision when they save
- * explicitly. It changes nothing itself; the Operations do.
- */
 final class ContentEditorController extends Controller
 {
     public function edit(Request $request, string $content, SettingsReader $settings, RegionScreens $regions, ItemDiscussion $discussion, EditorSearchAndSocial $seo, EditorAssistant $assistant, AuthorOptions $authorOptions, ContentTypeRegistry $types, EditorPanels $panels): Response

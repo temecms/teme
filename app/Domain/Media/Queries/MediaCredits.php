@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The library's credit and licence for each image the editor shows: the
+ * featured image draws them under its thumbnail, as readers see the credit
+ * under the page's picture.
+ * The server renderer's own lookup (CardMedia) stays without it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Queries;
 
 use Illuminate\Support\Facades\DB;
 
-/**
- * The library's credit and licence for each image the editor shows: the
- * featured image draws them under its thumbnail, as readers see the credit
- * under the page's picture.
- * The server renderer's own lookup (CardMedia) stays without it.
- */
 final class MediaCredits
 {
     /**

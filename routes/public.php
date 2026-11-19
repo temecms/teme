@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The public site's routes: every address a visitor reads.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Domain\Api\Llms\MarkdownPages;

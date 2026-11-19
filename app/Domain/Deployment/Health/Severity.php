@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * How serious a doctor's finding is, in Drupal's four levels and order
+ * (I-157): only an error makes teme:doctor fail.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Health;
 
-/**
- * How serious a doctor's finding is, in Drupal's four levels and order
- * (I-157): only an error makes teme:doctor fail.
- */
 enum Severity: int
 {
     case Info = -1;

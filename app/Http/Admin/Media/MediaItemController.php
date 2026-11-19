@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One media item from the drawer: its details and where it is used, each
+ * change handed to its Operation and answered with the fresh details, and the
+ * private original as a download.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Media;
@@ -25,11 +35,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-/**
- * One media item from the drawer: its details and where it is used, each
- * change handed to its Operation and answered with the fresh details, and the
- * private original as a download.
- */
 final class MediaItemController extends Controller
 {
     public function __construct(private readonly MediaDetails $details, private readonly AltTextOffer $altText) {}

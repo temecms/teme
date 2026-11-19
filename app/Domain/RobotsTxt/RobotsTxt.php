@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * robots.txt as Teme writes it (I-300): crawlers kept from the admin and
+ * core's endpoints, an administrator's extra rules, and, at one switch, each
+ * AI training crawler asked to stay away. Read from Search and social's
+ * settings, so the copy the page cache stores goes when they change.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\RobotsTxt;
@@ -8,12 +19,6 @@ use App\Domain\Seo\SearchAndSocial;
 use App\Domain\Sitemaps\Sitemaps;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * robots.txt as Teme writes it (I-300): crawlers kept from the admin and
- * core's endpoints, an administrator's extra rules, and, at one switch, each
- * AI training crawler asked to stay away. Read from Search and social's
- * settings, so the copy the page cache stores goes when they change.
- */
 final class RobotsTxt
 {
     /** The site may be searched, not used to train AI models, in Cloudflare's Content Signals vocabulary. */

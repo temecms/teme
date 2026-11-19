@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The site's languages (I-3360): the default, `general.language`, then the
+ * others the `languages` settings group adds, each with its address prefix
+ * and whether readers are shown it, and which types and taxonomies are
+ * translated. The one place a language's tag becomes the stored value (null
+ * for the default) and back. Every answer is read through the settings
+ * memo, so a page that asks records the settings tag.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages;
@@ -9,14 +22,6 @@ use Illuminate\Contracts\Database\Query\Builder as QueryBuilder;
 use InvalidArgumentException;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * The site's languages (I-3360): the default, `general.language`, then the
- * others the `languages` settings group adds, each with its address prefix
- * and whether readers are shown it, and which types and taxonomies are
- * translated. The one place a language's tag becomes the stored value (null
- * for the default) and back. Every answer is read through the settings
- * memo, so a page that asks records the settings tag.
- */
 final readonly class SiteLanguages
 {
     public const string GROUP = 'languages';

@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * A person the kit made on the test's site, with the role they were given:
+ * pass one to any kit method that acts as somebody.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Testing;
 
-/**
- * A person the kit made on the test's site, with the role they were given:
- * pass one to any kit method that acts as somebody.
- */
 final readonly class Person
 {
     public function __construct(

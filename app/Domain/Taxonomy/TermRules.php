@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The validation rule the content Operations share for a term an item is
+ * given: it must exist, in a taxonomy the item's type uses (I-414), and in
+ * the item's language (I-3360), unless its taxonomy isn't translated (D25). A type with no taxonomies, such as page
+ * (I-417), can be given none.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Taxonomy;
@@ -14,12 +25,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Exists;
 use Illuminate\Validation\ValidationException;
 
-/**
- * The validation rule the content Operations share for a term an item is
- * given: it must exist, in a taxonomy the item's type uses (I-414), and in
- * the item's language (I-3360), unless its taxonomy isn't translated (D25). A type with no taxonomies, such as page
- * (I-417), can be given none.
- */
 final class TermRules
 {
     /**

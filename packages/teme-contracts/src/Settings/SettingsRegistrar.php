@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Where settings groups are declared.
+ *
+ * @package Teme
+ * @since   0.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Settings;

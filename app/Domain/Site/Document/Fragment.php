@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A piece of markup for one placement, written into the page as given: an
+ * administrator's site code (I-288) or core's own. Its key keeps a second
+ * copy out, the first by precedence winning.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Document;
 
 use InvalidArgumentException;
 
-/**
- * A piece of markup for one placement, written into the page as given: an
- * administrator's site code (I-288) or core's own. Its key keeps a second
- * copy out, the first by precedence winning.
- */
 final readonly class Fragment
 {
     /** What a key may be: lower-case letters, digits, dots, hyphens and underscores. */

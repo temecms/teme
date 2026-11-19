@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * Where a place keeps its restic repository: a folder on this server, S3-compatible storage, or an SFTP server (I-360).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups;
 
-/**
- * Where a place keeps its restic repository: a folder on this server, S3-compatible storage, or an SFTP server (I-360).
- */
 enum BackupDestinationKind: string
 {
     case Folder = 'folder';

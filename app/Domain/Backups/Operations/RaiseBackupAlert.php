@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Decides whether the administrators are emailed about the backups now
+ * (I-2409), and records it: each failure at once, on its own, then again
+ * at most once a day while it lasts, and once when the verdict is no longer
+ * red. The email is queued after commit. Each alert also goes to every
+ * administrator's inbox, in the same transaction. Returns the new alert's ID, or
+ * null when no email is due.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Backups\Operations;
@@ -20,14 +33,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Decides whether the administrators are emailed about the backups now
- * (I-2409), and records it: each failure at once, on its own, then again
- * at most once a day while it lasts, and once when the verdict is no longer
- * red. The email is queued after commit. Each alert also goes to every
- * administrator's inbox, in the same transaction. Returns the new alert's ID, or
- * null when no email is due.
- */
 final class RaiseBackupAlert extends BaseOperation
 {
     use AuthorizesBackupRuns;

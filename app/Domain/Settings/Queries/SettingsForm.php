@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Everything the generated settings page needs, and nothing it must not have:
+ * secret values never leave the server — only whether each is set.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Settings\Queries;
@@ -17,10 +26,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 use Teme\Contracts\Settings\SettingType;
 
-/**
- * Everything the generated settings page needs, and nothing it must not have:
- * secret values never leave the server — only whether each is set.
- */
 final class SettingsForm
 {
     /** The most terms a term setting offers. */

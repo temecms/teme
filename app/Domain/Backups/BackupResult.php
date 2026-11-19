@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups;
-
 /**
  * How a backup or a prune ended: its run; whether it did its work, and its
  * sentence when it didn't; where it landed and how many media files it
@@ -11,7 +7,16 @@ namespace App\Domain\Backups;
  * lacked them, whether that was its only hole, and a media folder that
  * wasn't there at all; and the problems of the
  * steps after it (a copy, a check, a place's prune), which never undo it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups;
+
 final readonly class BackupResult
 {
     /**

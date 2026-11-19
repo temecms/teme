@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * `teme:cache:purge`: removes the stored pages that carry any of the tags
+ * given, or stand at the addresses given, in any case or query, for an
+ * operator who changed something outside Teme (docs/architecture/page-cache.md).
+ * Operations purge on their own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -9,12 +20,6 @@ use App\Domain\Cache\PageTags;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
-/**
- * `teme:cache:purge`: removes the stored pages that carry any of the tags
- * given, or stand at the addresses given, in any case or query, for an
- * operator who changed something outside Teme (docs/architecture/page-cache.md).
- * Operations purge on their own.
- */
 final class PurgePageCache extends Command
 {
     /** @var string */

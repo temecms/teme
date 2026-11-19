@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What became of each Imported content card an import put in an article,
+ * for the import's report (I-329). Read from the documents: Convert, Keep
+ * and Delete are edits a writer saves, and leave no record of their own.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Cards\Queries;
@@ -10,11 +20,6 @@ use App\Domain\Cards\PlainText;
 use App\Domain\Cards\References;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What became of each Imported content card an import put in an article,
- * for the import's report (I-329). Read from the documents: Convert, Keep
- * and Delete are edits a writer saves, and leave no record of their own.
- */
 final readonly class ImportedContentOutcomes
 {
     /** The share of a gone card's words still in the article for it to count as converted: I-337's 2%, the other way. */

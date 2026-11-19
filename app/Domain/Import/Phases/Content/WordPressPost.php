@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What a WordPress post or page, as the companion sends it, is in Teme's
+ * terms (I-332): its status, title, slug, dates, discussion, excerpt,
+ * addresses and guid. Pure: it reads nothing but the item and what it is
+ * given, and passes a password on only for the item's own sealed column.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Content;
@@ -11,12 +22,6 @@ use App\Domain\Import\Phases\Terms\WordPressSlugs;
 use App\Domain\Import\Phases\Terms\WordPressText;
 use Carbon\CarbonImmutable;
 
-/**
- * What a WordPress post or page, as the companion sends it, is in Teme's
- * terms (I-332): its status, title, slug, dates, discussion, excerpt,
- * addresses and guid. Pure: it reads nothing but the item and what it is
- * given, and passes a password on only for the item's own sealed column.
- */
 final class WordPressPost
 {
     /** WordPress's statuses that come across, each with Teme's: pairs, so a status is never an array key. */

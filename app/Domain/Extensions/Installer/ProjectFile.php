@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The extensions folder's own composer.json, written only by the installer:
+ * the packages people asked for, every package of the image pinned at its
+ * version, the sources' repositories, and settings that let no package's
+ * code run while Composer works (docs/plans/plugin-installer.md).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
 
 use JsonException;
 
-/**
- * The extensions folder's own composer.json, written only by the installer:
- * the packages people asked for, every package of the image pinned at its
- * version, the sources' repositories, and settings that let no package's
- * code run while Composer works (docs/plans/plugin-installer.md).
- */
 final readonly class ProjectFile
 {
     public const string NAME = 'teme/site-extensions';

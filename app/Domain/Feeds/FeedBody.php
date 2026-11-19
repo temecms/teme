@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * An item's body as HTML for a feed reader (I-861): runs of prose drawn by
+ * the page's own renderer, every card by its plain version, links and
+ * pictures at absolute addresses. Nothing is rewritten afterwards.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -12,11 +22,6 @@ use App\Domain\Cards\LinkResolver;
 use App\Domain\Cards\RenderContext;
 use App\Domain\Site\Links\ArticleLinkAttributes;
 
-/**
- * An item's body as HTML for a feed reader (I-861): runs of prose drawn by
- * the page's own renderer, every card by its plain version, links and
- * pictures at absolute addresses. Nothing is rewritten afterwards.
- */
 final readonly class FeedBody
 {
     public function __construct(

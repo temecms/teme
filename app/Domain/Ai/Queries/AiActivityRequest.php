@@ -1,12 +1,17 @@
 <?php
 
+/**
+ * What one page of Tools › AI activity's list asks for: the person, the task and the month (its first day) it is narrowed to, a cursor either way, the page size, and the plugin: a plugin's code, or `teme` for core's own requests.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Queries;
 
-/**
- * What one page of Tools › AI activity's list asks for: the person, the task and the month (its first day) it is narrowed to, a cursor either way, the page size, and the plugin: a plugin's code, or `teme` for core's own requests.
- */
 final readonly class AiActivityRequest
 {
     public function __construct(

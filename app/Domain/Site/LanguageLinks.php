@@ -1,11 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site;
-
-use App\Domain\Site\ViewModels\Alternate;
-
 /**
  * The links a language switcher draws (I-3360), one for each of the page's
  * versions in `$alternates`, so the `languages` menu item and
@@ -13,7 +7,18 @@ use App\Domain\Site\ViewModels\Alternate;
  * its language's own name, or by its short code when names are off, at its
  * address on this site, the page's own marked current or left out, with
  * the language it is in.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site;
+
+use App\Domain\Site\ViewModels\Alternate;
+
 final readonly class LanguageLinks
 {
     public function __construct(private Alternates $alternates) {}

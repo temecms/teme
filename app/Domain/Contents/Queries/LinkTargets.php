@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The articles an internal link can point at, found by title for the editor's
+ * link popover. A link stores the article's ID (rule 9), so a draft may be
+ * linked: it renders as plain text until it is published. Only items of
+ * public types are offered: a region has no page to link to.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -8,12 +19,6 @@ use App\Domain\Types\ContentType;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * The articles an internal link can point at, found by title for the editor's
- * link popover. A link stores the article's ID (rule 9), so a draft may be
- * linked: it renders as plain text until it is published. Only items of
- * public types are offered: a region has no page to link to.
- */
 final class LinkTargets
 {
     /**

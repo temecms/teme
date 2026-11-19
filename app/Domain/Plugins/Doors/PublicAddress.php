@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Whether an address is one the outbound door may reach: a public address,
+ * never a private, reserved, multicast or translated one (I-3353).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
 
-/**
- * Whether an address is one the outbound door may reach: a public address,
- * never a private, reserved, multicast or translated one (I-3353).
- */
 final class PublicAddress
 {
     /**

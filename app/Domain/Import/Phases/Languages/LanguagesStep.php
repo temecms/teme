@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Before anyone or anything is written but after the default language
+ * (I-3446): the old site's Polylang languages become the site's, in
+ * Polylang's order, each with Polylang's slug as its address prefix and
+ * shown to readers, and the types and taxonomies Polylang translated are
+ * the ones translated here, so every item and term is created in its
+ * language at the address it had. A site without Polylang changes nothing.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\Languages;
@@ -20,14 +33,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Types\TaxonomyRegistry;
 
-/**
- * Before anyone or anything is written but after the default language
- * (I-3446): the old site's Polylang languages become the site's, in
- * Polylang's order, each with Polylang's slug as its address prefix and
- * shown to readers, and the types and taxonomies Polylang translated are
- * the ones translated here, so every item and term is created in its
- * language at the address it had. A site without Polylang changes nothing.
- */
 final readonly class LanguagesStep implements StepPhase
 {
     public function __construct(private ImportedLanguages $imported) {}

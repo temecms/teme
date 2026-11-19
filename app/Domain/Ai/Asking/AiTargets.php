@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The hash of what a suggestion would change, taken when the job reads it, so
+ * Use can tell whether it changed since (I-317): a text block in the revision
+ * asked about, or an image's alt text.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai\Asking;
@@ -10,11 +20,6 @@ use App\Domain\Contents\Models\ContentRevision;
 use App\Domain\Media\Models\Media;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
-/**
- * The hash of what a suggestion would change, taken when the job reads it, so
- * Use can tell whether it changed since (I-317): a text block in the revision
- * asked about, or an image's alt text.
- */
 final readonly class AiTargets
 {
     /** The one thing on an image a suggestion changes. */

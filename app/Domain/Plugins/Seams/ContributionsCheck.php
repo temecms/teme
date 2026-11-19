@@ -1,13 +1,18 @@
 <?php
 
+/**
+ * Checks what a plugin's manifest adds to Teme's lists (`contributes`), as
+ * part of the manifest's validation: ContributionsValidator does.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Seams;
 
-/**
- * Checks what a plugin's manifest adds to Teme's lists (`contributes`), as
- * part of the manifest's validation: ContributionsValidator does.
- */
 interface ContributionsCheck
 {
     /**

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * The everyday way to remove someone's access: reversible, and everything
+ * they wrote keeps their name (I-102).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Users\Operations;
@@ -17,10 +26,6 @@ use Illuminate\Validation\Rule;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * The everyday way to remove someone's access: reversible, and everything
- * they wrote keeps their name (I-102).
- */
 final class SuspendUser extends BaseOperation implements RequiresElevation
 {
     use ManagesUsers;

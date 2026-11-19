@@ -1,16 +1,21 @@
 <?php
 
+/**
+ * A saved package source as a source kind receives it: its address and,
+ * inside the installer only, its decrypted key. A value, never a model, so
+ * the source contract carries no Eloquent type.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Sources;
 
 use SensitiveParameter;
 
-/**
- * A saved package source as a source kind receives it: its address and,
- * inside the installer only, its decrypted key. A value, never a model, so
- * the source contract carries no Eloquent type.
- */
 final readonly class ExtensionSource
 {
     public function __construct(

@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One live, public item in full (D6, D34): found by its ID or by an address
+ * of it, current or old, and shaped from its published revision only, with
+ * its fields, its body and its other language versions (I-3360); a
+ * protected item without its words (D30).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Api\Items;
@@ -21,12 +32,6 @@ use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
-/**
- * One live, public item in full (D6, D34): found by its ID or by an address
- * of it, current or old, and shaped from its published revision only, with
- * its fields, its body and its other language versions (I-3360); a
- * protected item without its words (D30).
- */
 final readonly class ItemQuery
 {
     public function __construct(private ItemShapes $shapes, private FieldValues $fields, private BodyShape $body, private SiteLanguage $language, private Alternates $alternates) {}

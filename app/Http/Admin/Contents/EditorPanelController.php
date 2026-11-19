@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's panel in the editor: what it shows on this item, an action
+ * it offers, and the person using or discarding one of its suggestions.
+ * Each answers with the panel as it now stands.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -14,11 +24,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/**
- * A plugin's panel in the editor: what it shows on this item, an action
- * it offers, and the person using or discarding one of its suggestions.
- * Each answers with the panel as it now stands.
- */
 final class EditorPanelController extends Controller
 {
     /**

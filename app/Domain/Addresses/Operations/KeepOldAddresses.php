@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Keeps addresses another site gave things as their old addresses (I-061):
+ * each a history row of the path table pointing at its item, term or author
+ * by ID, so it answers 301 to wherever that is now, follows it when it
+ * moves, and never chains. A path the table already holds is left as it is,
+ * and named back.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses\Operations;
@@ -16,13 +28,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Cache\CacheKeysFor;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Keeps addresses another site gave things as their old addresses (I-061):
- * each a history row of the path table pointing at its item, term or author
- * by ID, so it answers 301 to wherever that is now, follows it when it
- * moves, and never chains. A path the table already holds is left as it is,
- * and named back.
- */
 final class KeepOldAddresses extends BaseOperation
 {
     use AuthorizesImports;

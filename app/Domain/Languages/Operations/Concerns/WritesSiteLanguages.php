@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What the three Operations that change a site's languages share (D10): who
+ * may, the prefix's rules, and the `languages` group read under its row's
+ * lock and written back with the version the form was opened on, so a
+ * stale form is refused as every settings form's is.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Languages\Operations\Concerns;
@@ -13,12 +24,6 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-/**
- * What the three Operations that change a site's languages share (D10): who
- * may, the prefix's rules, and the `languages` group read under its row's
- * lock and written back with the version the form was opened on, so a
- * stale form is refused as every settings form's is.
- */
 trait WritesSiteLanguages
 {
     /** A prefix: lower-case letters and digits, words joined by one hyphen. */

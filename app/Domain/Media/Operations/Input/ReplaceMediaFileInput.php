@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * A new file for an existing item: which item, the file on local disk, the
+ * name it was uploaded with, and who is asking.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * A new file for an existing item: which item, the file on local disk, the
- * name it was uploaded with, and who is asking.
- */
 final readonly class ReplaceMediaFileInput implements OperationInput
 {
     public function __construct(

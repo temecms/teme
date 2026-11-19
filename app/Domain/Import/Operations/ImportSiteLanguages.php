@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Gives the site an imported site's languages (I-3446), as starting an
+ * import allows, the way AddSiteLanguage and ChangeTranslatedTypes would:
+ * each language not already here, last, shown, under its prefix; the types
+ * and taxonomies the old site didn't translate left untranslated, except
+ * one that has something in a language already. A language Teme can't add
+ * is answered with why, never half-written; one already here is left as
+ * it is.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -18,15 +32,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Gives the site an imported site's languages (I-3446), as starting an
- * import allows, the way AddSiteLanguage and ChangeTranslatedTypes would:
- * each language not already here, last, shown, under its prefix; the types
- * and taxonomies the old site didn't translate left untranslated, except
- * one that has something in a language already. A language Teme can't add
- * is answered with why, never half-written; one already here is left as
- * it is.
- */
 final class ImportSiteLanguages extends BaseOperation
 {
     use AuthorizesImports;

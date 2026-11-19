@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * `<x-teme::between-items :after="$loop->iteration" :last="$loop->last" />`:
+ * what plugins place between a list's items, after this item, cleaned; nothing
+ * after the last item, or where nothing is placed.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\View\Components\Teme;

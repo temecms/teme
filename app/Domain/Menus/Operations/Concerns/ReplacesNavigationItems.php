@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * How a menu Operation writes a checked tree as a menu's items, in place of
+ * the ones it had: an own-site address stored as what it names (rule 9).
+ * Used only by the Operations that replace a whole tree, SaveNavigationItems
+ * and ImportNavigation, inside their transactions with the menu locked.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations\Concerns;
@@ -11,12 +22,6 @@ use App\Domain\Menus\Models\NavigationItem;
 use App\Domain\Menus\Operations\SaveNavigationItems;
 use Illuminate\Support\Str;
 
-/**
- * How a menu Operation writes a checked tree as a menu's items, in place of
- * the ones it had: an own-site address stored as what it names (rule 9).
- * Used only by the Operations that replace a whole tree, SaveNavigationItems
- * and ImportNavigation, inside their transactions with the menu locked.
- */
 trait ReplacesNavigationItems
 {
     /**

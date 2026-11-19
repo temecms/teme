@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Document;
-
 /**
  * The `rel` values a head link may carry: what the page is and where its
  * other forms are, never something the browser loads. Styles and scripts
  * reach a page through their own channels (docs/architecture/plugins.md); a
  * relation another part needs is added here, with its reason.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Document;
+
 enum LinkRelation: string
 {
     case Canonical = 'canonical';

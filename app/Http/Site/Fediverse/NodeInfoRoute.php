@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * NodeInfo: at /.well-known/nodeinfo the link to the document, and at
+ * /nodeinfo/2.1 the document, which tells other servers this is Teme
+ * speaking ActivityPub.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Site\Fediverse;
@@ -9,11 +19,6 @@ use Teme\Contracts\Routes\PublicRequest;
 use Teme\Contracts\Routes\PublicResponse;
 use Teme\Contracts\Routes\PublicRoute;
 
-/**
- * NodeInfo: at /.well-known/nodeinfo the link to the document, and at
- * /nodeinfo/2.1 the document, which tells other servers this is Teme
- * speaking ActivityPub.
- */
 final readonly class NodeInfoRoute implements PublicRoute
 {
     public const string SCHEMA = 'http://nodeinfo.diaspora.software/ns/schema/2.1';

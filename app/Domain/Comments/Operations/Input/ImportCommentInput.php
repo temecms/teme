@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What ImportComment needs to bring one WordPress comment in: its item and
+ * the comment it replied to, its kind, status, date and WordPress number, its
+ * writer, its words, the address and browser it came from, and who is
+ * importing (null for the operator).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations\Input;
@@ -9,12 +20,6 @@ use Carbon\CarbonImmutable;
 use SensitiveParameter;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What ImportComment needs to bring one WordPress comment in: its item and
- * the comment it replied to, its kind, status, date and WordPress number, its
- * writer, its words, the address and browser it came from, and who is
- * importing (null for the operator).
- */
 final readonly class ImportCommentInput implements OperationInput
 {
     /**

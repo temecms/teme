@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * What one source's import made of the old site, for the second pass: the
+ * content phase's targets, and an old address that answers by a redirect
+ * to an item or a file by ID, as an old attachment page does (I-244). Each
+ * answer is a target still here.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Phases\SecondPass;
@@ -9,12 +20,6 @@ use App\Domain\Import\Convert\SourceTargets;
 use App\Domain\Import\Phases\Content\MapTargets;
 use Illuminate\Support\Facades\DB;
 
-/**
- * What one source's import made of the old site, for the second pass: the
- * content phase's targets, and an old address that answers by a redirect
- * to an item or a file by ID, as an old attachment page does (I-244). Each
- * answer is a target still here.
- */
 final readonly class PassTargets implements SourceTargets
 {
     private MapTargets $map;

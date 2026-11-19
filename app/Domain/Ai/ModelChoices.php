@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Settings › AI's section "Models" (I-315): a model and a fallback for every
+ * registered task, each written provider:model, and the check that each names
+ * a registered provider, a model it lists and a model able to do what the
+ * task needs. Also how the rest of Teme reads a task's choice.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Ai;
@@ -10,12 +21,6 @@ use Teme\Contracts\Settings\Setting;
 use Teme\Contracts\Settings\SettingsReader;
 use UnexpectedValueException;
 
-/**
- * Settings › AI's section "Models" (I-315): a model and a fallback for every
- * registered task, each written provider:model, and the check that each names
- * a registered provider, a model it lists and a model able to do what the
- * task needs. Also how the rest of Teme reads a task's choice.
- */
 final readonly class ModelChoices implements AiSettingsSection, SettingsCheck
 {
     public function __construct(
@@ -81,6 +86,8 @@ final readonly class ModelChoices implements AiSettingsSection, SettingsCheck
      * A plugin task's model and fallback, read from `{stem}_model` and
      * `{stem}_fallback`, or null when no model is chosen, the choice can't be
      * read, or the settings aren't registered.
+     *
+     * @since 1.0.0
      */
     public function forStem(string $stem): ?ModelChoice
     {

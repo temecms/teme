@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Switches an entry of site code on or off, from its row: carrying no code,
+ * it can't overwrite an edit saved meanwhile. Elevated (I-864), logged, and
+ * every stored page purged when pages draw it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Operations;
@@ -13,11 +23,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Operations\RequiresElevation;
 
-/**
- * Switches an entry of site code on or off, from its row: carrying no code,
- * it can't overwrite an edit saved meanwhile. Elevated (I-864), logged, and
- * every stored page purged when pages draw it.
- */
 final class SwitchSiteCode extends BaseOperation implements RequiresElevation
 {
     use ChangesSiteCode;

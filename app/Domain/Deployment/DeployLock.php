@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The lock one teme:deploy holds while it changes the site (I-377): a
+ * session-level PostgreSQL advisory lock on a connection of its own, which
+ * a second deploy waits for, and which PostgreSQL lets go of the moment its
+ * session ends. It works on a new database, before any table exists.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment;
@@ -10,12 +21,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-/**
- * The lock one teme:deploy holds while it changes the site (I-377): a
- * session-level PostgreSQL advisory lock on a connection of its own, which
- * a second deploy waits for, and which PostgreSQL lets go of the moment its
- * session ends. It works on a new database, before any table exists.
- */
 final class DeployLock
 {
     /** The lock's name, which PostgreSQL's hashtext() turns into its key. */

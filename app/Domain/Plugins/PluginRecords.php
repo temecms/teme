@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * The enabled plugins' rows, read once and kept in the cache until a plugin
+ * is enabled or disabled (I-3353), as settings groups are: plain arrays of
+ * each row's columns in the cache, never models.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins;
@@ -10,11 +20,6 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * The enabled plugins' rows, read once and kept in the cache until a plugin
- * is enabled or disabled (I-3353), as settings groups are: plain arrays of
- * each row's columns in the cache, never models.
- */
 final readonly class PluginRecords
 {
     /** The cache key of the enabled rows, forgotten after commit by every change to the table. */

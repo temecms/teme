@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * The insertions every contributor gives for one article (I-064): read
+ * plugin, then site, then core, each key's first kept. Contributors are
+ * the started plugins granted content.insert, those bound here, and those
+ * tagged under CONTRIBUTORS. A contributor that throws is recorded as its
+ * plugin's fault and skipped, as a failing listener is (I-3353).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions;
@@ -15,13 +27,6 @@ use Teme\Contracts\Plugins\Capability;
 use Throwable;
 use UnexpectedValueException;
 
-/**
- * The insertions every contributor gives for one article (I-064): read
- * plugin, then site, then core, each key's first kept. Contributors are
- * the started plugins granted content.insert, those bound here, and those
- * tagged under CONTRIBUTORS. A contributor that throws is recorded as its
- * plugin's fault and skipped, as a failing listener is (I-3353).
- */
 final class InsertionPoints
 {
     /** The container tag an insertion contributor is registered under. */

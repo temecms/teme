@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Fediverse\Publishing;
-
 /**
  * When a delivery that failed for a reason that may pass is tried again
  * (proposal, P1): at once, then after 1 minute, 5 minutes, 30 minutes,
  * 2 hours, 6 hours, 12 hours, 24 hours and 24 hours, about three days in
  * all; a server failing for 7 days is skipped until it answers again.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Fediverse\Publishing;
+
 final class DeliverySchedule
 {
     /** The wait before each try after the first, in seconds. */

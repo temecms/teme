@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * One page of a content list, in the list's order, for a column to fill.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Lists;

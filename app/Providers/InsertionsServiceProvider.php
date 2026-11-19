@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Registers article insertion points (I-064): the registry that collects
+ * contributors, and the door plugins call when their rules change; and the
+ * page insertions, drawn in core's placements.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Providers;
@@ -14,11 +24,6 @@ use App\Domain\Site\Links\ArticleLinkAttributes;
 use Illuminate\Support\ServiceProvider;
 use Teme\Contracts\Insertions\InsertionsChanged;
 
-/**
- * Registers article insertion points (I-064): the registry that collects
- * contributors, and the door plugins call when their rules change; and the
- * page insertions, drawn in core's placements.
- */
 final class InsertionsServiceProvider extends ServiceProvider
 {
     public function register(): void

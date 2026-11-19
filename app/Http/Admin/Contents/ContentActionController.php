@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * One item's actions from its list row — quick edit, trash, restore,
+ * publish, revert to draft, delete permanently — each handed to its Operation.
+ * After trashing a published item, it offers a redirect for its address (I-856);
+ * after publishing or trashing otherwise, an Undo by the same route (I-3398).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Contents;
@@ -30,12 +41,6 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * One item's actions from its list row — quick edit, trash, restore,
- * publish, revert to draft, delete permanently — each handed to its Operation.
- * After trashing a published item, it offers a redirect for its address (I-856);
- * after publishing or trashing otherwise, an Undo by the same route (I-3398).
- */
 final class ContentActionController extends Controller
 {
     public function details(Request $request, string $type, string $content, UpdateContentDetails $update, ContentPointers $pointers, SetDiscussion $setDiscussion): RedirectResponse

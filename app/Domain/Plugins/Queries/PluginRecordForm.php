@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A record's form in a plugin's area (docs/plans/plugin-sockets-2.md, A9):
+ * its sections and fields as declared, the choices core draws for content
+ * types, terms and the theme's regions, and the values stored, read from
+ * the plugin under AreaReads' budgets, or each field's empty value for a
+ * new record.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
@@ -13,13 +25,6 @@ use App\Domain\Regions\RegionDeclarations;
 use App\Domain\Types\ContentTypeRegistry;
 use Illuminate\Support\Facades\DB;
 
-/**
- * A record's form in a plugin's area (docs/plans/plugin-sockets-2.md, A9):
- * its sections and fields as declared, the choices core draws for content
- * types, terms and the theme's regions, and the values stored, read from
- * the plugin under AreaReads' budgets, or each field's empty value for a
- * new record.
- */
 final readonly class PluginRecordForm
 {
     /** The most terms a picker offers. */

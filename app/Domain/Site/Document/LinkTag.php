@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * One `<link>` in the page's head (I-228): a relation from the allow-list,
+ * an absolute address made when the page is drawn, never stored, and, for
+ * an alternate, its media type, title and language. Each value is checked
+ * when it is made and escaped when it is drawn.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Document;
 
 use InvalidArgumentException;
 
-/**
- * One `<link>` in the page's head (I-228): a relation from the allow-list,
- * an absolute address made when the page is drawn, never stored, and, for
- * an alternate, its media type, title and language. Each value is checked
- * when it is made and escaped when it is drawn.
- */
 final readonly class LinkTag
 {
     public function __construct(

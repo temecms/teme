@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Your picture on the Profile page: choosing an image from Media hands it
+ * to `SetPicture`, and removing it to `RemovePicture`; it changes nothing
+ * itself.
+ *
+ * @package Teme
+ * @since   0.8.0-alpha.1
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Account;
@@ -13,11 +23,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-/**
- * Your picture on the Profile page: choosing an image from Media hands it
- * to `SetPicture`, and removing it to `RemovePicture`; it changes nothing
- * itself.
- */
 final class PictureController extends Controller
 {
     public function update(Request $request, SetPicture $setPicture): RedirectResponse

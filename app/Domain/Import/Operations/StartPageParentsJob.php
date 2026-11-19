@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Starts bringing back the page parents of a site imported before (I-3363):
+ * a tracked job that puts its pages back under their WordPress parents, at
+ * their WordPress addresses, acting for whoever asked. Refused while a run
+ * of the site is running, or when none of its pages had a parent. It reads
+ * nothing from the old site, so it needs no password.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Operations;
@@ -21,13 +33,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Starts bringing back the page parents of a site imported before (I-3363):
- * a tracked job that puts its pages back under their WordPress parents, at
- * their WordPress addresses, acting for whoever asked. Refused while a run
- * of the site is running, or when none of its pages had a parent. It reads
- * nothing from the old site, so it needs no password.
- */
 final class StartPageParentsJob extends BaseOperation
 {
     use AuthorizesImports;

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * One import of a source: its kind and state, the phase it is in and that
+ * attempt's token, its counts and why it stopped. Written only by the
+ * import Operations (I-332).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\Models;
@@ -14,10 +24,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One import of a source: its kind and state, the phase it is in and that
- * attempt's token, its counts and why it stopped. Written only by the
- * import Operations (I-332).
- *
  * @property string $id
  * @property string $source_id
  * @property ImportRunKind $kind

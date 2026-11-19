@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One `<meta>` in a page's head: a name or a property, and its content as
+ * plain text.
+ *
+ * @package Teme
+ * @since   1.1.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Head;

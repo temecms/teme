@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Packagist's plugins and themes for the Add sheet (I-3462): a search by words and type, and a package's
+ * stable versions, newest first, each answer kept ten minutes. Off when the operator turns Packagist off.
+ * It reads only; what is installed is checked again by the installer.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Queries;
@@ -12,11 +22,6 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
-/**
- * Packagist's plugins and themes for the Add sheet (I-3462): a search by words and type, and a package's
- * stable versions, newest first, each answer kept ten minutes. Off when the operator turns Packagist off.
- * It reads only; what is installed is checked again by the installer.
- */
 final readonly class PackagistSearch
 {
     /** What the sheet says when Packagist doesn't answer. */

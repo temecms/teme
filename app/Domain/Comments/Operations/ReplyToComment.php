@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * A reply written in the admin by whoever looks after the item (I-224, C6;
+ * 1.8c′'s D11): approved at once, placed as the thread places replies,
+ * approving through ModerateComment the comment it answers when that one
+ * waits, and recording no IP address, browser or key. It answers a comment,
+ * never a ping, that is approved or waiting, on any item not in the trash.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments\Operations;
@@ -30,13 +42,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Comments\CommentStatusChanged;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * A reply written in the admin by whoever looks after the item (I-224, C6;
- * 1.8c′'s D11): approved at once, placed as the thread places replies,
- * approving through ModerateComment the comment it answers when that one
- * waits, and recording no IP address, browser or key. It answers a comment,
- * never a ping, that is approved or waiting, on any item not in the trash.
- */
 final class ReplyToComment extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

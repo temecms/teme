@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * How sign-in sessions are stored and how long they last.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Domain\Deployment\SecureTransport;

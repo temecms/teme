@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Asks, for a person, that one of an enabled plugin's inline scripts be
+ * approved by its exact text (docs/plans/plugin-sockets-2.md, B4): a new
+ * text waits; one already waiting, approved or refused changes nothing. At
+ * most MOST_WAITING wait for a plugin at once. Asking never approves.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Insertions\Operations;
@@ -16,12 +27,6 @@ use Illuminate\Validation\ValidationException;
 use Teme\Contracts\Operations\OperationInput;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * Asks, for a person, that one of an enabled plugin's inline scripts be
- * approved by its exact text (docs/plans/plugin-sockets-2.md, B4): a new
- * text waits; one already waiting, approved or refused changes nothing. At
- * most MOST_WAITING wait for a plugin at once. Asking never approves.
- */
 final class RequestPluginScript extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

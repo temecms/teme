@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Empty spam and Empty trash (1.8c′'s D4, D5): each comment the press covers
+ * deleted permanently through DeleteCommentPermanently, as the person who
+ * pressed it and with the list's cut-off, deepest first, a batch at a time.
+ * The request runs the first part and EmptyComments the rest, on the queue.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Comments;
@@ -13,12 +24,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Empty spam and Empty trash (1.8c′'s D4, D5): each comment the press covers
- * deleted permanently through DeleteCommentPermanently, as the person who
- * pressed it and with the list's cut-off, deepest first, a batch at a time.
- * The request runs the first part and EmptyComments the rest, on the queue.
- */
 final class Emptying
 {
     /** Comments read at once. */

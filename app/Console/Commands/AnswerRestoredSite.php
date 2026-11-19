@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * teme:backup:restored — after a restore, says whether this server is now the
+ * site, as the operator (docs/architecture/operations.md): its backups resume,
+ * or the backup places the restore brought back are removed.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Console\Commands;
@@ -14,11 +24,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * teme:backup:restored — after a restore, says whether this server is now the
- * site, as the operator (docs/architecture/operations.md): its backups resume,
- * or the backup places the restore brought back are removed.
- */
 final class AnswerRestoredSite extends Command
 {
     private const string SITE = 'This server is now the site';

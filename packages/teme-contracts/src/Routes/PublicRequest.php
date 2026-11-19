@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What a declared public route's handler sees of one request: plain values, no
+ * framework types (rule 5).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Routes;

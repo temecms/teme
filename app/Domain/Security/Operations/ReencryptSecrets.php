@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Writes every value Teme keeps encrypted under an old application key
+ * again under this server's (I-359), the bytes inside copied as they
+ * are, so each keeps its own form. A value already under this server's key
+ * is left alone, and one no key opens is reported by its row, never erased.
+ * The operator only; one transaction, so a failure changes nothing.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Security\Operations;
@@ -25,13 +37,6 @@ use LogicException;
 use SensitiveParameter;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Writes every value Teme keeps encrypted under an old application key
- * again under this server's (I-359), the bytes inside copied as they
- * are, so each keeps its own form. A value already under this server's key
- * is left alone, and one no key opens is reported by its row, never erased.
- * The operator only; one transaction, so a failure changes nothing.
- */
 final class ReencryptSecrets extends BaseOperation
 {
     public function __construct(

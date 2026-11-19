@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * One notice a status check raises: how serious it is, what it says, and
+ * whether the plugin's settings are where it is fixed.
+ *
+ * @package Teme
+ * @since   0.5.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Status;

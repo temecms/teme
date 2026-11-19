@@ -1,17 +1,22 @@
 <?php
 
+/**
+ * The pages the site's own addresses rest on while the home page shows a
+ * page: that page, at `/`, and the one listing the posts. Taking either off
+ * the site would leave its address answering 404, so the Operations that
+ * trash, unpublish or date an item ahead refuse them (#36).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
 
 use Illuminate\Validation\ValidationException;
 
-/**
- * The pages the site's own addresses rest on while the home page shows a
- * page: that page, at `/`, and the one listing the posts. Taking either off
- * the site would leave its address answering 404, so the Operations that
- * trash, unpublish or date an item ahead refuse them (#36).
- */
 final class SitePages
 {
     /**

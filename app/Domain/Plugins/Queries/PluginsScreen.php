@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * What Site › Plugins shows (I-3353, I-3442): every plugin from PluginList
+ * with its badge, reason, the access it asks for in words and as the plain
+ * lists the enable request posts back, what the person agreed to before,
+ * which action the row offers, and the tables recorded for removing data;
+ * its manifest's words in the person's language.
+ * It reads each plugin's files only as text and runs none of its code.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Queries;
@@ -23,14 +36,6 @@ use App\Domain\Plugins\Tables\PluginMigrations;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Plugins\Capability;
 
-/**
- * What Site › Plugins shows (I-3353, I-3442): every plugin from PluginList
- * with its badge, reason, the access it asks for in words and as the plain
- * lists the enable request posts back, what the person agreed to before,
- * which action the row offers, and the tables recorded for removing data;
- * its manifest's words in the person's language.
- * It reads each plugin's files only as text and runs none of its code.
- */
 final readonly class PluginsScreen
 {
     /** The states a row in the Needs attention tab can be in. */

@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Cards;
-
 /**
  * Something a document points at by ID (rule 9): a media item or another
  * content item, which cards and links name, or a term or a person, which
  * only links name (I-1702), and whether a link names it rather than a card
  * showing it. The projections are built from these.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Cards;
+
 final readonly class CardReference
 {
     public function __construct(

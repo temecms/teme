@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Queues, as the operator, every rebuild a release has asked for that
+ * hasn't been queued (I-3113): one statement marks them queued, and after
+ * commit one RunReleaseRebuild each goes on the queue, a request whose job
+ * can't be queued put back. It says which, in alphabetical order.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Deployment\Operations;
@@ -15,12 +26,6 @@ use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Operations\OperationInput;
 use Throwable;
 
-/**
- * Queues, as the operator, every rebuild a release has asked for that
- * hasn't been queued (I-3113): one statement marks them queued, and after
- * commit one RunReleaseRebuild each goes on the queue, a request whose job
- * can't be queued put back. It says which, in alphabetical order.
- */
 final class QueueReleaseRebuilds extends BaseOperation
 {
     public function __construct(private readonly PendingMigrations $migrations) {}

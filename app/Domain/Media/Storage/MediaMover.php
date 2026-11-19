@@ -1,5 +1,19 @@
 <?php
 
+/**
+ * Copies the files the media rows name from one location to another
+ * (I-3456), outside any transaction, as a backup runs: in chunks of rows by
+ * ID, resumable from the run's cursor, each file checked by size and every
+ * original read back against its recorded SHA-256 (every file with deep).
+ * It never lists a folder, and records each chunk through the operator's
+ * move Operations. deleteSource() removes the source's copies after a
+ * verified move, through MoveGate.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Storage;
@@ -22,15 +36,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
-/**
- * Copies the files the media rows name from one location to another
- * (I-3456), outside any transaction, as a backup runs: in chunks of rows by
- * ID, resumable from the run's cursor, each file checked by size and every
- * original read back against its recorded SHA-256 (every file with deep).
- * It never lists a folder, and records each chunk through the operator's
- * move Operations. deleteSource() removes the source's copies after a
- * verified move, through MoveGate.
- */
 final class MediaMover
 {
     /** Exit codes the command answers with. */

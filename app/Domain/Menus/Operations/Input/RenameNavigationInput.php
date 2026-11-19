@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What RenameNavigation needs: which menu, its new name, who is asking,
+ * and its language by tag when that changes too (null leaves it as it is).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Menus\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What RenameNavigation needs: which menu, its new name, who is asking,
- * and its language by tag when that changes too (null leaves it as it is).
- */
 final readonly class RenameNavigationInput implements OperationInput
 {
     public function __construct(

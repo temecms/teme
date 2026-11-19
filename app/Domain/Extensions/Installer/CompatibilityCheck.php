@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Whether a release built for one image still fits another, read from its
+ * lock without running Composer: every requirement on a package the image
+ * has is met by the image's version, PHP and its extensions are there, and
+ * no locked package is now one the image ships itself.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Installer;
@@ -7,12 +18,6 @@ namespace App\Domain\Extensions\Installer;
 use Composer\Semver\VersionParser;
 use Throwable;
 
-/**
- * Whether a release built for one image still fits another, read from its
- * lock without running Composer: every requirement on a package the image
- * has is met by the image's version, PHP and its extensions are there, and
- * no locked package is now one the image ships itself.
- */
 final readonly class CompatibilityCheck
 {
     /**

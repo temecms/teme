@@ -1,14 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Extensions\Sources;
-
 /**
  * A Git repository at an https address, public or private with a token:
  * Composer reads it as a vcs repository, with the token as the host's
  * credential, and the address is checked before Composer runs (I-211).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Extensions\Sources;
+
 final readonly class GitSource implements SourceKind
 {
     public const string KEY = 'git';

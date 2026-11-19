@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Something that adds markup inside published articles at named points.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Insertions;

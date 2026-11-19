@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Check key (I-315): asks one AI provider whether its key works, with a
+ * request that costs nothing, and answers Settings › AI in one sentence.
+ * Never the key, never the provider's words.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Http\Admin\Settings;
@@ -9,11 +19,6 @@ use App\Domain\Ai\AiProviders;
 use App\Domain\Ai\Providers\LibraryProvider;
 use Illuminate\Http\JsonResponse;
 
-/**
- * Check key (I-315): asks one AI provider whether its key works, with a
- * request that costs nothing, and answers Settings › AI in one sentence.
- * Never the key, never the provider's words.
- */
 final class CheckAiKeyController
 {
     public function __invoke(string $provider, AiProviders $providers, AiAvailability $availability): JsonResponse

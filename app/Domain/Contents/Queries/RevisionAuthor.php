@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Who wrote a revision, and when: what the editor tells someone whose save
+ * was refused because the article changed under them.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Queries;
@@ -8,10 +17,6 @@ use DateTimeInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Who wrote a revision, and when: what the editor tells someone whose save
- * was refused because the article changed under them.
- */
 final class RevisionAuthor
 {
     /**

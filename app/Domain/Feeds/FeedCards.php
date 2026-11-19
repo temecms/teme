@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * The map from a card's name to its plain version in a feed (I-861), kept
+ * here so no card class changes. A card with no entry, which only a plugin's
+ * can be, gives its own words as a paragraph. Each part registers its
+ * versions under RENDERERS from its provider's register().
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Feeds;
@@ -9,12 +20,6 @@ use App\Domain\Cards\RenderContext;
 use InvalidArgumentException;
 use UnexpectedValueException;
 
-/**
- * The map from a card's name to its plain version in a feed (I-861), kept
- * here so no card class changes. A card with no entry, which only a plugin's
- * can be, gives its own words as a paragraph. Each part registers its
- * versions under RENDERERS from its provider's register().
- */
 final class FeedCards
 {
     /** The container tag a card's plain version is registered under. */

@@ -1,9 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Backups\Tools;
-
 /**
  * The environment of a program Teme starts (I-366): what it must not
  * inherit from Teme's own (every RESTIC_, AWS_ and PG variable, so a
@@ -11,7 +7,16 @@ namespace App\Domain\Backups\Tools;
  * restic opens, nor a PGPASSWORD what pg_dump connects with), and which of
  * the variables Teme gives it are secrets, by their names. Symfony's
  * Process leaves out of the child any variable given as false.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Backups\Tools;
+
 final class ChildEnvironment
 {
     private const string INHERITED = '/^(RESTIC_|AWS_|PG)/';

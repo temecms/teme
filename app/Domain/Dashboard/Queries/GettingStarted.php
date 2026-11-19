@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Getting started (I-241, from Ghost): the few things a new site needs, each
+ * ticked off from the site's real state, for someone who may manage its
+ * settings. It hides itself once all are done, or when the person hides it.
+ * Each step is one bounded read. It reads only.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Dashboard\Queries;
@@ -11,12 +22,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\SettingsReader;
 
-/**
- * Getting started (I-241, from Ghost): the few things a new site needs, each
- * ticked off from the site's real state, for someone who may manage its
- * settings. It hides itself once all are done, or when the person hides it.
- * Each step is one bounded read. It reads only.
- */
 final readonly class GettingStarted
 {
     public function __construct(

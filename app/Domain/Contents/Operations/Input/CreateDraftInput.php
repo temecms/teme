@@ -1,15 +1,20 @@
 <?php
 
+/**
+ * What `CreateDraft` needs: the content type, its title, the document and
+ * fields, who is asking, and the language it is written in.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Contents\Operations\Input;
 
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What `CreateDraft` needs: the content type, its title, the document and
- * fields, who is asking, and the language it is written in.
- */
 final readonly class CreateDraftInput implements OperationInput
 {
     /**

@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * The admin's routes, under /admin and behind sign-in.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use App\Domain\Comments\CommentModeration;

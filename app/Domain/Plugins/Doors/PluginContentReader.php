@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * A plugin's content.read door (docs/plans/plugin-sockets-3.md): published,
+ * public items for anyone, and an item's draft and the queue of unpublished
+ * items only for the person the work acts for, as far as they may edit them.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Plugins\Doors;
@@ -19,11 +29,6 @@ use Teme\Contracts\Content\QueueQuery;
 use Teme\Contracts\Content\ReadRefused;
 use Teme\Contracts\Content\WriteRefused;
 
-/**
- * A plugin's content.read door (docs/plans/plugin-sockets-3.md): published,
- * public items for anyone, and an item's draft and the queue of unpublished
- * items only for the person the work acts for, as far as they may edit them.
- */
 final readonly class PluginContentReader implements ContentReader
 {
     public function __construct(

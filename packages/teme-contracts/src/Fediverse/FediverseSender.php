@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Sends an activity to the followers of one of the site's accounts, for a
+ * plugin granted fediverse.send: Teme stores it, then signs and delivers it
+ * once the plugin's work commits.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Fediverse;

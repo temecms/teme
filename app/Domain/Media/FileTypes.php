@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Media;
-
 /**
  * The file types Teme accepts, by the media type PHP's fileinfo detects in
  * the content, with the kind and the extensions each may be stored under
  * (docs/architecture/media.md, "Accepted files"; I-168). Anything else is
  * refused.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Media;
+
 final class FileTypes
 {
     /**

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * After the comments (docs/plans/fediverse-import.md): each comment that
+ * came from the fediverse is linked, by the address its remote server gave
+ * it, to the comment the import made, so a later Update or Delete of it
+ * finds that comment. A page of the plugin's reply sources a job; a
+ * companion too old for the route is skipped here and reported by the
+ * fediverse step.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Fediverse\Import;
@@ -13,14 +26,6 @@ use App\Domain\Import\Phases\StepResult;
 use App\Domain\Import\Queries\ImportMap;
 use App\Domain\Import\Source\SourceReader;
 
-/**
- * After the comments (docs/plans/fediverse-import.md): each comment that
- * came from the fediverse is linked, by the address its remote server gave
- * it, to the comment the import made, so a later Update or Delete of it
- * finds that comment. A page of the plugin's reply sources a job; a
- * companion too old for the route is skipped here and reported by the
- * fediverse step.
- */
 final readonly class FediverseRepliesStep implements StepPhase
 {
     public function __construct(private ImportMap $map) {}

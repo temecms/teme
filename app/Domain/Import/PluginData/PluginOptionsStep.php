@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Before the plugins' records, once a run: each plugin's declared WordPress
+ * options, read whole and handed to its importer (docs/proposals/plugin-import-socket.md).
+ * A companion too old for plugin data is reported once, and every plugin
+ * step skips; a plugin that fails is reported, and the run goes on.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Import\PluginData;
@@ -14,12 +25,6 @@ use App\Domain\Import\Source\SourceReader;
 use App\Domain\Import\Source\SourceRefused;
 use Throwable;
 
-/**
- * Before the plugins' records, once a run: each plugin's declared WordPress
- * options, read whole and handed to its importer (docs/proposals/plugin-import-socket.md).
- * A companion too old for plugin data is reported once, and every plugin
- * step skips; a plugin that fails is reported, and the run goes on.
- */
 final readonly class PluginOptionsStep implements StepPhase
 {
     public function __construct(private PluginImports $imports, private ImportMap $map) {}

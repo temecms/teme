@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Brings an image from another site into the media library, for the
+ * editor's Import images (I-453): who asks is checked before anything is
+ * fetched; the download happens before the transaction; UploadMedia stores
+ * it with where it came from; a file the library already has gives back
+ * that item instead.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Media\Operations;
@@ -19,13 +31,6 @@ use Illuminate\Validation\ValidationException;
 use LogicException;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Brings an image from another site into the media library, for the
- * editor's Import images (I-453): who asks is checked before anything is
- * fetched; the download happens before the transaction; UploadMedia stores
- * it with where it came from; a file the library already has gives back
- * that item instead.
- */
 final class DownloadImage extends BaseOperation
 {
     /** What validate() downloaded, for perform() to store. */

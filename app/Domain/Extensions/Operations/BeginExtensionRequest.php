@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Begins an extension request the installer takes up: it runs, its steps
+ * waiting. Or, for a new Teme the current release no longer fits, records a
+ * rebuild Teme asks for itself and begins it. The operator only. Returns the
+ * request's id, or null when there is nothing to begin: the request was
+ * cancelled first, another is open, or a Teme update is (a rebuild, which
+ * that update's start asks for, waits for none).
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Extensions\Operations;
@@ -17,14 +30,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * Begins an extension request the installer takes up: it runs, its steps
- * waiting. Or, for a new Teme the current release no longer fits, records a
- * rebuild Teme asks for itself and begins it. The operator only. Returns the
- * request's id, or null when there is nothing to begin: the request was
- * cancelled first, another is open, or a Teme update is (a rebuild, which
- * that update's start asks for, waits for none).
- */
 final class BeginExtensionRequest extends BaseOperation
 {
     protected function authorize(OperationInput $input): void

@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * What UpdateTaxonomy needs: the taxonomy (its key naming the row), the listed types that use it, and
+ * who is asking (null for the operator).
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Types\Operations\Input;
@@ -7,10 +16,6 @@ namespace App\Domain\Types\Operations\Input;
 use App\Domain\Types\TaxonomyDefinition;
 use Teme\Contracts\Operations\OperationInput;
 
-/**
- * What UpdateTaxonomy needs: the taxonomy (its key naming the row), the listed types that use it, and
- * who is asking (null for the operator).
- */
 final readonly class UpdateTaxonomyInput implements OperationInput
 {
     /**

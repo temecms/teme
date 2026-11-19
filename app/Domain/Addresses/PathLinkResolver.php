@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Where a link by ID leads (rule 9): an article's current address from the
+ * path table, site-relative with its trailing slash, a term's or a person's
+ * page, or a library file's address; null when there is none, and the
+ * renderer then leaves the text unlinked. Each target is looked up once per
+ * render. The other way, a path on this site or a library file's address
+ * leads back to what it names.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Addresses;
@@ -13,14 +26,6 @@ use App\Domain\Languages\SiteLanguages;
 use App\Domain\Media\MediaLocations;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Where a link by ID leads (rule 9): an article's current address from the
- * path table, site-relative with its trailing slash, a term's or a person's
- * page, or a library file's address; null when there is none, and the
- * renderer then leaves the text unlinked. Each target is looked up once per
- * render. The other way, a path on this site or a library file's address
- * leads back to what it names.
- */
 final class PathLinkResolver implements InternalLinks, LinkResolver
 {
     /** @var array<string, string|null> */

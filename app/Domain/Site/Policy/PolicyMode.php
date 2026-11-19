@@ -1,15 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Domain\Site\Policy;
-
 /**
  * How the public site sends its content security policy (I-3375): not at
  * all, as a report that blocks nothing, or enforced. Read from deploy
  * configuration at each use; a value Teme doesn't know reads as
  * report-only, which breaks nothing, and the doctor names it.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
  */
+
+declare(strict_types=1);
+
+namespace App\Domain\Site\Policy;
+
 enum PolicyMode: string
 {
     case Off = 'off';

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * Asked once each time an article is drawn, on the site, in a feed or by the
+ * API, with the links it draws: a listener returns, by each link's place in
+ * $links, the LinkAttributes Teme writes on it.
+ *
+ * @package Teme
+ * @since   1.0.0
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace Teme\Contracts\Content;

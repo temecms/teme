@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * The "Edit" link core's script adds to a public page for someone signed
+ * in (I-163): for the one item the page at a path shows, at its own
+ * address or at the site's as the chosen home page, to someone who may edit
+ * it, by the rule the editor itself applies (ContentPolicy::update()), and whether they look after its comments (1.8c″). The
+ * page is found from its path, never from an ID written in it: a content
+ * ID says when its draft was made.
+ *
+ * @package Teme
+ * @since   0.7.0-alpha.2
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\Site\Queries;
@@ -15,14 +28,6 @@ use App\Domain\Types\ContentTypeRegistry;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
-/**
- * The "Edit" link core's script adds to a public page for someone signed
- * in (I-163): for the one item the page at a path shows, at its own
- * address or at the site's as the chosen home page, to someone who may edit
- * it, by the rule the editor itself applies (ContentPolicy::update()), and whether they look after its comments (1.8c″). The
- * page is found from its path, never from an ID written in it: a content
- * ID says when its draft was made.
- */
 final readonly class EditLinks
 {
     public function __construct(private ContentTypeRegistry $types) {}
