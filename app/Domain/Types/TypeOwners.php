@@ -62,7 +62,7 @@ final class TypeOwners
     {
         $table = self::TABLES[$kind];
 
-        if (! self::recorded($table)) {
+        if (DB::scalar('SELECT '.self::recordedSql()) !== true) {
             return [];
         }
 
@@ -75,21 +75,22 @@ final class TypeOwners
     }
 
     /**
-     * A condition true for a row of $table whose plugin isn't enabled, to
-     * read with the row itself; false before the column exists.
+     * A condition true for a row whose plugin isn't enabled, to read with the
+     * row itself, so the registries' reads need no other statement.
      */
-    public static function dormantCondition(string $table): string
+    public static function dormantCondition(): string
     {
-        return self::recorded($table) ? self::dormantSql() : 'false';
+        return self::dormantSql();
     }
 
     /**
-     * Whether $table has its `plugin` column yet. Asked only when the stored
-     * definitions are read afresh, so never on a warm request.
+     * An expression true once the definitions tables have their `plugin`
+     * column, as one migration adds it to all three: to ask in a statement
+     * the registries already make, as a new site migrates.
      */
-    private static function recorded(string $table): bool
+    public static function recordedSql(): string
     {
-        return DB::scalar("SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = ? AND column_name = 'plugin')", [$table]) === true;
+        return "EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid = to_regclass('".StoredTypes::TABLE."') AND attname = 'plugin' AND NOT attisdropped)";
     }
 
     private static function dormantSql(): string

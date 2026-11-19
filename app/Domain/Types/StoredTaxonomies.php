@@ -28,7 +28,7 @@ final class StoredTaxonomies
     public function definitions(bool $enabledOnly = false): array
     {
         return DB::table(self::TABLE)
-            ->when($enabledOnly, fn ($query) => $query->whereRaw('NOT '.TypeOwners::dormantCondition(self::TABLE)))
+            ->when($enabledOnly, fn ($query) => $query->whereRaw('NOT '.TypeOwners::dormantCondition()))
             ->orderBy('created_at')
             ->orderBy('key')
             ->get(['key', 'definition'])

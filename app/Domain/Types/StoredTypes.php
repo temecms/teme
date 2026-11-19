@@ -49,13 +49,13 @@ final class StoredTypes
         // A migration may read the registries before these tables exist, as a
         // new site migrates. One statement asks for both: to_regclass answers
         // NULL rather than failing, so no transaction is aborted.
-        $tables = DB::selectOne('SELECT to_regclass(?) AS types, to_regclass(?) AS taxonomies', [self::TABLE, StoredTaxonomies::TABLE]);
+        $tables = DB::selectOne('SELECT to_regclass(?) AS types, to_regclass(?) AS taxonomies, '.TypeOwners::recordedSql().' AS owned', [self::TABLE, StoredTaxonomies::TABLE]);
 
         if ($tables === null || $tables->types === null) {
             return ['version' => '', 'definitions' => [], 'taxonomies' => []];
         }
 
-        $snapshot = $this->fresh($tables->taxonomies !== null);
+        $snapshot = $this->fresh($tables->taxonomies !== null, $tables->owned === true);
 
         // add(), never put(): a change that committed while this read ran has
         // put the newer copy, and it must stay (I-3296).
@@ -78,13 +78,13 @@ final class StoredTypes
 
             // As snapshot() asks: before the migrations have run there is
             // nothing to remember, and no table to read.
-            $tables = DB::selectOne('SELECT to_regclass(?) AS types, to_regclass(?) AS taxonomies', [self::TABLE, StoredTaxonomies::TABLE]);
+            $tables = DB::selectOne('SELECT to_regclass(?) AS types, to_regclass(?) AS taxonomies, '.TypeOwners::recordedSql().' AS owned', [self::TABLE, StoredTaxonomies::TABLE]);
 
             if ($tables === null || $tables->types === null) {
                 return;
             }
 
-            Cache::put(self::CACHE_KEY, $this->fresh($tables->taxonomies !== null), self::CACHE_SECONDS);
+            Cache::put(self::CACHE_KEY, $this->fresh($tables->taxonomies !== null, $tables->owned === true), self::CACHE_SECONDS);
         });
     }
 
@@ -105,7 +105,7 @@ final class StoredTypes
     public function definitions(bool $enabledOnly = false): array
     {
         return DB::table(self::TABLE)
-            ->when($enabledOnly, fn ($query) => $query->whereRaw('NOT '.TypeOwners::dormantCondition(self::TABLE)))
+            ->when($enabledOnly, fn ($query) => $query->whereRaw('NOT '.TypeOwners::dormantCondition()))
             ->orderBy('created_at')
             ->orderBy('key')
             ->get(['key', 'definition'])
@@ -229,11 +229,11 @@ final class StoredTypes
     /**
      * @return array{version: string, definitions: list<array<string, mixed>>, taxonomies: list<array<string, mixed>>}
      */
-    private function fresh(bool $withTaxonomies): array
+    private function fresh(bool $withTaxonomies, bool $owned): array
     {
         // A plugin's types and taxonomies only while it is enabled (docs/architecture/plugins.md, *Content types from a plugin*).
-        $definitions = $this->definitions(enabledOnly: true);
-        $taxonomies = $withTaxonomies ? app(StoredTaxonomies::class)->definitions(enabledOnly: true) : [];
+        $definitions = $this->definitions(enabledOnly: $owned);
+        $taxonomies = $withTaxonomies ? app(StoredTaxonomies::class)->definitions(enabledOnly: $owned) : [];
 
         return [
             'version' => hash('xxh128', json_encode([$definitions, $taxonomies], JSON_THROW_ON_ERROR)),

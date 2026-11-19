@@ -45,11 +45,13 @@ final class StoredFields
         }
 
         // As the types' snapshot: a migration may ask before the table exists.
-        if (DB::scalar('SELECT to_regclass(?)', [self::TABLE]) === null) {
+        $table = DB::selectOne('SELECT to_regclass(?) AS fields, '.TypeOwners::recordedSql().' AS owned', [self::TABLE]);
+
+        if ($table === null || $table->fields === null) {
             return ['version' => '', 'definitions' => []];
         }
 
-        $snapshot = $this->fresh();
+        $snapshot = $this->fresh($table->owned === true);
 
         // add(), never put(): a change that committed meanwhile put a newer copy (I-3296).
         if (! Cache::add(self::CACHE_KEY, $snapshot, self::CACHE_SECONDS)) {
@@ -67,7 +69,7 @@ final class StoredFields
     {
         DB::transaction(function (): void {
             StoredTypes::lock();
-            Cache::put(self::CACHE_KEY, $this->fresh(), self::CACHE_SECONDS);
+            Cache::put(self::CACHE_KEY, $this->fresh(DB::scalar('SELECT '.TypeOwners::recordedSql()) === true), self::CACHE_SECONDS);
         });
     }
 
@@ -82,7 +84,7 @@ final class StoredFields
     {
         return DB::table(self::TABLE)
             ->select(['key', 'content_type', 'handle', 'position', 'definition', 'removed_at', 'removed_by'])
-            ->when($markDormant, fn ($query) => $query->selectRaw(TypeOwners::dormantCondition(self::TABLE).' AS dormant'))
+            ->when($markDormant, fn ($query) => $query->selectRaw(TypeOwners::dormantCondition().' AS dormant'))
             ->orderBy('content_type')
             ->orderBy('position')
             ->orderBy('key')
@@ -246,10 +248,10 @@ final class StoredFields
     /**
      * @return array{version: string, definitions: list<array<string, mixed>>}
      */
-    private function fresh(): array
+    private function fresh(bool $owned): array
     {
         // A plugin's fields only while it is enabled; their values travel untouched meanwhile (docs/architecture/plugins.md, *Content types from a plugin*).
-        $definitions = $this->definitions(markDormant: true);
+        $definitions = $this->definitions(markDormant: $owned);
 
         return ['version' => hash('xxh128', json_encode($definitions, JSON_THROW_ON_ERROR)), 'definitions' => $definitions];
     }
