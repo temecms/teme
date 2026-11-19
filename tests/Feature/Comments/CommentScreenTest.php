@@ -56,13 +56,15 @@ it('answers as if the screen weren\'t there while comments are switched off, and
     expect($comment->refresh()->status)->toBe('pending');
 });
 
-it('refuses a list narrowed to an item someone else looks after, in v9\'s words, and 404 for an item that isn\'t there (C1, D15)', function (): void {
+it('refuses a list narrowed to an item someone else looks after, naming who does, and 404 for an item that isn\'t there (C1, D15)', function (): void {
     cmScreen($this->author, ['view' => 'spam', 'item' => $this->his->id])
         ->assertForbidden()
         ->assertInertia(fn (Assert $page) => $page
             ->component('comments/refused')
-            ->where('message', 'You don’t look after the comments on “Market day”. Editors and administrators look after every item’s comments, and authors those on their own posts.')
-            ->where('back', ['label' => 'Show the comments you look after', 'href' => route('comments.index', ['view' => 'spam'], false)]));
+            ->where('message', 'You don’t look after the comments on “Market day”. Eze Editor, its author, does, and so does anyone who may edit other people’s posts.')
+            ->where('heading', 'These comments belong to someone else')
+            ->where('line', 'You moderate comments on your own posts and pages. Ask Eze Editor, or an editor, if one needs attention.')
+            ->where('back', ['label' => 'Back to the comments you look after', 'href' => route('comments.index', ['view' => 'spam'], false)]));
 
     cmScreen($this->editor, ['item' => cmId()])->assertNotFound();
 });
@@ -74,8 +76,9 @@ it('refuses an author the comments of a page she wrote before pages were editors
         ->assertForbidden()
         ->assertInertia(fn (Assert $page) => $page
             ->component('comments/refused')
-            ->where('message', 'You don’t look after the comments on “About us”. Editors and administrators look after every item’s comments, and authors those on their own posts.')
-            ->where('back', ['label' => 'Show the comments you look after', 'href' => route('comments.index', [], false)]));
+            ->where('message', 'You don’t look after the comments on “About us”. Anyone who may edit other people’s pages does.')
+            ->where('line', 'You moderate comments on your own posts and pages. Ask an editor if one needs attention.')
+            ->where('back', ['label' => 'Back to the comments you look after', 'href' => route('comments.index', [], false)]));
 
     cmScreen($this->editor, ['item' => $about->id])->assertOk();
 });
@@ -115,7 +118,11 @@ it('refuses a drawer for a comment on someone else\'s item, and 404 for one that
     $theirs = cmNext($this->his, 'pending');
     $tombstone = cmNext($this->his, 'removed', attributes: ['author_name' => null, 'author_email' => null, 'body' => null]);
 
-    cmScreen($this->author, ['comment' => $theirs->id])->assertForbidden()->assertInertia(fn (Assert $page) => $page->component('comments/refused'));
+    cmScreen($this->author, ['comment' => $theirs->id])->assertForbidden()->assertInertia(fn (Assert $page) => $page
+        ->component('comments/refused')
+        ->where('message', 'You don’t look after this comment. It is on “Market day”, which Eze Editor looks after.')
+        ->where('heading', 'This comment belongs to someone else')
+        ->where('line', 'You can’t open it, edit it or move it. Ask Eze Editor, or an editor, if it needs attention.'));
     cmScreen($this->editor, ['comment' => cmId()])->assertNotFound();
     cmScreen($this->editor, ['comment' => $tombstone->id])->assertNotFound();
     cmScreen($this->editor, ['comment' => 'not-a-comment'])->assertNotFound();
@@ -127,4 +134,14 @@ it('says "Move to trash" in the row menu, as every screen does, and never a bare
     expect($source)->not->toContain("__('Trash')")
         ->and($source)->toContain("label: __('Move to trash')")
         ->and($source)->toContain('entry(row, trash)');
+});
+
+it('gives each row its item’s comment count, approved and waiting, in one read for the page', function (): void {
+    cmNext($this->hers, 'pending');
+    cmNext($this->hers, 'approved');
+    cmNext($this->hers, 'spam');
+    cmNext($this->his, 'approved');
+
+    cmScreen($this->editor, ['view' => 'all'])->assertInertia(fn (Assert $page) => $page
+        ->where('rows', fn ($rows): bool => collect($rows)->every(fn (array $row): bool => $row['item']['comments'] === ($row['item']['title'] === 'Harbour news' ? 2 : 1))));
 });

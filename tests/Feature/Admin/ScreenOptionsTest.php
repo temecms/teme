@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Preferences\PreferenceRegistry;
+use App\Domain\Preferences\Queries\PreferencesFor;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,8 +22,9 @@ beforeEach(function (): void {
 it('declares one columns preference per type, offering each of its taxonomies', function (): void {
     $registry = app(PreferenceRegistry::class);
 
-    // toContain, not toBe: 1.8 adds comments, and phase 5 plugin columns.
-    expect($registry->get('lists.post.columns')->default)->toContain('author', 'taxonomy-category', 'taxonomy-tag', 'date')
+    // toContain, not toBe: plugins add columns. A flat taxonomy is offered, not shown at first.
+    expect($registry->get('lists.post.columns')->default)->toContain('author', 'taxonomy-category', 'date')
+        ->and($registry->get('lists.post.columns')->allows(['taxonomy-tag']))->toBeTrue()
         ->and($registry->get('lists.post.columns')->default)->not->toContain('status')
         ->and($registry->get('lists.page.columns')->default)->toContain('author', 'date')
         ->and($registry->get('lists.page.columns')->default)->not->toContain('status')
@@ -39,7 +41,7 @@ it('shows only the columns a person chose, and keeps Title always', function ():
 
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('preferences', fn ($preferences): bool => in_array('taxonomy-tag', $preferences['lists.post.columns'], true)));
+            ->where('preferences', fn ($preferences): bool => in_array('taxonomy-category', $preferences['lists.post.columns'], true)));
 
     expect(fn () => lscrPrefer($this->author, ['lists.post.columns' => ['title', 'author']]))
         ->toThrow(ValidationException::class)
@@ -47,7 +49,7 @@ it('shows only the columns a person chose, and keeps Title always', function ():
         ->toThrow(ValidationException::class);
 });
 
-it('remembers rows per page for that person and nobody else', function (): void {
+it('shows 10 rows a page at first, and remembers another choice for that person and nobody else', function (): void {
     foreach (range(1, 30) as $n) {
         lifecycleDraft($this->author, "Post {$n}");
     }
@@ -58,7 +60,11 @@ it('remembers rows per page for that person and nobody else', function (): void 
         ->assertInertia(fn (Assert $page) => $page->has('rows', 25)->where('paging.last', 2));
 
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))
-        ->assertInertia(fn (Assert $page) => $page->has('rows', 30)->where('paging.last', 1));
+        ->assertInertia(fn (Assert $page) => $page->has('rows', 10)->where('paging.last', 3));
+
+    lscrPrefer($this->editor, ['lists.per_page' => 10]);
+
+    expect(PreferencesFor::user($this->editor)['lists.per_page'])->toBe(10);
 });
 
 it('filters by month in the site\'s time zone, on the date the list shows', function (): void {

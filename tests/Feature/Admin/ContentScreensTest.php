@@ -180,7 +180,7 @@ it('opens a new draft from every door with one press', function (): void {
     expect(uiComponent('pages/content/index.tsx'))
         ->not->toContain('new-draft-title')
         ->not->toContain("get('new')")
-        ->toContain("__('Add new :singular'")
+        ->toContain("__('New :singular'")
         ->and(uiComponent('components/palette/palette-commands.ts'))
         ->toContain('router.post(')
         ->toContain('in the editor`')

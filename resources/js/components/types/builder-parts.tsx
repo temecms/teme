@@ -4,6 +4,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StatusPill } from '@/components/ui/status-pill';
+import { Switch } from '@/components/ui/switch';
+import { __ } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
 
 /**
@@ -57,6 +59,7 @@ export function Flag({
     hint,
     reason,
     error,
+    control = 'checkbox',
     onCheckedChange,
 }: {
     id: string;
@@ -68,26 +71,41 @@ export function Flag({
     hint?: string;
     reason?: string;
     error?: string;
+    /** A switch for a setting that turns something on; a tick box for one of several choices. */
+    control?: 'checkbox' | 'switch';
     onCheckedChange: (checked: boolean | 'indeterminate') => void;
 }) {
     return (
         <div className="grid gap-1">
             <div className="flex items-start gap-2">
                 <span className="text-body flex h-lh shrink-0 items-center">
-                    <Checkbox
-                        id={id}
-                        name={name}
-                        value={value}
-                        checked={checked}
-                        disabled={disabled}
-                        onCheckedChange={onCheckedChange}
-                    />
+                    {control === 'switch' ? (
+                        <Switch
+                            id={id}
+                            name={name}
+                            value={value}
+                            checked={checked}
+                            disabled={disabled}
+                            onCheckedChange={onCheckedChange}
+                        />
+                    ) : (
+                        <Checkbox
+                            id={id}
+                            name={name}
+                            value={value}
+                            checked={checked}
+                            disabled={disabled}
+                            onCheckedChange={onCheckedChange}
+                        />
+                    )}
                 </span>
                 {disabled && checked && (
                     <input type="hidden" name={name} value={value} />
                 )}
                 <div className="grid gap-1">
-                    <Label htmlFor={id}>{label}</Label>
+                    <Label htmlFor={id} className="text-body font-normal">
+                        {label}
+                    </Label>
                     {hint !== undefined && <Hint>{hint}</Hint>}
                     {reason !== undefined && (
                         <p className="text-small">{reason}</p>
@@ -111,14 +129,14 @@ export function SourceBadge({
     }
 
     if (mode === 'view' || source === 'code') {
-        return <StatusPill tone="neutral">Code</StatusPill>;
+        return <StatusPill tone="neutral">{__('Code')}</StatusPill>;
     }
 
     if (source === 'refused') {
-        return <StatusPill tone="danger">Can’t be used</StatusPill>;
+        return <StatusPill tone="danger">{__('Can’t be used')}</StatusPill>;
     }
 
-    return <StatusPill tone="info">Made here</StatusPill>;
+    return <StatusPill tone="info">{__('Made here')}</StatusPill>;
 }
 
 export function IconName({ name }: { name: string }) {

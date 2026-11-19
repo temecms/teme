@@ -65,7 +65,8 @@ it('shows each row\'s status on a pill in its Status column, no longer after its
 it('offers a way back on every pager', function (string $name, array $parameters, string $component): void {
     // The Users list has no pager — a site has few people — so there is
     // nothing to add there.
-    foreach (range(1, 55) as $n) {
+    // Lists of content show 10 rows a page at first; terms show 50.
+    foreach (range(1, $name === 'content.index' ? 15 : 55) as $n) {
         if ($name === 'content.index') {
             lifecycleDraft($this->admin, "Post {$n}");
         } else {

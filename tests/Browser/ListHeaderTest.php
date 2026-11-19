@@ -59,7 +59,7 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))->assertOk();
 });
 
-it('puts Add new in the page header and Columns at the end of the filter line, every filter in that one labelled line, with no Filter button (I-3129)', function (): void {
+it('puts New in the page header and Columns at the end of the filter line, every filter in that one labelled line, with no Filter button (I-3129)', function (): void {
     $page = cmSignIn($this->editor)->navigate('/admin/posts');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"list-filters\"]') !== null")
@@ -184,7 +184,7 @@ it('opens Columns as a popover under its button, not a modal, its first field ta
         ->assertAttribute('[data-test="columns"]', 'aria-expanded', 'true')
         ->assertAttribute('[data-test="columns"]', 'data-state', 'open')
         ->assertScript("(() => { const panel = document.querySelector('[data-test=\"column-chooser\"]').getBoundingClientRect(); return panel.top >= document.querySelector('[data-test=\"columns\"]').getBoundingClientRect().bottom && panel.right <= window.innerWidth; })()")
-        ->assertScript("[...document.querySelectorAll('[data-test=\"column-chooser\"] [role=\"checkbox\"][id^=\"column-\"]')].map((box) => box.id).join('|')", 'column-title|column-author|column-taxonomy-category|column-taxonomy-tag|column-comments|column-date|column-thumbnails')
+        ->assertScript("[...document.querySelectorAll('[data-test=\"column-chooser\"] [role=\"checkbox\"][id^=\"column-\"]')].map((box) => box.id).join('|')", 'column-title|column-author|column-taxonomy-category|column-date|column-taxonomy-tag|column-template|column-comments|column-thumbnails')
         ->assertScript('document.documentElement.clientWidth', $width)
         ->keys('#column-author', 'Escape');
 
@@ -218,7 +218,7 @@ it('keeps focus on a column\'s move button when the keyboard moves it to the fir
         ->assertScript("document.activeElement === document.querySelector('{$later}')", true);
 });
 
-it('shows each title\'s thumbnail once Columns turns Thumbnails on: a small thumbnail, or a mark of the same size (I-3120)', function (): void {
+it('shows each title\'s thumbnail by default, a small thumbnail or a mark of the same size, until Columns turns Thumbnails off', function (): void {
     $image = mediaUpload($this->editor, mediaJpeg(800, 600), 'quay.jpg');
     docSave($this->ferry, $this->editor, docWith(docText('Fares rise in November.')), [
         BuiltInFields::FEATURED_IMAGE => ['id' => $image->id, 'alt' => '', 'decorative' => false],
@@ -226,19 +226,18 @@ it('shows each title\'s thumbnail once Columns turns Thumbnails on: a small thum
 
     $page = cmSignIn($this->editor)->navigate('/admin/posts');
 
-    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"row-title\"]').length === 3")
-        ->assertScript("document.querySelector('[data-test=\"featured-thumb\"], [data-test=\"featured-none\"]') === null");
+    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"row-title\"]').length === 3 && document.querySelectorAll('[data-test=\"featured-thumb\"]').length === 1 && document.querySelectorAll('[data-test=\"featured-none\"]').length === 2")
+        ->assertScript("(() => { const thumb = document.querySelector('[data-test=\"featured-thumb\"]'); const box = thumb.getBoundingClientRect(); const none = document.querySelector('[data-test=\"featured-none\"]').getBoundingClientRect(); return thumb.getAttribute('alt') === '' && thumb.getAttribute('loading') === 'lazy' && Math.round(box.width) === 48 && Math.round(box.height) === 32 && Math.round(none.width) === 48 && Math.round(none.height) === 32; })()")
+        ->assertScript("[...document.querySelectorAll('tbody tr')].every((row) => row.children[1].querySelector('[data-test^=\"featured-\"]') !== null)")
+        ->assertScript("document.querySelector('[data-test=\"featured-none\"]').textContent.trim()", 'No featured image');
 
     $page->click('[data-test="columns"]')
         ->click('#column-thumbnails')
         ->click('[data-test="column-chooser"] >> text="Apply"');
 
-    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"featured-thumb\"]').length === 1 && document.querySelectorAll('[data-test=\"featured-none\"]').length === 2")
-        ->assertScript("(() => { const thumb = document.querySelector('[data-test=\"featured-thumb\"]'); const box = thumb.getBoundingClientRect(); const none = document.querySelector('[data-test=\"featured-none\"]').getBoundingClientRect(); return thumb.getAttribute('alt') === '' && thumb.getAttribute('loading') === 'lazy' && Math.round(box.width) === 48 && Math.round(box.height) === 32 && Math.round(none.width) === 48 && Math.round(none.height) === 32; })()")
-        ->assertScript("[...document.querySelectorAll('tbody tr')].every((row) => row.children[1].querySelector('[data-test^=\"featured-\"]') !== null)")
-        ->assertScript("document.querySelector('[data-test=\"featured-none\"]').textContent.trim()", 'No featured image');
+    cmWaitUntil($page, "document.querySelector('[data-test=\"featured-thumb\"], [data-test=\"featured-none\"]') === null");
 
-    expect(PreferencesFor::user($this->editor->refresh())['lists.post.columns'])->toContain('featured');
+    expect(PreferencesFor::user($this->editor->refresh())['lists.post.columns'])->not->toContain('featured');
 });
 
 it('closes an open filter when another opens or the pointer presses outside, so only one is ever open', function (): void {
@@ -259,7 +258,7 @@ it('folds the filters into Filters (n) on a phone, each filter there opening its
     cmWaitUntil($page, "document.querySelector('[data-test=\"filters-sheet\"]') !== null")
         ->assertScript("document.querySelector('[data-test=\"filters-sheet\"]').textContent.trim()", 'Filters (1)')
         ->assertScript('document.documentElement.scrollWidth <= window.innerWidth')
-        ->assertScript("document.querySelector('[data-test=\"add-new\"]').textContent.trim().startsWith('Add new')")
+        ->assertScript("document.querySelector('[data-test=\"add-new\"]').textContent.trim().startsWith('New')")
         ->click('[data-test="filters-sheet"]');
 
     cmWaitUntil($page, "document.querySelector('[data-test=\"filters-panel\"] [data-test=\"filter-date\"]') !== null && document.querySelector('[data-test=\"filters-panel\"]').getAnimations().length === 0");

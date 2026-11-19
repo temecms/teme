@@ -12,6 +12,7 @@ export function ListPage({
     description,
     actions,
     plugin,
+    badge,
     titleAs,
     children,
 }: {
@@ -19,6 +20,8 @@ export function ListPage({
     description?: ReactNode;
     actions?: ReactNode;
     plugin?: string;
+    /** Beside the title, such as a Soon tag. */
+    badge?: ReactNode;
     titleAs?: 'h1' | 'div';
     children: ReactNode;
 }) {
@@ -29,6 +32,7 @@ export function ListPage({
                 description={description}
                 actions={actions}
                 plugin={plugin}
+                badge={badge}
                 as={titleAs}
             />
             <div className="grid gap-4">{children}</div>

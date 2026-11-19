@@ -1,5 +1,5 @@
 import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/react';
-import { GripVertical, Lock, Plus } from 'lucide-react';
+import { ArrowLeft, GripVertical, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import TypeFieldsController from '@/actions/App/Http/Admin/TypeFieldsController';
@@ -18,10 +18,17 @@ import {
 import { Notice } from '@/components/ui/notice';
 import { Panel } from '@/components/ui/panel';
 import { StatusPill } from '@/components/ui/status-pill';
+import { useSectionCrumb } from '@/lib/crumbs';
+import { __ } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { index as typesIndex } from '@/routes/types';
 import { index as fieldsIndex } from '@/routes/types/fields';
-import type { FieldRow, FieldsPage, FieldsPageType } from '@/types';
+import type {
+    FieldFromTeme,
+    FieldRow,
+    FieldsPage,
+    FieldsPageType,
+} from '@/types';
 
 /** A row's action, drawn as words under its name. */
 const LINK = 'text-accent-ink';
@@ -51,11 +58,14 @@ export default function TypeFields(page: FieldsPage) {
     const [dragging, setDragging] = useState<string | null>(null);
     const [refocus, setRefocus] = useState<string | null>(null);
 
+    const siteCrumb = useSectionCrumb('site');
+
     setLayoutProps({
         breadcrumbs: [
-            { title: 'Types', href: typesIndex() },
+            siteCrumb,
+            { title: __('Types'), href: typesIndex() },
             { title: type.plural, href: type.typeUrl },
-            { title: 'Fields', href: fieldsIndex({ key: type.key }) },
+            { title: __('Fields'), href: fieldsIndex({ key: type.key }) },
         ],
     });
 
@@ -99,18 +109,27 @@ export default function TypeFields(page: FieldsPage) {
             title={`${type.singular} fields`}
             description={`What the editor asks for on each ${type.noun}, in this order. A saved change works at once.`}
             actions={
-                !locked && (
-                    <Button
-                        type="button"
-                        onClick={() => {
-                            setEditing(null);
-                            setAdding(true);
-                        }}
-                    >
-                        <Plus aria-hidden className="size-4" />
-                        Add field
+                <>
+                    <Button variant="ghost" asChild>
+                        <Link href={type.typeUrl}>
+                            <ArrowLeft aria-hidden="true" />
+                            {__('Back to :plural', { plural: type.plural })}
+                        </Link>
                     </Button>
-                )
+                    {!locked && (
+                        <Button
+                            type="button"
+                            variant="primary"
+                            onClick={() => {
+                                setEditing(null);
+                                setAdding(true);
+                            }}
+                        >
+                            <Plus aria-hidden="true" />
+                            {__('Add field')}
+                        </Button>
+                    )}
+                </>
             }
         >
             <Head title={`${type.singular} fields`} />
@@ -525,62 +544,69 @@ function RowActions({
     );
 }
 
+/** Title and Body: every type has them, so they lead Teme's fields. */
+function alwaysFields(): FieldFromTeme[] {
+    return [
+        {
+            name: __('Title'),
+            handles: 'title',
+            fieldType: __('Short text'),
+            where: __('In the editor’s title field'),
+            feature: null,
+        },
+        {
+            name: __('Body'),
+            handles: 'body',
+            fieldType: __('Rich text'),
+            where: __('In the editor’s writing area'),
+            feature: null,
+        },
+    ];
+}
+
 function FromTeme({ page }: { page: FieldsPage }) {
     return (
-        <Card>
-            <CardHeading
-                icon={<Lock aria-hidden className="size-4" />}
-                title="From Teme"
-                line={
-                    <>
-                        They come with the features ticked under{' '}
-                        <Link
-                            href={page.type.typeUrl}
-                            className="text-accent-ink underline underline-offset-3"
-                        >
-                            In the editor
-                        </Link>{' '}
-                        on {page.type.plural}’ page, and keep their own places
-                        in the editor. They can’t be changed here. A plugin’s
-                        fields will show the same way, named after the plugin.
-                    </>
-                }
-            />
-            <table className="text-small w-full">
-                <thead>
-                    <tr className="border-line border-y text-left">
-                        <Th className="w-8 pl-3">
-                            <span className="sr-only">Locked</span>
-                        </Th>
-                        <Th>Field</Th>
-                        <Th className="hidden sm:table-cell">Field type</Th>
-                        <Th className="hidden sm:table-cell">Why it’s here</Th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {page.fromTeme.map((row) => {
-                        const where = row.where.endsWith('in the editor')
-                            ? row.where
-                            : `${row.where} in the editor`;
-
-                        return (
+        <section aria-labelledby="fields-from-teme" className="grid gap-3">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h2
+                    id="fields-from-teme"
+                    className="text-lead text-ink font-semibold"
+                >
+                    {__('From Teme')}
+                </h2>
+                <p className="text-small text-ink-2">
+                    {__('Every type has these. They can’t be changed here.')}
+                </p>
+            </div>
+            <Card>
+                <table className="text-small w-full">
+                    <caption className="sr-only">
+                        {__('Fields that come with Teme')}
+                    </caption>
+                    <thead>
+                        <tr className="border-line border-b text-left">
+                            <Th className="pl-4">{__('Field')}</Th>
+                            <Th className="hidden sm:table-cell">
+                                {__('Field type')}
+                            </Th>
+                            <Th className="hidden sm:table-cell">
+                                {__('Why it’s here')}
+                            </Th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {[...alwaysFields(), ...page.fromTeme].map((row) => (
                             <tr
                                 key={row.name}
                                 className="border-line border-b align-top last:border-b-0"
                             >
-                                <td className="w-8 py-3 pl-3">
-                                    <Lock
-                                        aria-hidden
-                                        className="text-ink-2 size-4"
-                                    />
-                                </td>
-                                <td className="min-w-0 py-3 pr-3">
+                                <td className="min-w-0 py-3 pr-3 pl-4">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <span className="font-medium">
+                                        <span className="font-semibold">
                                             {row.name}
                                         </span>
                                         <StatusPill tone="neutral">
-                                            Code
+                                            {__('Code')}
                                         </StatusPill>
                                     </div>
                                     <div className="text-caption text-ink-2 font-mono break-all">
@@ -593,22 +619,27 @@ function FromTeme({ page }: { page: FieldsPage }) {
                                 <td className="hidden py-3 pr-3 sm:table-cell">
                                     {row.fieldType}
                                     <div className="text-caption text-ink-2">
-                                        {where}
+                                        {row.where}
                                     </div>
                                 </td>
                                 <td className="hidden py-3 pr-3 sm:table-cell">
-                                    {row.feature !== null && (
+                                    {row.feature === null ? (
+                                        <span className="text-ink-3">
+                                            {__('Always')}
+                                        </span>
+                                    ) : (
                                         <>
-                                            Comes with <i>{row.feature}</i>
+                                            {__('Comes with')}{' '}
+                                            <i>{row.feature}</i>
                                         </>
                                     )}
                                 </td>
                             </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </Card>
+                        ))}
+                    </tbody>
+                </table>
+            </Card>
+        </section>
     );
 }
 

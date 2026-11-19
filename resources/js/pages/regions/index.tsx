@@ -1,13 +1,17 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Head, router, setLayoutProps } from '@inertiajs/react';
 import RegionsController from '@/actions/App/Http/Admin/RegionsController';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
 import { EmptyState } from '@/components/list/empty-state';
+import type { RowAction } from '@/components/list/row-actions';
+import { RowLine } from '@/components/list/row-line';
 import { ListPage } from '@/components/patterns/list-page';
-import { Button } from '@/components/ui/button';
+import { StatusPill } from '@/components/ui/status-pill';
 import { TermChips } from '@/components/ui/term-chips';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import { edit as editContent } from '@/routes/content';
+import { index as regionsIndex } from '@/routes/regions';
 import type {
     OtherRegionRow,
     RegionRow,
@@ -16,12 +20,23 @@ import type {
 } from '@/types';
 import { formatDateTime } from '@/lib/dates';
 
-const STATES: Record<RegionState, string> = {
-    empty: 'Empty',
-    draft: 'Draft',
-    published: 'Published',
-    changed: 'Published, with unpublished changes',
-};
+/** A region's state as a pill: Published, with changes waiting, or Draft; Empty in quiet words. */
+function StatePill({ state }: { state: RegionState }) {
+    switch (state) {
+        case 'empty':
+            return <span className="text-ink-3">{__('Empty')}</span>;
+        case 'draft':
+            return <StatusPill tone="neutral">{__('Draft')}</StatusPill>;
+        case 'published':
+            return <StatusPill tone="ok">{__('Published')}</StatusPill>;
+        case 'changed':
+            return (
+                <StatusPill tone="warn">
+                    {__('Published, with unpublished changes')}
+                </StatusPill>
+            );
+    }
+}
 
 function edited(at: string | null): string {
     return at === null ? '—' : formatDateTime(at);
@@ -38,12 +53,55 @@ export default function RegionsIndex({
     regions,
     others,
 }: RegionsIndexPage) {
+    const title = __('Regions');
+    const contentCrumb = useSectionCrumb('content');
+
+    setLayoutProps({
+        breadcrumbs: [contentCrumb, { title, href: regionsIndex() }],
+    });
+
+    /** Under the name: Edit a region that has content, else Create it. */
+    const lineActions = (row: RegionRow): RowAction[] => {
+        if (row.contentId !== null) {
+            return [
+                {
+                    id: 'edit',
+                    owner: 'core',
+                    label: __('Edit'),
+                    href: editContent(row.contentId).url,
+                },
+            ];
+        }
+
+        if (theme === null) {
+            return [];
+        }
+
+        return [
+            {
+                id: 'create',
+                owner: 'core',
+                label: __('Create'),
+                onSelect: () =>
+                    router.post(RegionsController.store.url(), {
+                        theme: theme.code,
+                        region: row.key,
+                    }),
+            },
+        ];
+    };
+
     const columns: Column<RegionRow>[] = [
         {
             id: 'label',
             owner: 'core',
-            header: 'Region',
-            cell: (row) => <span className="font-semibold">{row.label}</span>,
+            header: __('Region'),
+            cell: (row) => (
+                <div className="grid min-w-0 gap-0.5">
+                    <span className="text-ink font-semibold">{row.label}</span>
+                    <RowLine title={row.label} items={lineActions(row)} />
+                </div>
+            ),
         },
         {
             id: 'cards',
@@ -72,14 +130,8 @@ export default function RegionsIndex({
         {
             id: 'state',
             owner: 'core',
-            header: 'State',
-            cell: (row) => (
-                <span
-                    className={row.state === 'empty' ? 'text-ink-2' : undefined}
-                >
-                    {STATES[row.state]}
-                </span>
-            ),
+            header: __('State'),
+            cell: (row) => <StatePill state={row.state} />,
         },
         {
             id: 'edited',
@@ -88,51 +140,6 @@ export default function RegionsIndex({
             cell: (row) => (
                 <span className="text-ink-2">{edited(row.editedAt)}</span>
             ),
-        },
-        {
-            id: 'actions',
-            owner: 'core',
-            header: <span className="sr-only">Actions</span>,
-            className: 'w-px text-right',
-            cell: (row) =>
-                row.contentId !== null ? (
-                    <Button variant="neutral" size="sm" asChild>
-                        <Link href={editContent(row.contentId).url}>
-                            Edit
-                            <span className="sr-only"> {row.label}</span>
-                        </Link>
-                    </Button>
-                ) : (
-                    theme !== null && (
-                        <Form {...RegionsController.store.form()}>
-                            {({ processing }) => (
-                                <>
-                                    <input
-                                        type="hidden"
-                                        name="theme"
-                                        value={theme.code}
-                                    />
-                                    <input
-                                        type="hidden"
-                                        name="region"
-                                        value={row.key}
-                                    />
-                                    <Button
-                                        variant="neutral"
-                                        size="sm"
-                                        disabled={processing}
-                                    >
-                                        Create
-                                        <span className="sr-only">
-                                            {' '}
-                                            {row.label}
-                                        </span>
-                                    </Button>
-                                </>
-                            )}
-                        </Form>
-                    )
-                ),
         },
     ];
 
@@ -157,8 +164,8 @@ export default function RegionsIndex({
         {
             id: 'state',
             owner: 'core',
-            header: 'State',
-            cell: (row) => STATES[row.state],
+            header: __('State'),
+            cell: (row) => <StatePill state={row.state} />,
         },
         {
             id: 'edited',
@@ -172,14 +179,14 @@ export default function RegionsIndex({
 
     return (
         <ListPage
-            title="Regions"
+            title={title}
             description={
                 theme === null
                     ? 'Your own content in the spots the active theme sets aside, such as a box after each article.'
                     : `Your own content in the spots the active theme, ${theme.name}, sets aside, such as a box after each article. Regions come from whichever theme is active: switch themes and you fill that theme’s regions instead. Each region takes only the cards its theme allows.`
             }
         >
-            <Head title="Regions" />
+            <Head title={title} />
 
             <div className="grid gap-6">
                 <DataTable

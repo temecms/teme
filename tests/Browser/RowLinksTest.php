@@ -122,6 +122,9 @@ it('keeps the page still while a row\'s confirmation is open, the scrollbar\'s r
         lifecycleTrashedDaysAgo($this->editor, "Notice {$n}", 1);
     }
 
+    // Lists show 10 rows at first: 50 make the page taller than the window, so it has a scrollbar to keep room for.
+    lscrPrefer($this->editor, ['lists.per_page' => 50]);
+
     $page = cmNavigate(cmSignIn($this->editor), '/admin/posts?tab=trash');
 
     cmWaitUntil($page, "document.querySelector('[aria-label=\"Actions for Notice 1\"]') !== null && document.scrollingElement.scrollHeight > window.innerHeight")
@@ -193,7 +196,8 @@ it('gives the other lists that share the row layer the same links, up to four on
     }
 })->with([
     'a waiting comment' => ['/admin/comments', 'Actions for the comment by Ada Guest', 'approved|reply|quick-edit|details', '[aria-label="More actions for the comment by Ada Guest"]', 'Mark as spam|Move to trash'],
-    'a category' => ['/admin/categories', 'Actions for Transport', 'edit|view', '[aria-label="More actions for Transport"]', 'Delete'],
+    // As the approved design draws the term screens: Edit and a red Delete on the line, and no "…" menu.
+    'a category' => ['/admin/categories', 'Actions for Transport', 'edit|delete', '', ''],
 ]);
 
 it('passes axe with every row\'s line shown, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
@@ -216,6 +220,9 @@ it('shows each row\'s actions without hovering in the lists that draw them as li
 
     $page = cmNavigate(cmSignIn($admin), $path);
 
-    cmWaitUntil($page, "document.querySelector('[data-test=\"row-links\"]') !== null")
-        ->assertScript("[...document.querySelectorAll('[data-test=\"row-links\"]')].every((line) => getComputedStyle(line).opacity === '1')");
+    // People draw the actions as links, Types as the row line under the name: either way, always shown.
+    $lines = "document.querySelectorAll('[data-test=\"row-links\"], [data-test=\"row-line\"]')";
+
+    cmWaitUntil($page, "{$lines}.length > 0")
+        ->assertScript("[...{$lines}].every((line) => getComputedStyle(line).opacity === '1')");
 })->with(['/admin/users', '/admin/types']);

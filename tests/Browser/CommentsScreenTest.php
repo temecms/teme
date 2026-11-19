@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Domain\Comments\Models\Comment;
+use App\Domain\Preferences\PreferenceRegistry;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -113,6 +114,9 @@ it('opens a comment\'s details from its address, with the moderator\'s judgement
 });
 
 it('narrows the list to an item from the Comments column on Posts (D21)', function (): void {
+    // The column is offered under Columns, not shown at first.
+    lscrPrefer($this->editor, ['lists.post.columns' => [...app(PreferenceRegistry::class)->get('lists.post.columns')->default, 'comments']]);
+
     cmSignIn($this->editor)
         ->navigate('/admin/posts')
         ->click('[aria-label="2 approved comments"]')
@@ -210,7 +214,7 @@ it('replies to a waiting comment from its row, which approves it, and records no
 it('moderates from the keyboard only while a row itself has focus (C11, I-653, D14)', function (): void {
     cmSignIn($this->editor)
         ->navigate('/admin/comments?view=all')
-        ->assertSee('Keyboard: J and K move between comments')
+        ->assertSee('J and K move between comments')
         ->keys('[name="search"]', 'a')
         ->keys('[aria-label="Select the comment by Ada Guest"]', 'a')
         ->keys('#cm-row-'.$this->ping->id, 'j')

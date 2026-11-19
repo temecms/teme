@@ -1,8 +1,8 @@
 <?php
 
 /**
- * The Media screen, read through MediaLibrary, and uploads, one file per
- * request, through UploadMedia.
+ * The Media screen and its Show more, read through MediaLibrary, and
+ * uploads, one file per request, through UploadMedia.
  *
  * @package Teme
  * @since   0.7.0-alpha.2
@@ -32,10 +32,46 @@ final class MediaLibraryController extends Controller
 {
     public function index(Request $request, MediaLibrary $library, MediaMonths $months, SettingsReader $settings, UploadedForItem $items): Response
     {
+        [$filters, $item, $zone, $page] = $this->read($request, $library, $settings, $items);
+
+        return Inertia::render('media/index', [
+            ...$page,
+            'filters' => $filters,
+            // The Date select's months, on the site's clock: the trash's on Trash, the live library's otherwise.
+            'months' => $months->list(($filters['tab'] ?? 'all') === 'trash', $zone, $filters['month'] ?? null),
+            'siteTimezone' => $zone,
+            // The item the list is narrowed to, for the chip that names it.
+            'uploadedFor' => $item === null ? null : ['id' => $item['id'], 'title' => $item['title']],
+            // Each filter chip's count, in the live library.
+            'chips' => $library->chips(),
+        ]);
+    }
+
+    /**
+     * Show more: the files after the last one shown, under the same filters
+     * and in the same order, with the cursor past them.
+     *
+     * @since next
+     */
+    public function more(Request $request, MediaLibrary $library, SettingsReader $settings, UploadedForItem $items): JsonResponse
+    {
+        $page = $this->read($request, $library, $settings, $items)[3];
+
+        return response()->json(['rows' => $page['rows'], 'older' => $page['older']]);
+    }
+
+    /**
+     * The address's filters, the item they narrow to, the site's time zone
+     * and the page of the library they describe.
+     *
+     * @return array{0: array<string, string>, 1: array{id: string, title: string}|null, 2: string, 3: array{rows: list<array<string, mixed>>, newer: string|null, older: string|null, tabs: list<array{key: string, label: string, count: int}>, filtered: bool}}
+     */
+    private function read(Request $request, MediaLibrary $library, SettingsReader $settings, UploadedForItem $items): array
+    {
         $zone = $settings->string('general', 'timezone');
         $filters = [];
 
-        foreach (['tab', 'type', 'month', 'direction', 'search', 'mine', 'unused', 'missing_alt', 'view'] as $key) {
+        foreach (['tab', 'type', 'month', 'direction', 'search', 'mine', 'unused', 'missing_alt', 'imported', 'view'] as $key) {
             $value = $request->string($key)->toString();
 
             if ($value !== '') {
@@ -64,17 +100,10 @@ final class MediaLibraryController extends Controller
             zone: $zone,
             viewerId: (int) $request->user()?->getAuthIdentifier(),
             uploadedFor: $item['id'] ?? null,
+            imported: $request->boolean('imported'),
         ));
 
-        return Inertia::render('media/index', [
-            ...$page,
-            'filters' => $filters,
-            // The Date select's months, on the site's clock: the trash's on Trash, the live library's otherwise.
-            'months' => $months->list(($filters['tab'] ?? 'all') === 'trash', $zone, $filters['month'] ?? null),
-            'siteTimezone' => $zone,
-            // The item the list is narrowed to, for the chip that names it.
-            'uploadedFor' => $item === null ? null : ['id' => $item['id'], 'title' => $item['title']],
-        ]);
+        return [$filters, $item === null ? null : ['id' => $item['id'], 'title' => $item['title']], $zone, $page];
     }
 
     public function store(Request $request, UploadMedia $upload, MediaDetails $details): JsonResponse

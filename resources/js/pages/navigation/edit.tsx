@@ -1,5 +1,12 @@
-import { Form, Head, router, setLayoutProps, usePage } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import {
+    Form,
+    Head,
+    Link,
+    router,
+    setLayoutProps,
+    usePage,
+} from '@inertiajs/react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import { useState } from 'react';
 import NavigationController from '@/actions/App/Http/Admin/NavigationController';
 import { ConfirmAction } from '@/components/confirm-action';
@@ -16,6 +23,7 @@ import {
 } from '@/components/navigation/tree-editor';
 import type { EditorItem } from '@/components/navigation/tree-editor';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
@@ -26,8 +34,32 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { __ } from '@/lib/i18n';
 import type { MenuItem, NavigationEditPage } from '@/types';
+
+/** How many items the menu holds, at every level. */
+/** "Header", or "Header and Footer". */
+function placesOf(slots: { label: string }[]): string {
+    const labels = slots.map((slot) => slot.label);
+
+    return labels.length < 2
+        ? (labels[0] ?? '')
+        : __(':list and :last', {
+              list: labels.slice(0, -1).join(', '),
+              last: labels[labels.length - 1],
+          });
+}
+
+function countOf(items: EditorItem[]): number {
+    return items.reduce((sum, item) => sum + 1 + countOf(item.children), 0);
+}
+
+/**
+ * Content › Navigation › a menu: where the theme shows it, ticked per
+ * place; its items as a tree, arranged and saved together; and Delete
+ * this menu at the foot.
+ */
 
 export default function NavigationEdit({
     navigation,
@@ -109,8 +141,11 @@ export default function NavigationEdit({
             { preserveState: true, preserveScroll: true },
         );
 
+    const contentCrumb = useSectionCrumb('content');
+
     setLayoutProps({
         breadcrumbs: [
+            contentCrumb,
             { title: __('Navigation'), href: NavigationController.index() },
             {
                 title: navigation.name,
@@ -122,33 +157,24 @@ export default function NavigationEdit({
     return (
         <FormPage
             title={navigation.name}
-            description="Arrange the items, then save. An item that points at a page, post, category or tag takes its title unless you give it a label."
+            description={__(
+                'Arrange the items, then save. An item that points at a page, post, category or tag takes its title unless you give it a label.',
+            )}
             actions={
                 <>
+                    <Button variant="ghost" asChild>
+                        <Link href={NavigationController.index().url}>
+                            <ArrowLeft aria-hidden="true" />
+                            {__('All menus')}
+                        </Link>
+                    </Button>
                     <Button
                         variant="neutral"
                         type="button"
                         onClick={() => setRenaming(true)}
                     >
-                        Rename
+                        {__('Rename…')}
                     </Button>
-                    <Form
-                        {...NavigationController.destroy.form({
-                            id: navigation.id,
-                        })}
-                    >
-                        <ConfirmAction
-                            title={`Delete the menu “${navigation.name}”?`}
-                            description={
-                                shownIn.length === 0
-                                    ? 'It isn’t shown anywhere. This cannot be undone.'
-                                    : `${shownIn.map((slot) => slot.label).join(' and ')} will show no menu until you choose another. This cannot be undone.`
-                            }
-                            confirmLabel="Delete menu"
-                        >
-                            <Button variant="neutral">Delete…</Button>
-                        </ConfirmAction>
-                    </Form>
                 </>
             }
         >
@@ -157,8 +183,11 @@ export default function NavigationEdit({
             <div className="grid gap-4">
                 {themeCode !== null && slots.length > 0 && (
                     <FormPanel
-                        title="Show in"
-                        description={`Where ${themeName ?? 'the site’s theme'} shows a menu. Each place shows one menu.`}
+                        title={__('Show in')}
+                        description={__(
+                            'Places come from the active theme, :theme. A place shows one menu; choosing it here replaces the menu it shows now.',
+                            { theme: themeName ?? __('the site’s theme') },
+                        )}
                     >
                         {readerLanguages.length > 0 && (
                             <div className="grid gap-2 sm:grid-cols-3 sm:items-center">
@@ -193,33 +222,58 @@ export default function NavigationEdit({
                                 </div>
                             </div>
                         )}
-                        {slots.map((slot) => (
-                            <div
-                                key={slot.slot}
-                                className="grid gap-2 sm:grid-cols-3 sm:items-center"
-                            >
-                                <Label htmlFor={`slot-${slot.slot}`}>
-                                    {slot.label}
-                                </Label>
-                                <div className="min-w-0 sm:col-span-2">
-                                    <SelectField
-                                        id={`slot-${slot.slot}`}
-                                        value={shownTo(slot) ?? ''}
-                                        emptyLabel="None"
-                                        options={menus.map((menu) => ({
-                                            value: menu.id,
-                                            label:
-                                                menu.id === navigation.id
-                                                    ? `${menu.name} (this menu)`
-                                                    : menu.name,
-                                        }))}
-                                        onValueChange={(value) =>
-                                            bind(slot.slot, value)
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        ))}
+                        <div className="grid gap-3">
+                            {slots.map((slot) => {
+                                const holder = shownTo(slot);
+                                const other =
+                                    holder !== null && holder !== navigation.id
+                                        ? menus.find(
+                                              (menu) => menu.id === holder,
+                                          )
+                                        : undefined;
+
+                                return (
+                                    <div
+                                        key={slot.slot}
+                                        className="flex flex-wrap items-center gap-x-3 gap-y-1"
+                                    >
+                                        <label className="text-body flex items-center gap-2">
+                                            <Checkbox
+                                                id={`slot-${slot.slot}`}
+                                                checked={
+                                                    holder === navigation.id
+                                                }
+                                                aria-describedby={
+                                                    other === undefined
+                                                        ? undefined
+                                                        : `slot-${slot.slot}-holder`
+                                                }
+                                                onCheckedChange={(checked) =>
+                                                    bind(
+                                                        slot.slot,
+                                                        checked === true
+                                                            ? navigation.id
+                                                            : '',
+                                                    )
+                                                }
+                                            />
+                                            {slot.label}
+                                        </label>
+                                        {other !== undefined && (
+                                            <span
+                                                id={`slot-${slot.slot}-holder`}
+                                                className="text-small text-ink-3"
+                                            >
+                                                {__(
+                                                    'Shows :menu now. Ticking this takes its place.',
+                                                    { menu: other.name },
+                                                )}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                         <InputError
                             message={errors.slot ?? errors.navigation}
                         />
@@ -232,16 +286,25 @@ export default function NavigationEdit({
                         save();
                     }}
                 >
-                    <FormPanel title="Items">
-                        <div>
-                            <Button
-                                variant="neutral"
-                                type="button"
-                                onClick={() => setAdding(true)}
-                            >
-                                <Plus aria-hidden className="size-4" />
-                                Add item
-                            </Button>
+                    <FormPanel>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h2 className="text-lead text-ink flex items-baseline gap-2 font-semibold">
+                                {__('Items')}
+                                <span className="text-small text-ink-3 font-normal tabular-nums">
+                                    {countOf(tree).toLocaleString()}
+                                </span>
+                            </h2>
+                            {tree.length > 0 && (
+                                <Button
+                                    variant="neutral"
+                                    size="sm"
+                                    type="button"
+                                    onClick={() => setAdding(true)}
+                                >
+                                    <Plus aria-hidden="true" />
+                                    {__('Add an item')}
+                                </Button>
+                            )}
                         </div>
 
                         {showErrors && (
@@ -274,10 +337,9 @@ export default function NavigationEdit({
                         )}
 
                         <p className="text-small text-ink-2">
-                            Move an item with its buttons, or with Alt and the
-                            arrow keys: up and down to reorder, right to put it
-                            under the item above, left to bring it out. Menus go
-                            three levels deep.
+                            {__(
+                                'Drag an item by its handle, or use the arrows (on a touch screen, the “…” menu on each item). The arrows work with the keyboard, too: Alt and up or down to reorder, right to put it under the item above, left to bring it out. Menus go three levels deep.',
+                            )}
                         </p>
                     </FormPanel>
                     <SaveBar
@@ -293,6 +355,48 @@ export default function NavigationEdit({
                         }}
                     />
                 </form>
+
+                <FormPanel title={__('Delete this menu')}>
+                    <p className="text-small text-ink-2">
+                        {shownIn.length === 0
+                            ? __('This cannot be undone.')
+                            : __(
+                                  ':places will show no menu until you choose another. This cannot be undone.',
+                                  { places: placesOf(shownIn) },
+                              )}
+                    </p>
+                    <Form
+                        {...NavigationController.destroy.form({
+                            id: navigation.id,
+                        })}
+                        className="justify-self-start"
+                    >
+                        <ConfirmAction
+                            title={__('Delete the menu “:name”?', {
+                                name: navigation.name,
+                            })}
+                            description={
+                                shownIn.length === 0
+                                    ? __(
+                                          'It isn’t shown anywhere. This cannot be undone.',
+                                      )
+                                    : __(
+                                          ':places will show no menu until you choose another. This cannot be undone.',
+                                          { places: placesOf(shownIn) },
+                                      )
+                            }
+                            confirmLabel={__('Delete menu')}
+                        >
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                data-test="menu-delete"
+                            >
+                                {__('Delete menu…')}
+                            </Button>
+                        </ConfirmAction>
+                    </Form>
+                </FormPanel>
             </div>
 
             <AddItemPanel
@@ -358,11 +462,3 @@ export default function NavigationEdit({
         </FormPage>
     );
 }
-
-// The menu's own name takes the last place once the page draws (setLayoutProps above).
-NavigationEdit.layout = {
-    breadcrumbs: [
-        { title: 'Navigation', href: NavigationController.index() },
-        { title: 'Menu', href: NavigationController.index() },
-    ],
-};

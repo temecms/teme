@@ -61,7 +61,7 @@ beforeEach(function (): void {
     cmComment($this->post->refresh(), 'pending');
     cmComment($this->post);
 
-    $image = mediaUpload($this->admin, mediaJpeg());
+    $image = $this->image = mediaUpload($this->admin, mediaJpeg());
     app(UpdateMediaDetails::class)->execute(new UpdateMediaDetailsInput($image->id, (string) $this->admin->id, 'Quay', 'Boats at the quay.', 'At dawn.', 'Ada Okafor', licence: 'CC BY 4.0'));
 
     $this->menu = navCreate($this->admin);
@@ -147,8 +147,8 @@ it('opens every admin screen with its heading and no script error', function (st
             cmWaitUntil($page, "document.querySelector('p[aria-busy=\"true\"]') === null");
         }
     } elseif ($pane !== '') {
-        // A file's details open from its tile, in the panel beside the library.
-        $page->click('[role="option"]:has-text('.json_encode($pane, JSON_THROW_ON_ERROR).')');
+        // A file's details open from its tile, in the panel beside the library. The tile shows the file's name, not its title.
+        $page->click('[role="option"][data-media-id="'.$this->image->id.'"]');
         cmWaitUntil($page, "(() => { const panel = document.querySelector('[data-test=\"media-detail\"]'); return panel !== null && panel.innerText.includes(".json_encode($pane, JSON_THROW_ON_ERROR).'); })()');
     }
 

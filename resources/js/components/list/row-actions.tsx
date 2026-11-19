@@ -1,5 +1,6 @@
 // Later (I-200): plugins contribute columns and actions to these lists in phase 5.
 import { Form, Link } from '@inertiajs/react';
+import { MoreHorizontal } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type {
     ComponentProps,
@@ -8,12 +9,19 @@ import type {
     ReactNode,
 } from 'react';
 import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { __ } from '@/lib/i18n';
 
 type Entry = {
     id: string;
@@ -55,7 +63,8 @@ export type RowAction =
       });
 
 /**
- * The menu behind a row's More: the actions that don't fit on its line of
+ * The menu behind a row's ghost "…" button, named for its row and tipped
+ * "More actions": the actions that don't fit on its line of
  * links (I-3130), drawn as the menu always drew them. It opens below its
  * button and never locks the page, so nothing is chosen by the press that
  * opened it. RowLinks is the only place that draws it.
@@ -69,20 +78,28 @@ export function RowActionsMenu({
     label: string;
 }) {
     const [open, setOpen] = useState(false);
+    // Its name as a tooltip, never over its own open menu.
+    const [tip, setTip] = useState(false);
     const handOff = useRef(false);
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
-            <DropdownMenuTrigger asChild>
-                <button
-                    type="button"
-                    aria-label={label}
-                    data-action="more"
-                    className="text-accent-ink focus-visible:ring-ring -ml-1 inline-flex min-h-6 items-center rounded-sm px-1 hover:underline focus-visible:ring-2 focus-visible:outline-none"
-                >
-                    More
-                </button>
-            </DropdownMenuTrigger>
+            <Tooltip open={tip && !open} onOpenChange={setTip}>
+                <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={label}
+                            data-action="more"
+                        >
+                            <MoreHorizontal aria-hidden="true" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>{__('More actions')}</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent
                 side="bottom"
                 sideOffset={4}
@@ -107,7 +124,7 @@ export function RowActionsMenu({
                                 >
                                     {item.label}
                                     <span className="sr-only">
-                                        , opens in a new tab
+                                        {__(', opens in a new tab')}
                                     </span>
                                 </a>
                             ) : (

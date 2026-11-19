@@ -48,11 +48,11 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get(route('content.index', ['type' => 'posts']))->assertOk();
 });
 
-it('shows Categories and Tags as tabs with their sizes under one heading, and each category under its parent, a step in', function (): void {
+it('shows Categories under its own heading, Categories and Tags as tabs with their sizes, and each category under its parent, a step in', function (): void {
     cmSignIn($this->editor)
         ->navigate('/admin/categories')
-        ->assertScript('document.querySelector("main h1")?.textContent', 'Categories and tags')
-        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Kind\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'Categories5|Tags2')
+        ->assertScript('document.querySelector("main h1")?.textContent', 'Categories')
+        ->assertScript("[...document.querySelectorAll('nav[aria-label=\"Taxonomies\"] a')].map((tab) => tab.textContent.trim()).join('|')", 'Categories5|Tags2')
         ->assertScript($this->rows, '0:Transport|1:Rail|2:Trams|1:Roads|0:Weather')
         ->assertScript("document.querySelector('[data-test=\"term-name\"][data-depth=\"2\"]').parentElement.textContent", '— — Trams, under Rail');
 });
@@ -142,11 +142,7 @@ it('says what deleting each category does, in the singular where one, and delete
         'Transport' => '2 posts lose this category. Its 2 subcategories move up a level, to the top. Nothing under them is deleted. This can’t be undone.',
     ] as $name => $words) {
         $page->navigate('/admin/categories')
-            ->click("[aria-label=\"More actions for {$name}\"]");
-
-        cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0");
-
-        $page->click('[role="menu"] [data-action="delete"]')
+            ->click("[aria-label=\"Actions for {$name}\"] [data-action=\"delete\"]")
             ->assertScript("document.querySelector('[role=\"dialog\"] h2')?.textContent", "Delete “{$name}”?")
             ->assertScript($warning, $words);
     }
@@ -185,7 +181,7 @@ it('passes axe on Categories, and with the edit sheet open, every target 24 pixe
         ->and($sheet['checked'])->toBeGreaterThan(0);
 })->with(['light', 'dark']);
 
-it('shows Edit and View under every term and Delete in its menu, confirmed', function (): void {
+it('shows Edit and a red Delete under every term, with no menu, and asks before deleting', function (): void {
     $page = cmSignIn($this->editor)->navigate('/admin/categories');
 
     cmWaitUntil($page, "document.querySelector('[aria-label=\"Actions for Transport\"]') !== null");
@@ -196,14 +192,13 @@ it('shows Edit and View under every term and Delete in its menu, confirmed', fun
 
     foreach ($lines as $line) {
         expect($line['opacity'])->toBe('1')
-            ->and($line['actions'])->toMatch('/^edit(\|view)?$/')
+            ->and($line['actions'])->toBe('edit|delete')
             ->and($line['view'])->toBeIn([null, '_blank']);
     }
 
-    $page->click('[aria-label="More actions for Weather"]');
-    cmWaitUntil($page, "document.querySelector('[role=\"menu\"]')?.getAnimations().length === 0")
-        ->assertScript("[...document.querySelectorAll('[role=\"menu\"] [role=\"menuitem\"]')].map((item) => item.textContent.trim()).join('|')", 'Delete')
-        ->click('[role="menu"] [data-action="delete"]');
+    expect($page->script('() => document.querySelector(\'[aria-label="More actions for Weather"]\')'))->toBeNull();
+
+    $page->click('[aria-label="Actions for Weather"] [data-action="delete"]');
 
     cmWaitUntil($page, "document.querySelector('[role=\"dialog\"] h2')?.textContent === 'Delete “Weather”?'");
 

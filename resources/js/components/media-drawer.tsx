@@ -1,5 +1,12 @@
 import { Link, useHttp } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Trash2, X } from 'lucide-react';
+import {
+    ChevronLeft,
+    ChevronRight,
+    Crosshair,
+    Download,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { ConfirmAction } from '@/components/confirm-action';
@@ -23,6 +30,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { formatDate } from '@/lib/dates';
 import { __, __n } from '@/lib/i18n';
 import { shownTitle } from '@/lib/titles';
 import { uploadFile } from '@/lib/upload';
@@ -31,6 +39,7 @@ import { formatInZone } from '@/lib/zoned-time';
 import {
     action as mediaAction,
     destroy as destroyMedia,
+    editImage,
     original as mediaOriginal,
     replace as replaceMedia,
     show as showMedia,
@@ -595,9 +604,9 @@ function DetailBody({
                     {item.uploaderName
                         ? __(':name, :date', {
                               name: item.uploaderName,
-                              date: formatInZone(item.createdAt, zone),
+                              date: formatDate(item.createdAt, zone),
                           })
-                        : formatInZone(item.createdAt, zone)}
+                        : formatDate(item.createdAt, zone)}
                 </dd>
                 <div data-test="media-uploaded-for" className="contents">
                     <dt className="text-ink-3">{__('Uploaded for')}</dt>
@@ -681,9 +690,24 @@ function DetailBody({
             </section>
 
             <section className="flex flex-wrap gap-2">
+                {item.kind === 'image' &&
+                    item.previewUrl &&
+                    item.can.edit &&
+                    !item.trashed && (
+                        <Button asChild variant="neutral" size="sm">
+                            <Link
+                                href={editImage({ media: item.id }).url}
+                                data-test="media-edit-image"
+                            >
+                                <Crosshair aria-hidden="true" />
+                                {__('Edit image')}
+                            </Link>
+                        </Button>
+                    )}
                 {item.kind === 'image' && (
                     <Button asChild variant="neutral" size="sm">
                         <a href={mediaOriginal({ media: item.id }).url}>
+                            <Download aria-hidden="true" />
                             {__('Download original')}
                         </a>
                     </Button>
@@ -749,10 +773,11 @@ function DetailBody({
                                 size="sm"
                                 variant="danger-quiet"
                                 data-test="media-trash"
+                                aria-label={__('Move to trash')}
                                 disabled={usages === null}
                             >
                                 <Trash2 aria-hidden="true" />
-                                {__('Move to trash')}
+                                {__('Trash')}
                             </Button>
                         </ConfirmAction>
                     </form>

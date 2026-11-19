@@ -86,7 +86,7 @@ it('exports the account’s details and its preferences by their labels', functi
         ->and($preferences->title)->toBe('Preferences')
         ->and($preferences->values['Check spelling'])->toBe('Off')
         ->and($preferences->values['Light or dark'])->toBe('Dark')
-        ->and($preferences->values['Rows per page'])->toBe('50')
+        ->and($preferences->values['Rows per page'])->toBe('10')
         ->and($preferences->values)->toHaveKey('Hidden menu entries');
 });
 

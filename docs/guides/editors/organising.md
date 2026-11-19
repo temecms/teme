@@ -51,21 +51,21 @@ In the editor's side panel, tick the categories and add tags. When an item has s
 A menu is a list of links to pages, posts, categories, tags, the home page or any address.
 
 1. Open **Navigation** and choose **New menu**.
-2. Give it a **Name**, then choose **Create menu**.
+2. Give it a **Name**, then choose **Create menu**. Its page opens.
 3. Choose **Add an item** and pick a page, post, category, tag or address. An item that points at one of those takes its title unless you give it a **Label**.
-4. Put the items in order. Move an item with its buttons, or with Alt and the arrow keys:
+4. Put the items in order. Drag an item by its handle, or move it with its arrows (on a phone, its "…" menu), or with Alt and the arrow keys:
    - **Move up** and **Move down** reorder it;
    - **Move under the item above** makes it a child of the item above;
    - **Move out a level** brings it back out.
-   Menus go three levels deep.
+   Menus go three levels deep. An item with items under it has an arrow that folds them away.
 5. Tick **Open in new tab** on an item that should leave the page, or choose **Remove** to take an item out. Removing an item removes the items under it too.
 6. Choose **Save menu**. If you have changes not yet saved, the page says **Unsaved changes**.
 
-To rename a menu, choose **Rename**; only the name changes, and themes that show it keep showing it. To delete one, choose **Delete…** and confirm. A place that showed it then shows no menu until you choose another.
+To rename a menu, choose **Rename…**; only the name changes, and themes that show it keep showing it. To delete one, choose **Delete menu…** under **Delete this menu** at the foot of its page, or in the "…" menu on its row in **Navigation**, and confirm. A place that showed it then shows no menu until you choose another.
 
 ## To choose where a menu shows
 
-Each place in the theme, such as the header or the footer, shows one menu. On **Navigation**, a panel lists the places the theme shows a menu; choose the menu for each. On a menu's own page, **Show in** does the same from the other side.
+Each place in the theme, such as the header or the footer, shows one menu. On **Navigation**, a panel lists the places the theme shows a menu; choose the menu for each. On a menu's own page, **Show in** does the same from the other side: tick each place that should show it. A place another menu holds says so, and ticking it takes that menu's place.
 
 If a place has no menu, a banner at the top of the admin tells you; its button is **Choose menus**. See [status banners](status-banners.md).
 
@@ -75,7 +75,7 @@ A region is a spot the active theme sets aside for your own content, such as a b
 
 Regions come from whichever theme is active, not only the default theme. Switch themes and the list changes to match.
 
-1. Choose **Edit** on a region (or **Create** if it has no content yet).
+1. Choose **Edit** under a region's name (or **Create** if it has no content yet).
 2. Write in the editor as you would for any item, using only the cards that region takes.
 3. Publish it as you would an item.
 

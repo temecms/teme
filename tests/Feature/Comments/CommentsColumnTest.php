@@ -43,9 +43,11 @@ it('has no Comments column while comments are switched off (D21, I-484)', functi
         ->assertInertia(fn (Assert $page) => $page->where('takesComments', false)->where('rows.0.comments', null));
 });
 
-it('offers the Comments column in Screen options, after the taxonomies and before Date, shown by default (D21)', function (): void {
+it('offers the Comments column in Screen options without showing it at first', function (): void {
     $registry = app(PreferenceRegistry::class);
 
-    expect($registry->get('lists.post.columns')->default)->toBe(['author', 'taxonomy-category', 'taxonomy-tag', 'comments', 'date'])
-        ->and($registry->get('lists.page.columns')->default)->toBe(['author', 'comments', 'date']);
+    expect($registry->get('lists.post.columns')->default)->not->toContain('comments')
+        ->and($registry->get('lists.page.columns')->default)->not->toContain('comments')
+        ->and($registry->get('lists.post.columns')->allows(['comments']))->toBeTrue()
+        ->and($registry->get('lists.page.columns')->allows(['comments']))->toBeTrue();
 });

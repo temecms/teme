@@ -127,7 +127,7 @@ it('passes axe on the list, on Films and on Posts', function (string $scheme): v
 
     foreach ([
         '/admin/types' => 'Can’t be used: Content type [event] uses taxonomy [venue], which is not registered.',
-        '/admin/types/film' => 'Changes reach the menu, the editor and the site as soon as they’re saved.',
+        '/admin/types/film' => 'Made here on',
         '/admin/types/post' => 'Posts are declared by code, so they can’t be changed or deleted here.',
     ] as $path => $words) {
         $page->navigate($path);
@@ -237,37 +237,16 @@ it('preloads at most 48 files on the media screen, the whole icon set staying on
     expect(collect($preloaded)->filter(fn (string $href): bool => str_ends_with($href, $iconSet)))->toBeEmpty();
 });
 
-it('moves between Films\' sections from the row of tabs without leaving the page, and keeps what was typed', function (): void {
+it('heads Films’ page with its crumbs, the way back and Manage fields, with no row of tabs', function (): void {
     tbSite($this->admin);
 
-    // A view shorter than the form, so the page can scroll Permissions, near its foot, to the top.
-    $page = cmNavigate(cmSignIn($this->admin)->resize(1440, 700), '/admin/types/film');
-    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this type"]\') !== null');
+    $page = cmSignIn($this->admin)->navigate('/admin/types/film');
+    ($this->seen)($page, 'Manage fields');
 
-    $page->append('#type-plural', ' (new)');
-    $page->click('nav[aria-label="Sections of this type"] a[href="#type-section-permissions"]');
-
-    // The view: the nearest box that scrolls the section, else the window.
-    cmWaitUntil($page, <<<'JS'
-        (() => {
-            const section = document.querySelector("#type-section-permissions");
-            let view = section.parentElement;
-
-            while (view !== null && !(['auto', 'scroll'].includes(getComputedStyle(view).overflowY) && view.scrollHeight > view.clientHeight)) {
-                view = view.parentElement;
-            }
-
-            const top = view === null ? 0 : Math.max(0, view.getBoundingClientRect().top);
-
-            return Math.abs(section.getBoundingClientRect().top - top) <= 80;
-        })()
-        JS);
-
-    expect($page->script('() => document.querySelector(\'nav[aria-label="Sections of this type"] a[href="#type-section-permissions"]\').getAttribute("aria-current")'))->toBe('location')
-        ->and($page->script('() => location.pathname'))->toBe('/admin/types/film')
-        ->and($page->script('() => document.querySelector(\'[data-test="leave-guard"]\') === null'))->toBeTrue()
-        ->and($page->script('() => document.querySelector("#type-plural").value.endsWith(" (new)")'))->toBeTrue()
-        ->and($page->script('() => document.querySelector(\'[data-test="save-bar"]\').hidden'))->toBeFalse();
+    expect($page->script('() => document.querySelector(\'nav[aria-label="Sections of this type"]\')'))->toBeNull()
+        ->and($page->script('() => [...document.querySelectorAll(\'[data-slot="breadcrumb-item"]\')].map((item) => item.innerText.trim())'))->toBe(['Site', 'Types', 'Films'])
+        ->and($page->script('() => document.querySelector(\'main a[href="/admin/types"]\').innerText.trim()'))->toBe('All types')
+        ->and($page->script('() => document.querySelector(\'main a[href="/admin/types/film/fields"]\').innerText.trim()'))->toBe('Manage fields');
 });
 
 it('shows the save bar when only the icon changes, and Discard puts the icon back', function (): void {
@@ -291,22 +270,4 @@ it('shows the save bar when only the icon changes, and Discard puts the icon bac
     cmWaitUntil($page, 'document.querySelector(\'[data-test="save-bar"]\').hidden === true');
 
     expect($page->script('() => document.querySelector(\'input[name="icon"]\').value'))->toBe($savedIcon);
-});
-
-it('keeps the row of tabs from covering a section\'s top at 375 pixels', function (): void {
-    tbSite($this->admin);
-
-    $page = cmNavigate(cmSignIn($this->admin)->resize(375, 812), '/admin/types/film');
-    cmWaitUntil($page, 'document.querySelector(\'nav[aria-label="Sections of this type"]\') !== null');
-
-    // A section the page can scroll to its top: the last one sits at the page's foot.
-    $page->click('nav[aria-label="Sections of this type"] a[href="#type-section-site"]');
-
-    // Once the scroll has brought the section to the top of the window.
-    cmWaitUntil($page, '(() => { const top = document.querySelector("#type-section-site").getBoundingClientRect().top; return top >= 0 && top <= 80; })()');
-
-    expect($page->script(<<<'JS'
-        () => Math.round(document.querySelector('#type-section-site').getBoundingClientRect().top)
-            >= Math.round(document.querySelector('nav[aria-label="Sections of this type"]').getBoundingClientRect().bottom)
-        JS))->toBeTrue();
 });

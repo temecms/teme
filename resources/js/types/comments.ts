@@ -22,7 +22,8 @@ export type CommentRow = {
     text: string;
     /** Null when it isn't a reply. */
     parent: { authorName: string | null; removed: boolean } | null;
-    item: { id: string; title: string; editable: boolean };
+    /** `comments`: the item's approved and waiting comments. */
+    item: { id: string; title: string; editable: boolean; comments: number };
     /** ISO 8601, UTC. */
     createdAt: string;
     /** Every reply, any status (I-577). */
@@ -98,5 +99,8 @@ export type CommentsIndexPage = {
 
 export type CommentsRefusedPage = {
     message: string;
+    /** The panel's title and its one line. */
+    heading: string;
+    line: string;
     back: { label: string; href: string };
 };

@@ -1,5 +1,13 @@
-import { Form, Head, Link, router, useHttp, usePage } from '@inertiajs/react';
-import { X } from 'lucide-react';
+import {
+    Form,
+    Head,
+    Link,
+    router,
+    setLayoutProps,
+    useHttp,
+    usePage,
+} from '@inertiajs/react';
+import { Plus, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BulkContentController from '@/actions/App/Http/Admin/Contents/BulkContentController';
 import BulkMatchingController from '@/actions/App/Http/Admin/Contents/BulkMatchingController';
@@ -24,11 +32,13 @@ import {
     TermSearchFilter,
 } from '@/components/list/filter-row';
 import { LanguageMarks } from '@/components/list/language-marks';
+import { ListTreeSwitch } from '@/components/list/list-tree-switch';
 import { NumberedPager } from '@/components/list/numbered-pager';
 import { PluginCell } from '@/components/list/plugin-cell';
 import type { RowAction } from '@/components/list/row-actions';
 import { RowLine } from '@/components/list/row-line';
 import { RowMenu } from '@/components/list/row-menu';
+import { SearchField } from '@/components/list/search-field';
 import {
     ConfirmMatching,
     SelectAllMatching,
@@ -70,16 +80,19 @@ import {
     edit as contentEdit,
     index as contentIndex,
     preview as contentPreview,
+    tree as contentTree,
 } from '@/routes/content';
 import { show as showMedia } from '@/routes/media';
 import type {
     ContentIndexPage,
     ContentRow,
+    ContentTab,
     FeaturedImage,
     MediaDetailsData,
     TermChip,
 } from '@/types';
 import type { CardLayout } from '@/types/list-pages';
+import { useSectionCrumb } from '@/lib/crumbs';
 import { formatDate } from '@/lib/dates';
 
 function QuickEdit({
@@ -375,6 +388,40 @@ function QuickEdit({
     );
 }
 
+/** The tabs a list shows, in v10's order: Mine and Private are reached by their address, and show only while open. */
+const LIST_TABS = [
+    'all',
+    'published',
+    'drafts',
+    'scheduled',
+    'review',
+    'trash',
+];
+
+/** The list's tabs in LIST_TABS' order, with the open one added at the end when it is another. */
+function listTabs(tabs: ContentTab[], current: string): ContentTab[] {
+    const shown = LIST_TABS.map((key) =>
+        tabs.find((tab) => tab.key === key),
+    ).filter((tab) => tab !== undefined);
+    const open = tabs.find(
+        (tab) => tab.key === current && !LIST_TABS.includes(tab.key),
+    );
+
+    return open === undefined ? shown : [...shown, open];
+}
+
+/** The line under a list's name: Posts' and Pages' own, by the core type's key, and a plain one for a type made here. */
+const DESCRIPTIONS: Record<string, () => string> = {
+    post: () => __('Articles for the site.'),
+    page: () =>
+        __(
+            'The site’s fixed pages: About, Contact, the policies. They sit outside the news feed.',
+        ),
+};
+
+const describe = (typeKey: string): string =>
+    DESCRIPTIONS[typeKey]?.() ?? __('Everything of this kind on the site.');
+
 /** A row's title for a sentence: "Untitled" when it has none. */
 const titleOf = (row: ContentRow): string => row.title.trim() || __('Untitled');
 
@@ -407,7 +454,7 @@ function StatusCell({ row, inTrash }: { row: ContentRow; inTrash: boolean }) {
         // A live item's update waiting for review says so first; then who may read it (I-1700).
         if (row.review !== null) {
             return (
-                <StatusPill tone="info">{__('Update in review')}</StatusPill>
+                <StatusPill tone="warn">{__('Update in review')}</StatusPill>
             );
         }
 
@@ -430,8 +477,9 @@ function StatusCell({ row, inTrash }: { row: ContentRow; inTrash: boolean }) {
         return <StatusPill tone="info">{__('Scheduled')}</StatusPill>;
     }
 
+    // Amber, with its triangle: someone has to act on it.
     if (row.status === 'review') {
-        return <StatusPill tone="info">{__('In review')}</StatusPill>;
+        return <StatusPill tone="warn">{__('In review')}</StatusPill>;
     }
 
     return <StatusPill tone="neutral">{__('Draft')}</StatusPill>;
@@ -645,7 +693,7 @@ function DateCell({ row, page }: { row: ContentRow; page: ContentIndexPage }) {
                 )}
             </span>
             <span className="text-small text-ink-3">
-                {live ? __('Published') : __('Last modified')}
+                {live ? __('Published') : __('Last edited')}
             </span>
         </span>
     );
@@ -702,6 +750,14 @@ export default function ContentIndex(page: ContentIndexPage) {
         return () => window.removeEventListener('teme:jobs-ended', reload);
     }, []);
     const title = page.labels.plural;
+    const contentCrumb = useSectionCrumb('content');
+
+    setLayoutProps({
+        breadcrumbs: [
+            contentCrumb,
+            { title, href: contentIndex({ type: page.type }) },
+        ],
+    });
     const activeTab = page.filters.tab ?? 'all';
     const inTrash = activeTab === 'trash';
     const singular = page.labels.singular.toLowerCase();
@@ -1051,6 +1107,30 @@ export default function ContentIndex(page: ContentIndexPage) {
         cell: (row) => <StatusCell row={row} inTrash={inTrash} />,
     };
     const optional: (Column<ContentRow> & { label: string })[] = [
+        ...(page.hasParent
+            ? [
+                  {
+                      id: 'parent',
+                      owner: 'core',
+                      header: __('Parent'),
+                      label: __('Parent'),
+                      width: 146,
+                      cell: (row: ContentRow) =>
+                          row.parent ? (
+                              <span className="block truncate">
+                                  {shownTitle(row.parent.title)}
+                              </span>
+                          ) : (
+                              <span className="text-ink-3">
+                                  <span aria-hidden="true">—</span>
+                                  <span className="sr-only">
+                                      {__('No parent')}
+                                  </span>
+                              </span>
+                          ),
+                  },
+              ]
+            : []),
         {
             id: 'author',
             owner: 'core',
@@ -1083,6 +1163,48 @@ export default function ContentIndex(page: ContentIndexPage) {
                 ),
             }),
         ),
+        ...page.listFields.map(
+            (field): Column<ContentRow> & { label: string } => ({
+                id: `field-${field.key}`,
+                owner: 'core',
+                header: field.label,
+                label: field.label,
+                width: field.kind === 'number' ? 110 : 146,
+                className:
+                    field.kind === 'number'
+                        ? 'text-end tabular-nums'
+                        : undefined,
+                cell: (row) => {
+                    const value = row.fields?.[field.key];
+
+                    return value === undefined ? (
+                        <span className="text-ink-3">—</span>
+                    ) : (
+                        <span className="block truncate">
+                            {field.kind === 'datetime'
+                                ? formatDate(value)
+                                : value}
+                        </span>
+                    );
+                },
+            }),
+        ),
+        ...(page.hasTemplate
+            ? [
+                  {
+                      id: 'template',
+                      owner: 'core',
+                      header: __('Template'),
+                      label: __('Template'),
+                      width: 116,
+                      cell: (row: ContentRow) => (
+                          <span className="block truncate">
+                              {row.template ?? __('Default')}
+                          </span>
+                      ),
+                  },
+              ]
+            : []),
         ...(page.takesComments
             ? [
                   {
@@ -1169,22 +1291,45 @@ export default function ContentIndex(page: ContentIndexPage) {
         },
     };
     // The person's order, then any column the preference does not name, in
-    // the table's own; without a preference, every column but the thumbnails (I-3120).
+    // the table's own. `fields` stands for every one of the type's own fields
+    // until the person chooses among them.
     const named = Array.isArray(shownColumns) ? shownColumns : null;
+    const fieldIds = page.listFields.map((field) => `field-${field.key}`);
+    const namedIds = (named ?? []).flatMap((id) =>
+        id === 'fields'
+            ? fieldIds.filter((fieldId) => !(named ?? []).includes(fieldId))
+            : [id],
+    );
     const ordered = [
-        ...(named ?? [])
+        ...namedIds
             .map((id) => optional.find((column) => column.id === id))
             .filter((column) => column !== undefined),
-        ...optional.filter((column) => !(named ?? []).includes(column.id)),
+        ...optional.filter((column) => !namedIds.includes(column.id)),
     ];
-    // The Languages column is offered, never shown by default: the marks under the title say it (docs/proposals/multilingual-screens.md).
+    // Without a preference, the columns that fit beside the title at 1440
+    // wide: a flat taxonomy, Comments and Languages are offered, not shown;
+    // the language marks under the title already say what Languages would.
+    const offeredOnly = new Set([
+        'comments',
+        'languages',
+        ...flat.map((taxonomy) => `taxonomy-${taxonomy.key}`),
+    ]);
     const isShown = (id: string) =>
-        named === null ? id !== 'languages' : named.includes(id);
+        named === null
+            ? !offeredOnly.has(id)
+            : named.includes(id) ||
+              (id.startsWith('field-') && named.includes('fields'));
+    // Status is always shown, just before the Date, as v10 draws the list;
+    // at the end of the shown columns when the Date is hidden.
+    const shownOptional = ordered.filter((column) => isShown(column.id));
+    const dateAt = shownOptional.findIndex((column) => column.id === 'date');
+    const statusAt = dateAt === -1 ? shownOptional.length : dateAt;
     const columns: Column<ContentRow>[] = [
         select,
         titleColumn,
+        ...shownOptional.slice(0, statusAt),
         status,
-        ...ordered.filter((column) => isShown(column.id)),
+        ...shownOptional.slice(statusAt),
         menu,
     ];
     const pluginFactIds = ordered
@@ -1224,7 +1369,7 @@ export default function ContentIndex(page: ContentIndexPage) {
     return (
         <ListPage
             title={title}
-            description={__('Everything of this kind on the site.')}
+            description={describe(typeKey)}
             actions={
                 page.canAdd && (
                     <Form
@@ -1239,7 +1384,8 @@ export default function ContentIndex(page: ContentIndexPage) {
                                 data-test="add-new"
                                 disabled={processing}
                             >
-                                {__('Add new :singular', { singular })}
+                                <Plus aria-hidden="true" />
+                                {__('New :singular', { singular })}
                             </Button>
                         )}
                     </Form>
@@ -1252,7 +1398,8 @@ export default function ContentIndex(page: ContentIndexPage) {
             <div className="min-w-0">
                 <InPageNav
                     label={__('Status')}
-                    items={page.tabs.map((tab) => ({
+                    shown={LIST_TABS.length}
+                    items={listTabs(page.tabs, activeTab).map((tab) => ({
                         label: tab.label,
                         count: tab.count,
                         current: tab.key === activeTab,
@@ -1283,7 +1430,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                         }}
                         className="flex w-full items-center gap-2 sm:w-auto"
                     >
-                        <Input
+                        <SearchField
                             ref={searchRef}
                             data-test="list-search"
                             name="search"
@@ -1421,24 +1568,33 @@ export default function ContentIndex(page: ContentIndexPage) {
                     </Button>
                 }
                 end={
-                    <ColumnChooser
-                        list={typeKey}
-                        columns={ordered.map((column) => ({
-                            id: column.id,
-                            label: column.label,
-                            width: column.width,
-                            plugin:
-                                'plugin' in column &&
-                                typeof column.plugin === 'string'
-                                    ? column.plugin
-                                    : undefined,
-                        }))}
-                        shown={ordered
-                            .filter((column) => isShown(column.id))
-                            .map((column) => column.id)}
-                        thumbnails={thumbnails}
-                        perPage={perPage}
-                    />
+                    <>
+                        {page.hasParent && (
+                            <ListTreeSwitch
+                                listHref={contentIndex({ type: page.type }).url}
+                                treeHref={contentTree({ type: page.type }).url}
+                                current="list"
+                            />
+                        )}
+                        <ColumnChooser
+                            list={typeKey}
+                            columns={ordered.map((column) => ({
+                                id: column.id,
+                                label: column.label,
+                                width: column.width,
+                                plugin:
+                                    'plugin' in column &&
+                                    typeof column.plugin === 'string'
+                                        ? column.plugin
+                                        : undefined,
+                            }))}
+                            shown={ordered
+                                .filter((column) => isShown(column.id))
+                                .map((column) => column.id)}
+                            thumbnails={thumbnails}
+                            perPage={perPage}
+                        />
+                    </>
                 }
             />
 
@@ -1755,7 +1911,7 @@ export default function ContentIndex(page: ContentIndexPage) {
                                             data-test="add-new-empty"
                                             disabled={processing}
                                         >
-                                            {__('Add new :singular', {
+                                            {__('New :singular', {
                                                 singular,
                                             })}
                                         </Button>

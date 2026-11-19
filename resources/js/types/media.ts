@@ -38,6 +38,8 @@ export type MediaRow = {
     trashed: boolean;
     createdAt: string;
     uploaderName: string | null;
+    /** The site an imported file came from; the library alone sends it. */
+    importedFrom?: string | null;
 };
 
 /** What Suggest alt text offers this viewer for this image (I-321): where it would be sent, and their hourly limit. */
@@ -83,4 +85,5 @@ export type MediaIndexPage = {
     months: MediaMonth[];
     siteTimezone: string;
     uploadedFor: { id: string; title: string } | null;
+    chips: { missingAlt: number; unused: number; imported: number };
 };

@@ -1,32 +1,37 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import TaxonomiesController from '@/actions/App/Http/Admin/TaxonomiesController';
 import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
 import { SaveBar } from '@/components/patterns/save-bar';
-import { SectionTabs } from '@/components/patterns/section-tabs';
-import type { FormSection } from '@/components/patterns/section-tabs';
 import {
     Fact,
     Facts,
     Field,
     Flag,
     Hint,
-    SourceBadge,
     toggle,
 } from '@/components/types/builder-parts';
 import { Button } from '@/components/ui/button';
+import { IconTile } from '@/components/ui/icon-tile';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Notice } from '@/components/ui/notice';
 import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
-import { __ } from '@/lib/i18n';
+import { useSectionCrumb } from '@/lib/crumbs';
+import { __, __n } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
 import { show as addresses } from '@/routes/settings/addresses';
-import { index as taxonomiesIndex } from '@/routes/taxonomies';
+import { index as taxonomiesIndex, show } from '@/routes/taxonomies';
 import type { TaxonomyPage } from '@/types';
+
+/** The icon, then the two names side by side from the small breakpoint. */
+const NAMES_STYLE = {
+    '--names-cols': 'auto minmax(0, 1fr) minmax(0, 1fr)',
+} as CSSProperties;
 
 const IconPicker = lazy(() => import('@/components/types/icon-picker'));
 
@@ -37,25 +42,7 @@ function andList(names: string[]): string {
         : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
-/** The form's sections, as the row of tabs names them; Delete only for a taxonomy made here. */
-function taxonomySections(withDelete: boolean): FormSection[] {
-    return [
-        { id: 'taxonomy-section-names', label: __('Names') },
-        { id: 'taxonomy-section-terms', label: __('Terms') },
-        { id: 'taxonomy-section-admin', label: __('In the admin') },
-        { id: 'taxonomy-section-site', label: __('On the site') },
-        ...(withDelete
-            ? [
-                  {
-                      id: 'taxonomy-section-delete',
-                      label: __('Delete this taxonomy'),
-                  },
-              ]
-            : []),
-    ];
-}
-
-/** A section's wrapper: the tabs' target, focused when its tab is chosen. */
+/** A section's wrapper: a place an address can point to. */
 function Section({ id, children }: { id: string; children: ReactNode }) {
     return (
         <div id={id} tabIndex={-1} className="scroll-mt-16">
@@ -69,30 +56,37 @@ function Section({ id, children }: { id: string; children: ReactNode }) {
  * or new. A locked site shows the same pages with nothing to change.
  */
 export default function TaxonomiesShow(page: TaxonomyPage) {
-    const title = page.mode === 'new' ? 'New taxonomy' : page.taxonomy.plural;
+    const title =
+        page.mode === 'new' ? __('New taxonomy') : page.taxonomy.plural;
     // Discard starts the form again from the saved taxonomy.
     const [discards, setDiscards] = useState(0);
+    const siteCrumb = useSectionCrumb('site');
+
+    setLayoutProps({
+        breadcrumbs: [
+            siteCrumb,
+            { title: __('Taxonomies'), href: taxonomiesIndex() },
+            {
+                title,
+                href:
+                    page.mode === 'new'
+                        ? taxonomiesIndex()
+                        : show(page.taxonomy.key),
+            },
+        ],
+    });
 
     return (
         <FormPage
             title={title}
-            description={
-                <>
-                    <SourceBadge
-                        mode={page.mode === 'new' ? 'new' : 'shown'}
-                        source={page.source}
-                    />{' '}
-                    {headerLine(page)}
-                </>
-            }
+            description={headerLine(page)}
             actions={
-                page.termsUrl !== null && (
-                    <Button variant="neutral" asChild>
-                        <Link href={page.termsUrl}>
-                            Open {page.taxonomy.plural}
-                        </Link>
-                    </Button>
-                )
+                <Button variant="ghost" asChild>
+                    <Link href={taxonomiesIndex().url}>
+                        <ArrowLeft aria-hidden="true" />
+                        {__('All taxonomies')}
+                    </Link>
+                </Button>
             }
         >
             <Head title={title} />
@@ -121,13 +115,6 @@ export default function TaxonomiesShow(page: TaxonomyPage) {
         </FormPage>
     );
 }
-
-TaxonomiesShow.layout = {
-    breadcrumbs: [
-        { title: 'Taxonomies', href: taxonomiesIndex() },
-        { title: 'Taxonomy', href: taxonomiesIndex() },
-    ],
-};
 
 /** What the form holds, beyond what is typed into it. */
 type TaxonomyFormState = {
@@ -207,10 +194,6 @@ function TaxonomyForm({
 
     return (
         <>
-            <SectionTabs
-                label={__('Sections of this taxonomy')}
-                sections={taxonomySections(page.mode === 'edit')}
-            />
             <div className="grid gap-4">
                 <Form
                     {...(creating
@@ -230,7 +213,25 @@ function TaxonomyForm({
                                     title="Names"
                                     description="What the taxonomy is called across the admin."
                                 >
-                                    <div className="grid gap-5 sm:grid-cols-2">
+                                    <div
+                                        className="grid items-start gap-5 sm:grid-cols-(--names-cols)"
+                                        style={NAMES_STYLE}
+                                    >
+                                        <div className="grid justify-items-start gap-2">
+                                            <IconTile icon={Icon} size="lg" />
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                data-test="taxonomy-icon-change"
+                                                onClick={() => {
+                                                    setPickerMounted(true);
+                                                    setPickerOpen(true);
+                                                }}
+                                            >
+                                                {__('Change icon')}
+                                            </Button>
+                                        </div>
                                         <Field
                                             id="taxonomy-singular"
                                             name="singular"
@@ -274,34 +275,6 @@ function TaxonomyForm({
                                             </Hint>
                                         </div>
                                     )}
-                                    <div className="grid gap-2">
-                                        <p className="text-body font-medium">
-                                            Icon
-                                        </p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="bg-surface-2 flex size-8 items-center justify-center rounded-md border">
-                                                <Icon
-                                                    aria-hidden
-                                                    className="size-4"
-                                                />
-                                            </span>
-                                            <Button
-                                                type="button"
-                                                variant="neutral"
-                                                data-test="taxonomy-icon-change"
-                                                onClick={() => {
-                                                    setPickerMounted(true);
-                                                    setPickerOpen(true);
-                                                }}
-                                            >
-                                                Change icon
-                                            </Button>
-                                        </div>
-                                        <Hint>
-                                            Beside the name on Site ›
-                                            Taxonomies.
-                                        </Hint>
-                                    </div>
                                 </FormPanel>
                             </Section>
 
@@ -469,6 +442,7 @@ function TaxonomyForm({
                                 >
                                     <Flag
                                         id="taxonomy-public"
+                                        control="switch"
                                         name="public"
                                         label="Terms have public pages"
                                         checked={isPublic}
@@ -553,12 +527,6 @@ function ViewPanels({ page }: { page: TaxonomyPage }) {
 
     return (
         <>
-            <SectionTabs
-                label={__('Sections of this taxonomy')}
-                sections={taxonomySections(false).filter(
-                    (section) => section.id !== 'taxonomy-section-admin',
-                )}
-            />
             <div className="grid gap-4">
                 <Section id="taxonomy-section-names">
                     <FormPanel
@@ -670,14 +638,15 @@ function DeletePanel({ page }: { page: TaxonomyPage }) {
         <FormPanel title="Delete this taxonomy">
             {reason !== null && <p id="taxonomy-delete-reason">{reason}</p>}
             {page.termsUrl !== null && page.terms > 0 && (
-                <p className="flex flex-wrap gap-3">
-                    <Link
-                        href={page.termsUrl}
-                        className="text-accent-ink hover:underline"
-                    >
-                        Open {plural}
+                <Button
+                    variant="neutral"
+                    asChild
+                    className="justify-self-start"
+                >
+                    <Link href={page.termsUrl}>
+                        {__('Open :plural', { plural })}
                     </Link>
-                </p>
+                </Button>
             )}
             {reason === null ? (
                 <Form {...TaxonomiesController.destroy.form(page.taxonomy.key)}>
@@ -698,18 +667,7 @@ function DeletePanel({ page }: { page: TaxonomyPage }) {
                         </ConfirmAction>
                     )}
                 </Form>
-            ) : (
-                <Button
-                    type="button"
-                    variant="danger-quiet"
-                    size="sm"
-                    disabled
-                    data-test="taxonomy-delete"
-                    aria-describedby="taxonomy-delete-reason"
-                >
-                    Delete {plural}
-                </Button>
-            )}
+            ) : null}
         </FormPanel>
     );
 }
@@ -763,14 +721,11 @@ function headerLine(page: TaxonomyPage): string {
     }
 
     const made =
-        page.made === null ? 'Made here.' : `Made here on ${page.made}.`;
-    const base = `${made} Terms: ${page.terms}.`;
+        page.made === null
+            ? __('Made here.')
+            : __('Made here on :date.', { date: page.made });
 
-    if (page.mode === 'view') {
-        return base;
-    }
-
-    return `${base} Changes reach the menu, the editor and the site as soon as they’re saved.`;
+    return `${made} ${page.terms === 0 ? __('No terms yet.') : __n(':count term.|:count terms.', page.terms)}`;
 }
 
 /** Why a nested taxonomy with terms under others can't become flat. */

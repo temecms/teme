@@ -75,7 +75,7 @@ it('describes a heading on the menu screen, and says when nothing under it is sh
         ->where('items.0.warning', null)
         ->where('items.1.target', 'Heading')
         ->where('items.1.warning', 'Not shown: nothing under it is shown')
-        ->where('items.1.children.0.warning', 'Not shown: the page is in the trash'));
+        ->where('items.1.children.0.warning', 'Page is in the trash'));
 });
 
 it('refuses the screens to people without the permission', function (): void {

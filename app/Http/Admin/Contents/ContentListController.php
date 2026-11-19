@@ -20,6 +20,7 @@ use App\Domain\Contents\Operations\Input\CreateDraftInput;
 use App\Domain\Contents\Queries\ContentList;
 use App\Domain\Contents\Queries\ContentListFilters;
 use App\Domain\Contents\Queries\HeldSchedules;
+use App\Domain\Contents\Queries\ListFields;
 use App\Domain\Contents\Queries\SingleItem;
 use App\Domain\Languages\SiteLanguages;
 use App\Domain\Plugins\Columns\DeclaredColumn;
@@ -65,7 +66,7 @@ final class ContentListController extends Controller
         $listRequest = $filters->request(
             $contentType,
             (int) $viewer?->getAuthIdentifier(),
-            $viewer === null ? 50 : (int) $person['lists.per_page'],
+            $viewer === null ? 10 : (int) $person['lists.per_page'],
             after: $this->optional($request, 'after'),
             before: $this->optional($request, 'before'),
             withComments: $takesComments,
@@ -138,6 +139,10 @@ final class ContentListController extends Controller
             // A flat taxonomy's filter has no select (I-1452), so the list
             // names its term, as a count on the term's screen opens it.
             'chosenTerms' => $this->chosenTerms($typeTaxonomies, $listRequest->terms, $termPicker),
+            // The type's own fields a list shows as columns; whether it nests, for the Parent column; whether it chooses templates.
+            'listFields' => ListFields::columns($contentType->key),
+            'hasParent' => $contentType->hierarchical,
+            'hasTemplate' => $contentType->supports('template'),
             'pluginColumns' => array_map(fn (DeclaredColumn $column): array => $column->toArray(), $offered),
             'pluginCells' => $cells->values,
             'pluginColumnProblems' => $cells->problems,
