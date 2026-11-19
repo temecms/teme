@@ -21,13 +21,13 @@ This page is for administrators. Everyone else can skip it.
 
 ## To see whether your backups are safe
 
-Open **Tools › Backups**. The top of the screen, under **The state of the backups**, gives a verdict in one of three levels.
+Open **Tools › Backups**. The top of the screen gives a verdict, in colour, with one word above it.
 
-- **All well**: the backups are made and checked, and nothing needs you.
+- **Safe**: the backups are made and checked, and nothing needs you.
 - **Needs a look**: something could be better, such as a place that hasn't answered yet. The screen says what.
-- **Needs attention**: something is wrong and a backup may not be safe. The screen says what, and what to do.
+- **Not safe**: something is wrong and a backup may not be safe. The screen says what, and what to do.
 
-Below the verdict are the newest backup, with what it holds, and a list of checks. When a banner at the top of the admin says to see the backups, it is repeating the first thing the verdict found; see [status banners](status-banners.md).
+Under the verdict, **Running now**, **Newest backup** and **Next backup** say what is happening, what the newest backup holds, and when the next one starts. **Backups** lists every backup kept at each place, newest first, and whether the check after it passed. Further down are the places and the latest checks. When a banner at the top of the admin says to see the backups, it is repeating the first thing the verdict found; see [status banners](status-banners.md).
 
 ## To set up backups
 
@@ -73,11 +73,16 @@ Open the recovery keys from the screen. Each key is listed with the places it op
 
 - **Replace** makes a new key, shows it once, and keeps the old one working until you have typed part of the new one back.
 - **Add another key** makes one more key that opens every place, for someone else to keep, such as a partner or a colleague. Name it after who keeps it.
-- If a place was added after a key was made, the screen says the key doesn't open it. Choose **Add my key to new places**, type your recovery key, and Teme adds it there too, then forgets it.
+- If a place was added after a key was made, the screen says the key doesn't open it. Choose **Add your key to new places**, type your recovery key, and Teme adds it there too, then forgets it.
 - **Check my recovery key** tries a key you hold on every place, to be sure it still opens them.
 
 ## To restore
 
-You do not restore from this screen. Restoring is done at the server, so ask whoever runs the server. A restore checks everything first, backs the site up as it is, then restores.
+You do not restore from this screen. Restoring is run at a terminal on the server, so ask whoever runs the server. The screen helps you give them the right command:
+
+1. In **Backups**, find the backup to go back to, and choose **Use this backup** on its row.
+2. Under **Restoring**, the command now names that backup's run ID and its place. Choose **Copy the command**, and give it to whoever runs the server.
+
+A restore checks everything first, backs the site up as it is, then restores.
 
 After a restore, backups are paused until an administrator says whether this server is now the site or a copy of it, because two sites must never back up into one place. The screen asks the question and shows what each answer does.

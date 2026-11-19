@@ -36,7 +36,7 @@ it('shows an administrator every job, newest first, in the words Tools › Jobs 
     JobsFixtures::job(['created_at' => now()->subHour()]);
     JobsFixtures::job(['label' => 'Rebuild the link index', 'state' => 'waiting', 'total' => null, 'done' => 0, 'message' => null]);
 
-    $this->actingAs($this->admin)->get('/admin/tools/jobs')->assertOk()
+    $this->actingAs($this->admin)->get('/admin/tools/jobs?whose=everyone')->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('tools/jobs')
             ->has('rows', 4)
@@ -102,16 +102,16 @@ it('pages the jobs by the reader’s page size, with addresses for the pages eit
 
     lscrPrefer($this->admin, ['lists.per_page' => 25]);
 
-    $first = $this->actingAs($this->admin)->get('/admin/tools/jobs')->assertOk()->viewData('page')['props'];
+    $first = $this->actingAs($this->admin)->get('/admin/tools/jobs?whose=everyone')->assertOk()->viewData('page')['props'];
 
     expect($first['rows'])->toHaveCount(25)
         ->and($first['newer'])->toBeNull()
-        ->and($first['older'])->toStartWith('/admin/tools/jobs?after=');
+        ->and($first['older'])->toStartWith('/admin/tools/jobs?whose=everyone&after=');
 
     $second = $this->actingAs($this->admin)->get($first['older'])->assertOk()->viewData('page')['props'];
 
     expect($second['rows'])->toHaveCount(5)
-        ->and($second['newer'])->toStartWith('/admin/tools/jobs?before=');
+        ->and($second['newer'])->toStartWith('/admin/tools/jobs?whose=everyone&before=');
 });
 
 it('reads a run’s jobs, newest first, and no other run’s', function (): void {
@@ -163,10 +163,63 @@ it('names the plugin beside a plugin-owned job', function (): void {
         'message' => null,
     ]);
 
-    $this->actingAs($this->admin)->get('/admin/tools/jobs')->assertOk()
+    $this->actingAs($this->admin)->get('/admin/tools/jobs?whose=everyone')->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('tools/jobs')
             ->where('rows.0.id', $id)
             ->where('rows.0.plugin', 'Jobs')
             ->where('rows.0.owner', 'jobs'));
+});
+
+it('opens on the person’s own jobs, with both tabs’ counts, and shows everyone’s on the other tab', function (): void {
+    $mine = JobsFixtures::job(['starter' => 'person', 'started_by' => $this->admin->id, 'label' => 'Mine']);
+    JobsFixtures::job(['starter' => 'person', 'started_by' => $this->grace->id, 'label' => 'Grace’s']);
+    JobsFixtures::job(['label' => 'The server’s']);
+
+    $this->actingAs($this->admin)->get('/admin/tools/jobs')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('whose', 'mine')
+            ->where('state', null)
+            ->has('rows', 1)
+            ->where('rows.0.id', $mine)
+            ->where('rows.0.mine', true)
+            ->where('counts', ['mine' => 1, 'everyone' => 3])
+            ->where('shown', 1));
+
+    $this->actingAs($this->admin)->get('/admin/tools/jobs?whose=everyone')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('whose', 'everyone')->has('rows', 3)->where('shown', 3)->where('rows.0.mine', false));
+});
+
+it('narrows the jobs to one state, keeps the filters on the pages either side, and ignores a state it doesn’t know', function (): void {
+    foreach (range(1, 26) as $minutes) {
+        JobsFixtures::job(['state' => 'failed', 'ended_at' => now(), 'created_at' => now()->subMinutes($minutes)]);
+    }
+    JobsFixtures::job(['state' => 'finished', 'ended_at' => now()]);
+
+    lscrPrefer($this->admin, ['lists.per_page' => 25]);
+
+    $failed = $this->actingAs($this->admin)->get('/admin/tools/jobs?whose=everyone&state=failed')->assertOk()->viewData('page')['props'];
+
+    expect(array_unique(array_column($failed['rows'], 'state')))->toBe(['failed'])
+        ->and($failed['state'])->toBe('failed')
+        ->and($failed['shown'])->toBe(26)
+        ->and($failed['counts'])->toBe(['mine' => 0, 'everyone' => 27])
+        ->and($failed['older'])->toStartWith('/admin/tools/jobs?whose=everyone&state=failed&after=');
+
+    $this->actingAs($this->admin)->get('/admin/tools/jobs?whose=everyone&state=stuck')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('state', null)->where('shown', 27));
+});
+
+it('says what an import, a backup and a bulk change worked on, under the job’s name', function (): void {
+    JobsFixtures::job(['kind' => 'import', 'created_at' => now()->subMinutes(3)]);
+    JobsFixtures::job(['kind' => 'backup', 'created_at' => now()->subMinutes(2)]);
+    JobsFixtures::job(['kind' => 'content.bulk', 'created_at' => now()->subMinute()]);
+    JobsFixtures::job();
+
+    $this->actingAs($this->admin)->get('/admin/tools/jobs?whose=everyone')->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('rows.0.context', null)
+            ->where('rows.1.context', ['label' => 'Bulk change', 'href' => null])
+            ->where('rows.2.context', ['label' => 'Backups', 'href' => '/admin/tools/backups'])
+            ->where('rows.3.context', ['label' => 'Import', 'href' => '/admin/tools/import']));
 });

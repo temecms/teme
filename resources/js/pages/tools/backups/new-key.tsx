@@ -1,4 +1,4 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
 import RecoveryKeyController from '@/actions/App/Http/Admin/Tools/Backups/RecoveryKeyController';
 import InputError from '@/components/input-error';
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
@@ -32,7 +32,7 @@ export default function NewKey() {
             >
                 <Form {...RecoveryKeyController.store.form()}>
                     {({ processing, errors }) => (
-                        <FormPanel>
+                        <FormPanel title={__('The key’s name')}>
                             <Field
                                 htmlFor="new-key-label"
                                 label={__('Name the key')}
@@ -48,22 +48,35 @@ export default function NewKey() {
                                 />
                             </Field>
 
+                            <p className="text-body">
+                                {__(
+                                    'Have a pen and paper or a printer ready. Teme shows the key once.',
+                                )}
+                            </p>
+
                             <div className="grid justify-items-start gap-2">
                                 <InputError
                                     id="new-key-place-error"
                                     message={errors.place}
                                 />
 
-                                <Button
-                                    type="submit"
-                                    disabled={processing}
-                                    aria-describedby="new-key-place-error"
-                                    data-test="new-key-submit"
-                                >
-                                    {processing
-                                        ? __('Making the key…')
-                                        : __('Make the key')}
-                                </Button>
+                                <div className="flex flex-wrap gap-2">
+                                    <Button
+                                        type="submit"
+                                        disabled={processing}
+                                        aria-describedby="new-key-place-error"
+                                        data-test="new-key-submit"
+                                    >
+                                        {processing
+                                            ? __('Making the key…')
+                                            : __('Make the key')}
+                                    </Button>
+                                    <Button variant="ghost" asChild>
+                                        <Link href={backups()}>
+                                            {__('Cancel')}
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
                         </FormPanel>
                     )}

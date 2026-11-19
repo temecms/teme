@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
     // Warm the screens before the browser's first visit (I-638, B-356).
     $this->actingAs($this->editor)->get(route('tools.redirects.index'))->assertOk();
-    $this->actingAs($this->editor)->get(route('tools.redirects.not-found'))->assertOk();
+    $this->actingAs($this->editor)->get(route('tools.redirects.index', ['tab' => 'not-found']))->assertOk();
 });
 
 it('passes axe on Tools › Redirects, its drawer and its 404 log, every target 24 pixels or more, in the light and dark schemes', function (string $scheme): void {
@@ -53,7 +53,7 @@ it('passes axe on Tools › Redirects, its drawer and its 404 log, every target 
 
     $drawer = cmSmallTargets($page);
 
-    $page->navigate('/admin/tools/redirects/404')
+    $page->navigate('/admin/tools/redirects?tab=not-found')
         ->assertSee('One row per address.')
         ->assertPresent('[data-test="not-found-redirected"]')
         ->assertNoAccessibilityIssues(3);
@@ -97,7 +97,8 @@ it('switches a selection off from the bulk bar, Undo switches it back, and delet
         ->assertSee('2 redirects switched off. They send nobody on until they’re on again.')
         ->click('Undo')
         ->assertSee('Undone.')
-        ->click('[aria-label="Actions for the redirect from /a-old"] >> text="Delete"')
+        ->click('[aria-label="More actions for the redirect from /a-old"]')
+        ->click('[role="menuitem"] >> text="Delete"')
         ->assertSee('Delete the redirect from /a-old?')
         ->click('[role="dialog"] >> text="Delete redirect"')
         ->assertSee('Redirect deleted. /a-old no longer sends readers on.');
@@ -109,8 +110,8 @@ it('makes a redirect from a logged address, and marks another as gone in one cli
     rdLogged(['news/ferry-fares-2025' => 312, 'advertise-with-us' => 21]);
 
     cmSignIn($this->editor)
-        ->navigate('/admin/tools/redirects/404')
-        ->click('[aria-label="Add a redirect from /news/ferry-fares-2025"]')
+        ->navigate('/admin/tools/redirects?tab=not-found')
+        ->click('[aria-label="Create a redirect from /news/ferry-fares-2025"]')
         ->assertValue('#redirect-from', '/news/ferry-fares-2025')
         ->click('#redirect-kind-address')
         ->type('#redirect-to', '/news/')

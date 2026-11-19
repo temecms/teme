@@ -1,4 +1,4 @@
-import { Form, Head, setLayoutProps } from '@inertiajs/react';
+import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
 import { useState } from 'react';
 import BackupSetupController from '@/actions/App/Http/Admin/Tools/Backups/BackupSetupController';
 import { PlaceFields } from '@/components/backups/place-fields';
@@ -40,67 +40,77 @@ export default function SetUp({ suggestedFolder }: SetUpPage) {
 
                     <Form {...BackupSetupController.store.form()}>
                         {({ processing, errors }) => (
-                            <FormPanel>
-                                <PlaceFields
-                                    kind={kind}
-                                    onKindChange={setKind}
-                                    suggestedFolder={suggestedFolder}
-                                    errors={errors}
-                                />
-
-                                <Field
-                                    htmlFor="setup-label"
-                                    label={__('Name the recovery key')}
-                                    help={__(
-                                        'Name it after who keeps it, such as Ada’s key. You can add more keys later.',
-                                    )}
-                                    error={errors.label}
-                                >
-                                    <Input
-                                        id="setup-label"
-                                        name="label"
-                                        defaultValue={__('Recovery key')}
-                                        autoComplete="off"
+                            <>
+                                <FormPanel title={__('The first place')}>
+                                    <PlaceFields
+                                        kind={kind}
+                                        onKindChange={setKind}
+                                        suggestedFolder={suggestedFolder}
+                                        errors={errors}
                                     />
-                                </Field>
+                                </FormPanel>
+                                <FormPanel title={__('The recovery key')}>
+                                    <Field
+                                        htmlFor="setup-label"
+                                        label={__('Name the recovery key')}
+                                        help={__(
+                                            'Name it after who keeps it, such as Ada’s key. You can add more keys later.',
+                                        )}
+                                        error={errors.label}
+                                    >
+                                        <Input
+                                            id="setup-label"
+                                            name="label"
+                                            defaultValue={__('Recovery key')}
+                                            autoComplete="off"
+                                        />
+                                    </Field>
 
-                                <p className="text-body">
-                                    {__(
-                                        'Have a pen and paper or a printer ready.',
-                                    )}
-                                </p>
-                                {kind !== 'folder' && (
                                     <p className="text-body">
                                         {__(
-                                            'Making the place can take a few minutes on a distant server. Keep this page open.',
+                                            'Have a pen and paper or a printer ready.',
                                         )}
                                     </p>
-                                )}
+                                    {kind !== 'folder' && (
+                                        <p className="text-body">
+                                            {__(
+                                                'Making the place can take a few minutes on a distant server. Keep this page open.',
+                                            )}
+                                        </p>
+                                    )}
 
-                                <div className="grid justify-items-start gap-2">
-                                    <InputError
-                                        id="setup-place-error"
-                                        message={errors.place}
-                                    />
+                                    <div className="grid justify-items-start gap-2">
+                                        <InputError
+                                            id="setup-place-error"
+                                            message={errors.place}
+                                        />
 
-                                    <Button
-                                        type="submit"
-                                        disabled={processing}
-                                        aria-describedby="setup-place-error"
-                                        data-test="setup-submit"
-                                    >
-                                        {processing
-                                            ? kind === 'sftp'
-                                                ? __(
-                                                      'Reading the server’s fingerprint…',
-                                                  )
-                                                : __('Setting up…')
-                                            : kind === 'sftp'
-                                              ? __('Continue')
-                                              : __('Set up backups')}
-                                    </Button>
-                                </div>
-                            </FormPanel>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button
+                                                type="submit"
+                                                disabled={processing}
+                                                aria-describedby="setup-place-error"
+                                                data-test="setup-submit"
+                                            >
+                                                {processing
+                                                    ? kind === 'sftp'
+                                                        ? __(
+                                                              'Reading the server’s fingerprint…',
+                                                          )
+                                                        : __('Setting up…')
+                                                    : kind === 'sftp'
+                                                      ? __('Continue')
+                                                      : __('Set up backups')}
+                                            </Button>
+                                            <Button variant="ghost" asChild>
+                                                <Link href={backups()}>
+                                                    {__('Cancel')}
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </FormPanel>
+                            </>
                         )}
                     </Form>
                 </div>

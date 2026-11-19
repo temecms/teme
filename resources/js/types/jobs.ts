@@ -46,15 +46,30 @@ export type JobRow = {
     percent: number | null;
     startedAt: string;
     endedAt: string | null;
+    /** The account that started it, while it exists; null for the server or a removed account. */
+    startedById: number | null;
     startedBy: { kind: 'person' | 'removed' | 'operator'; name: string | null };
     canRetry: boolean;
     canCancel: boolean;
 };
 
+/** One job as Tools › Jobs draws it: with what it worked on, and whether the reader started it. */
+export type JobsScreenRow = JobRow & {
+    /** The line under the job's name, such as "Import", and where it leads. */
+    context: { label: string; href: string | null } | null;
+    mine: boolean;
+};
+
 export type JobsPage = {
-    rows: JobRow[];
+    rows: JobsScreenRow[];
     newer: string | null;
     older: string | null;
+    whose: 'mine' | 'everyone';
+    state: JobStateKey | null;
+    /** Each tab's count, whatever the state filter. */
+    counts: { mine: number; everyone: number };
+    /** How many jobs this tab and filter hold, over every page. */
+    shown: number;
     /** Failed jobs whose kind is installed, so Retry all failed can retry them. */
     failed: number;
     siteTimezone: string;

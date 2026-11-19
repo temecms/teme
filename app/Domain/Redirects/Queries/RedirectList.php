@@ -48,20 +48,22 @@ final readonly class RedirectList
 
     /**
      * Returns a page of redirects, newest first, at most $perPage (1 to
-     * 200), whose address as shown, typed target or note holds $search;
-     * older than the redirect $older names, or newer than the one $newer
-     * names; with the IDs that open the pages either side, or null where
-     * there is none.
+     * 200), whose address as shown, typed target or note holds $search, and
+     * that are switched on or off, answer with a status and came from an
+     * origin, where $filters names them; older than the redirect $older
+     * names, or newer than the one $newer names; with the IDs that open the
+     * pages either side, or null where there is none.
+     *
+     * @param  array{on?: bool|null, status?: int|null, origin?: string|null}  $filters
      *
      * @return array{rows: list<RedirectRow>, newer: string|null, older: string|null}
      */
-    public function page(string $search, int $perPage, ?string $older = null, ?string $newer = null): array
+    public function page(string $search, int $perPage, ?string $older = null, ?string $newer = null, array $filters = []): array
     {
         $limit = max(1, min(self::MOST, $perPage));
         $backwards = $older === null && $newer !== null;
 
-        $found = DB::table('redirects')
-            ->when(trim($search) !== '', fn (Builder $query): Builder => self::matching($query, $search))
+        $found = self::filtered(DB::table('redirects'), $search, $filters)
             ->when($older !== null, fn (Builder $query): Builder => $query->where('id', '<', $older))
             ->when($backwards, fn (Builder $query): Builder => $query->where('id', '>', $newer))
             ->orderBy('id', $backwards ? 'asc' : 'desc')
@@ -94,6 +96,36 @@ final readonly class RedirectList
     public function find(string $id): ?array
     {
         return $this->shown(DB::table('redirects')->where('id', $id)->get(self::COLUMNS))[0] ?? null;
+    }
+
+    /**
+     * Returns how many redirects $search and $filters find, as page() finds them.
+     *
+     * @since next
+     *
+     * @param  array{on?: bool|null, status?: int|null, origin?: string|null}  $filters
+     */
+    public function count(string $search, array $filters = []): int
+    {
+        return self::filtered(DB::table('redirects'), $search, $filters)->count();
+    }
+
+    /**
+     * The search and the filters, as page() and count() apply them.
+     *
+     * @param  array{on?: bool|null, status?: int|null, origin?: string|null}  $filters
+     */
+    private static function filtered(Builder $query, string $search, array $filters): Builder
+    {
+        $on = $filters['on'] ?? null;
+        $status = $filters['status'] ?? null;
+        $origin = $filters['origin'] ?? null;
+
+        return $query
+            ->when(trim($search) !== '', fn (Builder $query): Builder => self::matching($query, $search))
+            ->when($on !== null, fn (Builder $query): Builder => $query->where('enabled', $on))
+            ->when($status !== null, fn (Builder $query): Builder => $query->where('status', $status))
+            ->when($origin !== null, fn (Builder $query): Builder => $query->where('origin', $origin));
     }
 
     /**

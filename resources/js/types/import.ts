@@ -7,6 +7,8 @@ export type ImportSiteRow = {
     host: string;
     state: 'none' | 'running' | 'stopped' | 'finished';
     stateLabel: string;
+    /** The Teme Companion version the site last reported. */
+    pluginVersion: string;
     forgotten: boolean;
     /** ISO 8601, in UTC; null before its first import. */
     lastImportAt: string | null;
@@ -126,6 +128,8 @@ export type RunReport = {
         updated: number;
         skipped: number;
         failed: number;
+        /** Objects of this kind with a warning; null for a plugin's records, which share one kind. */
+        warnings: number | null;
     }[];
     messages: {
         code: string;
@@ -135,6 +139,8 @@ export type RunReport = {
         count: number;
     }[];
     more: boolean;
+    /** Every error and warning of the run, not only the codes listed. */
+    levels: { error: number; warning: number };
     problems: number;
     ready: boolean | null;
 };

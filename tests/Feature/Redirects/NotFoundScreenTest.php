@@ -23,7 +23,7 @@ it('lists the log the most asked for first, marks the addresses a redirect now a
     rdLogged(['news/ferry-fares-2025' => 312, 'old-fares' => 4, 'category/port-harcourt-news' => 147], 'www.google.com');
     $exact = rdSaved('/old-fares', '/news/');
 
-    $this->actingAs($this->editor)->get('/admin/tools/redirects/404')->assertOk()
+    $this->actingAs($this->editor)->get('/admin/tools/redirects?tab=not-found')->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('tools/not-found')
             ->where('keep', 10000)
@@ -51,8 +51,8 @@ it('pages through the log a page at a time, forward from the most asked for', fu
     rdLogged($counts);
     $page = fn (string $uri): array => $this->actingAs($this->editor)->get($uri)->assertOk()->viewData('page')['props'];
 
-    $first = $page('/admin/tools/redirects/404');
-    $second = $page('/admin/tools/redirects/404?count=75&path=gone-25');
+    $first = $page('/admin/tools/redirects?tab=not-found');
+    $second = $page('/admin/tools/redirects?tab=not-found&count=75&path=gone-25');
 
     expect(count($first['rows']))->toBe(25)
         ->and($first['next'])->toBe(['count' => 75, 'path' => 'gone-25'])
@@ -65,10 +65,10 @@ it('keeps as many addresses as Search and social says, and links there for whoev
     cmSettings([NotFoundLogSection::SIZE => 2500], SearchAndSocial::KEY);
     $admin = User::factory()->create()->assignRole('administrator');
 
-    $this->actingAs($this->editor)->get('/admin/tools/redirects/404')->assertOk()
+    $this->actingAs($this->editor)->get('/admin/tools/redirects?tab=not-found')->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('keep', 2500)->where('settingsUrl', null));
 
-    $this->actingAs($admin)->get('/admin/tools/redirects/404')->assertOk()
+    $this->actingAs($admin)->get('/admin/tools/redirects?tab=not-found')->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('settingsUrl', 'http://localhost/admin/settings/seo#section-not-found-log'));
 });
 

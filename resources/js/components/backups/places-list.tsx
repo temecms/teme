@@ -98,9 +98,22 @@ export function PlacesList({
     return (
         <Panel aria-labelledby="backup-places">
             <PanelHeader>
-                <h2 id="backup-places" className="text-lead font-semibold">
+                <h2
+                    id="backup-places"
+                    className="text-lead flex-1 font-semibold"
+                >
                     {__('Where backups are kept')}
                 </h2>
+                {!paused && (
+                    <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        data-test="backup-place-add"
+                    >
+                        <Link href={create()}>{__('Add a place')}</Link>
+                    </Button>
+                )}
             </PanelHeader>
             <PanelBody className="text-body justify-items-start">
                 {offServerAdvice && (
@@ -111,13 +124,13 @@ export function PlacesList({
                     </p>
                 )}
 
-                <ul className="divide-line grid w-full divide-y">
+                <ul className="grid w-full gap-3">
                     {places.map((place) => (
                         <li
                             key={place.id}
                             data-test="backup-place"
                             data-place={place.id}
-                            className="grid gap-2 py-3"
+                            className="bg-surface-2 grid gap-2 rounded-lg p-4"
                         >
                             <div className="flex flex-wrap items-start justify-between gap-2">
                                 <div className="grid min-w-0 gap-1">
@@ -222,6 +235,7 @@ export function PlacesList({
                                         <Button
                                             type="submit"
                                             variant="outline"
+                                            className="text-danger-ink"
                                             data-test="backup-place-remove"
                                         >
                                             {__('Remove')}
@@ -236,16 +250,6 @@ export function PlacesList({
                         </li>
                     ))}
                 </ul>
-
-                {!paused && (
-                    <Button
-                        asChild
-                        variant="outline"
-                        data-test="backup-place-add"
-                    >
-                        <Link href={create()}>{__('Add a place')}</Link>
-                    </Button>
-                )}
             </PanelBody>
         </Panel>
     );

@@ -14,6 +14,8 @@ export type VerdictLine = {
 };
 
 export type NewestBackup = {
+    /** When it was made, in words: "today at 03:10". */
+    when: string;
     databaseBytes: number;
     mediaFiles: number;
     mediaBytes: number;
@@ -28,6 +30,8 @@ export type BackupSchedule = {
     keepWeekly: number;
     keepMonthly: number;
     next: string;
+    /** When the next backup starts, in words: "tomorrow at 03:00". */
+    nextAt: string;
     kept: string;
     zone: string;
     version: number;
@@ -60,6 +64,18 @@ export type BackupCheck = {
     when: string;
 };
 
+/** A backup a place still keeps, as teme:backup:restore names it. */
+export type KeptBackup = {
+    runId: string;
+    placeId: string;
+    place: string;
+    madeAt: string;
+    databaseBytes: number;
+    mediaBytes: number;
+    mediaFiles: number;
+    checked: 'passed' | 'failed' | null;
+};
+
 export type RecoveryKeyRow = { label: string; missingAt: string[] };
 
 export type KeyPurpose = 'set-up' | 'add' | 'replace';
@@ -84,6 +100,7 @@ export type BackupsPage = {
     newest: NewestBackup | null;
     schedule: BackupSchedule | null;
     places: BackupPlace[];
+    backups: KeptBackup[];
     checks: BackupCheck[];
     keys: RecoveryKeyRow[];
     pending: PendingKey | null;

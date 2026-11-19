@@ -43,7 +43,7 @@ it('passes axe on Tools and Tools › Page cache, every target 24 pixels or more
 
     $page = cmSignIn($this->admin)
         ->navigate('/admin/tools')
-        ->assertSee('Utilities for looking after the site.')
+        ->assertSee('Teme’s tools, then the pages plugins add.')
         ->assertNoAccessibilityIssues(3);
 
     $hub = cmSmallTargets($page);

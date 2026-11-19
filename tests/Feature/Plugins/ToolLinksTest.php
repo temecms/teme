@@ -28,7 +28,7 @@ it('lists a plugin’s links on Tools after core’s pages, by label, to plugins
 
     $keys = array_column(app(ToolsHub::class)->pagesFor($admin), 'key');
 
-    expect(array_slice($keys, 0, 7))->toBe(['jobs', 'import', 'backups', 'updates', 'page-cache', 'redirects', 'ai-activity'])
+    expect(array_slice($keys, 0, 7))->toBe(['jobs', 'updates', 'ai-activity', 'import', 'backups', 'page-cache', 'redirects'])
         ->and(array_slice($keys, 7))->toBe(['plugin.feeds.pings', 'plugin.example-sync.open', 'plugin.example-sync.settings'])
         ->and(array_column(app(ToolsHub::class)->pagesFor($editor), 'key'))->toBe(['redirects']);
 

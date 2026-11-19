@@ -1,6 +1,8 @@
 import {
     Archive,
+    ArrowRight,
     Brush,
+    Download,
     File,
     FileText,
     Files,
@@ -16,13 +18,16 @@ import {
     ListTree,
     MessageSquare,
     Plug,
+    RefreshCw,
     Search,
     Settings,
     Shapes,
     Sparkles,
     Tag,
     Tags,
+    Upload,
     Users,
+    WandSparkles,
     Wrench,
 } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
@@ -35,7 +40,9 @@ const LazyDynamicNavIcon = lazy(() => import('./dynamic-icon'));
 
 const icons: Record<string, ComponentType<LucideProps>> = {
     archive: Archive,
+    'arrow-right': ArrowRight,
     brush: Brush,
+    download: Download,
     file: File,
     'file-text': FileText,
     files: Files,
@@ -51,13 +58,16 @@ const icons: Record<string, ComponentType<LucideProps>> = {
     'list-tree': ListTree,
     'message-square': MessageSquare,
     plug: Plug,
+    'refresh-cw': RefreshCw,
     search: Search,
     settings: Settings,
     shapes: Shapes,
     sparkles: Sparkles,
     tag: Tag,
     tags: Tags,
+    upload: Upload,
     users: Users,
+    'wand-sparkles': WandSparkles,
     wrench: Wrench,
 };
 

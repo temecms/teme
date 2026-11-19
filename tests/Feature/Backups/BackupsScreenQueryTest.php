@@ -118,7 +118,7 @@ it('gives the newest backup’s figures, and the hour and what’s kept in words
 
     $data = ($this->data)();
 
-    expect($data['newest'])->toBe(['databaseBytes' => 52_000_000, 'mediaFiles' => 1_204, 'mediaBytes' => 3_400_000_000, 'bytesAdded' => 38_000_000, 'took' => '14 minutes'])
+    expect($data['newest'])->toBe(['when' => 'today at 03:05', 'databaseBytes' => 52_000_000, 'mediaFiles' => 1_204, 'mediaBytes' => 3_400_000_000, 'bytesAdded' => 38_000_000, 'took' => '14 minutes'])
         ->and($data['schedule'])->toMatchArray([
             'hour' => '03:00',
             'keepDaily' => 7,
