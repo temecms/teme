@@ -212,6 +212,17 @@ it('reads this month’s spend, its requests with no price and the budget from t
         ->and($month['reached'])->toBeFalse();
 });
 
+it('names the task asked most this month, by its label, or none when nothing was asked', function (): void {
+    aiTask('fixture');
+
+    expect(($this->data)()['mostUsedTask'])->toBeNull();
+
+    actvRow($this->admin, ['task' => 'fixture']);
+    actvRow($this->admin, ['task' => 'fixture']);
+
+    expect(($this->data)()['mostUsedTask'])->toBe(app(AiTasks::class)->get('fixture')->label());
+});
+
 it('links Tools › AI activity only for whoever may see it', function (): void {
     $role = Role::create(['name' => 'ai-settings-only', 'guard_name' => 'web']);
     $role->givePermissionTo(AiSettings::ABILITY);

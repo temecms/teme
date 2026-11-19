@@ -20,6 +20,7 @@ use App\Domain\Settings\SecretStore;
 use App\Domain\Settings\SettingsRegistry;
 use App\Domain\Types\ContentTypeRegistry;
 use App\Domain\Users\Queries\AuthorOptions;
+use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Support\Facades\DB;
 use Teme\Contracts\Settings\Setting;
@@ -151,12 +152,35 @@ final class SettingsForm
     }
 
     /**
+     * Every time zone by its name, each labelled as a person reads it: the
+     * name, its abbreviation where it has a word for one, and its offset
+     * now, such as "Africa/Lagos (WAT, UTC+1)".
+     *
+     * @return array<string, string>
+     */
+    private static function timezones(): array
+    {
+        $now = new DateTimeImmutable('now');
+        $zones = [];
+
+        foreach (DateTimeZone::listIdentifiers() as $name) {
+            $here = $now->setTimezone(new DateTimeZone($name));
+            $seconds = $here->getOffset();
+            $offset = 'UTC'.($seconds < 0 ? '−' : '+').intdiv(abs($seconds), 3600).(abs($seconds) % 3600 === 0 ? '' : sprintf(':%02d', intdiv(abs($seconds) % 3600, 60)));
+            $abbreviation = $here->format('T');
+            $zones[$name] = preg_match('/^[A-Z]{2,5}$/', $abbreviation) === 1 ? "{$name} ({$abbreviation}, {$offset})" : "{$name} ({$offset})";
+        }
+
+        return $zones;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function field(Setting $setting): array
     {
         $options = match ($setting->type) {
-            SettingType::Timezone => array_combine(DateTimeZone::listIdentifiers(), DateTimeZone::listIdentifiers()),
+            SettingType::Timezone => self::timezones(),
             SettingType::Term => $this->terms((string) $setting->taxonomy),
             SettingType::ContentType => $this->publicTypes(),
             default => $setting->options,

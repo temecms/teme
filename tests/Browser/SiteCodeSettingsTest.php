@@ -39,7 +39,7 @@ it('passes axe on Settings › Site code, every target 24 pixels or more, in the
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)->navigate('/admin/settings/site-code');
-    ($this->textShown)($page, 'Before and after');
+    ($this->textShown)($page, 'added “Organization”');
 
     $page->assertSee('Code here runs in every reader’s browser.')
         ->assertSee('This code holds structured data.')
@@ -80,7 +80,7 @@ it('adds code once the password is confirmed, switches it off and deletes it, ea
     $page->click('[data-test="site-code-delete"]')
         ->press('Delete code');
     ($this->textShown)($page, 'Code deleted. No page includes “Visitor analytics” any more.');
-    ($this->textShown)($page, 'Nothing here.');
+    ($this->textShown)($page, 'No code added yet');
 
     expect(SiteCodeEntry::query()->count())->toBe(0)
         ->and(array_column(scLog(), 'type'))->toBe(['site_code.added', 'site_code.switched_off', 'site_code.deleted'])

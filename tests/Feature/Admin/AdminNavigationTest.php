@@ -72,7 +72,7 @@ it('shows people only what they may open', function (string $role, array $keys):
     'a contributor' => ['contributor', ['dashboard', 'posts']],
 ]);
 
-it('links Settings to the first group the person may manage, and hides it when there is none', function (): void {
+it('links Settings to its hub for whoever may manage a group, and hides it when there is none', function (): void {
     $admin = User::factory()->create()->assignRole('administrator');
     $mediaOnly = User::factory()->create()->assignRole('editor');
     $mediaOnly->givePermissionTo('settings.media.manage');
@@ -81,8 +81,8 @@ it('links Settings to the first group the person may manage, and hides it when t
     $settings = fn (User $user): ?array => collect($this->actingAs($user)->get(route('dashboard'))->viewData('page')['props']['nav'])
         ->firstWhere('key', 'settings');
 
-    expect($settings($admin)['href'])->toBe(route('settings.show', ['group' => 'general'], false))
-        ->and($settings($mediaOnly)['href'])->toBe(route('settings.show', ['group' => 'media'], false))
+    expect($settings($admin)['href'])->toBe(route('settings.index', [], false))
+        ->and($settings($mediaOnly)['href'])->toBe(route('settings.index', [], false))
         ->and($settings($author))->toBeNull();
 });
 
@@ -166,10 +166,10 @@ it('gives Settings and Tools the screens the person may open, and every other en
         ->and($screens($admin, 'posts'))->toBe([]);
 });
 
-it('opens Settings on the first page of its menu', function (): void {
+it('opens Settings on its hub, its pages listed in the menu\'s order', function (): void {
     $admin = User::factory()->create()->assignRole('administrator');
     $settings = collect(app(AdminNavigation::class)->forUser($admin->id))->firstWhere('key', 'settings');
 
-    expect($settings['href'] ?? null)->toBe($settings['screens'][0]['href'] ?? 'none')
+    expect($settings['href'] ?? null)->toBe(route('settings.index', [], false))
         ->and($settings['screens'][0]['key'] ?? null)->toBe('general');
 });

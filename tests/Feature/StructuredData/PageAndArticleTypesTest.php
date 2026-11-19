@@ -29,11 +29,11 @@ beforeEach(function (): void {
 it('gives each public type a page type and an article type, after who publishes the site, set to what the type declares (I-709)', function (): void {
     $keys = array_map(fn (SearchAndSocialSection $section): string => $section->key(), SearchAndSocial::ordered(app()->tagged(SearchAndSocial::SECTIONS)));
 
-    expect(array_values(array_intersect($keys, ['who-publishes', 'page-and-article-types', 'social-cards'])))->toBe(['who-publishes', 'page-and-article-types', 'social-cards'])
-        ->and([($this->setting)('schema_page_type_post')->label, ($this->setting)('schema_page_type_post')->default])->toBe(['Page type for posts', 'WebPage'])
-        ->and(($this->setting)('schema_page_type_post')->options)->toBe(['WebPage' => 'Web page', 'AboutPage' => 'About page', 'ContactPage' => 'Contact page', 'CollectionPage' => 'Collection page'])
-        ->and([($this->setting)('schema_article_type_post')->label, ($this->setting)('schema_article_type_post')->default])->toBe(['Article type for posts', 'BlogPosting'])
-        ->and(($this->setting)('schema_article_type_post')->options)->toBe(['Article' => 'Article', 'NewsArticle' => 'News article', 'BlogPosting' => 'Blog post', 'none' => 'Not an article'])
+    expect(array_values(array_intersect($keys, ['who-publishes', 'page-and-article-types'])))->toBe(['who-publishes', 'page-and-article-types'])
+        ->and([($this->setting)('schema_page_type_post')->label, ($this->setting)('schema_page_type_post')->default])->toBe(['Each post is', 'WebPage'])
+        ->and(($this->setting)('schema_page_type_post')->options)->toBe(['WebPage' => 'A web page', 'AboutPage' => 'An About page', 'ContactPage' => 'A contact page', 'CollectionPage' => 'A collection page'])
+        ->and([($this->setting)('schema_article_type_post')->label, ($this->setting)('schema_article_type_post')->default])->toBe(['Article kind for posts', 'BlogPosting'])
+        ->and(($this->setting)('schema_article_type_post')->options)->toBe(['Article' => 'An article', 'NewsArticle' => 'A news article', 'BlogPosting' => 'A blog post', 'none' => 'No article'])
         ->and(($this->setting)('schema_article_type_page')->default)->toBe('none');
 });
 

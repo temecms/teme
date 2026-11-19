@@ -39,7 +39,7 @@ final class ReadingSettingsGroup
             ability: 'settings.general.manage',
             settings: [
                 Setting::number('posts_per_page', 'Items per page', 'How many items each page of a listing shows: the latest posts, an archive or search results. 0 uses the theme’s own number.', '0.1.0')
-                    ->default(0)->min(0)->max(100),
+                    ->default(0)->min(0)->max(100)->unit('items'),
                 // Posts, the first, ticked: every site lists what it listed before (I-3298).
                 Setting::multiselect(ListingTypes::SETTING, 'Types on the home page and in the main feed', 'The types whose newest items the home page lists (or the posts page, when the home page is a page) and the site’s main feed carries. An archive of a category, tag or other term lists every type filed under it, ticked or not.', '0.2.0', $options)
                     ->default(array_slice(array_keys($options), 0, 1)),

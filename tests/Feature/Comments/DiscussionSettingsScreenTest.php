@@ -38,7 +38,7 @@ beforeEach(function (): void {
         ->put(route('settings.discussion.update'), ['values' => $values, 'expected_version' => $version]);
 });
 
-it('shows administrators the switch, then every Discussion setting in v9\'s five fieldsets (E1, E2, D4)', function (): void {
+it('shows administrators the switch, then every Discussion setting in the approved design\'s five sections (E1, E2, D4)', function (): void {
     $this->actingAs($this->admin)->get(route('settings.discussion'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
@@ -47,10 +47,10 @@ it('shows administrators the switch, then every Discussion setting in v9\'s five
             ->where('comments.field.key', 'comments')
             ->where('comments.value', 'on')
             ->where('comments.canSwitch', true)
-            ->where('fieldsets', fn ($fieldsets): bool => collect($fieldsets)->pluck('legend')->all() === ['Where readers can comment', 'Threads', 'Before a comment appears', 'Emails', 'Commenters’ details'])
+            ->where('fieldsets', fn ($fieldsets): bool => collect($fieldsets)->pluck('legend')->all() === ['Where comments are open', 'Threads and pages', 'Moderation', 'Emails', 'Privacy'])
             ->where('fieldsets.0.info', null)
             ->where('fieldsets.2.info.label', 'Who skips these checks')
-            ->where('fieldsets.4.info.label', 'Commenters’ pictures')
+            ->where('fieldsets.4.info', null)
             ->where('fieldsets.3.fields', fn ($fields): bool => collect($fields)->pluck('key')->all() === ['email_moderators', 'email_authors'])
             ->where('values.keep_ip_days', 60)
             ->where('version', 0));

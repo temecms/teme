@@ -4,7 +4,7 @@ import { useLinkTargets } from '@/components/editor/use-link-targets';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupChoice } from '@/components/ui/radio-group';
+import { RadioGroup, RadioGroupCard } from '@/components/ui/radio-group';
 import { __ } from '@/lib/i18n';
 import { shownTitle } from '@/lib/titles';
 import type { HomePageSection } from '@/types';
@@ -109,15 +109,17 @@ export function HomePageSetting({
         .map(([, message]) => message);
 
     return (
-        <div data-test="home-page">
+        <div data-test="home-page" className="contents">
             <SettingsPanel
                 as="section"
-                title="Home page"
-                description="What visitors see at the site’s own address."
+                title={__('Home page')}
+                description={__(
+                    'What a reader sees at the site’s own address.',
+                )}
             >
                 <fieldset className="grid gap-2" disabled={locked}>
                     <legend className="text-small text-ink-2 mb-1 font-medium">
-                        Home page shows
+                        {__('Home page shows')}
                     </legend>
                     <input
                         type="hidden"
@@ -128,18 +130,23 @@ export function HomePageSetting({
                         value={frontShows}
                         onValueChange={setFrontShows}
                         disabled={locked}
+                        className="sm:grid-cols-2"
                     >
-                        <RadioGroupChoice
+                        <RadioGroupCard
                             id="field-front_shows"
                             value={home.frontModes.latest}
                             label={__('Your latest :things', {
                                 things: home.latestWords,
                             })}
+                            description={__('The newest items, newest first.')}
                         />
-                        <RadioGroupChoice
+                        <RadioGroupCard
                             id="front-shows-page"
                             value={home.frontModes.page}
-                            label="A page"
+                            label={__('A page')}
+                            description={__(
+                                'One page you choose, such as a welcome page.',
+                            )}
                         />
                     </RadioGroup>
                     <InputError
@@ -148,10 +155,10 @@ export function HomePageSetting({
                     />
 
                     {frontShows === home.frontModes.page ? (
-                        <div className="grid gap-4 pl-6">
+                        <div className="grid gap-4">
                             <PagePicker
                                 id="field-front_page_id"
-                                label="Home page"
+                                label={__('Home page')}
                                 name="front_page_id"
                                 value={front.id}
                                 title={front.title}
@@ -167,7 +174,7 @@ export function HomePageSetting({
                             />
                             <PagePicker
                                 id="field-posts_page_id"
-                                label={`${listName} page`}
+                                label={__(':list page', { list: listName })}
                                 name="posts_page_id"
                                 value={posts.id}
                                 title={posts.title}
@@ -199,7 +206,7 @@ export function HomePageSetting({
                 </fieldset>
 
                 {clashes.length > 0 && (
-                    <ul className="text-small text-danger-ink list-disc pl-5">
+                    <ul className="text-small text-danger-ink list-disc ps-5">
                         {clashes.map((clash) => (
                             <li key={clash}>{clash}</li>
                         ))}
@@ -209,8 +216,9 @@ export function HomePageSetting({
                 {locked && (
                     <p className="text-caption text-ink-3 flex items-center gap-2">
                         <Lock aria-hidden="true" className="size-4" />
-                        Only someone who may change the site’s addresses can
-                        change the home page.
+                        {__(
+                            'Only someone who may change the site’s addresses can change the home page.',
+                        )}
                     </p>
                 )}
             </SettingsPanel>

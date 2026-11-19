@@ -71,6 +71,7 @@ export type AiPluginRow = {
     on: boolean;
     budgetMicrounits: number | null;
     hourly: number;
+    requestsThisHour: number;
     month: {
         costMicrounits: number;
         requests: number;
@@ -102,6 +103,7 @@ export type AiSettingsPage =
           anyTaskOn: boolean;
           sections: AiSettingsBlock[];
           month: AiMonthSummary;
+          mostUsedTask: string | null;
           activityUrl: string | null;
           values: Record<string, unknown>;
           secrets: Record<string, SecretStatus>;

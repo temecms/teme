@@ -169,6 +169,6 @@ it('shows Pages on Site › Types with their own six, held by administrators and
 });
 
 it('says on Settings › Discussion that authors skip the checks on their own posts alone', function (): void {
-    expect(DiscussionScreen::INFO['Before a comment appears']['value'])
+    expect(DiscussionScreen::INFO['Moderation']['value'])
         ->toBe('Editors and administrators, and authors on their own posts: their comments are approved at once.');
 });

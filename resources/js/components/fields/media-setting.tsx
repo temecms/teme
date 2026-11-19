@@ -1,16 +1,11 @@
-import type { CSSProperties } from 'react';
-import { ImageIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useCardMedia } from '@/components/editor/use-card-media';
 import { MediaModal } from '@/components/media/media-modal';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
 import type { CardMedia, FieldDefinition } from '@/types';
-
-/** The chosen image's two columns from 640px: the picture, then its words. */
-const MEDIA_COLUMNS = {
-    '--media-cols': '160px minmax(0, 1fr)',
-} as CSSProperties;
 
 type Props = {
     field: FieldDefinition;
@@ -52,23 +47,13 @@ export function MediaSetting({ field, name, value, media, disabled }: Props) {
                 value={chosen}
                 disabled={disabled}
             />
-            {chosen === '' ? (
-                <button
-                    type="button"
-                    data-test="media-choose"
-                    disabled={disabled}
-                    onClick={() => setChoosing(true)}
-                    className="border-edge text-ink-2 hover:bg-surface-3 focus-visible:ring-ring text-small flex h-24 items-center justify-center gap-2 rounded-md border border-dashed outline-none focus-visible:ring-2 [&_svg]:size-4"
-                >
-                    <ImageIcon />
-                    Choose an image
-                </button>
-            ) : (
-                <div
-                    className="border-edge bg-surface grid gap-3 rounded-md border p-3 sm:grid-cols-(--media-cols)"
-                    style={MEDIA_COLUMNS}
-                >
-                    {item ? (
+            <div className="flex flex-wrap items-center gap-2">
+                {chosen === '' ? (
+                    <span className="bg-surface-3 text-ink-2 text-caption inline-flex h-6 items-center rounded-sm px-2">
+                        {__('No picture chosen')}
+                    </span>
+                ) : item ? (
+                    <>
                         <img
                             data-test="media-preview"
                             src={
@@ -77,50 +62,58 @@ export function MediaSetting({ field, name, value, media, disabled }: Props) {
                                 ''
                             }
                             alt=""
-                            className="aspect-[3/2] w-full rounded-sm object-cover"
+                            className="aspect-3/2 w-16 rounded-sm object-cover"
                         />
-                    ) : loading.includes(chosen) ? (
-                        <div
-                            aria-busy="true"
-                            className="bg-surface-2 aspect-[3/2] w-full animate-pulse rounded-sm"
-                        />
-                    ) : (
-                        <p
-                            data-test="media-gone"
-                            className="text-ink-2 text-small"
-                        >
-                            This image is no longer in the library.
-                        </p>
-                    )}
-                    <div className="flex content-start gap-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            data-test="media-replace"
-                            disabled={disabled}
-                            onClick={() => setChoosing(true)}
-                        >
-                            Replace
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            data-test="media-remove"
-                            disabled={disabled}
-                            onClick={() => setChosen('')}
-                        >
-                            Remove
-                        </Button>
-                    </div>
-                </div>
-            )}
+                        <span className="bg-surface-3 text-ink-2 text-caption inline-flex h-6 max-w-48 items-center truncate rounded-sm px-2">
+                            {item.title}
+                        </span>
+                    </>
+                ) : loading.includes(chosen) ? (
+                    <Skeleton aria-busy="true" className="h-6 w-24" />
+                ) : (
+                    <span
+                        data-test="media-gone"
+                        className="bg-surface-3 text-ink-2 text-caption inline-flex h-6 items-center rounded-sm px-2"
+                    >
+                        {__('This image is no longer in the library.')}
+                    </span>
+                )}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    data-test={chosen === '' ? 'media-choose' : 'media-replace'}
+                    aria-label={__('Choose picture for :setting', {
+                        setting: field.label,
+                    })}
+                    disabled={disabled}
+                    onClick={() => setChoosing(true)}
+                >
+                    {__('Choose picture')}
+                </Button>
+                {chosen !== '' && (
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        data-test="media-remove"
+                        aria-label={__('Remove picture for :setting', {
+                            setting: field.label,
+                        })}
+                        disabled={disabled}
+                        onClick={() => setChosen('')}
+                    >
+                        {__('Remove')}
+                    </Button>
+                )}
+            </div>
             <MediaModal
                 open={choosing}
                 onOpenChange={setChoosing}
                 kinds={['image']}
-                action={`Use as ${field.label.toLowerCase()}`}
+                action={__('Use as :setting', {
+                    setting: field.label.toLowerCase(),
+                })}
                 onChoose={(ids) => {
                     void addMedia(ids);
                     setChosen(ids[0]);

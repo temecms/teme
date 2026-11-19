@@ -47,7 +47,8 @@ final readonly class SiteCodeScreen
 
     /**
      * The page's props: `locked`, `siteTimezone`, `places` (each placement's
-     * key, label, where it is, and its entries in the order they were added,
+     * key, label, where it is, its chip and its form line, and its entries
+     * in the order they were added,
      * each with the hosts declared for it and those found in its code)
      * and `changes` (the eight newest, newest first, each side with its
      * declared hosts).
@@ -75,6 +76,8 @@ final readonly class SiteCodeScreen
                 'key' => $key,
                 'label' => $place['label'],
                 'where' => $place['where'],
+                'chip' => __($place['chip']),
+                'hint' => __($place['hint']),
                 'entries' => $entries->where('placement', $key)->map(fn (SiteCodeEntry $entry): array => [
                     'id' => $entry->id,
                     'name' => $entry->name,

@@ -94,10 +94,24 @@ export function SettingsPanel({
     const foot = footer !== undefined && (
         <SettingsPanelFooter>{footer}</SettingsPanelFooter>
     );
+    // A titled panel is one of the page's sections: the Settings frame lists it beside the page.
+    const sectionId =
+        id ??
+        (title !== undefined && title !== ''
+            ? `section-${title
+                  .toLowerCase()
+                  .replace(/[^\p{L}\p{N}]+/gu, '-')
+                  .replace(/^-|-$/g, '')}`
+            : undefined);
     const common = {
-        id,
+        id: sectionId,
+        'data-settings-section':
+            title !== undefined && title !== '' ? title : undefined,
         'data-test': 'settings-panel',
-        className: cn('bg-surface shadow-raised min-w-0 rounded-lg', className),
+        className: cn(
+            'bg-surface shadow-raised min-w-0 scroll-mt-4 rounded-lg',
+            className,
+        ),
     };
 
     if (as === 'section') {
