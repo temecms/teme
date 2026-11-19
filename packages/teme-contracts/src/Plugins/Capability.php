@@ -37,7 +37,7 @@ namespace Teme\Contracts\Plugins;
  * the site's sitemap index, those its manifest declares (1.1.0).
  * DirectoryRead opens VerifiedDirectory, Teme's plugin and theme directory as
  * Teme verified it, and ContentSubmissions the Submissions door, which keeps
- * what a visitor sends from a public form as an item waiting for review (next).
+ * what a visitor sends from a public form as an item waiting for review (1.3.0).
  *
  * @since 0.5.0
  */
