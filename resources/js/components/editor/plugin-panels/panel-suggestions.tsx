@@ -223,7 +223,7 @@ export function PanelSuggestions({
                                 onClick={() => void use(suggestion)}
                             >
                                 {suggestion.change.kind === 'body'
-                                    ? __('Review')
+                                    ? __('Review the changes')
                                     : __('Use')}
                             </Button>
                             <Button

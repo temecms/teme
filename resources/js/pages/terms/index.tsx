@@ -496,7 +496,7 @@ export default function TermsIndex({
             {tabs.length > 1 && (
                 <InPageNav
                     label={__('Taxonomies')}
-                    visible={tabs.length}
+                    shown={tabs.length}
                     items={tabs.map((tab) => ({
                         label: tab.label,
                         count: tab.count,

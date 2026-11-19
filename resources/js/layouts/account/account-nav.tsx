@@ -10,10 +10,11 @@ import {
     ResponsiveMenuTrigger,
 } from '@/components/patterns/responsive-menu';
 import { Button } from '@/components/ui/button';
+import { SoonTag } from '@/components/ui/soon-tag';
 import { PersonPicture } from '@/components/ui/person-picture';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { __ } from '@/lib/i18n';
-import { toUrl } from '@/lib/utils';
+import { cn, toUrl } from '@/lib/utils';
 import { edit as editNotifications } from '@/routes/notifications';
 import { edit as editPreferences } from '@/routes/preferences';
 import { edit as editProfile } from '@/routes/profile';
@@ -23,17 +24,22 @@ import { edit as editTwoFactor } from '@/routes/two-factor';
 type AccountPage = {
     title: string;
     href: NonNullable<InertiaLinkProps['href']>;
+    /** Planned and not built: drawn with its Soon tag, opening nothing. */
+    soon?: false;
 };
+
+type SoonPage = { title: string; soon: true };
 
 const LINK =
     'text-body text-ink-2 hover:bg-surface-3 hover:text-ink aria-[current=page]:bg-accent-soft aria-[current=page]:text-on-accent-soft focus-visible:outline-ring flex min-h-(--ctl-h) items-center rounded-md px-3 font-medium focus-visible:outline-2 focus-visible:-outline-offset-2 max-sm:min-h-11';
 
 /**
  * The account's pages in two groups, a rule between them: what you see and
- * hear, then how you sign in. Passkeys and Sessions join the second group
- * once the server has them (docs/proposals/people-and-account.md).
+ * hear, then how you sign in. Passkeys and Sessions are planned, so they are
+ * listed with their Soon tag until the server has them
+ * (docs/proposals/people-and-account.md).
  */
-function useAccountPages(): AccountPage[][] {
+function useAccountPages(): (AccountPage | SoonPage)[][] {
     return [
         [
             { title: __('Profile'), href: editProfile() },
@@ -43,6 +49,8 @@ function useAccountPages(): AccountPage[][] {
         [
             { title: __('Security'), href: editSecurity() },
             { title: __('Two-factor sign-in'), href: editTwoFactor() },
+            { title: __('Passkeys'), soon: true },
+            { title: __('Sessions'), soon: true },
         ],
     ];
 }
@@ -82,20 +90,32 @@ export function AccountNav() {
             {groups.map((group, index) => (
                 <Fragment key={index}>
                     {index > 0 && <hr className="border-line mx-3 my-2" />}
-                    {group.map((item) => (
-                        <Link
-                            key={toUrl(item.href)}
-                            href={item.href}
-                            aria-current={
-                                isCurrentOrParentUrl(item.href)
-                                    ? 'page'
-                                    : undefined
-                            }
-                            className={LINK}
-                        >
-                            {item.title}
-                        </Link>
-                    ))}
+                    {group.map((item) =>
+                        item.soon ? (
+                            <span
+                                key={item.title}
+                                aria-disabled="true"
+                                data-test="account-soon"
+                                className={cn(LINK, 'cursor-default')}
+                            >
+                                {item.title}
+                                <SoonTag />
+                            </span>
+                        ) : (
+                            <Link
+                                key={toUrl(item.href)}
+                                href={item.href}
+                                aria-current={
+                                    isCurrentOrParentUrl(item.href)
+                                        ? 'page'
+                                        : undefined
+                                }
+                                className={LINK}
+                            >
+                                {item.title}
+                            </Link>
+                        ),
+                    )}
                 </Fragment>
             ))}
         </nav>
@@ -111,8 +131,10 @@ export function AccountPagesButton() {
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const groups = useAccountPages();
     const current =
-        groups.flat().find((item) => isCurrentOrParentUrl(item.href))?.title ??
-        __('Account');
+        groups
+            .flat()
+            .find((item) => !item.soon && isCurrentOrParentUrl(item.href))
+            ?.title ?? __('Account');
 
     return (
         <div className="lg:hidden">
@@ -147,23 +169,33 @@ export function AccountPagesButton() {
                     {groups.map((group, index) => (
                         <Fragment key={index}>
                             {index > 0 && <ResponsiveMenuSeparator />}
-                            {group.map((item) => (
-                                <ResponsiveMenuItem
-                                    key={toUrl(item.href)}
-                                    asChild
-                                >
-                                    <Link
-                                        href={item.href}
-                                        aria-current={
-                                            isCurrentOrParentUrl(item.href)
-                                                ? 'page'
-                                                : undefined
-                                        }
+                            {group.map((item) =>
+                                item.soon ? (
+                                    <ResponsiveMenuItem
+                                        key={item.title}
+                                        disabled
                                     >
                                         {item.title}
-                                    </Link>
-                                </ResponsiveMenuItem>
-                            ))}
+                                        <SoonTag className="ms-auto" />
+                                    </ResponsiveMenuItem>
+                                ) : (
+                                    <ResponsiveMenuItem
+                                        key={toUrl(item.href)}
+                                        asChild
+                                    >
+                                        <Link
+                                            href={item.href}
+                                            aria-current={
+                                                isCurrentOrParentUrl(item.href)
+                                                    ? 'page'
+                                                    : undefined
+                                            }
+                                        >
+                                            {item.title}
+                                        </Link>
+                                    </ResponsiveMenuItem>
+                                ),
+                            )}
                         </Fragment>
                     ))}
                 </ResponsiveMenuContent>

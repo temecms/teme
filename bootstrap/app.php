@@ -8,6 +8,7 @@ use App\Domain\Deployment\SecretFiles;
 use App\Domain\Plugins\PackagesWithoutPlugins;
 use App\Domain\Site\Policy\PolicyReports;
 use App\Domain\Support\Security\ElevationRequiredException;
+use App\Http\Admin\AdminErrorPage;
 use App\Http\Admin\Middleware\AdminSecurityHeaders;
 use App\Http\Admin\Middleware\ApplyRememberPolicy;
 use App\Http\Admin\Middleware\BindSessionElevation;
@@ -30,6 +31,7 @@ use App\Http\Site\Middleware\CachePublicPages;
 use App\Http\Site\Middleware\DesignPreviewLink;
 use App\Http\Site\Middleware\MarkCacheable;
 use App\Http\Site\PublicPage;
+use App\Http\Standalone\ErrorReference;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Filesystem\Filesystem;
@@ -174,6 +176,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
             return redirect()->route('password.confirm');
         });
+
+        // Every logged error carries this request's reference, which the 500
+        // page shows, so a reported reference finds its line.
+        $exceptions->context(fn (): array => ['reference' => app(ErrorReference::class)->code()]);
+
+        // A 403 or 404 opened as an admin page by someone signed in is drawn
+        // inside the admin, its menu and top bar kept.
+        $exceptions->render(fn (Throwable $exception, Request $request) => AdminErrorPage::render($exception, $request));
 
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request): bool => $request->expectsJson(),

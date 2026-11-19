@@ -6,6 +6,8 @@ namespace Tests\Feature\Account;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ProfileUpdateTest extends TestCase
@@ -21,6 +23,28 @@ class ProfileUpdateTest extends TestCase
             ->get(route('profile.edit'));
 
         $response->assertOk();
+    }
+
+    public function test_profile_page_links_the_person_to_their_author_page(): void
+    {
+        $user = User::factory()->create();
+        DB::table('paths')->insert(['path' => 'author/ada', 'target_type' => 'user', 'target_id' => (string) $user->id, 'is_current' => true]);
+
+        $this->actingAs($user)
+            ->get(route('profile.edit'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('account/profile')
+                ->where('authorPage.path', '/author/ada/')
+                ->where('authorPage.url', 'http://localhost/author/ada/'),
+            );
+    }
+
+    public function test_profile_page_has_no_author_page_for_someone_without_an_address(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('profile.edit'))
+            ->assertInertia(fn (Assert $page) => $page->where('authorPage', null));
     }
 
     public function test_profile_information_can_be_updated(): void

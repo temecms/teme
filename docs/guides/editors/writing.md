@@ -86,45 +86,48 @@ For uploading and describing files in the library, see [media](media.md).
 
 ## To say what search engines and social sites see
 
-Under the text is **Search and social**. It is closed. Its summary line says how the item will appear in search results and when it is shared.
+Under the text is **Search and social**. It is folded. Its header shows the title the item has in search results and how many things there are to check.
 
-1. Choose **Edit** to open it.
-2. Set the title and the description for search results, then the title, description and image for the card that social sites show.
-3. Choose **Done** to close it again.
+1. Choose the header to unfold it.
+2. On **Search**, the **Result preview** shows the item as a search result may show it, on a desktop or a phone. Under it, set the **SEO title** and the **Meta description**.
+3. On **Social**, set the title, description and image for the card that social sites show.
+4. Choose the header again to fold it.
 
-Open **Advanced** for **Hide from search engines**, the **Canonical address**, the page and article type, and the snippet controls. It stays closed until you open it.
+**Advanced** holds **Hide from search engines**, the **Canonical address**, the page and article type, and the snippet controls.
 
-The summary ends "Every check is in the side panel." That takes you to **Checks**.
+After the fields, **Checks** lists the search checks. A check that wants a look has **Fix**, which takes you to its field. A warning never stops you publishing.
 
 ## To work without distraction
 
-Choose **Focus** in the header. The editor hides everything but the writing. Choose **Leave focus** to bring it back. In **Preferences** you can make the editor open this way every time; see [your account](your-account.md).
+Choose **Focus mode** in the editor's bar, the icon beside the panel's toggle. The editor hides everything but the writing. Press Esc, or choose it again, to bring the rest back. In **Preferences** you can make the editor open this way every time; see [your account](your-account.md).
 
 ## To know whether your work is saved
 
-The editor saves as you go. The state sits at the top.
+The editor saves as you go. The state sits in the editor's bar, after the item's status.
 
 - **Saving…** means a save is on its way.
-- **Saved** means everything here is saved.
+- **Saved** with a time, such as "Saved 2 min ago", means everything here is saved.
 - **Not saved** means your changes are only on this page. Hover it for the reason: you are offline, or someone else saved a new version first.
 
 If you are offline, keep the tab open. Your changes are saved when the connection is back.
 
 ## To use the side panels
 
-The editor has a side panel for the item's settings. Choose **Hide settings** to give the text more room, and **Show settings** to bring it back. The panel is headed **Post settings**, **Page settings** and so on, by the kind of item.
+The editor has a side panel for the item's settings, named after the kind of item, such as **Post settings**. The last button in the editor's bar hides it to give the text more room, and shows it again.
 
-In the header you also find:
+At the top of the panel are **Preview**, **Save draft** and **Publish**. Under them come the item's settings, then sections you can fold: the categories and tags, **Outline** (the headings; choose one to go to it), and **Checks**. Each section's header says what it holds, such as "6 headings" or "1 to look at".
 
-- **Document overview**: a count of words, headings and images, and the outline.
-- **Checks**: what to put right before you publish.
+In the editor's bar you also find:
+
+- **Outline**: a count of words, headings and images, and the outline.
 - **History**: every saved version; see [revisions and preview](revisions-and-preview.md).
-- **Share**: preview links for people without an account.
-- **Assistant**: help with the text, if the site has turned it on.
+- **Tools**: every tool, Teme's and the plugins'. Pin a tool there to keep it in the bar, such as **Share** for preview links or **Assistant** for help with the text, if the site has turned it on.
+
+Under the text, the count line gives the words, the characters and the minutes it takes to read.
 
 ## To check an item before you publish
 
-Open **Checks**. It reads the item and lists what it finds: a missing title, a description, a featured image, images with no alt text, links to items readers can't reach, and what search engines will be told. Each check says whether it passed. Nothing here stops you from publishing; it tells you what you may want to fix first.
+Open **Checks** in the side panel. It reads the writing and lists what it finds: the title's length, the excerpt, the featured image's alt text, images in the text with no alt text, headings that skip a level, and links to items readers can't reach. Choose **Show** to go to a problem. Then it says how many search checks want a look; choose that line to open **Search and social**. Nothing here stops you from publishing; it tells you what you may want to fix first.
 
 ## If someone else is editing the item
 

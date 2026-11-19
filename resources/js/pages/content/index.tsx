@@ -1398,7 +1398,7 @@ export default function ContentIndex(page: ContentIndexPage) {
             <div className="min-w-0">
                 <InPageNav
                     label={__('Status')}
-                    visible={LIST_TABS.length}
+                    shown={LIST_TABS.length}
                     items={listTabs(page.tabs, activeTab).map((tab) => ({
                         label: tab.label,
                         count: tab.count,

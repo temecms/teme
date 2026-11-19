@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -7,9 +8,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FieldInline } from '@/components/ui/field';
 import { SelectField } from '@/components/ui/select-field';
-import { choiceOf, closingNote, DISCUSSION_CHOICES } from '@/lib/discussion';
+import { choiceOf, DISCUSSION_CHOICES } from '@/lib/discussion';
 import type { Discussion } from '@/lib/discussion';
 import type {
     EditorAuthorChoice,
@@ -19,7 +21,6 @@ import type {
 } from '@/types';
 import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
-import { StatusChip } from '../status-chip';
 import { PublishWhen } from './publish-when';
 import type { WhenChoice } from './publish-when';
 import { templateChoice } from './template-choice';
@@ -30,8 +31,6 @@ import { formatDateTime } from '@/lib/dates';
 const PUBLISH_WORDS = {
     public: 'Anyone can read it once it’s published.',
     publicLive: 'Anyone can read it.',
-    authorLive: (noun: string) =>
-        `Changing it changes the published ${noun} at once.`,
 };
 
 export type Visibility = 'public' | 'private' | 'protected';
@@ -61,14 +60,6 @@ function visibilityChoices(): {
     ];
 }
 
-/** What Discussion adds when the item can't take comments for its visibility. */
-function visibilityNotes() {
-    return {
-        private: __('Private items never take comments.'),
-        protected: __('Items protected by a password take no new comments.'),
-    };
-}
-
 /** A refusal of the Visibility row: which part of it, and why. */
 export type VisibilityRefusal = {
     field: 'visibility' | 'password';
@@ -89,25 +80,58 @@ function authorChoices(
         : [{ value: author.id, label: author.name }, ...authors];
 }
 
+/**
+ * One row of the Publish section (4.39): its key in a 96px column, the
+ * value or its 32px control beside it.
+ */
+export function Row({
+    label,
+    htmlFor,
+    children,
+}: {
+    label: string;
+    /** The control the key names, when it has no name of its own. */
+    htmlFor?: string;
+    children: ReactNode;
+}) {
+    return (
+        <div className="flex items-start gap-3">
+            <dt className="text-small text-ink-3 flex min-h-8 w-24 shrink-0 items-center">
+                {htmlFor === undefined ? (
+                    label
+                ) : (
+                    <Label htmlFor={htmlFor} className="text-ink-3 font-normal">
+                        {label}
+                    </Label>
+                )}
+            </dt>
+            <dd className="text-small flex min-h-8 min-w-0 flex-1 flex-col justify-center">
+                {children}
+            </dd>
+        </div>
+    );
+}
+
 /** The article's address on the site, worked out now and never stored (rule 9). */
 export function addressOf(siteUrl: string, pattern: string, slug: string) {
     return siteUrl.replace(/\/$/, '') + pattern.replace('{slug}', slug);
 }
 
 /**
- * The article's summary, as Gutenberg's Summary panel holds it: status,
- * visibility, discussion, date, address, template, author and revisions. It
- * never collapses (I-230).
+ * The Publish section under the action bar (docs/architecture/design-system.md,
+ * 4.39): no heading and no help lines, one row per setting with its key in a
+ * 96px column: Visibility, Discussion, when a live item was published or when
+ * this one publishes, the Address, the Template where the theme offers one,
+ * the Author and History, then "Stick to the top of the blog" for a type that
+ * pins. It never collapses (I-230).
  */
 export function PublishPanel({
     status,
     review,
-    unpublishedChanges,
     publishedAt,
     slug,
     addressPattern,
     siteUrl,
-    url,
     templates,
     template,
     onChangeTemplate,
@@ -135,18 +159,16 @@ export function PublishPanel({
     canSetVisibility,
     onChangeVisibility,
     themeRegion = false,
+    sticky,
+    onChangeSticky,
 }: {
     status: string;
-    /** The pending or returned review, which the Status row's words may mention. */
+    /** The pending or returned review: who decides when it publishes. */
     review: EditorReview | null;
-    /** Whether a live item has changes readers don't see yet (I-1316). */
-    unpublishedChanges: boolean;
     publishedAt: string | null;
     slug: string;
     addressPattern: string;
     siteUrl: string;
-    /** The live address, for View on site; null while it has none. */
-    url: string | null;
     /** The active theme's templates for the item's type (I-443). */
     templates: ThemeTemplate[];
     /** The chosen template, '' for the default; null when the type has no template field. */
@@ -195,6 +217,9 @@ export function PublishPanel({
     ) => Promise<VisibilityRefusal | null>;
     /** A theme region: no page of its own, so no visibility, address, template or author. */
     themeRegion?: boolean;
+    /** Whether the item sticks to the top of the blog; null for a type that has no pinning. */
+    sticky: boolean | null;
+    onChangeSticky: (on: boolean) => void;
 }) {
     const [open, setOpen] = useState(false);
     const [draft, setDraft] = useState(slug);
@@ -224,8 +249,6 @@ export function PublishPanel({
         shown === 'public' && status === 'published'
             ? PUBLISH_WORDS.publicLive
             : visibilityChoice.meaning;
-    const visibilityNote =
-        visibility === 'public' ? null : visibilityNotes()[visibility];
     const saveVisibility = (next: Visibility, password: string | null) => {
         setVisibilitySaving(true);
         setVisibilityProblem(null);
@@ -252,16 +275,6 @@ export function PublishPanel({
     };
     const protectedAlready = visibility === 'protected';
     const passwordDiffers = typed !== (readerPassword ?? '');
-    const discussionNote =
-        discussion === null
-            ? null
-            : closingNote(
-                  discussion.value,
-                  status === 'published',
-                  publishedAt,
-                  discussion.closeAfterDays,
-                  siteTimezone,
-              );
     const choice = templateChoice(templates, template ?? '');
     const missingNote =
         choice.missing === null
@@ -272,492 +285,429 @@ export function PublishPanel({
               );
 
     return (
-        <Panel data-test="publish-section">
-            <PanelHeader>
-                <h2>{__('Publish')}</h2>
-            </PanelHeader>
-            <PanelBody>
-                <dl className="text-small grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2">
-                    <dt className="text-ink-2">{__('Status')}</dt>
-                    <dd className="min-w-0">
-                        <StatusChip
-                            named={false}
-                            status={status}
-                            review={review}
-                            schedule={schedule}
-                            unpublishedChanges={unpublishedChanges}
-                            visibility={visibility}
-                        />
-                    </dd>
-                    {!themeRegion && (
-                        <>
-                            <dt className="text-ink-2">{__('Visibility')}</dt>
-                            <dd className="min-w-0">
-                                {canSetVisibility ? (
-                                    <>
-                                        <SelectField
-                                            id="editor-visibility"
-                                            aria-label={__('Visibility')}
-                                            aria-describedby={
-                                                visibilityProblem !== null
-                                                    ? 'editor-visibility-meaning editor-visibility-error'
-                                                    : 'editor-visibility-meaning'
-                                            }
-                                            options={visibilityOptions.map(
-                                                (option) => ({
-                                                    value: option.value,
-                                                    label: option.label,
-                                                }),
-                                            )}
-                                            value={shown}
-                                            disabled={visibilitySaving}
-                                            onValueChange={(next) => {
-                                                setVisibilityProblem(null);
-                                                setPasswordProblem(null);
+        <section
+            aria-label={__('Publish')}
+            data-test="publish-section"
+            className="px-2"
+        >
+            <dl className="grid gap-2 px-3 pb-2">
+                {!themeRegion && (
+                    <>
+                        <Row label={__('Visibility')}>
+                            {canSetVisibility ? (
+                                <>
+                                    {/* The row draws no help line (4.39); screen readers still hear what the choice means. */}
+                                    <p
+                                        id="editor-visibility-meaning"
+                                        className="sr-only"
+                                    >
+                                        {visibilityMeaning}
+                                    </p>
+                                    <SelectField
+                                        id="editor-visibility"
+                                        aria-label={__('Visibility')}
+                                        aria-describedby={
+                                            visibilityProblem !== null
+                                                ? 'editor-visibility-meaning editor-visibility-error'
+                                                : 'editor-visibility-meaning'
+                                        }
+                                        options={visibilityOptions.map(
+                                            (option) => ({
+                                                value: option.value,
+                                                label: option.label,
+                                            }),
+                                        )}
+                                        value={shown}
+                                        disabled={visibilitySaving}
+                                        onValueChange={(next) => {
+                                            setVisibilityProblem(null);
+                                            setPasswordProblem(null);
 
-                                                if (next === 'protected') {
-                                                    if (!protectedAlready) {
-                                                        setPending(true);
-                                                        setTyped('');
-                                                    }
-
-                                                    return;
+                                            if (next === 'protected') {
+                                                if (!protectedAlready) {
+                                                    setPending(true);
+                                                    setTyped('');
                                                 }
 
-                                                setPending(false);
-
-                                                if (next !== visibility) {
-                                                    saveVisibility(
-                                                        next as Visibility,
-                                                        null,
-                                                    );
-                                                }
-                                            }}
-                                            className="h-[34px] w-full"
-                                        />
-                                        <p
-                                            id="editor-visibility-meaning"
-                                            className="text-ink-2 text-caption mt-1"
-                                        >
-                                            {visibilityMeaning}
-                                            {protectedAlready &&
-                                                passwordUnreadable &&
-                                                ` ${__('Its password can’t be read on this server, so nobody can open the :noun. Set a new one.', { noun })}`}
-                                        </p>
-                                        {visibilityProblem !== null && (
-                                            <p
-                                                id="editor-visibility-error"
-                                                role="alert"
-                                                className="text-danger-ink text-caption mt-1"
-                                            >
-                                                {visibilityProblem}
-                                            </p>
-                                        )}
-                                        {shown === 'protected' && (
-                                            <div className="mt-2 grid gap-2">
-                                                <Label htmlFor="editor-password">
-                                                    {__('Password')}
-                                                </Label>
-                                                <Input
-                                                    id="editor-password"
-                                                    type="text"
-                                                    autoComplete="off"
-                                                    spellCheck={false}
-                                                    maxLength={255}
-                                                    value={typed}
-                                                    disabled={visibilitySaving}
-                                                    aria-invalid={
-                                                        passwordProblem !== null
-                                                            ? true
-                                                            : undefined
-                                                    }
-                                                    aria-describedby={
-                                                        passwordProblem !== null
-                                                            ? 'editor-password-hint editor-password-error'
-                                                            : 'editor-password-hint'
-                                                    }
-                                                    onChange={(event) =>
-                                                        setTyped(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                <p
-                                                    id="editor-password-hint"
-                                                    className="text-ink-2 text-caption"
-                                                >
-                                                    {__(
-                                                        'Give it to the people who should read this :noun. Changing it asks everyone for the new one.',
-                                                        { noun },
-                                                    )}
-                                                </p>
-                                                {passwordProblem !== null && (
-                                                    <p
-                                                        id="editor-password-error"
-                                                        role="alert"
-                                                        className="text-danger-ink text-caption"
-                                                    >
-                                                        {passwordProblem}
-                                                    </p>
-                                                )}
-                                                {(!protectedAlready ||
-                                                    passwordDiffers) && (
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        data-test="visibility-protect"
-                                                        disabled={
-                                                            visibilitySaving
-                                                        }
-                                                        onClick={() =>
-                                                            saveVisibility(
-                                                                'protected',
-                                                                typed,
-                                                            )
-                                                        }
-                                                    >
-                                                        {protectedAlready
-                                                            ? __(
-                                                                  'Change password',
-                                                              )
-                                                            : __(
-                                                                  'Protect with this password',
-                                                              )}
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        {visibilityChoice.label}
-                                        <p className="text-ink-2 text-caption mt-1">
-                                            {visibilityMeaning}{' '}
-                                            {__(
-                                                'Whoever publishes it sets this.',
-                                            )}
-                                        </p>
-                                    </>
-                                )}
-                            </dd>
-                        </>
-                    )}
-                    {!themeRegion && discussion !== null && (
-                        <>
-                            <dt className="text-ink-2">{__('Discussion')}</dt>
-                            <dd className="min-w-0">
-                                {canSetDiscussion ? (
-                                    <>
-                                        <SelectField
-                                            id="editor-discussion"
-                                            aria-label={__('Discussion')}
-                                            aria-describedby={
-                                                discussionProblem !== null
-                                                    ? 'editor-discussion-meaning editor-discussion-error'
-                                                    : 'editor-discussion-meaning'
+                                                return;
                                             }
-                                            options={DISCUSSION_CHOICES.map(
-                                                (option) => ({
-                                                    value: option.value,
-                                                    label: option.label,
-                                                }),
-                                            )}
-                                            value={discussion.value}
-                                            disabled={discussionSaving}
-                                            onValueChange={(next) => {
-                                                setDiscussionSaving(true);
-                                                setDiscussionProblem(null);
-                                                void onChangeDiscussion(
-                                                    next as Discussion,
-                                                ).then((error) => {
-                                                    setDiscussionSaving(false);
-                                                    setDiscussionProblem(error);
-                                                });
-                                            }}
-                                            className="h-[34px] w-full"
-                                        />
-                                        <p
-                                            id="editor-discussion-meaning"
-                                            className="text-ink-2 text-caption mt-1"
-                                        >
-                                            {choiceOf(discussion.value).meaning}
-                                            {discussionNote !== null &&
-                                                ` ${discussionNote}`}
-                                            {visibilityNote !== null &&
-                                                ` ${visibilityNote}`}
-                                        </p>
-                                        {discussionProblem !== null && (
-                                            <p
-                                                id="editor-discussion-error"
-                                                role="alert"
-                                                className="text-danger-ink text-caption mt-1"
-                                            >
-                                                {discussionProblem}
-                                            </p>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        {choiceOf(discussion.value).label}
-                                        <p className="text-ink-2 text-caption mt-1">
-                                            {choiceOf(discussion.value).meaning}
-                                            {discussionNote !== null &&
-                                                ` ${discussionNote}`}
-                                            {visibilityNote !== null &&
-                                                ` ${visibilityNote}`}{' '}
-                                            {__(
-                                                'Whoever publishes it sets this.',
-                                            )}
-                                        </p>
-                                    </>
-                                )}
-                            </dd>
-                        </>
-                    )}
-                    {status === 'published' && (
-                        <>
-                            <dt className="text-ink-2">{__('Published')}</dt>
-                            <dd>
-                                {publishedAt
-                                    ? formatDateTime(publishedAt)
-                                    : __('Not yet')}
-                            </dd>
-                        </>
-                    )}
-                    <PublishWhen
-                        live={status === 'published'}
-                        canPublish={canPublish}
-                        review={review}
-                        schedule={schedule}
-                        siteTimezone={siteTimezone}
-                        when={when}
-                        onWhenChange={onWhenChange}
-                        onCancelSchedule={onCancelSchedule}
-                        busy={deciding}
-                    />
-                    {!themeRegion && (
-                        <>
-                            <dt className="text-ink-2">{__('Address')}</dt>
-                            <dd className="min-w-0">
-                                <DropdownMenu
-                                    open={open}
-                                    onOpenChange={(next) => {
-                                        setOpen(next);
-                                        setDraft(slug);
-                                        setProblem(null);
-                                    }}
-                                >
-                                    <DropdownMenuTrigger
-                                        asChild
-                                        disabled={!canEdit}
-                                    >
-                                        <TextButton className="block max-w-full truncate text-left font-normal">
-                                            /{slug}
-                                        </TextButton>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align="start"
-                                        className="w-80 max-w-(--radix-dropdown-menu-content-available-width) p-3"
-                                    >
-                                        <form
-                                            className="grid gap-2"
-                                            onSubmit={(event) => {
-                                                event.preventDefault();
-                                                setBusy(true);
-                                                void onChangeSlug(
-                                                    draft.trim(),
-                                                ).then((error) => {
-                                                    setBusy(false);
-                                                    setProblem(error);
 
-                                                    if (error === null) {
-                                                        setOpen(false);
-                                                    }
-                                                });
-                                            }}
+                                            setPending(false);
+
+                                            if (next !== visibility) {
+                                                saveVisibility(
+                                                    next as Visibility,
+                                                    null,
+                                                );
+                                            }
+                                        }}
+                                        className="text-small h-8 w-full"
+                                    />
+                                    {protectedAlready && passwordUnreadable && (
+                                        <p className="text-warn-ink text-caption mt-1">
+                                            {__(
+                                                'Its password can’t be read on this server, so nobody can open the :noun. Set a new one.',
+                                                { noun },
+                                            )}
+                                        </p>
+                                    )}
+                                    {visibilityProblem !== null && (
+                                        <p
+                                            id="editor-visibility-error"
+                                            role="alert"
+                                            className="text-danger-ink text-caption mt-1"
                                         >
-                                            <Label htmlFor="editor-slug">
-                                                {__('Address')}
+                                            {visibilityProblem}
+                                        </p>
+                                    )}
+                                    {shown === 'protected' && (
+                                        <div className="mt-2 grid gap-2">
+                                            <Label htmlFor="editor-password">
+                                                {__('Password')}
                                             </Label>
                                             <Input
-                                                id="editor-slug"
-                                                aria-describedby="editor-slug-url"
-                                                value={draft}
-                                                onChange={(event) =>
-                                                    setDraft(event.target.value)
+                                                id="editor-password"
+                                                type="text"
+                                                autoComplete="off"
+                                                spellCheck={false}
+                                                maxLength={255}
+                                                value={typed}
+                                                disabled={visibilitySaving}
+                                                aria-invalid={
+                                                    passwordProblem !== null
+                                                        ? true
+                                                        : undefined
                                                 }
-                                                onKeyDown={(event) =>
-                                                    event.stopPropagation()
+                                                aria-describedby={
+                                                    passwordProblem !== null
+                                                        ? 'editor-password-hint editor-password-error'
+                                                        : 'editor-password-hint'
+                                                }
+                                                onChange={(event) =>
+                                                    setTyped(event.target.value)
                                                 }
                                             />
                                             <p
-                                                id="editor-slug-url"
-                                                className="text-ink-2 text-caption break-all"
+                                                id="editor-password-hint"
+                                                className="text-ink-2 text-caption"
                                             >
-                                                {addressOf(
-                                                    siteUrl,
-                                                    addressPattern,
-                                                    draft || slug,
+                                                {__(
+                                                    'Give it to the people who should read this :noun. Changing it asks everyone for the new one.',
+                                                    { noun },
                                                 )}
                                             </p>
-                                            {problem && (
+                                            {passwordProblem !== null && (
                                                 <p
+                                                    id="editor-password-error"
                                                     role="alert"
                                                     className="text-danger-ink text-caption"
                                                 >
-                                                    {problem}
+                                                    {passwordProblem}
                                                 </p>
                                             )}
-                                            <Button
-                                                type="submit"
-                                                size="sm"
-                                                disabled={
-                                                    busy || draft.trim() === ''
-                                                }
-                                                className="justify-self-start"
-                                            >
-                                                {__('Change address')}
-                                            </Button>
-                                        </form>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                {url !== null && (
-                                    <a
-                                        href={url}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-accent-ink text-caption underline-offset-2 hover:underline"
-                                    >
-                                        {__('View on site')}
-                                    </a>
-                                )}
-                            </dd>
-                        </>
-                    )}
-                    {!themeRegion &&
-                        template !== null &&
-                        (templates.length > 0 || missingNote !== null) && (
-                            <>
-                                <dt className="text-ink-2">{__('Template')}</dt>
-                                <dd className="min-w-0">
-                                    {templates.length > 0 && (
-                                        <SelectField
-                                            aria-label={__('Template')}
-                                            aria-describedby={
-                                                missingNote !== null
-                                                    ? 'editor-template-missing'
-                                                    : undefined
-                                            }
-                                            emptyLabel="Default"
-                                            options={choice.options}
-                                            value={template}
-                                            onValueChange={onChangeTemplate}
-                                            className="h-[34px] w-full"
-                                        />
+                                            {(!protectedAlready ||
+                                                passwordDiffers) && (
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="outline"
+                                                    data-test="visibility-protect"
+                                                    disabled={visibilitySaving}
+                                                    onClick={() =>
+                                                        saveVisibility(
+                                                            'protected',
+                                                            typed,
+                                                        )
+                                                    }
+                                                >
+                                                    {protectedAlready
+                                                        ? __('Change password')
+                                                        : __(
+                                                              'Protect with this password',
+                                                          )}
+                                                </Button>
+                                            )}
+                                        </div>
                                     )}
-                                    {missingNote !== null && (
+                                </>
+                            ) : (
+                                <span title={visibilityMeaning}>
+                                    {visibilityChoice.label}
+                                </span>
+                            )}
+                        </Row>
+                    </>
+                )}
+                {!themeRegion && discussion !== null && (
+                    <>
+                        <Row label={__('Discussion')}>
+                            {canSetDiscussion ? (
+                                <>
+                                    <SelectField
+                                        id="editor-discussion"
+                                        aria-label={__('Discussion')}
+                                        aria-describedby={
+                                            discussionProblem !== null
+                                                ? 'editor-discussion-error'
+                                                : undefined
+                                        }
+                                        options={DISCUSSION_CHOICES.map(
+                                            (option) => ({
+                                                value: option.value,
+                                                label: option.label,
+                                            }),
+                                        )}
+                                        value={discussion.value}
+                                        disabled={discussionSaving}
+                                        onValueChange={(next) => {
+                                            setDiscussionSaving(true);
+                                            setDiscussionProblem(null);
+                                            void onChangeDiscussion(
+                                                next as Discussion,
+                                            ).then((error) => {
+                                                setDiscussionSaving(false);
+                                                setDiscussionProblem(error);
+                                            });
+                                        }}
+                                        className="text-small h-8 w-full"
+                                    />
+
+                                    {discussionProblem !== null && (
                                         <p
-                                            id="editor-template-missing"
-                                            className="text-ink-2 text-caption mt-1"
+                                            id="editor-discussion-error"
+                                            role="alert"
+                                            className="text-danger-ink text-caption mt-1"
                                         >
-                                            {missingNote}
+                                            {discussionProblem}
                                         </p>
                                     )}
-                                </dd>
-                            </>
-                        )}
-                    {!themeRegion && (
-                        <>
-                            <dt className="text-ink-2">{__('Author')}</dt>
-                            <dd className="min-w-0">
-                                {authors !== null ? (
-                                    <>
-                                        <SelectField
-                                            id="editor-author"
-                                            aria-label={__('Author')}
-                                            aria-describedby={
-                                                [
-                                                    status === 'published'
-                                                        ? 'editor-author-live'
-                                                        : null,
-                                                    authorProblem !== null
-                                                        ? 'editor-author-error'
-                                                        : null,
-                                                ]
-                                                    .filter(Boolean)
-                                                    .join(' ') || undefined
-                                            }
-                                            options={authorChoices(
-                                                authors,
-                                                author,
-                                            )}
-                                            emptyLabel={
-                                                author === null
-                                                    ? __('Nobody')
-                                                    : undefined
-                                            }
-                                            value={
-                                                author === null
-                                                    ? ''
-                                                    : String(author.id)
-                                            }
-                                            disabled={authorSaving}
-                                            onValueChange={(next) => {
-                                                if (next === '') {
-                                                    return;
-                                                }
+                                </>
+                            ) : (
+                                <span>{choiceOf(discussion.value).label}</span>
+                            )}
+                        </Row>
+                    </>
+                )}
+                {status === 'published' && (
+                    <Row label={__('Published')}>
+                        <span data-test="published-at">
+                            {publishedAt
+                                ? formatDateTime(publishedAt)
+                                : __('Not yet')}
+                        </span>
+                    </Row>
+                )}
+                <PublishWhen
+                    live={status === 'published'}
+                    canPublish={canPublish}
+                    review={review}
+                    schedule={schedule}
+                    siteTimezone={siteTimezone}
+                    when={when}
+                    onWhenChange={onWhenChange}
+                    onCancelSchedule={onCancelSchedule}
+                    busy={deciding}
+                />
+                {!themeRegion && (
+                    <>
+                        <Row label={__('Address')}>
+                            <DropdownMenu
+                                open={open}
+                                onOpenChange={(next) => {
+                                    setOpen(next);
+                                    setDraft(slug);
+                                    setProblem(null);
+                                }}
+                            >
+                                <DropdownMenuTrigger
+                                    asChild
+                                    disabled={!canEdit}
+                                >
+                                    <TextButton className="block max-w-full truncate text-left font-normal">
+                                        /{slug}
+                                    </TextButton>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="start"
+                                    className="w-80 max-w-(--radix-dropdown-menu-content-available-width) p-3"
+                                >
+                                    <form
+                                        className="grid gap-2"
+                                        onSubmit={(event) => {
+                                            event.preventDefault();
+                                            setBusy(true);
+                                            void onChangeSlug(
+                                                draft.trim(),
+                                            ).then((error) => {
+                                                setBusy(false);
+                                                setProblem(error);
 
-                                                setAuthorSaving(true);
-                                                setAuthorProblem(null);
-                                                void onChangeAuthor(
-                                                    Number(next),
-                                                ).then((error) => {
-                                                    setAuthorSaving(false);
-                                                    setAuthorProblem(error);
-                                                });
-                                            }}
-                                            className="h-[34px] w-full"
+                                                if (error === null) {
+                                                    setOpen(false);
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        <Label htmlFor="editor-slug">
+                                            {__('Address')}
+                                        </Label>
+                                        <Input
+                                            id="editor-slug"
+                                            aria-describedby="editor-slug-url"
+                                            value={draft}
+                                            onChange={(event) =>
+                                                setDraft(event.target.value)
+                                            }
+                                            onKeyDown={(event) =>
+                                                event.stopPropagation()
+                                            }
                                         />
-                                        {status === 'published' && (
+                                        <p
+                                            id="editor-slug-url"
+                                            className="text-ink-2 text-caption break-all"
+                                        >
+                                            {addressOf(
+                                                siteUrl,
+                                                addressPattern,
+                                                draft || slug,
+                                            )}
+                                        </p>
+                                        {problem && (
                                             <p
-                                                id="editor-author-live"
-                                                className="text-ink-2 text-caption mt-1"
-                                            >
-                                                {PUBLISH_WORDS.authorLive(noun)}
-                                            </p>
-                                        )}
-                                        {authorProblem !== null && (
-                                            <p
-                                                id="editor-author-error"
                                                 role="alert"
-                                                className="text-danger-ink text-caption mt-1"
+                                                className="text-danger-ink text-caption"
                                             >
-                                                {authorProblem}
+                                                {problem}
                                             </p>
                                         )}
-                                    </>
-                                ) : (
-                                    (author?.name ?? __('Nobody'))
+                                        <Button
+                                            type="submit"
+                                            size="sm"
+                                            disabled={
+                                                busy || draft.trim() === ''
+                                            }
+                                            className="justify-self-start"
+                                        >
+                                            {__('Change address')}
+                                        </Button>
+                                    </form>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </Row>
+                    </>
+                )}
+                {!themeRegion &&
+                    template !== null &&
+                    (templates.length > 0 || missingNote !== null) && (
+                        <>
+                            <Row label={__('Template')}>
+                                {templates.length > 0 && (
+                                    <SelectField
+                                        aria-label={__('Template')}
+                                        aria-describedby={
+                                            missingNote !== null
+                                                ? 'editor-template-missing'
+                                                : undefined
+                                        }
+                                        emptyLabel="Default"
+                                        options={choice.options}
+                                        value={template}
+                                        onValueChange={onChangeTemplate}
+                                        className="text-small h-8 w-full"
+                                    />
                                 )}
-                            </dd>
+                                {missingNote !== null && (
+                                    <p
+                                        id="editor-template-missing"
+                                        className="text-ink-2 text-caption mt-1"
+                                    >
+                                        {missingNote}
+                                    </p>
+                                )}
+                            </Row>
                         </>
                     )}
-                    <dt className="text-ink-2">History</dt>
-                    <dd>
-                        <TextButton
-                            onClick={onOpenHistory}
-                            className="font-normal"
-                        >
-                            {revisionCount === 1
-                                ? __('1 revision')
-                                : __(':count revisions', {
-                                      count: revisionCount,
-                                  })}
-                        </TextButton>
-                    </dd>
-                </dl>
-            </PanelBody>
-        </Panel>
+                {!themeRegion && (
+                    <>
+                        <Row label={__('Author')}>
+                            {authors !== null ? (
+                                <>
+                                    <SelectField
+                                        id="editor-author"
+                                        aria-label={__('Author')}
+                                        aria-describedby={
+                                            authorProblem !== null
+                                                ? 'editor-author-error'
+                                                : undefined
+                                        }
+                                        options={authorChoices(authors, author)}
+                                        emptyLabel={
+                                            author === null
+                                                ? __('Nobody')
+                                                : undefined
+                                        }
+                                        value={
+                                            author === null
+                                                ? ''
+                                                : String(author.id)
+                                        }
+                                        disabled={authorSaving}
+                                        onValueChange={(next) => {
+                                            if (next === '') {
+                                                return;
+                                            }
+
+                                            setAuthorSaving(true);
+                                            setAuthorProblem(null);
+                                            void onChangeAuthor(
+                                                Number(next),
+                                            ).then((error) => {
+                                                setAuthorSaving(false);
+                                                setAuthorProblem(error);
+                                            });
+                                        }}
+                                        className="text-small h-8 w-full"
+                                    />
+
+                                    {authorProblem !== null && (
+                                        <p
+                                            id="editor-author-error"
+                                            role="alert"
+                                            className="text-danger-ink text-caption mt-1"
+                                        >
+                                            {authorProblem}
+                                        </p>
+                                    )}
+                                </>
+                            ) : (
+                                (author?.name ?? __('Nobody'))
+                            )}
+                        </Row>
+                    </>
+                )}
+                <Row label={__('History')}>
+                    <TextButton onClick={onOpenHistory} className="font-normal">
+                        {revisionCount === 1
+                            ? __('1 revision')
+                            : __(':count revisions', {
+                                  count: revisionCount,
+                              })}
+                    </TextButton>
+                </Row>
+            </dl>
+            {sticky !== null && (
+                <FieldInline
+                    htmlFor="editor-sticky"
+                    label={__('Stick to the top of the blog')}
+                    className="px-3 pt-1 pb-4"
+                >
+                    <Checkbox
+                        id="editor-sticky"
+                        checked={sticky}
+                        onCheckedChange={(on) => onChangeSticky(on === true)}
+                    />
+                </FieldInline>
+            )}
+        </section>
     );
 }

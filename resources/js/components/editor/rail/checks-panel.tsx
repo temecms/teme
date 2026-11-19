@@ -1,10 +1,12 @@
-import { CheckCircle2, CircleAlert } from 'lucide-react';
+import { CheckCircle2, CircleAlert, Search } from 'lucide-react';
 import { TextButton } from '@/components/ui/text-button';
 import { __, __n } from '@/lib/i18n';
 import type { PluginCheckGroup, PluginCheckResult } from '@/types/editor';
-import type { BadLink, CheckId, CoreCheck, RegionFacts } from './checks';
+import type { BadLink, CoreCheck, RegionFacts } from './checks';
+import type { WritingCheck } from './writing-checks';
 import { PluginChecks } from './plugin-checks';
 import { RailSection } from './rail-section';
+import { searchCheckWords } from './search-box';
 import { quotedTitle } from '@/lib/titles';
 
 /** One link to an unreachable article, named. */
@@ -19,9 +21,6 @@ function badLinkLine(link: BadLink): string {
               title: quotedTitle(link.title),
           });
 }
-
-/** The checks the rail can put the cursor on: every one but these. */
-const NOWHERE_TO_GO: CheckId[] = ['listing', 'structured-data'];
 
 function StateIcon({ check }: { check: CoreCheck }) {
     return check.state === 'ok' ? (
@@ -86,77 +85,117 @@ export function CheckList({
 }
 
 /**
- * The rail's Checks: core's whole list (I-880), worked out in the browser as
- * the person writes. A warning the rail can put the cursor on is a button
- * that does. They warn and never block: nothing here disables Publish,
- * Schedule or Submit.
+ * The rail's Checks (docs/architecture/design-system.md, 4.39): the writing
+ * checks, each a plain fact with Show where the rail can put the cursor on
+ * it; then how many search checks want a look, linking to Search and social
+ * under the text; then the plugins' checks, under their plugin's names. They
+ * warn and never block: nothing here disables Publish, Schedule or Submit.
  */
 export function ChecksPanel({
     checks,
     onGoTo,
+    searchCount,
     onGoToSearch,
-    noun,
     pluginChecks = [],
     onGoToPlugin,
 }: {
-    checks: CoreCheck[];
-    onGoTo: (check: CheckId) => void;
+    checks: WritingCheck[];
+    onGoTo: (check: WritingCheck['id']) => void;
+    /** How many of Search and social's checks want a look. */
+    searchCount: number;
+    /** Opens Search and social under the text; absent where there is none (a theme's region). */
+    onGoToSearch?: () => void;
     /** The plugins' checks, after core's, each under its plugin's name (docs/guides/developers/plugins/seo.md). */
     pluginChecks?: PluginCheckGroup[];
     onGoToPlugin?: (code: string, result: PluginCheckResult) => void;
-    /** Opens Search and social under the text; absent where there is none (a theme's region). */
-    onGoToSearch?: () => void;
-    noun: string;
 }) {
+    const failing = checks.filter((check) => !check.ok).length;
+
     return (
-        <RailSection title={__('Checks')} triggerId="rail-checks-trigger">
+        <RailSection
+            title={__('Checks')}
+            triggerId="rail-checks-trigger"
+            testId="rail-checks-section"
+            summary={
+                failing === 0
+                    ? __('All clear')
+                    : __n(':count to look at|:count to look at', failing)
+            }
+        >
             <ul data-test="rail-checks" className="text-small grid gap-2">
                 {checks.map((check) => (
-                    <li key={check.id}>
-                        {check.state === 'warn' &&
-                        !NOWHERE_TO_GO.includes(check.id) ? (
-                            <TextButton
-                                onClick={() => onGoTo(check.id)}
-                                className="gap-2 text-left align-top font-normal decoration-transparent underline-offset-2 hover:underline"
-                            >
-                                <StateIcon check={check} />
-                                <Label check={check} />
-                            </TextButton>
+                    <li
+                        key={check.id}
+                        data-test={`rail-check-${check.id}`}
+                        data-state={check.ok ? 'ok' : 'warn'}
+                        className="text-ink-2 flex items-start gap-2"
+                    >
+                        {check.ok ? (
+                            <CheckCircle2
+                                aria-hidden
+                                className="text-ok-ink mt-px size-4 shrink-0"
+                            />
                         ) : (
-                            <span className="inline-flex items-center gap-2 align-top">
-                                <StateIcon check={check} />
-                                <Label check={check} />
-                            </span>
+                            <CircleAlert
+                                aria-hidden
+                                className="text-warn-ink mt-px size-4 shrink-0"
+                            />
                         )}
-                        <Fact check={check} />
+                        <span className="min-w-0">
+                            <span className="sr-only">
+                                {check.ok ? __('Passed:') : __('Warning:')}{' '}
+                            </span>
+                            {check.message}
+                            {!check.ok && check.canShow && (
+                                <>
+                                    {' · '}
+                                    <TextButton
+                                        onClick={() => onGoTo(check.id)}
+                                        className="font-normal"
+                                    >
+                                        {__('Show')}
+                                    </TextButton>
+                                </>
+                            )}
+                            {check.badLinks.length > 0 && (
+                                <ul className="text-caption mt-1 grid gap-1">
+                                    {check.badLinks.map((link) => (
+                                        <li key={link.id}>
+                                            {badLinkLine(link)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </span>
                     </li>
                 ))}
             </ul>
-            {pluginChecks.length > 0 && (
-                <div className="border-line mt-3 border-t pt-3">
-                    <PluginChecks
-                        groups={pluginChecks}
-                        onGoTo={onGoToPlugin}
-                        testId="rail-plugin-checks"
-                    />
-                </div>
-            )}
             {onGoToSearch !== undefined && (
-                <div
+                <TextButton
                     data-test="rail-search-note"
-                    className="bg-surface-2 text-caption mt-3 grid gap-2 rounded-md px-3 py-3"
+                    onClick={onGoToSearch}
+                    className="text-small justify-self-start font-normal"
                 >
-                    <p className="text-ink-2">
-                        {__('Search and social is under the :noun.', { noun })}
-                    </p>
-                    <TextButton
-                        onClick={onGoToSearch}
-                        className="justify-self-start font-normal decoration-current"
-                    >
-                        {__('Go to Search and social')}
-                    </TextButton>
-                </div>
+                    <Search aria-hidden className="size-4" />
+                    {__('Search and social: :words', {
+                        words: searchCheckWords(searchCount),
+                    })}
+                </TextButton>
             )}
+            {pluginChecks.length > 0 && (
+                <PluginChecks
+                    groups={pluginChecks}
+                    onGoTo={onGoToPlugin}
+                    testId="rail-plugin-checks"
+                />
+            )}
+            <p className="text-caption text-ink-3">
+                {pluginChecks.length > 0
+                    ? __('A warning never blocks publishing.')
+                    : __(
+                          'A plugin’s checks join this list, named by their plugin; none of the enabled plugins adds one. A warning never blocks publishing.',
+                      )}
+            </p>
         </RailSection>
     );
 }

@@ -57,8 +57,30 @@ it('refuses a token that is wrong, expired or revoked', function (string $case):
         app(RevokePreviewLink::class)->execute(new RevokePreviewLinkInput($linkId, (string) $this->author->id));
     }
 
-    $this->get("/preview/{$token}")->assertNotFound();
+    $this->get("/preview/{$token}")
+        ->assertNotFound()
+        ->assertSee('Link expired')
+        ->assertSee('This preview link has expired')
+        ->assertSee('Preview links stop working after a while, so an unfinished article doesn’t stay open to anyone with the address. Ask whoever sent it to you for a new one.', false)
+        ->assertSee('Go to the site')
+        ->assertSee('href="'.url('/').'"', false)
+        ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
+        ->assertHeader('Cache-Control', 'no-store, private');
 })->with(['wrong', 'expired', 'revoked']);
+
+it('answers a wrong, an expired and a revoked link with the very same page', function (): void {
+    $content = lifecycleDraft($this->author, 'Harbour festival');
+    $link = histPreview($content->refresh(), $this->author);
+    $linkId = DB::table('preview_links')->where('content_id', $content->id)->value('id');
+
+    $wrong = $this->get('/preview/'.substr($link->token, 0, -1).(str_ends_with($link->token, 'a') ? 'b' : 'a'))->getContent();
+
+    app(RevokePreviewLink::class)->execute(new RevokePreviewLinkInput($linkId, (string) $this->author->id));
+    $revoked = $this->get("/preview/{$link->token}")->getContent();
+
+    expect($revoked)->toBe($wrong)->and($wrong)->not->toContain('Harbour festival');
+    expect((int) DB::table('preview_links')->where('id', $linkId)->value('view_count'))->toBe(0);
+});
 
 it('stores only a hash of the token', function (): void {
     $content = lifecycleDraft($this->author, 'Harbour festival');
@@ -212,6 +234,8 @@ it('renders a preview through the theme\'s single template, marked and not index
         ->assertSee('data-template="single"', false)
         ->assertSee('Draft title')
         ->assertSee('Preview of an unpublished version')
+        ->assertSee('--teme-bar-ink', false)
+        ->assertSee('<svg aria-hidden="true"', false)
         ->assertHeader('X-Robots-Tag', 'noindex, nofollow')
         ->assertHeader('Cache-Control', 'no-store, private');
 });

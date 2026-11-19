@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { __ } from '@/lib/i18n';
+import { passwordMinimum } from '@/lib/password';
 
 type Props = {
     token: string;
@@ -14,10 +15,12 @@ type Props = {
 };
 
 export default function ResetPassword({ token, email, passwordRules }: Props) {
+    const minimum = passwordMinimum(passwordRules);
+
     return (
         <AuthPage
-            title={__('Reset password')}
-            lead={__('Choose a new password.')}
+            title={__('Choose a new password')}
+            lead={__('Pick one you have not used here before.')}
         >
             <Form
                 {...update.form()}
@@ -29,7 +32,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                     <>
                         <Field
                             htmlFor="email"
-                            label={__('Email')}
+                            label={__('Email address')}
                             error={errors.email}
                         >
                             <Input
@@ -44,7 +47,14 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 
                         <Field
                             htmlFor="password"
-                            label={__('Password')}
+                            label={__('New password')}
+                            help={
+                                minimum === null
+                                    ? undefined
+                                    : __('At least :count characters.', {
+                                          count: minimum,
+                                      })
+                            }
                             error={errors.password}
                         >
                             <PasswordInput
@@ -58,7 +68,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 
                         <Field
                             htmlFor="password_confirmation"
-                            label={__('Confirm password')}
+                            label={__('Type it again')}
                             error={errors.password_confirmation}
                         >
                             <PasswordInput
@@ -76,7 +86,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             loading={processing}
                             data-test="reset-password-button"
                         >
-                            {__('Reset password')}
+                            {__('Choose this password')}
                         </Button>
                     </>
                 )}

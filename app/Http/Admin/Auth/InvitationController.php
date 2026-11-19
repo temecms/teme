@@ -15,6 +15,7 @@ namespace App\Http\Admin\Auth;
 
 use App\Domain\Users\Operations\AcceptInvitation;
 use App\Domain\Users\Operations\Input\AcceptInvitationInput;
+use App\Domain\Users\Queries\InvitationSummary;
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
@@ -26,12 +27,16 @@ use Inertia\Response;
 
 final class InvitationController extends Controller
 {
-    public function show(Request $request, string $token): Response
+    public function show(Request $request, string $token, InvitationSummary $summary): Response
     {
+        $email = $request->string('email')->toString();
+
         return Inertia::render('auth/accept-invitation', [
             'token' => $token,
-            'email' => $request->string('email')->toString(),
+            'email' => $email,
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            // Who invited them, as what, to which site: only for a link that still works.
+            'invitation' => $summary->for($email, $token),
         ]);
     }
 
@@ -43,6 +48,7 @@ final class InvitationController extends Controller
                 token: $request->string('token')->toString(),
                 password: $request->string('password')->toString(),
                 passwordConfirmation: $request->string('password_confirmation')->toString(),
+                name: $request->filled('name') ? $request->string('name')->toString() : null,
             ));
         } catch (AuthorizationException) {
             throw ValidationException::withMessages([

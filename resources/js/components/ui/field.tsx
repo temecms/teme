@@ -14,6 +14,8 @@ type FieldProps = {
   required?: boolean
   /** The error line's `data-test`, for a test that waits for it. */
   errorTestId?: string
+  /** At the label's end, on its line: a small link such as "Forgotten your password?". */
+  labelEnd?: React.ReactNode
   className?: string
   /** The control: it receives `aria-describedby` and `aria-invalid`. */
   children: React.ReactElement<{
@@ -92,15 +94,27 @@ function Field({
   error,
   required,
   errorTestId,
+  labelEnd,
   className,
   children,
 }: FieldProps) {
+  const labelled = (
+    <Label htmlFor={id} className="gap-1">
+      {label}
+      <RequiredMark required={required} />
+    </Label>
+  )
+
   return (
     <div data-slot="field" className={cn("grid gap-1", className)}>
-      <Label htmlFor={id} className="gap-1">
-        {label}
-        <RequiredMark required={required} />
-      </Label>
+      {labelEnd ? (
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+          {labelled}
+          <span className="text-small">{labelEnd}</span>
+        </div>
+      ) : (
+        labelled
+      )}
       {tie(children, id, help, error)}
       <FieldHelp id={id} help={help} />
       <FieldError id={id} error={error} testId={errorTestId} />

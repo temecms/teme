@@ -1,5 +1,4 @@
 import { Info } from 'lucide-react';
-import { descriptionSource } from '@/components/editor/rail/checks';
 import type { SearchPreview } from '@/components/editor/use-search-preview';
 import { __ } from '@/lib/i18n';
 import { largest, variant } from '@/lib/media-urls';
@@ -30,22 +29,28 @@ export type ResultSize = 'desktop' | 'mobile';
 
 /**
  * How the item will look in a search result (I-290), at true size: 600
- * pixels of text on a desktop, 400 on a phone, made by the page's own
- * rules; text is cut by width, as results cut it.
+ * pixels wide on a desktop, 400 on a phone, as the drawing gives them. The
+ * site's name and its round mark, the path from the item's own address, the
+ * title cut by width as an engine cuts it, and the date before the
+ * description.
  */
 export function SearchResult({
     search,
     address,
+    siteName,
+    date,
     canonicalNote,
     plural,
-    descriptionFrom,
     size = 'desktop',
 }: {
     search: SearchPreview;
     address: string;
+    /** The site's name, as the title template fills it. */
+    siteName: string;
+    /** The date a result shows, in the site's format; null when it shows none. */
+    date: string | null;
     canonicalNote: string | null;
     plural: string;
-    descriptionFrom: SearchPreview['description']['from'];
     size?: ResultSize;
 }) {
     const note =
@@ -61,51 +66,66 @@ export function SearchResult({
                       { plural },
                   )
                 : canonicalNote;
+    const mobile = size === 'mobile';
 
     return (
-        <div className="grid grid-cols-1 content-start gap-2">
-            <h3 className="text-ink-2 text-caption font-medium">
-                {__('Search result')}
-            </h3>
+        <div className="bg-surface-2 grid min-w-0 grid-cols-1 content-start gap-3 rounded-lg p-4">
             {note !== null && (
                 <p
                     role="note"
                     data-test="serp-note"
-                    className="text-ink-2 text-caption flex gap-2"
+                    className="text-ink-2 text-small flex items-center gap-2"
                 >
-                    <Info aria-hidden className="mt-px size-3.5 shrink-0" />
+                    <Info aria-hidden className="size-3.5 shrink-0" />
                     <span>{note}</span>
                 </p>
             )}
             <div
                 data-test="serp"
                 data-size={size}
-                className={`ring-line grid max-w-full gap-0.5 rounded-md p-4 font-[Arial,Helvetica,sans-serif] ring-1 ${size === 'mobile' ? 'w-108' : 'w-158'}`}
+                className={`bg-surface shadow-raised grid max-w-full gap-1 rounded-lg ${mobile ? 'w-100 p-4' : 'w-150 px-5 py-4'} ${search.listing === 'listed' ? '' : 'opacity-45'}`}
             >
-                <p className="text-ink-2 text-caption truncate">
-                    {crumbs(address)}
-                </p>
+                <div className="mb-1 flex min-w-0 items-center gap-3">
+                    <span
+                        aria-hidden
+                        data-test="serp-mark"
+                        className="bg-surface-3 text-small grid size-7 shrink-0 place-items-center rounded-full font-serif leading-none font-semibold"
+                    >
+                        {Array.from(siteName)[0] ?? ''}
+                    </span>
+                    <span className="grid min-w-0">
+                        <span data-test="serp-site" className="text-small">
+                            {siteName}
+                        </span>
+                        <span
+                            data-test="serp-path"
+                            className="text-ink-2 text-caption wrap-anywhere"
+                        >
+                            {crumbs(address)}
+                        </span>
+                    </span>
+                </div>
                 <p
                     data-test="serp-title"
-                    className="text-accent-ink text-[20px] leading-snug"
+                    className="text-lead text-info-ink wrap-anywhere"
                 >
-                    {fitWidth(
-                        search.title.text,
-                        20,
-                        size === 'mobile' ? 400 : 580,
-                    )}
+                    {/* An engine cuts the title by width: 580 pixels of 20px Arial on a desktop, about three such lines on a phone. */}
+                    {fitWidth(search.title.text, 20, mobile ? 1104 : 580)}
                 </p>
-                <p className="text-[14px] leading-[1.58]">
+                <p
+                    data-test="serp-description"
+                    className="text-ink-2 text-body wrap-anywhere"
+                >
+                    {date !== null && (
+                        <span data-test="serp-date" className="text-ink-3">
+                            {`${date} — `}
+                        </span>
+                    )}
                     {search.description.text === null
-                        ? __(
-                              'No description. Search engines will pick text from the page.',
-                          )
+                        ? __('Search engines will choose text from the page.')
                         : fitWidth(search.description.text, 14, 920)}
                 </p>
             </div>
-            <p data-test="description-from" className="text-ink-2 text-caption">
-                {descriptionSource(descriptionFrom)}
-            </p>
         </div>
     );
 }
@@ -195,25 +215,25 @@ export function SocialCard({
             </h3>
             <div
                 data-test="social-card"
-                className="border-line grid grid-cols-[132px_minmax(0,1fr)] overflow-hidden rounded-md border"
+                className="border-line flex overflow-hidden rounded-md border"
             >
                 {source !== null ? (
                     <img
                         src={source}
                         alt=""
-                        className="h-full min-h-[72px] w-full object-cover"
+                        className="min-h-18 w-33 shrink-0 object-cover"
                     />
                 ) : waiting ? (
                     <div
                         aria-busy="true"
-                        className="bg-surface-2 min-h-[72px] w-full motion-safe:animate-pulse"
+                        className="bg-surface-2 min-h-18 w-33 shrink-0 motion-safe:animate-pulse"
                     />
                 ) : (
-                    <div className="border-line text-ink-2 text-caption m-2 flex min-h-[56px] items-center justify-center rounded-sm border border-dashed">
+                    <div className="border-line text-ink-2 text-caption m-2 flex min-h-14 w-29 shrink-0 items-center justify-center rounded-sm border border-dashed">
                         {__('No image')}
                     </div>
                 )}
-                <div className="grid content-start gap-0.5 px-3 py-2">
+                <div className="grid min-w-0 flex-1 content-start gap-0.5 px-3 py-2">
                     <p className="text-ink-2 text-caption uppercase">{host}</p>
                     <p className="text-caption line-clamp-2 font-semibold">
                         {card.title}

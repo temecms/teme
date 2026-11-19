@@ -15,6 +15,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import EditorPanelController from '@/actions/App/Http/Admin/Contents/EditorPanelController';
 import { send } from '@/components/editor/editor-http';
+import { ErrorState } from '@/components/ui/error-state';
 import { Notice } from '@/components/ui/notice';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -133,8 +134,40 @@ export function PluginPanel({
             )}
 
             {answer?.failed != null && (
-                <Notice tone="warn" data-test="plugin-panel-failed">
-                    {answer.failed}
+                <ErrorState
+                    data-test="plugin-panel-failed"
+                    message={answer.failed}
+                    onRetry={() => void read()}
+                    className="px-0 pt-0 pb-0"
+                />
+            )}
+
+            {answer?.failed === null && answer.ai === 'off' && (
+                <Notice
+                    tone="info"
+                    data-test="plugin-panel-ai-off"
+                    title={__('AI switched off for :plugin', {
+                        plugin: panel.plugin,
+                    })}
+                >
+                    {__(
+                        'An administrator switched it off in Settings › AI. The rest of :plugin still works.',
+                        { plugin: panel.plugin },
+                    )}
+                </Notice>
+            )}
+
+            {answer?.failed === null && answer.ai === 'budget' && (
+                <Notice
+                    tone="warn"
+                    data-test="plugin-panel-ai-budget"
+                    title={__(':plugin’s budget used up', {
+                        plugin: panel.plugin,
+                    })}
+                >
+                    {__(
+                        'Its AI budget for this month is spent. It can ask AI again when the month ends.',
+                    )}
                 </Notice>
             )}
 
@@ -151,31 +184,33 @@ export function PluginPanel({
                     </p>
                 )}
 
-            {panel.actions.length > 0 && (
-                <section
-                    className="grid gap-3"
-                    aria-labelledby={`${panel.tool}-ask`}
-                >
-                    <h3
-                        id={`${panel.tool}-ask`}
-                        className="text-ink font-semibold"
+            {panel.actions.length > 0 &&
+                answer?.failed == null &&
+                (answer?.ai ?? null) === null && (
+                    <section
+                        className="grid gap-3"
+                        aria-labelledby={`${panel.tool}-ask`}
                     >
-                        {__('Ask')}
-                    </h3>
-                    {panel.actions.map((action) => (
-                        <PanelActionForm
-                            key={action.id}
-                            action={action}
-                            panel={panel}
-                            contentId={contentId}
-                            busy={busy}
-                            checkpoint={apply.checkpoint}
-                            onStale={apply.markStale}
-                            onAnswer={(next) => setAnswer(next)}
-                        />
-                    ))}
-                </section>
-            )}
+                        <h3
+                            id={`${panel.tool}-ask`}
+                            className="text-ink font-semibold"
+                        >
+                            {__('Ask')}
+                        </h3>
+                        {panel.actions.map((action) => (
+                            <PanelActionForm
+                                key={action.id}
+                                action={action}
+                                panel={panel}
+                                contentId={contentId}
+                                busy={busy}
+                                checkpoint={apply.checkpoint}
+                                onStale={apply.markStale}
+                                onAnswer={(next) => setAnswer(next)}
+                            />
+                        ))}
+                    </section>
+                )}
 
             {answer !== null && answer.jobs.length > 0 && (
                 <section
@@ -234,7 +269,7 @@ export function PluginPanel({
 /** One job's line: its label, its state or progress, and its message. */
 function JobLine({ job }: { job: PanelJob }) {
     const state: Record<PanelJob['state'], string> = {
-        waiting: __('Waiting to start'),
+        waiting: __('Waiting for a free worker'),
         running: __('Running'),
         finished: __('Done'),
         failed: __('Failed'),

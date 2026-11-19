@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Domain\Ai\AiSettings;
+use App\Domain\Ai\Plugins\PluginAiSection;
 use App\Domain\Jobs\JobState;
+use App\Domain\Settings\SettingsRegistry;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Http\Events\RequestHandled;
@@ -114,7 +117,7 @@ it('lists the panel in Tools, pins it to a wide bar, and draws it, the plugin’
     expect($page->script("() => document.querySelector('{$this->panel}').innerText.includes('Link Finder')"))->toBeFalse()
         ->and(cmAxeViolations($page))->toBe([])
         ->and(($this->sideways)($page))->toBe(0);
-})->with(['light', 'dark'])->with([1280, 375]);
+})->with(['light', 'dark'])->with([1440, 375]);
 
 it('runs an action and shows its job’s progress as it moves', function (): void {
     // Which plugin tools may be pinned depends on who is signed in.
@@ -126,7 +129,7 @@ it('runs an action and shows its job’s progress as it moves', function (): voi
     ($this->shown)($page, '2 links found', within: $this->panel);
 
     $page->click('[data-test="panel-action-find"] button:text-is("Find links")');
-    ($this->shown)($page, 'Waiting to start', within: $this->panel);
+    ($this->shown)($page, 'Waiting for a free worker', within: $this->panel);
 
     // The job starts and gets two of five done; the panel asks again on its own.
     DB::table('tracked_jobs')->update(['state' => JobState::Running->value, 'done' => 2, 'total' => 5]);
@@ -161,6 +164,7 @@ it('uses a title, a field, a link (and undoes it) and a whole article, and disca
     cmWaitUntil($page, "document.querySelector('[data-test=\"panel-suggestion-extra\"]') === null");
 
     // A whole article opens as a proposal first.
+    $page->assertSeeIn('[data-test="panel-suggestion-body"] [data-test="panel-suggestion-use"]', 'Review the changes');
     $page->click('[data-test="panel-suggestion-body"] [data-test="panel-suggestion-use"]');
     $page->hover('[data-test="ai-use"]')
         ->assertSeeIn('[data-test="panel-suggestion-body"] ins', 'roses')
@@ -172,4 +176,54 @@ it('uses a title, a field, a link (and undoes it) and a whole article, and disca
     expect(Linkfinder::$settles)->toEqualCanonicalizing([
         ['link-1', true], ['title', true], ['excerpt', true], ['extra', false], ['body', true],
     ]);
+});
+
+it('says AI is switched off for the plugin, in place of its actions', function (): void {
+    app(SettingsRegistry::class)->replace(app(AiSettings::class)->group());
+    cmSettings([PluginAiSection::onKey('linkfinder') => false], AiSettings::KEY);
+    $this->actingAs($this->editor);
+    lscrPrefer($this->editor, ['editor.pinned_tools' => ['assistant', 'share', 'plugin.linkfinder.links']]);
+
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    $page->click('header button[aria-label="Link suggestions"]');
+    ($this->shown)($page, 'AI switched off for Link Finder', within: $this->panel);
+
+    $page->assertSeeIn($this->panel, 'An administrator switched it off in Settings › AI. The rest of Link Finder still works.')
+        ->assertMissing('[data-test="panel-action-find"]');
+});
+
+it('says the plugin’s AI budget is used up, in place of its actions', function (): void {
+    app(SettingsRegistry::class)->replace(app(AiSettings::class)->group());
+    cmSettings([PluginAiSection::budgetKey('linkfinder') => 5], AiSettings::KEY);
+    DB::table('ai_plugin_monthly_spend')->insert(['plugin' => 'linkfinder', 'month' => now()->utc()->startOfMonth()->format('Y-m-d'), 'cost_microunits' => 5_000_000, 'requests' => 3, 'unpriced_requests' => 0]);
+    $this->actingAs($this->editor);
+    lscrPrefer($this->editor, ['editor.pinned_tools' => ['assistant', 'share', 'plugin.linkfinder.links']]);
+
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    $page->click('header button[aria-label="Link suggestions"]');
+    ($this->shown)($page, 'Link Finder’s budget used up', within: $this->panel);
+
+    $page->assertSeeIn($this->panel, 'Its AI budget for this month is spent. It can ask AI again when the month ends.')
+        ->assertMissing('[data-test="panel-action-find"]');
+});
+
+it('says the panel couldn’t be shown, and shows it again on Try again', function (): void {
+    $broken = true;
+    $view = Linkfinder::$view;
+    Linkfinder::$view = function (mixed $context) use (&$broken, $view): PanelView {
+        $broken ? throw new RuntimeException('broken') : null;
+
+        return $view($context);
+    };
+    $this->actingAs($this->editor);
+    lscrPrefer($this->editor, ['editor.pinned_tools' => ['assistant', 'share', 'plugin.linkfinder.links']]);
+
+    $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor), $this->edit));
+    $page->click('header button[aria-label="Link suggestions"]');
+    ($this->shown)($page, 'This panel couldn’t be shown this time.', within: $this->panel);
+    $page->assertMissing('[data-test="panel-action-find"]');
+
+    $broken = false;
+    $page->click('[data-test="plugin-panel-failed"] button');
+    ($this->shown)($page, '2 links found', within: $this->panel);
 });

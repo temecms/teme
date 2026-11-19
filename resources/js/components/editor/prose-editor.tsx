@@ -230,7 +230,8 @@ export function ProseEditor({
                 onInsert={insertAtCursor}
             />
             <PastedImagesBar editor={editor} />
-            <div className="relative">
+            {/* The text lines up with the title; its handles sit in the gutter before it. */}
+            <div className="relative sm:-mx-8">
                 <EditorContent editor={editor} />
                 <BlockHandles editor={editor} cards={cards} onAdd={addAfter} />
                 <BetweenBlocks editor={editor} onAdd={addHere} />

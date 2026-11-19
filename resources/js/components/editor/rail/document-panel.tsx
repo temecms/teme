@@ -1,7 +1,9 @@
 import type { Editor } from '@tiptap/core';
 import { useEditorState } from '@tiptap/react';
 import { Button } from '@/components/ui/button';
-import { __ } from '@/lib/i18n';
+import { __, __n } from '@/lib/i18n';
+import { cn } from '@/lib/utils';
+import { RailSection } from './rail-section';
 
 /** Words a person reads in a minute, for "time to read". */
 const WORDS_PER_MINUTE = 230;
@@ -18,9 +20,24 @@ export type Overview = {
     links: number;
 };
 
-/** Counts and the outline of what is in the editor now; nothing is stored. */
+/**
+ * Counts and the outline of what is in the editor now; nothing is stored.
+ * A card whose text is written on it, as a callout's, counts with the text.
+ */
 export function overviewOf(editor: Editor): Overview {
-    const text = editor.getText({ blockSeparator: '\n' });
+    const cards: string[] = [];
+
+    editor.state.doc.descendants((node) => {
+        if (node.isAtom && typeof node.attrs.text === 'string') {
+            cards.push(node.attrs.text);
+        }
+
+        return true;
+    });
+
+    const text = [editor.getText({ blockSeparator: '\n' }), ...cards].join(
+        '\n',
+    );
     const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
     const headings: Heading[] = [];
     let paragraphs = 0;
@@ -69,32 +86,122 @@ export function overviewOf(editor: Editor): Overview {
     };
 }
 
-/** Words, characters and reading time, under the body (docs/architecture/design-system.md, 4.39). */
+/**
+ * Words, characters and reading time, under the body
+ * (docs/architecture/design-system.md, 4.39), each number first and in
+ * bold: "301 words  1,695 characters  1 min read".
+ */
 export function WordCount({ editor }: { editor: Editor }) {
     const overview = useEditorState({
         editor,
         selector: ({ editor: current }) => overviewOf(current),
     });
-    const counts: [string, string][] = [
-        [__('Words'), overview.words.toLocaleString()],
-        [__('Characters'), overview.characters.toLocaleString()],
-        [__('Reading time'), __(':count min', { count: overview.minutes })],
+    const counts: [number, string][] = [
+        [overview.words, __n('word|words', overview.words)],
+        [overview.characters, __n('character|characters', overview.characters)],
+        [overview.minutes, __('min read')],
     ];
 
     return (
-        <dl
+        <p
             data-test="body-counts"
-            className="text-ink-3 text-small mt-8 flex flex-wrap gap-x-6 gap-y-1 px-8 py-4"
+            className="text-ink-3 text-small mt-8 flex flex-wrap gap-x-4 gap-y-1 pt-4"
         >
-            {counts.map(([label, value]) => (
-                <div key={label} className="flex gap-2">
-                    <dt>{label}</dt>
-                    <dd className="text-ink-2 font-medium tabular-nums">
-                        {value}
-                    </dd>
-                </div>
+            {counts.map(([value, label]) => (
+                <span key={label}>
+                    <strong className="text-ink-2 font-medium tabular-nums">
+                        {value.toLocaleString()}
+                    </strong>{' '}
+                    {label}
+                </span>
             ))}
-        </dl>
+        </p>
+    );
+}
+
+/** The heading the cursor is under: the last one at or before it. */
+function currentHeading(editor: Editor, headings: Heading[]): number | null {
+    const at = editor.state.selection.from;
+    let here: number | null = null;
+
+    for (const heading of headings) {
+        if (heading.pos <= at) {
+            here = heading.pos;
+        }
+    }
+
+    return here;
+}
+
+/**
+ * The rail's Outline section (docs/architecture/design-system.md, 4.39):
+ * the body's headings, the one the cursor is under marked; choosing one puts
+ * the cursor there. Its summary counts them: "6 headings".
+ */
+export function OutlineSection({ editor }: { editor: Editor }) {
+    const state = useEditorState({
+        editor,
+        selector: ({ editor: current }) => {
+            const { headings } = overviewOf(current);
+
+            return { headings, here: currentHeading(current, headings) };
+        },
+    });
+
+    return (
+        <RailSection
+            title={__('Outline')}
+            testId="rail-outline"
+            summary={__n(
+                ':count heading|:count headings',
+                state.headings.length,
+            )}
+        >
+            {state.headings.length === 0 ? (
+                <p className="text-ink-3 text-small">
+                    {__(
+                        'Headings you add appear here, so you can jump between sections.',
+                    )}
+                </p>
+            ) : (
+                <ul className="grid gap-0.5">
+                    {state.headings.map((heading) => (
+                        <li key={heading.pos}>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="xs"
+                                aria-current={
+                                    heading.pos === state.here
+                                        ? 'location'
+                                        : undefined
+                                }
+                                onClick={() =>
+                                    editor
+                                        .chain()
+                                        .focus()
+                                        .setTextSelection(heading.pos + 1)
+                                        .scrollIntoView()
+                                        .run()
+                                }
+                                className={cn(
+                                    'text-small text-ink-2 aria-[current=location]:text-accent-ink h-auto min-h-7 w-full justify-start gap-2 rounded-sm py-1 text-start font-normal whitespace-normal aria-[current=location]:font-medium',
+                                    heading.level > 2 && 'ps-6',
+                                )}
+                            >
+                                {heading.pos === state.here && (
+                                    <span
+                                        aria-hidden
+                                        className="bg-accent -ms-1 w-0.5 self-stretch rounded-full"
+                                    />
+                                )}
+                                {heading.text || __('Untitled heading')}
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </RailSection>
     );
 }
 

@@ -32,7 +32,7 @@ class SecurityTest extends TestCase
         $response->assertRedirect(route('password.confirm'));
     }
 
-    public function test_security_page_renders_the_password_rules_and_no_two_factor(): void
+    public function test_security_page_renders_the_password_rules_and_whether_two_factor_is_on(): void
     {
         $user = User::factory()->create();
 
@@ -43,8 +43,8 @@ class SecurityTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('account/security')
                 ->has('passwordRules')
-                ->missing('canManageTwoFactor')
-                ->missing('twoFactorEnabled')
+                ->where('canManageTwoFactor', Features::canManageTwoFactorAuthentication())
+                ->where('twoFactorEnabled', false)
                 ->missing('requiresConfirmation'),
             );
     }

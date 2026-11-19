@@ -90,7 +90,7 @@ function mlsEditor(mixed $test, string $id, int $width = 1440): mixed
     // On a phone the rail is a sheet, opened from the top bar (P3).
     if ($width < 1024) {
         cmWaitUntil($page, "document.querySelector('.teme-prose') !== null");
-        $page->click('[data-slot="editor-shell"] > header [aria-label="Show settings"]');
+        $page->click('[data-test="rail-toggle"]');
         shellSettled($page, '[data-slot="sheet-content"]');
     }
 

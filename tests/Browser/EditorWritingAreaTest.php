@@ -63,6 +63,9 @@ beforeEach(function (): void {
 
             return {
                 column: writing.clientWidth,
+                titleLeft: document.querySelector('#editor-title').getBoundingClientRect().left,
+                paragraphLeft: paragraph.left,
+                toolbarLeft: document.querySelector('[role="toolbar"]').getBoundingClientRect().left,
                 title: width('#editor-title'),
                 body: width('[data-slot="editor-body"]'),
                 section: width('[data-test="search-section"]'),
@@ -77,16 +80,16 @@ beforeEach(function (): void {
         }
         JS);
 
-    // The fields fill the column (less its 24-pixel sides), paragraphs keep the measure in the middle, the table and the image the full width.
+    // One column, at most the 704-pixel measure (less the 40-pixel sides on a narrower one): the title, the toolbar and the text share its left edge; the table and the image take its width.
     $this->fills = function (array $at): void {
-        expect($at['title'])->toEqualWithDelta($at['column'] - 48, 1)
-            ->and($at['body'])->toEqualWithDelta($at['column'] - 48, 1)
-            ->and($at['section'])->toEqualWithDelta($at['column'] - 48, 1)
-            ->and($at['paragraph'])->toEqualWithDelta(692, 1)
-            ->and(abs($at['leftGap'] - $at['rightGap']))->toBeLessThanOrEqual(1.0)
+        $sheet = min(704, $at['column'] - 80);
+
+        expect($at['title'])->toEqualWithDelta($sheet, 1)
+            ->and($at['paragraph'])->toEqualWithDelta($sheet, 1)
+            ->and($at['paragraphLeft'])->toEqualWithDelta($at['titleLeft'], 1)
+            ->and($at['toolbarLeft'])->toEqualWithDelta($at['titleLeft'], 1)
             ->and($at['table'])->toEqualWithDelta($at['inner'], 1)
             ->and($at['image'])->toEqualWithDelta($at['inner'], 1)
-            ->and($at['table'])->toBeGreaterThan(692)
             ->and($at['scrollsSideways'])->toBeFalse();
     };
 
@@ -94,7 +97,7 @@ beforeEach(function (): void {
     $this->actingAs($this->editor)->get($this->edit)->assertOk();
 });
 
-it('fills the room between the menu and the side panel, paragraphs keeping the reading measure while the table and the image take the full width (I-3121)', function (int $width, int $height): void {
+it('keeps one writing column at the reading measure, the title, the toolbar and the text on one left edge, whether the menu or the side panel is open', function (int $width, int $height): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize($width, $height), $this->edit));
     ($this->drawn)($page);
 
@@ -111,7 +114,7 @@ it('fills the room between the menu and the side panel, paragraphs keeping the r
     // Folded again and the side panel closed: the writing area takes the panel's room too.
     $page->click('[data-test="collapse-menu"]');
     ($this->menuIs)($page, 'collapsed');
-    $page->click('[data-slot="editor-shell"] > header [aria-label="Hide settings"]');
+    $page->click('[data-test="rail-toggle"]');
     cmWaitUntil($page, "document.querySelector('aside[aria-label=\"Post settings\"]') === null");
     $closed = ($this->measure)($page);
     ($this->fills)($closed);
@@ -124,14 +127,15 @@ it('fills the room between the menu and the side panel, paragraphs keeping the r
     '1920 × 1080' => [1920, 1080],
 ]);
 
-it('lets paragraphs give way on a narrow screen, as wide as the writing area allows and never wider, with nothing scrolling sideways (I-3121)', function (): void {
+it('lets paragraphs give way on a narrow screen, as wide as the writing column allows and never wider, on the title\'s left edge, with nothing scrolling sideways', function (): void {
     $page = cmEditorSettled(cmNavigate(cmSignIn($this->editor)->resize(1024, 768), $this->edit));
     ($this->drawn)($page);
     $at = ($this->measure)($page);
 
-    expect($at['inner'])->toBeLessThan(692)
+    expect($at['inner'])->toBeLessThan(704)
         ->and($at['paragraph'])->toEqualWithDelta($at['inner'], 1)
         ->and($at['table'])->toEqualWithDelta($at['inner'], 1)
-        ->and($at['title'])->toEqualWithDelta($at['column'] - 48, 1)
+        ->and($at['title'])->toEqualWithDelta($at['column'] - 80, 1)
+        ->and($at['paragraphLeft'])->toEqualWithDelta($at['titleLeft'], 1)
         ->and($at['scrollsSideways'])->toBeFalse();
 });

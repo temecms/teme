@@ -77,7 +77,7 @@ it('looks no word up where a module loads', function (): void {
 
 it('never lets the baseline grow', function (): void {
     // Lowered as words leave, never raised (.ai/rules/builders.md: a wider allow-list is a STOP).
-    expect(awBaseline())->toHaveCount(547);
+    expect(awBaseline())->toHaveCount(534);
 });
 
 it('finds words planted in a new screen, and accepts those through the catalogue', function (): void {

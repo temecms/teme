@@ -12,6 +12,7 @@ const COLUMNS = {
  * section 5): the page header, then the content beside a panel that stays
  * in view as the page scrolls; under 1024px the panel goes under. With no
  * panel the content takes the whole width; `lead` spans both, above them.
+ * `back`, a way back to where the page was opened from, sits above the title.
  */
 export function DetailPage({
     title,
@@ -22,6 +23,7 @@ export function DetailPage({
     titleAs,
     badge,
     lead,
+    back,
     children,
 }: {
     title: string;
@@ -35,10 +37,13 @@ export function DetailPage({
     badge?: ReactNode;
     /** Above the content and the panel, across both: a filter row. */
     lead?: ReactNode;
+    /** A link back, above the title: "← Back to the editor". */
+    back?: ReactNode;
     children: ReactNode;
 }) {
     return (
         <Page>
+            {back !== undefined && <div className="mt-2">{back}</div>}
             <PageHeader
                 title={title}
                 description={description}

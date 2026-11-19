@@ -1,5 +1,5 @@
+import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
-import { cn } from '@/lib/utils';
 import type { EditorReview, EditorSchedule } from '@/types';
 
 /** What the chip is told: the item's status, and what may wait beside a live one. */
@@ -58,19 +58,19 @@ export function statusWords(state: ItemState): string {
         : 'Published';
 }
 
-/** Each status's tag: an outline for a draft, a tint for the rest. */
-const TONES: Record<string, string> = {
-    draft: 'border-line text-ink-2 border',
-    review: 'bg-warn-soft text-warn-ink',
-    scheduled: 'bg-surface-2 text-ink',
-    published: 'bg-ok-soft text-ok-ink',
-    private: 'bg-surface-2 text-ink',
+/** Each status's pill tone (4.13). */
+const TONES: Record<string, 'ok' | 'neutral' | 'info' | 'warn'> = {
+    draft: 'neutral',
+    review: 'warn',
+    scheduled: 'info',
+    published: 'ok',
+    private: 'neutral',
 };
 
 /**
- * The item's state as a small tag (I-1316): beside the way back in the
- * header, where screen readers hear "Status:" first, and in the Publish
- * panel's Status row, whose label names it there.
+ * The item's state as a status pill (I-1316): after the crumbs in the
+ * editor's bar, where screen readers hear "Status:" first, and wherever
+ * else the item's state is said.
  */
 export function StatusChip({
     named = true,
@@ -79,21 +79,20 @@ export function StatusChip({
     const words = statusWords(state);
 
     return (
-        <span
+        <StatusPill
             data-test="status-chip"
             title={words}
-            className={cn(
-                'text-caption inline-block max-w-full min-w-0 truncate rounded-sm px-2 py-px align-middle font-medium',
+            tone={
                 TONES[
                     state.status === 'published' &&
                     state.visibility === 'private'
                         ? 'private'
                         : state.status
-                ] ?? TONES.draft,
-            )}
+                ] ?? 'neutral'
+            }
         >
             {named && <span className="sr-only">{__('Status:')} </span>}
             {words}
-        </span>
+        </StatusPill>
     );
 }

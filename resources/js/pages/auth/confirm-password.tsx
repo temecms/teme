@@ -1,16 +1,44 @@
-import { Form } from '@inertiajs/react';
+import { Form, Link } from '@inertiajs/react';
 import PasswordInput from '@/components/password-input';
-import { AuthPage } from '@/components/patterns/auth-page';
+import { AuthLink, AuthPage } from '@/components/patterns/auth-page';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { __ } from '@/lib/i18n';
 import { store } from '@/routes/password/confirm';
 
-export default function ConfirmPassword() {
+/**
+ * Confirm your password before a sensitive step: the lead names the page
+ * it guards when there is one, and Cancel goes back where the person came
+ * from.
+ */
+export default function ConfirmPassword({
+    guards,
+    cancelUrl,
+}: {
+    /** The page the password is asked for, such as "Security"; null for another. */
+    guards: string | null;
+    cancelUrl: string;
+}) {
     return (
         <AuthPage
-            title={__('Confirm password')}
-            lead={__('Confirm your password to continue.')}
+            title={__('Confirm your password')}
+            lead={
+                guards === null
+                    ? __(
+                          'Teme asks for your password again before sensitive steps.',
+                      )
+                    : __(
+                          'You’re about to open :page. Teme asks for your password again before sensitive steps.',
+                          { page: guards },
+                      )
+            }
+            links={
+                <AuthLink asChild>
+                    <Link href={cancelUrl} data-test="confirm-password-cancel">
+                        {__('Cancel')}
+                    </Link>
+                </AuthLink>
+            }
         >
             <Form
                 {...store.form()}

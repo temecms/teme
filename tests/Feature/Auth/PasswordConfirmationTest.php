@@ -26,6 +26,31 @@ class PasswordConfirmationTest extends TestCase
         );
     }
 
+    public function test_confirm_password_names_the_page_it_guards_and_where_cancel_leads(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->withSession(['url.intended' => route('security.edit')])
+            ->get(route('password.confirm'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/confirm-password')
+                ->where('guards', 'Security')
+                ->where('cancelUrl', route('dashboard')),
+            );
+    }
+
+    public function test_confirm_password_names_no_page_for_one_it_does_not_know(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->withSession(['url.intended' => url('/admin/no-such-page')])
+            ->get(route('password.confirm'))
+            ->assertInertia(fn (Assert $page) => $page->where('guards', null));
+    }
+
     public function test_password_confirmation_requires_authentication(): void
     {
         $response = $this->get(route('password.confirm'));

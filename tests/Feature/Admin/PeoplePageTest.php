@@ -37,20 +37,21 @@ it('draws the views as in-page links, invites from a dialog opened in the header
         ->toContain('Sending may ask for your password first.');
 });
 
-it('lists invitations in a table of their own, sent again, given a role or revoked from their menu, and asks before revoking', function (): void {
+it('lists invitations in a table of their own, sent again or given a role on the row, revoked from their menu, and asks before revoking', function (): void {
     $source = ($this->flat)('components/people/row-actions.tsx');
     $page = uiComponent('pages/users/index.tsx');
     preg_match('/function invitationActions\(.*?\} \/\*\*/s', $source, $line);
     preg_match('/function invitationMoreActions\(.*?\} \/\*\*/s', $source, $more);
 
     expect($line[0] ?? '')
-        ->toMatch("/id: 'resend',.*label: __\\('Send again'\\).*id: 'revoke',.*label: __\\('Revoke invitation'\\)/s")
+        ->toMatch("/id: 'resend',.*label: __\\('Send again'\\).*id: 'role',.*label: __\\('Change role…'\\)/s")
         ->not->toContain('suspend')
+        ->and($more[0] ?? '')
+        ->toMatch("/id: 'revoke',.*label: __\\('Revoke invitation'\\)/s")
         ->toMatch("/<ConfirmAction\\b[^<]*?confirmLabel=\\{__\\('Revoke invitation'\\)\\}/s")
         ->toContain("title={__('Revoke the invitation to :email?', { email: user.email, })}")
         ->toContain('UserController.revokeInvitation.form(')
         ->toContain("'The link in their email stops working, and the account waiting for them is removed. You can invite them again.'")
-        ->and($more[0] ?? '')->toMatch("/id: 'role',.*label: __\\('Change role…'\\)/s")
         ->and($page)->toContain("__('Pending invitations')")
         ->toContain("header: __('Invited')")
         ->toContain("header: __('Link')")
@@ -82,8 +83,8 @@ it('locks your own row\'s Change role…, saying why, and draws no menu for it',
         ->toContain('aria-describedby="own-role-reason"')
         ->toContain('id="own-role-reason"')
         ->toContain('data-test="own-row-lock"')
-        ->toContain('<Lock aria-hidden="true" />')
-        ->toContain("__( 'You cannot change your own role. Ask another administrator.', )")
+        ->toContain('<Lock aria-hidden="true" className="size-4" />')
+        ->toContain("__( 'You can’t change your own role. Ask another administrator.', )")
         ->toContain('editProfile()')
         ->toContain("__('Manage yourself in Account')")
         ->and($source)->toMatch('/isYou \? \( <OwnRowLock \/>/')
