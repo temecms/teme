@@ -21,7 +21,6 @@ R1	js/components/editor/rail/search-previews.tsx	min-h-[72px]
 R1	js/components/fields/field-control.tsx	max-w-[360px]
 R1	js/components/fields/hours-setting.tsx	sm:grid-cols-[7rem_8rem_8rem_auto_1fr]
 R1	js/components/heading.tsx	tracking-[-0.015em]
-R1	js/components/jobs/job-progress.tsx	min-w-[180px]
 R1	js/components/list/bulk-edit-dialog.tsx	max-h-[90vh]
 R1	js/components/list/filter-button.tsx	[data-slot="popover-content"]
 R1	js/components/list/filter-button.tsx	max-h-[85vh]
@@ -92,7 +91,6 @@ R2	js/components/heading.tsx	text-base
 R2	js/components/heading.tsx	text-sm
 R2	js/components/heading.tsx	text-xl
 R2	js/components/input-error.tsx	text-sm
-R2	js/components/jobs/job-progress.tsx	text-xs
 R2	js/components/list/bulk-edit-dialog.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-[13px]
 R2	js/components/list/bulk-edit-dialog.tsx	text-sm
@@ -129,8 +127,6 @@ R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
 R2	js/pages/settings/site-code.tsx	text-xs
-R2	js/pages/tools/jobs.tsx	text-[13px]
-R2	js/pages/tools/jobs.tsx	text-xs
 R3	js/components/comments/comment-details.tsx	mt-0.5
 R3	js/components/comments/comment-details.tsx	space-y-1.5
 R3	js/components/comments/commenter.tsx	gap-1.5
