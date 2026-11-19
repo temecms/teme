@@ -163,6 +163,7 @@ export default function MediaImage({ item, place }: ImagePage) {
                                     label={__('Across (%)')}
                                 >
                                     <Input
+                                        id="image-across"
                                         type="number"
                                         min={0}
                                         max={100}
@@ -183,6 +184,7 @@ export default function MediaImage({ item, place }: ImagePage) {
                                     label={__('Down (%)')}
                                 >
                                     <Input
+                                        id="image-down"
                                         type="number"
                                         min={0}
                                         max={100}
@@ -234,6 +236,7 @@ export default function MediaImage({ item, place }: ImagePage) {
                         </section>
                         <Field htmlFor="image-alt" label={__('Alt text')}>
                             <Textarea
+                                id="image-alt"
                                 rows={2}
                                 value={alt}
                                 disabled={!item.can.edit}

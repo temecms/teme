@@ -78,7 +78,7 @@ it('labels every select and every input', function (string $file): void {
     'components/people/delete-dialog.tsx',
     'pages/content/index.tsx',
     'pages/terms/index.tsx',
-    'pages/media/index.tsx',
+    'pages/media/image.tsx',
     'pages/account/profile.tsx',
     'pages/account/security.tsx',
     'components/fields/pairs-setting.tsx',
