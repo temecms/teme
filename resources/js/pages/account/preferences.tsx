@@ -5,8 +5,9 @@ import PreferencesController from '@/actions/App/Http/Admin/Account/PreferencesC
 import { SettingsField } from '@/components/fields/settings-field';
 import { FormPanel } from '@/components/patterns/form-page';
 import { SettingsPage } from '@/components/patterns/settings-page';
-import { Field } from '@/components/ui/field';
-import { SelectField } from '@/components/ui/select-field';
+import { FieldInline } from '@/components/ui/field';
+import { Segmented, SegmentedItem } from '@/components/ui/segmented';
+import { Switch } from '@/components/ui/switch';
 import { useAppearance, type Appearance } from '@/hooks/use-appearance';
 import { __ } from '@/lib/i18n';
 import { edit as editPreferences } from '@/routes/preferences';
@@ -19,8 +20,11 @@ type Props = {
     values: Record<string, unknown>;
 };
 
-/** Drawn on its own: the light or dark switch saves itself. */
+/** Drawn on its own: the light or dark choice saves itself. */
 const MODE = 'appearance.mode';
+
+/** Drawn on its own, as a switch: checking spelling in the editor. */
+const SPELLING = 'editor.spellcheck';
 
 /** The panels, by the key's first part; any other key goes under More, in the registry's order. */
 const PANELS: { prefix: string; title: () => string }[] = [
@@ -51,64 +55,84 @@ export default function Preferences({ fields, values }: Props) {
     const { appearance, updateAppearance } = useAppearance();
     const form = useRef<FormComponentRef | null>(null);
     const typedAtFocus = useRef<string | null>(null);
-    const others = fields.filter((field) => field.key !== MODE);
+    const spelling = fields.find((field) => field.key === SPELLING);
+    const others = fields.filter(
+        (field) => field.key !== MODE && field.key !== SPELLING,
+    );
     const panels = [
         ...PANELS.map((panel) => ({
             title: panel.title(),
+            prefix: panel.prefix,
             fields: others.filter((field) =>
                 field.key.startsWith(panel.prefix),
             ),
         })),
         {
             title: __('More'),
+            prefix: '',
             fields: others.filter(
                 (field) =>
                     !PANELS.some((panel) => field.key.startsWith(panel.prefix)),
             ),
         },
-    ].filter((panel) => panel.fields.length > 0);
+    ].filter(
+        (panel) =>
+            panel.fields.length > 0 ||
+            (panel.prefix === 'editor.' && spelling !== undefined),
+    );
+    const title = __('Preferences');
+    const description = __(
+        'How the admin looks and behaves for you. Each choice saves as you make it.',
+    );
 
     setLayoutProps({
-        breadcrumbs: [
-            {
-                title: __('Preferences'),
-                href: editPreferences(),
-            },
-        ],
+        breadcrumbs: [{ title, href: editPreferences() }],
+        title,
+        description,
     });
 
     return (
         <>
             <Head title={__('Preferences')} />
 
-            <SettingsPage
-                title={__('Preferences')}
-                description={__(
-                    'How the admin looks and behaves for you. Each choice is saved as you make it.',
-                )}
-            >
+            <SettingsPage title={title} description={description}>
                 <FormPanel title={__('Appearance')}>
-                    <Field
-                        htmlFor="appearance-mode"
-                        label={__('Appearance')}
-                        help={__('Saved as you choose.')}
-                    >
-                        <SelectField
-                            id="appearance-mode"
-                            options={[
-                                {
-                                    value: 'system',
-                                    label: __('Match the system'),
-                                },
-                                { value: 'light', label: __('Light') },
-                                { value: 'dark', label: __('Dark') },
-                            ]}
+                    <div className="grid gap-1">
+                        <span
+                            id="appearance-mode-label"
+                            className="text-small text-ink-2 font-medium"
+                        >
+                            {__('Colors')}
+                        </span>
+                        <Segmented
+                            aria-labelledby="appearance-mode-label"
+                            aria-describedby="appearance-mode-help"
+                            data-test="appearance-mode"
+                            className="justify-self-start"
                             value={appearance}
                             onValueChange={(next) =>
                                 updateAppearance(next as Appearance)
                             }
-                        />
-                    </Field>
+                        >
+                            <SegmentedItem value="light">
+                                {__('Light')}
+                            </SegmentedItem>
+                            <SegmentedItem value="dark">
+                                {__('Dark')}
+                            </SegmentedItem>
+                            <SegmentedItem value="system">
+                                {__('Match my computer')}
+                            </SegmentedItem>
+                        </Segmented>
+                        <p
+                            id="appearance-mode-help"
+                            className="text-caption text-ink-3"
+                        >
+                            {__(
+                                'Light, dark, or whatever your computer is set to. Only you see it.',
+                            )}
+                        </p>
+                    </div>
                 </FormPanel>
 
                 {/* Each choice is saved as it is made (docs/proposals/people-and-account.md); a typed value once it is left. */}
@@ -138,6 +162,27 @@ export default function Preferences({ fields, values }: Props) {
                     {({ errors }) =>
                         panels.map((panel) => (
                             <FormPanel key={panel.title} title={panel.title}>
+                                {panel.prefix === 'editor.' &&
+                                    spelling !== undefined && (
+                                        <FieldInline
+                                            htmlFor="pref-spelling"
+                                            label={__(
+                                                'Check my spelling in the editor',
+                                            )}
+                                            help={__(
+                                                'Your browser underlines words it doesn’t know. Nothing is sent anywhere.',
+                                            )}
+                                            error={
+                                                errors[
+                                                    `preferences.${SPELLING}`
+                                                ]
+                                            }
+                                        >
+                                            <SpellingSwitch
+                                                on={values[SPELLING] === true}
+                                            />
+                                        </FieldInline>
+                                    )}
                                 {panel.fields.map((field) => (
                                     <SettingsField
                                         key={field.key}
@@ -155,5 +200,32 @@ export default function Preferences({ fields, values }: Props) {
                 </Form>
             </SettingsPage>
         </>
+    );
+}
+
+/**
+ * The spelling switch: off sends "0" before it, on sends "1", as every
+ * yes-or-no preference does, so the form saves it as it is turned.
+ */
+function SpellingSwitch({
+    on,
+    ...props
+}: {
+    on: boolean;
+    'aria-describedby'?: string;
+    'aria-invalid'?: boolean;
+}) {
+    return (
+        <span className="contents">
+            <input type="hidden" name={`preferences[${SPELLING}]`} value="0" />
+            <Switch
+                {...props}
+                id="pref-spelling"
+                name={`preferences[${SPELLING}]`}
+                value="1"
+                defaultChecked={on}
+                data-test="spelling-switch"
+            />
+        </span>
     );
 }

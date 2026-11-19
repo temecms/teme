@@ -1,4 +1,5 @@
-import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
+import { Form, Head, Link, setLayoutProps, usePage } from '@inertiajs/react';
+import { Lock } from 'lucide-react';
 import NotificationsController from '@/actions/App/Http/Admin/Account/NotificationsController';
 import InputError from '@/components/input-error';
 import { FormPanel } from '@/components/patterns/form-page';
@@ -52,28 +53,65 @@ export default function Notifications({
     pluginNotices,
     inboxHref,
 }: Props) {
-    setLayoutProps({
-        breadcrumbs: [
-            {
-                title: __('Notifications'),
-                href: editNotifications(),
-            },
+    const { auth } = usePage().props;
+    const title = __('Notifications');
+    const description = __(
+        'What reaches your inbox, and which emails you receive.',
+    );
+    // The emails that protect the account or the site, sent whatever is chosen above.
+    const alwaysSent: [string, string][] = [
+        [
+            __('Password changed'),
+            __(
+                'Always sent. It tells you if someone else changes your password.',
+            ),
         ],
+        ...(auth.user.capabilities.includes('updates.manage')
+            ? ([
+                  [
+                      __('Updates of Teme'),
+                      __(
+                          'Always sent to administrators, so a new version is never missed.',
+                      ),
+                  ],
+              ] as [string, string][])
+            : []),
+        ...(auth.user.capabilities.includes('backups.alert')
+            ? ([
+                  [
+                      __('Backup alerts'),
+                      __(
+                          'Always sent to administrators, so a failed backup is never missed.',
+                      ),
+                  ],
+              ] as [string, string][])
+            : []),
+    ];
+
+    setLayoutProps({
+        breadcrumbs: [{ title, href: editNotifications() }],
+        title,
+        description,
     });
 
     return (
         <>
             <Head title={__('Notifications')} />
 
-            <SettingsPage title={__('Notifications')}>
-                <FormPanel
-                    title={__('Inbox')}
-                    description={__(
-                        'Results of background work you start, such as an import, arrive in your inbox. The bell at the top of every screen counts the ones you haven’t read. Each is kept for 90 days.',
-                    )}
-                >
-                    <div>
-                        <Button variant="neutral" size="sm" asChild>
+            <SettingsPage title={title} description={description}>
+                <FormPanel>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <div className="grid min-w-0 flex-1 basis-60 gap-1">
+                            <h2 className="text-lead text-ink font-semibold">
+                                {__('Inbox')}
+                            </h2>
+                            <p className="text-small text-ink-2">
+                                {__(
+                                    'Results of background work you start, such as an import, arrive in your inbox. The bell at the top of every screen counts the ones you haven’t read. Each is kept for 90 days.',
+                                )}
+                            </p>
+                        </div>
+                        <Button variant="neutral" asChild>
                             <Link href={inboxHref}>{__('Open inbox')}</Link>
                         </Button>
                     </div>
@@ -149,6 +187,34 @@ export default function Notifications({
                         )}
                     </Form>
                 )}
+
+                <FormPanel
+                    title={__('Always sent')}
+                    description={__(
+                        'These can’t be turned off, because each protects your account or the site.',
+                    )}
+                >
+                    <ul className="grid gap-3" data-test="always-sent">
+                        {alwaysSent.map(([name, why]) => (
+                            <li key={name} className="flex items-start gap-3">
+                                <span className="text-body flex h-lh shrink-0 items-center">
+                                    <Lock
+                                        aria-hidden="true"
+                                        className="text-ink-3 size-4"
+                                    />
+                                </span>
+                                <span className="grid gap-0.5">
+                                    <span className="text-body text-ink font-medium">
+                                        {name}
+                                    </span>
+                                    <span className="text-small text-ink-2">
+                                        {why}
+                                    </span>
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </FormPanel>
             </SettingsPage>
         </>
     );

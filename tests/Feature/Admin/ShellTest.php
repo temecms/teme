@@ -168,10 +168,10 @@ it('says sign in on the sign-in screens, in plain words', function (): void {
         ->and($flat('pages/auth/forgot-password.tsx'))->toContain("{__('Back to sign in')}")
         ->and($flat('pages/auth/verify-email.tsx'))
         ->toContain('Sign out')
-        ->toContain('Sent. Check your email for the new link.')
+        ->toContain('Send the link again')
         ->and($flat('pages/auth/confirm-password.tsx'))
-        ->toContain("title={__('Confirm password')}")
-        ->toContain('Confirm your password to continue.');
+        ->toContain("title={__('Confirm your password')}")
+        ->toContain("{__('Cancel')}");
 });
 
 it('frames the sign-in screens with the site\'s mark, one main and one h1', function (): void {
@@ -245,11 +245,12 @@ it('names the account frame\'s list and links', function (): void {
         ->toContain("title: __('Security')");
 });
 
-it('offers Appearance as a labelled select in Preferences', function (): void {
+it('offers Appearance as a labelled segmented control in Preferences', function (): void {
     expect(uiComponent('pages/account/preferences.tsx'))
-        ->toContain('SelectField')
-        ->toContain('htmlFor="appearance-mode"')
-        ->toContain('Match the system')
-        ->toContain('Saved as you choose.')
+        ->toContain('<Segmented')
+        ->toContain('aria-labelledby="appearance-mode-label"')
+        ->toContain("{__('Colors')}")
+        ->toContain("{__('Match my computer')}")
+        ->toContain('Light, dark, or whatever your computer is set to. Only you see it.')
         ->not->toContain('AppearanceTabs');
 });

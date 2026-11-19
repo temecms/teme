@@ -3,17 +3,17 @@ import { useState } from 'react';
 import PictureController from '@/actions/App/Http/Admin/Account/PictureController';
 import InputError from '@/components/input-error';
 import { MediaModal } from '@/components/media/media-modal';
-import { FormPanel } from '@/components/patterns/form-page';
 import { Button } from '@/components/ui/button';
 import { PersonPicture } from '@/components/ui/person-picture';
 import { __ } from '@/lib/i18n';
 
 /**
- * Your picture on Profile (I-3410): an image chosen from Media, or your
- * initials. Choosing needs the Media picker, which only those who may
- * write open, and a confirmed email address.
+ * Your picture, the first field of Profile's "Your details" (I-3410): an
+ * image chosen from Media, or your initials. Choosing needs the Media
+ * picker, which only those who may write open, and a confirmed email
+ * address. It saves as it is chosen, apart from the form around it.
  */
-export function PicturePanel() {
+export function PictureField() {
     const { auth, errors } = usePage().props;
     const [choosing, setChoosing] = useState(false);
     const [busy, setBusy] = useState(false);
@@ -35,50 +35,61 @@ export function PicturePanel() {
     };
 
     return (
-        <FormPanel title={__('Picture')}>
-            <div className="flex flex-wrap items-center gap-4">
+        <div data-slot="field" className="grid gap-1">
+            <span
+                id="picture-label"
+                className="text-small text-ink-2 font-medium"
+            >
+                {__('Picture')}
+            </span>
+            <div
+                role="group"
+                aria-labelledby="picture-label"
+                aria-describedby="picture-help"
+                className="flex flex-wrap items-center gap-4"
+            >
                 <PersonPicture
                     name={auth.user.name}
                     src={auth.user.picture}
                     size={96}
                     nameBeside={false}
                 />
-                <div className="grid gap-2">
-                    <div className="flex flex-wrap gap-2">
-                        {mayChoose && (
-                            <Button
-                                type="button"
-                                variant="neutral"
-                                size="sm"
-                                data-test="picture-choose"
-                                disabled={busy || !verified}
-                                onClick={() => setChoosing(true)}
-                            >
-                                {__('Choose from Media')}
-                            </Button>
-                        )}
+                <div className="flex flex-wrap gap-2">
+                    {mayChoose && (
                         <Button
                             type="button"
-                            variant="ghost"
+                            variant="neutral"
                             size="sm"
-                            data-test="picture-remove"
-                            disabled={
-                                busy || !verified || auth.user.picture === null
-                            }
-                            onClick={() =>
-                                router.delete(
-                                    PictureController.destroy.url(),
-                                    settle,
-                                )
-                            }
+                            data-test="picture-choose"
+                            disabled={busy || !verified}
+                            onClick={() => setChoosing(true)}
                         >
-                            {__('Remove')}
+                            {__('Choose from Media')}
                         </Button>
-                    </div>
-                    <p className="text-caption text-ink-3">{help}</p>
-                    <InputError role="alert" message={errors.media} />
+                    )}
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        data-test="picture-remove"
+                        disabled={
+                            busy || !verified || auth.user.picture === null
+                        }
+                        onClick={() =>
+                            router.delete(
+                                PictureController.destroy.url(),
+                                settle,
+                            )
+                        }
+                    >
+                        {__('Remove')}
+                    </Button>
                 </div>
             </div>
+            <p id="picture-help" className="text-caption text-ink-3">
+                {help}
+            </p>
+            <InputError role="alert" message={errors.media} />
             {mayChoose && verified && (
                 <MediaModal
                     open={choosing}
@@ -98,6 +109,6 @@ export function PicturePanel() {
                     }}
                 />
             )}
-        </FormPanel>
+        </div>
     );
 }

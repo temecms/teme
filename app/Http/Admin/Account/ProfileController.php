@@ -14,6 +14,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Account;
 
+use App\Domain\Addresses\Addresses;
 use App\Domain\Users\Operations\Input\UpdateProfileInput;
 use App\Domain\Users\Operations\UpdateProfile;
 use App\Domain\Users\Queries\AccountSecurityStatus;
@@ -27,10 +28,15 @@ final class ProfileController extends Controller
 {
     public function edit(Request $request, AccountSecurityStatus $status): Response
     {
+        $user = $request->user();
+        $authorPath = $user === null ? null : Addresses::relativeUrl($user);
+
         return Inertia::render('account/profile', [
             'mustVerifyEmail' => $status->for((int) $request->user()?->getAuthIdentifier())['mustVerifyEmail'],
             'status' => $request->session()->get('status'),
             'bio' => (string) ($request->user()->bio ?? ''),
+            // Profile's "Set by the site": your author page, where it has an address.
+            'authorPage' => $authorPath === null ? null : ['url' => rtrim(url('/'), '/').$authorPath, 'path' => $authorPath],
         ]);
     }
 
