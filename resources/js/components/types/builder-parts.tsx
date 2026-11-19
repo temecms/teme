@@ -1,4 +1,3 @@
-import { __ } from '@/lib/i18n';
 import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
