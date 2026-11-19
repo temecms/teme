@@ -22,12 +22,13 @@ use App\Domain\Plugins\Models\PluginRecord;
 use App\Domain\Plugins\PluginRegistry;
 use App\Domain\Support\Queries\Cursor;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 
 /**
- * @phpstan-type JobRow array{id: string, kind: string, label: string, owner: string, plugin: string|null, state: string, stateLabel: string, message: string|null, total: int|null, done: int, percent: int|null, startedAt: string, endedAt: string|null, startedBy: array{kind: string, name: string|null}, canRetry: bool, canCancel: bool}
+ * @phpstan-type JobRow array{id: string, kind: string, label: string, owner: string, plugin: string|null, state: string, stateLabel: string, message: string|null, total: int|null, done: int, percent: int|null, startedAt: string, endedAt: string|null, startedById: int|null, startedBy: array{kind: string, name: string|null}, canRetry: bool, canCancel: bool}
  */
 final readonly class TrackedJobList
 {
@@ -46,7 +47,7 @@ final readonly class TrackedJobList
     /** The columns a row is drawn from, with the starter's name now. */
     private const array COLUMNS = [
         'j.id', 'j.kind', 'j.owner', 'j.label', 'j.starter', 'j.state', 'j.total', 'j.done', 'j.message',
-        'j.created_at', 'j.ended_at', 'u.name as starter_name',
+        'j.created_at', 'j.ended_at', 'j.started_by', 'u.name as starter_name',
     ];
 
     public function __construct(
@@ -55,20 +56,22 @@ final readonly class TrackedJobList
     ) {}
 
     /**
-     * Returns a page of jobs, newest first, at most $perPage (1 to 200); with
-     * the cursor that opens the newer page, or null at the first, and the one
-     * that opens the older page, or null at the last.
+     * Returns a page of jobs, newest first, at most $perPage (1 to 200), only
+     * those one person started when $startedBy names them, and only those in
+     * one state when $state names it; with the cursor that opens the newer
+     * page, or null at the first, and the one that opens the older page, or
+     * null at the last.
      *
      * @return array{rows: list<JobRow>, newer: string|null, older: string|null}
      */
-    public function page(?string $after, ?string $before, int $perPage): array
+    public function page(?string $after, ?string $before, int $perPage, ?int $startedBy = null, ?JobState $state = null): array
     {
         $limit = max(1, min(self::MOST, $perPage));
         $back = self::cursor($before);
         $backwards = $back !== null;
         $cursor = $back ?? self::cursor($after);
 
-        $query = DB::table('tracked_jobs as j')->leftJoin('users as u', 'u.id', '=', 'j.started_by')->select(self::COLUMNS);
+        $query = self::scoped(DB::table('tracked_jobs as j'), $startedBy, $state)->leftJoin('users as u', 'u.id', '=', 'j.started_by')->select(self::COLUMNS);
 
         if ($cursor !== null) {
             // One row comparison, so the newest-first index answers it.
@@ -92,6 +95,18 @@ final readonly class TrackedJobList
             'newer' => $first !== null && ($backwards ? $more : $cursor !== null) ? self::cursorAt($first) : null,
             'older' => $last !== null && ($backwards || $more) ? self::cursorAt($last) : null,
         ];
+    }
+
+    /**
+     * Returns how many jobs there are, only those one person started when
+     * $startedBy names them, and only those in one state when $state names
+     * it.
+     *
+     * @since next
+     */
+    public function count(?int $startedBy = null, ?JobState $state = null): int
+    {
+        return self::scoped(DB::table('tracked_jobs as j'), $startedBy, $state)->count();
     }
 
     /**
@@ -237,6 +252,22 @@ final readonly class TrackedJobList
     }
 
     /**
+     * The query narrowed to one person's jobs, one state, or both.
+     */
+    private static function scoped(Builder $query, ?int $startedBy, ?JobState $state): Builder
+    {
+        if ($startedBy !== null) {
+            $query->where('j.started_by', $startedBy);
+        }
+
+        if ($state !== null) {
+            $query->where('j.state', $state->value);
+        }
+
+        return $query;
+    }
+
+    /**
      * The cursor that opens the page beyond this row.
      */
     private static function cursorAt(stdClass $row): string
@@ -279,6 +310,7 @@ final readonly class TrackedJobList
                 'percent' => $total === null || $total === 0 ? null : min(intdiv($done * 100, $total), $state->ended() ? 100 : 99),
                 'startedAt' => CarbonImmutable::parse((string) $row->created_at)->utc()->toIso8601String(),
                 'endedAt' => $row->ended_at === null ? null : CarbonImmutable::parse((string) $row->ended_at)->utc()->toIso8601String(),
+                'startedById' => $row->started_by === null ? null : (int) $row->started_by,
                 'startedBy' => match (true) {
                     $row->starter === 'operator' => ['kind' => 'operator', 'name' => null],
                     $row->starter_name === null => ['kind' => 'removed', 'name' => null],

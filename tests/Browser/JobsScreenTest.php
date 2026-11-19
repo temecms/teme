@@ -47,9 +47,9 @@ it('passes axe on Tools › Jobs, every target 24 pixels or more, in the light a
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     $page = cmSignIn($this->admin)
-        ->navigate('/admin/tools/jobs')
+        ->navigate('/admin/tools/jobs?whose=everyone')
         ->assertSee('Imports, bulk changes and other long tasks.')
-        ->assertSee('188 of 400 · 47%')
+        ->assertSee('47% done')
         ->assertSee('Retry all failed (1)')
         ->assertNoAccessibilityIssues(3);
 
@@ -61,7 +61,7 @@ it('passes axe on Tools › Jobs, every target 24 pixels or more, in the light a
 
 it('retries a failed job and cancels a running one from Tools › Jobs', function (): void {
     cmSignIn($this->admin)
-        ->navigate('/admin/tools/jobs')
+        ->navigate('/admin/tools/jobs?whose=everyone')
         ->click('[aria-label="Retry Rebuild the link index"]')
         ->assertSee('Retrying Rebuild the link index. It carries on from where it stopped.')
         ->click('[aria-label="Cancel Import from WordPress"]')
@@ -98,7 +98,7 @@ it('draws a plugin mark beside a plugin-owned job, and passes axe in light and d
     lscrPrefer($this->admin, ['appearance.mode' => $scheme]);
 
     cmSignIn($this->admin)
-        ->navigate('/admin/tools/jobs')
+        ->navigate('/admin/tools/jobs?whose=everyone')
         ->assertSee('Write a line')
         ->assertSee('Jobs')
         ->assertPresent('[data-slot="plugin-mark"]')

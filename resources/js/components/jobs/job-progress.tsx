@@ -1,33 +1,65 @@
-import type { JobRow } from '@/types/jobs';
+import { Progress } from '@/components/ui/progress';
+import { __ } from '@/lib/i18n';
+import type { JobRow, JobStateKey } from '@/types/jobs';
+
+const TONES: Record<JobStateKey, 'accent' | 'ok' | 'danger' | 'quiet'> = {
+    waiting: 'accent',
+    running: 'accent',
+    finished: 'ok',
+    failed: 'danger',
+    cancelled: 'quiet',
+};
+
+/** How far a job has got, in words: "64% done", "Stopped at 88%", "Done". */
+function words(job: Pick<JobRow, 'state' | 'done' | 'percent'>): string {
+    if (job.state === 'finished') {
+        return __('Done');
+    }
+
+    if (job.percent === null) {
+        return __(':count done', { count: job.done.toLocaleString() });
+    }
+
+    return job.state === 'failed' || job.state === 'cancelled'
+        ? __('Stopped at :percent%', { percent: job.percent })
+        : __(':percent% done', { percent: job.percent });
+}
 
 /**
- * How far a job has got: a native progress bar and its words, "188 of 400 ·
- * 47%", or "188 done" while its total isn't known.
+ * How far a job has got: an accent bar while it runs, red where it failed,
+ * green once done, and its words; a waiting job has not started.
  */
 export function JobProgress({
     job,
 }: {
     job: Pick<JobRow, 'label' | 'state' | 'total' | 'done' | 'percent'>;
 }) {
-    const words =
-        job.total === null
-            ? `${job.done.toLocaleString()} done`
-            : `${job.done.toLocaleString()} of ${job.total.toLocaleString()}${job.percent === null ? '' : ` · ${job.percent}%`}`;
+    if (job.state === 'waiting' && job.done === 0) {
+        return (
+            <span className="text-small text-ink-2">{__('Not started')}</span>
+        );
+    }
+
+    const share =
+        job.state === 'finished'
+            ? 100
+            : job.percent === null
+              ? null
+              : job.percent;
 
     return (
-        <div className="grid min-w-[180px] gap-1">
-            <progress
-                aria-label={`Progress of ${job.label}`}
-                max={
-                    job.total === null || job.total === 0
-                        ? undefined
-                        : job.total
-                }
-                value={job.total === null ? undefined : job.done}
-                data-state={job.state}
-                className="bg-surface-2 [&::-moz-progress-bar]:bg-ink [&::-webkit-progress-bar]:bg-surface-2 [&::-webkit-progress-value]:bg-ink data-[state=failed]:[&::-moz-progress-bar]:bg-danger data-[state=failed]:[&::-webkit-progress-value]:bg-danger data-[state=finished]:[&::-moz-progress-bar]:bg-ok data-[state=finished]:[&::-webkit-progress-value]:bg-ok h-1.5 w-full overflow-hidden rounded-full"
-            />
-            <span className="text-ink-2 text-xs tabular-nums">{words}</span>
+        <div className="grid w-40 max-w-full gap-1">
+            {share !== null && (
+                <Progress
+                    value={share}
+                    tone={TONES[job.state]}
+                    data-state={job.state}
+                    label={__('Progress of :label', { label: job.label })}
+                />
+            )}
+            <span className="text-small text-ink-2 tabular-nums">
+                {words(job)}
+            </span>
         </div>
     );
 }
