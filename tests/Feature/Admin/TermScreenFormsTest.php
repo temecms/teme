@@ -43,10 +43,11 @@ it('keeps a subcategory\'s parent and description when its edit form sends them 
         ->toBe(['name' => 'Roads and streets', 'parent_id' => $transport->id, 'description' => 'Streets and highways.']);
 });
 
-it('draws one heading over the taxonomies\' tabs, and the full add form beside the rows', function (): void {
+it('names the screen after its taxonomy, with the taxonomies as pill tabs, and the full add form beside the rows', function (): void {
     expect(uiComponent('pages/terms/index.tsx'))
-        ->toContain('<TabStrip')
-        ->toContain("label={__('Kind')}")
+        ->toContain('<InPageNav')
+        ->toContain("label={__('Taxonomies')}")
+        ->toContain('const heading = declared.plural;')
         ->toContain('tabs.length > 1')
         ->toContain('title={heading}')
         ->toContain('<Head title={declared.plural} />')

@@ -244,12 +244,12 @@ it('opens the Fields page from Manage fields on Movies’ page and on Posts’ p
     $page = cmSignIn($this->admin)->navigate('/admin/types/movie');
     ($this->seen)($page, '2 fields of your own:');
 
-    $page->click('a:text-is("Manage fields")');
+    $page->click('[data-test="fields-summary"] a:text-is("Manage fields")');
     cmWaitUntil($page, 'location.pathname === "/admin/types/movie/fields"');
 
     cmNavigate($page, '/admin/types/post');
     ($this->seen)($page, 'No fields of your own yet.');
-    $page->click('a:text-is("Manage fields")');
+    $page->click('[data-test="fields-summary"] a:text-is("Manage fields")');
     cmWaitUntil($page, 'location.pathname === "/admin/types/post/fields"');
     ($this->seen)($page, 'Post fields');
 });

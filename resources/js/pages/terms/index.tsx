@@ -1,5 +1,5 @@
-import { Form, Head, Link } from '@inertiajs/react';
-import { useMemo, useRef, useState } from 'react';
+import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import TermController from '@/actions/App/Http/Admin/Taxonomy/TermController';
 import { ConfirmAction } from '@/components/confirm-action';
 import InputError from '@/components/input-error';
@@ -10,8 +10,8 @@ import { NumberedPager } from '@/components/list/numbered-pager';
 import type { RowAction } from '@/components/list/row-actions';
 import { LanguageMarks } from '@/components/list/language-marks';
 import { RowLine } from '@/components/list/row-line';
-import { RowMenu } from '@/components/list/row-menu';
-import { TabStrip } from '@/components/list/tab-strip';
+import { SearchField } from '@/components/list/search-field';
+import { InPageNav } from '@/components/patterns/in-page-nav';
 import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,8 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
-import { __ } from '@/lib/i18n';
+import { useSectionCrumb } from '@/lib/crumbs';
+import { __, __n } from '@/lib/i18n';
 import { inTreeOrder } from '@/lib/term-tree';
 import { index as contentIndex } from '@/routes/content';
 import { index as termsIndex } from '@/routes/terms';
@@ -208,6 +209,7 @@ function TermFields({
                     {/* Later (I-1490): a searchable parent, through the shared combobox, for a taxonomy too large for a select. */}
                     <SelectField
                         id={`${prefix}-parent`}
+                        className="w-full"
                         name="parent_id"
                         emptyLabel={__('None')}
                         defaultValue={term?.parentId ?? ''}
@@ -283,9 +285,57 @@ export default function TermsIndex({
     // Whole branches, a child under its parent; a search lists its matches
     // by name, each with its path.
     const branches = declared.hierarchical && search === '';
-    const heading = andList(
-        tabs.map((tab, at) => (at === 0 ? tab.label : tab.label.toLowerCase())),
-    );
+    const heading = declared.plural;
+    const contentCrumb = useSectionCrumb('content');
+    // Under the first type that lists it: Content / Posts / Categories.
+    const home = types[0];
+
+    setLayoutProps({
+        breadcrumbs: [
+            contentCrumb,
+            ...(home !== undefined
+                ? [
+                      {
+                          title: home.plural,
+                          href: contentIndex({ type: home.segment }),
+                      },
+                  ]
+                : []),
+            { title: heading, href: termsIndex({ taxonomy }) },
+        ],
+    });
+
+    // The search filters as it is typed, a moment after the last key.
+    const [words, setWords] = useState(search);
+    useEffect(() => {
+        if (words.trim() === search) {
+            return;
+        }
+
+        const timer = window.setTimeout(
+            () =>
+                router.get(
+                    termsIndex(
+                        { taxonomy },
+                        {
+                            query:
+                                words.trim() === ''
+                                    ? {}
+                                    : { search: words.trim() },
+                        },
+                    ).url,
+                    {},
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        replace: true,
+                    },
+                ),
+            250,
+        );
+
+        return () => window.clearTimeout(timer);
+    }, [words, search, taxonomy]);
     const description = declared.hierarchical
         ? __(
               ':plural can sit under one another. Counts leave out the trash. Choose a count to list its items, with those in its sub:lower.',
@@ -297,7 +347,7 @@ export default function TermsIndex({
         setEditing(row.id);
     };
 
-    /** Under the name (I-3398): Edit, and View when the term has a page. */
+    /** Under the name: Edit, and Delete in red, asked first, saying what it does (I-225). */
     const lineActions = (row: TermRow): RowAction[] => [
         {
             id: 'edit',
@@ -305,21 +355,6 @@ export default function TermsIndex({
             label: __('Edit'),
             onSelect: () => edit(row),
         },
-        ...(row.address !== null
-            ? [
-                  {
-                      id: 'view',
-                      owner: 'core',
-                      label: __('View'),
-                      href: row.address,
-                      newTab: true,
-                  },
-              ]
-            : []),
-    ];
-
-    /** In the "…" menu: Delete, asked first, saying what it does (I-225). */
-    const menuActions = (row: TermRow): RowAction[] => [
         {
             id: 'delete',
             owner: 'core',
@@ -411,11 +446,7 @@ export default function TermsIndex({
                 const count = row.counts[type.key] ?? 0;
 
                 if (count === 0) {
-                    return (
-                        <span className="text-ink-2 font-mono tabular-nums">
-                            0
-                        </span>
-                    );
+                    return <span className="text-ink-3 tabular-nums">0</span>;
                 }
 
                 return (
@@ -427,7 +458,7 @@ export default function TermsIndex({
                                 { query: { [declared.key]: row.id } },
                             ).url
                         }
-                        className="inline-flex min-h-6 min-w-6 items-center justify-end font-mono tabular-nums hover:underline"
+                        className="text-accent-ink focus-visible:outline-ring inline-flex min-h-6 min-w-6 items-center justify-end rounded-sm font-semibold tabular-nums hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
                     >
                         {count.toLocaleString()}
                         <span className="sr-only">
@@ -444,15 +475,6 @@ export default function TermsIndex({
                 );
             },
         })),
-        {
-            id: 'menu',
-            owner: 'core',
-            header: <span className="sr-only">{__('Actions')}</span>,
-            width: 56,
-            cell: (row) => (
-                <RowMenu title={row.name} items={menuActions(row)} />
-            ),
-        },
     ];
 
     return (
@@ -461,7 +483,7 @@ export default function TermsIndex({
             description={description}
             actions={
                 setup !== null && (
-                    <Button variant="outline" asChild>
+                    <Button variant="neutral" asChild>
                         <Link href={setup} data-test="term-setup">
                             {__('Set up :plural', { plural: declared.plural })}
                         </Link>
@@ -472,14 +494,14 @@ export default function TermsIndex({
             <Head title={declared.plural} />
 
             {tabs.length > 1 && (
-                <TabStrip
-                    label={__('Kind')}
-                    current={taxonomy}
-                    tabs={tabs.map((tab) => ({
-                        key: tab.segment,
+                <InPageNav
+                    label={__('Taxonomies')}
+                    visible={tabs.length}
+                    items={tabs.map((tab) => ({
                         label: tab.label,
                         count: tab.count,
-                        href: termsIndex({ taxonomy: tab.segment }),
+                        current: tab.segment === taxonomy,
+                        href: termsIndex({ taxonomy: tab.segment }).url,
                     }))}
                 />
             )}
@@ -525,28 +547,33 @@ export default function TermsIndex({
                 </Panel>
 
                 <div className="grid w-full min-w-0 flex-1 gap-3">
-                    <form method="get" role="search" className="flex gap-2">
-                        <Input
-                            name="search"
-                            defaultValue={search}
-                            placeholder={__('Find a :singular by name', {
-                                singular,
-                            })}
-                            aria-label={__('Search')}
-                            className="max-w-xs"
+                    <div role="search" className="flex flex-wrap gap-2">
+                        <SearchField
+                            value={words}
+                            onChange={(event) => setWords(event.target.value)}
+                            placeholder={__('Search by name')}
+                            aria-label={__('Search :plural', { plural })}
+                            className="w-full sm:w-70"
                         />
-                        <Button variant="outline">{__('Search')}</Button>
-                    </form>
+                        {words !== '' && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => setWords('')}
+                            >
+                                {__('Clear the search')}
+                            </Button>
+                        )}
+                    </div>
 
                     <DataTable
                         columns={columns}
                         rows={rows}
                         rowKey={(row) => row.id}
                         caption={declared.plural}
-                        pinned={{ start: ['name'], end: ['menu'] }}
+                        pinned={{ start: ['name'], end: [] }}
                         cards={{
                             titleColumn: 'name',
-                            menu: 'menu',
                             facts: [
                                 'slug',
                                 ...types.map((type) => `count-${type.key}`),
@@ -578,16 +605,34 @@ export default function TermsIndex({
                             />
                         }
                         footer={
-                            <NumberedPager
-                                pages={paging}
-                                perPage={PER_PAGE}
-                                href={(query) =>
-                                    termsIndex(
-                                        { taxonomy },
-                                        { query: { ...withSearch, ...query } },
-                                    ).url
-                                }
-                            />
+                            paging.last > 1 || paging.more ? (
+                                <NumberedPager
+                                    pages={paging}
+                                    perPage={PER_PAGE}
+                                    href={(query) =>
+                                        termsIndex(
+                                            { taxonomy },
+                                            {
+                                                query: {
+                                                    ...withSearch,
+                                                    ...query,
+                                                },
+                                            },
+                                        ).url
+                                    }
+                                />
+                            ) : (
+                                <p
+                                    data-test="term-foot"
+                                    className="text-small text-ink-3 px-5 py-4"
+                                >
+                                    {__n(
+                                        ':count :singular. Counts leave out the trash.|:count :plural. Counts leave out the trash.',
+                                        rows.length,
+                                        { singular, plural },
+                                    )}
+                                </p>
+                            )
                         }
                     />
                 </div>

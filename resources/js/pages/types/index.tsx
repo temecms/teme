@@ -1,113 +1,131 @@
-import { Head, Link } from '@inertiajs/react';
-import { Download, XCircle } from 'lucide-react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
+import { Download, Plus, XCircle } from 'lucide-react';
 import TypesController from '@/actions/App/Http/Admin/TypesController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { DataTable } from '@/components/list/data-table';
 import type { Column } from '@/components/list/data-table';
-import { RowLinks } from '@/components/list/row-links';
-import { ListPage } from '@/components/patterns/list-page';
 import type { RowAction } from '@/components/list/row-actions';
+import { RowLine } from '@/components/list/row-line';
+import { RowMenu } from '@/components/list/row-menu';
+import { ListPage } from '@/components/patterns/list-page';
 import { Button } from '@/components/ui/button';
+import { IconTile } from '@/components/ui/icon-tile';
 import { Notice } from '@/components/ui/notice';
 import { StatusPill } from '@/components/ui/status-pill';
+import { useSectionCrumb } from '@/lib/crumbs';
+import { __, __n } from '@/lib/i18n';
 import { navIcon } from '@/lib/nav-icons';
+import { index as typeFields } from '@/routes/types/fields';
 import { index as typesIndex, show } from '@/routes/types';
 import type { TypeRow, TypesIndexPage } from '@/types';
-
-const sources = {
-    code: { label: 'Code', tone: 'neutral' },
-    stored: { label: 'Made here', tone: 'info' },
-    refused: { label: 'Can’t be used', tone: 'danger' },
-} as const;
 
 /**
  * Site › Types: every type the site keeps, code's and the ones made here,
  * with a refused type's reason and the way to open, change or delete it.
  */
 export default function TypesIndex({ locked, types }: TypesIndexPage) {
+    const title = __('Types');
+    const siteCrumb = useSectionCrumb('site');
+
+    setLayoutProps({
+        breadcrumbs: [siteCrumb, { title, href: typesIndex() }],
+    });
+
     const columns: Column<TypeRow>[] = [
         {
             id: 'type',
             owner: 'core',
-            header: 'Type',
+            header: __('Type'),
             cell: (row) => <TypeCell row={row} locked={locked} />,
         },
         {
             id: 'admin',
             owner: 'core',
-            header: 'Admin address',
+            header: __('Admin address'),
             className: 'hidden lg:table-cell',
-            cell: (row) => <code>{`/admin/${row.segment}`}</code>,
+            cell: (row) => (
+                <code className="text-caption text-ink-2 font-mono">{`/admin/${row.segment}`}</code>
+            ),
         },
         {
             id: 'public',
             owner: 'core',
-            header: 'Public address',
+            header: __('Public address'),
             className: 'hidden sm:table-cell',
             cell: (row) =>
                 row.public && row.pattern !== null ? (
-                    <code>{row.pattern}</code>
+                    <code className="text-caption text-ink-2 font-mono break-all">
+                        {row.pattern}
+                    </code>
                 ) : (
-                    'None: not public'
+                    <span className="text-ink-3">{__('None: not public')}</span>
                 ),
         },
         {
             id: 'items',
             owner: 'core',
-            header: 'Items',
+            header: __('Items'),
             cell: (row) => <ItemsCell row={row} />,
         },
         {
             id: 'source',
             owner: 'core',
-            header: 'Source',
+            header: __('Source'),
             className: 'hidden sm:table-cell',
             cell: (row) => <SourceBadge source={row.source} />,
+        },
+        {
+            id: 'menu',
+            owner: 'core',
+            width: 56,
+            header: <span className="sr-only">{__('Actions')}</span>,
+            cell: (row) =>
+                deletable(row, locked) ? (
+                    <RowMenu title={row.plural} items={menuActions(row)} />
+                ) : null,
         },
     ];
 
     return (
         <ListPage
-            title="Types"
-            description="The kinds of content this site keeps. Types declared by code are shown, but can’t be changed here."
+            title={title}
+            description={__(
+                'The kinds of content this site keeps. Types declared by code are shown, but can’t be changed here.',
+            )}
             actions={
                 <>
-                    {!locked && (
-                        <Button asChild>
-                            <Link
-                                href={TypesController.create.url()}
-                                data-test="types-add"
-                            >
-                                Add new type
-                            </Link>
-                        </Button>
-                    )}
                     <Button variant="neutral" asChild>
                         <a
                             href={TypesController.download.url()}
                             download
                             data-test="types-download"
                         >
-                            <Download aria-hidden className="size-4" />
-                            Download teme-types.json
+                            <Download aria-hidden="true" />
+                            {__('Download teme-types.json')}
                         </a>
                     </Button>
+                    {!locked && (
+                        <Button asChild variant="primary">
+                            <Link
+                                href={TypesController.create.url()}
+                                data-test="types-add"
+                            >
+                                <Plus aria-hidden="true" />
+                                {__('Add new type')}
+                            </Link>
+                        </Button>
+                    )}
                 </>
             }
         >
-            <Head title="Types" />
+            <Head title={title} />
 
             {locked && (
                 <Notice tone="info">
-                    <p>
-                        Types are locked on this site (TEME_TYPES_LOCKED):
-                        change them where they’re made, and bring them here with{' '}
-                        <code>php artisan teme:types:import</code>.
-                    </p>
-                    <p>
-                        You can still look at each type, and download
-                        teme-types.json.
-                    </p>
+                    {__(
+                        'Types are locked on this site (TEME_TYPES_LOCKED): change them where they’re made, and bring them here with :command. You can still look at each type, and download teme-types.json.',
+                        { command: 'php artisan teme:types:import' },
+                    )}
                 </Notice>
             )}
 
@@ -115,7 +133,7 @@ export default function TypesIndex({ locked, types }: TypesIndexPage) {
                 columns={columns}
                 rows={types}
                 rowKey={(row) => row.key}
-                caption="Types"
+                caption={title}
                 rowProps={(row) =>
                     row.source === 'refused'
                         ? { className: 'bg-danger-soft' }
@@ -126,75 +144,67 @@ export default function TypesIndex({ locked, types }: TypesIndexPage) {
     );
 }
 
-TypesIndex.layout = {
-    breadcrumbs: [{ title: 'Types', href: typesIndex() }],
-};
-
 function TypeCell({ row, locked }: { row: TypeRow; locked: boolean }) {
-    const Icon = navIcon(row.icon);
-
     return (
         <div className="flex min-w-0 items-start gap-3">
-            <span className="bg-surface-2 flex size-8 shrink-0 items-center justify-center rounded-md border">
-                <Icon aria-hidden className="size-4" />
-            </span>
-            <div className="min-w-0">
+            <IconTile icon={navIcon(row.icon)} />
+            <div className="grid min-w-0 gap-0.5">
                 <Link
                     href={show.url(row.key)}
-                    className="text-accent-ink font-medium hover:underline"
+                    className="text-ink focus-visible:outline-ring justify-self-start rounded-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                     {row.plural}
                 </Link>
-                <div className="text-ink-2 flex flex-wrap items-center gap-2">
-                    <code className="text-caption break-all">{row.key}</code>
+                <div className="flex flex-wrap items-center gap-2">
+                    <code className="text-caption text-ink-2 font-mono break-all">
+                        {row.key}
+                    </code>
                     <span className="sm:hidden">
                         <SourceBadge source={row.source} />
                     </span>
                 </div>
                 {row.source === 'refused' && row.reason !== null && (
-                    <p className="text-danger-ink text-caption mt-1 flex items-start gap-1 text-pretty">
+                    <p className="text-danger-ink text-caption flex items-start gap-1 text-pretty">
                         <span className="flex h-lh shrink-0 items-center">
-                            <XCircle aria-hidden className="size-3.5" />
+                            <XCircle aria-hidden="true" className="size-3.5" />
                         </span>
-                        Can’t be used: {row.reason}
+                        {__('Can’t be used: :reason', { reason: row.reason })}
                     </p>
                 )}
-                <RowLinks
-                    items={actions(row, locked)}
-                    label={`Actions for ${row.plural}`}
-                    more={`More actions for ${row.plural}`}
-                />
+                <RowLine title={row.plural} items={lineActions(row, locked)} />
             </div>
         </div>
     );
 }
 
+const COUNT_LINK =
+    'text-accent-ink focus-visible:outline-ring inline-flex min-h-(--ctl-h-sm) items-center justify-self-start rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-2';
+
 function ItemsCell({ row }: { row: TypeRow }) {
     if (row.items === 0) {
-        return 'None';
+        return <span className="text-ink-3">{__('None')}</span>;
     }
 
+    const trashed = __n(':count in the trash|:count in the trash', row.trashed);
+
     return (
-        <span className="grid">
+        <span className="grid tabular-nums">
             {row.listUrl === null ? (
-                row.items
+                row.items.toLocaleString()
             ) : (
-                <Link
-                    href={row.listUrl}
-                    className="text-accent-ink inline-flex min-h-(--ctl-h-sm) items-center hover:underline"
-                >
-                    {row.items}
+                <Link href={row.listUrl} className={COUNT_LINK}>
+                    {row.items.toLocaleString()}
                 </Link>
             )}
             {row.trashed > 0 &&
                 (row.listUrl === null ? (
-                    <span>{row.trashed} in the trash</span>
+                    <span className="text-small text-ink-3">{trashed}</span>
                 ) : (
                     <Link
                         href={`${row.listUrl}?tab=trash`}
-                        className="text-accent-ink inline-flex min-h-(--ctl-h-sm) items-center hover:underline"
+                        className={`${COUNT_LINK} text-small`}
                     >
-                        {row.trashed} in the trash
+                        {trashed}
                     </Link>
                 ))}
         </span>
@@ -202,42 +212,82 @@ function ItemsCell({ row }: { row: TypeRow }) {
 }
 
 function SourceBadge({ source }: { source: TypeRow['source'] }) {
-    const pill = sources[source];
+    if (source === 'code') {
+        return <StatusPill tone="neutral">{__('Code')}</StatusPill>;
+    }
 
-    return <StatusPill tone={pill.tone}>{pill.label}</StatusPill>;
+    if (source === 'stored') {
+        return <StatusPill tone="info">{__('Made here')}</StatusPill>;
+    }
+
+    return <StatusPill tone="danger">{__('Can’t be used')}</StatusPill>;
 }
 
-function actions(row: TypeRow, locked: boolean): RowAction[] {
+/** A type made here with no items: the only kind that can go. */
+function deletable(row: TypeRow, locked: boolean): boolean {
+    return !locked && row.source !== 'code' && row.items === 0;
+}
+
+/** Under the name, always shown: View or Edit, Fields, and Open the list. */
+function lineActions(row: TypeRow, locked: boolean): RowAction[] {
     const href = show.url(row.key);
     const items: RowAction[] = [
         row.source === 'code' || locked
-            ? { id: 'view', owner: 'core', label: 'View', href }
+            ? { id: 'view', owner: 'core', label: __('View'), href }
             : {
                   id: 'edit',
                   owner: 'core',
-                  label: row.source === 'refused' ? 'Edit to fix' : 'Edit',
+                  label:
+                      row.source === 'refused' ? __('Edit to fix') : __('Edit'),
                   href,
               },
     ];
 
-    if (!locked && row.source !== 'code' && row.items === 0) {
+    if (row.source === 'stored' && !locked) {
         items.push({
-            id: 'delete',
+            id: 'fields',
             owner: 'core',
-            label: 'Delete',
-            destructive: true,
-            form: TypesController.destroy.form(row.key),
-            wrap: (button) => (
-                <ConfirmAction
-                    title={`Delete ${row.plural}?`}
-                    description="It has no items, so only the type goes."
-                    confirmLabel={`Delete ${row.plural}`}
-                >
-                    {button}
-                </ConfirmAction>
-            ),
+            label: __('Fields'),
+            href: typeFields.url(row.key),
+        });
+    }
+
+    if (row.listUrl !== null) {
+        items.push({
+            id: 'open',
+            owner: 'core',
+            label: __('Open :plural', { plural: row.plural.toLowerCase() }),
+            href: row.listUrl,
         });
     }
 
     return items;
+}
+
+/** The "…" menu of a type that can go: Edit, then Delete, asked first. */
+function menuActions(row: TypeRow): RowAction[] {
+    return [
+        {
+            id: 'edit',
+            owner: 'core',
+            label: __('Edit'),
+            href: show.url(row.key),
+        },
+        {
+            id: 'delete',
+            owner: 'core',
+            label: __('Delete…'),
+            destructive: true,
+            form: TypesController.destroy.form(row.key),
+            wrap: (button) => (
+                <ConfirmAction
+                    title={__('Delete :plural?', { plural: row.plural })}
+                    description={__('It has no items, so only the type goes.')}
+                    confirmLabel={__('Delete :plural', { plural: row.plural })}
+                >
+                    {button}
+                </ConfirmAction>
+            ),
+        },
+    ];
 }
