@@ -32,19 +32,21 @@ A redirect answers only where no page does, so it can never hide a live page.
 4. Choose a **Status**. **Moved permanently** is right for most. **Found (temporary)**, **Temporary redirect** and **Permanent redirect** are the other ways to send readers on. Use a **Note** to say why it is there, for whoever looks next.
 5. Choose **Save redirect**.
 
-The list shows each redirect with its **Hits** and **Last hit**. Hits are counted every minute, so the newest take a moment to appear. Choose **Switch off** to stop one without deleting it, and **Switch on** to bring it back.
+The list shows each redirect with its **Hits**, and under them when it was last used. Hits are counted every minute, so the newest take a moment to appear. Under each address, choose **Edit** to change it, or **Switch off** to stop it without deleting it, and **Switch on** to bring it back. The menu at the end of a row has the same, and **Delete**.
+
+To find one, type part of its address or note in the search box; the list changes as you type. Narrow it with **All states**, **Any status** and **Any origin**, and choose **Clear filters** to see them all again.
 
 ## To find addresses readers could not reach
 
-Open **The 404 log**. It lists the addresses readers asked for that don't exist, each with **Times**, **First seen**, **Last seen** and **Came from**. Only the site a reader came from is kept; no IP address and no browser.
+Open the **Not found** tab on **Tools › Redirects**. It lists the addresses readers asked for that don't exist, each with **Times**, **First seen**, **Last seen** and **Came from**. Only the site a reader came from is kept; no IP address and no browser.
 
 The log keeps a limited number of addresses. When it is full, the address seen least recently makes room. Bots probing for WordPress and server files are ignored.
 
-On a row, choose **Add a redirect** to send that address on, or **Mark as gone**. An address that already has a redirect is marked **Redirected**. **Change log settings** is for how much the log keeps.
+On a row, choose **Create redirect** to send that address on, or **Mark as gone**. An address that already has a redirect is marked **Redirected**. **Change log settings** is for how much the log keeps.
 
 ## To tell search engines an address is gone for good
 
-Use the status **Gone**. It answers that the address was removed on purpose, and search engines drop it. You can set it from a redirect's form, or by choosing **Mark as gone** on a row of the 404 log. **Unavailable for legal reasons** is for an address you must not serve.
+Use the status **Gone**. It answers that the address was removed on purpose, and search engines drop it. You can set it from a redirect's form, or by choosing **Mark as gone** on a row of the **Not found** tab. **Unavailable for legal reasons** is for an address you must not serve.
 
 ## To bring redirects in, or take them out
 
