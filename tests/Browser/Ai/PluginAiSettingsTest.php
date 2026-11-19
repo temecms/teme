@@ -105,9 +105,7 @@ it('names the plugin in Tools › AI activity with its mark, totals Teme and eac
 
     $page->click('#ai-plugin')
         ->assertSee('Teme only')
-        ->click('[role="option"] >> text="Scribe"')
-        ->assertNotPresent('[role="listbox"]')
-        ->click('[data-test="ai-filter"]');
+        ->click('[role="option"] >> text="Scribe"');
     cmWaitUntil($page, 'window.location.search.includes("plugin=scribe")');
 
     $page->assertSee('Write an article')
@@ -119,7 +117,7 @@ it('shows the plugin’s AI cost this month on the Plugins screen', function ():
         ->assertSeeIn('[data-test="plugin-scribe"] [data-test="plugin-ai"]', 'AI this month: $0.0011 of $5.00');
 });
 
-it('leaves the Asked by filter out while only Teme has asked', function (): void {
+it('leaves the Plugin filter out while only Teme has asked', function (): void {
     DB::table('ai_activity')->whereNotNull('plugin')->delete();
     DB::table('ai_plugin_monthly_spend')->delete();
     aiTask('tidy');

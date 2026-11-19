@@ -65,7 +65,8 @@ it('passes axe on Tools › AI activity and on a request\'s drawer, every target
 
     $page->assertSee('Every AI request, newest first.')
         ->assertSee('$0.0014')
-        ->assertSee('$50.00 a month')
+        ->assertSee('Monthly budget')
+        ->assertSee('$50.00')
         ->assertSee('The AI service took too long to answer.')
         ->assertSee('1 request used a model with no price, so its cost is left out.')
         ->assertNoAccessibilityIssues(3);
@@ -92,10 +93,7 @@ it('narrows the list to one person through the real select', function (): void {
         ->click('#ai-person')
         ->click('[role="option"] >> text="Ada Admin"');
 
-    // The list fades out as the choice lands; the next click would meet it.
-    cmWaitUntil($page, "document.querySelector('[role=\"listbox\"]') === null");
-
-    $page->click('[data-test="ai-filter"]');
+    // The list changes as the choice lands, with no Filter button.
     ($this->textShown)($page, 'Clear filters');
 
     $page->assertQueryStringHas('person', (string) $this->admin->id)

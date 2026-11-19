@@ -1,9 +1,12 @@
 import { Link } from '@inertiajs/react';
 import type { CSSProperties, ReactNode } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 import {
     Sheet,
+    SheetClose,
     SheetContent,
+    SheetFooter,
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
@@ -202,10 +205,10 @@ export function AiActivityDetails({
                                         version: details.prompt.version,
                                     })}
                                 </Row>
-                                <Row label={__('Tokens sent')}>
+                                <Row label={__('Tokens in')}>
                                     {details.tokens.input.toLocaleString()}
                                 </Row>
-                                <Row label={__('Tokens received')}>
+                                <Row label={__('Tokens out')}>
                                     {details.tokens.output.toLocaleString()}
                                 </Row>
                                 <Row label={__('Read from the cache')}>
@@ -259,7 +262,19 @@ export function AiActivityDetails({
                                     </>
                                 )}
                             </dl>
+                            <p className="text-ink-2 text-small mt-4">
+                                {__(
+                                    'Teme keeps these figures, never the text sent or the answer.',
+                                )}
+                            </p>
                         </ScrollArea>
+                        <SheetFooter className="mt-auto flex-row border-t">
+                            <SheetClose asChild>
+                                <Button type="button" variant="outline">
+                                    {__('Close')}
+                                </Button>
+                            </SheetClose>
+                        </SheetFooter>
                     </>
                 )}
             </SheetContent>
