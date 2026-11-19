@@ -253,7 +253,12 @@ function SourceBadge({ source }: { source: TypeRow['source'] }) {
 
 /** A type made here with no items: the only kind that can go. */
 function deletable(row: TypeRow, locked: boolean): boolean {
-    return !locked && row.source !== 'code' && row.plugin === null && row.items === 0;
+    return (
+        !locked &&
+        row.source !== 'code' &&
+        row.plugin === null &&
+        row.items === 0
+    );
 }
 
 /** Under the name, always shown: View or Edit, Fields, and Open the list. */
