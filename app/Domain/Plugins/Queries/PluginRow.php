@@ -26,6 +26,7 @@ final readonly class PluginRow
      * @param  string|null  $schedules  why its schedules don't run, with what to do; null when they do or it has none
      * @param  array{costMicrounits: int, budgetMicrounits: int|null}|null  $ai  this month's AI cost and the plugin's own budget, for a plugin granted ai; null otherwise
      * @param  list<string>  $requiredBy  the plugins found that require it, by Composer name
+     * @param  string|null  $icon  the address of its own icon, or null when it declares none that is there
      */
     public function __construct(
         public string $name,
@@ -45,5 +46,6 @@ final readonly class PluginRow
         public ?string $schedules = null,
         public ?array $ai = null,
         public array $requiredBy = [],
+        public ?string $icon = null,
     ) {}
 }

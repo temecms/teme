@@ -214,6 +214,9 @@ Route::prefix('admin')->middleware(['admin', 'auth'])->group(function (): void {
             ->name('plugins.')
             ->group(function (): void {
                 Route::get('/', [PluginsController::class, 'index'])->name('index');
+                Route::get('{code}/icon', [PluginsController::class, 'icon'])
+                    ->where('code', ManifestValidator::CODE_PATTERN)
+                    ->name('icon');
                 Route::post('{code}/enable', [PluginsController::class, 'enable'])
                     ->where('code', ManifestValidator::CODE_PATTERN)
                     ->name('enable');

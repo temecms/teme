@@ -49,6 +49,8 @@ export type PluginRowPage = {
     author: string;
     authorUrl: string;
     homepage: string;
+    /** The address of the plugin’s own icon, or null to draw its initials. */
+    icon: string | null;
     state: PluginState;
     badge: string;
     reason: string;

@@ -16,6 +16,7 @@ namespace App\Domain\Plugins\Queries;
 
 use App\Domain\Ai\Plugins\PluginAiSection;
 use App\Domain\Ai\Plugins\PluginAiSpend;
+use App\Domain\Extensions\PackagePictures;
 use App\Domain\Plugins\Consent;
 use App\Domain\Plugins\Dependencies;
 use App\Domain\Plugins\FoundPlugin;
@@ -95,6 +96,9 @@ final readonly class PluginList
             schedules: $record === null ? null : $this->schedules->problem($record),
             ai: in_array(Capability::Ai->value, $consent['capabilities'] ?? [], true) && $plugin !== null ? $this->ai($plugin->code) : null,
             requiredBy: $this->dependencies->requiredBy($name),
+            icon: $plugin !== null && $manifest !== null && PackagePictures::find($plugin->path, $manifest->icon()) !== null
+                ? route('plugins.icon', ['code' => $plugin->code, 'v' => $manifest->version()])
+                : null,
         );
     }
 

@@ -41,7 +41,15 @@ final class AdminSecurityHeaders
         // Read after the response: the preview's controller sets it while it runs.
         $preview = $request->attributes->get(self::PREVIEW) === true ? $this->previewSources($request) : null;
 
+        // A policy the response brought, such as a plugin's SVG icon's
+        // sandbox, is kept beside the admin's: a browser enforces both, so it
+        // can only narrow what the page may do, never widen it.
+        $own = $response->headers->all('content-security-policy');
         $response->headers->set('Content-Security-Policy', $this->policy($nonce, $preview));
+
+        foreach ($own as $policy) {
+            $response->headers->set('Content-Security-Policy', $policy, false);
+        }
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', $request->routeIs('password.reset') ? 'no-referrer' : 'strict-origin-when-cross-origin');

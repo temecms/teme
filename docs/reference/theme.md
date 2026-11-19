@@ -35,6 +35,8 @@ Every rename, change of type or removal is named in `CHANGELOG.md` under *Theme 
 | `speculation` | boolean | no | A theme may only opt out: false leaves the prerendering rules out. |
 | `breadcrumbs` | boolean | no | Whether the theme draws a breadcrumb trail; false when absent. |
 | `screenshot` | string | no | A path inside the theme, with no .., to a .png, .jpg or .webp image, in any case. A missing file is no error. |
+| `icon` | string | no | The theme’s icon: a path inside the theme, with no .., to a .png, .jpg, .jpeg, .webp or .svg picture, in any case. Square; drawn at up to 96 pixels. A missing file is no error. |
+| `screenshots` | array | no | Up to 8 pictures of the theme at work, in the order Teme’s directory shows them. |
 | `cards` | object | no | Cards the theme styles itself. |
 | `composers` | array | no | Class names of the theme's view composers, each asking only for Teme\Contracts interfaces. |
 | `per_page` | integer | no | Items per page of a listing; 10 when absent. |
