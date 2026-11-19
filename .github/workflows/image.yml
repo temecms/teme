@@ -17,6 +17,15 @@ on:
         description: Push the image to ghcr.io once every check passes
         type: boolean
         default: false
+  # The nightly run builds and runs it from main, so a change that breaks a
+  # fresh install is caught within a day, not at the next release. It never
+  # publishes.
+  workflow_call:
+    inputs:
+      publish:
+        description: Push the image to ghcr.io once every check passes
+        type: boolean
+        default: false
   push:
     tags:
       - "v*"

@@ -1,0 +1,153 @@
+name: nightly
+
+# Every night, on main: what a pull request's checks can't see.
+# - The newest releases of every dependency Teme allows, so an upstream release
+#   that breaks Teme is found within a day, not when Dependabot opens its PR.
+# - Known security advisories for the locked dependencies.
+# - The image built from main and run as a fresh install (image.yml), so a
+#   change that breaks installing is found before the next release.
+# One issue tracks a failing night: opened on the first, commented on after,
+# closed by the next night that passes.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: security advisories
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/prepare
+
+      - name: Composer and npm advisories
+        run: |
+          composer audit --locked --no-interaction
+          npm audit --omit=dev --audit-level=high
+
+  latest:
+    name: newest dependencies (${{ matrix.shard }} of 5)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5]
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: teme_test
+          POSTGRES_USER: teme
+          POSTGRES_PASSWORD: teme
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U teme -d teme_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      valkey:
+        image: valkey/valkey:9.1-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/prepare
+        with:
+          tools: 'true'
+
+      # Within what composer.json and package.json allow: what a site gets
+      # when it next installs.
+      - name: Move to the newest allowed releases
+        run: |
+          composer update --no-interaction --prefer-dist --with-all-dependencies
+          npm update
+          php artisan wayfinder:generate --with-form
+          git diff --stat -- composer.lock package-lock.json
+
+      - name: Static checks (first share only)
+        if: matrix.shard == 1
+        run: |
+          vendor/bin/phpstan analyse --no-progress
+          npm run types:check
+          php artisan test --testsuite=Architecture
+
+      - name: Run the suite's share
+        env:
+          TEME_REQUIRE_VALKEY: '1'
+          TEME_POSTGRES_BINDIR: /usr/lib/postgresql/18/bin
+        run: |
+          npm run build:themes
+          vendor/bin/pest --parallel --testsuite=Unit,Feature --shard=${{ matrix.shard }}/5
+
+  image:
+    name: fresh install
+    uses: ./.github/workflows/image.yml
+    permissions:
+      contents: read
+      packages: write
+    with:
+      publish: false
+
+  report:
+    name: track a failing night
+    needs: [audit, latest, image]
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      issues: write
+
+    steps:
+      - name: Open, update or close the tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          FAILED: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          AUDIT: ${{ needs.audit.result }}
+          LATEST: ${{ needs.latest.result }}
+          IMAGE: ${{ needs.image.result }}
+        run: |
+          title="The nightly run fails"
+          open="$(gh issue list --state open --search "\"${title}\" in:title" --json number,title --jq ".[] | select(.title == \"${title}\") | .number" | head -n 1)"
+          summary="Security advisories: ${AUDIT}. Newest dependencies: ${LATEST}. Fresh install: ${IMAGE}. [The run](${RUN})."
+          if [ "$FAILED" = true ]; then
+            if [ -n "$open" ]; then
+              gh issue comment "$open" --body "Still failing on $(date -u +%Y-%m-%d). ${summary}"
+            else
+              gh issue create --title "$title" --label type/bug --body "The nightly run on main failed on $(date -u +%Y-%m-%d). ${summary}
+
+          This issue stays open, with a comment each night it still fails, and closes itself on the first night that passes."
+            fi
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "Passed on $(date -u +%Y-%m-%d). ${summary}"
+          fi
