@@ -1,5 +1,5 @@
-import { CircleCheck, CircleX } from 'lucide-react';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
 import type { BackupCheck } from '@/types/backups';
 
@@ -25,33 +25,18 @@ export function ChecksList({ checks }: { checks: BackupCheck[] }) {
                 {checks.length === 0 ? (
                     <p className="text-ink-2">{__('No checks yet.')}</p>
                 ) : (
-                    <ul className="divide-line grid divide-y">
+                    <ul className="grid gap-3">
                         {checks.map((check) => (
                             <li
                                 key={check.id}
                                 data-test="backup-check"
-                                className="grid gap-1 py-3"
+                                className="bg-surface-2 grid justify-items-start gap-1 rounded-lg p-4"
                             >
-                                <p
-                                    className={
-                                        check.passed
-                                            ? 'flex items-center gap-2 font-medium'
-                                            : 'text-danger-ink flex items-center gap-2 font-medium'
-                                    }
+                                <StatusPill
+                                    tone={check.passed ? 'ok' : 'danger'}
                                 >
-                                    {check.passed ? (
-                                        <CircleCheck
-                                            aria-hidden="true"
-                                            className="size-4"
-                                        />
-                                    ) : (
-                                        <CircleX
-                                            aria-hidden="true"
-                                            className="size-4"
-                                        />
-                                    )}
                                     {check.passed ? __('Passed') : __('Failed')}
-                                </p>
+                                </StatusPill>
                                 <p className="break-words">{check.sentence}</p>
                                 <p className="text-small text-ink-2">
                                     {check.place === null

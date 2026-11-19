@@ -23,21 +23,32 @@ use App\Domain\Backups\BackupRunState;
 use App\Domain\Backups\BackupSettings;
 use App\Domain\Backups\BackupVerdict;
 use App\Domain\Backups\BackupWords;
+use App\Domain\Backups\KeptRuns;
 use App\Domain\Backups\Models\BackupDestination;
 use App\Domain\Backups\Models\BackupKey;
 use App\Domain\Backups\Models\BackupRun;
 use App\Domain\Backups\RecoveryKeyChallenge;
 use App\Domain\Backups\RecoveryKeyChallengeId;
+use App\Domain\Backups\Tools\BackupSnapshots;
 use App\Domain\Backups\Tools\SftpKeyPair;
+use App\Domain\Backups\Tools\SnapshotRun;
 use App\Domain\Settings\Models\SettingsGroupRecord;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use stdClass;
 use Teme\Contracts\Settings\SettingsReader;
 
 final readonly class BackupsScreen
 {
+    /**
+     * The most backups the screen lists; teme:backup:list has every one.
+     *
+     * @since next
+     */
+    public const int MOST_LISTED = 50;
+
     /** The kinds of run that check a backup. */
     public const array CHECK_KINDS = ['check', 'read-back', 'test-restore'];
 
@@ -238,7 +249,7 @@ final readonly class BackupsScreen
     }
 
     /** The props data() returns, `running` included. */
-    public const array KEYS = ['setup', 'running', 'firstBackup', 'firstBackupOnItsWay', 'verdict', 'newest', 'schedule', 'places', 'checks', 'keys', 'pending', 'offServerAdvice'];
+    public const array KEYS = ['setup', 'running', 'firstBackup', 'firstBackupOnItsWay', 'verdict', 'newest', 'schedule', 'places', 'backups', 'checks', 'keys', 'pending', 'offServerAdvice'];
 
     /**
      * Whether the site's first backup is really on its way, so the open page
@@ -310,9 +321,10 @@ final readonly class BackupsScreen
             'firstBackupOnItsWay' => $this->firstBackupOnItsWay($setup, $this->running($now), null, $now),
             'firstBackup' => $isSetUp && $newest === null ? $this->firstBackup($verdict, $now) : null,
             'verdict' => $verdict,
-            'newest' => $newest === null ? null : $this->newestFigures($newest),
+            'newest' => $newest === null ? null : $this->newestFigures($newest, $now),
             'schedule' => $isSetUp ? $this->schedule($now) : null,
             'places' => $places->map(fn (BackupDestination $place): array => $this->placeRow($place, $now, $newestThere, $missing[$place->id]))->all(),
+            'backups' => $isSetUp ? $this->kept($places) : [],
             'checks' => $this->latestChecks($places)->map(fn (BackupRun $run): array => $this->checkRow($run, $now))->all(),
             'keys' => array_map(
                 fn (string $label): array => [
@@ -444,13 +456,98 @@ final readonly class BackupsScreen
     }
 
     /**
-     * @return array{databaseBytes: int, mediaFiles: int, mediaBytes: int, bytesAdded: int, took: string}
+     * Returns the backups each place in use still keeps, newest first, at
+     * most MOST_LISTED: each with its run ID (what teme:backup:restore
+     * takes), the place's ID and name, when it was made, what it holds and
+     * whether the check after it passed (`passed`, `failed`, or null before
+     * one). Read from Teme's own record of each backup and copy, and kept
+     * by the same rule the prune keeps them (I-361), so a place changed
+     * outside Teme can hold otherwise; teme:backup:list asks the place.
+     *
+     * @since next
+     *
+     * @param  Collection<int, BackupDestination>  $places
+     *
+     * @return list<array{runId: string, placeId: string, place: string, madeAt: string, databaseBytes: int, mediaBytes: int, mediaFiles: int, checked: string|null}>
      */
-    private function newestFigures(BackupRun $run): array
+    public function kept(Collection $places): array
+    {
+        if ($places->isEmpty()) {
+            return [];
+        }
+
+        // A copy's run ID is its backup's, as the place tags it, and each place's check sits under the backup; backup_runs_destination_index serves the filter.
+        $rows = DB::select(<<<'SQL'
+            SELECT run.destination_id AS place, COALESCE(run.parent_id, run.id) AS run_id,
+                   COALESCE(parent.started_at, run.started_at) AS made_at, COALESCE(parent.figures, run.figures) AS figures,
+                   (SELECT checked.state FROM backup_runs AS checked
+                     WHERE checked.parent_id = COALESCE(run.parent_id, run.id) AND checked.destination_id = run.destination_id
+                       AND checked.kind = 'check' AND checked.state <> 'running'
+                     ORDER BY checked.started_at DESC LIMIT 1) AS checked
+            FROM backup_runs AS run
+            LEFT JOIN backup_runs AS parent ON parent.id = run.parent_id
+            WHERE run.destination_id = ANY (?::char(26)[])
+              AND run.state = 'finished'
+              AND run.kind IN ('backup', 'copy')
+            ORDER BY made_at DESC, run_id DESC
+            SQL, ['{'.implode(',', $places->pluck('id')->all()).'}']);
+
+        $byPlace = [];
+
+        foreach ($rows as $row) {
+            $byPlace[(string) $row->place][] = $row;
+        }
+
+        $names = $places->pluck('name', 'id')->all();
+        $whole = array_fill_keys(BackupSnapshots::PARTS, '');
+        $zone = $this->settings->string('general', 'timezone');
+        $listed = [];
+
+        foreach ($byPlace as $placeId => $made) {
+            $runs = array_map(fn (stdClass $row): SnapshotRun => new SnapshotRun((string) $row->run_id, CarbonImmutable::parse((string) $row->made_at), $whole, []), $made);
+            $kept = array_flip(KeptRuns::choose(
+                $runs,
+                $this->settings->int(BackupSettings::GROUP, 'keep_daily'),
+                $this->settings->int(BackupSettings::GROUP, 'keep_weekly'),
+                $this->settings->int(BackupSettings::GROUP, 'keep_monthly'),
+                $zone,
+            ));
+
+            foreach ($made as $row) {
+                if (! isset($kept[(string) $row->run_id])) {
+                    continue;
+                }
+
+                $figures = json_decode((string) $row->figures, true);
+                $figures = is_array($figures) ? $figures : [];
+
+                $listed[] = [
+                    'runId' => (string) $row->run_id,
+                    'placeId' => $placeId,
+                    'place' => (string) ($names[$placeId] ?? ''),
+                    'madeAt' => CarbonImmutable::parse((string) $row->made_at)->utc()->toIso8601String(),
+                    'databaseBytes' => (int) ($figures['database_bytes'] ?? 0),
+                    'mediaBytes' => (int) ($figures['media_bytes'] ?? 0),
+                    'mediaFiles' => (int) ($figures['media_files'] ?? 0),
+                    'checked' => $row->checked === null ? null : ($row->checked === BackupRunState::Finished->value ? 'passed' : 'failed'),
+                ];
+            }
+        }
+
+        usort($listed, fn (array $a, array $b): int => [$b['madeAt'], $b['runId'], $a['place']] <=> [$a['madeAt'], $a['runId'], $b['place']]);
+
+        return array_slice($listed, 0, self::MOST_LISTED);
+    }
+
+    /**
+     * @return array{when: string, databaseBytes: int, mediaFiles: int, mediaBytes: int, bytesAdded: int, took: string}
+     */
+    private function newestFigures(BackupRun $run, CarbonImmutable $now): array
     {
         $figures = $run->figures;
 
         return [
+            'when' => $this->words->when($run->started_at, $now),
             'databaseBytes' => (int) ($figures['database_bytes'] ?? 0),
             'mediaFiles' => (int) ($figures['media_files'] ?? 0),
             'mediaBytes' => (int) ($figures['media_bytes'] ?? 0),
@@ -475,6 +572,7 @@ final readonly class BackupsScreen
             'keepWeekly' => $weekly,
             'keepMonthly' => $monthly,
             'next' => 'Next backup '.$this->words->next($now).'.',
+            'nextAt' => $this->words->next($now),
             'kept' => BackupWords::kept($daily, $weekly, $monthly),
             'zone' => $this->settings->string('general', 'timezone'),
             'version' => (int) (SettingsGroupRecord::query()->whereKey(BackupSettings::GROUP)->value('version') ?? 0),

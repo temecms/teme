@@ -1,16 +1,16 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, setLayoutProps } from '@inertiajs/react';
 import { useState } from 'react';
 import BackupPlacesController from '@/actions/App/Http/Admin/Tools/Backups/BackupPlacesController';
 import { PlaceFields } from '@/components/backups/place-fields';
 import InputError from '@/components/input-error';
 import { FormPage, FormPanel } from '@/components/patterns/form-page';
-import { SaveBar } from '@/components/patterns/save-bar';
 import PasswordInput from '@/components/password-input';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { TextButton } from '@/components/ui/text-button';
 import { __ } from '@/lib/i18n';
 import { index } from '@/routes/tools';
 import { index as backups } from '@/routes/tools/backups';
+import { create, edit } from '@/routes/tools/backups/places';
 import type { BackupPlaceKind, PlacePage } from '@/types/backups';
 
 /** Adding a place, or changing where one is (I-2402): the same fields as setup, with the recovery key typed for a new place. */
@@ -34,10 +34,21 @@ export default function Place({ mode, place, suggestedFolder }: PlacePage) {
         }
     };
 
-    // How many times Discard has drawn the fields afresh.
-    const [drawn, setDrawn] = useState(0);
-    const title = adding ? 'Add a place' : `Change ${place?.name ?? 'place'}`;
+    const title = adding
+        ? __('Add a place')
+        : __('Change :name', { name: place?.name ?? '' });
     const continues = kind === 'sftp' && (adding || moved);
+
+    setLayoutProps({
+        breadcrumbs: [
+            { title: __('Tools'), href: index() },
+            { title: __('Backups'), href: backups() },
+            {
+                title: __('Add or change a place'),
+                href: adding ? create() : edit({ place: place?.id ?? '' }),
+            },
+        ],
+    });
 
     return (
         <>
@@ -47,8 +58,12 @@ export default function Place({ mode, place, suggestedFolder }: PlacePage) {
                 title={title}
                 description={
                     adding
-                        ? 'Another place to keep backups, kept in step with the others.'
-                        : 'Its name, or where it is. Teme checks that the backups at the new address are the same ones.'
+                        ? __(
+                              'Another place to keep backups, kept in step with the others.',
+                          )
+                        : __(
+                              'Its name, or where it is. Teme checks that the backups at the new address are the same ones.',
+                          )
                 }
             >
                 <Form
@@ -59,12 +74,12 @@ export default function Place({ mode, place, suggestedFolder }: PlacePage) {
                           }))}
                     onInput={watchServer}
                 >
-                    {({ processing, errors, isDirty, reset }) => (
+                    {({ processing, errors }) => (
                         <>
-                            <FormPanel>
+                            <FormPanel
+                                title={adding ? __('The place') : place?.name}
+                            >
                                 <PlaceFields
-                                    // Discard draws the fields afresh, since they keep what is typed in their own state.
-                                    key={drawn}
                                     kind={kind}
                                     onKindChange={setKind}
                                     suggestedFolder={suggestedFolder}
@@ -75,7 +90,7 @@ export default function Place({ mode, place, suggestedFolder }: PlacePage) {
                                 {adding && (
                                     <div className="grid gap-2">
                                         <Label htmlFor="place-recovery-key">
-                                            Your recovery key
+                                            {__('Your recovery key')}
                                         </Label>
                                         <PasswordInput
                                             id="place-recovery-key"
@@ -87,9 +102,9 @@ export default function Place({ mode, place, suggestedFolder }: PlacePage) {
                                             id="place-recovery-key-hint"
                                             className="text-caption text-ink-3"
                                         >
-                                            Teme locks the new place with it
-                                            too, then forgets it. It’s a key you
-                                            typed back when it was made.
+                                            {__(
+                                                'Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.',
+                                            )}
                                         </p>
                                         <InputError
                                             id="place-recovery-key-error"
@@ -100,59 +115,51 @@ export default function Place({ mode, place, suggestedFolder }: PlacePage) {
 
                                 {adding && kind !== 'folder' && (
                                     <p className="text-body">
-                                        Making the place can take a few minutes
-                                        on a distant server. Keep this page
-                                        open.
+                                        {__(
+                                            'Making the place can take a few minutes on a distant server. Keep this page open.',
+                                        )}
                                     </p>
                                 )}
 
-                                <InputError
-                                    id="place-error"
-                                    message={errors.place}
-                                />
+                                <div className="grid justify-items-start gap-2">
+                                    <InputError
+                                        id="place-error"
+                                        message={errors.place}
+                                    />
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            type="submit"
+                                            disabled={processing}
+                                            aria-describedby="place-error"
+                                            data-test="place-submit"
+                                        >
+                                            {adding
+                                                ? processing
+                                                    ? kind === 'sftp'
+                                                        ? __(
+                                                              'Reading the server’s fingerprint…',
+                                                          )
+                                                        : __('Adding…')
+                                                    : continues
+                                                      ? __('Continue')
+                                                      : __('Add the place')
+                                                : processing
+                                                  ? __('Saving…')
+                                                  : continues
+                                                    ? __('Continue')
+                                                    : __('Save changes')}
+                                        </Button>
+                                        <Button variant="ghost" asChild>
+                                            <Link
+                                                href={backups()}
+                                                data-test="place-cancel"
+                                            >
+                                                {__('Cancel')}
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </div>
                             </FormPanel>
-
-                            <p className="mt-4">
-                                <TextButton asChild>
-                                    <Link
-                                        href={backups()}
-                                        data-test="place-cancel"
-                                    >
-                                        Cancel
-                                    </Link>
-                                </TextButton>
-                            </p>
-
-                            <SaveBar
-                                dirty={isDirty}
-                                processing={processing}
-                                onDiscard={() => {
-                                    reset();
-                                    setKind(place?.kind ?? 'folder');
-                                    setMoved(false);
-                                    setDrawn((count) => count + 1);
-                                }}
-                                what={place?.name ?? __('this place')}
-                                testId="place-submit"
-                                aria-describedby="place-error"
-                                saveLabel={
-                                    adding
-                                        ? processing
-                                            ? kind === 'sftp'
-                                                ? __(
-                                                      'Reading the server’s fingerprint…',
-                                                  )
-                                                : __('Adding…')
-                                            : continues
-                                              ? __('Continue')
-                                              : __('Add the place')
-                                        : processing
-                                          ? __('Saving…')
-                                          : continues
-                                            ? __('Continue')
-                                            : __('Save changes')
-                                }
-                            />
                         </>
                     )}
                 </Form>
@@ -160,10 +167,3 @@ export default function Place({ mode, place, suggestedFolder }: PlacePage) {
         </>
     );
 }
-
-Place.layout = {
-    breadcrumbs: [
-        { title: 'Tools', href: index() },
-        { title: 'Backups', href: backups() },
-    ],
-};
