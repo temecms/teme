@@ -71,8 +71,6 @@ R2	js/components/comments/comment-details.tsx	text-[13px]
 R2	js/components/comments/comment-details.tsx	text-[13px]
 R2	js/components/comments/comment-details.tsx	text-[13px]
 R2	js/components/comments/comment-details.tsx	text-xs
-R2	js/components/comments/commenter.tsx	text-[11px]
-R2	js/components/comments/commenter.tsx	text-[12px]
 R2	js/components/comments/inline-reply.tsx	text-[12px]
 R2	js/components/comments/inline-reply.tsx	text-[13px]
 R2	js/components/comments/quick-edit.tsx	text-[12px]
@@ -133,9 +131,6 @@ R2	js/pages/tools/jobs.tsx	text-[13px]
 R2	js/pages/tools/jobs.tsx	text-xs
 R3	js/components/comments/comment-details.tsx	mt-0.5
 R3	js/components/comments/comment-details.tsx	space-y-1.5
-R3	js/components/comments/commenter.tsx	gap-1.5
-R3	js/components/comments/commenter.tsx	space-y-0.5
-R3	js/components/comments/commenter.tsx	space-y-0.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
 R3	js/components/comments/quick-edit.tsx	gap-1.5
@@ -158,7 +153,6 @@ R3	js/components/ui/sidebar.tsx	top-3.5
 R3	js/components/ui/toggle.tsx	px-1.5
 R3	js/components/user-menu-content.tsx	py-1.5
 R5	js/components/ai-settings/service-panel.tsx	<details>
-R5	js/components/comments/commenter.tsx	<button type="button">
 R5	js/components/comments/inline-reply.tsx	<textarea>
 R5	js/components/comments/quick-edit.tsx	<textarea>
 R5	js/components/editor/cards/callout-card.tsx	<textarea>
@@ -172,7 +166,6 @@ R5	js/components/fields/home-page-setting.tsx	<button type="button">
 R5	js/components/fields/media-setting.tsx	<button type="button">
 R5	js/components/list/bulk-edit-dialog.tsx	<button type="button">
 R5	js/components/list/data-table.tsx	<table>
-R5	js/components/list/row-actions.tsx	<button type="button">
 R5	js/components/list/row-actions.tsx	<button type="submit">
 R5	js/components/list/row-links.tsx	<button type="button">
 R5	js/components/list/row-links.tsx	<button type="submit">
@@ -191,7 +184,6 @@ R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/fields.tsx	<table>
 R5	js/pages/types/show.tsx	<table>
 R6	js/components/app-shell.tsx	z-50
-R6	js/components/comments/commenter.tsx	leading-4
 R6	js/components/editor/cards/imported-content-card.tsx	tracking-wide
 R6	js/components/fields/settings-save-bar.tsx	shadow-sm
 R6	js/components/fields/settings-save-bar.tsx	z-10
