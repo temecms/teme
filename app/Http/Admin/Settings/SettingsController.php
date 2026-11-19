@@ -52,7 +52,7 @@ final class SettingsController extends Controller
     /**
      * Lets a person see every settings group, and change none they may not manage.
      *
-     * @since next
+     * @since 1.2.0
      */
     public const string VIEW = 'settings.view';
 

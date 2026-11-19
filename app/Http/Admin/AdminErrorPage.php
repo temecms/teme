@@ -6,7 +6,7 @@
  * left to the standalone card (resources/views/errors).
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
@@ -30,7 +30,7 @@ final class AdminErrorPage
      * signed in; null for any other error or request, which the standalone
      * card answers.
      *
-     * @since next
+     * @since 1.2.0
      */
     public static function render(Throwable $exception, Request $request): ?Response
     {
@@ -91,7 +91,7 @@ final class AdminErrorPage
      * middleware, so the 404 knows who is signed in and is drawn inside the
      * admin.
      *
-     * @since next
+     * @since 1.2.0
      */
     public function notFound(): never
     {

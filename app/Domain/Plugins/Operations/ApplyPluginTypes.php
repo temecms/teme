@@ -11,7 +11,7 @@
  * or a field's kind would change under values items hold. Returns what changed.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

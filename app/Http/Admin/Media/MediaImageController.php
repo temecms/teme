@@ -6,7 +6,7 @@
  * the media item's own update, so UpdateMediaDetails writes it.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
@@ -24,7 +24,7 @@ use Inertia\Response;
 final class MediaImageController extends Controller
 {
     /**
-     * @since next
+     * @since 1.2.0
      */
     public function __invoke(Request $request, string $media, MediaDetails $details, ImagePlace $places): Response
     {

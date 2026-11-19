@@ -4,7 +4,7 @@
  * Applies a plugin's declared types file to the site, as it is enabled or updated.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

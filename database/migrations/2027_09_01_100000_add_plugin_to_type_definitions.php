@@ -4,7 +4,7 @@
  * Migration: adds plugin to the type, taxonomy and field definitions.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

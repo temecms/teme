@@ -6,7 +6,7 @@
  * the plural of its type for "anyone who may edit other people's posts".
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

@@ -6,7 +6,7 @@
  * to keep, with what was decided about it and by whom. It reads only.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

@@ -103,7 +103,7 @@ final class SiteCodeController extends Controller
     }
 
     /**
-     * @since next
+     * @since 1.2.0
      */
     public function approveScript(Request $request, ApprovePluginScript $approve, string $script): RedirectResponse
     {
@@ -114,7 +114,7 @@ final class SiteCodeController extends Controller
     }
 
     /**
-     * @since next
+     * @since 1.2.0
      */
     public function refuseScript(Request $request, RefusePluginScript $refuse, string $script): RedirectResponse
     {
@@ -125,7 +125,7 @@ final class SiteCodeController extends Controller
     }
 
     /**
-     * @since next
+     * @since 1.2.0
      */
     public function revokeScript(Request $request, RevokePluginScript $revoke, string $script): RedirectResponse
     {

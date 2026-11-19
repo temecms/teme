@@ -30,7 +30,7 @@ final class SettingsPanels
      *
      * @var array<string, list<array{title: string, description: string, keys: list<string>}>>
      *
-     * @since next
+     * @since 1.2.0
      */
     public const array CORE = [
         'general' => [

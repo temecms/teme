@@ -5,7 +5,7 @@
  * isn't a version 1 teme-types file; its message says why in words.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

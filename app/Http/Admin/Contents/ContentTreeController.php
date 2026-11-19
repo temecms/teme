@@ -5,7 +5,7 @@
  * TreeRows and marked Soon, since moving items in it is not built yet.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
@@ -22,7 +22,7 @@ use Inertia\Response;
 final class ContentTreeController extends Controller
 {
     /**
-     * @since next
+     * @since 1.2.0
      */
     public function __invoke(string $type, ContentTypeRegistry $types): Response
     {

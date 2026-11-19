@@ -7,7 +7,7 @@
  * A class using it uses ManagesTypes, ManagesTaxonomies and ManagesFields too.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

@@ -27,7 +27,7 @@ final readonly class AcceptInvitationInput implements OperationInput
          * The name the person wants on what they write; null or blank keeps
          * the one they were invited by.
          *
-         * @since next
+         * @since 1.2.0
          */
         public ?string $name = null,
     ) {}

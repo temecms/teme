@@ -51,7 +51,7 @@ final class MediaLibraryController extends Controller
      * Show more: the files after the last one shown, under the same filters
      * and in the same order, with the cursor past them.
      *
-     * @since next
+     * @since 1.2.0
      */
     public function more(Request $request, MediaLibrary $library, SettingsReader $settings, UploadedForItem $items): JsonResponse
     {
