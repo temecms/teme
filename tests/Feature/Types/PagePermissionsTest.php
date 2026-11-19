@@ -121,10 +121,12 @@ it('shuts Pages to authors and contributors: the list, the menu and New page', f
 it('links Home’s figures only to the lists the person may open', function (): void {
     $figures = fn (User $person): array => collect(app(Dashboard::class)->forUser($person)['figures'])->pluck('url', 'key')->all();
 
-    expect($figures($this->author)['page.published'])->toBeNull()
-        ->and($figures($this->author)['post.published'])->toBe(route('content.index', ['type' => 'posts', 'tab' => 'published']))
-        ->and($figures($this->contributor)['page.drafts'])->toBeNull()
-        ->and($figures($this->editor)['page.published'])->toBe(route('content.index', ['type' => 'pages', 'tab' => 'published']));
+    // One figure per state across the types each may list, each opening a list the person may open.
+    expect($figures($this->author)['published'])->toBe(route('content.index', ['type' => 'posts', 'tab' => 'published']))
+        ->and($figures($this->contributor)['drafts'])->toBe(route('content.index', ['type' => 'posts', 'tab' => 'drafts']))
+        ->and($figures($this->editor)['published'])->toBe(route('content.index', ['type' => 'posts', 'tab' => 'published']))
+        ->and(collect($figures($this->author))->filter()->filter(fn (string $url): bool => str_contains($url, '/admin/pages')))->toBeEmpty()
+        ->and(collect($figures($this->contributor))->filter()->filter(fn (string $url): bool => str_contains($url, '/admin/pages')))->toBeEmpty();
 });
 
 it('leaves a page’s comments to editors and administrators, its author’s own posts still hers', function (): void {
