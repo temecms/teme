@@ -21,7 +21,11 @@ use App\Models\User;
 
 final readonly class SettingsHub implements NavHub
 {
-    /** Over plugins' pages, which come last. */
+    /**
+     * Over plugins' pages, which come last.
+     *
+     * @since next
+     */
     public const string PLUGINS = 'From plugins';
 
     /**
@@ -84,6 +88,8 @@ final readonly class SettingsHub implements NavHub
      * page (null for core's). Empty when the person may open none.
      *
      * @return list<array{key: string, label: string, href: string, icon: string, line: string, heading: string, plugin: string|null}>
+     *
+     * @since next
      */
     public function cardsFor(User $user): array
     {

@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * What Settings › Site code lists under "Scripts from plugins"
+ * (docs/plans/plugin-sockets-2.md, B4): every inline script a plugin asked
+ * to keep, with what was decided about it and by whom. It reads only.
+ *
+ * @package Teme
+ * @since   next
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 namespace App\Domain\SiteCode\Queries;
@@ -9,11 +19,6 @@ use App\Domain\Site\Insertions\Scripts\PluginScript;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 
-/**
- * What Settings › Site code lists under "Scripts from plugins"
- * (docs/plans/plugin-sockets-2.md, B4): every inline script a plugin asked
- * to keep, with what was decided about it and by whom. It reads only.
- */
 final readonly class PluginScriptsList
 {
     public function __construct(private PluginRegistry $plugins) {}

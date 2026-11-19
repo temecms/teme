@@ -102,6 +102,9 @@ final class SiteCodeController extends Controller
         return self::told(__('ads.txt saved.'));
     }
 
+    /**
+     * @since next
+     */
     public function approveScript(Request $request, ApprovePluginScript $approve, string $script): RedirectResponse
     {
         return self::decided(
@@ -110,6 +113,9 @@ final class SiteCodeController extends Controller
         );
     }
 
+    /**
+     * @since next
+     */
     public function refuseScript(Request $request, RefusePluginScript $refuse, string $script): RedirectResponse
     {
         return self::decided(
@@ -118,6 +124,9 @@ final class SiteCodeController extends Controller
         );
     }
 
+    /**
+     * @since next
+     */
     public function revokeScript(Request $request, RevokePluginScript $revoke, string $script): RedirectResponse
     {
         return self::decided(

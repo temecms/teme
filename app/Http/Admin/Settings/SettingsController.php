@@ -49,7 +49,11 @@ use Spatie\Permission\Models\Role;
 
 final class SettingsController extends Controller
 {
-    /** Lets a person see every settings group, and change none they may not manage. */
+    /**
+     * Lets a person see every settings group, and change none they may not manage.
+     *
+     * @since next
+     */
     public const string VIEW = 'settings.view';
 
     /**

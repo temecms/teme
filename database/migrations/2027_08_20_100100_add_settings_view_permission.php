@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Migration: adds settings view permission.
+ *
+ * @package Teme
+ * @since   next
+ * @license MIT
+ */
+
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;

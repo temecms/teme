@@ -29,6 +29,8 @@ final class SettingsPanels
      * Media's image widths are sections the page draws itself.
      *
      * @var array<string, list<array{title: string, description: string, keys: list<string>}>>
+     *
+     * @since next
      */
     public const array CORE = [
         'general' => [
