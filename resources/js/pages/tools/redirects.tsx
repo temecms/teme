@@ -1,6 +1,6 @@
 import { Form, Head, Link, router, setLayoutProps } from '@inertiajs/react';
-import { Download, Plus, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, Download, Ellipsis, Plus, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import RedirectController from '@/actions/App/Http/Admin/Tools/RedirectController';
 import { ConfirmAction } from '@/components/confirm-action';
 import { BulkBar } from '@/components/list/bulk-bar';
@@ -30,9 +30,10 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Notice } from '@/components/ui/notice';
+import { SelectField } from '@/components/ui/select-field';
 import { StatusPill } from '@/components/ui/status-pill';
-import { __ } from '@/lib/i18n';
+import { QuietNote } from '@/components/tools/quiet-note';
+import { __, __n } from '@/lib/i18n';
 import { shownTitle } from '@/lib/titles';
 import { formatInZone } from '@/lib/zoned-time';
 import { edit } from '@/routes/content';
@@ -119,6 +120,33 @@ function RedirectTarget({ row }: { row: RedirectRow }) {
     }
 }
 
+/** A redirect's state as a pill: on, off, or waiting, with what it waits for under it. */
+function RedirectState({ row }: { row: RedirectRow }) {
+    if (row.state === 'on') {
+        return <StatusPill tone="ok">{__('On')}</StatusPill>;
+    }
+
+    if (row.state === 'off') {
+        return <StatusPill tone="neutral">{__('Off')}</StatusPill>;
+    }
+
+    const waiting = row.state.startsWith('waiting');
+    const sentence = row.stateLabel.replace(/^[^:]*:\s*/, '');
+
+    return (
+        <div className="grid justify-items-start gap-1">
+            <StatusPill tone={waiting ? 'info' : 'warn'}>
+                {waiting ? __('Waiting') : row.stateLabel.split(':')[0]}
+            </StatusPill>
+            {waiting && sentence !== '' && (
+                <span className="text-ink-2 text-caption">
+                    {sentence.charAt(0).toUpperCase() + sentence.slice(1)}
+                </span>
+            )}
+        </div>
+    );
+}
+
 /**
  * Tools › Redirects (I-871, I-872): every redirect, a page at a time, newest
  * first, found by address or note, with where it sends readers and what it
@@ -130,6 +158,9 @@ export default function Redirects(page: RedirectsPage) {
         newer,
         older,
         search,
+        filters,
+        statuses,
+        shown,
         counts,
         siteTimezone,
         canManageAddresses,
@@ -152,7 +183,14 @@ export default function Redirects(page: RedirectsPage) {
     const [selected, setSelected] = useState<string[]>([]);
 
     // A new search or page starts with nothing selected.
-    const pageKey = [search, older ?? '', newer ?? ''].join('|');
+    const pageKey = [
+        search,
+        filters.on ?? '',
+        filters.status ?? '',
+        filters.origin ?? '',
+        older ?? '',
+        newer ?? '',
+    ].join('|');
     const [seenKey, setSeenKey] = useState(pageKey);
 
     if (seenKey !== pageKey) {
@@ -166,7 +204,69 @@ export default function Redirects(page: RedirectsPage) {
     const hiddenIds = chosenIds.map((id) => (
         <input key={id} type="hidden" name="ids[]" value={id} />
     ));
-    const keep = search ? { search } : {};
+    const filtersOn =
+        filters.on !== null ||
+        filters.status !== null ||
+        filters.origin !== null;
+    const address = (next: {
+        search?: string;
+        state?: string | null;
+        status?: string | null;
+        origin?: string | null;
+        after?: string;
+        before?: string;
+    }) => {
+        const query: Record<string, string> = {};
+        const wanted = {
+            search: next.search ?? search,
+            state: next.state === undefined ? filters.on : next.state,
+            status:
+                next.status === undefined
+                    ? filters.status === null
+                        ? null
+                        : String(filters.status)
+                    : next.status,
+            origin: next.origin === undefined ? filters.origin : next.origin,
+        };
+
+        for (const [key, value] of Object.entries(wanted)) {
+            if (value) {
+                query[key] = value;
+            }
+        }
+
+        if (next.after) {
+            query.after = next.after;
+        }
+
+        if (next.before) {
+            query.before = next.before;
+        }
+
+        return index({ query }).url;
+    };
+
+    // The search runs as it is typed, a moment after the last key.
+    const [typed, setTyped] = useState(search);
+    const typing = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => setTyped(search), [search]);
+
+    const searchFor = (value: string) => {
+        setTyped(value);
+
+        if (typing.current !== null) {
+            clearTimeout(typing.current);
+        }
+
+        typing.current = setTimeout(() => {
+            router.get(
+                address({ search: value.trim() }),
+                {},
+                { preserveState: true, preserveScroll: true, replace: true },
+            );
+        }, 300);
+    };
 
     const columns: Column<RedirectRow>[] = [
         {
@@ -214,7 +314,7 @@ export default function Redirects(page: RedirectsPage) {
             header: __('From'),
             cell: (row) => (
                 <>
-                    <span className="font-mono">{row.from}</span>
+                    <span className="font-mono font-semibold">{row.from}</span>
                     {row.pattern && (
                         <StatusPill tone="neutral" className="ms-2">
                             {__('Pattern')}
@@ -255,23 +355,6 @@ export default function Redirects(page: RedirectsPage) {
                                     on: row.on ? '0' : '1',
                                 },
                             },
-                            {
-                                id: 'delete',
-                                owner: 'core',
-                                label: __('Delete'),
-                                destructive: true,
-                                form: RedirectController.destroy.form(),
-                                fields: { 'ids[0]': row.id },
-                                wrap: (button) => (
-                                    <ConfirmAction
-                                        title={deleteTitle([row])}
-                                        description={deleteText(1)}
-                                        confirmLabel={deleteLabel(1)}
-                                    >
-                                        {button}
-                                    </ConfirmAction>
-                                ),
-                            },
                         ]}
                     />
                 </>
@@ -301,32 +384,128 @@ export default function Redirects(page: RedirectsPage) {
             owner: 'core',
             header: __('Origin'),
             cell: (row) =>
-                row.origin === 'import' ? __('Imported') : __('Manual'),
+                row.origin === 'import' ? __('Imported') : __('Added here'),
         },
         {
             id: 'hits',
             owner: 'core',
             header: __('Hits'),
-            className: 'text-right',
-            cell: (row) => row.hits.toLocaleString(),
-        },
-        {
-            id: 'last-hit',
-            owner: 'core',
-            header: __('Last hit'),
             className: 'whitespace-nowrap',
-            cell: (row) =>
-                row.lastHitAt === null ? (
-                    <span className="text-ink-2">{__('Never')}</span>
-                ) : (
-                    formatInZone(row.lastHitAt, siteTimezone)
-                ),
+            cell: (row) => (
+                <>
+                    <span className="tabular-nums">
+                        {row.hits.toLocaleString()}
+                    </span>
+                    <span className="text-ink-2 text-caption block">
+                        {row.lastHitAt === null
+                            ? __('Never')
+                            : formatInZone(row.lastHitAt, siteTimezone)}
+                    </span>
+                </>
+            ),
         },
         {
             id: 'state',
             owner: 'core',
             header: __('State'),
-            cell: (row) => row.stateLabel,
+            cell: (row) => <RedirectState row={row} />,
+        },
+        {
+            id: 'more',
+            owner: 'core',
+            header: <span className="sr-only">{__('Actions')}</span>,
+            className: 'w-px text-right',
+            cell: (row) => (
+                <>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label={__(
+                                    'More actions for the redirect from :from',
+                                    { from: row.from },
+                                )}
+                                data-test="redirect-more"
+                            >
+                                <Ellipsis aria-hidden="true" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onSelect={() =>
+                                    setEditing({
+                                        redirect: row,
+                                        from: row.from,
+                                    })
+                                }
+                            >
+                                {__('Edit')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onSelect={() =>
+                                    document
+                                        .getElementById(
+                                            `redirect-switch-${row.id}`,
+                                        )
+                                        ?.click()
+                                }
+                            >
+                                {row.on ? __('Switch off') : __('Switch on')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                variant="destructive"
+                                onSelect={() =>
+                                    document
+                                        .getElementById(
+                                            `redirect-delete-${row.id}`,
+                                        )
+                                        ?.click()
+                                }
+                            >
+                                {__('Delete')}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Form
+                        {...RedirectController.toggle.form()}
+                        options={{ preserveScroll: true }}
+                        hidden
+                    >
+                        <input type="hidden" name="ids[0]" value={row.id} />
+                        <input
+                            type="hidden"
+                            name="on"
+                            value={row.on ? '0' : '1'}
+                        />
+                        <Button
+                            type="submit"
+                            id={`redirect-switch-${row.id}`}
+                            tabIndex={-1}
+                            hidden
+                        />
+                    </Form>
+                    <Form
+                        {...RedirectController.destroy.form()}
+                        options={{ preserveScroll: true }}
+                        hidden
+                    >
+                        <input type="hidden" name="ids[0]" value={row.id} />
+                        <ConfirmAction
+                            title={deleteTitle([row])}
+                            description={deleteText(1)}
+                            confirmLabel={deleteLabel(1)}
+                        >
+                            <Button
+                                type="submit"
+                                id={`redirect-delete-${row.id}`}
+                                tabIndex={-1}
+                                hidden
+                            />
+                        </ConfirmAction>
+                    </Form>
+                </>
+            ),
         },
     ];
 
@@ -336,7 +515,7 @@ export default function Redirects(page: RedirectsPage) {
 
             <ListPage
                 title={__('Redirects')}
-                description={redirectsDescription('redirects')}
+                description={redirectsDescription()}
                 actions={
                     <>
                         <Button
@@ -352,6 +531,7 @@ export default function Redirects(page: RedirectsPage) {
                                 <Button variant="outline">
                                     <Download aria-hidden="true" />
                                     {__('Export')}
+                                    <ChevronDown aria-hidden="true" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
@@ -385,64 +565,106 @@ export default function Redirects(page: RedirectsPage) {
             >
                 <RedirectsHead tab="redirects" counts={counts} />
 
-                <Notice
-                    tone="info"
-                    data-test="redirects-notice"
-                    title={__('Changed addresses need no redirect.')}
-                >
-                    <div className="grid gap-2">
-                        <p>
-                            {__(
-                                'When a post or page gets a new address, in the editor or in',
-                            )}{' '}
-                            {canManageAddresses ? (
-                                <Link href={addresses()} className="underline">
-                                    {__('Settings › Addresses')}
-                                </Link>
-                            ) : (
-                                __('Settings › Addresses')
-                            )}
-                            {__(
-                                ', its old address keeps sending readers to it by itself. Add a redirect for an address Teme never had, such as one from the old site.',
-                            )}
-                        </p>
-                        <p>
-                            {__(
-                                'A redirect answers only where no page does, so it can never hide a live page. One that goes to a post or page follows it when its address changes. Hits are counted every minute, so the newest take a moment to appear.',
-                            )}
-                        </p>
-                    </div>
-                </Notice>
+                <QuietNote testId="redirects-notice">
+                    <p>
+                        <strong className="text-ink font-semibold">
+                            {__('Changed addresses need no redirect.')}
+                        </strong>{' '}
+                        {__(
+                            'When a post or page gets a new address, in the editor or in',
+                        )}{' '}
+                        {canManageAddresses ? (
+                            <Link href={addresses()} className="underline">
+                                {__('Settings › Addresses')}
+                            </Link>
+                        ) : (
+                            __('Settings › Addresses')
+                        )}
+                        {__(
+                            ', its old address keeps sending readers to it by itself. Add a redirect for an address Teme never had, such as one from the old site.',
+                        )}{' '}
+                        {__(
+                            'A redirect answers only where no page does, so it can never hide a live page.',
+                        )}
+                    </p>
+                </QuietNote>
 
-                <form
-                    role="search"
+                <div
+                    data-test="list-filters"
                     className="flex flex-wrap items-center gap-2"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        const typed = new FormData(event.currentTarget).get(
-                            'search',
-                        );
-                        const wanted =
-                            typeof typed === 'string' ? typed.trim() : '';
-
-                        router.get(
-                            index({ query: wanted ? { search: wanted } : {} })
-                                .url,
-                        );
-                    }}
                 >
                     <Input
-                        key={search}
+                        type="search"
                         name="search"
-                        defaultValue={search}
+                        value={typed}
+                        onChange={(event) => searchFor(event.target.value)}
                         placeholder={__('Address or note')}
                         aria-label={__('Search redirects')}
                         className="w-72"
                     />
-                    <Button variant="outline" type="submit">
-                        {__('Search')}
-                    </Button>
-                </form>
+                    <SelectField
+                        aria-label={__('State')}
+                        emptyLabel={__('All states')}
+                        className="w-40"
+                        value={filters.on ?? ''}
+                        options={[
+                            { value: 'on', label: __('On') },
+                            { value: 'off', label: __('Off') },
+                        ]}
+                        onValueChange={(next) =>
+                            router.visit(address({ state: next || null }), {
+                                preserveScroll: true,
+                            })
+                        }
+                    />
+                    <SelectField
+                        aria-label={__('Status')}
+                        emptyLabel={__('Any status')}
+                        className="w-56"
+                        value={
+                            filters.status === null
+                                ? ''
+                                : String(filters.status)
+                        }
+                        options={statuses.map((status) => ({
+                            value: String(status.value),
+                            label: `${status.value} ${status.label}`,
+                        }))}
+                        onValueChange={(next) =>
+                            router.visit(address({ status: next || null }), {
+                                preserveScroll: true,
+                            })
+                        }
+                    />
+                    <SelectField
+                        aria-label={__('Origin')}
+                        emptyLabel={__('Any origin')}
+                        className="w-44"
+                        value={filters.origin ?? ''}
+                        options={[
+                            { value: 'manual', label: __('Added here') },
+                            { value: 'import', label: __('Imported') },
+                        ]}
+                        onValueChange={(next) =>
+                            router.visit(address({ origin: next || null }), {
+                                preserveScroll: true,
+                            })
+                        }
+                    />
+                    {filtersOn && (
+                        <Button variant="ghost" asChild>
+                            <Link
+                                href={address({
+                                    state: null,
+                                    status: null,
+                                    origin: null,
+                                })}
+                            >
+                                {__('Clear filters')}
+                            </Link>
+                        </Button>
+                    )}
+                </div>
 
                 {chosen.length > 0 && (
                     <BulkBar
@@ -526,12 +748,16 @@ export default function Redirects(page: RedirectsPage) {
                     rowKey={(row) => row.id}
                     caption={__('Redirects')}
                     empty={
-                        search ? (
+                        search || filtersOn ? (
                             <EmptyState
                                 kind="nothing-matches"
-                                title={__('No redirects match “:search”', {
-                                    search,
-                                })}
+                                title={
+                                    search
+                                        ? __('No redirects match “:search”', {
+                                              search,
+                                          })
+                                        : __('No redirects match')
+                                }
                                 clearHref={index().url}
                             />
                         ) : (
@@ -552,18 +778,25 @@ export default function Redirects(page: RedirectsPage) {
                     }
                 />
 
-                <Pager
-                    newer={
-                        newer
-                            ? index({ query: { ...keep, before: newer } }).url
-                            : null
-                    }
-                    older={
-                        older
-                            ? index({ query: { ...keep, after: older } }).url
-                            : null
-                    }
-                />
+                {rows.length > 0 && (
+                    <div className="grid gap-3">
+                        <p className="text-small text-ink-3">
+                            {__n(
+                                ':count redirect, newest first. Hits are counted every minute, so the newest take a moment to appear.|:count redirects, newest first. Hits are counted every minute, so the newest take a moment to appear.',
+                                shown,
+                                { count: shown.toLocaleString() },
+                            )}
+                        </p>
+                        {(newer !== null || older !== null) && (
+                            <Pager
+                                newer={
+                                    newer ? address({ before: newer }) : null
+                                }
+                                older={older ? address({ after: older }) : null}
+                            />
+                        )}
+                    </div>
+                )}
 
                 <RedirectForm
                     editing={editing}

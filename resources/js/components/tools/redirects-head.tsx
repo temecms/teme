@@ -1,20 +1,16 @@
 import { InPageNav } from '@/components/patterns/in-page-nav';
 import { __ } from '@/lib/i18n';
-import { index, notFound } from '@/routes/tools/redirects';
+import { index } from '@/routes/tools/redirects';
 import type { RedirectCounts } from '@/types';
 
-/** Each of Tools › Redirects' two pages' description, looked up as it is drawn. */
-export function redirectsDescription(tab: 'redirects' | 'not-found'): string {
-    return tab === 'redirects'
-        ? __(
-              'Where readers go when they ask for an address this site no longer has.',
-          )
-        : __(
-              'Addresses readers asked for that don’t exist, the most asked for first.',
-          );
+/** Tools › Redirects' description, the same on both tabs, looked up as it is drawn. */
+export function redirectsDescription(): string {
+    return __(
+        'Send readers on from an address this site no longer has. The Not found tab lists the addresses readers asked for that don’t exist.',
+    );
 }
 
-/** The two views both of Tools › Redirects' pages share: the redirects and the 404 log (I-871). */
+/** Tools › Redirects' two tabs: the redirects, and Not found, the 404 log (I-871). */
 export function RedirectsHead({
     tab,
     counts,
@@ -24,7 +20,7 @@ export function RedirectsHead({
 }) {
     return (
         <InPageNav
-            label={__('Redirects and the 404 log')}
+            label={__('Redirects and the addresses not found')}
             items={[
                 {
                     href: index().url,
@@ -33,8 +29,8 @@ export function RedirectsHead({
                     current: tab === 'redirects',
                 },
                 {
-                    href: notFound().url,
-                    label: __('404 log'),
+                    href: index({ query: { tab: 'not-found' } }).url,
+                    label: __('Not found'),
                     count: counts.notFound,
                     current: tab === 'not-found',
                 },

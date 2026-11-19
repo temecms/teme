@@ -203,7 +203,7 @@ it('opens every admin screen with its heading and no script error', function (st
     'tools' => ['tools', '/admin/tools', 'admin', ''],
     'page-cache' => ['page-cache', '/admin/tools/page-cache', 'admin', ''],
     'redirects' => ['redirects', '/admin/tools/redirects', 'admin', ''],
-    'not-found' => ['not-found', '/admin/tools/redirects/404', 'admin', ''],
+    'not-found' => ['not-found', '/admin/tools/redirects?tab=not-found', 'admin', ''],
     'ai-activity' => ['ai-activity', '/admin/tools/ai-activity', 'admin', ''],
     'settings-general' => ['settings-general', '/admin/settings/general', 'admin', ''],
     'settings-writing' => ['settings-writing', '/admin/settings/writing', 'admin', ''],

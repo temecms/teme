@@ -1,3 +1,4 @@
+import { CircleCheck } from 'lucide-react';
 import { Form, Head, setLayoutProps } from '@inertiajs/react';
 import { useState } from 'react';
 import RedirectController from '@/actions/App/Http/Admin/Tools/RedirectController';
@@ -17,7 +18,7 @@ import { StatusPill } from '@/components/ui/status-pill';
 import { __ } from '@/lib/i18n';
 import { formatInZone } from '@/lib/zoned-time';
 import { index as toolsIndex } from '@/routes/tools';
-import { index, notFound } from '@/routes/tools/redirects';
+import { index } from '@/routes/tools/redirects';
 import type { NotFoundPage, NotFoundRow } from '@/types';
 
 /**
@@ -88,7 +89,7 @@ export default function NotFound(page: NotFoundPage) {
                             variant="ghost"
                             size="sm"
                             data-test="not-found-create"
-                            aria-label={__('Add a redirect from :address', {
+                            aria-label={__('Create a redirect from :address', {
                                 address: row.address,
                             })}
                             onClick={() =>
@@ -98,7 +99,7 @@ export default function NotFound(page: NotFoundPage) {
                                 })
                             }
                         >
-                            {__('Add a redirect')}
+                            {__('Create redirect')}
                         </Button>
                         <Form
                             {...RedirectController.gone.form()}
@@ -140,7 +141,7 @@ export default function NotFound(page: NotFoundPage) {
 
             <ListPage
                 title={__('Redirects')}
-                description={redirectsDescription('not-found')}
+                description={redirectsDescription()}
                 actions={
                     settingsUrl !== null && (
                         <Button variant="outline" asChild>
@@ -156,10 +157,7 @@ export default function NotFound(page: NotFoundPage) {
                 <p className="text-ink-2 text-small">
                     {__(
                         'One row per address. Only the site a reader came from is kept: no IP address and no browser.',
-                    )}
-                </p>
-
-                <p className="text-ink-2 text-small">
+                    )}{' '}
                     {__(
                         'Keeps up to :keep addresses. When it’s full, the address seen least recently makes room. Bots probing for WordPress and server files, such as /wp-login.php, are ignored. Counts are written every minute, so the newest take a moment to appear.',
                         { keep: keep.toLocaleString() },
@@ -174,6 +172,7 @@ export default function NotFound(page: NotFoundPage) {
                     empty={
                         <EmptyState
                             kind="nothing-yet"
+                            icon={CircleCheck}
                             title={__('Nothing logged')}
                             description={__(
                                 'Addresses readers ask for that don’t exist appear here.',
@@ -182,23 +181,30 @@ export default function NotFound(page: NotFoundPage) {
                     }
                 />
 
-                <Pager
-                    labels={{
-                        newer: __('First page'),
-                        older: __('Next page'),
-                    }}
-                    newer={paged ? notFound().url : null}
-                    older={
-                        next
-                            ? notFound({
-                                  query: {
-                                      count: String(next.count),
-                                      path: next.path,
-                                  },
-                              }).url
-                            : null
-                    }
-                />
+                {(paged || next) && (
+                    <Pager
+                        labels={{
+                            newer: __('First page'),
+                            older: __('Next page'),
+                        }}
+                        newer={
+                            paged
+                                ? index({ query: { tab: 'not-found' } }).url
+                                : null
+                        }
+                        older={
+                            next
+                                ? index({
+                                      query: {
+                                          tab: 'not-found',
+                                          count: String(next.count),
+                                          path: next.path,
+                                      },
+                                  }).url
+                                : null
+                        }
+                    />
+                )}
 
                 <RedirectForm
                     editing={editing}
