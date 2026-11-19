@@ -7,7 +7,7 @@
  * It reads only; what it finds is kept by RecordDirectoryIndex.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

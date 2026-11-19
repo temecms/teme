@@ -59,7 +59,7 @@ interface ContentWriter
      *
      * @throws WriteRefused
      *
-     * @since next
+     * @since 1.3.0
      */
     public function unpublish(ItemRef $item, string $actingPersonId): ItemRef;
 

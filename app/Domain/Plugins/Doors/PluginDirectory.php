@@ -7,7 +7,7 @@
  * and checked against the kept index's hash.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

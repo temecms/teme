@@ -5,7 +5,7 @@
  * granted directory.read.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 
@@ -19,7 +19,7 @@ namespace Teme\Contracts\Directory;
  * kept, and a listed package's detail file, checked against the hash that
  * index gives for it. Nothing here asks a person; nothing is written.
  *
- * @since next
+ * @since 1.3.0
  */
 interface VerifiedDirectory
 {
@@ -28,7 +28,7 @@ interface VerifiedDirectory
      * and `packages`. No data while the directory is switched off on this
      * site, before any index was verified, or once the kept one has run out.
      *
-     * @since next
+     * @since 1.3.0
      */
     public function index(): DirectoryAnswer;
 
@@ -40,7 +40,7 @@ interface VerifiedDirectory
      *
      * @param  string  $name  the package's Composer name, such as acme/link-suggestions
      *
-     * @since next
+     * @since 1.3.0
      */
     public function package(string $name): DirectoryAnswer;
 }

@@ -5,7 +5,7 @@
  * signed index as the operator, and keeps it once it is checked.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

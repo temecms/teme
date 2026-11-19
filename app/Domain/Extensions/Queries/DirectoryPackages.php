@@ -7,7 +7,7 @@
  * reads only what RecordDirectoryIndex kept, and the detail files it names.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

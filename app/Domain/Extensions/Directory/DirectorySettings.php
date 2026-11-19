@@ -6,7 +6,7 @@
  * of the directory and nothing is installed from it.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

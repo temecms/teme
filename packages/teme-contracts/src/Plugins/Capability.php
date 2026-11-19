@@ -100,9 +100,9 @@ enum Capability: string
     /** @since 1.1.0 */
     case Sitemaps = 'sitemaps';
 
-    /** @since next */
+    /** @since 1.3.0 */
     case DirectoryRead = 'directory.read';
 
-    /** @since next */
+    /** @since 1.3.0 */
     case ContentSubmissions = 'content.submissions';
 }

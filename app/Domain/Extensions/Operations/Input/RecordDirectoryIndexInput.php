@@ -6,7 +6,7 @@
  * none for the operator.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

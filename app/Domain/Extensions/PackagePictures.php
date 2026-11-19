@@ -6,7 +6,7 @@
  * both manifests' validators, and finds a declared one on disk.
  *
  * @package Teme
- * @since   next
+ * @since   1.3.0
  * @license MIT
  */
 

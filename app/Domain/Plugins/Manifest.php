@@ -221,7 +221,7 @@ final readonly class Manifest
      * The path of the plugin's icon inside its folder, as declared, or ''.
      * PackagePictures::find() says whether it is there.
      *
-     * @since next
+     * @since 1.3.0
      */
     public function icon(): string
     {
