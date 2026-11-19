@@ -42,7 +42,7 @@ it('draws Settings › Discussion as titled panels, the switch acting at once an
         ->assertScript("document.querySelector('#comments-switch button[type=\"submit\"]') === null");
 
     expect(($this->panels)($page, 'title'))->toBe('Comments on this site|Where comments are open|Threads and pages|Moderation|Emails|Privacy')
-        ->and(($this->panels)($page, 'description'))->toBe('The page stays when comments are off, because it holds the switch.|Which comments wait for someone to approve them.')
+        ->and(($this->panels)($page, 'description'))->toBe('The page stays when comments are off, because it holds the switch.|||Which comments wait for someone to approve them.||')
         ->and(($this->bar)($page))->toBe('Save');
 
     $page->type('#field-thread_depth', '4');
@@ -54,15 +54,15 @@ it('draws Settings › Discussion as titled panels, the switch acting at once an
     cmWaitUntil($page, "(() => { const bar = document.querySelector('[data-test=\"save-bar\"]').getBoundingClientRect(); const form = document.querySelector('[data-test=\"save-bar\"]').closest('form').getBoundingClientRect(); return Math.abs(bar.bottom - form.bottom) <= 1; })()");
 });
 
-it('puts each checkbox beside its words with the hint under them, and each number in a narrow box with its unit', function (): void {
+it('puts each switch beside its words with the hint under them, and each number in a 128px box with its unit (the approved design)', function (): void {
     $page = cmSignIn($this->admin)->resize(1440, 900)->navigate('/admin/settings/discussion');
 
     cmWaitUntil($page, "document.querySelector('#field-hold_all') !== null")
         ->assertScript("(() => { const box = document.querySelector('#field-hold_all').getBoundingClientRect(); const label = document.querySelector('label[for=\"field-hold_all\"]').getBoundingClientRect(); const hint = document.querySelector('#field-hold_all-hint').getBoundingClientRect(); return box.right <= label.left && Math.abs(box.top - label.top) <= 4 && hint.top >= label.bottom - 1 && hint.left >= label.left - 1; })()")
-        ->assertScript("Math.round(document.querySelector('#field-thread_depth').getBoundingClientRect().width)", 88)
+        ->assertScript("Math.round(document.querySelector('#field-thread_depth').getBoundingClientRect().width)", 128)
         ->assertScript("document.querySelector('#field-thread_depth').parentElement.querySelector('[data-test=\"field-unit\"]').textContent.trim()", 'levels')
         ->assertScript("document.querySelector('#field-keep_ip_days').parentElement.querySelector('[data-test=\"field-unit\"]').textContent.trim()", 'days')
-        ->assertScript("document.querySelector('#field-per_page').parentElement.querySelector('[data-test=\"field-unit\"]') === null");
+        ->assertScript("document.querySelector('#field-per_page').parentElement.querySelector('[data-test=\"field-unit\"]').textContent.trim()", 'comments');
 });
 
 it('saves the five sections from the bar', function (): void {
@@ -110,7 +110,7 @@ it('passes axe on Discussion and General, every target 24 pixels or more, in the
     $discussion = cmSmallTargets($page);
 
     $page->navigate('/admin/settings/general');
-    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"settings-panel\"]').length === 3");
+    cmWaitUntil($page, "document.querySelectorAll('[data-test=\"settings-panel\"]').length === 4");
     $page->assertNoAccessibilityIssues(3);
     $general = cmSmallTargets($page);
 
@@ -146,7 +146,7 @@ it('draws each section of every other settings page as a panel under its built h
         ->assertScript('document.documentElement.scrollWidth <= window.innerWidth');
 })->with([
     'People' => ['/admin/settings/people', 'Passwords'],
-    'Search and social' => ['/admin/settings/seo', 'What search engines and feed readers fetch'],
+    'Search and social' => ['/admin/settings/seo', 'Titles in search results'],
     'AI' => ['/admin/settings/ai', 'AI services'],
     'Site code' => ['/admin/settings/site-code', 'Code on every page'],
 ]);

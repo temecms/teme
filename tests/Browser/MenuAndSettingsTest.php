@@ -146,7 +146,7 @@ it('keeps what you typed on the screen while you search, and closes the list on 
         ->type('[data-test="find-setting"]', 'tagline')
         ->assertSeeIn('[data-test="find-setting-list"]', 'Tagline')
         ->keys('[data-test="find-setting"]', 'Escape')
-        ->assertScript('document.querySelector(\'[data-test="find-setting-list"]\').hidden', true)
+        ->assertScript('document.querySelector(\'[data-test="find-setting-list"]\') === null', true)
         ->assertValue('#field-site_title', 'The Garden City Ledger');
 
     expect($page->script('() => document.querySelector(\'nav[aria-label="Settings"]\').closest("[hidden]") === null'))->toBeTrue();
