@@ -6,7 +6,7 @@
  * address when it has one. Read only; moving items is not built yet.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
@@ -27,7 +27,7 @@ final class TreeRows
      * The tree's top items, each with its children nested under `children`,
      * and whether items were left out past MOST.
      *
-     * @since next
+     * @since 1.2.0
      *
      * @return array{nodes: list<array{id: string, title: string, status: string, updatedAt: string, address: string|null, children: list<mixed>}>, cut: bool}
      */

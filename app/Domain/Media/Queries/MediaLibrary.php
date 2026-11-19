@@ -28,7 +28,7 @@ final class MediaLibrary
     /**
      * The most a chip counts; past it, the chip shows this many and a plus.
      *
-     * @since next
+     * @since 1.2.0
      */
     public const int CHIP_MOST = 999;
 
@@ -175,7 +175,7 @@ final class MediaLibrary
      *
      * @return array{missingAlt: int, unused: int, imported: int}
      *
-     * @since next
+     * @since 1.2.0
      */
     public function chips(): array
     {

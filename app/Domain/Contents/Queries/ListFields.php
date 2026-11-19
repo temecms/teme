@@ -5,7 +5,7 @@
  * values fit on one line, and each value as the words a cell shows.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
@@ -26,7 +26,7 @@ final class ListFields
     /**
      * The type's fields a list may show as columns, in the editor's order.
      *
-     * @since next
+     * @since 1.2.0
      *
      * @return list<Field>
      */
@@ -41,7 +41,7 @@ final class ListFields
     /**
      * Each column's key, label and kind, for the list page.
      *
-     * @since next
+     * @since 1.2.0
      *
      * @return list<array{key: string, label: string, kind: string}>
      */
@@ -58,7 +58,7 @@ final class ListFields
      * One item's values for these fields, as a cell shows them, leaving out
      * each one that is empty.
      *
-     * @since next
+     * @since 1.2.0
      *
      * @param  list<Field>  $fields
      * @param  array<string, mixed>  $values  the revision's fields, by key

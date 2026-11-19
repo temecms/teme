@@ -101,7 +101,7 @@ final readonly class RedirectList
     /**
      * Returns how many redirects $search and $filters find, as page() finds them.
      *
-     * @since next
+     * @since 1.2.0
      *
      * @param  array{on?: bool|null, status?: int|null, origin?: string|null}  $filters
      */

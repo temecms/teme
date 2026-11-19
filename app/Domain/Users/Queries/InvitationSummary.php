@@ -6,7 +6,7 @@
  * works, so a guessed address learns nothing.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
@@ -33,7 +33,7 @@ final class InvitationSummary
      * operator sent it or that account is gone) and the site's name (null
      * when it has none); null when the link no longer works.
      *
-     * @since next
+     * @since 1.2.0
      *
      * @return array{name: string, role: string|null, invitedBy: string|null, site: string|null}|null
      */

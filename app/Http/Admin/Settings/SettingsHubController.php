@@ -5,7 +5,7 @@
  * under the hub's headings; 403 when there is none.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

@@ -4,8 +4,19 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-11-19
+
 ### Added
 
+- The admin follows the approved design throughout the editor, Settings, People and the account pages, sign-in, Tools and the content screens, in one consistent look:
+  - **Editor:** a single writing column, the toolbar's extra tools folded under More, and the side panel's sections redrawn.
+  - **Settings:** a Settings hub of cards, each page in one frame with a side list of the Settings pages and the current page's sections, and "Find a setting".
+  - **People and your account:** all seven views of People, your own row, the account pages in one frame with Profile, Security, Two-factor sign-in, Notifications and Preferences, and the signed-out pages (sign in, reset a password, the invitation, first run) in plain words.
+  - **Error pages:** "not allowed" and "not found" are drawn inside the admin, with the menu kept.
+  - **Tools:** the Tools hub under three headings; Jobs with Mine and Everyone's tabs and a state filter; Import's sites with their state and figures while an import runs; Backups with a coloured verdict, the list of kept backups and "Use this backup", and restoring in three steps; Redirects with State, Status and Origin filters and the 404 log as its **Not found** tab; AI activity with the month's figures and a budget bar.
+  - **Content:** the lists with thumbnails, a status pill for In review, Parent and Template columns on Pages, and a read-only pages tree; the media library with chips for missing alt text, unused and imported files, and **Edit image** with the focal point and the crops the site makes; comments, categories and tags, taxonomies and types, menus and regions in the same frame.
+- Home shows the site's figures in one row of five, Published, Drafts, Scheduled, In review and Comments waiting, across all the content you may list, however many types the site has.
+- Themes can read the running Teme version: every theme view has `$teme['version']` and `$teme['release']`.
 - A plugin can bring its own content types, taxonomies and fields: `contributes.types` in `teme-plugin.json` names a file in the format Settings › Types exports. While the plugin is enabled they work like any other type, in the menu, the lists, the editor, the site, search, sitemaps, feeds and the REST API.
 - Settings › Types shows a plugin's types, taxonomies and fields with its mark and "Comes from" its name, and keeps them read-only: the plugin's updates change them.
 - Enabling a plugin takes over a type, taxonomy or field already on the site under the same key, keeping its items and values, and says what it took over and changed. A field made here under another key is matched by its type and handle. Enabling is refused, in words, when a field would change kind while items hold values in it.
@@ -15,7 +26,13 @@ All notable changes to this project are documented in this file. Versioning foll
 
 ### Changed
 
+- Lists show 10 rows a page by default (Preferences offers 10, 25, 50 and 100), and show thumbnails by default.
+- The date under Home's greeting ends with a full stop before the sentence that follows.
 - A type or taxonomy can't take an admin screen's name as its plural, such as Plugins, Media or Settings, or another type's or taxonomy's, in any case: the words name the screen and suggest a name to use instead, such as "Plugin directory". This holds for types made in Settings › Types, imported, declared by code or brought by a plugin. A type already stored with such a name keeps working, and Settings › Types asks to rename it.
+
+### Fixed
+
+- Teme SEO 1.0.1: a better average position on Search Console shows as a good change; posts without a featured image are counted on their own in the Audit; Cornerstone is one line with **Change** in the editor; the area is named Teme SEO; Search Console draws clicks and impressions as two charts; the Audit table reads the problems already stored, so it stays within its time budget on larger sites.
 
 ## [1.1.1] — 2026-11-18
 

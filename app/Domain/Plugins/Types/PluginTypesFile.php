@@ -7,7 +7,7 @@
  * as the plugin is found, and read whole when it is enabled or updated.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

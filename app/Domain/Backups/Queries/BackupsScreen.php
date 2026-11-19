@@ -45,7 +45,7 @@ final readonly class BackupsScreen
     /**
      * The most backups the screen lists; teme:backup:list has every one.
      *
-     * @since next
+     * @since 1.2.0
      */
     public const int MOST_LISTED = 50;
 
@@ -464,7 +464,7 @@ final readonly class BackupsScreen
      * by the same rule the prune keeps them (I-361), so a place changed
      * outside Teme can hold otherwise; teme:backup:list asks the place.
      *
-     * @since next
+     * @since 1.2.0
      *
      * @param  Collection<int, BackupDestination>  $places
      *

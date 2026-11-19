@@ -24,7 +24,7 @@ final readonly class SettingsHub implements NavHub
     /**
      * Over plugins' pages, which come last.
      *
-     * @since next
+     * @since 1.2.0
      */
     public const string PLUGINS = 'From plugins';
 
@@ -89,7 +89,7 @@ final readonly class SettingsHub implements NavHub
      *
      * @return list<array{key: string, label: string, href: string, icon: string, line: string, heading: string, plugin: string|null}>
      *
-     * @since next
+     * @since 1.2.0
      */
     public function cardsFor(User $user): array
     {

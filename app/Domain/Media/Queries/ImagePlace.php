@@ -5,7 +5,7 @@
  * as Edit image's "2 of 20" and its previous and next buttons name it.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

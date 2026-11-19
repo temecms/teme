@@ -6,7 +6,7 @@
  * can find the line someone reports.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
@@ -24,7 +24,7 @@ final class ErrorReference
      * This request's reference: eight capital letters and digits in two
      * groups, the same each time it is asked for.
      *
-     * @since next
+     * @since 1.2.0
      */
     public function code(): string
     {

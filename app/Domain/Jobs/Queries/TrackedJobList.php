@@ -102,7 +102,7 @@ final readonly class TrackedJobList
      * $startedBy names them, and only those in one state when $state names
      * it.
      *
-     * @since next
+     * @since 1.2.0
      */
     public function count(?int $startedBy = null, ?JobState $state = null): int
     {

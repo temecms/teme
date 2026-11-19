@@ -72,7 +72,7 @@ final readonly class PluginList
      * Returns what applying the plugin's types file last changed, in words;
      * empty when it changed nothing a person needs told, or it has none.
      *
-     * @since next
+     * @since 1.2.0
      */
     public function typesReport(string $name): string
     {

@@ -129,7 +129,7 @@ final class PluginRecord extends Model
      *
      * @return Attribute<array<string, mixed>, array<string, mixed>>
      *
-     * @since next
+     * @since 1.2.0
      */
     protected function types(): Attribute
     {

@@ -7,7 +7,7 @@
  * plugin, and are left out of the registries while it isn't enabled.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 

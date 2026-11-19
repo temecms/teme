@@ -6,7 +6,7 @@
  * types from a plugin*): what it took over, updated, added and gave back.
  *
  * @package Teme
- * @since   next
+ * @since   1.2.0
  * @license MIT
  */
 
