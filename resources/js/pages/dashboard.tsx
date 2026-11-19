@@ -428,7 +428,7 @@ export default function Dashboard({
                 title={greetingLine}
                 description={
                     <>
-                        {todayLine(i18n.locale)}
+                        {todayLine(i18n.locale)}.
                         {__(
                             " Your work first, then the site's figures and what plugins report.",
                         )}

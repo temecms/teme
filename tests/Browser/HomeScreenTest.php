@@ -93,6 +93,21 @@ it('shows the figures as links to their lists', function (): void {
         JS);
 });
 
+it('shows one row of five figures, each with its status dot, and the date ending in a full stop', function (): void {
+    $page = cmSignIn($this->editor)->resize(1280, 900);
+    shellSettled($page, '[data-test="site-figures"]');
+
+    $page->assertScript(<<<'JS'
+        () => {
+            const figures = [...document.querySelectorAll('[data-test="site-figures"] > *')];
+            const dots = figures.map((figure) => figure.querySelector('[data-dot]')?.getAttribute('data-dot'));
+            const top = new Set(figures.map((figure) => Math.round(figure.getBoundingClientRect().top)));
+            return figures.length === 5 && top.size === 1 && dots.join() === 'ok,neutral-dot,info,warn,accent';
+        }
+        JS)
+        ->assertScript("() => /[A-Za-z]+, [A-Za-z]+ \\d+\\. Your work first/.test(document.body.innerText)");
+});
+
 it('draws Your work and leaves out From plugins when no plugin has a panel', function (): void {
     $page = cmSignIn($this->editor)->resize(1280, 900);
     shellSettled($page, '[data-test="home-your-work"]');

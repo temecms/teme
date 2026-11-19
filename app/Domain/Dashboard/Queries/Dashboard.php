@@ -54,7 +54,7 @@ final readonly class Dashboard
      *   panels: list<array{key: string, label: string, rows: list<array{id: string, title: string, subtitle: string, url: string, at: string}>, seeAll: string|null, failed: bool}>,
      *   catalogue: list<array{key: string, label: string, size: 'small'|'medium'|'large'|'full', kind: 'rows'|'quick-draft', owner: string, ownerName: string|null}>,
      *   layout: array{order: list<string>, hidden: list<string>, sizes: array<string, 'small'|'medium'|'large'|'full'>},
-     *   figures: list<array{key: string, label: string, group: string|null, value: int, url: string|null}>,
+     *   figures: list<array{key: string, label: string, dot: string, value: int, url: string|null}>,
      *   mainType: array{singular: string, segment: string, canCreate: bool},
      *   gettingStarted: array{steps: list<array{key: string, label: string, done: bool, url: string}>}|null,
      *   canQuickDraft: bool,
