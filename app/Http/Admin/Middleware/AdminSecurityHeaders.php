@@ -15,6 +15,7 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Middleware;
 
+use App\Domain\Extensions\Directory\DirectoryReader;
 use App\Domain\Site\Policy\PolicySources;
 use Closure;
 use Illuminate\Http\Request;
@@ -56,12 +57,14 @@ final class AdminSecurityHeaders
         $devServer = $this->devServerOrigin();
         $devSocket = $devServer === '' ? '' : preg_replace('#^http#', 'ws', $devServer);
         $media = implode(' ', $preview['media'] ?? []);
+        $directory = DirectoryReader::origin();
 
         return implode('; ', array_filter([
             "default-src 'self'",
             trim("script-src 'self' 'nonce-{$nonce}' {$devServer}"),
             trim("style-src 'self' 'unsafe-inline' {$devServer}"),
-            trim("img-src 'self' data: {$media}"),
+            // The plugin and theme directory's own icons and screenshots, on Add plugin and Add theme.
+            trim("img-src 'self' data: {$directory} {$media}"),
             $preview === null ? null : trim("media-src 'self' {$media}"),
             $preview === null || $preview['frames'] === [] ? null : 'frame-src '.implode(' ', $preview['frames']),
             "font-src 'self'",

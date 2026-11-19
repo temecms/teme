@@ -132,7 +132,7 @@ final readonly class DirectoryPackages
                 continue;
             }
 
-            $card = self::card($package);
+            $card = $this->card($package);
             $haystack = mb_strtolower(implode(' ', [$card['name'], $card['label'], $card['summary'], $card['author'], ...$card['topics']]));
 
             foreach ($words as $word) {
@@ -182,10 +182,10 @@ final readonly class DirectoryPackages
         $screenshots = [];
 
         foreach (is_array($detail['screenshots'] ?? null) ? $detail['screenshots'] : [] as $shot) {
-            $url = is_array($shot) ? self::https($shot['url'] ?? null) : null;
+            $url = is_array($shot) ? ($shot['url'] ?? null) : null;
 
-            if ($url !== null) {
-                $screenshots[] = ['url' => $url, 'caption' => is_string($shot['caption'] ?? null) ? $shot['caption'] : ''];
+            if ($this->reader->isOwnPicture($url)) {
+                $screenshots[] = ['url' => (string) $url, 'caption' => is_string($shot['caption'] ?? null) ? $shot['caption'] : ''];
             }
         }
 
@@ -196,7 +196,7 @@ final readonly class DirectoryPackages
         }
 
         return ['package' => [
-            ...self::card($listed),
+            ...$this->card($listed),
             'readme' => is_string($detail['readme'] ?? null) ? $detail['readme'] : '',
             'changelog' => is_string($detail['changelog'] ?? null) ? $detail['changelog'] : '',
             'screenshots' => $screenshots,
@@ -261,7 +261,7 @@ final readonly class DirectoryPackages
      *
      * @return array{name: string, label: string, summary: string, author: string, topics: list<string>, picked: bool, latest: string, updated: string, worksWith: list<string>, icon: ?string}
      */
-    private static function card(array $package): array
+    private function card(array $package): array
     {
         $name = (string) $package['name'];
         $author = is_array($package['author'] ?? null) ? ($package['author']['name'] ?? null) : null;
@@ -276,7 +276,7 @@ final readonly class DirectoryPackages
             'latest' => is_string($package['latest'] ?? null) ? $package['latest'] : '',
             'updated' => is_string($package['updated'] ?? null) ? $package['updated'] : '',
             'worksWith' => self::strings($package['works_with'] ?? []),
-            'icon' => self::https($package['icon'] ?? null),
+            'icon' => $this->reader->isOwnPicture($package['icon'] ?? null) ? (string) $package['icon'] : null,
         ];
     }
 

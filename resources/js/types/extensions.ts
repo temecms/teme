@@ -84,6 +84,8 @@ export type ExtensionsData = {
     sources: ExtensionSourceLine[];
     sourceKinds: string[];
     packagist: boolean;
+    /** Whether Teme's plugin and theme directory is offered: on, and holding its key. */
+    directory: boolean;
     canRollBack: boolean;
     uploadMax: number;
 };

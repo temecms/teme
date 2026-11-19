@@ -7,6 +7,7 @@ use App\Domain\Extensions\ExtensionAction;
 use App\Domain\Extensions\ExtensionKind;
 use App\Domain\Extensions\Operations\Input\RequestExtensionChangeInput;
 use App\Domain\Extensions\Operations\RequestExtensionChange;
+use App\Domain\Extensions\Queries\ExtensionsScreen;
 use App\Domain\Settings\Operations\Input\UpdateSettingsInput;
 use App\Domain\Settings\Operations\UpdateSettings;
 use App\Domain\Support\Security\Elevation;
@@ -144,4 +145,33 @@ it('lets only a person who installs plugins and themes browse it', function (): 
     $editor = User::factory()->create()->assignRole('editor');
 
     $this->actingAs($editor)->getJson(route('extensions.directory'))->assertForbidden();
+});
+
+it('tells the Add sheet whether the directory is offered: on, with a key, and not switched off', function (): void {
+    $offered = fn (): bool => app(ExtensionsScreen::class)->data()['directory'];
+
+    expect($offered())->toBeTrue();
+
+    config(['teme.directory.public_keys' => ['DIRECTORY_PUBLIC_KEY_GOES_HERE']]);
+    expect($offered())->toBeFalse();
+
+    config(['teme.directory.public_keys' => [dirKeys()['public']]]);
+    ($this->switchOff)();
+    expect($offered())->toBeFalse();
+});
+
+it('lets the admin show the directory’s own pictures, and only from its address', function (): void {
+    $policy = $this->actingAs($this->admin)->get(route('plugins.index'))->headers->get('Content-Security-Policy');
+
+    expect($policy)->toContain("img-src 'self' data: https://temecms.github.io");
+});
+
+it('drops a picture that isn’t on the directory’s own address', function (): void {
+    $keys = dirKeys();
+    config(['teme.directory.public_keys' => [$keys['public']]]);
+    dirServe(dirFiles($keys['secret'], [dirPackage('acme/links', listing: ['icon' => 'https://tracker.example/pixel.png'])]));
+
+    $answer = $this->actingAs($this->admin)->getJson(route('extensions.directory'))->json();
+
+    expect($answer['results'][0]['icon'])->toBeNull();
 });

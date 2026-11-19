@@ -47,6 +47,31 @@ final readonly class DirectoryReader
     }
 
     /**
+     * The directory address's origin, such as https://temecms.github.io, or
+     * an empty string when the address isn't https.
+     */
+    public static function origin(): string
+    {
+        $address = config('teme.directory.address');
+        $parts = parse_url(is_string($address) && $address !== '' ? $address : self::DEFAULT_ADDRESS);
+
+        if (! is_array($parts) || ($parts['scheme'] ?? '') !== 'https' || ! isset($parts['host']) || preg_match('/^[A-Za-z0-9.-]+$/', $parts['host']) !== 1) {
+            return '';
+        }
+
+        return 'https://'.strtolower($parts['host']).(isset($parts['port']) ? ':'.$parts['port'] : '');
+    }
+
+    /**
+     * Whether a picture's address is on the directory's own address, the only
+     * place the admin shows the directory's pictures from.
+     */
+    public function isOwnPicture(mixed $url): bool
+    {
+        return is_string($url) && str_starts_with($url, $this->address()) && preg_match('/[\s"\'<>]/', $url) !== 1;
+    }
+
+    /**
      * Returns the public keys an index may be signed with, each 32 raw bytes;
      * a placeholder or a value that isn't a key is left out.
      *
@@ -147,6 +172,10 @@ final readonly class DirectoryReader
      */
     private function get(string $path, int $most): string
     {
+        if (self::origin() === '') {
+            throw DirectoryRefused::unreachable($path);
+        }
+
         try {
             $response = Http::withUserAgent(GitHubReleases::USER_AGENT)->timeout(10)->get($this->address().$path);
         } catch (ConnectionException) {
