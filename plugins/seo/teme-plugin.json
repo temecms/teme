@@ -301,6 +301,17 @@
                         },
                         {
                             "type": "figures",
+                            "id": "featured",
+                            "items": [
+                                {
+                                    "id": "no-featured-image",
+                                    "label": "Without a featured image",
+                                    "format": "number"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "figures",
                             "id": "totals",
                             "items": [
                                 {

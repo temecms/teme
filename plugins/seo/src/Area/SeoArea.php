@@ -61,6 +61,13 @@ final readonly class SeoArea implements PluginArea
         }
 
         $published = $this->index->query()->whereRaw(BuiltInChecks::published('i'));
+
+        if ($block === 'featured') {
+            return [
+                'no-featured-image' => Figure::number((clone $published)->whereRaw(BuiltInChecks::conditions()['no-featured-image'])->count()),
+            ];
+        }
+
         $problems = (clone $published)->whereRaw('('.$this->anyProblem().')', [$this->thinWords()]);
         $orphaned = (clone $published)->whereRaw(BuiltInChecks::conditions()['orphaned']);
 
@@ -303,9 +310,12 @@ final readonly class SeoArea implements PluginArea
             $failing = [];
 
             foreach (array_keys($conditions) as $id) {
-                if ((bool) $row->{'fails_'.$id}) {
-                    $failing[] = $labels[$id];
+                // Featured image is its own figure; it never counts as a listed problem.
+                if ($id === 'no-featured-image' || ! (bool) $row->{'fails_'.$id}) {
+                    continue;
                 }
+
+                $failing[] = $labels[$id];
             }
 
             $rows[] = new Row((string) $row->id, [
@@ -427,19 +437,29 @@ final readonly class SeoArea implements PluginArea
     }
 
     /**
-     * The SQL that is true when a published item fails any check; `?` is the fewest words.
+     * Checks that count toward "with a problem" (featured image is its own figure).
+     *
+     * @return array<string, string>
      */
-    private function anyProblem(): string
+    private function countedConditions(): array
     {
-        return implode(' or ', BuiltInChecks::conditions());
+        return array_diff_key(BuiltInChecks::conditions(), ['no-featured-image' => true]);
     }
 
     /**
-     * The SQL that counts a published item's problems; `?` is the fewest words.
+     * The SQL that is true when a published item fails any counted check; `?` is the fewest words.
+     */
+    private function anyProblem(): string
+    {
+        return implode(' or ', $this->countedConditions());
+    }
+
+    /**
+     * The SQL that counts a published item's counted problems; `?` is the fewest words.
      */
     private function problemCount(): string
     {
-        $sum = implode(' + ', array_map(fn (string $condition): string => "(case when {$condition} then 1 else 0 end)", BuiltInChecks::conditions()));
+        $sum = implode(' + ', array_map(fn (string $condition): string => "(case when {$condition} then 1 else 0 end)", $this->countedConditions()));
 
         return 'case when '.BuiltInChecks::published('i').' then '.$sum.' else -1 end';
     }
