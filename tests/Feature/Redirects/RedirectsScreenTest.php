@@ -131,6 +131,31 @@ it('opens the form with the address it is given, says how many redirects and log
             ->where('siteTimezone', 'UTC'));
 });
 
+it('narrows the list by state, status and origin, counts what it finds, and ignores a filter it doesn’t know', function (): void {
+    rdSaved('/kept-on', '/news/');
+    rdSaved('/switched-off', '/news/', on: false);
+    rdSaved('/gone-for-good', status: 410);
+    $imported = rdSaved('/from-the-old-site', '/news/');
+    DB::table('redirects')->where('id', $imported)->update(['origin' => 'import']);
+
+    $props = fn (string $query): array => $this->actingAs($this->editor)->get('/admin/tools/redirects'.$query)->assertOk()->viewData('page')['props'];
+
+    expect(array_column($props('?state=off')['rows'], 'from'))->toBe(['/switched-off'])
+        ->and($props('?state=off')['filters'])->toBe(['on' => 'off', 'status' => null, 'origin' => null])
+        ->and(array_column($props('?status=410')['rows'], 'from'))->toBe(['/gone-for-good'])
+        ->and(array_column($props('?origin=import')['rows'], 'from'))->toBe(['/from-the-old-site'])
+        ->and($props('?origin=manual&state=on')['shown'])->toBe(2)
+        ->and($props('?state=waiting&status=404&origin=csv'))->toMatchArray(['shown' => 4, 'filters' => ['on' => null, 'status' => null, 'origin' => null]]);
+});
+
+it('sends the 404 log’s old address on to the Not found tab, keeping the page it named', function (): void {
+    $this->actingAs($this->editor)->get('/admin/tools/redirects/404')
+        ->assertRedirect('/admin/tools/redirects?tab=not-found');
+
+    $this->actingAs($this->editor)->get('/admin/tools/redirects/404?count=75&path=gone-25')
+        ->assertRedirect('/admin/tools/redirects?tab=not-found&count=75&path=gone-25');
+});
+
 it('refuses the list and the log to an author or a contributor', function (string $role): void {
     $person = User::factory()->create()->assignRole($role);
 

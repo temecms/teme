@@ -77,7 +77,7 @@ export function PlaceFields({
                 <p className="text-body font-medium">{kindName}</p>
             ) : (
                 <fieldset className="grid gap-3">
-                    <legend className="text-body text-ink mb-2 font-semibold">
+                    <legend className="text-small text-ink mb-2 font-medium">
                         {__('Where should backups be kept?')}
                     </legend>
                     <RadioGroup
@@ -97,6 +97,11 @@ export function PlaceFields({
                                 label={option.name}
                                 description={option.line}
                                 data-test={`setup-kind-${option.kind}`}
+                                className={
+                                    option.kind === kind
+                                        ? 'bg-accent-soft border-accent rounded-lg border px-4 py-3'
+                                        : 'bg-surface-2 rounded-lg border border-transparent px-4 py-3'
+                                }
                             />
                         ))}
                     </RadioGroup>

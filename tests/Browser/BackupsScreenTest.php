@@ -211,7 +211,7 @@ it('backs up now: the job waits, the scheduler takes it, and the screen follows 
         app()->forgetScopedInstances();
 
         ($this->seen)($page, 'The database is backed up at Place 1, and checked.');
-        ($this->seen)($page, 'The newest backup holds the database');
+        ($this->seen)($page, 'The database (');
         cmWaitUntil($page, 'document.querySelector(\'[data-test="backup-now"]\').disabled === false');
     } finally {
         $backups->delete();

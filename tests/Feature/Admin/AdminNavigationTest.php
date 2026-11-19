@@ -159,7 +159,7 @@ it('gives Settings and Tools the screens the person may open, and every other en
 
     // Each list is read by its own entries: a later part adds to the Tools hub.
     expect($screens($admin, 'settings'))->toContain(['key' => 'media', 'label' => 'Media', 'icon' => 'settings', 'href' => route('settings.show', ['group' => 'media'], false)])
-        ->and($screens($admin, 'tools'))->toContain(['key' => 'redirects', 'label' => 'Redirects', 'icon' => 'link', 'href' => route('tools.redirects.index', [], false)])
+        ->and($screens($admin, 'tools'))->toContain(['key' => 'redirects', 'label' => 'Redirects', 'icon' => 'arrow-right', 'href' => route('tools.redirects.index', [], false)])
         // Editors manage redirects, and only administrators clear the page cache (I-850).
         ->and(array_column($screens($editor, 'tools'), 'key'))->toContain('redirects')->not->toContain('page-cache')
         ->and($screens($admin, 'media'))->toBe([])

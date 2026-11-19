@@ -68,13 +68,13 @@ it('seeds a finished import whose counts are its rows’', function (): void {
 
 it('counts a run’s objects by kind and outcome, in the report’s order (I-345)', function (): void {
     expect(app(ImportScreen::class)->report($this->run)['types'])->toBe([
-        ['type' => 'user', 'label' => 'People', 'created' => 2, 'updated' => 0, 'skipped' => 1, 'failed' => 0],
-        ['type' => 'term', 'label' => 'Categories and tags', 'created' => 2, 'updated' => 0, 'skipped' => 0, 'failed' => 0],
-        ['type' => 'attachment', 'label' => 'Media files', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 1],
-        ['type' => 'post', 'label' => 'Posts and pages', 'created' => 2, 'updated' => 1, 'skipped' => 0, 'failed' => 1],
-        ['type' => 'comment', 'label' => 'Comments', 'created' => 2, 'updated' => 0, 'skipped' => 0, 'failed' => 0],
-        ['type' => 'redirect', 'label' => 'Redirects', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 0],
-        ['type' => 'file', 'label' => 'File addresses', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 0],
+        ['type' => 'user', 'label' => 'People', 'created' => 2, 'updated' => 0, 'skipped' => 1, 'failed' => 0, 'warnings' => 1],
+        ['type' => 'term', 'label' => 'Categories and tags', 'created' => 2, 'updated' => 0, 'skipped' => 0, 'failed' => 0, 'warnings' => 0],
+        ['type' => 'attachment', 'label' => 'Media files', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 1, 'warnings' => 0],
+        ['type' => 'post', 'label' => 'Posts and pages', 'created' => 2, 'updated' => 1, 'skipped' => 0, 'failed' => 1, 'warnings' => 1],
+        ['type' => 'comment', 'label' => 'Comments', 'created' => 2, 'updated' => 0, 'skipped' => 0, 'failed' => 0, 'warnings' => 0],
+        ['type' => 'redirect', 'label' => 'Redirects', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 0, 'warnings' => 0],
+        ['type' => 'file', 'label' => 'File addresses', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 0, 'warnings' => 0],
     ]);
 });
 
@@ -169,4 +169,17 @@ it('lists a site’s imports newest first, each with its counts and its report�
         ['id' => $older, 'kind' => 'full', 'kindLabel' => 'Full import', 'state' => 'finished', 'stateLabel' => 'Finished', 'counts' => ['created' => 4, 'failed' => 0], 'href' => "/admin/tools/import/{$this->source}?run={$older}"],
     ])
         ->and($runs[0]['startedAt'])->toBeString();
+});
+
+it('counts the objects of each kind that have a warning, and the run’s errors and warnings, for the report’s columns and chips', function (): void {
+    $report = app(ImportScreen::class)->report($this->run);
+    $warned = DB::table('import_messages as x')->join('import_map as m', 'm.id', '=', 'x.map_id')
+        ->where('x.run_id', $this->run)->where('x.level', 'warning')
+        ->selectRaw('m.object_type, count(DISTINCT x.map_id) AS total')->groupBy('m.object_type')->pluck('total', 'object_type')->all();
+
+    expect(array_column($report['types'], 'warnings', 'type'))->toBe(array_map(fn (string $type): int => (int) ($warned[$type] ?? 0), array_column($report['types'], 'type', 'type')))
+        ->and($report['levels'])->toBe([
+            'error' => DB::table('import_messages')->where('run_id', $this->run)->where('level', 'error')->count(),
+            'warning' => DB::table('import_messages')->where('run_id', $this->run)->where('level', 'warning')->count(),
+        ]);
 });

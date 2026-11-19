@@ -21,12 +21,37 @@ function toolCard(tool: ToolPage) {
     );
 }
 
+/** The heading each of Teme's own tools sits under, in the hub's order. */
+const SECTIONS: { title: () => string; keys: string[] }[] = [
+    {
+        title: () => __('Health and activity'),
+        keys: ['jobs', 'updates', 'ai-activity'],
+    },
+    {
+        title: () => __('Content in and out'),
+        keys: ['import', 'backups', 'page-cache', 'redirects'],
+    },
+];
+
 /**
- * The Tools hub (I-467): a card for each tool the person may open, then the
- * links plugins added under From plugins, each with its plugin's mark.
+ * The Tools hub (I-467): Teme's tools under the heading a person would look
+ * for them by, then the pages plugins added under From plugins, each with
+ * its plugin's mark.
  */
 export default function ToolsIndex({ tools }: ToolsIndexPage) {
     setLayoutProps({ breadcrumbs: [{ title: __('Tools'), href: index() }] });
+
+    const own = tools.filter((tool) => tool.plugin === undefined);
+    const sectioned = SECTIONS.flatMap((section) => section.keys);
+    const sections = SECTIONS.map((section) => ({
+        heading: section.title(),
+        cards: section.keys.flatMap((key) =>
+            own.filter((tool) => tool.key === key).map(toolCard),
+        ),
+    })).filter((section) => section.cards.length > 0);
+    // A tool of Teme's own that no heading names yet comes first, on its own.
+    const other = own.filter((tool) => !sectioned.includes(tool.key));
+    const fromPlugins = tools.filter((tool) => tool.plugin !== undefined);
 
     return (
         <>
@@ -34,13 +59,12 @@ export default function ToolsIndex({ tools }: ToolsIndexPage) {
 
             <HubPage
                 title={__('Tools')}
-                description={__('Utilities for looking after the site.')}
-                cards={tools
-                    .filter((tool) => tool.plugin === undefined)
-                    .map(toolCard)}
-                pluginCards={tools
-                    .filter((tool) => tool.plugin !== undefined)
-                    .map(toolCard)}
+                description={__(
+                    'Teme’s tools, then the pages plugins add. A plugin’s pages live here unless it earns a menu entry of its own.',
+                )}
+                cards={other.map(toolCard)}
+                sections={sections}
+                pluginCards={fromPlugins.map(toolCard)}
             />
         </>
     );

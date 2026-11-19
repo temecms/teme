@@ -29,7 +29,7 @@ export function KeysList({
                     )}
                 </p>
 
-                <p>
+                <p className="font-semibold">
                     {__n(
                         ':count recovery key opens these backups.|:count recovery keys open these backups.',
                         keys.length,
@@ -38,12 +38,12 @@ export function KeysList({
 
                 {!paused && <KeyActions keys={keys} />}
 
-                <ul className="divide-line grid divide-y">
+                <ul className="grid gap-3">
                     {keys.map((key) => (
                         <li
                             key={key.label}
                             data-test="backup-key"
-                            className="flex flex-wrap items-center justify-between gap-2 py-3"
+                            className="bg-surface-2 flex flex-wrap items-center justify-between gap-2 rounded-lg p-4"
                         >
                             <p>
                                 <span className="font-medium">{key.label}</span>

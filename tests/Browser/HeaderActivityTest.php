@@ -78,7 +78,7 @@ it('shows a person’s running job on the jobs button, and cancels it from the p
 
     $page->click('[data-test="jobs-button"]');
     cmWaitUntil($page, <<<'JS'
-        document.querySelector('[data-test="jobs-panel"][role="dialog"] progress[aria-label="Progress of Move all posts to the trash"]') !== null
+        document.querySelector('[data-test="jobs-panel"][role="dialog"] [role="progressbar"][aria-label="Progress of Move all posts to the trash"]') !== null
         JS);
     $page->assertNoAccessibilityIssues(3)
         ->click('[aria-label="Cancel Move all posts to the trash"]');

@@ -42,7 +42,7 @@ dataset('tool frames', [
     'Page cache' => ['/admin/tools/page-cache', 'Page cache'],
     'Updates' => ['/admin/tools/updates', 'Updates'],
     'Redirects' => ['/admin/tools/redirects', 'Redirects'],
-    '404 log' => ['/admin/tools/redirects/404', 'Redirects'],
+    'Not found' => ['/admin/tools/redirects?tab=not-found', 'Redirects'],
     'AI activity' => ['/admin/tools/ai-activity', 'AI activity'],
 ]);
 

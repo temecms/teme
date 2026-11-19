@@ -1,6 +1,8 @@
 import { Printer } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { Notice } from '@/components/ui/notice';
+import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { names } from '@/lib/backup-words';
 import { __ } from '@/lib/i18n';
 import type { RecoveryKeyPageProps } from '@/types/backups';
@@ -26,7 +28,7 @@ const sentencesAboutKeeping = () => [
 
 /**
  * A recovery key as it is shown, once (I-2401): its eight groups, numbered,
- * four sentences about keeping it, Print and Continue, and the sheet that
+ * the sentences about keeping it, Print and Continue, and the sheet that
  * prints. There is no Copy: a clipboard keeps what it is given.
  */
 export function KeySheet({
@@ -49,63 +51,89 @@ export function KeySheet({
 
     return (
         <section className="grid gap-5">
-            <p className="text-small text-ink-2">
-                {__('Teme shows it once and keeps no copy.')}
-            </p>
+            <Notice tone="warn">
+                <strong className="font-semibold">
+                    {__('Teme shows this key once.')}
+                </strong>{' '}
+                {__(
+                    'It keeps no copy, so it cannot show it again. Leaving this page drops it.',
+                )}
+            </Notice>
 
-            <ol
-                aria-label={__('Recovery key, eight groups')}
-                className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-            >
-                {page.groups.map((group, index) => (
-                    <li
-                        key={index}
-                        data-test="key-group"
-                        className="bg-surface shadow-raised grid gap-1 rounded-md p-3"
+            <Panel aria-labelledby="key-sheet-title">
+                <PanelHeader>
+                    <h2
+                        id="key-sheet-title"
+                        className="text-lead font-semibold"
                     >
-                        <span
-                            aria-hidden="true"
-                            className="text-caption text-ink-3"
-                        >
-                            {index + 1}
-                        </span>
-                        <span className="sr-only">
-                            {__('Group :number:', { number: index + 1 })}{' '}
-                        </span>
-                        <span
-                            data-test="key-group-value"
-                            className="text-title font-mono font-medium"
-                        >
-                            {group}
-                        </span>
-                    </li>
-                ))}
-            </ol>
+                        {__('Recovery key for :site', { site: page.site })}
+                    </h2>
+                </PanelHeader>
+                <PanelBody className="text-body gap-5">
+                    <p className="text-small text-ink-2">
+                        {__('Made :date for the backups at :places.', {
+                            date: page.madeOn,
+                            places: names(page.places),
+                        })}
+                    </p>
 
-            <div className="text-body grid gap-2">
-                {sentences.map((sentence) => (
-                    <p key={sentence}>{sentence}</p>
-                ))}
-            </div>
+                    <ol
+                        aria-label={__('Recovery key, eight groups')}
+                        className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+                    >
+                        {page.groups.map((group, index) => (
+                            <li
+                                key={index}
+                                data-test="key-group"
+                                className="bg-surface-2 grid gap-1 rounded-md p-4"
+                            >
+                                <span className="text-small text-ink-3">
+                                    {__('Group :number', {
+                                        number: index + 1,
+                                    })}
+                                </span>
+                                <span
+                                    data-test="key-group-value"
+                                    className="text-lead font-mono font-semibold"
+                                >
+                                    {group}
+                                </span>
+                            </li>
+                        ))}
+                    </ol>
 
-            <div className="flex flex-wrap gap-2">
-                <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => window.print()}
-                    data-test="key-print"
-                >
-                    <Printer aria-hidden="true" />
-                    {__('Print this key')}
-                </Button>
-                <Button
-                    type="button"
-                    onClick={onContinue}
-                    data-test="key-continue"
-                >
-                    {__('I’ve kept it safe: continue')}
-                </Button>
-            </div>
+                    <ul className="grid list-disc gap-2 ps-5">
+                        {sentences.map((sentence) => (
+                            <li key={sentence}>{sentence}</li>
+                        ))}
+                    </ul>
+
+                    <p className="text-small text-ink-2">
+                        {__(
+                            'There is no Copy button on purpose: a clipboard keeps what it is given.',
+                        )}
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => window.print()}
+                            data-test="key-print"
+                        >
+                            <Printer aria-hidden="true" />
+                            {__('Print this key')}
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={onContinue}
+                            data-test="key-continue"
+                        >
+                            {__('I’ve kept it safe: continue')}
+                        </Button>
+                    </div>
+                </PanelBody>
+            </Panel>
 
             {createPortal(
                 <div id="key-print-sheet" className="hidden p-10">

@@ -4,21 +4,24 @@ import { toast } from 'sonner';
 import BackupSetupController from '@/actions/App/Http/Admin/Tools/Backups/BackupSetupController';
 import { BackUpNowButton } from '@/components/backups/back-up-now';
 import { ChecksList } from '@/components/backups/checks-list';
+import {
+    KeptBackups,
+    Restoring,
+    RESTORING_ID,
+} from '@/components/backups/kept-backups';
+import type { ChosenBackup } from '@/components/backups/kept-backups';
 import { KeysList } from '@/components/backups/keys-list';
 import { PlacesList } from '@/components/backups/places-list';
 import { TypedBack } from '@/components/backups/typed-back';
 import { Verdict } from '@/components/backups/verdict';
 import { FormPage } from '@/components/patterns/form-page';
 import { Button } from '@/components/ui/button';
-import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
+import { Panel, PanelBody } from '@/components/ui/panel';
 import { __ } from '@/lib/i18n';
 import { index } from '@/routes/tools';
 import { index as backups } from '@/routes/tools/backups';
 import type { BackupsPage } from '@/types/backups';
 import type { JobRow } from '@/types/jobs';
-
-/** The command that restores a backup, typed at the server as it is. */
-const RESTORE_COMMAND = 'php artisan teme:backup:restore';
 
 /** How long an open page waits for the first backup before it stays still until reloaded: a stopped scheduler would otherwise keep it asking for ever. */
 const FIRST_BACKUP_WAIT_MS = 10 * 60 * 1000;
@@ -76,6 +79,20 @@ function PendingKey({ page }: { page: BackupsPage }) {
 /** Tools › Backups (I-364): is the site safe, where backups are kept, what was checked, and the keys. */
 export default function BackupsIndex(page: BackupsPage) {
     const setUp = page.setup.state !== 'none';
+    const unfinished = page.setup.state === 'unfinished';
+    const [chosen, setChosen] = useState<ChosenBackup | null>(null);
+    const use = (next: ChosenBackup) => {
+        setChosen(next);
+        document
+            .getElementById(RESTORING_ID)
+            ?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        toast(
+            __('The restore command now names run :run at :place', {
+                run: next.run,
+                place: next.place,
+            }),
+        );
+    };
     const open =
         page.backupJob !== null &&
         (page.backupJob.state === 'waiting' ||
@@ -184,6 +201,15 @@ export default function BackupsIndex(page: BackupsPage) {
                 <div className="grid gap-4">
                     <Verdict page={page} />
 
+                    {setUp && !unfinished && (
+                        <KeptBackups
+                            backups={page.backups}
+                            zone={page.schedule?.zone ?? 'UTC'}
+                            chosen={chosen}
+                            onUse={use}
+                        />
+                    )}
+
                     {page.mediaInBucket && (
                         <p className="text-body">
                             {__(
@@ -213,27 +239,7 @@ export default function BackupsIndex(page: BackupsPage) {
                                 />
                             )}
 
-                            <Panel aria-labelledby="backup-restoring">
-                                <PanelHeader>
-                                    <h2
-                                        id="backup-restoring"
-                                        className="text-lead font-semibold"
-                                    >
-                                        {__('Restoring')}
-                                    </h2>
-                                </PanelHeader>
-                                <PanelBody className="text-body">
-                                    <p>
-                                        {__('Restoring is done at the server:')}{' '}
-                                        <code className="font-mono">
-                                            {RESTORE_COMMAND}
-                                        </code>{' '}
-                                        {__(
-                                            'checks everything first, backs the site up as it is, then restores. Restoring from this screen comes in a later version.',
-                                        )}
-                                    </p>
-                                </PanelBody>
-                            </Panel>
+                            {!unfinished && <Restoring chosen={chosen} />}
                         </>
                     )}
                 </div>

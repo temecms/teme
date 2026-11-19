@@ -43,7 +43,7 @@ it('warns that Teme keeps no copy of a recovery key under the keys’ heading, b
 it('says what Jobs is for, and that the inbox tells you, in the page’s description', function (): void {
     $source = ($this->flat)('pages/tools/jobs.tsx');
 
-    expect(($this->at)($source, 'description="Imports, bulk changes and other long tasks. When one you started finishes, you’ll get a message in your inbox, so you can leave this page."'))
+    expect(($this->at)($source, "description={__( 'Imports, bulk changes and other long tasks. When one you started finishes, you’ll get a message in your inbox, so you can leave this page.', )}"))
         ->toBeLessThan(($this->at)($source, '<DataTable'));
 });
 
@@ -81,8 +81,8 @@ it('puts the signed-in note inside the notice under Now on Page cache', function
 it('says how redirects behave in the notice at the top, not above the pager', function (): void {
     $source = ($this->flat)('pages/tools/redirects.tsx');
 
-    expect(($this->at)($source, 'A redirect answers only where no page does'))
-        ->toBeGreaterThan(($this->at)($source, 'data-test="redirects-notice"'))
+    expect(($this->at)($source, "{__('Changed addresses need no redirect.')}"))
+        ->toBeGreaterThan(($this->at)($source, 'testId="redirects-notice"'))
         ->toBeLessThan(($this->at)($source, '<DataTable'));
 });
 
@@ -113,7 +113,7 @@ it('offers Set a budget as a button beside None set', function (): void {
 
 it('offers Change the budget as a button beside the budget-reached note', function (): void {
     $source = ($this->flat)('pages/tools/ai-activity.tsx');
-    $note = ($this->at)($source, 'until the new month starts.');
+    $note = ($this->at)($source, 'until the budget is raised.');
 
     expect(($this->at)($source, 'asChild', $note))->toBeLessThan(($this->at)($source, 'Change the budget', $note))
         ->and($source)->not->toContain('Change it in');
@@ -123,6 +123,6 @@ it('explains the cost in the month summary, under Spent, not above the pager', f
     $source = ($this->flat)('pages/tools/ai-activity.tsx');
 
     expect(($this->at)($source, 'Cost is Teme’s own sum'))
-        ->toBeGreaterThan(($this->at)($source, "Spent')}</dt>"))
+        ->toBeGreaterThan(($this->at)($source, "label: __('Spent')"))
         ->toBeLessThan(($this->at)($source, 'export default function AiActivity'));
 });

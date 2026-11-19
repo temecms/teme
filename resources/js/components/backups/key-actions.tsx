@@ -183,7 +183,7 @@ function CheckKey() {
 }
 
 /**
- * Add my key to new places (I-2402): the typed key is given to places added
+ * Add your key to new places (I-2402): the typed key is given to places added
  * after it was made, then forgotten.
  */
 function ExtendKey({ places }: { places: string[] }) {
@@ -197,7 +197,7 @@ function ExtendKey({ places }: { places: string[] }) {
                 onClick={() => setOpen(true)}
                 data-test="backup-key-extend"
             >
-                {__('Add my key to new places')}
+                {__('Add your key to new places')}
             </Button>
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent>
@@ -254,7 +254,7 @@ function ExtendKey({ places }: { places: string[] }) {
     );
 }
 
-/** Check, Add another and Add my key to new places, above the list of keys. */
+/** Check, Add another and Add your key to new places, above the list of keys. */
 export function KeyActions({ keys }: { keys: RecoveryKeyRow[] }) {
     const lacking = Array.from(new Set(keys.flatMap((key) => key.missingAt)));
 

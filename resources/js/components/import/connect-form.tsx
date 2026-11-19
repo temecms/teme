@@ -6,6 +6,7 @@ import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Panel, PanelBody, PanelHeader } from '@/components/ui/panel';
 import { __ } from '@/lib/i18n';
+import { QuietNote } from '@/components/tools/quiet-note';
 
 /**
  * Connecting a WordPress site, or connecting a forgotten one again (I-227).
@@ -44,25 +45,27 @@ export function ConnectForm({
                             )}
                         </p>
                     ) : (
-                        <div className="text-body grid gap-2">
-                            <p>{__('First, on the WordPress site:')}</p>
-                            <ol className="grid list-decimal gap-1 ps-5">
+                        <QuietNote testId="import-first-steps">
+                            <p className="text-ink font-semibold">
+                                {__('First, on the WordPress site:')}
+                            </p>
+                            <ol className="grid list-decimal gap-2 ps-5">
                                 <li>
                                     {__(
-                                        'Install and activate the Teme Companion plugin, version :version or later.',
-                                        { version: companion?.version ?? '' },
+                                        'Install and activate the Teme Companion plugin',
                                     )}
                                     {companion?.releases != null && (
                                         <>
                                             {' '}
                                             <a
                                                 href={companion.releases}
-                                                className="text-ink underline underline-offset-4"
+                                                className="text-accent-ink font-medium underline-offset-4 hover:underline"
                                             >
                                                 {__('Download Teme Companion')}
                                             </a>
                                         </>
                                     )}
+                                    .
                                 </li>
                                 <li>
                                     {__(
@@ -75,7 +78,7 @@ export function ConnectForm({
                                     )}
                                 </li>
                             </ol>
-                        </div>
+                        </QuietNote>
                     )}
 
                     <Form
@@ -112,36 +115,40 @@ export function ConnectForm({
                                     </Field>
                                 )}
 
-                                <Field
-                                    htmlFor="import-user-name"
-                                    label={__('WordPress user name')}
-                                    help={__('An administrator’s.')}
-                                    error={errors.user_name}
-                                >
-                                    <Input
-                                        id="import-user-name"
-                                        name="user_name"
-                                        autoComplete="username"
-                                        defaultValue={userName ?? undefined}
-                                    />
-                                </Field>
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <Field
+                                        htmlFor="import-user-name"
+                                        label={__('WordPress user name')}
+                                        help={__(
+                                            'The account that made the application password.',
+                                        )}
+                                        error={errors.user_name}
+                                    >
+                                        <Input
+                                            id="import-user-name"
+                                            name="user_name"
+                                            autoComplete="username"
+                                            defaultValue={userName ?? undefined}
+                                        />
+                                    </Field>
 
-                                <Field
-                                    htmlFor="import-application-password"
-                                    label={__('Application password')}
-                                    help={__(
-                                        'Teme keeps it encrypted until you choose Forget this site, and never shows it again.',
-                                    )}
-                                    error={errors.application_password}
-                                >
-                                    <PasswordInput
-                                        id="import-application-password"
-                                        name="application_password"
-                                        autoComplete="off"
-                                    />
-                                </Field>
+                                    <Field
+                                        htmlFor="import-application-password"
+                                        label={__('Application password')}
+                                        help={__(
+                                            'Teme keeps it encrypted until you choose Forget this site, and never shows it again.',
+                                        )}
+                                        error={errors.application_password}
+                                    >
+                                        <PasswordInput
+                                            id="import-application-password"
+                                            name="application_password"
+                                            autoComplete="off"
+                                        />
+                                    </Field>
+                                </div>
 
-                                <div className="grid justify-items-start gap-2">
+                                <div className="flex flex-wrap items-center gap-3">
                                     <Button
                                         type="submit"
                                         data-test="import-connect"

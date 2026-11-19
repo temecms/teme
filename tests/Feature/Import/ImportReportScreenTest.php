@@ -74,7 +74,7 @@ it('shows a stopped import’s report so far under its progress', function (): v
             ->where('step', 'import')
             ->where('run.id', $stopped)
             ->where('run.stopMessage', 'Stopped on request. Run it again to carry on from where it stopped.')
-            ->where('report.types', [['type' => 'post', 'label' => 'Posts and pages', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 0]]));
+            ->where('report.types', [['type' => 'post', 'label' => 'Posts and pages', 'created' => 1, 'updated' => 0, 'skipped' => 0, 'failed' => 0, 'warnings' => 0]]));
 });
 
 it('downloads the full report and what needs attention as CSV files named for the site', function (): void {

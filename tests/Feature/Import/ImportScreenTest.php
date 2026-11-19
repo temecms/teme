@@ -93,6 +93,7 @@ it('lists the sites Teme knows, with where each stands', function (): void {
             'host' => 'old.example',
             'state' => 'finished',
             'stateLabel' => 'Imported',
+            'pluginVersion' => $source->plugin_version,
             'forgotten' => true,
             'lastImportAt' => $run->started_at->utc()->toIso8601String(),
             'href' => "/admin/tools/import/{$source->id}",

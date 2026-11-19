@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Tools › Jobs (I-104): every tracked job, a keyset page at a time, polled
- * while one is under way; retrying and cancelling through RetryJob and
+ * Tools › Jobs (I-104): the person's own jobs or everyone's, in one state or
+ * all, a keyset page at a time, polled while one is under way; retrying and cancelling through RetryJob and
  * CancelJob. It changes nothing itself.
  *
  * @package Teme
@@ -14,6 +14,11 @@ declare(strict_types=1);
 
 namespace App\Http\Admin\Tools;
 
+use App\Domain\Backups\Tracking\BackupJobKind;
+use App\Domain\Contents\BulkRunJobKind;
+use App\Domain\Import\Tracking\ImportJobKind;
+use App\Domain\Import\Tracking\PageParentsJobKind;
+use App\Domain\Jobs\JobState;
 use App\Domain\Jobs\Operations\CancelJob;
 use App\Domain\Jobs\Operations\Input\CancelJobInput;
 use App\Domain\Jobs\Operations\Input\RetryJobInput;
@@ -35,16 +40,25 @@ final class JobsController extends Controller
     public function index(Request $request, TrackedJobList $list, SettingsReader $settings): Response
     {
         $found = null;
+        $whose = $request->query('whose') === 'everyone' ? 'everyone' : 'mine';
+        $state = JobState::tryFrom($request->string('state')->toString());
+        $me = (int) $request->user()?->getAuthIdentifier();
+        $startedBy = $whose === 'mine' ? $me : null;
+        $filters = array_filter(['whose' => $whose === 'mine' ? null : $whose, 'state' => $state?->value]);
 
         // One read serves the rows and both pages either side, and none when a poll asks for the failed count alone.
-        $read = function () use (&$found, $list, $request): array {
-            return $found ??= $list->page(self::optional($request, 'after'), self::optional($request, 'before'), (int) PreferencesFor::user($request->user())['lists.per_page']);
+        $read = function () use (&$found, $list, $request, $startedBy, $state): array {
+            return $found ??= $list->page(self::optional($request, 'after'), self::optional($request, 'before'), (int) PreferencesFor::user($request->user())['lists.per_page'], $startedBy, $state);
         };
 
         return Inertia::render('tools/jobs', [
-            'rows' => fn (): array => $read()['rows'],
-            'newer' => fn (): ?string => self::pageAt('before', $read()['newer']),
-            'older' => fn (): ?string => self::pageAt('after', $read()['older']),
+            'rows' => fn (): array => array_map(fn (array $row): array => [...$row, 'context' => self::context($row['kind']), 'mine' => $row['startedById'] === $me], $read()['rows']),
+            'newer' => fn (): ?string => self::pageAt('before', $read()['newer'], $filters),
+            'older' => fn (): ?string => self::pageAt('after', $read()['older'], $filters),
+            'whose' => $whose,
+            'state' => $state?->value,
+            'counts' => fn (): array => ['mine' => $list->count($me), 'everyone' => $list->count()],
+            'shown' => fn (): int => $list->count($startedBy, $state),
             'failed' => fn (): int => $list->failedCount(),
             'siteTimezone' => $settings->string('general', 'timezone'),
             'inboxHref' => route('inbox.index', [], false),
@@ -118,11 +132,30 @@ final class JobsController extends Controller
     }
 
     /**
-     * The address of the page a cursor opens, or null for none.
+     * The address of the page a cursor opens, keeping the filters, or null
+     * for none.
+     *
+     * @param  array<string, string>  $filters
      */
-    private static function pageAt(string $way, ?string $cursor): ?string
+    private static function pageAt(string $way, ?string $cursor, array $filters): ?string
     {
-        return $cursor === null ? null : route('tools.jobs.index', [$way => $cursor], false);
+        return $cursor === null ? null : route('tools.jobs.index', [...$filters, $way => $cursor], false);
+    }
+
+    /**
+     * What a job of this kind worked on, as the line under its name says it,
+     * with where that leads, or null when the kind says nothing more.
+     *
+     * @return array{label: string, href: string|null}|null
+     */
+    private static function context(string $kind): ?array
+    {
+        return match ($kind) {
+            ImportJobKind::KEY, PageParentsJobKind::KEY => ['label' => __('Import'), 'href' => route('tools.importer.index', [], false)],
+            BackupJobKind::KEY => ['label' => __('Backups'), 'href' => route('tools.backups.index', [], false)],
+            BulkRunJobKind::KEY => ['label' => __('Bulk change'), 'href' => null],
+            default => null,
+        };
     }
 
     /**

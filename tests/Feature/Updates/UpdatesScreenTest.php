@@ -67,13 +67,13 @@ it('refuses everyone without updates.manage', function (string $role): void {
     $this->actingAs(User::factory()->create()->assignRole($role))->get('/admin/tools/updates')->assertForbidden();
 })->with(['editor', 'author', 'contributor']);
 
-it('lists Updates on the Tools hub, after Backups, for administrators', function (): void {
+it('lists Updates on the Tools hub, after Jobs, for administrators', function (): void {
     $this->actingAs($this->admin)->get('/admin/tools')->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('tools.3', [
+        ->assertInertia(fn (Assert $page) => $page->where('tools.1', [
             'key' => 'updates',
             'label' => 'Updates',
-            'icon' => 'refresh-cw',
-            'description' => 'Which Teme this site runs, the newest release, and what changed.',
+            'icon' => 'download',
+            'description' => 'The Teme this site runs, what is new, and updating from here.',
             'href' => '/admin/tools/updates',
             'external' => false,
         ]));

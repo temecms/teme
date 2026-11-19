@@ -15,6 +15,7 @@ export function SetupSteps({ current }: { current: 1 | 2 | 3 }) {
             ]}
             current={current - 1}
             aria-label={__('Setup steps')}
+            className="grid sm:grid-cols-3"
         />
     );
 }

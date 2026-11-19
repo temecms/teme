@@ -117,7 +117,6 @@ components/inbox/inbox-list.tsx	(unread)
 components/inbox/inbox-list.tsx	Inbox items
 components/inbox/inbox-list.tsx	Nothing new
 components/inbox/inbox-list.tsx	Results of imports and other background work arrive here.
-components/jobs/job-progress.tsx	Progress of {}
 components/list/bulk-edit-dialog.tsx	A dash means some of them have it. Click to add it to all, again to remove it from all, and again to leave each as it was.
 components/list/bulk-edit-dialog.tsx	Added to every item. The ones they have stay.
 components/list/bulk-edit-dialog.tsx	Apply to
@@ -447,28 +446,6 @@ pages/taxonomies/show.tsx	genre
 pages/taxonomies/show.tsx	php artisan teme:types:import
 pages/taxonomies/show.tsx	picker, and a
 pages/taxonomies/show.tsx	’s page lists their items. The same choice as each type’s Taxonomies, on Site › Types.
-pages/tools/backups/place.tsx	Another place to keep backups, kept in step with the others.
-pages/tools/backups/place.tsx	Backups
-pages/tools/backups/place.tsx	Cancel
-pages/tools/backups/place.tsx	Its name, or where it is. Teme checks that the backups at the new address are the same ones.
-pages/tools/backups/place.tsx	Making the place can take a few minutes on a distant server. Keep this page open.
-pages/tools/backups/place.tsx	Teme locks the new place with it too, then forgets it. It’s a key you typed back when it was made.
-pages/tools/backups/place.tsx	Tools
-pages/tools/backups/place.tsx	Your recovery key
-pages/tools/jobs.tsx	Actions
-pages/tools/jobs.tsx	Cancel
-pages/tools/jobs.tsx	Cancel {}
-pages/tools/jobs.tsx	Imports and other long tasks show their progress here.
-pages/tools/jobs.tsx	Imports, bulk changes and other long tasks. When one you started finishes, you’ll get a message in your inbox, so you can leave this page.
-pages/tools/jobs.tsx	Jobs
-pages/tools/jobs.tsx	Jobs
-pages/tools/jobs.tsx	Jobs
-pages/tools/jobs.tsx	No jobs yet
-pages/tools/jobs.tsx	Open inbox
-pages/tools/jobs.tsx	Retry
-pages/tools/jobs.tsx	Retry all failed (
-pages/tools/jobs.tsx	Retry {}
-pages/tools/jobs.tsx	Tools
 pages/types/fields.tsx	Actions for {}
 pages/types/fields.tsx	Add field
 pages/types/fields.tsx	Cancel

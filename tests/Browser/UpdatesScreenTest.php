@@ -101,9 +101,11 @@ it('words the screen for a site that has never checked, and for checks that are 
 it('names the commands and settings in full inside their sentences', function (): void {
     DB::table('update_checks')->delete();
 
-    $page = cmSignIn($this->admin)->navigate('/admin/tools/updates');
+    $page = cmSignIn($this->admin)->navigate('/admin/tools/updates')
+        ->click('How to update by hand');
+    cmWaitUntil($page, 'document.querySelector(\'[data-test="updates-how"] li\') !== null');
     $line = fn (string $selector): string => (string) $page->script('() => document.querySelector('.json_encode($selector, JSON_THROW_ON_ERROR).').innerText');
-    $dokploy = $page->script('() => { const item = document.querySelector(\'[aria-labelledby="updates-how"] li\').cloneNode(true); item.querySelector("strong").remove(); return item.innerText; }');
+    $dokploy = $page->script('() => { const item = document.querySelector(\'[data-test="updates-how"] li\').cloneNode(true); item.querySelector("strong").remove(); return item.innerText; }');
 
     expect($dokploy)->toContain('TEME_UPDATER_IMAGE')->not->toContain(':')
         ->and($line('[aria-labelledby="updates-check"] [data-slot="panel-body"] p:last-child'))->toContain('php artisan teme:updates:check')
